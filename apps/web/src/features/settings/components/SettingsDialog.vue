@@ -345,7 +345,7 @@ watch(active, async () => {
   height: clamp(var(--size-settings-dialog-height-min), 85vh, var(--size-settings-dialog-height));
   padding: 0;
   gap: 0;
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-dialog);
   overflow: hidden;
 }
 
@@ -374,7 +374,7 @@ watch(active, async () => {
   width: 100%;
   height: 2rem;
   padding-inline: var(--space-xs);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   color: var(--contrast-foreground-faint);
   font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
@@ -401,7 +401,7 @@ watch(active, async () => {
   gap: var(--space-xs);
   height: 2rem;
   padding-inline: var(--space-xs);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   color: var(--contrast-foreground-faint);
   font-size: var(--text-body);
   transition:
@@ -439,7 +439,7 @@ watch(active, async () => {
   width: 1.25rem;
   height: 1.25rem;
   border: 0;
-  border-radius: var(--radius-xs);
+  border-radius: calc(var(--radius-control) / 2);
   background: transparent;
   color: inherit;
   cursor: pointer;
@@ -466,7 +466,7 @@ watch(active, async () => {
   width: 100%;
   padding: var(--space-xs);
   border: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   background: transparent;
   text-align: start;
   cursor: default;
@@ -565,7 +565,7 @@ watch(active, async () => {
   place-items: center;
   width: var(--size-icon-button);
   height: var(--size-icon-button);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   color: var(--contrast-foreground-faint);
   cursor: pointer;
   transition:

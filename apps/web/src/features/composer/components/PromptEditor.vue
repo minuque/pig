@@ -584,7 +584,7 @@ defineExpose({ focus })
   position: relative;
   width: 100%;
   margin-inline: auto;
-  border-radius: var(--composer-radius);
+  border-radius: var(--radius-dialog);
   box-shadow: var(--composer-shadow);
 }
 
@@ -747,7 +747,7 @@ defineExpose({ focus })
   max-width: 100%;
   margin-inline: 1px;
   padding: 1px var(--space-xxs);
-  border-radius: var(--radius-xs);
+  border-radius: calc(var(--radius-control) / 2);
   background: var(--info-bg);
   color: var(--info);
   font-weight: var(--font-weight-medium);

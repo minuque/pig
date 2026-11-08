@@ -147,14 +147,14 @@ onBeforeUnmount(() => {
 
 .added {
   padding: 0 var(--space-xxs);
-  border-radius: var(--radius-xs);
+  border-radius: calc(var(--radius-control) / 2);
   background: var(--success-bg);
   color: var(--success);
 }
 
 .removed {
   padding: 0 var(--space-xxs);
-  border-radius: var(--radius-xs);
+  border-radius: calc(var(--radius-control) / 2);
   background: var(--danger-bg);
   color: var(--danger);
 }

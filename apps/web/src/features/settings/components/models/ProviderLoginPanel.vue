@@ -197,7 +197,7 @@ async function copy(text: string) {
 
 .device-code {
   padding: 2px 6px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   background: var(--hover-quiet);
   color: var(--contrast-foreground);
   font-family: var(--font-mono);
@@ -233,7 +233,7 @@ async function copy(text: string) {
   height: 30px;
   padding-inline: var(--space-sm);
   border: var(--border-width) solid var(--border-soft);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   background: var(--background);
   color: var(--contrast-foreground);
   font-size: var(--text-meta);

@@ -311,7 +311,7 @@ function onPreviewOpenChange(open: boolean) {
   height: 20px;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-xs);
+  border-radius: calc(var(--radius-control) / 2);
   background: transparent;
   color: var(--contrast-foreground-faint);
   cursor: pointer;

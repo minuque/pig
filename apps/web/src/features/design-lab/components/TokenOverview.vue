@@ -245,7 +245,7 @@ watch([isDark, fontSize], () => nextTick(read))
 }
 
 .sample[data-kind="color"] {
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   box-shadow: inset 0 0 0 var(--border-width) var(--border-soft);
 }
 
@@ -263,7 +263,7 @@ watch([isDark, fontSize], () => nextTick(read))
 .sample:is([data-kind="space"], [data-kind="size"]) {
   min-height: 12px;
   height: 12px;
-  border-radius: var(--radius-2xs);
+  border-radius: calc(var(--radius-control) / 2);
   background: var(--primary);
 }
 

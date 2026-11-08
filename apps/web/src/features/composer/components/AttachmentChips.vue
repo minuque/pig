@@ -129,7 +129,7 @@ const rows = computed(() =>
   width: 56px;
   height: 56px;
   overflow: visible;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   background: var(--hover-quiet);
 }
 

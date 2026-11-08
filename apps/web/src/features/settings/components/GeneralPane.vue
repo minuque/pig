@@ -228,7 +228,7 @@ const widthLabel = computed(
   gap: var(--space-sm);
   padding: var(--space-sm);
   border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-card);
   background: var(--card);
   color: var(--contrast-foreground-faint);
   transition:
@@ -254,7 +254,7 @@ const widthLabel = computed(
   overflow: hidden;
   height: 6.5rem;
   border: var(--border-width) solid var(--border-soft);
-  border-radius: var(--radius-lg);
+  border-radius: max(calc(var(--radius-control) / 2), calc(var(--radius-card) - var(--space-sm)));
   background: var(--theme-wire-light);
 }
 

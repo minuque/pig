@@ -188,7 +188,7 @@ function onOpenAutoFocus(event: Event) {
   flex: none;
   padding: var(--icon-button-pad);
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--contrast-foreground-faint);
   cursor: pointer;
@@ -261,7 +261,7 @@ function onOpenAutoFocus(event: Event) {
 }
 
 .legend-row--button {
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   cursor: pointer;
 }
 
@@ -274,7 +274,7 @@ function onOpenAutoFocus(event: Event) {
   flex: none;
   width: 8px;
   height: 8px;
-  border-radius: var(--radius-2xs);
+  border-radius: calc(var(--radius-control) / 2);
 }
 
 .legend-label {

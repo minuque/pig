@@ -465,7 +465,7 @@ function confirmDelete() {
   gap: var(--space-xxs);
   height: 20px;
   padding-inline: var(--space-xs);
-  border-radius: var(--radius-xs);
+  border-radius: calc(var(--radius-control) / 2);
   background: var(--info-bg);
   color: var(--primary);
   font-size: var(--text-meta);
@@ -479,7 +479,7 @@ function confirmDelete() {
   display: flex;
   min-width: 0;
   width: 100%;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   background: transparent;
   color: inherit;
   text-decoration: none;
@@ -523,7 +523,7 @@ function confirmDelete() {
   width: 16px;
   height: 16px;
   padding: 0;
-  border-radius: var(--radius-xs);
+  border-radius: calc(var(--radius-control) / 2);
   font-size: var(--text-monogram);
   font-weight: var(--font-weight-bold);
   line-height: 1;
@@ -643,7 +643,7 @@ function confirmDelete() {
   padding-block: var(--icon-button-pad);
   padding-inline: var(--space-xs);
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--contrast-foreground-faint);
   font-size: var(--text-meta);
@@ -715,7 +715,7 @@ function confirmDelete() {
   margin-block: -2px;
   padding: 0 var(--space-xxs);
   border: 0;
-  border-radius: var(--radius-xs);
+  border-radius: calc(var(--radius-control) / 2);
   outline: none;
   background: var(--hover-quiet);
   color: var(--contrast-foreground);

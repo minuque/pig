@@ -384,23 +384,23 @@
 
 /* ------ 圆角 ------ */
 .rounded-xs {
-  border-radius: var(--radius-xs);
+  border-radius: calc(var(--radius-control) / 2);
 }
 
 .rounded-sm {
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
 }
 
 .rounded-md {
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
 }
 
 .rounded-lg {
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-card);
 }
 
 .rounded-xl {
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-dialog);
 }
 
 .rounded-full {

@@ -210,7 +210,7 @@ function activate(index: number) {
   width: 24px;
   height: 24px;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--contrast-foreground);
 }
@@ -251,7 +251,7 @@ function activate(index: number) {
   height: 36px;
   padding-inline: var(--space-xs);
   border: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--contrast-foreground);
   font-size: var(--text-meta);

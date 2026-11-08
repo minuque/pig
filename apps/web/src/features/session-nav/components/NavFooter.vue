@@ -124,7 +124,7 @@ function toggleLocale() {
   overflow: hidden;
   width: var(--size-avatar);
   height: var(--size-avatar);
-  border-radius: var(--radius-xs);
+  border-radius: calc(var(--radius-control) / 2);
   background: var(--brand-mark-bg);
 }
 

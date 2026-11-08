@@ -137,7 +137,7 @@ function sourceKind(provider: ProviderView) {
   height: 34px;
   padding-inline: var(--space-sm);
   border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   background: var(--card);
   color: var(--contrast-foreground-faint);
 }
@@ -227,7 +227,7 @@ function sourceKind(provider: ProviderView) {
   height: 16px;
   padding-inline: 5px;
   border: var(--border-width) solid var(--border-soft);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   background: var(--hover-quiet);
   color: var(--contrast-foreground-faint);
   font-size: 9px;

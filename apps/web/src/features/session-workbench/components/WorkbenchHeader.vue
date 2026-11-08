@@ -356,7 +356,7 @@ function confirmDelete(): void {
   flex: 0 1 auto;
   max-width: min(30em, 100%);
   min-width: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   outline: none;
   user-select: text;
 }

@@ -38,7 +38,7 @@ const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
   padding: 0;
   overflow: hidden;
   border: 0;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-card);
   background: var(--background);
   cursor: zoom-in;
 }
@@ -70,6 +70,6 @@ const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
   width: auto;
   max-width: none;
   margin-inline: auto;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-card);
 }
 </style>

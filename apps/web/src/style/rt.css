@@ -16,13 +16,13 @@
   --space-5: var(--space-lg);
   --space-6: var(--space-xxl);
 
-  /* 保留 rt 的 3/4/6/8/12/16 档间比例，整体按 --radius 缩放 */
-  --radius-1: calc(var(--radius) * 3 / 8);
-  --radius-2: calc(var(--radius) / 2);
-  --radius-3: calc(var(--radius) * 3 / 4);
-  --radius-4: var(--radius);
-  --radius-5: calc(var(--radius) * 3 / 2);
-  --radius-6: calc(var(--radius) * 2);
+  /* rt 的 6 档圆角收到项目三档：1-3 给控件，4 给卡片与浮层，5-6 给对话框 */
+  --radius-1: calc(var(--radius-control) / 2);
+  --radius-2: var(--radius-control);
+  --radius-3: var(--radius-control);
+  --radius-4: var(--radius-card);
+  --radius-5: var(--radius-dialog);
+  --radius-6: var(--radius-dialog);
 
   /* rt 把字体、根字号与字色定在自己身上，接回项目基线：随包字体、正文档、对比度层。
      不接这三项，包在根上的 ThemeRoot 会让整站退回系统字体与 16px。 */
@@ -66,9 +66,9 @@
 
 /* 图标按钮定档：s=24、m=28（`--size-nav-rail`）。
    rt 原生：m 是 32px、圆角 max(--radius-1)=3px、ghost 尺寸靠 content-box 自撑、悬停是 accent-a3。
-   这里统一成固定方框 + `--radius-sm` + 前景色 + `--hover-quiet`，接管房里所有 28px 图标按钮。 */
+   这里统一成固定方框 + `--radius-control` + 前景色 + `--hover-quiet`，接管房里所有 28px 图标按钮。 */
 .rt-IconButton {
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   transition:
     background-color var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out);

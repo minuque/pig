@@ -113,7 +113,7 @@ const suffix = computed(() => t(workspaceId.value ? "hero.askSuffix" : "hero.pic
   margin: 0;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-xs);
+  border-radius: calc(var(--radius-control) / 2);
   background: transparent;
   color: inherit;
   font: inherit;

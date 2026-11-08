@@ -268,7 +268,7 @@ async function copy() {
 .tuner-code {
   margin: 0;
   padding: var(--space-sm);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   background: var(--code-surface);
   font-family: var(--font-mono);
   font-size: var(--text-meta);

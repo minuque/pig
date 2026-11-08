@@ -234,7 +234,7 @@ const thumb = computed(() => {
   padding: 0;
   overflow: clip;
   border: 0;
-  border-radius: var(--radius-2xs);
+  border-radius: calc(var(--radius-control) / 2);
   background: var(--background);
   box-shadow: inset 0 0 0 var(--border-width) var(--border);
   cursor: zoom-in;
@@ -266,14 +266,14 @@ const thumb = computed(() => {
 
 .tool-row-counts .added {
   padding: 0 var(--space-xxs);
-  border-radius: var(--radius-xs);
+  border-radius: calc(var(--radius-control) / 2);
   background: var(--success-bg);
   color: var(--success);
 }
 
 .tool-row-counts .removed {
   padding: 0 var(--space-xxs);
-  border-radius: var(--radius-xs);
+  border-radius: calc(var(--radius-control) / 2);
   background: var(--danger-bg);
   color: var(--danger);
 }
@@ -318,7 +318,7 @@ const thumb = computed(() => {
   display: block;
   max-inline-size: 280px;
   max-block-size: 280px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
 }
 
 /* 大图预览与附件预览同款：铺满视口、点任意处关闭，图整体缩进窗口 */
@@ -342,7 +342,7 @@ const thumb = computed(() => {
   height: auto;
   max-inline-size: 100%;
   max-block-size: calc(100vh - 2 * var(--space-xl));
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-card);
   box-shadow: var(--shadow-modal);
 }
 </style>

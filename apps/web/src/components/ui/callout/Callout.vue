@@ -122,7 +122,7 @@ const textSizeClass = computed(() => `rt-r-size-${props.size === "l" ? "3" : "2"
   inline-size: 20px;
   block-size: 20px;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   background: transparent;
   color: currentColor;
   cursor: pointer;

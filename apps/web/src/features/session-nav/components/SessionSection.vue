@@ -176,7 +176,7 @@ function itemBind(session: SidebarSession) {
   /* 与会话卡同一档左右内边距：标题与卡内文字左对齐，箭头与时间右对齐 */
   padding-inline: 10px;
   border: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--contrast-foreground-faint);
   font-size: var(--text-meta);
@@ -255,7 +255,7 @@ function itemBind(session: SidebarSession) {
   height: 36px;
   padding-inline: 10px;
   border: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--contrast-foreground-faint);
   font-size: var(--text-body);

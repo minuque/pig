@@ -129,7 +129,7 @@ watch(
   overscroll-behavior: contain;
   padding: var(--space-xxs);
   border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-card);
   corner-shape: var(--corner-shape-composer);
   box-shadow: var(--shadow-float);
   scrollbar-width: none;
@@ -159,7 +159,7 @@ watch(
   width: 100%;
   min-width: 0;
   padding: var(--space-xxs) var(--space-xs);
-  border-radius: var(--radius-lg);
+  border-radius: calc(var(--radius-card) - var(--space-xxs));
   corner-shape: var(--corner-shape-composer);
   color: var(--contrast-foreground);
   font-size: var(--text-body);

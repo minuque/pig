@@ -109,7 +109,7 @@ useResizeObserver(body, measure)
   max-width: 85%;
   margin: 0;
   padding: var(--space-xs) var(--space-sm);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-card);
   background: var(--user-prompt-background);
   color: var(--contrast-foreground);
   font-size: var(--text-body);

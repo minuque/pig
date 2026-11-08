@@ -514,7 +514,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   height: 32px;
   margin: var(--space-xxs) 0;
   padding: 0 var(--space-xs);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   background: var(--background);
 }
 
@@ -546,7 +546,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   align-items: center;
   height: var(--size-control);
   padding-inline-end: var(--space-xxs);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
 }
 
 .model-row:hover,
@@ -577,7 +577,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   block-size: var(--size-control);
   padding-inline: var(--space-xs);
   padding-block: 0;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   color: var(--contrast-foreground);
   font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
@@ -622,7 +622,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   height: 24px;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--contrast-foreground-faint);
   cursor: pointer;

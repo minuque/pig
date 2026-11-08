@@ -121,7 +121,7 @@ async function copy() {
   height: 1em;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-xs);
+  border-radius: calc(var(--radius-control) / 2);
   background: transparent;
   color: var(--contrast-foreground-secondary);
   box-shadow: none;

@@ -106,7 +106,7 @@
   code:not(.code-line) {
     margin-inline: 0.2em;
     padding: 0.1em 0.35em;
-    border-radius: var(--radius-xs);
+    border-radius: calc(var(--radius-control) / 2);
     background: var(--inline-code-background);
     color: inherit;
     font-family: var(--font-mono);

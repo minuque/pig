@@ -148,7 +148,7 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
   flex: none;
   width: 22px;
   height: 22px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   color: var(--contrast-foreground-faint);
 }
 

@@ -351,7 +351,7 @@ onUpdated(() => {
   align-items: center;
   justify-content: center;
   border: 1px dashed var(--primary);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   background: var(--info-bg);
   color: var(--primary);
   font-size: var(--text-meta);
@@ -448,7 +448,7 @@ onUpdated(() => {
   max-width: 240px;
   height: 28px;
   padding-inline: var(--space-xs);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   background: var(--popover);
   box-shadow: var(--shadow-elevated);
   color: var(--contrast-foreground);

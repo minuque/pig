@@ -36,7 +36,7 @@
 
 .startup-mark {
   overflow: hidden;
-  border-radius: var(--radius-xs, 4px);
+  border-radius: calc(var(--radius-control) / 2);
   background: var(--brand-mark-bg);
   box-shadow: var(--shadow-logo);
 }
@@ -130,7 +130,7 @@
   place-items: center;
   padding: var(--icon-button-pad);
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--contrast-foreground-faint);
   transition:

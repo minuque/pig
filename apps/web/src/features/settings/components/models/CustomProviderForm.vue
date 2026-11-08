@@ -313,7 +313,7 @@ async function remove() {
   height: 18px;
   padding-inline: 6px;
   border: var(--border-width) solid var(--border-soft);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-control);
   background: var(--hover-quiet);
   color: var(--contrast-foreground-faint);
   font-size: var(--text-meta);
@@ -388,7 +388,7 @@ async function remove() {
   height: 24px;
   padding-inline: var(--space-xs);
   border: var(--border-width) solid var(--border-soft);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-control);
   background: var(--background);
   color: var(--contrast-foreground);
   font-size: var(--text-meta);

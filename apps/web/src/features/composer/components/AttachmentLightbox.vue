@@ -47,7 +47,7 @@ const emit = defineEmits<{
 .lightbox-img {
   max-width: 100%;
   max-height: 100%;
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-card);
   box-shadow: var(--shadow-modal);
 }
 </style>

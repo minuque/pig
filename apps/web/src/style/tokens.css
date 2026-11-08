@@ -162,8 +162,6 @@
   --text-code: 13px;
   --text-code-line: 24.5px;
 
-  /* 输入卡胶囊：宽度跟随对话宽度档 */
-  --composer-radius: 32px;
   /* 输入卡控件（回形针、发送、模型 chip、上下文环） */
   --size-composer-control: 32px;
   /* 连续曲率：输入卡与菜单浮层共用一套角部形状（比 squircle 关键字的 2 更克制） */
@@ -322,16 +320,10 @@
   --space-xl: calc(var(--spacing) * 7);
   --space-xxl: calc(var(--spacing) * 8);
 
-  /* 单一基数派生，改 --radius 即整档跟随；不在网格上的各自独立 */
-  --radius: 8px;
-  --radius-2xs: calc(var(--radius) - 6px);
-  --radius-xs: calc(var(--radius) - 4px);
-  --radius-sm: calc(var(--radius) - 2px);
-  --radius-md: var(--radius);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 8px);
-  --radius-card: 0.65rem;
-  --radius-popover: calc(var(--radius) + 4px);
+  /* 圆角三档加全圆角；嵌套元素写 calc(外层圆角 - 内边距)，同心更好看 */
+  --radius-control: 6px;
+  --radius-card: 10px;
+  --radius-dialog: 14px;
   /* 项目自用的全圆角，别改回 --radius-full：rt 拿那个名字当胶囊开关，medium 档是 0 */
   --radius-pill: 9999px;
 }
