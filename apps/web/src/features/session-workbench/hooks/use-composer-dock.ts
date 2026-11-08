@@ -1,5 +1,4 @@
 import { nextTick, watch, type Ref, type WatchSource } from "vue"
-import { flipMotion } from "@features/composer/lib/composer-flip.js"
 
 /** 首屏↔会话切换时输入条从旧底边滑到新底边；中途反向从当前可见位置接着走。 */
 export function useComposerDock(
@@ -19,7 +18,7 @@ export function useComposerDock(
       const dy = from - el.getBoundingClientRect().bottom
 
       if (Math.abs(dy) < 1) return
-      const { duration, easing } = flipMotion(el, next ? "out" : "in")
+      const { duration, easing } = dockMotion(el, next ? "out" : "in")
 
       glide = el.animate([{ transform: `translateY(${dy}px)` }, { transform: "none" }], {
         duration,
@@ -27,4 +26,13 @@ export function useComposerDock(
       })
     })
   })
+}
+
+/** 从 motion token 读停靠时长与曲线：in 是进会话，out 是回首屏。 */
+function dockMotion(el: Element, dock: "in" | "out"): { duration: number; easing: string } {
+  const style = getComputedStyle(el)
+  return {
+    duration: Number.parseFloat(style.getPropertyValue(`--duration-dock-${dock}`)) || 0,
+    easing: style.getPropertyValue("--ease-smooth").trim() || "ease-out",
+  }
 }

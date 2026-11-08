@@ -47,13 +47,14 @@
 
   /* 表面取 Linear 基调：窗口与侧栏一层，主工作区一层，卡片与浮层各抬一档；行的悬停与选中带一点主题色 */
   --background: #f4f4f4;
-  /* 所有侧栏共用：主侧栏、抽屉、设置弹窗导航 */
-  --sidebar: #eceff5;
+  /* 所有侧栏共用：主侧栏、抽屉、设置弹窗导航；与主区同一中性灰，低一档 */
+  --sidebar: #ececec;
   --card: #f7f8f8;
   --workbench-surface: var(--background);
   --sidebar-foreground: var(--foreground);
   --sidebar-hover: #f1f2f4;
-  --sidebar-selected: #edeff9;
+  /* 选中行抬成白底，与侧栏同一中性色系 */
+  --sidebar-selected: #ffffff;
   --toolbar-foreground: var(--foreground);
   --code-background: #f7f8f8;
   --code-foreground: var(--foreground);
@@ -71,7 +72,7 @@
   --language-pink: #d32a61;
   /* 行内码：正文色压 10% 的底，深浅主题自动跟随 */
   --inline-code-background: color-mix(in srgb, var(--contrast-foreground) 10%, transparent);
-  --composer-background: #f7f8f8;
+  --composer-background: #ffffff;
   --user-prompt-background: #f1f2f4;
   --popover: #fbfbfc;
   --code-surface: color-mix(in srgb, var(--foreground) 4%, var(--card));
@@ -144,6 +145,8 @@
 
   /* 输入卡控件（回形针、发送、模型 chip、上下文环） */
   --size-composer-control: 32px;
+  /* 输入区最高 208px，超过内部滚动 */
+  --size-composer-field-max: 208px;
   /* 连续曲率：输入卡与菜单浮层共用一套角部形状（比 squircle 关键字的 2 更克制） */
   --corner-shape-composer: superellipse(1.5);
 
@@ -206,6 +209,7 @@
   /* 阴影只给真正浮起来的层：下拉、菜单、提示用 popover，对话框与抽屉用 dialog */
   --shadow-popover: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
   --shadow-dialog: 0 16px 48px rgba(0, 0, 0, 0.18);
+  --shadow-composer: 0 1px 2px rgba(0, 0, 0, 0.05);
   --theme-wire-light: var(--background);
   --theme-wire-light-raised: var(--card);
   --theme-wire-dark: var(--card);
@@ -230,9 +234,7 @@
   --duration-row-reveal: 480ms;
   --duration-fast: 150ms;
   --duration-normal: 200ms;
-  --duration-composer-flip: 180ms;
-  --ease-fold: cubic-bezier(0, 0, 0.58, 1);
-  /* 输入卡停靠：首屏→会话 420ms，回首屏 470ms。名字由 composer-flip.ts 拼接，不是字面量。 */
+  /* 输入卡停靠：首屏→会话 420ms，回首屏 470ms。名字由 use-composer-dock.ts 拼接，不是字面量。 */
   --duration-dock-in: 420ms;
   --duration-dock-out: 470ms;
   /* 首屏整体落位入场 */
@@ -290,8 +292,7 @@
   --radius-control: 6px;
   --radius-card: 10px;
   --radius-dialog: 14px;
-  /* 输入卡多行时的圆角；单行用 --radius-pill */
-  --radius-composer: 32px;
+  --radius-composer: 16px;
   /* 项目自用的全圆角，别改回 --radius-full：rt 拿那个名字当胶囊开关，medium 档是 0 */
   --radius-pill: 9999px;
 }
@@ -358,6 +359,7 @@ html[data-pig-desktop-platform="darwin"] {
   --scrim: rgba(0, 0, 0, 0.55);
   --shadow-popover: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 8px 24px rgba(0, 0, 0, 0.5);
   --shadow-dialog: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 48px rgba(0, 0, 0, 0.6);
+  --shadow-composer: none;
 
   --inverse-background: #e8eaed;
   --inverse-background-hover: #ffffff;

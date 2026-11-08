@@ -74,7 +74,7 @@ onBeforeUnmount(() => reorder.detach())
 </script>
 
 <style scoped>
-/* 托盘：左右内缩 16px，顶部 16px 圆角，底边 18px 垫在胶囊后面 */
+/* 托盘：左右内缩 16px，顶部 16px 圆角，底边 18px 垫在输入卡后面 */
 .queue-panel {
   margin-inline: var(--space-md);
   margin-bottom: calc(-1 * 18px);

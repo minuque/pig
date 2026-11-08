@@ -1,5 +1,5 @@
 <template>
-  <div ref="container" class="composer" @mousedown="onComposerMousedown">
+  <div class="composer" @mousedown="onComposerMousedown">
     <Transition name="menu-reveal">
       <CommandMenu
         v-if="commandMenu.open.value"
@@ -14,50 +14,45 @@
       />
     </Transition>
 
-    <div ref="card" class="composer-card" :class="expanded ? 'is-expanded' : 'is-compact'">
-      <div v-if="$slots.attachments" class="attachments">
-        <slot name="attachments" />
-      </div>
-
-      <div class="main">
-        <div ref="editorWrap" class="editor-wrap">
-          <div
-            ref="editor"
-            class="field"
-            contenteditable="plaintext-only"
-            role="textbox"
-            aria-multiline="true"
-            aria-label="Prompt"
-            :aria-controls="commandMenu.open.value ? 'composer-command-menu' : undefined"
-            :aria-activedescendant="commandMenuActiveId"
-            aria-autocomplete="list"
-            :data-placeholder="placeholder"
-            @keydown="onEditorKeydown"
-            @paste="onEditorPaste"
-            @input="onEditorInput"
-            @click="syncCaret"
-            @keyup="syncCaret"
-            @select="syncCaret"
-            @blur="onEditorBlur"
-          ></div>
+    <div class="composer-card">
+      <div class="body">
+        <div v-if="$slots.attachments" class="attachments">
+          <slot name="attachments" />
         </div>
 
-        <div class="action-row">
-          <div ref="leftCluster" class="cluster left">
-            <slot name="left" />
-          </div>
+        <div
+          ref="editor"
+          class="field"
+          contenteditable="plaintext-only"
+          role="textbox"
+          aria-multiline="true"
+          aria-label="Prompt"
+          :aria-controls="commandMenu.open.value ? 'composer-command-menu' : undefined"
+          :aria-activedescendant="commandMenuActiveId"
+          aria-autocomplete="list"
+          :data-placeholder="placeholder"
+          @keydown="onEditorKeydown"
+          @paste="onEditorPaste"
+          @input="onEditorInput"
+          @click="syncCaret"
+          @keyup="syncCaret"
+          @select="syncCaret"
+          @blur="onEditorBlur"
+        ></div>
+      </div>
 
-          <div ref="usageCluster" class="cluster context">
-            <slot name="usage" />
-          </div>
+      <div class="footer">
+        <div class="cluster left">
+          <slot name="left" />
+        </div>
 
-          <div ref="toolsCluster" class="cluster tools">
-            <slot name="tools" />
-          </div>
+        <div class="cluster tools">
+          <slot name="tools" />
+        </div>
 
-          <div ref="rightCluster" class="cluster right">
-            <slot name="right" />
-          </div>
+        <div class="cluster right">
+          <slot name="usage" />
+          <slot name="right" />
         </div>
       </div>
     </div>
@@ -75,39 +70,20 @@ export function shouldSubmitOnKeydown(e: {
 </script>
 
 <script setup lang="ts">
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onBeforeUpdate,
-  ref,
-  useTemplateRef,
-  watch,
-} from "vue"
+import { computed, onBeforeUpdate, ref, useTemplateRef, watch } from "vue"
 import { clipboardFiles } from "@features/composer/hooks/use-composer-attachments.js"
 import { useCommandMenu, type ChipInsert } from "@features/composer/hooks/use-command-menu.js"
 import CommandMenu from "@features/composer/components/CommandMenu.vue"
-import {
-  clusterOffsets,
-  composerFlip,
-  flipMotion,
-  glideClusters,
-  RESIZE_SETTLE_MS,
-  type FlipMotion,
-} from "@features/composer/lib/composer-flip.js"
 import { promptPlaceholder } from "@features/composer/index.js"
 
 const props = withDefaults(
   defineProps<{
     placeholder?: string
-    /** 新会话首屏：输入卡恒展开。 */
-    hero?: boolean
     /** @ 文件与 / 命令搜索的根目录；未给时触发菜单不出现。 */
     cwd?: string | undefined
   }>(),
   {
     placeholder: promptPlaceholder(),
-    hero: false,
     cwd: undefined,
   },
 )
@@ -117,14 +93,6 @@ const emit = defineEmits<{
   pasteFiles: [files: File[]]
 }>()
 const editor = useTemplateRef("editor")
-const editorWrap = useTemplateRef("editorWrap")
-const container = useTemplateRef("container")
-const card = useTemplateRef("card")
-const leftCluster = useTemplateRef("leftCluster")
-const usageCluster = useTemplateRef("usageCluster")
-const toolsCluster = useTemplateRef("toolsCluster")
-const rightCluster = useTemplateRef("rightCluster")
-const expanded = ref(true)
 const hasText = computed(() => prompt.value.length > 0)
 const caret = ref(0)
 const commandMenu = useCommandMenu(prompt, caret, () => props.cwd, insertChip)
@@ -191,156 +159,6 @@ const commandMenuActiveId = computed(() => {
   const id = commandMenu.activeId.value
   return id ? `composer-command-menu-row-${encodeURIComponent(id)}` : undefined
 })
-let widthObserver: ResizeObserver | undefined
-let lastWidth = 0
-/** 紧凑态实测容量与当时容器宽度；展开态用宽度差平移，绝不用展开态测量值回灌。 */
-let lastCompactCapacity = 0
-let lastCompactContainerWidth = 0
-let firstFlip = true
-let finishFlip: (() => void) | undefined
-let measureCtx: CanvasRenderingContext2D | undefined
-const internalResizing = ref(false)
-let resizeTimer: ReturnType<typeof setTimeout> | undefined
-
-function fitEditor() {
-  const el = editor.value
-
-  if (!el) return
-  el.style.height = "auto"
-  el.style.height = `${Math.min(Math.max(el.scrollHeight, 56), 240)}px`
-}
-
-function measureText(text: string) {
-  const el = editor.value
-
-  if (!el) return 0
-
-  if (!measureCtx) measureCtx = document.createElement("canvas").getContext("2d") ?? undefined
-
-  if (!measureCtx) return text.length * 8
-  const style = getComputedStyle(el)
-
-  measureCtx.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
-  return measureCtx.measureText(text).width
-}
-
-/** 紧凑态被内边距、动作行与间距占掉的水平空间：只在首次实测前用来估容量。 */
-function compactInset(el: HTMLElement) {
-  const style = getComputedStyle(el)
-  const token = (name: string) => Number.parseFloat(style.getPropertyValue(name)) || 0
-  // 两侧内边距 + 输入区左右内边距 + 主行两个间隙 + 回形针按钮
-  return (
-    2 * (token("--space-xs") + token("--border-width")) +
-    4 * token("--space-xs") +
-    token("--size-composer-control")
-  )
-}
-
-function currentCapacity() {
-  const wrap = editorWrap.value
-  const containerEl = container.value
-
-  if (!wrap || !containerEl) return 0
-  const width = containerEl.clientWidth
-
-  if (!expanded.value) {
-    lastCompactCapacity = wrap.clientWidth
-    lastCompactContainerWidth = width
-  }
-
-  // 还没量过紧凑态：先按 token 估算，实测后只用容器宽度差平移
-  if (!lastCompactContainerWidth) return Math.max(0, width - compactInset(containerEl))
-  return Math.max(0, lastCompactCapacity + (width - lastCompactContainerWidth))
-}
-
-function evaluate(motion?: FlipMotion) {
-  const text = prompt.value
-  const hasNewline = text.includes("\n")
-  const textWidth = hasNewline ? 0 : measureText(text)
-  const next = composerFlip({
-    hero: props.hero,
-    hasNewline,
-    textWidth,
-    capacity: currentCapacity(),
-    expanded: expanded.value,
-    resizing: internalResizing.value,
-  })
-
-  flipMode(next, motion)
-}
-
-function clusters() {
-  return [leftCluster.value, usageCluster.value, toolsCluster.value, rightCluster.value].filter(
-    (el): el is HTMLDivElement => el !== null,
-  )
-}
-
-/** 底锚形变：胶囊底边不动，高度从旧值过渡到新值，动作组同钟换槽。 */
-function flipMode(next: boolean, motion?: FlipMotion) {
-  if (next === expanded.value) return
-  const cardEl = card.value
-  const from = cardEl?.offsetHeight ?? 0
-  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-
-  if (firstFlip || !cardEl || reduce) {
-    firstFlip = false
-    expanded.value = next
-
-    if (!next) clearFieldHeight()
-    else void nextTick().then(fitEditor)
-    return
-  }
-
-  const timing = motion ?? flipMotion(cardEl)
-  const els = clusters()
-  const starts = clusterOffsets(cardEl, els)
-
-  expanded.value = next
-
-  if (!next) clearFieldHeight()
-
-  void nextTick().then(() => {
-    if (next) fitEditor()
-    requestAnimationFrame(() => {
-      glideClusters(cardEl, els, starts, timing, toolsCluster.value)
-      const to = cardEl.offsetHeight
-
-      if (to <= 0 || Math.abs(from - to) < 1) return
-      /* 上一轮收尾先作废，它的定时器会清掉这一轮的过渡样式。 */
-      finishFlip?.()
-      cardEl.style.transitionDuration = `${timing.duration}ms`
-      cardEl.style.transitionTimingFunction = timing.easing
-      cardEl.style.height = `${from}px`
-      void cardEl.offsetHeight
-      cardEl.style.height = `${to}px`
-
-      let timer = 0
-      const cancel = () => {
-        window.clearTimeout(timer)
-        cardEl.removeEventListener("transitionend", done)
-        cardEl.style.height = ""
-        cardEl.style.transitionDuration = ""
-        cardEl.style.transitionTimingFunction = ""
-
-        if (finishFlip === cancel) finishFlip = undefined
-      }
-      const done = (event?: TransitionEvent) => {
-        if (event && event.propertyName !== "height") return
-        cancel()
-      }
-
-      timer = window.setTimeout(() => done(), timing.duration + 40)
-      cardEl.addEventListener("transitionend", done)
-      finishFlip = cancel
-    })
-  })
-}
-
-function clearFieldHeight() {
-  const el = editor.value
-
-  if (el) el.style.height = ""
-}
 
 /** 外部赋 prompt 时把纯文本渲回 DOM；含 chip 的文本只在没有 chip 节点时直接写。 */
 function renderPrompt(text: string) {
@@ -366,9 +184,6 @@ watch(
     // 外部赋值（队列回填、清空）时重建 DOM；编辑器内输入已同步过，跳过
     if (editor.value && serialize() !== next) renderPrompt(next)
     applyingPrompt = false
-
-    if (expanded.value) fitEditor()
-    evaluate()
   },
   { flush: "post" },
 )
@@ -382,51 +197,6 @@ onBeforeUpdate(() => {
   const current = serialize()
 
   if (current !== prompt.value) prompt.value = current
-})
-
-watch(
-  container,
-  (el) => {
-    widthObserver?.disconnect()
-    widthObserver = undefined
-    lastWidth = 0
-
-    if (!el) return
-    widthObserver = new ResizeObserver((entries) => {
-      const width = entries[0]?.contentRect.width ?? 0
-
-      if (width === lastWidth) return
-      lastWidth = width
-      internalResizing.value = true
-
-      if (resizeTimer) clearTimeout(resizeTimer)
-      resizeTimer = setTimeout(() => {
-        internalResizing.value = false
-        evaluate()
-      }, RESIZE_SETTLE_MS)
-
-      if (expanded.value) fitEditor()
-      evaluate()
-    })
-    widthObserver.observe(el)
-    evaluate()
-  },
-  { flush: "post" },
-)
-
-watch(internalResizing, () => evaluate())
-
-// 首屏↔会话的展开形变跟输入卡停靠同一条时间线
-watch(
-  () => props.hero,
-  (hero) => evaluate(card.value ? flipMotion(card.value, hero ? "out" : "in") : undefined),
-)
-
-onBeforeUnmount(() => {
-  widthObserver?.disconnect()
-  finishFlip?.()
-
-  if (resizeTimer) clearTimeout(resizeTimer)
 })
 
 function focus() {
@@ -584,7 +354,6 @@ defineExpose({ focus })
   position: relative;
   width: 100%;
   margin-inline: auto;
-  border-radius: var(--radius-composer);
 }
 
 /* @// 面板浮在输入卡上方，不占布局；菜单自身圆角与描边在组件内。 */
@@ -592,89 +361,39 @@ defineExpose({ focus })
   margin-bottom: var(--space-xxs);
 }
 
+/* 两行卡片：上面输入区，下面按钮行 */
 .composer-card {
-  position: relative;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   overflow: hidden;
-  /* 实底：和代码块、mermaid 卡片同一层，不再用毛玻璃 */
-  background: var(--code-background);
-  border: var(--border-width) solid var(--border);
+  border: var(--border-width) solid var(--border-soft);
   border-radius: var(--radius-composer);
+  background: var(--composer-background);
+  box-shadow: var(--shadow-composer);
   corner-shape: var(--corner-shape-composer);
-  transition: height var(--duration-composer-flip) var(--ease-fold);
 }
 
-.composer-card > * {
-  position: relative;
-  z-index: 2;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .composer-card {
-    transition: none;
-  }
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-width: 0;
+  padding: var(--space-md) var(--space-md) var(--space-xs);
 }
 
 .attachments {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-xs);
-  padding: var(--space-md) calc(var(--space-md) + var(--border-width)) 0;
 }
 
-.main {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-
-.composer-card.is-compact {
-  border-radius: var(--radius-pill);
-}
-
-.is-compact .main {
-  /* 控件 32 + 上下各 8 */
-  height: calc(var(--size-composer-control) + 2 * var(--space-xs));
-  gap: var(--space-xs);
-  padding-inline: var(--space-xs);
-}
-
-.is-expanded .main {
-  flex-direction: column;
-  align-items: stretch;
-}
-
-/* 紧凑态动作行拆进主行：回形针在输入框前，模型、上下文与发送在后 */
-.is-compact .action-row {
-  display: contents;
-}
-
-.is-compact .cluster.left {
-  order: -1;
-}
-
-.editor-wrap {
-  min-width: 0;
-}
-
-.is-compact .editor-wrap {
-  flex: 1;
-  /* 文本左缘对齐附件 icon 右缘：紧凑态主行 gap 已被左侧 cluster 占掉 */
-  margin-inline-start: calc(-1 * var(--space-xs));
-}
-
-.is-expanded .editor-wrap {
-  padding: 14px var(--space-md) var(--space-xs);
-}
-
-/* 展开态：回形针与模型靠左，上下文与发送靠右；紧凑态上下文跟模型并排 */
-.action-row {
+/* 按钮行：回形针靠左，模型靠右，用量与发送收尾 */
+.footer {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  padding: var(--space-xxs) var(--space-xs) var(--space-xs);
+  min-width: 0;
+  padding: 0 var(--space-xs) var(--space-xs);
 }
 
 .cluster {
@@ -685,29 +404,21 @@ defineExpose({ focus })
   min-width: 0;
 }
 
-/* 展开态动作行保持紧凑态槽位 */
-.cluster.context {
-  margin-inline-start: auto;
-}
-
 .cluster.tools {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
+  justify-content: flex-end;
 }
 
-.is-compact .cluster.right,
-.is-compact .cluster.context {
-  order: 0;
-  margin-inline-start: 0;
-}
-
-.is-compact .cluster.tools {
-  /* 模型 chip 在紧凑态最多占胶囊宽 45% */
-  max-width: 45%;
+.cluster.right {
+  gap: var(--space-xs);
 }
 
 .field {
   display: block;
   width: 100%;
+  /* 至少两行高，超过上限内部滚动 */
+  min-height: 2lh;
+  max-height: var(--size-composer-field-max);
   margin: 0;
   padding: 0;
   border: 0;
@@ -716,22 +427,12 @@ defineExpose({ focus })
   color: var(--contrast-foreground);
   font: inherit;
   font-size: var(--text-body);
-  line-height: 1.5;
+  line-height: 1.625;
   overscroll-behavior: contain;
   overflow-y: auto;
   white-space: pre-wrap;
   word-break: break-word;
   cursor: text;
-}
-
-.is-compact .field {
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.is-expanded .field {
-  min-height: 36px;
-  max-height: 25dvh;
 }
 
 /* contenteditable 的 placeholder：空内容时显示 data-placeholder */

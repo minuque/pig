@@ -98,7 +98,6 @@
               :session-id="sessionId"
               :cwd="composerCwd"
               :send-disabled="sendDisabled"
-              :hero="showHero"
               :queue="composerQueue"
               @send="onSend"
               @send-now="onQueueSendNow"

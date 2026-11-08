@@ -14,7 +14,6 @@
     <PromptEditor
       ref="editor"
       v-model:prompt="prompt"
-      :hero="hero"
       :cwd="cwd"
       @submit="onSubmit"
       @paste-files="attachments.addFiles"
@@ -166,8 +165,6 @@ const props = withDefaults(
     usage?: ContextUsage | undefined
     sessionId?: string | undefined
     cwd?: string | undefined
-    /** 新会话首屏：输入卡恒展开 */
-    hero?: boolean
     queue: ComposerQueueApi
   }>(),
   {
@@ -177,7 +174,6 @@ const props = withDefaults(
     usage: undefined,
     sessionId: undefined,
     cwd: undefined,
-    hero: false,
   },
 )
 const prompt = defineModel<string>("prompt", { required: true })

@@ -9,7 +9,7 @@ colors:
   link-light: "#3A5BC7"
   link-dark: "#9EB1FF"
   window-light: "#F4F4F4"
-  sidebar-light: "#ECEFF5"
+  sidebar-light: "#ECECEC"
   overlay-light: "#FBFBFC"
   window-dark: "#101012"
   sidebar-dark: "#0B0B0D"
@@ -95,14 +95,15 @@ spacing:
 
 中性色用 Radix 的 `slate`（`data-gray-color="slate"`），描边与 rt 基础件的灰阶跟着它走；表面与文字是下表的固定值，取自 Linear 基调。
 
-| 层                             | 浅色                  | 深色                      | token                                   |
-| ------------------------------ | --------------------- | ------------------------- | --------------------------------------- |
-| 窗口、主区                     | `#F4F4F4`             | `#101012`                 | `--background`                          |
-| 侧栏（主侧栏、抽屉、设置导航） | `#ECEFF5`             | `#0B0B0D`（比主区深一档） | `--sidebar`                             |
-| 代码块                         | `#F7F8F8`             | `#0B0C0D`                 | `--code-background`                     |
-| 卡片、输入卡                   | `#F7F8F8`             | `#17171A`                 | `--card`、`--composer-background`       |
-| 浮层                           | `#FBFBFC`             | `#1C1C1F`                 | `--popover`                             |
-| 侧栏行悬停 / 选中              | `#F1F2F4` / `#EDEFF9` | `#121728` / `#1A2143`     | `--sidebar-hover`、`--sidebar-selected` |
+| 层                             | 浅色                      | 深色                      | token                                   |
+| ------------------------------ | ------------------------- | ------------------------- | --------------------------------------- |
+| 窗口、主区                     | `#F4F4F4`                 | `#101012`                 | `--background`                          |
+| 侧栏（主侧栏、抽屉、设置导航） | `#ECECEC`（比主区深一档） | `#0B0B0D`（比主区深一档） | `--sidebar`                             |
+| 代码块                         | `#F7F8F8`                 | `#0B0C0D`                 | `--code-background`                     |
+| 卡片                           | `#F7F8F8`                 | `#17171A`                 | `--card`                                |
+| 输入卡                         | `#FFFFFF`                 | `#17171A`                 | `--composer-background`                 |
+| 浮层                           | `#FBFBFC`                 | `#1C1C1F`                 | `--popover`                             |
+| 侧栏行悬停 / 选中              | `#F1F2F4` / `#FFFFFF`     | `#121728` / `#1A2143`     | `--sidebar-hover`、`--sidebar-selected` |
 
 文字只有三级，都走 `--contrast-foreground*` 派生层：
 
@@ -145,7 +146,7 @@ spacing:
 | `--radius-control`  | 6    | 按钮、输入框、标签、菜单项、侧栏行   |
 | `--radius-card`     | 10   | 卡片、面板、代码块、图片、下拉、浮层 |
 | `--radius-dialog`   | 14   | 对话框                               |
-| `--radius-composer` | 32   | 多行输入卡；单行时用 `--radius-pill` |
+| `--radius-composer` | 16   | 输入卡                               |
 | `--radius-pill`     | 9999 | 胶囊、圆形按钮                       |
 
 - rt 的 `--radius-1..6` 在 `rt.css` 接到这三档。
@@ -153,10 +154,11 @@ spacing:
 
 ## 阴影与层级
 
-| token              | 给谁                                               |
-| ------------------ | -------------------------------------------------- |
-| `--shadow-popover` | 下拉、菜单、提示、悬停卡、拖拽中的行、滚动到底按钮 |
-| `--shadow-dialog`  | 对话框、抽屉、图片预览                             |
+| token               | 给谁                                               |
+| ------------------- | -------------------------------------------------- |
+| `--shadow-popover`  | 下拉、菜单、提示、悬停卡、拖拽中的行、滚动到底按钮 |
+| `--shadow-dialog`   | 对话框、抽屉、图片预览                             |
+| `--shadow-composer` | 输入卡：浅色 1px 轻投影，深色不投影                |
 
 - rt 的 `--shadow-4/5` 接 popover；`--shadow-6` 留 rt 原值，rt 对话框用它画外环与阴影。
 - 浮层底色是实色 `--popover`（`.surface-float`），不透明，不模糊。
