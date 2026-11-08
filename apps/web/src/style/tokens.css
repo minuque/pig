@@ -52,8 +52,8 @@
   --card: #f7f8f8;
   --workbench-surface: var(--background);
   --sidebar-foreground: var(--foreground);
-  /* 按钮与可点行共用：悬停一档底色，选中抬成白底；侧栏、菜单、设置同一套 */
-  --btn-hover: #f1f2f4;
+  /* 按钮与可点行共用：悬停叠 6% 前景色，任何底色上都略深一档；选中抬成白底 */
+  --btn-hover: color-mix(in srgb, var(--foreground) 6%, transparent);
   --btn-selected: #ffffff;
   --toolbar-foreground: var(--foreground);
   --code-background: #f7f8f8;
@@ -338,7 +338,6 @@ html[data-pig-desktop-platform="darwin"] {
   --mermaid-fill: #17171a;
   --mermaid-line: #2a2a2e;
   --card: #17171a;
-  --btn-hover: #121728;
   --btn-selected: #1a2143;
   --code-background: #0b0c0d;
   --language-gray: #adadb1;
