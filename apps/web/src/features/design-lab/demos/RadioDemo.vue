@@ -60,8 +60,8 @@
     <Variant title="Colors">
       <div style="display: flex; flex-direction: column; gap: 12px">
         <label style="display: flex; align-items: center; gap: 8px">
-          <Radio value="indigo" color="indigo" :checked="true" />
-          Indigo
+          <Radio value="gray" color="gray" :checked="true" />
+          Gray
         </label>
 
         <label style="display: flex; align-items: center; gap: 8px">

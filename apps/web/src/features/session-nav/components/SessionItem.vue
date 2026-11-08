@@ -27,12 +27,7 @@
               <span class="project-icon" aria-hidden="true">
                 <PinBoldIcon v-if="pinned" :size="16" />
 
-                <Badge
-                  v-else-if="projectName"
-                  class="project-mono"
-                  variant="soft"
-                  :color="projectMonogramColor(projectName)"
-                >
+                <Badge v-else-if="projectName" class="project-mono" variant="soft" color="gray">
                   {{ projectMonogram(projectName) }}
                 </Badge>
               </span>
@@ -104,12 +99,7 @@
 
           <template v-else>
             <span class="project-icon" aria-hidden="true">
-              <Badge
-                v-if="projectName"
-                class="project-mono"
-                variant="soft"
-                :color="projectMonogramColor(projectName)"
-              >
+              <Badge v-if="projectName" class="project-mono" variant="soft" color="gray">
                 {{ projectMonogram(projectName) }}
               </Badge>
             </span>
@@ -232,7 +222,6 @@ import { Badge } from "@components/ui/badge/index.js"
 import {
   formatRelativeTime,
   projectMonogram,
-  projectMonogramColor,
   workspaceName,
 } from "@features/session-nav/lib/format.js"
 import { formatElapsed } from "@utils/time.js"

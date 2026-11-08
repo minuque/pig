@@ -2,8 +2,8 @@
   <div
     class="radix-themes"
     :class="{ dark: isDark }"
-    data-accent-color="indigo"
-    data-gray-color="slate"
+    data-accent-color="abyss"
+    data-gray-color="gray"
     :data-is-root-theme="root ? 'true' : undefined"
     data-has-background="false"
     :data-panel-background="translucentWindow ? 'translucent' : 'solid'"

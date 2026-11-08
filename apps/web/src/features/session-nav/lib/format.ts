@@ -7,8 +7,6 @@ export function workspaceName(path: string): string {
   return segments[segments.length - 1] ?? path
 }
 
-const MONOGRAM_COLORS = ["indigo", "blue", "sky", "cyan", "teal", "green", "orange"] as const
-
 /** 项目缩写：多词取前两词首字母，单词取首字母加其后第一个辅音。 */
 export function projectMonogram(name: string): string {
   const words = name.match(/\p{Lu}?\p{Ll}+|\p{Lu}+(?!\p{Ll})|\d+|\p{Script=Han}/gu) ?? []
@@ -17,14 +15,6 @@ export function projectMonogram(name: string): string {
   if (second) return (first[0]! + second[0]!).toUpperCase()
   const consonant = first.slice(1).match(/[^aeiou\d]/i)?.[0] ?? first[1] ?? ""
   return (first.slice(0, 1) + consonant).toUpperCase()
-}
-
-/** 按项目名稳定取一个 rt 强调色，同名项目颜色一致。 */
-export function projectMonogramColor(name: string): (typeof MONOGRAM_COLORS)[number] {
-  let hash = 0
-
-  for (const char of name) hash = (hash * 31 + char.charCodeAt(0)) | 0
-  return MONOGRAM_COLORS[Math.abs(hash) % MONOGRAM_COLORS.length]!
 }
 
 /** 未命名 Session 的列表/标题回退文案。 */
