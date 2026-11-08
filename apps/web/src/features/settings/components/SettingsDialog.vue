@@ -509,7 +509,7 @@ watch(active, async () => {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  background: var(--card);
+  background: var(--background);
 }
 
 .settings-dialog .settings-head {
