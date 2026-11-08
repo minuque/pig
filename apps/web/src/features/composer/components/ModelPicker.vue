@@ -102,12 +102,11 @@
         <div v-bind="containerProps" class="groups">
           <DropdownMenuGroup v-if="items.length" v-bind="wrapperProps">
             <ModelPickerRow
-              v-for="(item, i) in list"
+              v-for="item in list"
               :key="`${item.data.vendor.id}/${item.data.model.id}`"
               :vendor-id="item.data.vendor.id"
               :vendor-name="item.data.vendor.name"
               :model-name="item.data.model.name"
-              :kbd="i < 9 ? kbdBadge(i) : undefined"
               :current="isCurrent(item.data.vendor.id, item.data.model.id)"
               :favorite="isFavorite(item.data.vendor.id, item.data.model.id)"
               @select="onSelectModel($event, item.data.vendor.id, item.data.model.id)"
@@ -241,7 +240,6 @@ const effortLabel = computed(() =>
 const triggerText = computed(() =>
   pickerTriggerText(label.value, props.level, current.value.levels),
 )
-const isMac = /mac/i.test(navigator.platform || navigator.userAgent)
 /** Tab / Shift+Tab 在厂商轨与收藏间循环，不把焦点弹出菜单。 */
 const scopeOrder = computed(() => [FAVORITES_SCOPE, ...props.catalog.map((vendor) => vendor.id)])
 
@@ -258,10 +256,6 @@ watch([query, scope], async () => {
   await nextTick()
   scrollTo(0)
 })
-
-function kbdBadge(index: number) {
-  return isMac ? `⌘${index + 1}` : `Ctrl ${index + 1}`
-}
 
 function isCurrent(provider: string, id: string) {
   return sameModel(props.model, { provider, id })

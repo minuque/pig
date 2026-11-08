@@ -3,7 +3,6 @@
     <DropdownMenuItem class="model-item" @select="emit('select', $event)">
       <VendorMark :vendor="vendorId" :name="vendorName" :size="14" />
       <span class="model-name">{{ vendorId }}/{{ modelName }}</span>
-      <kbd v-if="kbd" class="row-kbd">{{ kbd }}</kbd>
     </DropdownMenuItem>
 
     <button
@@ -35,7 +34,6 @@ defineProps<{
   vendorId: string
   vendorName: string
   modelName: string
-  kbd?: string | undefined
   current: boolean
   favorite: boolean
 }>()
@@ -95,15 +93,6 @@ const { t } = useI18n()
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.row-kbd {
-  flex: none;
-  margin-inline-start: auto;
-  color: var(--contrast-foreground-faint);
-  font-family: inherit;
-  font-size: var(--text-meta);
-  line-height: 16px;
 }
 
 .fav {

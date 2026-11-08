@@ -1,26 +1,5 @@
 <template>
   <div class="effort-card">
-    <div class="effort-head">
-      <span class="effort-spacer" aria-hidden="true"></span>
-      <span :key="currentLabel" class="effort-value motion-blur-in">{{ currentLabel }}</span>
-
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <button
-            type="button"
-            class="effort-reset"
-            :aria-label="t('composer.restoreDefaultEffort')"
-            :disabled="isDefault"
-            @click="reset"
-          >
-            <RestartIcon aria-hidden="true" />
-          </button>
-        </TooltipTrigger>
-
-        <TooltipContent>{{ t("composer.restoreDefault") }}</TooltipContent>
-      </Tooltip>
-    </div>
-
     <div ref="rootRef" class="root" :data-dragging="dragging ? 'true' : 'false'">
       <svg class="shell" :viewBox="`0 0 ${track} ${BUMP_H + HEIGHT}`" aria-hidden="true">
         <defs>
@@ -86,7 +65,6 @@
 import { useResizeObserver } from "@vueuse/core"
 import { computed, nextTick, ref, useId, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { displayThinkingLevel, formatThinkingLevel } from "@features/composer/lib/thinking-level.js"
 import {
   BUMP_H,
@@ -104,7 +82,6 @@ import {
   tickHeight,
   tween,
 } from "@features/composer/lib/effort-shell.js"
-import { RestartIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 const props = defineProps<{
@@ -119,10 +96,8 @@ const rootRef = useTemplateRef("rootRef")
 const trackRef = useTemplateRef("trackRef")
 const labelRef = useTemplateRef("labelRef")
 const current = computed(() => displayThinkingLevel(props.level, props.levels))
-const currentLabel = computed(() => formatThinkingLevel(current.value))
 const index = computed(() => Math.max(0, props.levels.indexOf(current.value)))
 const steps = computed(() => Math.max(props.levels.length - 1, 0))
-const isDefault = computed(() => index.value === 0)
 // 轨道宽度跟随面板，几何全部按实测宽度算
 const track = ref(224)
 const display = ref(index.value)
@@ -298,64 +273,12 @@ function onKeyDown(event: KeyboardEvent) {
   event.preventDefault()
   commit(next)
 }
-
-function reset() {
-  commit(0)
-}
 </script>
 
 <style scoped>
 .effort-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xxs);
   padding: var(--space-xxs) var(--space-xs) var(--space-xs);
   border-top: var(--border-width) solid var(--border-soft);
-}
-
-.effort-head {
-  display: grid;
-  grid-template-columns: 1.5rem minmax(0, 1fr) 1.5rem;
-  align-items: center;
-  gap: var(--space-xxs);
-}
-
-.effort-value {
-  overflow: hidden;
-  color: var(--primary);
-  font-size: var(--text-body);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--text-body--line-height);
-  text-align: center;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.effort-reset {
-  display: grid;
-  place-items: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-control);
-  background: transparent;
-  color: var(--contrast-foreground);
-  cursor: pointer;
-}
-
-.effort-reset svg {
-  width: 14px;
-  height: 14px;
-}
-
-.effort-reset:hover:not(:disabled) {
-  background: var(--hover-quiet);
-}
-
-.effort-reset:disabled {
-  opacity: 0.35;
-  cursor: default;
 }
 
 /* 以下照参考实现 1:1：52px 高，下方 32px 轨道，上方 20px 留给拖动时长出的标签凸台 */
