@@ -75,7 +75,7 @@ const GROUPS: { id: GroupId; title: Label }[] = [
   { id: "color-interaction", title: { zh: "颜色 · 交互", en: "Color · Interaction" } },
   { id: "color-state", title: { zh: "颜色 · 状态", en: "Color · Status" } },
   { id: "color-code", title: { zh: "颜色 · 代码与图表", en: "Color · Code & chart" } },
-  { id: "color-mark", title: { zh: "颜色 · 标识与插画", en: "Color · Marks & illustration" } },
+  { id: "color-mark", title: { zh: "颜色 · 插画与预览", en: "Color · Illustration & preview" } },
   { id: "color", title: { zh: "颜色 · 其他", en: "Color · Other" } },
   { id: "text", title: { zh: "字号", en: "Font size" } },
   { id: "leading", title: { zh: "行高与字距", en: "Line height & tracking" } },
@@ -86,7 +86,7 @@ const GROUPS: { id: GroupId; title: Label }[] = [
   { id: "size", title: { zh: "尺寸", en: "Size" } },
   { id: "layout", title: { zh: "布局", en: "Layout" } },
   { id: "layer", title: { zh: "层级", en: "Layers" } },
-  { id: "material", title: { zh: "材质与透明度", en: "Material & opacity" } },
+  { id: "material", title: { zh: "透明度与对比", en: "Opacity & contrast" } },
   { id: "motion", title: { zh: "动效", en: "Motion" } },
   { id: "other", title: { zh: "其他", en: "Other" } },
 ]
@@ -96,11 +96,11 @@ const PREFIX: [RegExp, GroupId][] = [
   [/^--(default-)?font-/, "font"],
   [/^--spac(e|ing)/, "space"],
   [/radius/, "radius"],
-  [/^--(shadow|divider|focus-ring|composer-shadow)/, "shadow"],
+  [/^--(shadow|divider|focus-ring)/, "shadow"],
   [/^--(size|line-icon|border-width|solar|icon-button|startup-logo)/, "size"],
   [/^--(transcript|header|titlebar|edge-fade|corner)/, "layout"],
   [/^--z-/, "layer"],
-  [/^--(glass|material|opacity|contrast-boost)/, "material"],
+  [/^--(opacity|contrast-boost)/, "material"],
   [/^--(duration|ease)/, "motion"],
 ]
 // 颜色按用途细分，按顺序取第一个命中；都不中归「颜色 · 其他」
@@ -108,9 +108,9 @@ const COLOR_PREFIX: [RegExp, GroupId][] = [
   [/^--(success|warning|danger|info|state-|scrim)/, "color-state"],
   [/^--(primary|link$)/, "color-brand"],
   [/^--(code|language|inline-code|mermaid)/, "color-code"],
-  [/^--(accent-|star|mascot|theme-wire)/, "color-mark"],
+  [/^--(mascot|theme-wire)/, "color-mark"],
   [
-    /^--(interaction|hover|button|link-underline|scrollbar|chart-track|effort-track|minimap|composer-highlight)/,
+    /^--(interaction|hover|link-underline|scrollbar|chart-track|effort-track|minimap|composer-highlight)/,
     "color-interaction",
   ],
   [/foreground|placeholder|^--contrast/, "color-text"],
