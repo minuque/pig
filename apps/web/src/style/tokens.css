@@ -225,7 +225,9 @@
   /* 阴影只给真正浮起来的层：下拉、菜单、提示用 popover，对话框与抽屉用 dialog */
   --shadow-popover: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
   --shadow-dialog: 0 16px 48px rgba(0, 0, 0, 0.18);
-  --shadow-composer: 0 4px 18px -6px color-mix(in srgb, var(--foreground) 7%, transparent);
+  --shadow-composer: 0 12px 28px -18px rgba(0, 0, 0, 0.4);
+  /* 输入卡顶边内高光：浅色不画，深色 3% 白 */
+  --composer-highlight: transparent;
   --theme-wire-light: var(--background);
   --theme-wire-light-raised: var(--card);
   --theme-wire-dark: var(--card);
@@ -308,7 +310,7 @@
   --radius-control: 6px;
   --radius-card: 10px;
   --radius-dialog: 14px;
-  --radius-composer: 1.2rem;
+  --radius-composer: 32px;
   /* 项目自用的全圆角，别改回 --radius-full：rt 拿那个名字当胶囊开关，medium 档是 0 */
   --radius-pill: 9999px;
 }
@@ -380,7 +382,8 @@ html[data-pig-desktop-platform="darwin"] {
   --scrim: rgba(0, 0, 0, 0.55);
   --shadow-popover: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 8px 24px rgba(0, 0, 0, 0.5);
   --shadow-dialog: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 48px rgba(0, 0, 0, 0.6);
-  --shadow-composer: 0 6px 24px -10px rgba(0, 0, 0, 0.3);
+  --shadow-composer: none;
+  --composer-highlight: rgba(255, 255, 255, 0.03);
 
   --inverse-background: #e8eaed;
   --inverse-background-hover: #ffffff;

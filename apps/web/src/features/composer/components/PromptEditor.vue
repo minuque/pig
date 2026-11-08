@@ -366,10 +366,12 @@ defineExpose({ focus })
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: var(--border-width) solid var(--composer-border);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-composer);
   background: var(--composer-background);
-  box-shadow: var(--shadow-composer);
+  box-shadow:
+    inset 0 1px 0 var(--composer-highlight),
+    var(--shadow-composer);
   corner-shape: var(--corner-shape-composer);
 }
 

@@ -38,8 +38,6 @@
      必须写在这里：--gray-* 只在 .radix-themes 作用域内映射。 */
   --border: var(--gray-a6);
   --border-soft: var(--gray-a5);
-  /* 输入卡外框：重描边取 55% 透明度，比卡片描边轻一档 */
-  --composer-border: color-mix(in srgb, var(--gray-a8) 55%, transparent);
   /* 卡片内的行间分隔：和卡片外环、rt 表格行线同一画法，用内阴影而不是 border，
      非整数缩放下不被取整成一条实线 */
   --divider-top: inset 0 var(--border-width) 0 var(--border-soft);
