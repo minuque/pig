@@ -378,7 +378,7 @@
 }
 
 .icon-control:hover {
-  background: var(--interaction-hover);
+  background: var(--btn-hover);
   color: var(--contrast-foreground);
 }
 

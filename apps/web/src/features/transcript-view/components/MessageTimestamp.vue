@@ -131,7 +131,7 @@ async function copy() {
 }
 
 .copy:hover {
-  background: var(--hover-quiet);
+  background: var(--btn-hover);
   color: var(--contrast-foreground);
 }
 

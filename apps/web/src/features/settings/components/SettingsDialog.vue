@@ -380,12 +380,12 @@ watch(active, async () => {
 }
 
 .settings-dialog .nav-item:hover {
-  background: var(--hover-quiet);
+  background: var(--btn-hover);
   color: var(--contrast-foreground);
 }
 
 .settings-dialog .nav-item.on {
-  background: var(--sidebar-selected);
+  background: var(--btn-selected);
   color: var(--contrast-foreground);
 }
 
@@ -440,7 +440,7 @@ watch(active, async () => {
 }
 
 .settings-dialog .search-clear:hover {
-  background: var(--hover-quiet);
+  background: var(--btn-hover);
   color: var(--contrast-foreground);
 }
 
@@ -467,7 +467,7 @@ watch(active, async () => {
 }
 
 .settings-dialog .search-result.on {
-  background: var(--sidebar-selected);
+  background: var(--btn-selected);
 }
 
 .settings-dialog .result-title {
@@ -568,7 +568,7 @@ watch(active, async () => {
 }
 
 .settings-dialog .settings-close:hover {
-  background: var(--hover-quiet);
+  background: var(--btn-hover);
   color: var(--contrast-foreground);
 }
 

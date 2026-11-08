@@ -129,7 +129,7 @@ const textSizeClass = computed(() => `rt-r-size-${props.size === "l" ? "3" : "2"
 }
 
 .callout-action:hover {
-  background: var(--hover-quiet);
+  background: var(--btn-hover);
 }
 
 .callout[data-size="s"] .callout-icon :deep(svg),

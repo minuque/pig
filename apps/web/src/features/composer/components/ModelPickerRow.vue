@@ -60,7 +60,7 @@ const { t } = useI18n()
 
 .model-row:hover,
 .model-row:focus-within {
-  background: var(--hover-quiet);
+  background: var(--btn-hover);
 }
 
 .model-row[data-current] {
@@ -113,7 +113,7 @@ const { t } = useI18n()
 }
 
 .fav:hover {
-  background: var(--hover-quiet);
+  background: var(--btn-hover);
   color: var(--contrast-foreground);
   opacity: 1;
 }

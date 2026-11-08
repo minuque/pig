@@ -171,7 +171,7 @@ watch(
 
 .command-row:hover,
 .command-row[data-active] {
-  background: var(--hover-tint);
+  background: var(--btn-hover);
 }
 
 .command-icon {

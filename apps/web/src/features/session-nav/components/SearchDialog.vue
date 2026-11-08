@@ -216,7 +216,7 @@ function activate(index: number) {
 }
 
 .search-close:hover {
-  background: var(--hover-quiet);
+  background: var(--btn-hover);
   color: var(--contrast-foreground);
 }
 
@@ -261,7 +261,7 @@ function activate(index: number) {
 }
 
 .search-row.active {
-  background: var(--sidebar-selected);
+  background: var(--btn-selected);
   color: var(--contrast-foreground);
 }
 

@@ -334,7 +334,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .selector[data-slot="button"][data-state="open"] {
-  background-color: var(--gray-a3);
+  background-color: var(--btn-hover);
 }
 
 .selector-labels {

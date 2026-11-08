@@ -139,7 +139,7 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
 }
 
 .model-row:hover {
-  background: var(--hover-quiet);
+  background: var(--btn-hover);
 }
 
 .chevron-button {
@@ -153,7 +153,7 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
 }
 
 .chevron-button:hover {
-  background: var(--hover-quiet);
+  background: var(--btn-hover);
   color: var(--contrast-foreground);
 }
 

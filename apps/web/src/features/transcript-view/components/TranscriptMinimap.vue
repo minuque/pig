@@ -329,7 +329,7 @@ function onPreviewOpenChange(open: boolean) {
 }
 
 .minimap-nav:hover:not(:disabled) {
-  background: var(--hover-quiet);
+  background: var(--btn-hover);
   color: var(--contrast-foreground);
 }
 

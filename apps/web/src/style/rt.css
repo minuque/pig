@@ -94,8 +94,13 @@
 }
 
 .rt-IconButton:where(.rt-variant-ghost):where(:hover) {
-  background-color: var(--hover-quiet);
+  background-color: var(--btn-hover);
   color: var(--contrast-foreground);
+}
+
+/* ghost 文字按钮悬停同一底色，与图标按钮、侧栏行一致 */
+.rt-Button:where(.rt-variant-ghost):where(:hover) {
+  background-color: var(--btn-hover);
 }
 
 /* 类卡片外观的唯一来源：Card 与 surface 表格共用 --border 细环、--radius-card 圆角，不铺底。

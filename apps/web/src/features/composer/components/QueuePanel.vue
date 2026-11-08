@@ -99,7 +99,7 @@ onBeforeUnmount(() => reorder.detach())
 }
 
 .row:hover {
-  background: var(--hover-quiet);
+  background: var(--btn-hover);
 }
 
 /* 拖拽跟手：源行保持实体阴影，邻项让位由 useDragReorder 的 transform 预览驱动 */
@@ -155,7 +155,7 @@ onBeforeUnmount(() => reorder.detach())
 }
 
 .action:hover {
-  background: var(--hover-tint);
+  background: var(--btn-hover);
   color: var(--contrast-foreground);
   opacity: 1;
 }
@@ -185,7 +185,7 @@ onBeforeUnmount(() => reorder.detach())
 }
 
 .send-now:hover {
-  background: var(--hover-tint);
+  background: var(--btn-hover);
   color: var(--contrast-foreground);
 }
 

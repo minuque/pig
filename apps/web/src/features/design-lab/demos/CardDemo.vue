@@ -186,7 +186,7 @@ const PROVIDERS = ["Anthropic", "DeepSeek", "OpenAI"]
 }
 
 .list-row:hover {
-  background: var(--hover-quiet);
+  background: var(--btn-hover);
 }
 
 .code {

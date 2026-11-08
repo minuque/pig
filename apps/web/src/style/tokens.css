@@ -52,9 +52,9 @@
   --card: #f7f8f8;
   --workbench-surface: var(--background);
   --sidebar-foreground: var(--foreground);
-  --sidebar-hover: #f1f2f4;
-  /* 选中行抬成白底，与侧栏同一中性色系 */
-  --sidebar-selected: #ffffff;
+  /* 按钮与可点行共用：悬停一档底色，选中抬成白底；侧栏、菜单、设置同一套 */
+  --btn-hover: #f1f2f4;
+  --btn-selected: #ffffff;
   --toolbar-foreground: var(--foreground);
   --code-background: #f7f8f8;
   --code-foreground: var(--foreground);
@@ -101,7 +101,6 @@
   );
 
   /* 结构 / 交互 */
-  --interaction-hover: var(--sidebar-hover);
   --hover-quiet: color-mix(in srgb, var(--foreground) 5%, transparent);
   --hover-tint: color-mix(in srgb, var(--foreground) 8%, transparent);
   --hover-strong: color-mix(in srgb, var(--foreground) 12%, transparent);
@@ -339,8 +338,8 @@ html[data-pig-desktop-platform="darwin"] {
   --mermaid-fill: #17171a;
   --mermaid-line: #2a2a2e;
   --card: #17171a;
-  --sidebar-hover: #121728;
-  --sidebar-selected: #1a2143;
+  --btn-hover: #121728;
+  --btn-selected: #1a2143;
   --code-background: #0b0c0d;
   --language-gray: #adadb1;
   --language-red: #ff6762;

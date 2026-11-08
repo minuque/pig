@@ -502,10 +502,13 @@ function confirmDelete() {
   padding-inline: 10px;
 }
 
-.session-item:hover .session-card,
+.session-item:hover .session-card {
+  background: var(--btn-hover);
+}
+
 .session-card[data-state="open"],
 .session-card.active {
-  background: var(--sidebar-selected);
+  background: var(--btn-selected);
 }
 
 .project-icon {
@@ -690,7 +693,7 @@ function confirmDelete() {
 
 /* 被扫过的行：铺选中底，行尾动作常亮 */
 .session-item.is-swept .session-card {
-  background: var(--sidebar-selected);
+  background: var(--btn-selected);
 }
 
 .session-item.is-swept .state-mark {

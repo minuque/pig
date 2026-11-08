@@ -196,7 +196,7 @@ function onOpenAutoFocus(event: Event) {
 
 .close:hover {
   color: var(--contrast-foreground);
-  background: var(--hover-tint);
+  background: var(--btn-hover);
 }
 
 .stats {
@@ -266,7 +266,7 @@ function onOpenAutoFocus(event: Event) {
 }
 
 .legend-row--button:hover {
-  background: var(--hover-tint);
+  background: var(--btn-hover);
   color: var(--contrast-foreground);
 }
 

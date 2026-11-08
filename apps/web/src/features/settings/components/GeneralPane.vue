@@ -210,7 +210,7 @@ const widthLabel = computed(
 }
 
 .scheme-card:hover {
-  background: var(--hover-quiet);
+  background: var(--btn-hover);
   color: var(--contrast-foreground);
 }
 

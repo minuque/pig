@@ -193,7 +193,7 @@ function sourceKind(provider: ProviderView) {
 }
 
 .provider-row:hover {
-  background: var(--hover-quiet);
+  background: var(--btn-hover);
 }
 
 .provider-mark {

@@ -73,7 +73,7 @@ const ringOffset = computed(() => {
 .usage:hover,
 .usage.open {
   color: var(--contrast-foreground);
-  background: var(--hover-quiet);
+  background: var(--btn-hover);
 }
 
 .usage-ring {
