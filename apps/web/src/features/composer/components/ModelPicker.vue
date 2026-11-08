@@ -21,11 +21,7 @@
 
             <span ref="labelsRef" class="selector-labels">
               <span class="selector-name">{{ label }}</span>
-
-              <span v-if="effortLabel" class="selector-effort">
-                <span class="selector-effort-sep">·</span>
-                {{ effortLabel }}
-              </span>
+              <span v-if="effortLabel" class="selector-effort">{{ effortLabel }}</span>
             </span>
           </Button>
         </DropdownMenuTrigger>
@@ -340,6 +336,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 .selector-labels {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-xxs);
   min-width: 0;
 }
 
@@ -351,17 +348,8 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .selector-effort {
-  display: inline-flex;
-  align-items: center;
   flex: none;
-  /* accent-9（--primary）是填充色，文字用强调文字色：暗色卡面上前者只有 2.86:1 */
-  color: var(--link);
-}
-
-/* 分隔符写成真实文本，才计入可访问名与可见文本的一致性；样式仍是弱化色。 */
-.selector-effort-sep {
-  margin-inline: var(--space-xxs);
-  color: var(--contrast-foreground-faint);
+  color: var(--contrast-foreground-secondary);
 }
 
 .picker-menu {
