@@ -45,18 +45,18 @@
   --primary-foreground: var(--accent-contrast);
   --white: #ffffff;
 
-  /* 表面取 Linear 基调：窗口与侧栏一层，主工作区一层，卡片与浮层各抬一档；行的悬停与选中带一点主题色 */
+  /* 表面统一中性灰：侧栏低一档，主区一层，卡片、浮层、输入卡依次抬亮；悬停与选中带主题色 */
   --background: #f4f4f4;
   /* 所有侧栏共用：主侧栏、抽屉、设置弹窗导航；与主区同一中性灰，低一档 */
   --sidebar: #f0f0f0;
-  --card: #f7f8f8;
+  --card: #f8f8f8;
   --workbench-surface: var(--background);
   --sidebar-foreground: var(--foreground);
-  /* 按钮与可点行共用：悬停叠 6% 前景色，任何底色上都略深一档；选中抬成白底 */
-  --btn-hover: color-mix(in srgb, var(--foreground) 6%, transparent);
-  --btn-selected: #ffffff;
+  /* 按钮与可点行共用：取 Radix 主题色 alpha 第 3 档做悬停、第 4 档做选中，深浅主题由色板自己切 */
+  --btn-hover: var(--accent-a3);
+  --btn-selected: var(--accent-a4);
   --toolbar-foreground: var(--foreground);
-  --code-background: #f7f8f8;
+  --code-background: #f8f8f8;
   --code-foreground: var(--foreground);
   /* 代码块语言图标的色相，取自 @pierre/vscode-icons 调色板：浅色 600 档，深色 400 档 */
   --language-gray: #6c6c71;
@@ -73,8 +73,8 @@
   /* 行内码：正文色压 10% 的底，深浅主题自动跟随 */
   --inline-code-background: color-mix(in srgb, var(--contrast-foreground) 10%, transparent);
   --composer-background: #ffffff;
-  --user-prompt-background: #f1f2f4;
-  --popover: #fbfbfc;
+  --user-prompt-background: #ececec;
+  --popover: #fcfcfc;
   --code-surface: color-mix(in srgb, var(--foreground) 4%, var(--card));
 
   /* 文字三级：主、次、弱；弱级只给非必要信息 */
@@ -124,7 +124,7 @@
   /* 收藏星标：琥珀色，深浅共用 */
   --favorite: #fbbf24;
   --link: var(--accent-11);
-  --scrollbar-color: #d5d8dd;
+  --scrollbar-color: #d6d6d6;
 
   /* 滚动边缘渐隐：类只选带宽，颜色由 mask 决定 */
   --edge-fade-band: 24px;
@@ -340,7 +340,6 @@ html[data-pig-desktop-platform="darwin"] {
   --mermaid-fill: #17171a;
   --mermaid-line: #2a2a2e;
   --card: #17171a;
-  --btn-selected: #1a2143;
   --code-background: #0b0c0d;
   --language-gray: #adadb1;
   --language-red: #ff6762;
@@ -393,7 +392,7 @@ html[data-pig-desktop-platform="darwin"] {
   --theme-wire-dark: #101012;
   --theme-wire-dark-raised: #17171a;
   --theme-wire-light: #f4f4f4;
-  --theme-wire-light-raised: #f7f8f8;
+  --theme-wire-light-raised: #f8f8f8;
 }
 
 /* 字号档：辅助、正文、标题与代码同步缩放，页面大标题不动 */

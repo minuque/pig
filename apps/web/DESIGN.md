@@ -10,7 +10,7 @@ colors:
   link-dark: "#9EB1FF"
   window-light: "#F4F4F4"
   sidebar-light: "#F0F0F0"
-  overlay-light: "#FBFBFC"
+  overlay-light: "#FCFCFC"
   window-dark: "#101012"
   sidebar-dark: "#0E0E10"
   card-dark: "#17171A"
@@ -95,15 +95,15 @@ spacing:
 
 中性色用 Radix 的 `slate`（`data-gray-color="slate"`），描边与 rt 基础件的灰阶跟着它走；表面与文字是下表的固定值，取自 Linear 基调。
 
-| 层                             | 浅色                       | 深色                       | token                           |
-| ------------------------------ | -------------------------- | -------------------------- | ------------------------------- |
-| 窗口、主区                     | `#F4F4F4`                  | `#101012`                  | `--background`                  |
-| 侧栏（主侧栏、抽屉、设置导航） | `#F0F0F0`（比主区深一档）  | `#0E0E10`（比主区深一档）  | `--sidebar`                     |
-| 代码块                         | `#F7F8F8`                  | `#0B0C0D`                  | `--code-background`             |
-| 卡片                           | `#F7F8F8`                  | `#17171A`                  | `--card`                        |
-| 输入卡                         | `#FFFFFF`                  | `#17171A`                  | `--composer-background`         |
-| 浮层                           | `#FBFBFC`                  | `#1C1C1F`                  | `--popover`                     |
-| 按钮与行悬停 / 选中            | 前景色 6% 叠加 / `#FFFFFF` | 前景色 6% 叠加 / `#1A2143` | `--btn-hover`、`--btn-selected` |
+| 层                             | 浅色                                 | 深色                      | token                           |
+| ------------------------------ | ------------------------------------ | ------------------------- | ------------------------------- |
+| 窗口、主区                     | `#F4F4F4`                            | `#101012`                 | `--background`                  |
+| 侧栏（主侧栏、抽屉、设置导航） | `#F0F0F0`（比主区深一档）            | `#0E0E10`（比主区深一档） | `--sidebar`                     |
+| 代码块                         | `#F8F8F8`                            | `#0B0C0D`                 | `--code-background`             |
+| 卡片                           | `#F8F8F8`                            | `#17171A`                 | `--card`                        |
+| 输入卡                         | `#FFFFFF`                            | `#17171A`                 | `--composer-background`         |
+| 浮层                           | `#FCFCFC`                            | `#1C1C1F`                 | `--popover`                     |
+| 按钮与行悬停 / 选中            | 主题色 `--accent-a3` / `--accent-a4` | 同左，色板自动切深色      | `--btn-hover`、`--btn-selected` |
 
 文字只有三级，都走 `--contrast-foreground*` 派生层：
 
