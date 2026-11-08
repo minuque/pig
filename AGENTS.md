@@ -16,6 +16,21 @@
 - 弹层用 `<ThemeRoot>` 包住 teleport 内容：rt 的面板与阴影 token 挂在 `.radix-themes` 上，飞出文档流就取不到。
 - 动画复用 `apps/web/src/style/motion.css` 的类与 `@keyframes`。缺档先补 `motion.css`，再写组件。
 
+### 设计约束
+
+完整规范见 [`apps/web/DESIGN.md`](apps/web/DESIGN.md)。改 UI 前先守住下面几条：
+
+- 基调克制、安静、舒服。优先级：解决问题 > 易于使用 > 好看美观。
+- 能用产品本身表达清楚的，不加说明文字。纯图标按钮的 tooltip 是它的名字；可见文字已写的内容，不再用 tooltip 重复。
+- 一页只留一个强调色。品牌蓝 abyss 只用于主操作、选中态、焦点、链接；深色下文字类用法取第 11 级。一页只放一个 solid 主按钮。
+- 状态色只在真有状态时出现，用第 11 级文字配第 3 级浅底，不实色填充。不加装饰色、渐变、光晕。
+- 字号只用 `--text-meta`、`--text-body`、`--text-title`、`--text-heading` 四档，代码用 `--text-code`。一页最多 4 种字号，层级靠字重（400/500/600）和三级文字色。
+- 文字色只有主、次、弱三级，一律用 `--contrast-foreground*`。
+- 圆角只用 `--radius-control`、`--radius-card`、`--radius-dialog`、`--radius-pill`。嵌套圆角同心：内层 = 外层 − 内边距。
+- 页面默认扁平：不叠阴影、不发光、不加毛玻璃。阴影只给真正浮起来的层：`--shadow-popover` 或 `--shadow-dialog`。
+- 不卡片套卡片。卡片内分组用标题加分割线；分割线只用 1px `--border-soft`。卡片的描边和底色差只用一种。
+- 按钮、间距、圆角、分割线、弹窗、动画、阴影全站一套规则，不为单个页面另起一档。
+
 ## 文档
 
 - 目录或领域边界：[`docs/directory-structure.md`](docs/directory-structure.md)
