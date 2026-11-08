@@ -210,8 +210,7 @@ const widthLabel = computed(
   transition:
     background-color var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) var(--ease-out);
+    color var(--duration-fast) var(--ease-out);
 }
 
 .scheme-card:hover {
@@ -222,7 +221,6 @@ const widthLabel = computed(
 .scheme-card[aria-checked="true"] {
   border-color: var(--primary);
   color: var(--contrast-foreground);
-  box-shadow: var(--focus-ring);
 }
 
 .scheme-wire {

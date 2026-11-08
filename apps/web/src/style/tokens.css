@@ -255,9 +255,9 @@
   --duration-shimmer: 3400ms;
   --ease-icon: cubic-bezier(0.2, 0, 0, 1);
 
-  /* 焦点环：宽+透明度的统一焦点态，配合 .ring-focus 使用。 */
-  --focus-ring: 0 0 0 3px var(--accent-a4);
-  --focus-ring-danger: 0 0 0 3px color-mix(in srgb, var(--danger, #e5484d) 45%, transparent);
+  /* 焦点环：2px 实色第 11 级，深浅主题都看得见；配合 .ring-focus 使用 */
+  --focus-ring: 0 0 0 2px var(--accent-11);
+  --focus-ring-danger: 0 0 0 2px var(--danger);
   --font-sans:
     "anthropic-sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
     "Microsoft YaHei", sans-serif;
