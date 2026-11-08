@@ -226,8 +226,8 @@
   --shadow-popover: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
   --shadow-dialog: 0 16px 48px rgba(0, 0, 0, 0.18);
   --shadow-composer: 0 12px 28px -18px rgba(0, 0, 0, 0.4);
-  /* 输入卡顶边内高光：浅色不画，深色 3% 白 */
-  --composer-highlight: transparent;
+  /* 输入卡内侧淡阴影：顶边往里压一点，像卡片嵌进页面 */
+  --composer-inset: inset 0 1px 3px rgba(0, 0, 0, 0.05);
   --theme-wire-light: var(--background);
   --theme-wire-light-raised: var(--card);
   --theme-wire-dark: var(--card);
@@ -382,8 +382,9 @@ html[data-pig-desktop-platform="darwin"] {
   --scrim: rgba(0, 0, 0, 0.55);
   --shadow-popover: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 8px 24px rgba(0, 0, 0, 0.5);
   --shadow-dialog: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 48px rgba(0, 0, 0, 0.6);
-  --shadow-composer: none;
-  --composer-highlight: rgba(255, 255, 255, 0.03);
+  /* 写成透明零阴影而不是 none：它和内环拼在同一个 box-shadow 列表里，none 会让整条失效 */
+  --shadow-composer: 0 0 transparent;
+  --composer-inset: inset 0 1px 0 rgba(255, 255, 255, 0.03), inset 0 1px 3px rgba(0, 0, 0, 0.2);
 
   --inverse-background: #e8eaed;
   --inverse-background-hover: #ffffff;

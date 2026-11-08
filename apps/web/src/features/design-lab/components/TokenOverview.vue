@@ -110,7 +110,7 @@ const COLOR_PREFIX: [RegExp, GroupId][] = [
   [/^--(code|language|inline-code|mermaid)/, "color-code"],
   [/^--(mascot|theme-wire)/, "color-mark"],
   [
-    /^--(btn|hover|link-underline|scrollbar|chart-track|effort|minimap|composer-highlight)/,
+    /^--(btn|hover|link-underline|scrollbar|chart-track|effort|minimap|composer-inset)/,
     "color-interaction",
   ],
   [/foreground|placeholder|^--contrast/, "color-text"],

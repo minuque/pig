@@ -366,11 +366,12 @@ defineExpose({ focus })
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: var(--border-width) solid var(--border);
+  /* 描边与 rt 卡片同法：内阴影画 1px 环，不用 border，非整数缩放下圆角不发毛 */
   border-radius: var(--radius-composer);
   background: var(--composer-background);
   box-shadow:
-    inset 0 1px 0 var(--composer-highlight),
+    inset 0 0 0 var(--border-width) var(--border),
+    var(--composer-inset),
     var(--shadow-composer);
   corner-shape: var(--corner-shape-composer);
 }

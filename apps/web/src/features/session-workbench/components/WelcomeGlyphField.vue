@@ -29,9 +29,6 @@ const FRAME_MS = 1000 / 30
 const RIPPLE_SPEED = 520
 const RIPPLE_BAND = 52
 const RIPPLE_LIFE = 1.6
-/** 指针划过：搅亮半径（px）与余温寿命（秒）。 */
-const STIR_RADIUS = 48
-const STIR_LIFE = 1.2
 /** 落在这些元素上的点击不起涟漪：只有点空白背景才算。 */
 const INTERACTIVE =
   'button, a, input, textarea, select, [contenteditable="true"], [role="menu"], .composer-stack, .hero-title'
@@ -39,7 +36,6 @@ const canvas = useTemplateRef<HTMLCanvasElement>("canvas")
 const host = computed(() => canvas.value?.parentElement ?? null)
 const seed = Math.floor(Math.random() * 1e6)
 const ripples: Touch[] = []
-const stirs: Touch[] = []
 let grid = { width: 0, height: 0, cols: 0, rows: 0 }
 let seeds = new Uint16Array(0)
 let wind = new Float32Array(0)
@@ -86,18 +82,6 @@ function rippleAt(x: number, y: number, now: number): number {
   return sum
 }
 
-function stirAt(x: number, y: number, now: number): number {
-  let sum = 0
-
-  for (const stir of stirs) {
-    const fade = 1 - (now - stir.start) / 1000 / STIR_LIFE
-    const d2 = (x - stir.x) ** 2 + (y - stir.y) ** 2
-    sum += Math.exp(-d2 / (2 * STIR_RADIUS * STIR_RADIUS)) * fade * fade
-  }
-
-  return Math.min(1, sum)
-}
-
 function prune(list: Touch[], life: number, now: number) {
   while (list.length && (now - list[0]!.start) / 1000 > life) list.shift()
 }
@@ -108,17 +92,16 @@ function draw(now: number, still = false) {
 
   if (!el || !ctx) return
   prune(ripples, RIPPLE_LIFE, now)
-  prune(stirs, STIR_LIFE, now)
   const gain = still ? 1 : ambientGain(now)
 
-  if (!still && gain === 0 && !ripples.length && !stirs.length) {
+  if (!still && gain === 0 && !ripples.length) {
     ctx.clearRect(0, 0, grid.width, grid.height)
     loop.pause()
     return
   }
 
-  // 只有风时降到 30 帧；涟漪和搅动要跟手，按显示器帧率走
-  if (!still && !ripples.length && !stirs.length && now - drawnAt < FRAME_MS) return
+  // 只有风时降到 30 帧；涟漪要跟手，按显示器帧率走
+  if (!still && !ripples.length && now - drawnAt < FRAME_MS) return
   drawnAt = now
 
   const { width, height, cols, rows } = grid
@@ -146,9 +129,8 @@ function draw(now: number, still = false) {
       const x = (c + 0.5) * CELL_W
       const y = (r + 0.5) * CELL_H
       const breeze = wind[r * half + (c >> 1)]! * BASE * gain
-      const stir = stirs.length ? stirAt(x, y, now) * 0.5 : 0
       const hand = ripples.length ? rippleAt(x, y, now) : 0
-      const alpha = Math.min(CAP, 1 - (1 - breeze) * (1 - stir) + hand)
+      const alpha = Math.min(CAP, breeze + hand)
 
       if (alpha < 0.015) continue
       const s = seeds[r * cols + c]!
@@ -191,22 +173,6 @@ onMounted(() => {
 useEventListener(window, "focus", wake)
 
 useEventListener(window, "keydown", wake, { passive: true })
-
-useEventListener(
-  host,
-  "pointermove",
-  (event: PointerEvent) => {
-    const point = localPoint(event)
-    const last = stirs[stirs.length - 1]
-
-    if (!point || prefersReducedMotion()) return
-
-    if (!last || Math.hypot(point.x - last.x, point.y - last.y) > 12)
-      stirs.push({ ...point, start: performance.now() })
-    wake()
-  },
-  { passive: true },
-)
 
 useEventListener(host, "pointerdown", (event: PointerEvent) => {
   const point = localPoint(event)

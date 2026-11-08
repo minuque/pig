@@ -16,7 +16,7 @@
       </span>
     </div>
 
-    <WorkbenchHeader />
+    <WorkbenchHeader :class="{ 'is-overlay': showHero }" />
 
     <div class="conversation-column">
       <StartupError v-if="pageError" v-bind="pageError" />
@@ -532,26 +532,23 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   bottom: var(--hero-dock);
 }
 
-/* 输入条下方留白缝的蒙层：盖住滚动露出的 transcript；右侧让出滚动条槽位 */
-.session-stage::after {
-  content: "";
+/* 欢迎页头部浮在背景上，不占高度，字符背景铺满整列；拖窗与侧栏入口照常可用 */
+.workbench-header.is-overlay {
   position: absolute;
-  inset-inline-start: 0;
-  inset-inline-end: var(--space-sm);
-  inset-block-end: 0;
-  z-index: 1;
-  height: calc(var(--space-sm) + env(safe-area-inset-bottom, 0px) + var(--edge-fade-band));
-  pointer-events: none;
-  background: linear-gradient(
-    to top,
-    var(--background) calc(var(--space-sm) + env(safe-area-inset-bottom, 0px)),
-    transparent
-  );
-  mask-image: linear-gradient(
-    to top,
-    black calc(var(--space-sm) + env(safe-area-inset-bottom, 0px)),
-    transparent
-  );
+  inset: 0 0 auto;
+}
+
+/* 输入条下方的渐隐直接淡出正文本身，不再叠一层底色，输入卡圆角和投影不受遮挡；
+   第二层让右侧滚动条一列保持不透明 */
+.session-stage :deep(.transcript-viewport) {
+  --composer-gap: calc(var(--space-sm) + env(safe-area-inset-bottom, 0px));
+  mask-image:
+    linear-gradient(
+      to top,
+      transparent var(--composer-gap),
+      black calc(var(--composer-gap) + var(--edge-fade-band))
+    ),
+    linear-gradient(to right, transparent calc(100% - var(--space-sm)), black 0);
 }
 
 .composer-stack {
