@@ -1,15 +1,6 @@
-/* pele 主题：变量映射到项目 token，挂在图预览容器上。 */
+/* pele 主题：配色用 pele 自带默认值，只把字体与圆角接到项目 token。 */
 
 .mermaid-diagram {
-  /* 图直接落在正文底上：边标签的遮底取页面底色 */
-  --pele-bg: var(--background);
-  --pele-surface: var(--mermaid-bg);
-  --pele-surface-alt: var(--mermaid-fill);
-  --pele-fg: var(--mermaid-fg);
-  --pele-muted: var(--contrast-foreground-faint);
-  --pele-line: var(--mermaid-line);
-  --pele-accent: var(--mermaid-accent);
-  --pele-border: var(--mermaid-line);
   --pele-font: var(--font-sans);
   --pele-font-mono: var(--font-mono);
   --pele-radius: var(--radius-control);

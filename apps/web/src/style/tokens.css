@@ -74,13 +74,6 @@
   --popover: #fbfbfc;
   --code-surface: color-mix(in srgb, var(--foreground) 4%, var(--card));
 
-  /* mermaid 图 */
-  --mermaid-bg: #ffffff;
-  --mermaid-fill: #f1f2f4;
-  --mermaid-fg: var(--foreground);
-  --mermaid-line: #e4e6ea;
-  --mermaid-accent: var(--primary);
-
   /* 文字三级：主、次、弱；弱级只给非必要信息 */
   --foreground: #282a30;
   --foreground-secondary: #4c5159;
@@ -338,11 +331,6 @@ html[data-pig-desktop-platform="darwin"] {
   --popover: #1c1c1f;
   --code-surface: color-mix(in srgb, var(--foreground) 5%, var(--card));
 
-  /* mermaid 图 */
-  --mermaid-bg: #101012;
-  --mermaid-fill: #17171a;
-  --mermaid-line: #2a2a2e;
-
   --foreground: #e8eaed;
   --foreground-secondary: #9da4ae;
   --foreground-faint: #838993;
@@ -350,7 +338,6 @@ html[data-pig-desktop-platform="darwin"] {
 
   --effort-track: var(--hover-strong);
   --link: var(--accent-11);
-  --mermaid-accent: var(--accent-11);
   --scrollbar-color: #2a2a2e;
 
   --scrim: rgba(0, 0, 0, 0.55);

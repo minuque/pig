@@ -118,7 +118,7 @@ spacing:
 ### 例外
 
 - `--language-*`：代码块语言图标，只在代码块里。
-- `--mermaid-*`：图表。
+- Mermaid 图：用 pele 自带的默认配色，不接项目 token。
 - `--mascot-*`：吉祥物插画，深浅共用 logo 原色。
 
 ## 字号
