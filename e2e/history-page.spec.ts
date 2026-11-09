@@ -85,7 +85,14 @@ test("打开会话一次显示全部历史；展开被截断的工具输出时�
   await expect(page.getByText(`第 ${TURNS} 个回答`, { exact: true })).toBeVisible({
     timeout: 30_000,
   })
-  await expect(page.getByText("第 1 个问题", { exact: true })).toBeAttached()
+  // 不用点按钮：往上滚到顶，最早一轮就在
+  await page.locator("#transcript-panel").evaluate((el) => {
+    el.scrollTop = 0
+  })
+  await expect(page.getByText("第 1 个问题", { exact: true })).toBeVisible()
+  await page.locator("#transcript-panel").evaluate((el) => {
+    el.scrollTop = el.scrollHeight
+  })
   await expect(page.locator(".older-button")).toHaveCount(0)
   expect(fetched).toEqual([])
 

@@ -57,9 +57,11 @@ import { ChartSquareIcon, CodeSquareIcon } from "@components/icons/index.js"
 import CopyButton from "@features/transcript-view/components/CopyButton.vue"
 import MermaidPreview from "@features/transcript-view/components/markdown/MermaidPreview.vue"
 import {
+  cachedDiagram,
   loadDiagramType,
   loadPele,
   settledSource,
+  storeDiagram,
 } from "@features/transcript-view/lib/mermaid-runtime.js"
 
 const props = defineProps<{ source: string; live?: boolean }>()
@@ -71,6 +73,8 @@ const preview = shallowRef<RenderResult | null>(null)
 const previewLabel = computed(() => t("common.preview", { name: "Mermaid" }))
 const drawn = ref(false)
 const showSource = ref(false)
+/** 从缓存贴上的定稿图；没有 pele 实例，预览直接用它。 */
+const pasted = shallowRef<RenderResult | null>(null)
 const view = computed(() => (drawn.value && !showSource.value ? "diagram" : "source"))
 const modeLabel = computed(() =>
   showSource.value ? t("transcript.diagramShow") : t("transcript.diagramSource"),
@@ -81,6 +85,15 @@ async function draw(source: string, live: boolean) {
   const text = settledSource(source, live)
 
   if (!text || text === mounted.value?.source) return
+  const hit = live || mounted.value ? undefined : cachedDiagram(text)
+
+  if (hit && host.value) {
+    host.value.innerHTML = hit.svg
+    pasted.value = hit
+    drawn.value = true
+    return
+  }
+
   const pele = await loadPele()
   const type = pele.detectType(text)
 
@@ -99,8 +112,17 @@ async function draw(source: string, live: boolean) {
       images: false,
       zoom: false,
       autoDirection: false,
-      onRender: () => (drawn.value = true),
+      onRender: () => {
+        drawn.value = true
+        // 回调挂在首次 mount 上，流式结束后的重绘也走这里：读当前源码与状态
+        const current = mounted.value
+
+        if (!props.live && current?.result) storeDiagram(current.source, current.result)
+      },
     })
+
+  // 首次绘制可能在 mount 返回前同步完成，回调里还拿不到实例
+  if (!live && mounted.value.result) storeDiagram(mounted.value.source, mounted.value.result)
 }
 
 let queue = Promise.resolve()
@@ -119,7 +141,7 @@ watch(
 
 /** 预览沿用正文里已排好的那张图，比例与所见一致，不再按弹框宽度重新排版。 */
 function openPreview() {
-  preview.value = mounted.value?.result ?? null
+  preview.value = mounted.value?.result ?? pasted.value
   previewOpen.value = preview.value !== null
 }
 

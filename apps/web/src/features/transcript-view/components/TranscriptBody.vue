@@ -31,8 +31,10 @@
                 :running="running"
                 :is-expand="isExpand"
                 :expanded-tools="expandedTools"
+                :eager="turnIndex >= turns.length - EAGER_TURNS || shownTurns.has(turn.id)"
                 @toggle-expand="onToggleExpand"
                 @toggle-tool="onToggleTool"
+                @shown="shownTurns.add($event)"
               >
                 <!-- 指示器挂在本轮里：跑道留白落在它之后，贴底时指示器跟着用户消息留在顶部 -->
                 <TranscriptStatus v-if="turnIndex === turns.length - 1" v-bind="statusProps" />
@@ -75,6 +77,7 @@ import type { TurnTiming } from "@/types/turn-type.js"
 import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
 import type { TimelineTurn, TranscriptMinimapItem } from "@features/transcript-view/type.js"
 import { createTimelineRowsBuilder } from "@features/transcript-view/lib/transcript-rows.js"
+import { EAGER_TURNS, shownTurnsOf } from "@features/transcript-view/lib/shown-turns.js"
 import { turnOutputTokens } from "@features/transcript-view/lib/transcript-activity.js"
 import {
   groupTimelineTurns,
@@ -101,6 +104,7 @@ const props = withDefaults(
 provide(TRANSCRIPT_SESSION_ID, toRef(props, "sessionId"))
 
 const turns = shallowRef<TimelineTurn[]>([])
+const shownTurns = computed(() => shownTurnsOf(props.sessionId))
 const rows = computed(() => turns.value.flatMap((turn) => turn.rows))
 const rowsBuilder = createTimelineRowsBuilder()
 /** 运行中轮的起点：turn.id 就是 user 条目 id，timing.userId 与之对应。 */
