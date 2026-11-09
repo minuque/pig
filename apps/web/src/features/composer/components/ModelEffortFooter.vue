@@ -110,6 +110,7 @@ const reveal = ref(0)
 const geometry = {
   "--effort-h": `${HEIGHT}px`,
   "--effort-root-h": `${BUMP_H + HEIGHT}px`,
+  "--effort-bump-h": `${BUMP_H}px`,
 }
 
 useResizeObserver(rootRef, (entries) => {
@@ -309,6 +310,9 @@ function onKeyDown(event: KeyboardEvent) {
   position: absolute;
   top: 0;
   z-index: 2;
+  display: flex;
+  align-items: center;
+  height: var(--effort-bump-h);
   font-size: 11px;
   font-weight: 500;
   line-height: 13px;

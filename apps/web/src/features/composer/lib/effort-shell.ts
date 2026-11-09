@@ -3,7 +3,7 @@
 const SCALE = 2 / 3
 export const HEIGHT = 32 * SCALE
 export const RADIUS = HEIGHT / 2
-export const BUMP_H = 20 * SCALE
+export const BUMP_H = 24 * SCALE
 export const REST_W = 27.2 * SCALE
 export const DRAG_W = 33.6 * SCALE
 export const REST_H = 27.2 * SCALE
@@ -11,7 +11,7 @@ export const EDGE_PAD = (HEIGHT - REST_H) / 2
 /** 肩部曲线的设计稿宽度：控制点按它归一化，实际宽度再按比例放回。 */
 const SHOULDER_DESIGN = 23.572
 const LEFT_SHOULDER = SHOULDER_DESIGN * SCALE
-const TEXT_SIDE = 20 * SCALE
+const TEXT_SIDE = 32 * SCALE
 const PHI_MAX = 0.6
 const PHI_REACH = 36 * SCALE
 
