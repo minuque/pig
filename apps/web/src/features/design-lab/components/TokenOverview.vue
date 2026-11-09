@@ -111,10 +111,7 @@ const COLOR_PREFIX: [RegExp, GroupId][] = [
   [/^--(mascot|theme-wire)/, "color-mark"],
   [/^--(btn|fill|scrollbar|effort|minimap|composer-inset)/, "color-interaction"],
   [/foreground|placeholder|^--contrast/, "color-text"],
-  [
-    /^--(background|window|card|workbench|sidebar|toolbar|composer|user-prompt|popover|inverse|border|white)/,
-    "color-surface",
-  ],
+  [/^--(background|card|surface|sidebar|popover|inverse|border|white)/, "color-surface"],
 ]
 // 有可视样例的分组；其余只列名字和值
 const VISUAL = new Set<GroupId>(["color", "text", "font", "space", "radius", "shadow", "size"])

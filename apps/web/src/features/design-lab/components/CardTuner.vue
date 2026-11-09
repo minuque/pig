@@ -106,7 +106,7 @@ const SURFACES: Record<string, string> = {
   none: "transparent",
   a2: "var(--gray-a2)",
   card: "var(--card)",
-  code: "var(--code-background)",
+  code: "var(--surface-raised)",
 }
 const PRESETS: (Values & { name: string })[] = [
   { name: "当前", border: "a6", divider: "a5", radius: 10.4, surface: "none" },
@@ -269,7 +269,7 @@ async function copy() {
   margin: 0;
   padding: var(--space-sm);
   border-radius: var(--radius-control);
-  background: var(--code-background);
+  background: var(--surface-raised);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   line-height: 1.6;

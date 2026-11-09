@@ -53,8 +53,6 @@
   /* 按钮与可点行共用：取 Radix 主题色 alpha 第 3 档做悬停、第 4 档做选中，深浅主题由色板自己切 */
   --btn-hover: var(--accent-a3);
   --btn-selected: var(--accent-a4);
-  /* 工具输入、思考内容等代码类卡片的底色：浅色与卡片同色，深色比主区低一档 */
-  --code-background: #f8f8f8;
   /* 代码块语言图标的色相，取自 @pierre/vscode-icons 调色板：浅色 600 档，深色 400 档 */
   --language-gray: #6c6c71;
   --language-red: #d52c36;
@@ -69,8 +67,8 @@
   --language-pink: #d32a61;
   /* 行内码：正文色压 10% 的底，深浅主题自动跟随 */
   --inline-code-background: color-mix(in srgb, var(--contrast-foreground) 10%, transparent);
-  --composer-background: #ffffff;
-  --user-prompt-background: #ececec;
+  /* 抬起的表面：输入卡、用户气泡、工具输入与思考内容共用 */
+  --surface-raised: #ffffff;
   --popover: #fcfcfc;
 
   /* 文字三级：主、次、弱；弱级只给非必要信息 */
@@ -333,7 +331,6 @@ html[data-pig-desktop-platform="darwin"] {
   --background: #101012;
   --sidebar: #0e0e10;
   --card: #17171a;
-  --code-background: #0b0c0d;
   --language-gray: #adadb1;
   --language-red: #ff6762;
   --language-orange: #ffa359;
@@ -345,8 +342,7 @@ html[data-pig-desktop-platform="darwin"] {
   --language-indigo: #9d6afb;
   --language-purple: #d568ea;
   --language-pink: #ff678d;
-  --composer-background: #17171a;
-  --user-prompt-background: #17171a;
+  --surface-raised: #17171a;
   --popover: #1c1c1f;
 
   --foreground: #e8e8e8;

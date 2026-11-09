@@ -472,7 +472,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   padding: var(--space-sm) var(--space-md);
   border: var(--border-width) dashed var(--primary);
   border-radius: var(--radius-pill);
-  background: var(--composer-background);
+  background: var(--surface-raised);
   color: var(--primary);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);

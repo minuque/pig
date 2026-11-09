@@ -88,7 +88,7 @@ const label = computed(() => thoughtStepLabel(props.step))
 
 /* 思考内容与工具输入同底色，和只描边的工具输出区分开 */
 .thought-body :deep(.tool-output-card) {
-  --card-background-color: var(--code-background);
+  --card-background-color: var(--surface-raised);
 }
 
 @media (prefers-reduced-motion: reduce) {
