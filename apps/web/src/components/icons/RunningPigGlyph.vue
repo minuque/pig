@@ -7,6 +7,14 @@
     aria-hidden="true"
     xmlns="http://www.w3.org/2000/svg"
   >
+    <defs>
+      <linearGradient :id="shadeId" x1="0.2" y1="0" x2="0.5" y2="1">
+        <stop class="shade-hi" offset="0" />
+        <stop class="shade-mid" offset="0.5" />
+        <stop class="shade-lo" offset="1" />
+      </linearGradient>
+    </defs>
+
     <text v-if="state === 'idle'" class="zzz zzz-1" x="20" y="30">Z</text>
     <text v-if="state === 'idle'" class="zzz zzz-2" x="34" y="14">z</text>
 
@@ -39,6 +47,7 @@
       />
 
       <path class="head" d="M11.84 100.86a60 60 0 1 1 104.32 0z" />
+      <path class="head-shade" :fill="`url(#${shadeId})`" d="M11.84 100.86a60 60 0 1 1 104.32 0z" />
 
       <g v-if="state === 'xlong'" class="steam">
         <path d="M50 18q3-5 0-9t0-8" />
@@ -87,9 +96,13 @@
  *   xlong   10min（红温 + 蒸汽 + 更快晃头 + 汗）
  * 高度随文本行（父级用 1em 驱动）。
  */
+import { useId } from "vue"
+
 export type PigState = "idle" | "run" | "long" | "xlong"
 
 withDefaults(defineProps<{ state?: PigState }>(), { state: "idle" })
+
+const shadeId = `pig-shade-${useId()}`
 </script>
 
 <style scoped>
@@ -99,11 +112,26 @@ withDefaults(defineProps<{ state?: PigState }>(), { state: "idle" })
   width: auto;
   height: 1em;
   overflow: visible;
+  filter: drop-shadow(0 1px 1px var(--mascot-shadow));
 }
 
 .ear,
 .head {
   fill: var(--mascot-body);
+}
+
+.shade-hi {
+  stop-color: var(--white);
+  stop-opacity: 0.45;
+}
+
+.shade-mid {
+  stop-color: var(--white);
+  stop-opacity: 0;
+}
+
+.shade-lo {
+  stop-color: var(--mascot-shade);
 }
 
 .snout {

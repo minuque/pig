@@ -200,10 +200,11 @@ const tokensLabel = computed(() => {
   line-height: var(--text-meta--line-height);
 }
 
-/* 图标高度对齐一行文本，不撑开行距 */
+/* 图标比一行文本高，负外边距抵掉多出的高度，不撑开行距 */
 .turn-status-pig {
   font-size: var(--text-meta);
-  height: calc(var(--text-meta) * var(--text-meta--line-height));
+  height: calc(var(--text-meta) * 1.8);
+  margin-block: calc(var(--text-meta) * (var(--text-meta--line-height) - 1.8) / 2);
 }
 
 .turn-status-label {
