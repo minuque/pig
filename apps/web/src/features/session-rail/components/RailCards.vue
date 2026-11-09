@@ -106,10 +106,12 @@ function taskMeta(task: SubagentTask): string {
 <style scoped>
 .rail-cards {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-xs);
 }
 
 .rail-card {
+  min-inline-size: 0;
   padding: var(--space-xs) var(--space-sm);
   background: var(--surface);
   border-radius: var(--radius-card);
@@ -131,6 +133,7 @@ function taskMeta(task: SubagentTask): string {
   gap: var(--space-xs);
   font-size: var(--text-meta);
   color: var(--contrast-foreground-secondary);
+  white-space: nowrap;
 }
 
 .rail-value {
@@ -158,7 +161,7 @@ function taskMeta(task: SubagentTask): string {
 
 .rail-task {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 0 var(--space-xs);
   inline-size: 100%;
