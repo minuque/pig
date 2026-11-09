@@ -1,5 +1,6 @@
 import type { ExtensionAPI, ToolDefinition } from "@earendil-works/pi-coding-agent"
 import { type AgentConfig, type AgentScope, discoverAgents } from "./agents.ts"
+import { fromEntries } from "../remote-workspace/index.ts"
 import { startChild as defaultStartChild, type ChildRun, type StartChild } from "./run.ts"
 
 const MAX_TASKS = 8
@@ -189,6 +190,7 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
             model: resolveModel(ctx, agent.model),
             thinkingLevel: ctx.thinkingLevel,
             parentSessionFile: ctx.sessionManager.getSessionFile(),
+            remote: fromEntries(ctx),
             sessionDir: ctx.sessionManager.getSessionDir(),
             signal,
             onSession: (sessionId) => {

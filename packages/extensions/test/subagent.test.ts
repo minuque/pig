@@ -34,6 +34,7 @@ const ctx = () =>
     sessionManager: {
       getSessionFile: () => join(root, "parent.jsonl"),
       getSessionDir: () => root,
+      getEntries: () => [],
     },
     modelRegistry: { find: () => undefined, getAvailable: () => [] },
   }) as never

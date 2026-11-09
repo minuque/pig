@@ -37,7 +37,10 @@ async function fromFlag(value: string): Promise<RemoteBinding> {
   return { environment, path: Buffer.concat(chunks).toString("utf8").trim() }
 }
 
-function fromEntries(ctx: ExtensionContext): RemoteBinding | undefined {
+/** 会话里最近写下的远程绑定；subagent 也用它让子会话跟父会话在同一环境。 */
+export function fromEntries(
+  ctx: Pick<ExtensionContext, "sessionManager">,
+): RemoteBinding | undefined {
   const entries = ctx.sessionManager.getEntries()
 
   for (let index = entries.length - 1; index >= 0; index -= 1) {

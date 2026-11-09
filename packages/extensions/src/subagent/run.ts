@@ -6,6 +6,9 @@ import {
   SessionManager,
   type AgentSessionEvent,
 } from "@earendil-works/pi-coding-agent"
+import { BINDING_ENTRY, type RemoteBinding } from "@pig/environment/source"
+
+import remoteWorkspace from "../remote-workspace/index.ts"
 import type { AgentConfig } from "./agents.ts"
 
 /** 子会话文件里的标记：会话列表据此把子会话与普通分叉区分开。 */
@@ -24,6 +27,8 @@ export interface ChildRun {
   /** 父会话文件与会话目录：子会话落盘在同一目录，并记下父会话。 */
   parentSessionFile: string | undefined
   sessionDir: string
+  /** 父会话绑定的远程 workspace：子会话的工具也在那里跑。 */
+  remote: RemoteBinding | undefined
   signal: AbortSignal | undefined
   onSession(sessionId: string): void
   onStep(step: string): void
@@ -57,12 +62,16 @@ function stepOf(event: Extract<AgentSessionEvent, { type: "tool_execution_start"
   return `${event.toolName} ${brief(target)}`
 }
 
-/** 在同一进程里开子会话：不加载扩展（避免子任务再派子任务），系统提示追加 agent 定义。 */
+/**
+ * 在同一进程里开子会话：不加载用户扩展（避免子任务再派子任务），系统提示追加 agent 定义。
+ * 父会话在远程时只带上 remote-workspace，让子任务的工具也走同一环境。
+ */
 export const startChild: StartChild = async (run) => {
   const loader = new DefaultResourceLoader({
     cwd: run.cwd,
     agentDir: getAgentDir(),
     noExtensions: true,
+    ...(run.remote ? { extensionFactories: [remoteWorkspace] } : {}),
     ...(run.agent.systemPrompt ? { appendSystemPrompt: [run.agent.systemPrompt] } : {}),
   })
 
@@ -76,6 +85,8 @@ export const startChild: StartChild = async (run) => {
 
   sessionManager.appendCustomEntry(SUBAGENT_ENTRY, { agent: run.agent.name })
 
+  if (run.remote) sessionManager.appendCustomEntry(BINDING_ENTRY, run.remote)
+
   const { session } = await createAgentSession({
     cwd: run.cwd,
     modelRuntime: await sharedRuntime(),
@@ -86,6 +97,7 @@ export const startChild: StartChild = async (run) => {
     ...(run.agent.tools ? { tools: run.agent.tools } : {}),
   })
 
+  if (run.remote) await session.bindExtensions({})
   run.onSession(session.sessionId)
   const usage = { input: 0, output: 0, cost: 0 }
   let output = ""
