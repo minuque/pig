@@ -30,8 +30,6 @@
           <span v-if="lineChange.added" class="added">+{{ lineChange.added }}</span>
           <span v-if="lineChange.removed" class="removed">-{{ lineChange.removed }}</span>
         </span>
-
-        <AltArrowRightIcon class="tool-row-caret" :class="{ 'is-open': open }" data-icon="inline" />
       </button>
 
       <span v-if="thumb || duration" class="tool-row-meta">
@@ -54,6 +52,8 @@
 
         <span v-if="duration" class="tool-row-time">{{ duration }}</span>
       </span>
+
+      <AltArrowRightIcon class="tool-row-caret" :class="{ 'is-open': open }" data-icon="inline" />
     </div>
 
     <Dialog v-if="thumb" v-model:open="previewOpen">
@@ -142,8 +142,9 @@ const thumb = computed(() => {
   min-width: 0;
 }
 
-/* 触发器与缩略图分开：点缩略图不进展开，整行仍可点开 */
+/* 触发器用伪元素铺满整行，缩略图浮在上面单独可点；箭头固定在最右 */
 .tool-row-head {
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-xxs);
@@ -167,9 +168,17 @@ const thumb = computed(() => {
   cursor: pointer;
 }
 
+.tool-row-trigger::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
 .tool-row-trigger:hover,
 .tool-row-trigger:focus-visible,
-.tool-row-trigger[aria-expanded="true"] {
+.tool-row-trigger[aria-expanded="true"],
+.tool-row-head:has(.tool-row-trigger:is(:hover, :focus-visible, [aria-expanded="true"]))
+  .tool-row-caret {
   color: var(--contrast-foreground-secondary);
 }
 
@@ -200,17 +209,22 @@ const thumb = computed(() => {
 
 .tool-row-caret {
   flex: none;
+  color: var(--contrast-foreground-faint);
+  pointer-events: none;
   width: var(--size-icon-xs);
   height: var(--size-icon-xs);
   transition: transform var(--duration-fast) var(--ease-out);
 }
 
-/* 缩略图在左、计时在右，统一靠右收尾 */
+/* 缩略图在左、计时在右，紧挨箭头；只有缩略图接收点击 */
 .tool-row-meta {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex: none;
   align-items: center;
   gap: var(--space-xxs);
+  pointer-events: none;
 }
 
 .tool-row-time {
@@ -238,6 +252,7 @@ const thumb = computed(() => {
   background: var(--background);
   box-shadow: inset 0 0 0 var(--border-width) var(--border);
   cursor: zoom-in;
+  pointer-events: auto;
 }
 
 .tool-row-thumb img {

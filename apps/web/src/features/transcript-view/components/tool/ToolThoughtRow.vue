@@ -55,7 +55,7 @@ const label = computed(() => thoughtStepLabel(props.step))
   background: transparent;
   color: var(--contrast-foreground-faint);
   font: inherit;
-  font-size: var(--text-meta);
+  font-size: var(--text-code);
   line-height: var(--text-meta--line-height);
   text-align: start;
   cursor: pointer;
@@ -69,6 +69,7 @@ const label = computed(() => thoughtStepLabel(props.step))
 
 .thought-caret {
   flex: none;
+  margin-inline-start: auto;
   width: var(--size-icon-xs);
   height: var(--size-icon-xs);
   transition: transform var(--duration-fast) var(--ease-out);
