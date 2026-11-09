@@ -1,6 +1,9 @@
 import { readdir, readFile, stat } from "node:fs/promises"
 import { join } from "node:path"
 import { getAgentDir } from "@earendil-works/pi-coding-agent"
+import { remoteWorkspaceKey } from "@pig/environment"
+
+import { BINDING_ENTRY, sessionBinding } from "./remote-session.js"
 
 /** 侧栏用的会话元数据；字段语义同 pi 的 SessionInfo，但不读全文。 */
 export interface IndexedSession {
@@ -67,11 +70,18 @@ export function indexSessionText(
   let firstMessage: string | undefined
   let modified: number | undefined
   let subagent = false
+  let remote: string | undefined
 
   for (let index = 1; index < lines.length; index += 1) {
     const line = lines[index] ?? ""
 
     if (!subagent && line.includes('"customType":"pig.subagent"')) subagent = true
+
+    if (line.includes(`"customType":"${BINDING_ENTRY}"`)) {
+      const binding = sessionBinding([parse(line)])
+
+      if (binding) remote = remoteWorkspaceKey(binding)
+    }
 
     if (line.includes('"type":"session_info"')) {
       const entry = parse(line)
@@ -100,7 +110,8 @@ export function indexSessionText(
   return {
     path,
     id: header.id,
-    cwd: typeof header.cwd === "string" ? header.cwd : "",
+    // 远程会话的 cwd 是本地占位目录，对外换成 ssh://主机/路径
+    cwd: remote ?? (typeof header.cwd === "string" ? header.cwd : ""),
     ...(name ? { name } : {}),
     ...(firstMessage ? { firstMessage } : {}),
     ...(typeof header.parentSession === "string"

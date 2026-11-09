@@ -1,8 +1,11 @@
 import type { SessionMetadata } from "@/types/common-type.js"
 import { t } from "@i18n/index.js"
 
-/** 取路径最后一段作为展示名；路径为空或仅分隔符时原样返回。 */
+/** 取路径最后一段作为展示名；远程 workspace 显示「主机 / 目录」。 */
 export function workspaceName(path: string): string {
+  const remote = /^ssh:\/\/([^/]+)(\/.*)?$/.exec(path)
+
+  if (remote) return `${remote[1]} / ${workspaceName(remote[2] || "/")}`
   const segments = path.split(/[\\/]/).filter(Boolean)
   return segments[segments.length - 1] ?? path
 }

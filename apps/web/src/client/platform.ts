@@ -15,20 +15,39 @@ import type {
 import type { SessionCard } from "@/types/session-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 
+/** 选目录；给 environment（ssh://主机）时校验远端目录。 */
 export async function selectDirectory(
   path?: string,
+  environment?: string,
 ): Promise<{ path: string | null; requiresManualInput: boolean }> {
   const result = await platformRequest<{
     path: string | null
     requiresManualInput?: boolean
   }>(
     "/api/v1/platform/select-directory",
-    path === undefined ? { method: "POST" } : { method: "POST", body: JSON.stringify({ path }) },
+    path === undefined
+      ? { method: "POST" }
+      : { method: "POST", body: JSON.stringify({ path, environment }) },
   )
   return {
     path: result.path,
     requiresManualInput: Boolean(result.requiresManualInput),
   }
+}
+
+export type EnvironmentInfo = {
+  id: string
+  kind: "local" | "ssh"
+  host?: string
+  defaultPath?: string
+}
+
+/** 可选环境：本机、pig 保存的环境、~/.ssh/config 里的主机。 */
+export async function listEnvironments(): Promise<EnvironmentInfo[]> {
+  const result = await platformRequest<{ environments: EnvironmentInfo[] }>(
+    "/api/v1/platform/environments",
+  )
+  return result.environments
 }
 
 /** 通知 Host 这个目录马上要用来建会话；Host 在后台预热同一份扩展与技能。 */

@@ -19,6 +19,7 @@ import { ProviderService } from "./provider-service.js"
 import { SessionCardCache, type SessionCard } from "./session-card.js"
 import { SessionIndex, type IndexedSession } from "./session-index.js"
 import { recentSessionCwd, sessionListName } from "./session-label.js"
+import { BINDING_ENTRY, parseRemoteKey, prepareRemoteCwd } from "./remote-session.js"
 import { PiHostSession } from "./session-runtime.js"
 import { DiskTranscripts } from "./disk-transcripts.js"
 import { createResourceLoader } from "./resource-loader.js"
@@ -46,6 +47,8 @@ export interface PiHostServiceOptions {
   attachmentRootDir?: string
   /** Pi 配置目录（auth.json / models.json / settings.json）；缺省 ~/.pi/agent。 */
   agentDir?: string
+  /** 远程会话的本地占位目录根；缺省 ~/.pig/remote。 */
+  remoteRoot?: string
   /** 测试注入：ModelRuntime 工厂。 */
   createRuntime?: () => Promise<Runtime>
   /** 测试注入：AgentSession 工厂。 */
@@ -134,7 +137,17 @@ export class PiHostService implements SessionService {
    *  预热不授予目录权限：调用方需先通过 isKnownWorkspace 校验。 */
   prepareWorkspace(cwd: string): void {
     if (this.options.createSession) return
-    void this.slot(canonicalizePath(cwd)).catch(() => undefined)
+    void this.localCwd(cwd)
+      .then((local) => this.slot(local))
+      .catch(() => undefined)
+  }
+
+  /** workspace 键对应的本地 cwd：远程键换成占位目录。 */
+  private async localCwd(workspace: string): Promise<string> {
+    const binding = parseRemoteKey(workspace)
+    return canonicalizePath(
+      binding ? await prepareRemoteCwd(binding, this.options.remoteRoot) : workspace,
+    )
   }
 
   /** 用户显式选定的目录：select-directory 成功后登记并落盘，是唯一的授权来源。 */
@@ -185,8 +198,11 @@ export class PiHostService implements SessionService {
     cwd: string,
   ): Promise<{ skills: ComposerCommand[]; prompts: ComposerCommand[] }> {
     if (this.options.createSession) return { skills: [], prompts: [] }
-    const pending = this.resourceSlots.get(canonicalizePath(cwd))
-    const slot = await pending?.catch(() => undefined)
+    const key = canonicalizePath(cwd)
+    // 远程 skills 由扩展在会话启动后补进会话的 loader，有活会话就读它的
+    const live = [...this.activeSessions.values()].find((session) => session.cwd === key)
+    const pending = this.resourceSlots.get(await this.localCwd(key))
+    const slot = live ? { loader: live.loader } : await pending?.catch(() => undefined)
 
     if (!slot) return { skills: [], prompts: [] }
     // 扩展命令名会被 Pi 在模板展开前截胡，作为保留名交给候选筛选
@@ -214,8 +230,13 @@ export class PiHostService implements SessionService {
 
   async createSession(options: CreateSessionOptions): Promise<SessionRuntime> {
     const runtime = await this.runtime()
-    const cwd = canonicalizePath(options.cwd ?? this.options.cwd ?? process.cwd())
+    const workspace = canonicalizePath(options.cwd ?? this.options.cwd ?? process.cwd())
+    const binding = parseRemoteKey(workspace)
+    const cwd = await this.localCwd(workspace)
     const manager = SessionManager.create(cwd, this.options.sessionDir, { id: options.id })
+
+    // 远程会话先把绑定写进会话，remote-workspace 扩展启动时读它
+    if (binding) manager.appendCustomEntry(BINDING_ENTRY, binding)
 
     if (options.name) manager.appendSessionInfo(options.name)
     const path = manager.getSessionFile()

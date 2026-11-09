@@ -15,6 +15,7 @@ import type {
   SteerInput,
 } from "./runtime-types.js"
 import { canonicalizePath } from "../directory.js"
+import { sessionBinding, sessionWorkspace, uploadAttachments } from "./remote-session.js"
 import { ExtensionUiBridge } from "./extension-ui.js"
 import { composePrompt, type AttachmentSink } from "./attachments.js"
 import { expandFileMentions } from "./file-mentions.js"
@@ -84,7 +85,12 @@ export class PiHostSession implements SessionRuntime {
 
   /** 会话工作目录（规范化拼写）；目录白名单等权限判断用。 */
   get cwd(): string {
-    return canonicalizePath(this.session.sessionManager.getCwd())
+    return sessionWorkspace(this.session.sessionManager)
+  }
+
+  /** 会话持有的资源 loader；含扩展在会话启动后补进来的 skills。 */
+  get loader() {
+    return this.session.resourceLoader
   }
 
   historyTranscript() {
@@ -110,7 +116,7 @@ export class PiHostSession implements SessionRuntime {
     return {
       id: session.sessionId,
       ...(listName === undefined ? {} : { name: listName }),
-      cwd: canonicalizePath(manager.getCwd()),
+      cwd: sessionWorkspace(manager),
       createdAt,
       updatedAt: this.sessionUpdatedAt(entries, createdAt),
       phase: this.getPhase(),
@@ -154,10 +160,15 @@ export class PiHostSession implements SessionRuntime {
       )
       // 无 @token 时同步短路，prompt 的 timing.start 保持同一拍
       const text = expanded instanceof Promise ? await expanded : expanded
-      const composed = composePrompt(text, staged)
       this.timing.start()
 
       try {
+        const binding = sessionBinding(this.session.sessionManager.getEntries())
+        const composed = composePrompt(
+          text,
+          binding ? await uploadAttachments(binding, staged) : staged,
+        )
+
         await this.session.prompt(
           composed.text,
           composed.images.length ? { images: composed.images } : undefined,

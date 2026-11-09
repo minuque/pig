@@ -2,7 +2,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { BrowserSession, browserSecretFile } from "../auth/browser-session.js"
 import { PiHostService, type PiHostServiceOptions } from "../pi/service.js"
 import { ManualDirectoryPort, WindowsDirectoryPort, type DirectoryPort } from "../directory.js"
-import { handlePlatformRequest } from "./platform.js"
+import { handlePlatformRequest, type EnvironmentSources } from "./platform.js"
 import { installProviderHttp } from "./provider-http.js"
 import { handleProviderRequest } from "./providers.js"
 import { serveWebFile } from "./static-files.js"
@@ -24,6 +24,10 @@ export interface GatewayOptions {
   browserSecretFile?: string
   /** Pi 配置目录（auth.json / models.json / settings.json）；缺省 ~/.pi/agent。 */
   agentDir?: string
+  /** 环境列表的来源（ssh config 与 pig 保存的环境），测试可指向临时文件。 */
+  environments?: EnvironmentSources
+  /** 远程会话的本地占位目录根；缺省 ~/.pig/remote。 */
+  remoteRoot?: string
 }
 
 /**
@@ -38,6 +42,7 @@ export class Gateway {
   private readonly platformPort: DirectoryPort
   private readonly listenPort: number
   private readonly browser: BrowserSession
+  private readonly environments: EnvironmentSources
 
   constructor(options: GatewayOptions = {}) {
     this.webRoot = options.webRoot
@@ -45,6 +50,7 @@ export class Gateway {
     this.browser = new BrowserSession(
       options.browserSecretFile ?? browserSecretFile(options.sessionDir),
     )
+    this.environments = options.environments ?? {}
     this.platformPort =
       options.platformPort ??
       (process.platform === "win32" ? new WindowsDirectoryPort() : new ManualDirectoryPort())
@@ -54,6 +60,7 @@ export class Gateway {
       ...(options.cwd ? { cwd: options.cwd } : {}),
       ...(options.attachmentRootDir ? { attachmentRootDir: options.attachmentRootDir } : {}),
       ...(options.agentDir ? { agentDir: options.agentDir } : {}),
+      ...(options.remoteRoot ? { remoteRoot: options.remoteRoot } : {}),
       ...(options.createRuntime ? { createRuntime: options.createRuntime } : {}),
     })
     this.protocol = new ProtocolServer({
@@ -146,6 +153,7 @@ export class Gateway {
         body: this.body.bind(this),
         hostService: this.hostService,
         platformPort: this.platformPort,
+        environments: this.environments,
       })
 
       if (handled) return

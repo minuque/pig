@@ -6,6 +6,19 @@ export { MAX_SEARCH_RESULTS, rankEntries } from "./search.js"
 
 export { connectConfig, readSshConfig, sshHosts } from "./ssh-config.js"
 
+export { environmentFor, registerEnvironment } from "./pool.js"
+
 export { SshEnvironment, quote } from "./ssh.js"
 
 export type * from "./types.js"
+
+export {
+  BINDING_ENTRY,
+  defaultRemoteRoot,
+  parseBinding,
+  parseRemoteKey,
+  prepareRemoteCwd,
+  remoteCwd,
+  remoteWorkspaceKey,
+  type RemoteBinding,
+} from "./workspace.js"

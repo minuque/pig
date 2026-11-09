@@ -1,4 +1,5 @@
 import { test as base, expect, type Page } from "@playwright/test"
+import { mkdirSync, writeFileSync } from "node:fs"
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { dirname, join, resolve } from "node:path"
@@ -8,6 +9,7 @@ import Gateway from "../packages/gateway/src/index.js"
 import type { DirectoryPort } from "../packages/gateway/src/directory.js"
 import { createFakeRuntime, type FakeProviderSpec } from "./fake-model-runtime.js"
 import { BUILTIN_PROVIDERS } from "./fake-provider-registry.js"
+import { prepareRemote } from "./remote-fixture.js"
 import {
   prebuildComplexSession,
   prebuildFillerSessions,
@@ -94,6 +96,8 @@ type TestFixtures = {
   extensionGateway: E2eGateway
   /** 一个普通会话加一个 subagent 子会话，用来验摘要面板与子会话抽屉。 */
   subagentGateway: E2eGateway
+  /** 登记一台替身 SSH 主机（底下是本机目录），用来验远程 workspace。 */
+  remoteGateway: E2eGateway
 }
 
 /** 起 Gateway 并躲开 Chromium 禁用端口。 */
@@ -116,6 +120,8 @@ async function withGateway(
   use: (gateway: E2eGateway) => Promise<void>,
   /** 给出时用临时 agentDir，隔离本机 ~/.pi 的模型与扩展。 */
   prepareAgent?: (agentDir: string) => Promise<void>,
+  /** 额外的 Gateway 选项，按临时目录生成。 */
+  extra?: (temp: string) => Promise<ConstructorParameters<typeof Gateway>[0]>,
 ) {
   const temp = await mkdtemp(join(tmpdir(), "pig-e2e-"))
   const workspaceDir = join(temp, "workspace")
@@ -147,6 +153,7 @@ async function withGateway(
     platformPort,
     port: 0,
     ...(agentDir ? { agentDir } : {}),
+    ...(extra ? await extra(temp) : {}),
   })
 
   try {
@@ -400,6 +407,20 @@ export const test = base.extend<TestFixtures>({
         prebuildFillerSessions(sessionDir, workspaceDir, 1)
         prebuildChildSession(sessionDir, workspaceDir)
       }, use)
+    },
+    { scope: "test" },
+  ],
+  remoteGateway: [
+    async ({}, use) => {
+      await withGateway(
+        (_sessionDir, workspaceDir) => {
+          mkdirSync(join(workspaceDir, "src"))
+          writeFileSync(join(workspaceDir, "src", "remote-only.ts"), "")
+        },
+        use,
+        prepareExtensionAgent,
+        prepareRemote,
+      )
     },
     { scope: "test" },
   ],

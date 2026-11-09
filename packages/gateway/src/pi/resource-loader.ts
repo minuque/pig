@@ -24,7 +24,9 @@ export async function createResourceLoader(
     cwd,
     agentDir,
     settingsManager,
-    additionalExtensionPaths: [join(BUILTIN_PACKAGE, "src", "subagent", "index.ts")],
+    additionalExtensionPaths: ["subagent", "remote-workspace"].map((name) =>
+      join(BUILTIN_PACKAGE, "src", name, "index.ts"),
+    ),
     // CLI 内置的这三个扩展 SDK 不会自带；照 CLI 加上，启用与否仍由用户的 pi 设置决定
     extensionFactories: [
       createCodemodeExtension(),

@@ -206,6 +206,7 @@ function createNav(
     cancelPendingOpen,
     setDraftSession: nav.setDraftSession,
     addWorkspace: nav.addWorkspace,
+    addRemoteWorkspace: nav.addRemoteWorkspace,
     renameSession: nav.renameSession,
     deleteSession: nav.deleteSession,
   }

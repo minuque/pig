@@ -3,7 +3,9 @@ import { GatewayError, SessionNotFoundError } from "../pi/runtime-types.js"
 import type { DirectoryPort } from "../directory.js"
 import { AttachmentError, sanitizeMimeType, type AttachmentErrorCode } from "../pi/attachments.js"
 import { isContextPreviewKey } from "../pi/context-usage.js"
-import { searchFiles, MAX_FILE_SEARCH_RESULTS } from "../pi/file-search.js"
+import { listEnvironments } from "@pig/environment"
+
+import { validateRemoteDirectory, workspaceEnvironment } from "../pi/remote-session.js"
 import type { PiHostService } from "../pi/service.js"
 
 export type PlatformRequestDeps = {
@@ -11,7 +13,10 @@ export type PlatformRequestDeps = {
   body(req: IncomingMessage): Promise<Record<string, unknown>>
   hostService: PiHostService
   platformPort: DirectoryPort
+  environments: EnvironmentSources
 }
+
+export type EnvironmentSources = { sshConfigPath?: string; savedPath?: string }
 
 /** 平台 HTTP：目录选择与预热、会话卡片、上下文用量、重命名与删除。true=已处理（含 400/404/500）。 */
 export async function handlePlatformRequest(
@@ -27,6 +32,11 @@ export async function handlePlatformRequest(
 
   if (url.pathname === "/api/v1/platform/warm-workspace" && req.method === "POST") {
     await handleWarmWorkspace(req, res, deps)
+    return true
+  }
+
+  if (url.pathname === "/api/v1/platform/environments" && req.method === "GET") {
+    await handleEnvironments(res, deps)
     return true
   }
 
@@ -195,6 +205,19 @@ async function handleSelectDirectory(
 
   try {
     const payload = await body(req).catch((): Record<string, unknown> => ({}))
+
+    // 远程目录没有系统对话框，总是手输；存在且是目录才授权
+    if (typeof payload.environment === "string" && payload.environment !== "local") {
+      const remote =
+        typeof payload.path === "string"
+          ? await validateRemoteDirectory(payload.environment, payload.path)
+          : undefined
+
+      if (remote) await hostService.authorizeWorkspace(remote)
+      send(res, 200, { path: remote ?? null, requiresManualInput: true })
+      return
+    }
+
     // 只有需要手输路径的平台（Browser）才接受客户端传的 path；
     // 桌面端必须走系统对话框，否则任意已认证请求能直接授权任意目录。
     const input = platformPort.requiresManualInput
@@ -242,6 +265,16 @@ async function handleWarmWorkspace(
   send(res, 200, { ok: true })
 }
 
+/** 可选的环境：本机、pig 保存的环境、~/.ssh/config 里的主机。 */
+async function handleEnvironments(res: ServerResponse, deps: PlatformRequestDeps) {
+  try {
+    deps.send(res, 200, { environments: await listEnvironments(deps.environments) })
+  } catch (error) {
+    console.error("environments failed:", error)
+    deps.send(res, 500, { code: "INTERNAL_ERROR" })
+  }
+}
+
 async function handleSessionCards(res: ServerResponse, deps: PlatformRequestDeps) {
   const { send, hostService } = deps
 
@@ -276,7 +309,8 @@ async function handleFiles(
   req.once("close", () => controller.abort())
 
   try {
-    const entries = await searchFiles(cwd, query, MAX_FILE_SEARCH_RESULTS, controller.signal)
+    const { env, root } = workspaceEnvironment(cwd)
+    const entries = await env.search(root, query, { signal: controller.signal })
     send(res, 200, { entries })
   } catch (error) {
     console.error("files failed:", error)

@@ -170,6 +170,7 @@
   /* 摘要面板与子会话只读抽屉 */
   --size-rail: 248px;
   --size-child-drawer: 560px;
+  --size-dialog-s: 420px;
   --size-settings-body: 56rem;
   --size-settings-dialog-width: 80rem;
   --size-settings-dialog-height: 60rem;

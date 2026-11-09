@@ -18,7 +18,8 @@
     "skipLibCheck": true,
     "ignoreDeprecations": "6.0",
     "paths": {
-      "@pig/gateway": ["./packages/gateway/src/index.ts"]
+      "@pig/gateway": ["./packages/gateway/src/index.ts"],
+      "@pig/environment": ["./packages/environment/src/index.ts"]
     }
   }
 }

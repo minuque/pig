@@ -10,12 +10,16 @@
   ],
   "pi": {
     "extensions": [
-      "./src/subagent/index.ts"
+      "./src/subagent/index.ts",
+      "./src/remote-workspace/index.ts"
     ]
   },
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@pig/environment": "workspace:*"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*"

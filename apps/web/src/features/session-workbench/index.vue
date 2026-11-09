@@ -18,6 +18,7 @@
 
     <WorkbenchHeader :class="{ 'is-overlay': showHero }" />
     <SessionRail v-if="!showHero" />
+    <RemoteWorkspaceDialog v-model:open="remoteOpen" :add="addRemoteWorkspace" />
 
     <div class="conversation-column">
       <StartupError v-if="pageError" v-bind="pageError" />
@@ -36,6 +37,7 @@
                 :adding="addingWorkspace"
                 :ready="connected"
                 @add="addWorkspace()"
+                @add-remote="remoteOpen = true"
               />
             </div>
           </Transition>
@@ -135,6 +137,7 @@ import { useSessionDrop } from "@features/session-workbench/hooks/use-session-dr
 import { useTurnFinish } from "@features/session-workbench/hooks/use-turn-finish.js"
 import TranscriptView from "@features/transcript-view/index.vue"
 import SessionRail from "@features/session-rail/index.vue"
+import RemoteWorkspaceDialog from "@features/remote-workspace/index.vue"
 import { prefetchTranscriptView } from "@features/transcript-view/index.js"
 import { ArrowDownIcon, DocumentAddIcon, LoaderIcon } from "@components/icons/index.js"
 
@@ -182,7 +185,8 @@ const {
   setWelcomeHandoff,
   transcriptFor,
 } = useSession()
-const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
+const { groups, lastCwd, addingWorkspace, addWorkspace, addRemoteWorkspace } = useNav()
+const remoteOpen = ref(false)
 /** 与侧栏同一份目录：已授权 local + 会话 cwd。 */
 const workspaces = computed(() => groups.value.map((group) => group.canonicalPath))
 const pageError = computed(() => {

@@ -10,6 +10,7 @@ const temp = await mkdtemp(join(tmpdir(), "nono-package-"))
 
 try {
   run("pnpm", ["--filter", "@pig/web", "build"], { cwd: root })
+  run("pnpm", ["--filter", "@pig/environment", "build"], { cwd: root })
   await rm(join(gateway, "dist"), { recursive: true, force: true })
   await rm(join(gateway, "web"), { recursive: true, force: true })
   await cp(join(root, "apps/web/dist"), join(gateway, "web"), { recursive: true })
@@ -30,6 +31,8 @@ try {
         declaration: true,
         declarationMap: false,
         sourceMap: false,
+        // 工作区包按发布形态解析（dist 的声明），源码路径映射只给开发期
+        paths: {},
       },
       include: [posix(join(gateway, "src/**/*.ts"))],
     }),

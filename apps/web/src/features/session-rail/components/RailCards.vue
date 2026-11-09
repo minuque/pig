@@ -5,12 +5,12 @@
 
       <div class="rail-kv">
         <span>{{ t("rail.location") }}</span>
-        <span class="rail-value">{{ t("rail.local") }}</span>
+        <span class="rail-value">{{ place.host ?? t("rail.local") }}</span>
       </div>
 
-      <div v-if="cwd" class="rail-kv">
+      <div v-if="place.path" class="rail-kv">
         <span>{{ t("rail.cwd") }}</span>
-        <span class="rail-value" :title="cwd">{{ cwd }}</span>
+        <span class="rail-value" :title="place.path">{{ place.path }}</span>
       </div>
 
       <div v-if="model" class="rail-kv">
@@ -75,6 +75,7 @@ import type { ContextUsage } from "@features/composer/type.js"
 import type { OpenChild } from "@features/session-rail/index.js"
 import type { SubagentTask } from "@features/session-rail/lib/subagent.js"
 
+const REMOTE_KEY = /^ssh:[/][/]([^/]+)([/].*)?$/
 const props = defineProps<{
   cwd: string | undefined
   model: string | undefined
@@ -85,6 +86,11 @@ const props = defineProps<{
 const emit = defineEmits<{ open: [child: OpenChild] }>()
 const { t } = useI18n()
 const doneCount = computed(() => props.tasks.filter((task) => task.status === "done").length)
+/** 远程 workspace 键 ssh://主机/路径 拆成主机与远端路径。 */
+const place = computed(() => {
+  const remote = props.cwd ? REMOTE_KEY.exec(props.cwd) : null
+  return remote ? { host: remote[1], path: remote[2] || "/" } : { path: props.cwd }
+})
 const statusLines = computed(() => [...(props.statuses?.values() ?? [])].filter(Boolean))
 
 function taskMeta(task: SubagentTask): string {
