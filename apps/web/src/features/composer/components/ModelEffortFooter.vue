@@ -281,10 +281,8 @@ function onKeyDown(event: KeyboardEvent) {
 </script>
 
 <style scoped>
-/* 上方一条分割线，把滑条和模型列表隔开 */
 .effort-card {
   padding: var(--space-xs);
-  border-top: var(--border-width) solid var(--border-soft);
 }
 
 /* 以下照参考实现，整体缩到 2/3：下方轨道，上方留给拖动时长出的标签凸台 */
