@@ -29,11 +29,8 @@ export type Runtime = Awaited<ReturnType<typeof ModelRuntime.create>>
 
 type SessionFactory = typeof createAgentSession
 
-/** 已 reload 的资源加载器；同目录只交给一个会话持有。 */
-type ResourceSlot = { loader: DefaultResourceLoader; inUse: boolean }
-
-/** 借出的加载器与归还回调。 */
-type Resource = { loader: DefaultResourceLoader; release: () => void }
+/** 已 reload 的资源加载器；只交给一个会话，会话 dispose 后其扩展运行时即失效。 */
+type ResourceSlot = { loader: DefaultResourceLoader; taken: boolean }
 
 const MAX_RESOURCE_SLOTS = 4
 
@@ -251,22 +248,21 @@ export class PiHostService implements SessionService {
       )
     }
 
-    let resource: Resource | undefined
+    let loader: DefaultResourceLoader | undefined
 
     try {
-      resource = await this.resources(cwd)
+      loader = await this.resources(cwd)
 
       const { session } = await this.sessionFactory()({
         cwd,
         modelRuntime: runtime,
         sessionManager: SessionManager.open(path),
-        ...(resource ? { resourceLoader: resource.loader } : {}),
+        ...(loader ? { resourceLoader: loader } : {}),
         ...(model ? { model } : {}),
         ...(options.thinkingLevel ? { thinkingLevel: options.thinkingLevel } : {}),
       })
-      return await this.trackSession(session, resource?.release)
+      return await this.trackSession(session)
     } catch (error) {
-      resource?.release()
       // AgentSession 创建失败（如无可用模型）时回滚，避免遗留空会话文件
       await this.rollbackSession(options.id, path)
       throw error
@@ -327,20 +323,14 @@ export class PiHostService implements SessionService {
     const manager = SessionManager.open(path)
     // 与 createSession 同一套规范化拼写，SDK 的扩展缓存才不会被会话文件的原生拼写顶掉
     const cwd = canonicalizePath(manager.getCwd())
-    const resource = await this.resources(cwd)
-
-    try {
-      const { session } = await this.sessionFactory()({
-        cwd,
-        modelRuntime: runtime,
-        sessionManager: manager,
-        ...(resource ? { resourceLoader: resource.loader } : {}),
-      })
-      return await this.trackSession(session, resource?.release)
-    } catch (error) {
-      resource?.release()
-      throw error
-    }
+    const loader = await this.resources(cwd)
+    const { session } = await this.sessionFactory()({
+      cwd,
+      modelRuntime: runtime,
+      sessionManager: manager,
+      ...(loader ? { resourceLoader: loader } : {}),
+    })
+    return await this.trackSession(session)
   }
 
   contextUsage(
@@ -400,28 +390,20 @@ export class PiHostService implements SessionService {
     return (this.runtimePromise ??= (this.options.createRuntime ?? createDefaultRuntime)())
   }
 
-  /**
-   * 取该目录已 reload 的 loader，交给会话复用，省掉 SDK 里的 reload 与扩展重新转译。
-   * 同目录已有会话持有时改用新实例：扩展运行时的绑定写在这份 extensionsResult 上。
-   */
-  private async resources(cwd: string): Promise<Resource | undefined> {
+  /** 取该目录预热好的 loader 交给会话，并在后台为下一个会话预热一份新的。 */
+  private async resources(cwd: string): Promise<DefaultResourceLoader | undefined> {
     if (this.options.createSession) return undefined
 
     const key = canonicalizePath(cwd)
-    const slot = await this.slot(key)
+    const pending = this.slot(key)
+    const slot = await pending
 
-    if (slot.inUse)
-      return {
-        loader: await createResourceLoader(key, this.options.agentDir),
-        release: () => undefined,
-      }
-    slot.inUse = true
-    return {
-      loader: slot.loader,
-      release: () => {
-        slot.inUse = false
-      },
-    }
+    if (slot.taken) return createResourceLoader(key, this.options.agentDir)
+    slot.taken = true
+
+    if (this.resourceSlots.get(key) === pending) this.resourceSlots.delete(key)
+    void this.slot(key).catch(() => undefined)
+    return slot.loader
   }
 
   /** 每个目录一份 loader；并发请求共用同一次加载，超上限按插入顺序淘汰一项。 */
@@ -437,7 +419,7 @@ export class PiHostService implements SessionService {
     }
 
     const pending = createResourceLoader(cwd, this.options.agentDir).then(
-      (loader) => ({ loader, inUse: false }),
+      (loader) => ({ loader, taken: false }),
       (error: unknown) => {
         this.resourceSlots.delete(cwd)
         throw error
@@ -454,7 +436,6 @@ export class PiHostService implements SessionService {
 
   private async trackSession(
     session: Awaited<ReturnType<SessionFactory>>["session"],
-    release?: () => void,
   ): Promise<PiHostSession> {
     let host!: PiHostSession
     host = new PiHostSession(
@@ -463,8 +444,6 @@ export class PiHostService implements SessionService {
         if (this.activeSessions.get(session.sessionId) === host) {
           this.activeSessions.delete(session.sessionId)
         }
-
-        release?.()
       },
       this.attachments,
     )

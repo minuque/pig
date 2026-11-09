@@ -33,6 +33,17 @@ const METRICS = [
   { key: "firstTokenMs", label: "发送后首条助手", group: "输入与流式" },
   { key: "streamKeepUpMs", label: "流式跟上", group: "输入与流式" },
 ] as const
+/** 离线可选的本地模型：回合由桥接模拟，不会真的发请求。 */
+const BENCH_MODELS = {
+  providers: {
+    local: {
+      baseUrl: "http://127.0.0.1:9/v1",
+      api: "openai-completions",
+      apiKey: "bench",
+      models: [{ id: "bench-model" }],
+    },
+  },
+}
 
 type MetricKey = (typeof METRICS)[number]["key"]
 
@@ -166,6 +177,10 @@ async function main() {
     const sessionDir = join(temp, "sessions")
     await mkdir(workspaceDir)
     await mkdir(sessionDir)
+    // 隔离本机 ~/.pi：用户扩展不进基准，web 与桌面子进程都读这个变量
+    const agentDir = (process.env.PI_CODING_AGENT_DIR = join(temp, "agent"))
+    await mkdir(agentDir)
+    await writeFile(join(agentDir, "models.json"), JSON.stringify(BENCH_MODELS))
     await writeFile(join(workspaceDir, ".keep"), "")
     seedBenchSessions(sessionDir, workspaceDir)
     const workspaceId = canonicalizeWorkspacePath(workspaceDir)
