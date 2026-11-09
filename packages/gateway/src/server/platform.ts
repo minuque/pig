@@ -40,6 +40,11 @@ export async function handlePlatformRequest(
     return true
   }
 
+  if (url.pathname === "/api/v1/platform/transcript/item" && req.method === "GET") {
+    await handleTranscriptItem(res, url, deps)
+    return true
+  }
+
   if (url.pathname === "/api/v1/platform/transcript" && req.method === "GET") {
     await handleTranscript(res, url, deps)
     return true
@@ -297,6 +302,20 @@ async function handleSkills(res: ServerResponse, url: URL, deps: PlatformRequest
   }
 }
 
+async function handleTranscriptItem(res: ServerResponse, url: URL, deps: PlatformRequestDeps) {
+  const sessionId = url.searchParams.get("sessionId") ?? ""
+  const id = url.searchParams.get("id") ?? ""
+
+  if (!sessionId || !id) return deps.send(res, 400, { code: "INVALID_REQUEST" })
+
+  try {
+    const item = await deps.hostService.transcriptItem(sessionId, id)
+    deps.send(res, item ? 200 : 404, item ? { item } : { code: "NOT_FOUND" })
+  } catch (error) {
+    sendSessionWriteError(error, res, deps.send, "transcript")
+  }
+}
+
 async function handleTranscript(res: ServerResponse, url: URL, deps: PlatformRequestDeps) {
   const { send, hostService } = deps
   const sessionId = url.searchParams.get("sessionId") ?? ""
@@ -306,10 +325,8 @@ async function handleTranscript(res: ServerResponse, url: URL, deps: PlatformReq
     return
   }
 
-  const before = url.searchParams.get("before") ?? undefined
-
   try {
-    send(res, 200, await hostService.sessionTranscript(sessionId, before ? { before } : undefined))
+    send(res, 200, await hostService.sessionTranscript(sessionId))
   } catch (error) {
     sendSessionWriteError(error, res, send, "transcript")
   }

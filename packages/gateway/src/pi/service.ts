@@ -22,9 +22,9 @@ import { SessionCardCache, type SessionCard } from "./session-card.js"
 import { SessionIndex, type IndexedSession } from "./session-index.js"
 import { recentSessionCwd, sessionListName } from "./session-label.js"
 import { PiHostSession } from "./session-runtime.js"
-import { TranscriptProjection } from "./transcript.js"
-import { pageTranscriptItems, pageTurnTimings } from "./transcript-page.js"
-import { readTurnTimings, type TurnTiming } from "./turn-timing.js"
+import { DiskTranscripts } from "./disk-transcripts.js"
+import { lightTranscript } from "./transcript-page.js"
+import type { TurnTiming } from "./turn-timing.js"
 
 export type Runtime = Awaited<ReturnType<typeof ModelRuntime.create>>
 
@@ -78,6 +78,7 @@ export class PiHostService implements SessionService {
   private sessionsCache: { expiresAt: number; infos: IndexedSession[] } | undefined
   private readonly sessionIndex: SessionIndex
   private readonly cards = new SessionCardCache()
+  private readonly diskTranscripts = new DiskTranscripts()
 
   constructor(private readonly options: PiHostServiceOptions = {}) {
     this.sessionIndex = new SessionIndex(options.sessionDir)
@@ -348,30 +349,27 @@ export class PiHostService implements SessionService {
     return this.activeSessions.get(sessionId)?.contextUsage(previewKey)
   }
 
-  /** 历史 Transcript：默认最后一轮；before 取更早页。不进协议 snapshot。 */
+  /** 历史 Transcript：一次给全部条目的轻量形态。不进协议 snapshot。 */
   async sessionTranscript(
     sessionId: string,
-    query?: { before?: string },
-  ): Promise<{ items: TranscriptItem[]; timings: TurnTiming[]; hasMore: boolean }> {
-    const live = this.activeSessions.get(sessionId)
-    const full = live ? live.historyTranscript() : await this.readDiskTranscript(sessionId)
-    const page = pageTranscriptItems(full.items, query)
-    return {
-      items: page.items,
-      timings: pageTurnTimings(full.timings, page.items),
-      hasMore: page.hasMore,
-    }
+  ): Promise<{ items: TranscriptItem[]; timings: TurnTiming[]; hasMore: false }> {
+    const full = await this.fullTranscript(sessionId)
+    return { items: lightTranscript(full.items), timings: full.timings, hasMore: false }
   }
 
-  private async readDiskTranscript(sessionId: string) {
+  /** 单条完整条目：轻量历史里被截断的工具输出展开时取。 */
+  async transcriptItem(sessionId: string, itemId: string): Promise<TranscriptItem | undefined> {
+    return (await this.fullTranscript(sessionId)).items.find((item) => item.id === itemId)
+  }
+
+  private async fullTranscript(sessionId: string) {
+    const live = this.activeSessions.get(sessionId)
+
+    if (live) return live.historyTranscript()
     const path = await this.findSessionPath(sessionId)
 
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
-    const entries = SessionManager.open(path).getBranch()
-    return {
-      items: new TranscriptProjection().transcript(entries),
-      timings: readTurnTimings(entries),
-    }
+    return this.diskTranscripts.read(path)
   }
 
   /** 刷新 sessionId → 磁盘路径索引，返回本次扫描到的全部 session 信息。 */

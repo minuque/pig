@@ -49,9 +49,6 @@
             :sending="submitting"
             :stopping="aborting"
             :timings="turnTimings"
-            :has-more="historyHasMore"
-            :loading-older="loadingOlder"
-            @load-older="loadOlderHistory"
           />
         </div>
 
@@ -161,9 +158,6 @@ const route = useRoute()
 const {
   sessionId,
   transcript,
-  historyHasMore,
-  loadingOlder,
-  loadOlderHistory,
   turnTimings,
   running,
   phase,

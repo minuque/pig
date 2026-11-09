@@ -31,6 +31,8 @@ export type ToolCallView = {
   input: unknown
   outputText: string
   outputImages: TranscriptImage[]
+  /** 历史只带了输出开头；展开时取完整条目。 */
+  truncated?: boolean
   /** 单次工具调用的起止时间；没有对应结果时缺省 */
   startedAt?: number
   endedAt?: number

@@ -33,17 +33,3 @@ export function useTranscriptReveal(
   )
   return { readyFrame }
 }
-
-/** 更早一页只由按钮触发：滚到顶不自动拉，避免误加载。 */
-export function useTranscriptOlder(options: {
-  hasMore: () => boolean
-  loading: () => boolean
-  load: () => void
-}) {
-  function request() {
-    if (!options.hasMore() || options.loading()) return
-    options.load()
-  }
-
-  return { request }
-}

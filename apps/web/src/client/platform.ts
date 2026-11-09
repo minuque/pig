@@ -222,14 +222,11 @@ function isTurnTiming(value: unknown): value is TurnTiming {
   )
 }
 
+/** 会话全部历史的轻量形态：大块工具输出被截断，展开时用 transcriptItem 取回。 */
 export async function sessionTranscript(
   sessionId: string,
-  before?: string,
 ): Promise<{ items: TranscriptItem[]; timings: TurnTiming[]; hasMore: boolean }> {
   const query = new URLSearchParams({ sessionId })
-
-  if (before) query.set("before", before)
-
   const result = await platformRequest<{
     items: TranscriptItem[]
     timings?: unknown[]
@@ -240,6 +237,18 @@ export async function sessionTranscript(
     timings: Array.isArray(result.timings) ? result.timings.filter(isTurnTiming) : [],
     hasMore: Boolean(result.hasMore),
   }
+}
+
+/** 单条完整条目；找不到时返回 undefined。 */
+export async function transcriptItem(
+  sessionId: string,
+  id: string,
+): Promise<TranscriptItem | undefined> {
+  const query = new URLSearchParams({ sessionId, id })
+  const result = await platformRequest<{ item?: TranscriptItem }>(
+    `/api/v1/platform/transcript/item?${query.toString()}`,
+  )
+  return result.item
 }
 
 export async function contextUsage(sessionId: string): Promise<ContextUsageEstimate | null> {

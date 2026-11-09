@@ -70,6 +70,8 @@ interface ToolBase {
   details?: JsonValue
   usage?: Usage
   timestamp: number
+  /** 历史里的大块输出只给开头；展开时按 id 取完整条目。 */
+  truncated?: boolean
 }
 
 type RunningTool = ToolBase & { status: "running"; isError: false }

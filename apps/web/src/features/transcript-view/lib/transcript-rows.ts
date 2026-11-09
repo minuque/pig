@@ -169,6 +169,7 @@ function appendTurn({
         input: item.input,
         outputText: transcriptText(item),
         outputImages: transcriptImages(item),
+        ...(item.truncated ? { truncated: true } : {}),
       })
       noteRange(item.timestamp, item.timestamp)
       continue
@@ -221,6 +222,7 @@ function appendTurn({
           input: block.input,
           outputText: result ? transcriptText(result) : "",
           outputImages: result ? transcriptImages(result) : [],
+          ...(result?.truncated ? { truncated: true } : {}),
           startedAt: toolStartedAt(result) ?? item.timestamp,
           ...(settled ? { endedAt: result.timestamp } : {}),
         })
