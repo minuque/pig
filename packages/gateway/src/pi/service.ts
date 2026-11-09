@@ -97,16 +97,18 @@ export class PiHostService implements SessionService {
 
   async listSessions(): Promise<SessionMetadata[]> {
     const infos = await this.refreshSessionPaths()
-    return infos.map((info) => {
-      const sessionName = sessionListName(info)
-      return {
-        id: info.id,
-        createdAt: info.created.getTime(),
-        ...(info.modified ? { updatedAt: info.modified.getTime() } : {}),
-        ...(sessionName ? { sessionName } : {}),
-        ...(info.cwd ? { cwd: canonicalizePath(info.cwd) } : {}),
-      }
-    })
+    return infos
+      .flatMap((info) => (info.subagent ? [] : [info]))
+      .map((info) => {
+        const sessionName = sessionListName(info)
+        return {
+          id: info.id,
+          createdAt: info.created.getTime(),
+          ...(info.modified ? { updatedAt: info.modified.getTime() } : {}),
+          ...(sessionName ? { sessionName } : {}),
+          ...(info.cwd ? { cwd: canonicalizePath(info.cwd) } : {}),
+        }
+      })
   }
 
   /**

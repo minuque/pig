@@ -12,6 +12,8 @@ export interface IndexedSession {
   parentSessionPath?: string
   created: Date
   modified: Date
+  /** subagent 开的子会话；侧栏不列，只在子任务卡片里点开看。 */
+  subagent?: true
   /** 文件 mtime 与大小拼成的版本号；内容变了它就变，供下游缓存失效。 */
   version: string
 }
@@ -64,9 +66,12 @@ export function indexSessionText(
   let name: string | undefined
   let firstMessage: string | undefined
   let modified: number | undefined
+  let subagent = false
 
   for (let index = 1; index < lines.length; index += 1) {
     const line = lines[index] ?? ""
+
+    if (!subagent && line.includes('"customType":"pig.subagent"')) subagent = true
 
     if (line.includes('"type":"session_info"')) {
       const entry = parse(line)
@@ -103,6 +108,7 @@ export function indexSessionText(
       : {}),
     created,
     version,
+    ...(subagent ? { subagent: true as const } : {}),
     modified: new Date(modified ?? (Number.isNaN(created.getTime()) ? mtime : created).getTime()),
   }
 }

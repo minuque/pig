@@ -64,4 +64,23 @@ describe("会话索引：侧栏元数据与 pi 自己的列表一致", () => {
     const renamed = (await index.list()).find((info) => info.id === "b")
     expect(renamed?.name).toBe("改过的名字")
   })
+
+  it("subagent 开的子会话标记出来，侧栏不列", async () => {
+    root = await mkdtemp(join(tmpdir(), "pig-index-"))
+    const dir = join(root, "sessions")
+    seed(dir, "parent", join(root, "w"), "主会话", 1_000_000)
+
+    const child = SessionManager.create(join(root, "w"), dir, {
+      id: "child",
+      parentSession: "parent.jsonl",
+    })
+
+    child.appendCustomEntry("pig.subagent", { agent: "scout" })
+    child.appendMessage({ role: "user", content: "子任务", timestamp: 1_000_500 })
+    child.appendMessage(assistant("好", 1_000_600))
+
+    const listed = await new SessionIndex(dir).list()
+    expect(listed.find((info) => info.id === "child")?.subagent).toBe(true)
+    expect(listed.find((info) => info.id === "parent")?.subagent).toBeUndefined()
+  })
 })
