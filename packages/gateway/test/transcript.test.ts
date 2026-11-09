@@ -58,9 +58,9 @@ describe("TranscriptProjection", () => {
         delta: "x",
         partial: assistantMessage(),
       },
-    } as AgentSessionEvent) as Extract<TranscriptProgress, { type: "item_updated" }>
+    } as AgentSessionEvent) as Extract<TranscriptProgress, { type: "assistant_delta" }>
 
-    expect(update.item.id).toBe(start.item.id)
+    expect(update.messageId).toBe(start.item.id)
 
     const end = projection.progress({
       type: "message_end",
@@ -128,5 +128,59 @@ describe("TranscriptProjection", () => {
     expect(text).toContain("$$E = mc^2$$")
     expect(text).toContain("```mermaid")
     expect(items[2]).toMatchObject({ role: "tool", toolCallId: "call-1", toolName: "read" })
+  })
+})
+
+describe("流式输出只发新增文字", () => {
+  const update = (partial: TestMessage, assistantMessageEvent: Record<string, unknown>) =>
+    ({ type: "message_update", message: partial, assistantMessageEvent }) as AgentSessionEvent
+
+  it("同一文本块的后续增量只带新增部分，换块时补发完整条目，结束发完整终态", () => {
+    const projection = new TranscriptProjection()
+    const empty = assistantMessage({ content: [] })
+    const start = projection.progress({
+      type: "message_start",
+      message: empty,
+    } as AgentSessionEvent)
+    const id = (start as { item: { id: string } }).item.id
+    const one = assistantMessage({ content: [{ type: "text", text: "" }] })
+    const opened = projection.progress(
+      update(one, { type: "text_start", contentIndex: 0, partial: one }),
+    )
+
+    expect(opened).toMatchObject({ type: "item_updated", item: { id } })
+
+    const long = "很长的一段回答。".repeat(200)
+    const grown = assistantMessage({ content: [{ type: "text", text: `${long}再多一句` }] })
+    const delta = projection.progress(
+      update(grown, { type: "text_delta", contentIndex: 0, delta: "再多一句", partial: grown }),
+    )
+
+    expect(delta).toEqual({
+      type: "assistant_delta",
+      messageId: id,
+      contentIndex: 0,
+      kind: "text",
+      delta: "再多一句",
+    })
+
+    const two = assistantMessage({
+      content: [
+        { type: "text", text: "a" },
+        { type: "thinking", thinking: "" },
+      ],
+    })
+    const nextBlock = projection.progress(
+      update(two, { type: "thinking_delta", contentIndex: 1, delta: "", partial: two }),
+    )
+
+    expect(nextBlock).toMatchObject({ type: "item_updated", item: { id } })
+
+    const end = projection.progress({
+      type: "message_end",
+      message: assistantMessage({ stopReason: "stop", content: [{ type: "text", text: "a" }] }),
+    } as AgentSessionEvent)
+
+    expect(end).toMatchObject({ type: "item_finished", item: { id, status: "complete" } })
   })
 })

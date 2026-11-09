@@ -1,4 +1,5 @@
 import { expect, type Page } from "@playwright/test"
+import type { TranscriptProgress } from "@pig/protocol"
 
 import { installTurnBridge, streamingAssistant } from "../sim-turn.js"
 import {
@@ -36,17 +37,11 @@ export async function runTurn(page: Page, origin: string) {
 
   if (!snapshot) throw new Error("回合场景缺少真实 SessionSnapshot")
 
-  const emit = (
-    type: "item_started" | "item_updated",
-    item: ReturnType<typeof streamingAssistant>,
-  ) => {
-    bridge.send({
-      type: "event",
-      event: { type: "session_progress", sessionId, progress: { type, item } },
-    })
-  }
+  const started = streamingAssistant(snapshot, FIRST_TOKEN)
+  const emit = (progress: TranscriptProgress) =>
+    bridge.send({ type: "event", event: { type: "session_progress", sessionId, progress } })
 
-  emit("item_started", streamingAssistant(snapshot, FIRST_TOKEN))
+  emit({ type: "item_started", item: started })
   await expect(page.getByText(FIRST_TOKEN, { exact: true })).toBeVisible({
     timeout: WORKBENCH_TIMEOUT_MS,
   })
@@ -63,7 +58,14 @@ export async function runTurn(page: Page, origin: string) {
       const marker = `流式稳态 ${index}`
       await armStamps(page, { chunk: { bodyIncludes: marker, latestInViewport: true } })
       const emitAt = performance.now()
-      emit("item_updated", streamingAssistant(snapshot, `${marker}\n${"增量。".repeat(index * 8)}`))
+      // 与 gateway 一致：同一文本块只发新增文字
+      emit({
+        type: "assistant_delta",
+        messageId: started.id,
+        contentIndex: 0,
+        kind: "text",
+        delta: `\n\n${marker}\n${"增量。".repeat(index * 8)}`,
+      })
       lags.push((await clickStamps(page, "chunk")) + offset - emitAt)
     }
   } finally {

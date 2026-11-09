@@ -34,8 +34,17 @@ const SNAPSHOT_SKIP_EVENTS = new Set([
   "tool_execution_update",
   "bash_execution_update",
 ])
-/** 同一条流式消息的连续 item_updated 合流窗口：只发最后一帧，降低 WS 与客户端克隆开销。 */
+/** 流式合流窗口：同块的连续增量拼成一条，同条目的连续整条更新只留最后一帧。 */
 const PROGRESS_COALESCE_MS = 16
+
+type StreamingProgress = Extract<TranscriptProgress, { type: "item_updated" | "assistant_delta" }>
+
+/** 两帧是否落在同一个流上：同块增量，或同条目的整条更新。 */
+function sameStream(a: StreamingProgress, b: StreamingProgress): boolean {
+  if (a.type === "assistant_delta" && b.type === "assistant_delta")
+    return a.messageId === b.messageId && a.contentIndex === b.contentIndex && a.kind === b.kind
+  return a.type === "item_updated" && b.type === "item_updated" && a.item.id === b.item.id
+}
 
 /**
  * 一个已获取的 AgentSession 的会话运行时。
@@ -52,7 +61,7 @@ export class PiHostSession implements SessionRuntime {
   private busy: Promise<void> | undefined
   private disposed = false
   private readonly timing: TurnTimingRecorder
-  private pendingUpdateProgress: Extract<TranscriptProgress, { type: "item_updated" }> | undefined
+  private pendingProgress: StreamingProgress[] = []
   private pendingUpdateTimer: ReturnType<typeof setTimeout> | undefined
 
   constructor(
@@ -274,9 +283,16 @@ export class PiHostSession implements SessionRuntime {
   }
 
   private forwardProgress(progress: TranscriptProgress): void {
-    if (progress.type === "item_updated") {
-      // 连续 delta 合并：保留最新一帧，窗口内只发一次
-      this.pendingUpdateProgress = progress
+    if (progress.type === "item_updated" || progress.type === "assistant_delta") {
+      const last = this.pendingProgress.at(-1)
+
+      if (last && sameStream(last, progress)) {
+        this.pendingProgress[this.pendingProgress.length - 1] =
+          last.type === "assistant_delta" && progress.type === "assistant_delta"
+            ? { ...last, delta: last.delta + progress.delta }
+            : progress
+      } else this.pendingProgress.push(progress)
+
       this.pendingUpdateTimer ??= setTimeout(() => {
         this.pendingUpdateTimer = undefined
         this.emitPendingUpdate()
@@ -295,18 +311,19 @@ export class PiHostSession implements SessionRuntime {
       this.pendingUpdateTimer = undefined
     }
 
-    const pending = this.pendingUpdateProgress
+    const pending = this.pendingProgress
+    this.pendingProgress = []
 
-    if (!pending) return
-    this.pendingUpdateProgress = undefined
-    this.revision += 1
-    this.emit({ type: "progress", progress: pending })
+    for (const progress of pending) {
+      this.revision += 1
+      this.emit({ type: "progress", progress })
+    }
   }
 
   private clearPendingUpdate(): void {
     if (this.pendingUpdateTimer) clearTimeout(this.pendingUpdateTimer)
     this.pendingUpdateTimer = undefined
-    this.pendingUpdateProgress = undefined
+    this.pendingProgress = []
   }
 
   private broadcastSnapshot(): void {

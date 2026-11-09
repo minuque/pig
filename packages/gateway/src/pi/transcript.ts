@@ -34,6 +34,8 @@ export class TranscriptProjection {
   /** toolCallId → 工具调用参数（来自助手消息事件与 tool_execution_start） */
   private readonly toolCalls = new Map<string, JsonValue>()
   private streamingMessageId: string | undefined
+  /** 客户端手里这条流式消息各内容块的类型；增量只能落在已知块上。 */
+  private streamingParts: string[] = []
   private nextMessageId = 0
   private cachedEntries: readonly SessionEntry[] = []
   private cachedTranscript: TranscriptItem[] = []
@@ -44,7 +46,7 @@ export class TranscriptProjection {
       case "message_start":
         return this.messageProgress(event.message, "started")
       case "message_update":
-        return this.messageProgress(event.message, "updated")
+        return this.textDelta(event) ?? this.messageProgress(event.message, "updated")
       case "message_end":
         return this.messageProgress(event.message, "finished")
       case "tool_execution_start": {
@@ -111,6 +113,26 @@ export class TranscriptProjection {
     return items
   }
 
+  /** 文本与思考块的增量只发新增文字；块未知或工具参数时退回完整条目。 */
+  private textDelta(
+    event: Extract<AgentSessionEvent, { type: "message_update" }>,
+  ): TranscriptProgress | undefined {
+    const update = event.assistantMessageEvent
+    const id = this.streamingMessageId
+
+    if (!id || (update.type !== "text_delta" && update.type !== "thinking_delta")) return undefined
+    const kind = update.type === "text_delta" ? "text" : "thinking"
+
+    if (this.streamingParts[update.contentIndex] !== kind) return undefined
+    return {
+      type: "assistant_delta",
+      messageId: id,
+      contentIndex: update.contentIndex,
+      kind,
+      delta: update.delta,
+    }
+  }
+
   private messageProgress(
     message: SessionMessage,
     stage: "started" | "updated" | "finished",
@@ -132,8 +154,11 @@ export class TranscriptProjection {
             : (this.streamingMessageId ?? this.allocateId())
         const item = toAssistantItem(message, id)
 
+        this.streamingParts = item.content.map((part) => part.type)
+
         if (stage === "finished") {
           this.streamingMessageId = undefined
+          this.streamingParts = []
 
           // item_finished 只接受终态（无 stopReason 的 streaming 成员被收窄排除）
           if ("stopReason" in item) return { type: "item_finished", item }

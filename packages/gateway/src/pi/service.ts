@@ -1,6 +1,5 @@
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises"
-import { homedir } from "node:os"
-import { dirname, join } from "node:path"
+import { mkdir, rm, writeFile } from "node:fs/promises"
+import { dirname } from "node:path"
 import {
   createAgentSession,
   DefaultResourceLoader,
@@ -9,22 +8,19 @@ import {
   SessionManager,
   SettingsManager,
 } from "@earendil-works/pi-coding-agent"
-import type { SessionEntry, SessionHeader, SessionInfo } from "@earendil-works/pi-coding-agent"
+import type { SessionEntry, SessionHeader } from "@earendil-works/pi-coding-agent"
 import type { ModelMetadata, SessionMetadata, TranscriptItem } from "@pig/protocol"
 import { GatewayError, SessionBusyError, SessionNotFoundError } from "./runtime-types.js"
 import type { CreateSessionOptions, SessionService, SessionRuntime } from "./runtime-types.js"
 import { canonicalizePath } from "../directory.js"
+import { loadAuthorizedWorkspaces, saveAuthorizedWorkspaces } from "./authorized-workspaces.js"
 import { AttachmentStore } from "./attachments.js"
 import { selectComposerPrompts, type ComposerCommand } from "./composer-commands.js"
 import type { ContextPreviewKey, ContextUsageEstimate } from "./context-usage.js"
 import { ProviderService } from "./provider-service.js"
-import {
-  conversationMessageCount,
-  modelFromBranch,
-  outcomeFromBranch,
-  type SessionCard,
-} from "./session-card.js"
-import { sessionListName } from "./session-label.js"
+import { SessionCardCache, type SessionCard } from "./session-card.js"
+import { SessionIndex, type IndexedSession } from "./session-index.js"
+import { recentSessionCwd, sessionListName } from "./session-label.js"
 import { PiHostSession } from "./session-runtime.js"
 import { TranscriptProjection } from "./transcript.js"
 import { pageTranscriptItems, pageTurnTimings } from "./transcript-page.js"
@@ -41,33 +37,6 @@ type ResourceSlot = { loader: DefaultResourceLoader; inUse: boolean }
 type Resource = { loader: DefaultResourceLoader; release: () => void }
 
 const MAX_RESOURCE_SLOTS = 4
-
-/** 用户选过的目录清单；与会话目录同级，跨重启保留。 */
-function authorizedWorkspacesFile(sessionDir?: string): string {
-  if (sessionDir) return join(sessionDir, "authorized-workspaces.json")
-  return join(homedir(), ".pig", "authorized-workspaces.json")
-}
-
-/** 读授权目录清单：文件缺失/损坏一律当空集，不拦启动。 */
-async function loadAuthorizedWorkspaces(sessionDir?: string): Promise<string[]> {
-  try {
-    const parsed: unknown = JSON.parse(
-      await readFile(authorizedWorkspacesFile(sessionDir), "utf-8"),
-    )
-
-    if (!Array.isArray(parsed)) return []
-    return parsed.filter((item): item is string => typeof item === "string" && item.length > 0)
-  } catch {
-    return []
-  }
-}
-
-async function saveAuthorizedWorkspaces(sessionDir: string | undefined, paths: Set<string>) {
-  const file = authorizedWorkspacesFile(sessionDir)
-
-  await mkdir(dirname(file), { recursive: true })
-  await writeFile(file, JSON.stringify([...paths]), "utf-8")
-}
 
 /** 输入卡 / 菜单的一行候选：技能与 prompt 模板同形。 */
 export type { ComposerCommand } from "./composer-commands.js"
@@ -106,9 +75,12 @@ export class PiHostService implements SessionService {
   /** 已判定为已知的目录（含靠磁盘会话命中的），免每次重扫会话。 */
   private readonly knownWorkspaces = new Set<string>()
   private runtimePromise?: Promise<Runtime>
-  private sessionsCache: { expiresAt: number; infos: SessionInfo[] } | undefined
+  private sessionsCache: { expiresAt: number; infos: IndexedSession[] } | undefined
+  private readonly sessionIndex: SessionIndex
+  private readonly cards = new SessionCardCache()
 
   constructor(private readonly options: PiHostServiceOptions = {}) {
+    this.sessionIndex = new SessionIndex(options.sessionDir)
     this.attachments = new AttachmentStore(
       options.attachmentRootDir ? { rootDir: options.attachmentRootDir } : {},
     )
@@ -138,13 +110,13 @@ export class PiHostService implements SessionService {
   }
 
   /**
-   * 侧栏卡片投影：消息数来自 SessionInfo，模型来自当前分支最后一次 model_change。
+   * 侧栏卡片投影：消息数与结果来自当前分支，模型来自最后一次 model_change；按文件版本缓存。
    * 不进协议 SessionMetadata（strict，会丢掉额外字段）。
    */
   async listSessionCards(): Promise<SessionCard[]> {
     this.sessionsCache = undefined
     const infos = await this.refreshSessionPaths()
-    return cardsFromInfos(infos)
+    return this.cards.list(infos)
   }
 
   async listModels(): Promise<ModelMetadata[]> {
@@ -403,12 +375,12 @@ export class PiHostService implements SessionService {
   }
 
   /** 刷新 sessionId → 磁盘路径索引，返回本次扫描到的全部 session 信息。 */
-  private async refreshSessionPaths(): Promise<SessionInfo[]> {
+  private async refreshSessionPaths(): Promise<IndexedSession[]> {
     const now = Date.now()
 
     if (this.sessionsCache && this.sessionsCache.expiresAt > now) return this.sessionsCache.infos
 
-    const infos = await SessionManager.listAll(this.options.sessionDir)
+    const infos = await this.sessionIndex.list()
     this.sessionPaths.clear()
 
     for (const info of infos) this.sessionPaths.set(info.id, info.path)
@@ -511,45 +483,6 @@ export class PiHostService implements SessionService {
     this.sessionPaths.delete(sessionId)
     await rm(path, { force: true })
   }
-}
-
-function cardsFromInfos(infos: readonly SessionInfo[]): SessionCard[] {
-  return infos.map((info) => {
-    let model: SessionCard["model"]
-    let outcome: SessionCard["outcome"]
-    let messageCount = info.messageCount
-
-    try {
-      const branch = SessionManager.open(info.path).getBranch()
-      model = modelFromBranch(branch)
-      outcome = outcomeFromBranch(branch)
-      messageCount = conversationMessageCount(branch)
-    } catch {}
-
-    return {
-      id: info.id,
-      messageCount,
-      ...(model ? { model } : {}),
-      ...(outcome ? { outcome } : {}),
-    }
-  })
-}
-
-/** 最近使用过的会话目录；网关启动时按它预热，与会话文件里存的是同一个目录。 */
-export function recentSessionCwd(sessions: readonly SessionMetadata[]): string | undefined {
-  let latest: SessionMetadata | undefined
-
-  for (const session of sessions) {
-    if (!session.cwd) continue
-
-    if (!latest || usedAt(session) > usedAt(latest)) latest = session
-  }
-
-  return latest?.cwd
-}
-
-function usedAt(session: SessionMetadata): number {
-  return session.updatedAt ?? session.createdAt
 }
 
 /** 测试注入用默认 ModelRuntime：不做网络刷新，避免启动时拉取模型目录。 */
