@@ -79,7 +79,7 @@ watch(
 
 /* 输入保留底色，和下方只描边的输出区分开 */
 .tool-input {
-  --card-background-color: var(--surface-raised);
+  --card-background-color: var(--surface);
 
   position: relative;
   padding: var(--space-xs) var(--space-sm);

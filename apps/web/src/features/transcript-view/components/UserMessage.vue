@@ -110,7 +110,7 @@ useResizeObserver(body, measure)
   margin: 0;
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-card);
-  background: var(--surface-raised);
+  background: var(--surface);
   color: var(--contrast-foreground);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);

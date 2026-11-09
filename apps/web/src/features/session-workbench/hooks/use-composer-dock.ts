@@ -33,6 +33,6 @@ function dockMotion(el: Element, dock: "in" | "out"): { duration: number; easing
   const style = getComputedStyle(el)
   return {
     duration: Number.parseFloat(style.getPropertyValue(`--duration-dock-${dock}`)) || 0,
-    easing: style.getPropertyValue("--ease-smooth").trim() || "ease-out",
+    easing: style.getPropertyValue("--ease-out").trim() || "ease-out",
   }
 }

@@ -247,15 +247,15 @@ function confirmDelete(): void {
   padding: var(--space-xxs) var(--space-sm);
   /* 与下方正文同底色：头部不另起一层 */
   background: transparent;
-  color: var(--foreground);
+  color: var(--contrast-foreground);
 }
 
 .header-toggle {
   overflow: hidden;
   /* 与侧栏同档 200ms；opacity 稍快进出，让形状先到位 */
   transition:
-    width var(--duration-normal) var(--ease-smooth),
-    margin var(--duration-normal) var(--ease-smooth),
+    width var(--duration-normal) var(--ease-out),
+    margin var(--duration-normal) var(--ease-out),
     opacity var(--duration-fast) var(--ease-out);
 }
 

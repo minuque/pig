@@ -105,8 +105,8 @@ const STEPS = ["a3", "a4", "a5", "a6", "a7", "a8"]
 const SURFACES: Record<string, string> = {
   none: "transparent",
   a2: "var(--gray-a2)",
-  card: "var(--card)",
-  code: "var(--surface-raised)",
+  card: "var(--surface)",
+  code: "var(--surface)",
 }
 const PRESETS: (Values & { name: string })[] = [
   { name: "当前", border: "a6", divider: "a5", radius: 10.4, surface: "none" },
@@ -269,7 +269,7 @@ async function copy() {
   margin: 0;
   padding: var(--space-sm);
   border-radius: var(--radius-control);
-  background: var(--surface-raised);
+  background: var(--surface);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   line-height: 1.6;

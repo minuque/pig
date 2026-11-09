@@ -160,7 +160,7 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
 .chevron {
   inline-size: 13px;
   block-size: 13px;
-  transition: transform var(--duration-fast) var(--ease-smooth);
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 
 .chevron[data-open] {

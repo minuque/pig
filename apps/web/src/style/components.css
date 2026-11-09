@@ -341,7 +341,7 @@
 
 /* ------ 背景 ------ */
 .bg-card {
-  background-color: var(--card);
+  background-color: var(--surface);
 }
 
 .bg-background {
@@ -373,8 +373,8 @@
     var(--shadow-popover),
     inset 0 0 0 var(--border-width) var(--border);
   transition:
-    background var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth);
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
 }
 
 .icon-control:hover {

@@ -55,8 +55,8 @@ const { t } = useI18n()
 .banner-enter-active,
 .banner-leave-active {
   transition:
-    opacity var(--duration-slow) var(--ease-smooth),
-    transform var(--duration-slow) var(--ease-smooth);
+    opacity var(--duration-slow) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out);
 }
 
 .banner-enter-from,
@@ -66,7 +66,7 @@ const { t } = useI18n()
 }
 
 .banner-move {
-  transition: transform var(--duration-slow) var(--ease-smooth);
+  transition: transform var(--duration-slow) var(--ease-out);
 }
 
 @media (prefers-reduced-motion: reduce) {

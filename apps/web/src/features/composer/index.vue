@@ -366,8 +366,8 @@ function onAbortHotkey(event: KeyboardEvent) {
   color: var(--contrast-foreground);
   cursor: pointer;
   transition:
-    background var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth);
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
 }
 
 .attach:not(:disabled):hover {
@@ -394,10 +394,10 @@ function onAbortHotkey(event: KeyboardEvent) {
   border-radius: var(--radius-pill);
   cursor: pointer;
   transition:
-    background var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth),
-    opacity var(--duration-fast) var(--ease-smooth),
-    opacity var(--duration-fast) var(--ease-smooth);
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
   background: var(--primary);
   color: var(--primary-foreground);
 }
@@ -409,8 +409,8 @@ function onAbortHotkey(event: KeyboardEvent) {
 /* 停止态：实心墨色圆 + 内部圆角方块，hover 只降不透明度 */
 .send--abort,
 .send--abort:not(:disabled):hover {
-  background: var(--foreground);
-  color: var(--card);
+  background: var(--inverse-background);
+  color: var(--inverse-foreground);
   box-shadow: none;
 }
 

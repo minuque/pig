@@ -45,11 +45,10 @@
   --primary-foreground: var(--accent-contrast);
   --white: #ffffff;
 
-  /* 表面统一中性灰：侧栏低一档，主区一层，卡片、浮层、输入卡依次抬亮；悬停与选中带主题色 */
+  /* 表面统一中性灰：侧栏低一档，主区一层，卡片与输入卡一层，浮层再抬一档 */
   --background: #f4f4f4;
   /* 所有侧栏共用：主侧栏、抽屉、设置弹窗导航；与主区同一中性灰，低一档 */
   --sidebar: #f0f0f0;
-  --card: #f8f8f8;
   /* 按钮与可点行共用：取 Radix 主题色 alpha 第 3 档做悬停、第 4 档做选中，深浅主题由色板自己切 */
   --btn-hover: var(--accent-a3);
   --btn-selected: var(--accent-a4);
@@ -67,15 +66,14 @@
   --language-pink: #d32a61;
   /* 行内码：正文色压 10% 的底，深浅主题自动跟随 */
   --inline-code-background: color-mix(in srgb, var(--contrast-foreground) 10%, transparent);
-  /* 抬起的表面：输入卡、用户气泡、工具输入与思考内容共用 */
-  --surface-raised: #ffffff;
+  /* 抬起的表面：卡片、输入卡、用户气泡、工具输入与思考内容共用 */
+  --surface: #ffffff;
   --popover: #fcfcfc;
 
   /* 文字三级：主、次、弱；弱级只给非必要信息 */
   --foreground: #292929;
   --foreground-secondary: #505050;
   --foreground-faint: #6e6e6e;
-  --placeholder: #6d6d6d;
 
   /* 对比度派生色：只在 :root 写一份；.dark 覆盖 --foreground 后自动跟随 */
   --contrast-foreground: color-mix(
@@ -224,7 +222,7 @@
   --composer-inset: inset 0 1px 3px rgba(0, 0, 0, 0.05);
   /* 主题预览线框：固定画浅色与深色两套界面，不跟当前主题走 */
   --theme-wire-light: #f4f4f4;
-  --theme-wire-light-raised: #f8f8f8;
+  --theme-wire-light-raised: #ffffff;
   --theme-wire-dark: #101012;
   --theme-wire-dark-raised: #17171a;
 
@@ -234,17 +232,13 @@
   --inverse-foreground: #ffffff;
 
   /* 动效 */
-  --ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-out: cubic-bezier(0.17, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.66, 0, 0.34, 1);
   --ease-spring: cubic-bezier(0.22, 1.18, 0.36, 1);
   /* 浮层出入与 hover 统一曲线 */
   --ease-menu: cubic-bezier(0.25, 0.1, 0.25, 1);
   --ease-hover: cubic-bezier(0.4, 0, 0.2, 1);
-  --duration-menu-in: 140ms;
   --duration-menu-out: 100ms;
-  --duration-dialog-in: 180ms;
-  --duration-row-reveal: 480ms;
   --duration-fast: 150ms;
   --duration-normal: 200ms;
   /* 输入卡停靠：首屏→会话 420ms，回首屏 470ms。名字由 use-composer-dock.ts 拼接，不是字面量。 */
@@ -252,13 +246,9 @@
   --duration-dock-out: 470ms;
   /* 首屏整体落位入场 */
   --duration-settle: 500ms;
-  --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
-  /* 工具行动词在运行中与完成后切换的滚动时长 */
-  --duration-label-roll: 180ms;
-  --duration-slow: 280ms;
+  --duration-slow: 300ms;
   /* 小猪探头：开屏与侧栏品牌共用同一节奏 */
   --duration-pig-peek: 640ms;
-  --duration-icon: 300ms;
   --duration-theme: 600ms;
   --duration-shimmer: 3400ms;
   --ease-icon: cubic-bezier(0.2, 0, 0, 1);
@@ -330,7 +320,6 @@ html[data-pig-desktop-platform="darwin"] {
 
   --background: #101012;
   --sidebar: #0e0e10;
-  --card: #17171a;
   --language-gray: #adadb1;
   --language-red: #ff6762;
   --language-orange: #ffa359;
@@ -342,13 +331,12 @@ html[data-pig-desktop-platform="darwin"] {
   --language-indigo: #9d6afb;
   --language-purple: #d568ea;
   --language-pink: #ff678d;
-  --surface-raised: #17171a;
+  --surface: #17171a;
   --popover: #1c1c1f;
 
   --foreground: #e8e8e8;
   --foreground-secondary: #a1a1a1;
   --foreground-faint: #888888;
-  --placeholder: #8c8c8c;
 
   --warning: #e8a33d;
   --danger: #ff7d88;

@@ -138,7 +138,7 @@ const open = ref(!model.value.id)
 }
 
 .chevron {
-  transition: transform var(--duration-fast) var(--ease-smooth);
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 
 .chevron.open {

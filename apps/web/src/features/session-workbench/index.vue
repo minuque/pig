@@ -457,7 +457,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   place-items: center;
   pointer-events: none;
   opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-smooth);
+  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
 .session-panel.is-drop-active .drop-guide,
@@ -472,7 +472,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   padding: var(--space-sm) var(--space-md);
   border: var(--border-width) dashed var(--primary);
   border-radius: var(--radius-pill);
-  background: var(--surface-raised);
+  background: var(--surface);
   color: var(--primary);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);

@@ -247,7 +247,7 @@ watch([isDark, fontSize], () => nextTick(read))
   width: 56px;
   height: 40px;
   border: var(--border-width) solid var(--border);
-  background: var(--card);
+  background: var(--surface);
 }
 
 .sample[data-kind="shadow"] {

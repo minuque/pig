@@ -10,7 +10,7 @@
 .dark .mermaid-diagram {
   --pele-bg: var(--background);
   --pele-surface: var(--background);
-  --pele-surface-alt: var(--card);
+  --pele-surface-alt: var(--surface);
   --pele-fg: var(--contrast-foreground);
   --pele-muted: var(--contrast-foreground-faint);
   --pele-line: var(--border);

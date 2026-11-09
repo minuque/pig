@@ -368,7 +368,7 @@ defineExpose({ focus })
   overflow: hidden;
   /* 描边与 rt 卡片同法：内阴影画 1px 环，不用 border，非整数缩放下圆角不发毛 */
   border-radius: var(--radius-composer);
-  background: var(--surface-raised);
+  background: var(--surface);
   box-shadow:
     inset 0 0 0 var(--border-width) var(--border),
     var(--composer-inset),
@@ -443,7 +443,7 @@ defineExpose({ focus })
 /* contenteditable 的 placeholder：空内容时显示 data-placeholder */
 .field:empty::before {
   content: attr(data-placeholder);
-  color: var(--placeholder);
+  color: var(--foreground-faint);
   pointer-events: none;
 }
 

@@ -138,7 +138,7 @@ function sourceKind(provider: ProviderView) {
   padding-inline: var(--space-sm);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-control);
-  background: var(--card);
+  background: var(--surface);
   color: var(--contrast-foreground-faint);
 }
 
@@ -156,7 +156,7 @@ function sourceKind(provider: ProviderView) {
 }
 
 .provider-search input::placeholder {
-  color: var(--placeholder);
+  color: var(--foreground-faint);
 }
 
 .provider-card {

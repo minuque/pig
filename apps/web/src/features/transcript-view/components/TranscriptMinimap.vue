@@ -287,8 +287,8 @@ function onPreviewOpenChange(open: boolean) {
   transform-origin: left center;
   translate: 0 -50%;
   transition:
-    background var(--duration-icon) var(--ease-smooth),
-    scale var(--duration-icon) var(--ease-smooth);
+    background var(--duration-slow) var(--ease-out),
+    scale var(--duration-slow) var(--ease-out);
 }
 
 /* 视口里的回合加深，正在看的那条最深 */

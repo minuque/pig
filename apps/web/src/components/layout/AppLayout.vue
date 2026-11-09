@@ -98,7 +98,7 @@ function resetWidth() {
   width: 0;
   border-inline-end-width: 0;
   transition:
-    width var(--duration-normal) var(--ease-smooth),
+    width var(--duration-normal) var(--ease-out),
     border-inline-end-width 0s var(--duration-normal),
     visibility 0s var(--duration-normal);
 }
@@ -108,7 +108,7 @@ function resetWidth() {
   width: var(--left-width);
   border-inline-end-width: var(--border-width);
   transition:
-    width var(--duration-normal) var(--ease-smooth),
+    width var(--duration-normal) var(--ease-out),
     border-inline-end-width 0s,
     visibility 0s;
 }
@@ -161,7 +161,7 @@ function resetWidth() {
 
 .shell.is-resizing .resizer::after {
   opacity: 1;
-  background: var(--foreground-secondary);
+  background: var(--contrast-foreground-secondary);
 }
 
 html[data-pig-desktop-platform="darwin"] .resizer {
@@ -230,7 +230,7 @@ main {
     visibility: hidden;
     transform: translateX(-105%);
     transition:
-      transform var(--duration-normal) var(--ease-smooth),
+      transform var(--duration-normal) var(--ease-out),
       visibility 0s linear var(--duration-normal);
     background: var(--sidebar);
     border-inline-end: 0;
@@ -241,7 +241,7 @@ main {
     visibility: visible;
     transform: translateX(0);
     transition:
-      transform var(--duration-normal) var(--ease-smooth),
+      transform var(--duration-normal) var(--ease-out),
       visibility 0s linear;
   }
 }

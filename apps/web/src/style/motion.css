@@ -9,7 +9,7 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: var(--card);
+  background: var(--surface);
   font-family: var(--font-sans);
   -webkit-app-region: no-drag;
   app-region: no-drag;
@@ -18,7 +18,7 @@
 /* 离场：小猪歪头缩回，整屏随即淡出 */
 .startup-screen.leaving {
   pointer-events: none;
-  animation: exit-fade var(--duration-normal) var(--ease-smooth) both;
+  animation: exit-fade var(--duration-normal) var(--ease-out) both;
 }
 
 .startup-screen.leaving .startup-logo {
@@ -63,7 +63,7 @@
 }
 
 #startup-splash .startup-mark {
-  animation: startup-mark-enter var(--duration-normal) var(--ease-smooth) both;
+  animation: startup-mark-enter var(--duration-normal) var(--ease-out) both;
 }
 
 /* 入场：蓝框先落位，小猪歪着头探出并摆正；不回弹，底边始终贴住框底 */
@@ -120,7 +120,7 @@
 
 /* JS 驱动的高度形变：先写死旧高度，再改新高度，靠这条过渡出底锚增长的手感 */
 .morph-height {
-  transition: height var(--duration-normal) var(--ease-smooth);
+  transition: height var(--duration-normal) var(--ease-out);
 }
 
 .icon-toggle {
@@ -133,8 +133,8 @@
   background: transparent;
   color: var(--contrast-foreground-faint);
   transition:
-    background var(--duration-fast) var(--ease-smooth),
-    color var(--duration-fast) var(--ease-smooth),
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
     scale var(--duration-fast) var(--ease-out);
 }
 
@@ -158,9 +158,9 @@
 .icon-swap > * {
   grid-area: 1 / 1;
   transition:
-    opacity var(--duration-icon) var(--ease-icon),
-    scale var(--duration-icon) var(--ease-icon),
-    filter var(--duration-icon) var(--ease-icon);
+    opacity var(--duration-slow) var(--ease-icon),
+    scale var(--duration-slow) var(--ease-icon),
+    filter var(--duration-slow) var(--ease-icon);
 }
 
 .icon-swap > [data-visible="false"] {
@@ -171,9 +171,9 @@
 
 .motion-icon {
   transition:
-    opacity var(--duration-icon) var(--ease-icon),
-    scale var(--duration-icon) var(--ease-icon),
-    filter var(--duration-icon) var(--ease-icon);
+    opacity var(--duration-slow) var(--ease-icon),
+    scale var(--duration-slow) var(--ease-icon),
+    filter var(--duration-slow) var(--ease-icon);
 }
 
 .motion-hint {
@@ -182,9 +182,9 @@
   filter: blur(4px);
   pointer-events: none;
   transition:
-    opacity var(--duration-icon) var(--ease-icon),
-    scale var(--duration-icon) var(--ease-icon),
-    filter var(--duration-icon) var(--ease-icon);
+    opacity var(--duration-slow) var(--ease-icon),
+    scale var(--duration-slow) var(--ease-icon),
+    filter var(--duration-slow) var(--ease-icon);
 }
 
 @media (hover: hover) {
@@ -208,7 +208,7 @@
 }
 
 .motion-turn {
-  transition: transform var(--duration-fast) var(--ease-smooth);
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 
 .motion-turn.is-on {
@@ -234,8 +234,8 @@
 .dock-hero-enter-active,
 .dock-hero-appear-active {
   transition:
-    opacity var(--duration-settle) var(--ease-settle) var(--duration-fast),
-    translate var(--duration-settle) var(--ease-settle) var(--duration-fast);
+    opacity var(--duration-settle) var(--ease-out) var(--duration-fast),
+    translate var(--duration-settle) var(--ease-out) var(--duration-fast);
 }
 
 .dock-hero-enter-from,
@@ -247,7 +247,7 @@
 /* 首屏挂载时输入条与 Hero 同拍落位。fill 只能用 backwards：both/forwards 会把 translate 留在
    输入条外框上，外框成了 backdrop root，输入卡的毛玻璃就抽不到背后的正文。 */
 .settle-in {
-  animation: settle-down var(--duration-settle) var(--ease-settle) var(--duration-fast) backwards;
+  animation: settle-down var(--duration-settle) var(--ease-out) var(--duration-fast) backwards;
 }
 
 @keyframes settle-down {
@@ -266,8 +266,8 @@
 .label-roll-enter-active,
 .label-roll-leave-active {
   transition:
-    opacity var(--duration-label-roll) var(--ease-out),
-    transform var(--duration-label-roll) var(--ease-out);
+    opacity var(--duration-normal) var(--ease-out),
+    transform var(--duration-normal) var(--ease-out);
 }
 
 .label-roll-enter-from {
@@ -335,8 +335,8 @@
   translate: 0 2px;
   opacity: 0;
   transition:
-    translate var(--duration-dialog-in) var(--ease-menu),
-    opacity var(--duration-dialog-in) var(--ease-menu);
+    translate var(--duration-normal) var(--ease-menu),
+    opacity var(--duration-normal) var(--ease-menu);
 }
 
 :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="open"] {
@@ -394,8 +394,8 @@
   overflow: hidden;
   interpolate-size: allow-keywords;
   transition:
-    height var(--duration-normal) var(--ease-smooth),
-    margin-block-start var(--duration-normal) var(--ease-smooth),
+    height var(--duration-normal) var(--ease-out),
+    margin-block-start var(--duration-normal) var(--ease-out),
     opacity var(--duration-normal) var(--ease-out);
 }
 
@@ -429,8 +429,8 @@
 /* ------ 输入卡 @// 菜单：与浮层同一组时长与曲线 ------ */
 .menu-reveal-enter-active {
   transition:
-    opacity var(--duration-menu-in) var(--ease-menu),
-    translate var(--duration-menu-in) var(--ease-menu);
+    opacity var(--duration-fast) var(--ease-menu),
+    translate var(--duration-fast) var(--ease-menu);
 }
 
 .menu-reveal-leave-active {
@@ -452,7 +452,7 @@
 /* ------ 主题切换 view-transition ------ */
 ::view-transition-group(root) {
   animation-duration: var(--duration-theme);
-  animation-timing-function: var(--ease-smooth);
+  animation-timing-function: var(--ease-out);
 }
 
 ::view-transition-old(root) {
@@ -631,8 +631,8 @@
   opacity: 0.3;
   translate: var(--menu-shift-x) var(--menu-shift-y);
   transition:
-    opacity var(--duration-menu-in) var(--ease-menu),
-    translate var(--duration-menu-in) var(--ease-menu);
+    opacity var(--duration-fast) var(--ease-menu),
+    translate var(--duration-fast) var(--ease-menu);
 }
 
 .reveal-menu[data-side="top"] {

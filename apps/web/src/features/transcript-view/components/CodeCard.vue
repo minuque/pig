@@ -12,6 +12,6 @@ import { Card } from "@components/ui/card/index.js"
   --card-padding: 0;
 
   min-width: 0;
-  color: var(--foreground);
+  color: var(--contrast-foreground);
 }
 </style>

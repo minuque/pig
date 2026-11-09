@@ -90,7 +90,7 @@ watch(
 
 /* 输入保留底色，和下方只描边的输出区分开 */
 .command-block {
-  --card-background-color: var(--surface-raised);
+  --card-background-color: var(--surface);
 
   position: relative;
   display: flex;

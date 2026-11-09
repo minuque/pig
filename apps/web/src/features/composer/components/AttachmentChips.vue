@@ -263,9 +263,9 @@ const rows = computed(() =>
   opacity: 0;
   filter: blur(3px);
   transition:
-    background var(--duration-fast) var(--ease-smooth),
-    opacity var(--duration-fast) var(--ease-smooth),
-    filter var(--duration-fast) var(--ease-smooth);
+    background var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out),
+    filter var(--duration-fast) var(--ease-out);
 }
 
 /* hover / 键盘焦点时浮出；上传中让位给百分比 */
