@@ -17,8 +17,8 @@
     </button>
   </CodeCard>
 
-  <div v-else class="tool-output" :class="{ 'is-soft-wrap': softWrap }">
-    <template v-if="showText">
+  <div v-else-if="text || images.length" class="tool-output" :class="{ 'is-soft-wrap': softWrap }">
+    <template v-if="text">
       <!-- 卡片只画边框，滚动交给里面的 pre：卡片自己滚动时 rt 的边框伪元素会跟着滚走 -->
       <CodeCard class="tool-output-card">
         <CopyButton v-if="copyText" :text="copyText" />
@@ -89,7 +89,6 @@ const props = withDefaults(
   },
 )
 const expanded = shallowRef(false)
-const showText = computed(() => props.text.length > 0 || props.images.length === 0)
 const textCut = computed(() => (props.code ? null : lineCut(props.text, LINE_LIMIT)))
 const shownText = computed(() => {
   const end = textCut.value?.end ?? -1
