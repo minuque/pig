@@ -4,15 +4,18 @@ import { waitMs, worstFrameDuring } from "./measure.js"
 
 export type WindowSize = { width: number; height: number }
 
-/** 收起再展开侧栏，量宽度过渡期间的最差帧。收起态按钮宽 0，只能派发点击。 */
+/** 收起再展开侧栏，量宽度过渡期间的最差帧。收起与展开按钮分处侧栏头与主区头，宽 0 时只能派发点击。 */
 export async function sidebarToggleWorst(page: Page): Promise<number> {
-  const clickCollapse = () =>
-    page.evaluate(() => document.querySelector<HTMLButtonElement>("button.nav-collapse")?.click())
+  const click = (labels: string[]) =>
+    page.evaluate((names) => {
+      const selector = names.map((name) => `button[aria-label="${name}"]`).join(",")
+      document.querySelector<HTMLButtonElement>(selector)?.click()
+    }, labels)
   return await worstFrameDuring(page, async () => {
-    await clickCollapse()
+    await click(["收起侧边栏", "Collapse sidebar"])
     await page.locator(".shell.sb-offcanvas").waitFor({ state: "attached" })
     await waitMs(page, 260)
-    await clickCollapse()
+    await click(["打开侧边栏", "Open sidebar"])
     await page.locator(".shell.sb-offcanvas").waitFor({ state: "detached" })
     await waitMs(page, 260)
   })
