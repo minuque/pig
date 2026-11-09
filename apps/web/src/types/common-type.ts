@@ -1,13 +1,6 @@
-export type {
-  ByteTransport,
-  ByteTransportFactory,
-  ByteTransportHandlers,
-  ConnectionState,
-  PiClient,
-  Unsubscribe,
-} from "@earendil-works/pi-client"
+export type { ConnectionState, GatewayClient, Unsubscribe } from "@client/gateway-client.js"
 
-export type { RemoteSession, RemoteSessionState } from "@earendil-works/pi-coding-agent/client"
+export type { GatewaySession, SessionState } from "@client/gateway-session.js"
 
 export type {
   AssistantTranscriptItem,
@@ -21,4 +14,4 @@ export type {
   ToolTranscriptItem,
   TranscriptItem,
   UserTranscriptItem,
-} from "@earendil-works/pi-protocol"
+} from "@pig/protocol"

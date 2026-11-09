@@ -1,7 +1,7 @@
 import { computed, inject, provide, shallowRef, watch, type InjectionKey } from "vue"
 import { useRouter } from "vue-router"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
-import type { usePiClient } from "@client/pi-client.js"
+import type { useGatewayClient } from "@client/gateway-connection.js"
 import type { SessionContext } from "@features/session-workbench/index.js"
 import { useSessionCards } from "@features/session-nav/hooks/use-session-cards.js"
 import { useSessionMarkers } from "@features/session-nav/hooks/use-session-markers.js"
@@ -27,7 +27,7 @@ export type NavContext = ReturnType<typeof createNav>
 export const navKey: InjectionKey<NavContext> = Symbol("nav")
 
 function createNav(
-  pi: ReturnType<typeof usePiClient>,
+  pi: ReturnType<typeof useGatewayClient>,
   cwd: ReturnType<typeof useLocalWorkspaces>,
   session: SessionContext,
 ) {
@@ -212,7 +212,7 @@ function createNav(
 }
 
 export function provideNav(
-  pi: ReturnType<typeof usePiClient>,
+  pi: ReturnType<typeof useGatewayClient>,
   cwd: ReturnType<typeof useLocalWorkspaces>,
   session: SessionContext,
 ) {

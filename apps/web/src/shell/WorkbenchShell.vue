@@ -28,7 +28,7 @@ import AppLayout from "@components/layout/AppLayout.vue"
 import AlertToaster from "@components/layout/AlertToaster.vue"
 
 import { useLocalWorkspaces } from "@client/local-cwd.js"
-import { usePiClient } from "@client/pi-client.js"
+import { useGatewayClient } from "@client/gateway-connection.js"
 
 import SessionNav from "@features/session-nav/index.vue"
 import { provideNav } from "@features/session-nav/index.js"
@@ -38,7 +38,7 @@ import Startup from "@features/startup/index.vue"
 import { provideSession } from "@features/session-workbench/index.js"
 import { prefetchHighlighter } from "@features/transcript-view/index.js"
 
-const pi = usePiClient()
+const pi = useGatewayClient()
 const cwd = useLocalWorkspaces()
 const session = provideSession(pi, cwd)
 const { settingsOpen, settingsPane, openSettings, closeSettings } = useSettingsDialog()

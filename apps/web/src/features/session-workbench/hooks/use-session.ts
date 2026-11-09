@@ -8,10 +8,10 @@ import {
   watch,
 } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { RemoteSession } from "@earendil-works/pi-coding-agent/client"
-import type { ModelRef, RemoteSessionState, ThinkingLevel } from "@/types/common-type.js"
+import { GatewaySession } from "@client/gateway-session.js"
+import type { ModelRef, SessionState, ThinkingLevel } from "@/types/common-type.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
-import type { usePiClient } from "@client/pi-client.js"
+import type { useGatewayClient } from "@client/gateway-connection.js"
 import type { ComposerAttachmentBatch } from "@features/composer/hooks/use-composer-attachments.js"
 import { useSessionComposer } from "@features/composer/index.js"
 import { sameModel, thinkingLevelOf } from "@features/composer/lib/model-preset.js"
@@ -47,9 +47,9 @@ interface CreateSessionInput {
   thinkingLevel?: ThinkingLevel
 }
 
-/** Route、RemoteSession、历史合并、草稿与提交。不接管卡片，切 Session 不滚动。 */
+/** Route、GatewaySession、历史合并、草稿与提交。不接管卡片，切 Session 不滚动。 */
 export function useSessionLifecycle(
-  pi: ReturnType<typeof usePiClient>,
+  pi: ReturnType<typeof useGatewayClient>,
   cwd: ReturnType<typeof useLocalWorkspaces>,
 ) {
   const route = useRoute()
@@ -58,8 +58,8 @@ export function useSessionLifecycle(
     const raw = route.params.sessionId
     return typeof raw === "string" && raw.length > 0 ? raw : undefined
   })
-  const remote = shallowRef<RemoteSession>()
-  const state = shallowRef<RemoteSessionState>()
+  const remote = shallowRef<GatewaySession>()
+  const state = shallowRef<SessionState>()
   let activeSub: LiveSubscription | undefined
   let replaceChain: Promise<void> = Promise.resolve()
   let abortInflightOpen: (() => void) | undefined
@@ -95,7 +95,7 @@ export function useSessionLifecycle(
     state.value = undefined
   }
 
-  function attach(next: RemoteSession) {
+  function attach(next: GatewaySession) {
     const previous = remote.value
 
     detach()
@@ -164,7 +164,7 @@ export function useSessionLifecycle(
         const current = pi.client.value
 
         if (!current || history.activeId.value !== id) return
-        const raced = raceRemoteOpen(id, () => RemoteSession.open(current, id))
+        const raced = raceRemoteOpen(id, () => GatewaySession.open(current, id))
         abortInflightOpen = raced.abort
 
         try {
@@ -198,9 +198,9 @@ export function useSessionLifecycle(
     return enqueueReplace(async () => {
       const target = pi.client.value
 
-      if (!target) throw new Error("PiClient 未连接")
+      if (!target) throw new Error("Gateway 未连接")
 
-      const next = await RemoteSession.create(target, {
+      const next = await GatewaySession.create(target, {
         cwd: nextCwd,
         ...(options?.model !== undefined ? { model: options.model } : {}),
         ...(options?.thinkingLevel !== undefined ? { thinkingLevel: options.thinkingLevel } : {}),

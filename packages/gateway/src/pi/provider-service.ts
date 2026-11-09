@@ -1,9 +1,9 @@
 import { readFile } from "node:fs/promises"
 import { join } from "node:path"
 import { getAgentDir, SettingsManager } from "@earendil-works/pi-coding-agent"
-import type { ModelMetadata } from "@earendil-works/pi-protocol"
-import { toProtocolModelMetadata } from "@earendil-works/pi-server"
+import type { ModelMetadata } from "@pig/protocol"
 
+import { toModelMetadata } from "./model-metadata.js"
 import { ModelsConfigError, ProviderConfigStore } from "./models-config.js"
 import {
   applyToCustomModel,
@@ -133,7 +133,7 @@ export class ProviderService {
     return {
       models: models
         .filter((model) => isModelEnabled(enabledModels, model.provider, model.id))
-        .map((model) => toProtocolModelMetadata(model, runtime.hasConfiguredAuth(model.provider))),
+        .map((model) => toModelMetadata(model, runtime.hasConfiguredAuth(model.provider))),
     }
   }
 

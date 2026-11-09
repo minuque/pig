@@ -13,9 +13,6 @@
   },
   "dependencies": {
     "@comark/vue": "0.8.1",
-    "@earendil-works/pi-client": "0.84.4",
-    "@earendil-works/pi-coding-agent": "0.84.4",
-    "@earendil-works/pi-protocol": "0.84.4",
     "@lobehub/icons-static-svg": "1.95.0",
     "@panzoom/panzoom": "4.6.2",
     "@pierre/vscode-icons": "0.0.9",
@@ -31,6 +28,7 @@
     "vue-router": "4.6.4"
   },
   "devDependencies": {
+    "@pig/protocol": "workspace:*",
     "@types/node": "24.13.3",
     "@vitejs/plugin-vue": "6.0.8",
     "@vitest/coverage-v8": "5.0.5",

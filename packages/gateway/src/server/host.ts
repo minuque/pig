@@ -1,5 +1,4 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http"
-import { PiServer } from "@earendil-works/pi-server"
 import { BrowserSession, browserSecretFile } from "../auth/browser-session.js"
 import { PiHostService, type PiHostServiceOptions } from "../pi/service.js"
 import { ManualDirectoryPort, WindowsDirectoryPort, type DirectoryPort } from "../directory.js"
@@ -7,7 +6,7 @@ import { handlePlatformRequest } from "./platform.js"
 import { installProviderHttp } from "./provider-http.js"
 import { handleProviderRequest } from "./providers.js"
 import { serveWebFile } from "./static-files.js"
-import { createWebSocketListener } from "./websocket.js"
+import { ProtocolServer } from "./websocket.js"
 
 export interface GatewayOptions {
   webRoot?: string
@@ -29,12 +28,12 @@ export interface GatewayOptions {
 
 /**
  * Thin Host：本地 HTTP 壳（health / 静态 SPA / 目录选择）
- * + 只绑 127.0.0.1 的 WebSocket listener，连接直接交给官方 PiServer + PiHostService。
+ * + 只绑 127.0.0.1 的 WebSocket 协议端，会话命令交给 PiHostService。
  */
 export class Gateway {
   private readonly server = createServer(this.handleRequest.bind(this))
   private readonly hostService: PiHostService
-  private readonly piServer: PiServer
+  private readonly protocol: ProtocolServer
   private readonly webRoot: string | undefined
   private readonly platformPort: DirectoryPort
   private readonly listenPort: number
@@ -57,15 +56,11 @@ export class Gateway {
       ...(options.agentDir ? { agentDir: options.agentDir } : {}),
       ...(options.createRuntime ? { createRuntime: options.createRuntime } : {}),
     })
-    this.piServer = new PiServer(this.hostService, {
-      listeners: [
-        createWebSocketListener({
-          server: this.server,
-          allow: (req) => this.browser.rejection(req.headers),
-        }),
-      ],
-      onError: (error) => console.error("PiServer error:", error),
-      handshakeTimeoutMs: 30_000,
+    this.protocol = new ProtocolServer({
+      server: this.server,
+      service: this.hostService,
+      allow: (req) => this.browser.rejection(req.headers),
+      onError: (error) => console.error("Gateway protocol error:", error),
     })
   }
 
@@ -163,8 +158,6 @@ export class Gateway {
     await this.browser.open()
     installProviderHttp()
     const warming = this.hostService.warm()
-    await this.piServer.start()
-
     const port = await new Promise<number>((resolveStart, reject) => {
       this.server.once("error", reject)
       this.server.listen(this.listenPort, "127.0.0.1", () => {
@@ -185,7 +178,7 @@ export class Gateway {
   }
 
   async stop() {
-    await this.piServer.close()
+    await this.protocol.close()
     await this.hostService.dispose()
     await new Promise<void>((resolveStop, reject) =>
       this.server.close((error) => (error ? reject(error) : resolveStop())),

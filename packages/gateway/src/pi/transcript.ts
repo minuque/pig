@@ -4,13 +4,8 @@ import type {
   TranscriptItem,
   TranscriptProgress,
   ToolTranscriptItem,
-} from "@earendil-works/pi-protocol"
-import {
-  toProtocolAssistantMessage,
-  toProtocolJsonValue,
-  toProtocolToolResultMessage,
-  toProtocolUserMessage,
-} from "@earendil-works/pi-server"
+} from "@pig/protocol"
+import { toAssistantItem, toJsonValue, toToolItem, toUserItem } from "./item-convert.js"
 
 /** 会话条目携带的消息（pi-ai 未直接依赖，从官方会话类型提取）。 */
 type AgentMessage = Extract<SessionEntry, { type: "message" }>["message"]
@@ -56,7 +51,7 @@ export class TranscriptProjection {
         let input: JsonValue
 
         try {
-          input = toProtocolJsonValue(event.args)
+          input = toJsonValue(event.args)
         } catch {
           return undefined // 非 JSON 参数（不应发生），跳过该条目
         }
@@ -99,10 +94,10 @@ export class TranscriptProjection {
       const message = entry.message
 
       if (message.role === "user") {
-        items.push(toProtocolUserMessage(message, { id: entry.id }))
+        items.push(toUserItem(message, entry.id))
       } else if (message.role === "assistant") {
         this.indexToolCalls(message.content, toolCalls)
-        items.push(toProtocolAssistantMessage(message, { id: entry.id }))
+        items.push(toAssistantItem(message, entry.id))
       } else if (message.role === "toolResult") {
         const args = toolCalls.get(message.toolCallId)
 
@@ -126,7 +121,7 @@ export class TranscriptProjection {
         if (stage !== "started") return undefined
         return {
           type: "item_started",
-          item: toProtocolUserMessage(message, { id: this.allocateId() }),
+          item: toUserItem(message, this.allocateId()),
         }
       case "assistant": {
         this.indexToolCalls(message.content, this.toolCalls)
@@ -135,7 +130,7 @@ export class TranscriptProjection {
           stage === "started"
             ? (this.streamingMessageId = this.allocateId())
             : (this.streamingMessageId ?? this.allocateId())
-        const item = toProtocolAssistantMessage(message, { id })
+        const item = toAssistantItem(message, id)
 
         if (stage === "finished") {
           this.streamingMessageId = undefined
@@ -157,7 +152,7 @@ export class TranscriptProjection {
         if (args === undefined) return undefined
         this.toolCalls.delete(message.toolCallId)
         const item = this.toolItem(message, args)
-        // finished 阶段 toProtocolToolResultMessage 只产出终态（running 占位已由 tool_execution_start 发出）
+        // finished 阶段 toToolItem 只产出终态（running 占位已由 tool_execution_start 发出）
         return {
           type: "item_finished",
           item: item as Extract<ToolTranscriptItem, { status: "complete" | "error" }>,
@@ -170,15 +165,11 @@ export class TranscriptProjection {
   }
 
   private toolItem(message: ToolResultMessage, args: JsonValue): ToolTranscriptItem {
-    return toProtocolToolResultMessage(message, {
-      id: message.toolCallId,
-      call: {
-        type: "toolCall",
-        id: message.toolCallId,
-        name: message.toolName,
-        arguments: toolCallArguments(args),
-      },
-    })
+    return toToolItem(
+      message,
+      { id: message.toolCallId, name: message.toolName, arguments: toolCallArguments(args) },
+      message.toolCallId,
+    )
   }
 
   /** 索引助手消息中的 toolCall 参数；非 JSON 参数（不应发生）跳过。 */
@@ -190,7 +181,7 @@ export class TranscriptProjection {
       if (part.type !== "toolCall") continue
 
       try {
-        index.set(part.id, toProtocolJsonValue(part.arguments))
+        index.set(part.id, toJsonValue(part.arguments))
       } catch {
         // 不索引；对应 tool 条目将因找不到参数而跳过
       }
@@ -204,7 +195,7 @@ export class TranscriptProjection {
 }
 
 /** 协议 ToolCall 要求参数为 JSON 对象；非对象参数按空对象处理（运行时同义）。 */
-function toolCallArguments(value: JsonValue): Record<string, unknown> {
+function toolCallArguments(value: JsonValue): { [key: string]: JsonValue } {
   if (typeof value === "object" && value !== null && !Array.isArray(value)) return value
   return {}
 }

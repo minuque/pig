@@ -1,5 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http"
-import { PiServerError, SessionNotFoundError } from "@earendil-works/pi-server"
+import { GatewayError, SessionNotFoundError } from "../pi/runtime-types.js"
 import type { DirectoryPort } from "../directory.js"
 import { AttachmentError, sanitizeMimeType, type AttachmentErrorCode } from "../pi/attachments.js"
 import { isContextPreviewKey } from "../pi/context-usage.js"
@@ -369,12 +369,12 @@ function sendSessionWriteError(
     return
   }
 
-  if (error instanceof PiServerError && error.code === "busy") {
+  if (error instanceof GatewayError && error.code === "busy") {
     send(res, 409, { code: "BUSY" })
     return
   }
 
-  if (error instanceof PiServerError && error.code === "invalid_request") {
+  if (error instanceof GatewayError && error.code === "invalid_request") {
     send(res, 400, { code: "INVALID_REQUEST" })
     return
   }

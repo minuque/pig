@@ -10,13 +10,9 @@ import {
   SettingsManager,
 } from "@earendil-works/pi-coding-agent"
 import type { SessionEntry, SessionHeader, SessionInfo } from "@earendil-works/pi-coding-agent"
-import type { ModelMetadata, SessionMetadata, TranscriptItem } from "@earendil-works/pi-protocol"
-import { PiServerError, SessionBusyError, SessionNotFoundError } from "@earendil-works/pi-server"
-import type {
-  CreateSessionOptions,
-  PiServerService,
-  PiSessionRuntime,
-} from "@earendil-works/pi-server"
+import type { ModelMetadata, SessionMetadata, TranscriptItem } from "@pig/protocol"
+import { GatewayError, SessionBusyError, SessionNotFoundError } from "./runtime-types.js"
+import type { CreateSessionOptions, SessionService, SessionRuntime } from "./runtime-types.js"
 import { canonicalizePath } from "../directory.js"
 import { AttachmentStore } from "./attachments.js"
 import { selectComposerPrompts, type ComposerCommand } from "./composer-commands.js"
@@ -93,9 +89,9 @@ export interface PiHostServiceOptions {
 
 /**
  * 把 Pi SDK（SessionManager + AgentSession + ModelRuntime）映射为官方
- * PiServerService。会话真相以 Pi 持久化为准，本类不维护第二套领域状态。
+ * SessionService。会话真相以 Pi 持久化为准，本类不维护第二套领域状态。
  */
-export class PiHostService implements PiServerService {
+export class PiHostService implements SessionService {
   /** 附件暂存：平台 HTTP 与 prompt 消费共用同一份。 */
   readonly attachments: AttachmentStore
   /** 供应商投影、登录与 models.json 写入。 */
@@ -245,7 +241,7 @@ export class PiHostService implements PiServerService {
     }
   }
 
-  async createSession(options: CreateSessionOptions): Promise<PiSessionRuntime> {
+  async createSession(options: CreateSessionOptions): Promise<SessionRuntime> {
     const runtime = await this.runtime()
     const cwd = canonicalizePath(options.cwd ?? this.options.cwd ?? process.cwd())
     const manager = SessionManager.create(cwd, this.options.sessionDir, { id: options.id })
@@ -256,7 +252,7 @@ export class PiHostService implements PiServerService {
 
     if (!path || !header) throw new Error("Pi did not create a persistent session")
 
-    // 立即落盘 header，保证 PiServer 分配的 id 持久化（Pi 仅在出现助手消息后写文件）。
+    // 立即落盘 header，保证协议层分配的 id 持久化（Pi 仅在出现助手消息后写文件）。
     // SDK 无 ensurePersisted API，写入后用 SessionManager 回读校验替代。
     await mkdir(dirname(path), { recursive: true })
     await writeFile(path, serializeEntries(header, manager.getEntries()), { flag: "wx" })
@@ -275,7 +271,7 @@ export class PiHostService implements PiServerService {
 
     if (options.model && !model) {
       await this.rollbackSession(options.id, path)
-      throw new PiServerError(
+      throw new GatewayError(
         "invalid_request",
         `Model ${options.model.provider}/${options.model.id} is unavailable`,
       )
@@ -307,7 +303,7 @@ export class PiHostService implements PiServerService {
   async renameSession(sessionId: string, name: string): Promise<void> {
     const trimmed = name.trim()
 
-    if (!trimmed) throw new PiServerError("invalid_request", "会话名不能为空")
+    if (!trimmed) throw new GatewayError("invalid_request", "会话名不能为空")
 
     const live = this.activeSessions.get(sessionId)
 
@@ -348,7 +344,7 @@ export class PiHostService implements PiServerService {
     return this.attachments.dispose()
   }
 
-  async openSession(sessionId: string): Promise<PiSessionRuntime> {
+  async openSession(sessionId: string): Promise<SessionRuntime> {
     const runtime = await this.runtime()
     const path = await this.findSessionPath(sessionId)
 

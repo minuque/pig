@@ -1,29 +1,26 @@
 /**
- * PiClient 连接管理（Browser platform）。
- * 官方 PiClient 是唯一连接入口：重连、Session 列表、模型目录由官方协议负责，
- * 本模块只做实例生命周期与 Vue 响应式投影。
- * SDK 实例用 shallowRef 保存（不深追踪），纯派生用 computed。
+ * Gateway 连接管理：实例生命周期、断线退避重连与 Vue 响应式投影。
+ * 客户端实例用 shallowRef 保存（不深追踪），纯派生用 computed。
  */
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue"
-
-import { PiClient } from "@earendil-works/pi-client"
 
 import type { ConnectionState, ServerSnapshot, Unsubscribe } from "@/types/common-type.js"
 import { t } from "@i18n/index.js"
 
-import { createWebSocketByteTransportFactory, webSocketUrl } from "@client/transport.js"
+import { GatewayClient } from "@client/gateway-client.js"
+import { webSocketUrl } from "@client/transport.js"
 import { listProviderModels } from "@client/platform.js"
 
-export interface PiClientConnectionOptions {
+export interface GatewayConnectionOptions {
   /** 覆盖默认的本机 WebSocket URL。 */
   url?: string
 }
 
 const RECONNECT_ATTEMPTS = 5
 
-export function usePiClient() {
-  // SDK 实例仅存引用，不响应式深追踪
-  const client = shallowRef<PiClient>()
+export function useGatewayClient() {
+  // 客户端实例仅存引用，不响应式深追踪
+  const client = shallowRef<GatewayClient>()
   const serverSnapshot = shallowRef<ServerSnapshot>()
   const connectionState = ref<ConnectionState>("disconnected")
   const connectionError = shallowRef<Error>()
@@ -48,20 +45,15 @@ export function usePiClient() {
   }
 
   /** 创建新连接：先脱离旧实例并断开，避免旧回调污染新连接状态。 */
-  async function connect(options: PiClientConnectionOptions = {}): Promise<PiClient> {
-    if (disposed) throw new Error(t("errors.piClientDisposed"))
+  async function connect(options: GatewayConnectionOptions = {}): Promise<GatewayClient> {
+    if (disposed) throw new Error(t("errors.gatewayClientDisposed"))
     const previous = client.value
     unsubscribeAll()
     await previous?.dispose()
     connectionError.value = undefined
 
-    const next = new PiClient({
-      transportFactory: createWebSocketByteTransportFactory({
-        url: options.url ?? webSocketUrl(),
-      }),
-      onListenerError: (error) => {
-        connectionError.value = error
-      },
+    const next = new GatewayClient(options.url ?? webSocketUrl(), (error) => {
+      connectionError.value = error
     })
 
     client.value = next
@@ -93,7 +85,7 @@ export function usePiClient() {
     return next
   }
 
-  /** 用官方 list 结果覆盖快照里的 sessions，不另建列表。 */
+  /** 用 list 结果覆盖快照里的 sessions，不另建列表。 */
   async function refreshSessions() {
     const current = client.value
     const snapshot = serverSnapshot.value

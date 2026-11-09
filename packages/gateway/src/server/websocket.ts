@@ -1,41 +1,136 @@
+import { randomUUID } from "node:crypto"
 import type { IncomingMessage, Server } from "node:http"
 import type { Duplex } from "node:stream"
-import { DEFAULT_MAX_FRAME_LENGTH } from "@earendil-works/pi-protocol"
-import type { PiServerListener } from "@earendil-works/pi-server"
+import type { ClientMessage, ServerMessage, ServerSnapshot } from "@pig/protocol"
 import { WebSocket, WebSocketServer, type RawData } from "ws"
-
-// pi-server 未从入口导出 connection 类型，从 PiServerListener 签名反推
-type ByteConnection = Parameters<Parameters<PiServerListener["start"]>[0]>[0]
-
-type ByteConnectionAcceptor = Parameters<PiServerListener["start"]>[0]
+import { GatewayError, type SessionService } from "../pi/runtime-types.js"
+import { LiveSessions, type ClientConnection } from "./live-sessions.js"
 
 // 与 web 端 apps/web/src/client/transport.ts 的 WEBSOCKET_PATH 必须一致。
 const WEBSOCKET_PATH = "/api/v1/pi"
+const MAX_MESSAGE_BYTES = 16 * 1024 * 1024
+/** 慢客户端积压超过上限就断开，免得把内存压给一个卡住的标签页。 */
+const MAX_PENDING_BYTES = 16 * 1024 * 1024
+const HANDSHAKE_TIMEOUT_MS = 30_000
 
-export interface WebSocketListenerOptions {
+export interface ProtocolServerOptions {
   /** 承载升级的 HTTP server（只绑定 127.0.0.1）。 */
   server: Server
+  service: SessionService
   /** 升级前的本机通行证检查。返回 401 或 403 时拒绝。 */
   allow(req: IncomingMessage): 401 | 403 | undefined
+  onError(error: unknown): void
 }
 
-const DEFAULT_MAX_PENDING_BYTES = 16 * 1024 * 1024
-const GRACEFUL_CLOSE_TIMEOUT_MS = 5_000
+class SocketConnection implements ClientConnection {
+  readonly sessionIds = new Set<string>()
+  ready = false
+  private pending = 0
 
-/** PiServerListener 的 WebSocket 实现：路径匹配后把连接交给 PiServer。 */
-export function createWebSocketListener(options: WebSocketListenerOptions): PiServerListener {
-  const { server, allow } = options
-  const maxFrameLength = DEFAULT_MAX_FRAME_LENGTH
-  const maxPendingBytes = DEFAULT_MAX_PENDING_BYTES
-  const wss = new WebSocketServer({
+  constructor(private readonly socket: WebSocket) {}
+
+  get closed() {
+    return this.socket.readyState !== WebSocket.OPEN
+  }
+
+  send(message: ServerMessage) {
+    if (this.closed) return
+    const text = JSON.stringify(message)
+
+    if (this.pending + text.length > MAX_PENDING_BYTES) {
+      this.socket.terminate()
+      return
+    }
+
+    this.pending += text.length
+    this.socket.send(text, () => {
+      this.pending -= text.length
+    })
+  }
+}
+
+function parse(data: RawData): ClientMessage | undefined {
+  try {
+    const value = JSON.parse(Array.isArray(data) ? Buffer.concat(data).toString() : String(data))
+    return typeof value === "object" && value !== null && "type" in value
+      ? (value as ClientMessage)
+      : undefined
+  } catch {
+    return undefined
+  }
+}
+
+function toProtocolError(error: unknown) {
+  if (error instanceof GatewayError) return { code: error.code, message: error.message }
+  return { code: "internal_error" as const, message: "Internal server error" }
+}
+
+/** pig 协议的 WebSocket 端：握手、命令分发、服务级快照广播。 */
+export class ProtocolServer {
+  private readonly wss = new WebSocketServer({
     noServer: true,
-    // ws 的 maxPayload 是整条 WebSocket 消息上限；PiServer maxFrameLength 只算 CBOR
-    // payload，协议帧还含 4 字节长度头，需放宽，避免拒绝合法的边界帧。
-    maxPayload: maxFrameLength + 4,
+    maxPayload: MAX_MESSAGE_BYTES,
     perMessageDeflate: false,
   })
-  let accept: ByteConnectionAcceptor | undefined
-  const onUpgrade = (req: IncomingMessage, socket: Duplex, head: Buffer) => {
+  private readonly connections = new Set<SocketConnection>()
+  private readonly serverId = randomUUID()
+  private readonly sessions: LiveSessions
+  private revision = 0
+  private closing = false
+  private broadcastQueue = Promise.resolve()
+  private readonly onUpgrade = (req: IncomingMessage, socket: Duplex, head: Buffer) =>
+    this.upgrade(req, socket, head)
+
+  constructor(private readonly options: ProtocolServerOptions) {
+    this.sessions = new LiveSessions({
+      service: options.service,
+      broadcastServerSnapshot: () => this.broadcastServerSnapshot(),
+      reportError: options.onError,
+      isClosing: () => this.closing,
+    })
+    options.server.on("upgrade", this.onUpgrade)
+  }
+
+  async close() {
+    this.closing = true
+    this.options.server.off("upgrade", this.onUpgrade)
+
+    for (const client of this.wss.clients) client.close(1001)
+    this.wss.close()
+    await this.sessions.close()
+  }
+
+  /** 会话目录或模型目录变了：给所有已握手连接推新的服务快照。 */
+  broadcastServerSnapshot() {
+    const run = this.broadcastQueue.then(async () => {
+      const ready = [...this.connections].filter((connection) => connection.ready)
+
+      if (ready.length === 0 || this.closing) return
+      this.revision += 1
+      const snapshot = await this.serverSnapshot()
+
+      for (const connection of ready)
+        connection.send({ type: "event", event: { type: "server_snapshot", snapshot } })
+    })
+
+    this.broadcastQueue = run.catch((error) => this.options.onError(error))
+  }
+
+  private async serverSnapshot(): Promise<ServerSnapshot> {
+    const [sessions, models] = await Promise.all([
+      this.sessions.listMetadata(),
+      this.options.service.listModels(),
+    ])
+    return {
+      serverId: this.serverId,
+      protocolVersion: 1,
+      revision: this.revision,
+      sessions,
+      models,
+    }
+  }
+
+  private upgrade(req: IncomingMessage, socket: Duplex, head: Buffer) {
     const url = new URL(req.url ?? "/", "http://127.0.0.1")
 
     if (url.pathname !== WEBSOCKET_PATH) {
@@ -44,121 +139,79 @@ export function createWebSocketListener(options: WebSocketListenerOptions): PiSe
       return
     }
 
-    const rejection = allow(req)
+    const rejection = this.options.allow(req)
 
     if (rejection) {
-      socket.write(
-        `HTTP/1.1 ${rejection} ${rejection === 401 ? "Unauthorized" : "Forbidden"}\r\nConnection: close\r\n\r\n`,
-      )
+      const reason = rejection === 401 ? "Unauthorized" : "Forbidden"
+      socket.write(`HTTP/1.1 ${rejection} ${reason}\r\nConnection: close\r\n\r\n`)
       socket.destroy()
       return
     }
 
-    wss.handleUpgrade(req, socket, head, (ws) => {
-      if (!accept) {
-        // PiServer 尚未就绪（启动中/关闭中）
-        ws.close(1013, "host is not ready")
+    this.wss.handleUpgrade(req, socket, head, (ws) => this.accept(ws))
+  }
+
+  private accept(ws: WebSocket) {
+    if (this.closing) {
+      ws.close(1013, "host is not ready")
+      return
+    }
+
+    const connection = new SocketConnection(ws)
+    this.connections.add(connection)
+
+    const handshake = setTimeout(() => {
+      if (!connection.ready) ws.close(1002, "handshake timeout")
+    }, HANDSHAKE_TIMEOUT_MS)
+
+    handshake.unref()
+
+    ws.on("message", (data, isBinary) => {
+      const message = isBinary ? undefined : parse(data)
+
+      if (!message) {
+        ws.close(1003, "expected JSON text frames")
         return
       }
 
-      const handler = accept(new WebSocketByteConnection(ws, maxPendingBytes))
-      ws.on("message", (data, isBinary) => {
-        if (!isBinary) {
-          ws.close(1003, "binary frames only")
-          return
-        }
+      void this.handle(connection, message).catch((error) => this.options.onError(error))
+    })
+    ws.on("close", () => {
+      clearTimeout(handshake)
+      this.connections.delete(connection)
+      void this.sessions.disconnect(connection)
+    })
+    ws.on("error", (error) => this.options.onError(error))
+  }
 
-        handler.onData(toUint8Array(data))
+  private async handle(connection: SocketConnection, message: ClientMessage) {
+    if (message.type === "hello") {
+      if (message.version !== 1) {
+        connection.send({
+          type: "hello_error",
+          error: { code: "version", message: "Unsupported protocol version" },
+        })
+        return
+      }
+
+      connection.send({ type: "hello", snapshot: await this.serverSnapshot() })
+      connection.ready = true
+      return
+    }
+
+    if (!connection.ready) return
+
+    try {
+      const result = await this.sessions.execute(connection, message.command)
+      connection.send({ type: "response", id: message.id, ok: true, result })
+    } catch (error) {
+      if (!(error instanceof GatewayError)) this.options.onError(error)
+      connection.send({
+        type: "response",
+        id: message.id,
+        ok: false,
+        error: toProtocolError(error),
       })
-      ws.on("close", () => handler.onClose())
-      ws.on("error", (error) => handler.onError(error))
-    })
-  }
-
-  server.on("upgrade", onUpgrade)
-  return {
-    async start(acceptor: ByteConnectionAcceptor) {
-      accept = acceptor
-    },
-    async close() {
-      accept = undefined
-      server.off("upgrade", onUpgrade)
-      // 存量连接由 PiServer closeServerState 逐个 close
-      wss.close()
-    },
-  }
-}
-
-/** 有序字节连接：以本地 pending 计数（已发送未确认的字节）实现积压上限。 */
-class WebSocketByteConnection implements ByteConnection {
-  // 单一积压计数：send 调用时累加，回调时扣减，覆盖 ws 内部缓冲（回调在数据
-  // 交给内核后触发），不与 bufferedAmount 重复计算。
-  private pendingBytes = 0
-  private closedValue = false
-
-  constructor(
-    private readonly socket: WebSocket,
-    private readonly maxPendingBytes: number,
-  ) {
-    socket.on("close", () => {
-      this.closedValue = true
-    })
-  }
-
-  get closed() {
-    return this.closedValue
-  }
-
-  send(chunk: Uint8Array): Promise<void> {
-    if (this.closedValue) return Promise.reject(new Error("WebSocket connection is closed"))
-
-    if (this.pendingBytes + chunk.byteLength > this.maxPendingBytes) {
-      // 慢客户端：待发送积压超限，断开
-      this.closedValue = true
-      this.socket.terminate()
-      return Promise.resolve()
     }
-
-    this.pendingBytes += chunk.byteLength
-    return new Promise((resolve, reject) => {
-      this.socket.send(chunk, (error) => {
-        this.pendingBytes -= chunk.byteLength
-
-        if (error) reject(error)
-        else resolve()
-      })
-    })
   }
-
-  close(finalChunk?: Uint8Array): Promise<void> {
-    if (this.closedValue) return Promise.resolve()
-    this.closedValue = true
-
-    if (this.socket.readyState !== WebSocket.OPEN) {
-      // 已关闭/正在关闭：close 事件不会再可靠触发，直接断开
-      this.socket.terminate()
-      return Promise.resolve()
-    }
-
-    const finished = new Promise<void>((resolve) => {
-      this.socket.once("close", () => resolve())
-    })
-
-    if (finalChunk !== undefined) {
-      // 先冲刷 final 帧再发 close 帧，保证对端收到完整结尾
-      this.socket.send(finalChunk, () => this.socket.close(1000))
-    } else {
-      this.socket.close(1000)
-    }
-
-    // 对端不确认关闭时强制断开，避免挂起
-    const timer = setTimeout(() => this.socket.terminate(), GRACEFUL_CLOSE_TIMEOUT_MS)
-    timer.unref()
-    return finished.then(() => clearTimeout(timer))
-  }
-}
-
-function toUint8Array(data: RawData): Uint8Array {
-  if (Array.isArray(data)) return Buffer.concat(data)
-  return new Uint8Array(data)
 }

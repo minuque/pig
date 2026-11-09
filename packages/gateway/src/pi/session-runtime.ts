@@ -5,14 +5,14 @@ import type {
   SessionSnapshot,
   ThinkingLevel,
   TranscriptProgress,
-} from "@earendil-works/pi-protocol"
-import { PiServerError, SessionBusyError } from "@earendil-works/pi-server"
+} from "@pig/protocol"
+import { GatewayError, SessionBusyError } from "./runtime-types.js"
 import type {
-  PiSessionRuntime,
-  PiSessionRuntimeEvent,
+  SessionRuntime,
+  SessionRuntimeEvent,
   PromptInput,
   SteerInput,
-} from "@earendil-works/pi-server"
+} from "./runtime-types.js"
 import { canonicalizePath } from "../directory.js"
 import { composePrompt, type AttachmentSink } from "./attachments.js"
 import { expandFileMentions } from "./file-mentions.js"
@@ -38,15 +38,15 @@ const SNAPSHOT_SKIP_EVENTS = new Set([
 const PROGRESS_COALESCE_MS = 16
 
 /**
- * 一个已获取的 AgentSession 的 PiServer 运行时。
+ * 一个已获取的 AgentSession 的会话运行时。
  *
  * 冲突操作（并发 prompt、idle 时 steer/setModel/setThinking）按协议拒绝，
  * 不排队。phase 由 AgentSession 状态推导；branch_summary 与 compaction
  * 共享 isCompacting（Pi 未暴露区分 API），统一按 compaction 展示。
  */
-export class PiHostSession implements PiSessionRuntime {
+export class PiHostSession implements SessionRuntime {
   private readonly projection = new TranscriptProjection()
-  private readonly listeners = new Set<(event: PiSessionRuntimeEvent) => void>()
+  private readonly listeners = new Set<(event: SessionRuntimeEvent) => void>()
   private readonly unsubscribeSession: () => void
   private revision = 0
   private busy: Promise<void> | undefined
@@ -102,8 +102,8 @@ export class PiHostSession implements PiSessionRuntime {
       phase: this.getPhase(),
       model: { provider: model.provider, id: model.id },
       thinkingLevel: session.thinkingLevel,
-      attached: false, // 由 PiServer 按连接状态覆盖
-      // PiServer 的 normalizedSnapshot 恒覆盖 locked，此处占位
+      attached: false, // 由协议层按连接状态覆盖
+      // 协议层快照恒覆盖 locked，此处占位
       locked: false,
       revision: this.revision,
       // 全文走 platform HTTP；协议 snapshot 带上会触发 Typebox 校验，打开长会话要数十秒。
@@ -190,7 +190,7 @@ export class PiHostSession implements PiSessionRuntime {
       const resolved = this.session.modelRuntime.getModel(model.provider, model.id)
 
       if (!resolved) {
-        throw new PiServerError(
+        throw new GatewayError(
           "invalid_request",
           `Model ${model.provider}/${model.id} is unavailable`,
         )
@@ -212,7 +212,7 @@ export class PiHostSession implements PiSessionRuntime {
     this.session.setSessionName(name)
   }
 
-  subscribe(listener: (event: PiSessionRuntimeEvent) => void): () => void {
+  subscribe(listener: (event: SessionRuntimeEvent) => void): () => void {
     this.listeners.add(listener)
     return () => this.listeners.delete(listener)
   }
@@ -314,7 +314,7 @@ export class PiHostSession implements PiSessionRuntime {
     this.emit({ type: "snapshot" })
   }
 
-  private emit(event: PiSessionRuntimeEvent): void {
+  private emit(event: SessionRuntimeEvent): void {
     for (const listener of this.listeners) listener(event)
   }
 

@@ -1,20 +1,20 @@
 import { shallowRef } from "vue"
-import type { RemoteSession } from "@earendil-works/pi-coding-agent/client"
+import type { GatewaySession } from "@client/gateway-session.js"
 import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
-import type { RemoteSessionState, TranscriptItem } from "@/types/common-type.js"
+import type { SessionState, TranscriptItem } from "@/types/common-type.js"
 import { contextUsage } from "@client/platform.js"
 import type { useSessionHistory } from "@features/session-workbench/hooks/use-session-history.js"
 import { coalesceByFrame } from "@features/session-workbench/lib/coalesce-by-frame.js"
 
 /** 一条 Session 的 live 订阅：前台写 state，后台只覆盖 live 与拉历史，发布逻辑两处共用。 */
 export interface LiveSubscription {
-  session: RemoteSession
+  session: GatewaySession
   foreground: boolean
   running: boolean
   /** 后台空闲正在交给接管者（泵队/收尾），期间重复的空闲快照不重复触发。 */
   idlePending: boolean
   usageRevision: number | undefined
-  lastState: RemoteSessionState | undefined
+  lastState: SessionState | undefined
   liveItems: Map<string, TranscriptItem>
   /** toolCallId → 工具真正开始的时刻：完成条目到达后拿不到，只能从 running 占位记下。 */
   toolStartedAt: Map<string, number>
@@ -44,9 +44,9 @@ function withToolStart(sub: LiveSubscription, item: TranscriptItem): TranscriptI
 
 interface LiveDeps {
   history: ReturnType<typeof useSessionHistory>
-  discard(session: RemoteSession): Promise<void>
+  discard(session: GatewaySession): Promise<void>
   foregroundId(): string | undefined
-  onForegroundState(state: RemoteSessionState): void
+  onForegroundState(state: SessionState): void
 }
 
 /** 运行中的 Session 继续订阅：切走不停订，跑完或断线才放连接。 */
@@ -128,7 +128,7 @@ export function useLiveSubscriptions(deps: LiveDeps) {
   }
 
   /** 订阅 Session：live 覆盖缓存、revision 重拉历史；前台写 state 与用量，后台跑完就出池。 */
-  function subscribeLive(session: RemoteSession, foreground: boolean): LiveSubscription {
+  function subscribeLive(session: GatewaySession, foreground: boolean): LiveSubscription {
     const sub: LiveSubscription = {
       session,
       foreground,
@@ -140,7 +140,7 @@ export function useLiveSubscriptions(deps: LiveDeps) {
       toolStartedAt: new Map(),
       stop: () => {},
     }
-    const publish = (nextState: RemoteSessionState) => {
+    const publish = (nextState: SessionState) => {
       sub.lastState = nextState
 
       if (sub.foreground) onForegroundState(nextState)
@@ -210,7 +210,7 @@ export function useLiveSubscriptions(deps: LiveDeps) {
         if (background.get(id) === sub && !sub.running) retireBackground(sub)
       })()
     }
-    const coalesced = coalesceByFrame<RemoteSessionState>(publish, 8)
+    const coalesced = coalesceByFrame<SessionState>(publish, 8)
     // 快照广播会清空库内 progress，同一帧里后到的空快照会盖掉先到的 item_finished：按 id 逐事件累积
     const unsubscribe = session.subscribe((nextState) => {
       for (const item of nextState.transcript) sub.liveItems.set(item.id, withToolStart(sub, item))

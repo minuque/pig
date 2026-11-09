@@ -3,7 +3,7 @@ import type {
   SessionSnapshot,
   TranscriptItem,
   TranscriptProgress,
-} from "@earendil-works/pi-protocol"
+} from "@pig/protocol"
 import { expect, seedWorkspace, test } from "./fixtures.js"
 import { COMPLEX_SESSION_ID, COMPLEX_SESSION_NAME } from "./prebuild-session.js"
 import { installTurnBridge } from "./sim-turn.js"

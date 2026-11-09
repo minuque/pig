@@ -1,4 +1,4 @@
-import type { TranscriptItem } from "@earendil-works/pi-protocol"
+import type { TranscriptItem } from "@pig/protocol"
 import type { TurnTiming } from "./turn-timing.js"
 
 /** 打开会话只吐最近三轮，上翻再要更早。 */

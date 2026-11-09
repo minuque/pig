@@ -1,4 +1,4 @@
-import type { TranscriptItem } from "@earendil-works/pi-protocol"
+import type { TranscriptItem } from "@pig/protocol"
 import { expect, seedWorkspace, test } from "./fixtures.js"
 import { COMPLEX_SESSION_ID, COMPLEX_SESSION_NAME } from "./prebuild-session.js"
 

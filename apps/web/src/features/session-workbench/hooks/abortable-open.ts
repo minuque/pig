@@ -1,4 +1,4 @@
-import type { RemoteSession } from "@/types/common-type.js"
+import type { GatewaySession } from "@/types/common-type.js"
 
 const OPEN_ABORTED = "open-aborted"
 
@@ -13,7 +13,7 @@ export function isDisconnectedError(error: unknown) {
   return error instanceof Error && /disconnected/i.test(error.message)
 }
 
-function swallowDispose(session: RemoteSession) {
+function swallowDispose(session: GatewaySession) {
   return session.dispose().then(
     () => undefined,
     () => undefined,
@@ -21,7 +21,7 @@ function swallowDispose(session: RemoteSession) {
 }
 
 interface Opening {
-  promise: Promise<RemoteSession>
+  promise: Promise<GatewaySession>
   waiters: number
 }
 
@@ -44,21 +44,21 @@ export function createAbortableOpen() {
     return chained
   }
 
-  function discard(session: RemoteSession) {
+  function discard(session: GatewaySession) {
     const id = session.id
 
     if (!id) return swallowDispose(session)
     return trackDisposal(id, swallowDispose(session))
   }
 
-  async function beginOpen(id: string, start: () => Promise<RemoteSession>) {
+  async function beginOpen(id: string, start: () => Promise<GatewaySession>) {
     const pending = disposals.get(id)
 
     if (pending) await pending
     return start()
   }
 
-  function ensureOpening(id: string, start: () => Promise<RemoteSession>) {
+  function ensureOpening(id: string, start: () => Promise<GatewaySession>) {
     const existing = openings.get(id)
 
     if (existing) return existing
@@ -88,7 +88,7 @@ export function createAbortableOpen() {
     return created
   }
 
-  function raceRemoteOpen(id: string, start: () => Promise<RemoteSession>) {
+  function raceRemoteOpen(id: string, start: () => Promise<GatewaySession>) {
     const opening = ensureOpening(id, start)
     opening.waiters += 1
     let aborted = false

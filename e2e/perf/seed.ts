@@ -45,7 +45,7 @@ ${PLAIN_REPLY}`
 type SeedTool = {
   id: string
   name: string
-  args: Record<string, unknown>
+  args: { [key: string]: string | number | boolean }
   output: string
 }
 

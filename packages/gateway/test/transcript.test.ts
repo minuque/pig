@@ -1,6 +1,6 @@
 import type { AgentSessionEvent } from "@earendil-works/pi-coding-agent"
 import { SessionManager } from "@earendil-works/pi-coding-agent"
-import type { TranscriptProgress } from "@earendil-works/pi-protocol"
+import type { TranscriptProgress } from "@pig/protocol"
 import { describe, expect, it } from "vitest"
 import { TranscriptProjection } from "../src/pi/transcript.js"
 

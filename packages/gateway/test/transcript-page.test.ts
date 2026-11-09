@@ -1,4 +1,4 @@
-import type { TranscriptItem } from "@earendil-works/pi-protocol"
+import type { TranscriptItem } from "@pig/protocol"
 import { describe, expect, it } from "vitest"
 import { pageTranscriptItems } from "../src/pi/transcript-page.js"
 

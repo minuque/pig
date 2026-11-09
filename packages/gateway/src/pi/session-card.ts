@@ -1,5 +1,5 @@
 import type { SessionEntry } from "@earendil-works/pi-coding-agent"
-import type { TranscriptItem } from "@earendil-works/pi-protocol"
+import type { TranscriptItem } from "@pig/protocol"
 import { TranscriptProjection } from "./transcript.js"
 
 /** 协议 SessionMetadata 不带消息数/模型；侧栏卡片从 Pi 文件投影。 */
