@@ -404,7 +404,7 @@ watch(active, async () => {
 }
 
 .settings-dialog .settings-search:focus-within {
-  background: var(--hover-quiet);
+  background: var(--fill-quiet);
   color: var(--contrast-foreground);
 }
 

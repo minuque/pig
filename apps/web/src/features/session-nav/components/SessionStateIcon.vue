@@ -62,7 +62,7 @@ const { t } = useI18n()
 }
 
 .spinner-track {
-  stroke: var(--hover-strong);
+  stroke: var(--fill-strong);
 }
 
 .spinner-arc {

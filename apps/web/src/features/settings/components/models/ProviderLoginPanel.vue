@@ -198,7 +198,7 @@ async function copy(text: string) {
 .device-code {
   padding: 2px 6px;
   border-radius: var(--radius-control);
-  background: var(--hover-quiet);
+  background: var(--fill-quiet);
   color: var(--contrast-foreground);
   font-family: var(--font-mono);
   font-size: var(--text-meta);

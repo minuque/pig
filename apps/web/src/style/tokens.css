@@ -97,13 +97,10 @@
   );
 
   /* 结构 / 交互 */
-  --hover-quiet: color-mix(in srgb, var(--foreground) 5%, transparent);
-  --hover-tint: color-mix(in srgb, var(--foreground) 8%, transparent);
-  --hover-strong: color-mix(in srgb, var(--foreground) 12%, transparent);
-  --chart-track: color-mix(in srgb, var(--foreground) 18%, transparent);
+  /* 中性填充两档：轻档给徽标、芯片底，重档给进度轨道与卡片内滚动条 */
+  --fill-quiet: color-mix(in srgb, var(--foreground) 5%, transparent);
+  --fill-strong: color-mix(in srgb, var(--foreground) 12%, transparent);
   --minimap-marker: color-mix(in srgb, var(--foreground-faint) 35%, transparent);
-  --link-underline: color-mix(in srgb, var(--foreground) 38%, transparent);
-  --link-underline-hover: color-mix(in srgb, var(--foreground) 72%, transparent);
   /* 强度滑条：外壳渐变 + 0.5px 描边，主题色渐变填充，白色胶囊滑块；深色在 .dark 覆盖 */
   --effort-shell: rgba(230, 230, 232, 0.504);
   --effort-shell-2: rgba(232, 232, 233, 0.357);

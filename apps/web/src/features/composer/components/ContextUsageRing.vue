@@ -89,7 +89,7 @@ const ringOffset = computed(() => {
 }
 
 .usage-ring-track {
-  stroke: var(--chart-track);
+  stroke: var(--fill-strong);
 }
 
 .usage-ring-fill {

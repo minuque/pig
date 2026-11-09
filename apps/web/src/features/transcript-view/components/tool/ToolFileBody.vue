@@ -156,7 +156,7 @@ watch(
 
 /* 全局 `*` 会给每个元素写默认拇指色；滚动的那层单独提亮，与其它工具卡同档 */
 .edit-diff :deep(.stream-diffs-shell) {
-  --scrollbar-thumb: var(--hover-strong);
+  --scrollbar-thumb: var(--fill-strong);
 }
 
 /* 只留外层 shell 滚动；内层的 overflow 是库写的行内样式，只能 !important 覆盖 */

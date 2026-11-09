@@ -228,7 +228,7 @@ function sourceKind(provider: ProviderView) {
   padding-inline: 5px;
   border: var(--border-width) solid var(--border-soft);
   border-radius: var(--radius-control);
-  background: var(--hover-quiet);
+  background: var(--fill-quiet);
   color: var(--contrast-foreground-faint);
   font-size: 9px;
   font-weight: var(--font-weight-medium);

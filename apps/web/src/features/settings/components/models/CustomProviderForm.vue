@@ -314,7 +314,7 @@ async function remove() {
   padding-inline: 6px;
   border: var(--border-width) solid var(--border-soft);
   border-radius: var(--radius-control);
-  background: var(--hover-quiet);
+  background: var(--fill-quiet);
   color: var(--contrast-foreground-faint);
   font-size: var(--text-meta);
 }

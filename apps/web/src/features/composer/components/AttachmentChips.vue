@@ -130,7 +130,7 @@ const rows = computed(() =>
   height: 56px;
   overflow: visible;
   border-radius: var(--radius-control);
-  background: var(--hover-quiet);
+  background: var(--fill-quiet);
 }
 
 .thumb-btn {

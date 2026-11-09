@@ -52,7 +52,7 @@ const SEGMENT_DEFS = [
   {
     id: "idle" as const,
     label: () => t("composer.contextIdle"),
-    color: "var(--hover-strong)",
+    color: "var(--fill-strong)",
     previewable: false,
   },
 ]

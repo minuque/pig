@@ -112,7 +112,7 @@ watch(
   max-height: var(--transcript-tool-max);
   overflow: auto;
   /* 卡片底比全局滚动条色深，滚动条会看不出，这里提到 ink 12% */
-  --scrollbar-thumb: var(--hover-strong);
+  --scrollbar-thumb: var(--fill-strong);
 }
 
 .command-row {

@@ -225,7 +225,7 @@ function onOpenAutoFocus(event: Event) {
   height: 6px;
   margin-top: var(--space-xs);
   border-radius: var(--radius-pill);
-  background: var(--hover-strong);
+  background: var(--fill-strong);
 }
 
 .bar-seg {

@@ -720,7 +720,7 @@ function confirmDelete() {
   border: 0;
   border-radius: calc(var(--radius-control) / 2);
   outline: none;
-  background: var(--hover-quiet);
+  background: var(--fill-quiet);
   color: var(--contrast-foreground);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);

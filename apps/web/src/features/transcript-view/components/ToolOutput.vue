@@ -144,7 +144,7 @@ const copyText = computed(() => (props.code ? props.lines.join("\n") : props.tex
   overflow: auto;
   padding: var(--space-xs);
   padding-inline-end: calc(var(--space-sm) + 22px);
-  --scrollbar-thumb: var(--hover-strong);
+  --scrollbar-thumb: var(--fill-strong);
 }
 
 .code-lines {

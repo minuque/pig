@@ -109,10 +109,7 @@ const COLOR_PREFIX: [RegExp, GroupId][] = [
   [/^--(primary|link$)/, "color-brand"],
   [/^--(code|language|inline-code|mermaid)/, "color-code"],
   [/^--(mascot|theme-wire)/, "color-mark"],
-  [
-    /^--(btn|hover|link-underline|scrollbar|chart-track|effort|minimap|composer-inset)/,
-    "color-interaction",
-  ],
+  [/^--(btn|fill|scrollbar|effort|minimap|composer-inset)/, "color-interaction"],
   [/foreground|placeholder|^--contrast/, "color-text"],
   [
     /^--(background|window|card|workbench|sidebar|toolbar|composer|user-prompt|popover|inverse|border|white)/,

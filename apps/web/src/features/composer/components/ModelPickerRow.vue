@@ -64,7 +64,7 @@ const { t } = useI18n()
 }
 
 .model-row[data-current] {
-  background: var(--hover-tint);
+  background: var(--btn-selected);
 }
 
 .model-item {

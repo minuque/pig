@@ -43,7 +43,7 @@
   padding-inline: 6px;
   border: var(--border-width) solid var(--border-soft);
   border-radius: var(--radius-control);
-  background: var(--hover-quiet);
+  background: var(--fill-quiet);
   color: var(--contrast-foreground-faint);
   font-size: var(--text-meta);
 }
@@ -55,7 +55,7 @@
 }
 
 .provider-badge[data-state="authorizing"] {
-  background: var(--hover-quiet);
+  background: var(--fill-quiet);
   color: var(--warning);
 }
 

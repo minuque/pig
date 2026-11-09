@@ -70,7 +70,7 @@
 
 /* 图标按钮定档：s=24、m=28（`--size-nav-rail`）。
    rt 原生：m 是 32px、圆角 max(--radius-1)=3px、ghost 尺寸靠 content-box 自撑、悬停是 accent-a3。
-   这里统一成固定方框 + `--radius-control` + 前景色 + `--hover-quiet`，接管房里所有 28px 图标按钮。 */
+   这里统一成固定方框 + `--radius-control` + 前景色 + `--btn-hover`，接管房里所有 28px 图标按钮。 */
 .rt-IconButton {
   border-radius: var(--radius-control);
   transition:
