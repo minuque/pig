@@ -247,7 +247,7 @@ function confirmDelete(): void {
   padding: var(--space-xxs) var(--space-sm);
   /* 与下方正文同底色：头部不另起一层 */
   background: transparent;
-  color: var(--toolbar-foreground);
+  color: var(--foreground);
 }
 
 .header-toggle {

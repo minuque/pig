@@ -50,14 +50,11 @@
   /* 所有侧栏共用：主侧栏、抽屉、设置弹窗导航；与主区同一中性灰，低一档 */
   --sidebar: #f0f0f0;
   --card: #f8f8f8;
-  --workbench-surface: var(--background);
-  --sidebar-foreground: var(--foreground);
   /* 按钮与可点行共用：取 Radix 主题色 alpha 第 3 档做悬停、第 4 档做选中，深浅主题由色板自己切 */
   --btn-hover: var(--accent-a3);
   --btn-selected: var(--accent-a4);
-  --toolbar-foreground: var(--foreground);
+  /* 工具输入、思考内容等代码类卡片的底色：浅色与卡片同色，深色比主区低一档 */
   --code-background: #f8f8f8;
-  --code-foreground: var(--foreground);
   /* 代码块语言图标的色相，取自 @pierre/vscode-icons 调色板：浅色 600 档，深色 400 档 */
   --language-gray: #6c6c71;
   --language-red: #d52c36;
@@ -75,7 +72,6 @@
   --composer-background: #ffffff;
   --user-prompt-background: #ececec;
   --popover: #fcfcfc;
-  --code-surface: color-mix(in srgb, var(--foreground) 4%, var(--card));
 
   /* 文字三级：主、次、弱；弱级只给非必要信息 */
   --foreground: #292929;
@@ -140,6 +136,9 @@
   --mascot-sweat: #6fb6ff;
   --mascot-heat: #f5a896;
   --mascot-heat-snout: #e0735e;
+  /* 吉祥物轻立体：身体下沿暗面与落地投影 */
+  --mascot-shade: rgba(196, 128, 60, 0.32);
+  --mascot-shadow: rgba(0, 0, 0, 0.2);
 
   /* 状态：文字色配同色相浅底，不用实色填充；成功沿用 Radix green */
   --success: var(--green-11);
@@ -228,10 +227,11 @@
   --shadow-composer: 0 12px 28px -18px rgba(0, 0, 0, 0.4);
   /* 输入卡内侧淡阴影：顶边往里压一点，像卡片嵌进页面 */
   --composer-inset: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-  --theme-wire-light: var(--background);
-  --theme-wire-light-raised: var(--card);
-  --theme-wire-dark: var(--card);
-  --theme-wire-dark-raised: var(--background);
+  /* 主题预览线框：固定画浅色与深色两套界面，不跟当前主题走 */
+  --theme-wire-light: #f4f4f4;
+  --theme-wire-light-raised: #f8f8f8;
+  --theme-wire-dark: #101012;
+  --theme-wire-dark-raised: #17171a;
 
   /* 反色主按钮 */
   --inverse-background: #292929;
@@ -335,10 +335,6 @@ html[data-pig-desktop-platform="darwin"] {
 
   --background: #101012;
   --sidebar: #0e0e10;
-  /* mermaid 图：pele 默认配色只适合浅色，深色在 mermaid.css 里接这组 */
-  --mermaid-bg: #101012;
-  --mermaid-fill: #17171a;
-  --mermaid-line: #2a2a2e;
   --card: #17171a;
   --code-background: #0b0c0d;
   --language-gray: #adadb1;
@@ -355,7 +351,6 @@ html[data-pig-desktop-platform="darwin"] {
   --composer-background: #17171a;
   --user-prompt-background: #17171a;
   --popover: #1c1c1f;
-  --code-surface: color-mix(in srgb, var(--foreground) 5%, var(--card));
 
   --foreground: #e8e8e8;
   --foreground-secondary: #a1a1a1;
@@ -375,6 +370,7 @@ html[data-pig-desktop-platform="darwin"] {
   --effort-label-dim: rgba(255, 255, 255, 0.4);
   --effort-tick: rgba(255, 255, 255, 0.256);
   --effort-thumb-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+  --mascot-shadow: rgba(0, 0, 0, 0.5);
   --link: var(--accent-11);
   --scrollbar-color: #2a2a2e;
 
@@ -388,11 +384,6 @@ html[data-pig-desktop-platform="darwin"] {
   --inverse-background: #e8e8e8;
   --inverse-background-hover: #ffffff;
   --inverse-foreground: #101012;
-
-  --theme-wire-dark: #101012;
-  --theme-wire-dark-raised: #17171a;
-  --theme-wire-light: #f4f4f4;
-  --theme-wire-light-raised: #f8f8f8;
 }
 
 /* 字号档：辅助、正文、标题与代码同步缩放，页面大标题不动 */

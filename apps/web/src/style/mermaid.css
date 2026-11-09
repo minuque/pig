@@ -9,11 +9,11 @@
 /* 深色：pele 默认是浅色配色，接回项目深色 token */
 .dark .mermaid-diagram {
   --pele-bg: var(--background);
-  --pele-surface: var(--mermaid-bg);
-  --pele-surface-alt: var(--mermaid-fill);
+  --pele-surface: var(--background);
+  --pele-surface-alt: var(--card);
   --pele-fg: var(--contrast-foreground);
   --pele-muted: var(--contrast-foreground-faint);
-  --pele-line: var(--mermaid-line);
+  --pele-line: var(--border);
   --pele-accent: var(--accent-11);
-  --pele-border: var(--mermaid-line);
+  --pele-border: var(--border);
 }
