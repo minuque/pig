@@ -86,6 +86,10 @@ const childProgress = computed(() => {
   z-index: var(--z-menu);
   display: none;
   inline-size: var(--size-rail);
+  max-block-size: calc(100% - var(--header-height) - var(--space-md));
+  padding: 1px;
+  overflow-y: auto;
+  scrollbar-width: none;
 }
 
 .rail-toggle {

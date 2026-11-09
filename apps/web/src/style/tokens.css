@@ -168,7 +168,8 @@
   --size-mac-traffic-lights: 68px;
   --size-drawer: 360px;
   /* 摘要面板与子会话只读抽屉 */
-  --size-rail: 248px;
+  --size-rail: 280px;
+  --size-rail-row: 26px;
   --size-child-drawer: 560px;
   --size-dialog-s: 420px;
   --size-settings-body: 56rem;

@@ -1,4 +1,11 @@
 import { inject, provide, shallowRef, type InjectionKey } from "vue"
+import {
+  moveShown,
+  readRailLayout,
+  writeRailLayout,
+  type RailLayout,
+  type RailSectionId,
+} from "@features/session-rail/lib/sections.js"
 
 /** 打开中的子会话：只读抽屉显示它的完整过程。 */
 export interface OpenChild {
@@ -8,6 +15,15 @@ export interface OpenChild {
 
 function useSessionRailState() {
   const child = shallowRef<OpenChild>()
+  const layout = shallowRef<RailLayout>(readRailLayout())
+  const toggled = (list: RailSectionId[], id: RailSectionId) =>
+    list.includes(id) ? list.filter((item) => item !== id) : [...list, id]
+
+  function update(patch: Partial<RailLayout>) {
+    layout.value = { ...layout.value, ...patch }
+    writeRailLayout(layout.value)
+  }
+
   return {
     child,
     openChild(next: OpenChild) {
@@ -15,6 +31,20 @@ function useSessionRailState() {
     },
     closeChild() {
       child.value = undefined
+    },
+    /** 常驻面板与窄屏浮层共用一份排列。 */
+    layout,
+    toggleOpen(id: RailSectionId) {
+      update({ closed: toggled(layout.value.closed, id) })
+    },
+    setAllOpen(open: boolean) {
+      update({ closed: open ? [] : [...layout.value.order] })
+    },
+    toggleHidden(id: RailSectionId) {
+      update({ hidden: toggled(layout.value.hidden, id) })
+    },
+    move(shown: readonly RailSectionId[], id: RailSectionId, toIndex: number) {
+      update({ order: moveShown(layout.value.order, shown, id, toIndex) })
     },
   }
 }
