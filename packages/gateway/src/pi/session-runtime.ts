@@ -105,6 +105,9 @@ export class PiHostSession implements SessionRuntime {
     if (!model) throw new Error("Session has no active model")
 
     const manager = session.sessionManager
+    // 先推出合帧中的增量：快照里的在途消息已含这些文字，之后再发就会重复
+    this.emitPendingUpdate()
+    const inFlight = this.projection.inFlight(session.state.streamingMessage)
     // 只投影当前分支：getEntries 含被 branch 放弃的条目，会显示错误的 Transcript
     const entries = manager.getBranch()
     const createdAt = this.sessionCreatedAt()
@@ -126,8 +129,8 @@ export class PiHostSession implements SessionRuntime {
       // 协议层快照恒覆盖 locked，此处占位
       locked: false,
       revision: this.revision,
-      // 全文走 platform HTTP；协议 snapshot 带上会触发 Typebox 校验，打开长会话要数十秒。
-      transcript: [],
+      // 全文走 platform HTTP；只带正在生成的那条，中途挂上的连接才接得上增量
+      transcript: inFlight ? [inFlight] : [],
       queuedSteer: steering.map((text, index) => ({
         id: `steer-${index}`,
         role: "user",

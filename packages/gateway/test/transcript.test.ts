@@ -216,3 +216,36 @@ describe("工具执行中的进度进时间线", () => {
     })
   })
 })
+
+describe("回合进行中挂上会话", () => {
+  it("快照带着正在生成的助手消息，之后的增量用同一个 id 接在后面", () => {
+    const projection = new TranscriptProjection()
+    projection.progress({
+      type: "message_start",
+      message: assistantMessage({ content: [] }),
+    } as AgentSessionEvent)
+    const partial = assistantMessage({ content: [{ type: "text", text: "已经说了一半" }] })
+    projection.progress({
+      type: "message_update",
+      message: partial,
+      assistantMessageEvent: { type: "text_start", contentIndex: 0, partial },
+    } as AgentSessionEvent)
+
+    const inFlight = projection.inFlight(partial)
+    expect(inFlight).toMatchObject({ content: [{ type: "text", text: "已经说了一半" }] })
+
+    const grown = assistantMessage({ content: [{ type: "text", text: "已经说了一半，接着说" }] })
+    const delta = projection.progress({
+      type: "message_update",
+      message: grown,
+      assistantMessageEvent: {
+        type: "text_delta",
+        contentIndex: 0,
+        delta: "，接着说",
+        partial: grown,
+      },
+    } as AgentSessionEvent)
+
+    expect(delta).toMatchObject({ type: "assistant_delta", messageId: inFlight?.id })
+  })
+})

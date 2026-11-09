@@ -1,5 +1,6 @@
 import type { AgentSessionEvent, SessionEntry } from "@earendil-works/pi-coding-agent"
 import type {
+  AssistantTranscriptItem,
   JsonValue,
   TranscriptItem,
   TranscriptProgress,
@@ -141,6 +142,13 @@ export class TranscriptProjection {
     this.cachedEntries = entries
     this.cachedTranscript = items
     return items
+  }
+
+  /** 正在生成的助手消息：中途挂上的连接从它接上，之后的增量用同一个 id。 */
+  inFlight(message: unknown): AssistantTranscriptItem | undefined {
+    const id = this.streamingMessageId
+    const current = message as AgentMessage | undefined
+    return id && current?.role === "assistant" ? toAssistantItem(current, id) : undefined
   }
 
   /** 文本与思考块的增量只发新增文字；块未知或工具参数时退回完整条目。 */
