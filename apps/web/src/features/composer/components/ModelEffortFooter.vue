@@ -307,11 +307,11 @@ function onKeyDown(event: KeyboardEvent) {
 
 .label {
   position: absolute;
-  top: 1px;
+  top: 0;
   z-index: 2;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 500;
-  line-height: 12px;
+  line-height: 13px;
   letter-spacing: -0.01em;
   white-space: nowrap;
   pointer-events: none;
