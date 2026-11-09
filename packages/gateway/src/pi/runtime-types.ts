@@ -1,4 +1,7 @@
 import type {
+  ExtensionUiDialog,
+  ExtensionUiRequest,
+  ExtensionUiResponse,
   ModelMetadata,
   ModelRef,
   SessionMetadata,
@@ -48,6 +51,7 @@ export type SessionRuntimeEvent =
   | { type: "snapshot" }
   | { type: "progress"; progress: TranscriptProgress }
   | { type: "error"; error: GatewayError }
+  | { type: "extension_ui"; request: ExtensionUiRequest }
 
 /** 一个已打开会话的运行时：协议层只经它读快照、下命令、收事件。 */
 export interface SessionRuntime {
@@ -59,6 +63,10 @@ export interface SessionRuntime {
   setModel(model: ModelRef): Promise<void>
   setThinking(thinkingLevel: ThinkingLevel): Promise<void>
   subscribe(listener: (event: SessionRuntimeEvent) => void): () => void
+  /** 扩展对话框的回答；未知 id 忽略。 */
+  respondExtensionUi(response: ExtensionUiResponse): void
+  /** 还在等回答的扩展对话框，新挂上的连接要补收。 */
+  extensionDialogs(): ExtensionUiDialog[]
   dispose(): Promise<void>
 }
 

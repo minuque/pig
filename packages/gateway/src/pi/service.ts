@@ -3,10 +3,8 @@ import { dirname } from "node:path"
 import {
   createAgentSession,
   DefaultResourceLoader,
-  getAgentDir,
   ModelRuntime,
   SessionManager,
-  SettingsManager,
 } from "@earendil-works/pi-coding-agent"
 import type { SessionEntry, SessionHeader } from "@earendil-works/pi-coding-agent"
 import type { ModelMetadata, SessionMetadata, TranscriptItem } from "@pig/protocol"
@@ -23,6 +21,7 @@ import { SessionIndex, type IndexedSession } from "./session-index.js"
 import { recentSessionCwd, sessionListName } from "./session-label.js"
 import { PiHostSession } from "./session-runtime.js"
 import { DiskTranscripts } from "./disk-transcripts.js"
+import { createResourceLoader } from "./resource-loader.js"
 import { lightTranscript } from "./transcript-page.js"
 import type { TurnTiming } from "./turn-timing.js"
 
@@ -263,7 +262,7 @@ export class PiHostService implements SessionService {
         ...(model ? { model } : {}),
         ...(options.thinkingLevel ? { thinkingLevel: options.thinkingLevel } : {}),
       })
-      return this.trackSession(session, resource?.release)
+      return await this.trackSession(session, resource?.release)
     } catch (error) {
       resource?.release()
       // AgentSession 创建失败（如无可用模型）时回滚，避免遗留空会话文件
@@ -335,7 +334,7 @@ export class PiHostService implements SessionService {
         sessionManager: manager,
         ...(resource ? { resourceLoader: resource.loader } : {}),
       })
-      return this.trackSession(session, resource?.release)
+      return await this.trackSession(session, resource?.release)
     } catch (error) {
       resource?.release()
       throw error
@@ -409,7 +408,11 @@ export class PiHostService implements SessionService {
     const key = canonicalizePath(cwd)
     const slot = await this.slot(key)
 
-    if (slot.inUse) return { loader: await this.createLoader(key), release: () => undefined }
+    if (slot.inUse)
+      return {
+        loader: await createResourceLoader(key, this.options.agentDir),
+        release: () => undefined,
+      }
     slot.inUse = true
     return {
       loader: slot.loader,
@@ -431,7 +434,7 @@ export class PiHostService implements SessionService {
       if (!oldest.done) this.resourceSlots.delete(oldest.value)
     }
 
-    const pending = this.createLoader(cwd).then(
+    const pending = createResourceLoader(cwd, this.options.agentDir).then(
       (loader) => ({ loader, inUse: false }),
       (error: unknown) => {
         this.resourceSlots.delete(cwd)
@@ -443,23 +446,14 @@ export class PiHostService implements SessionService {
     return pending
   }
 
-  /** 新建并 reload 一份 loader；同拼写下 SDK 复用扩展模块缓存，不重复转译。 */
-  private async createLoader(cwd: string): Promise<DefaultResourceLoader> {
-    const agentDir = getAgentDir()
-    const settingsManager = SettingsManager.create(cwd, agentDir)
-    const loader = new DefaultResourceLoader({ cwd, agentDir, settingsManager })
-    await loader.reload()
-    return loader
-  }
-
   private sessionFactory(): SessionFactory {
     return this.options.createSession ?? createAgentSession
   }
 
-  private trackSession(
+  private async trackSession(
     session: Awaited<ReturnType<SessionFactory>>["session"],
     release?: () => void,
-  ): PiHostSession {
+  ): Promise<PiHostSession> {
     let host!: PiHostSession
     host = new PiHostSession(
       session,
@@ -473,6 +467,14 @@ export class PiHostService implements SessionService {
       this.attachments,
     )
     this.activeSessions.set(session.sessionId, host)
+
+    try {
+      await host.bindExtensions()
+    } catch (error) {
+      await host.dispose()
+      throw error
+    }
+
     return host
   }
 

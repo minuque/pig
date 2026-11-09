@@ -37,6 +37,8 @@ export interface LiveSessionOptions {
   isClosing(): boolean
 }
 
+type RunCommand = "prompt" | "steer" | "abort" | "set_model" | "set_thinking_level"
+
 function toMetadata(snapshot: SessionSnapshot): SessionMetadata {
   return {
     id: snapshot.id,
@@ -90,6 +92,9 @@ export class LiveSessions {
         return this.run(connection, command, (runtime) => runtime.setModel(command.model))
       case "set_thinking_level":
         return this.run(connection, command, (runtime) => runtime.setThinking(command.level))
+      case "extension_ui_response":
+        this.attached(connection, command.sessionId).runtime.respondExtensionUi(command.response)
+        return { command: "extension_ui_response", sessionId: command.sessionId }
     }
   }
 
@@ -154,6 +159,13 @@ export class LiveSessions {
     live.connections.add(connection)
     const snapshot = await this.broadcastSnapshot(live)
     this.options.broadcastServerSnapshot()
+
+    // 断线前没答完的扩展对话框：新挂上的连接补收
+    for (const request of live.runtime.extensionDialogs())
+      connection.send({
+        type: "event",
+        event: { type: "extension_ui_request", sessionId: live.id, request },
+      })
     return { ...snapshot, attached: true }
   }
 
@@ -172,29 +184,32 @@ export class LiveSessions {
     this.options.broadcastServerSnapshot()
   }
 
-  private async run(
-    connection: ClientConnection,
-    command: Extract<Command, { sessionId: string }>,
-    operation: (runtime: SessionRuntime) => Promise<void>,
-  ): Promise<CommandResult> {
-    if (!connection.sessionIds.has(command.sessionId))
+  /** 连接必须先挂上会话，会话必须还活着。 */
+  private attached(connection: ClientConnection, sessionId: string): LiveSession {
+    if (!connection.sessionIds.has(sessionId))
       throw new GatewayError(
         "invalid_request",
-        `Connection is not attached to session ${command.sessionId}`,
+        `Connection is not attached to session ${sessionId}`,
       )
-    const live = this.live.get(command.sessionId)
+    const live = this.live.get(sessionId)
 
     if (!live || live.terminal || live.disposing)
-      throw new GatewayError("not_found", `Session is not live: ${command.sessionId}`)
+      throw new GatewayError("not_found", `Session is not live: ${sessionId}`)
+    return live
+  }
+
+  private async run(
+    connection: ClientConnection,
+    command: Extract<Command, { command: RunCommand }>,
+    operation: (runtime: SessionRuntime) => Promise<void>,
+  ): Promise<CommandResult> {
+    const live = this.attached(connection, command.sessionId)
     live.operationCount += 1
 
     try {
       await operation(live.runtime)
       const snapshot = await this.broadcastSnapshot(live)
-      return {
-        command: command.command as Exclude<Command["command"], "list_sessions" | "detach_session">,
-        session: { ...snapshot, attached: true },
-      }
+      return { command: command.command, session: { ...snapshot, attached: true } }
     } finally {
       live.operationCount -= 1
       this.scheduleDispose(live)
@@ -265,6 +280,16 @@ export class LiveSessions {
       live.terminal = true
       this.options.reportError(event.error)
       this.scheduleDispose(live)
+      return
+    }
+
+    if (event.type === "extension_ui") {
+      const message: ServerMessage = {
+        type: "event",
+        event: { type: "extension_ui_request", sessionId: live.id, request: event.request },
+      }
+
+      for (const connection of live.connections) connection.send(message)
       return
     }
 

@@ -1,4 +1,6 @@
 /** web 与 gateway 之间的消息与界面条目类型；只有类型，没有运行时代码。 */
+export type { ExtensionUiDialog, ExtensionUiRequest, ExtensionUiResponse } from "./extension-ui.js"
+
 export type { ModelMetadata, ModelRef, ThinkingLevel } from "./model.js"
 
 export type {

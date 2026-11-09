@@ -20,6 +20,8 @@ export type Unsubscribe = () => void
 
 type SessionEvent = Extract<ServerEvent, { type: "session_snapshot" | "session_progress" }>
 
+type ExtensionUiEvent = Extract<ServerEvent, { type: "extension_ui_request" }>
+
 /** Gateway 拒绝的命令；code 来自协议错误码。 */
 export class GatewayRequestError extends Error {
   constructor(
@@ -44,6 +46,7 @@ export class GatewayClient {
   readonly #stateListeners = new Set<(change: ConnectionStateChange) => void>()
   readonly #sessionListeners = new Map<string, Set<(event: SessionEvent) => void>>()
   readonly #closeListeners = new Set<() => void>()
+  readonly #extensionListeners = new Set<(event: ExtensionUiEvent) => void>()
 
   constructor(
     private readonly url: string,
@@ -143,6 +146,12 @@ export class GatewayClient {
     }
   }
 
+  /** 任一会话里扩展经 ctx.ui 发来的请求。 */
+  onExtensionUi(listener: (event: ExtensionUiEvent) => void): Unsubscribe {
+    this.#extensionListeners.add(listener)
+    return () => this.#extensionListeners.delete(listener)
+  }
+
   async listSessions(): Promise<readonly SessionMetadata[]> {
     const result = await this.request({ command: "list_sessions" })
     return result.command === "list_sessions" ? result.sessions : []
@@ -190,6 +199,11 @@ export class GatewayClient {
     if (event.type === "server_snapshot") {
       this.#snapshot = event.snapshot
       this.#emit(this.#snapshotListeners, event.snapshot)
+      return
+    }
+
+    if (event.type === "extension_ui_request") {
+      this.#emit(this.#extensionListeners, event)
       return
     }
 

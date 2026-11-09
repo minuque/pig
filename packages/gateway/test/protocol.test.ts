@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from "node:fs/promises"
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { SessionManager } from "@earendil-works/pi-coding-agent"
@@ -135,4 +135,63 @@ describe("pig 协议：断线重连后会话完整恢复", () => {
     expect(client.socket.readyState).toBe(WebSocket.OPEN)
     client.socket.close()
   })
+})
+
+describe("扩展弹框：在客户端作答，扩展拿到结果", () => {
+  it("扩展命令里的 confirm 发到客户端，回答后扩展用 notify 回报结果", async () => {
+    root = await mkdtemp(join(tmpdir(), "pig-ext-ui-"))
+    const agentDir = join(root, "agent")
+    await mkdir(join(agentDir, "extensions"), { recursive: true })
+    await writeFile(
+      join(agentDir, "extensions", "ask.ts"),
+      `export default function (pi) {
+        pi.registerCommand("ask", {
+          description: "ask",
+          handler: async (_args, ctx) => {
+            const ok = await ctx.ui.confirm("继续吗", "要不要继续")
+            ctx.ui.notify(ok ? "答了是" : "答了否", "info")
+          },
+        })
+      }`,
+    )
+    const cwd = join(root, "work")
+    await mkdir(cwd)
+    gateway = new Gateway({
+      sessionDir: join(root, "sessions"),
+      cwd,
+      agentDir,
+    })
+    const client = await connect(await gateway.start())
+    const created = await client.request({ command: "create_session", cwd })
+    const sessionId = (created as { result: { session: SessionSnapshot } }).result.session.id
+    void client.request({ command: "prompt", sessionId, message: "/ask" })
+
+    // 本机装的其他扩展也可能先发状态栏更新：只等 confirm
+    const ask = await client.next(
+      (message) =>
+        message.type === "event" &&
+        message.event.type === "extension_ui_request" &&
+        message.event.request.method === "confirm",
+    )
+    const request = (ask as { event: { request: { id: string; method: string; title: string } } })
+      .event.request
+
+    expect(request).toMatchObject({ method: "confirm", title: "继续吗" })
+
+    await client.request({
+      command: "extension_ui_response",
+      sessionId,
+      response: { id: request.id, confirmed: true },
+    })
+
+    const notified = await client.next(
+      (message) =>
+        message.type === "event" &&
+        message.event.type === "extension_ui_request" &&
+        message.event.request.method === "notify",
+    )
+
+    expect(notified).toMatchObject({ event: { request: { message: "答了是" } } })
+    client.socket.close()
+  }, 30_000)
 })

@@ -211,6 +211,11 @@ export const zh = {
     previewEmpty: "没有可预览的内容。",
     previewFailed: "无法加载预览。",
   },
+  extensionUi: {
+    confirm: "确定",
+    submit: "提交",
+    choose: "选一项",
+  },
   transcript: {
     aborted: "已中止",
     branchSummary: "分支摘要",
@@ -513,6 +518,11 @@ export const en: Messages = {
     contextIdle: "Idle",
     previewEmpty: "Nothing to preview.",
     previewFailed: "Failed to load preview.",
+  },
+  extensionUi: {
+    confirm: "Confirm",
+    submit: "Submit",
+    choose: "Choose one",
   },
   transcript: {
     aborted: "Aborted",

@@ -1,3 +1,4 @@
+import type { ExtensionUiRequest, ExtensionUiResponse } from "./extension-ui.js"
 import type { ModelMetadata, ModelRef, ThinkingLevel } from "./model.js"
 import type { TranscriptItem, TranscriptProgress, UserTranscriptItem } from "./transcript.js"
 
@@ -58,12 +59,17 @@ export type Command =
   | { command: "abort"; sessionId: string }
   | { command: "set_model"; sessionId: string; model: ModelRef }
   | { command: "set_thinking_level"; sessionId: string; level: ThinkingLevel }
+  | { command: "extension_ui_response"; sessionId: string; response: ExtensionUiResponse }
 
 export type CommandResult =
   | { command: "list_sessions"; sessions: SessionMetadata[] }
   | { command: "detach_session"; sessionId: string }
+  | { command: "extension_ui_response"; sessionId: string }
   | {
-      command: Exclude<Command["command"], "list_sessions" | "detach_session">
+      command: Exclude<
+        Command["command"],
+        "list_sessions" | "detach_session" | "extension_ui_response"
+      >
       session: SessionSnapshot
     }
 
@@ -88,6 +94,7 @@ export type ServerEvent =
   | { type: "server_snapshot"; snapshot: ServerSnapshot }
   | { type: "session_snapshot"; snapshot: SessionSnapshot }
   | { type: "session_progress"; sessionId: string; progress: TranscriptProgress }
+  | { type: "extension_ui_request"; sessionId: string; request: ExtensionUiRequest }
 
 export type ServerMessage =
   | { type: "hello"; snapshot: ServerSnapshot }

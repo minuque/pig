@@ -1,5 +1,6 @@
 import type { AgentSession, AgentSessionEvent } from "@earendil-works/pi-coding-agent"
 import type {
+  ExtensionUiResponse,
   ModelRef,
   SessionPhase,
   SessionSnapshot,
@@ -14,6 +15,7 @@ import type {
   SteerInput,
 } from "./runtime-types.js"
 import { canonicalizePath } from "../directory.js"
+import { ExtensionUiBridge } from "./extension-ui.js"
 import { composePrompt, type AttachmentSink } from "./attachments.js"
 import { expandFileMentions } from "./file-mentions.js"
 import { estimateContextUsage, type ContextPreviewKey } from "./context-usage.js"
@@ -61,6 +63,9 @@ export class PiHostSession implements SessionRuntime {
   private busy: Promise<void> | undefined
   private disposed = false
   private readonly timing: TurnTimingRecorder
+  private readonly ui = new ExtensionUiBridge((request) =>
+    this.emit({ type: "extension_ui", request }),
+  )
   private pendingProgress: StreamingProgress[] = []
   private pendingUpdateTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -226,9 +231,34 @@ export class PiHostSession implements SessionRuntime {
     return () => this.listeners.delete(listener)
   }
 
+  /** 把扩展接到 web 的 ctx.ui；能力边界照 pi RPC 模式。 */
+  async bindExtensions(): Promise<void> {
+    await this.session.bindExtensions({
+      uiContext: this.ui.context,
+      mode: "rpc",
+      onError: (error) => console.error("extension error:", error),
+    })
+  }
+
+  respondExtensionUi(response: ExtensionUiResponse): void {
+    this.ui.respond(response)
+  }
+
+  extensionDialogs() {
+    return this.ui.dialogs()
+  }
+
   async dispose(): Promise<void> {
     if (this.disposed) return
     this.disposed = true
+    this.ui.cancelAll()
+    // 照 pi 自己的收尾：先让扩展收到 session_shutdown 释放监听与子进程，再 dispose
+    const runner = this.session.extensionRunner
+
+    if (runner.hasHandlers("session_shutdown"))
+      await runner
+        .emit({ type: "session_shutdown", reason: "quit" })
+        .catch((error: unknown) => console.error("session_shutdown failed:", error))
     this.unsubscribeSession()
     this.clearPendingUpdate()
     this.session.dispose()
