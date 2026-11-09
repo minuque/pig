@@ -41,7 +41,7 @@ export type BenchSession = {
 export type BenchHarness = {
   runtime: BenchRuntime
   runtimeLabel: string
-  open(observers: boolean): Promise<BenchSession>
+  open(): Promise<BenchSession>
   close(): Promise<void>
 }
 
@@ -73,10 +73,10 @@ export async function createWebHarness(options: {
   return {
     runtime: "web",
     runtimeLabel: `chromium ${browser.version()}`,
-    async open(observers) {
+    async open() {
       const context = await newBenchContext(browser)
       const page = await context.newPage()
-      await prepareBenchPage(page, options.workspaceId, observers)
+      await prepareBenchPage(page, options.workspaceId)
       return {
         page,
         origin: options.origin,
@@ -111,7 +111,7 @@ export async function createDesktopHarness(options: {
     get runtimeLabel() {
       return runtimeLabel
     },
-    async open(observers) {
+    async open() {
       const userData = await mkdtemp(join(tmpdir(), "pig-bench-user-"))
       const app = await electron.launch({
         executablePath: electronExecutable(),
@@ -149,7 +149,7 @@ export async function createDesktopHarness(options: {
         }))
 
         runtimeLabel = `electron ${versions.electron} chromium ${versions.chrome}`
-        await prepareBenchPage(page, options.workspaceId, observers, { reducedMotion: false })
+        await prepareBenchPage(page, options.workspaceId, { reducedMotion: false })
         return {
           page,
           origin,

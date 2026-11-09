@@ -1,5 +1,4 @@
-/** 工作台体验基准。用法: pnpm test:bench --runs=3 --skip-build --web --headed --turn-only */
-import type { Page } from "@playwright/test"
+/** 工作台核心体验基准。用法: pnpm test:bench --runs=3 --skip-build --web --headed --no-fail */
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
@@ -8,170 +7,92 @@ import Gateway from "../../packages/gateway/src/index.js"
 import { run } from "../../scripts/run.mjs"
 import type { DirectoryPort } from "../../packages/gateway/src/directory.js"
 import { canonicalizeWorkspacePath } from "../fixtures.js"
-import { runTurnScenarios, type EdgeSample } from "./edges.js"
-import {
-  createDesktopHarness,
-  createWebHarness,
-  type BenchHarness,
-  type BenchSession,
-} from "./harness.js"
-import { sidebarDragWorst, sidebarToggleWorst, windowResizeSteps } from "./layout.js"
+import { createDesktopHarness, createWebHarness, type BenchHarness } from "./harness.js"
 import {
   captureBenchFailure,
   keyToNextFrame,
   median,
   openSession,
   p90,
-  scrollMainAfterOpen,
   scrollSessionList,
   scrollTranscript,
   waitForWorkbench,
 } from "./measure.js"
-import { readStartVitals } from "./paint.js"
-import { regressionsSoFar, reportTable, type MetricRow } from "./report.js"
-import { expandToolSteps } from "./tool-expand.js"
-import {
-  LONG_SESSION_NAME,
-  SHORT_SESSION_NAME,
-  TOOL_SESSION_NAME,
-  TOOL_STEPS,
-  seedBenchSessions,
-} from "./seed.js"
+import { regressionsSoFar, reportTable } from "./report.js"
+import { LONG_SESSION_NAME, SHORT_SESSION_NAME, seedBenchSessions } from "./seed.js"
+import { runTurn } from "./turn.js"
+
+/** 只量用户直接感知的几项；frame=true 的值是最长帧。 */
+const METRICS = [
+  { key: "coldToWorkbench", label: "打开工作台", group: "启动" },
+  { key: "switchLong", label: "长会话打开", group: "会话" },
+  { key: "switchShortRevisit", label: "切回短会话", group: "会话" },
+  { key: "longScrollWorstMs", label: "长会话滚动", group: "滚动", frame: true },
+  { key: "listScrollWorstMs", label: "侧栏列表滚动", group: "滚动", frame: true },
+  { key: "composerKeyToFrame", label: "输入跟手", group: "输入与流式" },
+  { key: "firstTokenMs", label: "发送后首条助手", group: "输入与流式" },
+  { key: "streamKeepUpMs", label: "流式跟上", group: "输入与流式" },
+] as const
+
+type MetricKey = (typeof METRICS)[number]["key"]
+
+type Samples = Record<MetricKey, number[]>
+
+type Args = { runs: number; skipBuild: boolean; headed: boolean; web: boolean }
 
 const root = resolve(import.meta.dirname, "../..")
 const webRoot = join(root, "apps/web/dist")
 const resultPath = join(root, "test-results", "perf.json")
 const failShot = join(root, "test-results", "perf-fail.png")
 
-type BenchMetrics = {
-  coldToWorkbench: number
-  coldFcp: number
-  coldCls: number
-  sessionFirstOpen: number
-  switchLong: number
-  switchScrollWorstMs: number
-  longScrollWorstMs: number
-  listScrollWorstMs: number
-  switchShortRevisit: number
-  toolExpandFirstFrame: number
-  toolExpandComplete: number
-  composerKeyToFrame: number
-  sidebarToggleWorstMs: number
-  sidebarDragWorstMs: number
-  windowResizeWorstMs: number
-  /** resize 分档：变窄、变宽、恢复。 */
-  windowResizeShrinkMs: number
-  windowResizeGrowMs: number
-  windowResizeRestoreMs: number
-  /** 同一窗口在 about:blank 上跑同一序列的基线：OS/Chromium 自身开销。 */
-  windowResizeBaselineMs: number
-  ownMessageMs: number
-  firstTokenMs: number
-  streamWakeMs: number
-  streamKeepUpMs: number
-  abortMs: number
-  rapidSwitchMs: number
-  reconnectMs: number
-}
-
-type Args = {
-  runs: number
-  skipBuild: boolean
-  headed: boolean
-  noFail: boolean
-  turnOnly: boolean
-  web: boolean
-}
-
 function parseArgs(argv: string[]): Args {
-  let runs = 3
-  let skipBuild = false
-  let headed = false
-  let turnOnly = false
-  let web = false
-  let noFail = false
+  const args: Args = { runs: 3, skipBuild: false, headed: false, web: false }
 
   for (const arg of argv) {
     if (arg === "--help" || arg === "-h") {
-      console.log("用法: pnpm test:bench --runs=3 --skip-build --web --headed --turn-only")
-      console.log("默认桌面端 Electron。--web 用 Playwright Chromium 做对照。")
-      console.log("比上次慢超过 10% 时退出码为 1；--no-fail 只打印不失败。")
+      console.log("用法: pnpm test:bench --runs=3 --skip-build --web --headed --no-fail")
+      console.log(
+        "默认桌面端 Electron；--web 用 Playwright Chromium。比上次慢 10% 以上退出码为 1。",
+      )
       process.exit(0)
     }
 
-    if (arg === "--skip-build") skipBuild = true
-    else if (arg === "--headed") headed = true
-    else if (arg === "--web") web = true
-    else if (arg === "--turn-only" || arg === "--edges-only") turnOnly = true
-    else if (arg === "--no-fail") noFail = true
+    if (arg === "--skip-build") args.skipBuild = true
+    else if (arg === "--headed") args.headed = true
+    else if (arg === "--web") args.web = true
+    else if (arg === "--no-fail") continue
     else if (arg.startsWith("--runs=")) {
       const value = Number(arg.slice("--runs=".length))
 
       if (!Number.isSafeInteger(value) || value < 1) throw new Error("--runs 必须是正安全整数")
-      runs = value
+      args.runs = value
     } else throw new Error(`未知参数 ${arg}`)
   }
 
-  return { runs, skipBuild, headed, turnOnly, web, noFail }
-}
-
-function buildWeb() {
-  console.log("构建 web…")
-  run("pnpm", ["build:web"], { cwd: root })
+  return args
 }
 
 async function startGateway(workspaceDir: string, sessionDir: string) {
   const platformPort: DirectoryPort = {
-    async selectDirectory() {
-      return workspaceDir
-    },
-    async validateDirectory(path) {
-      return path
-    },
+    selectDirectory: async () => workspaceDir,
+    validateDirectory: async (path) => path,
   }
-  const gateway = new Gateway({
-    webRoot,
-    sessionDir,
-    cwd: workspaceDir,
-    platformPort,
-    port: 0,
-  })
+  const gateway = new Gateway({ webRoot, sessionDir, cwd: workspaceDir, platformPort, port: 0 })
 
   try {
     const port = await gateway.start()
-    const origin = `http://127.0.0.1:${port}`
-    return { gateway, origin: gateway.authenticatedUrl(origin) }
+    return { gateway, origin: gateway.authenticatedUrl(`http://127.0.0.1:${port}`) }
   } catch (error) {
     await gateway.stop()
     throw error
   }
 }
 
-async function openReadyPage(
-  harness: BenchHarness,
-  observers: boolean,
-  beforeNavigate?: (session: BenchSession) => Promise<void>,
-) {
-  const session = await harness.open(observers)
-
-  try {
-    // 基线要在选中工作台前量：此时页面仍是 about:blank
-    if (beforeNavigate) await beforeNavigate(session)
-    const started = performance.now()
-    await session.page.goto(session.origin, { waitUntil: "commit" })
-    await waitForWorkbench(session.page)
-    return { ...session, coldTo: performance.now() - started }
-  } catch (error) {
-    await captureBenchFailure(session.page, failShot)
-    await session.close()
-    throw error
-  }
-}
-
-async function measureComposer(page: Page, samples: number): Promise<number> {
+/** 输入跟手：丢掉首次（字体与布局预热），取其后七次的中位数。 */
+async function composerLatency(page: Parameters<typeof keyToNextFrame>[0]) {
   const values: number[] = []
 
-  for (let index = 0; index < samples + 1; index += 1) {
+  for (let index = 0; index < 8; index += 1) {
     const ms = await keyToNextFrame(page)
 
     if (index > 0) values.push(ms)
@@ -180,93 +101,61 @@ async function measureComposer(page: Page, samples: number): Promise<number> {
   return median(values)
 }
 
-function collect(values: number[]) {
-  return { median: median(values), p90: p90(values) }
-}
+/** 一轮：冷启动 → 侧栏滚动 → 打开长会话 → 滚动 → 切回短会话；再开新实例量回合。 */
+async function measureRound(harness: BenchHarness, samples: Samples) {
+  const session = await harness.open()
 
-function printReport(
-  now: Partial<BenchMetrics>,
-  p90s: Partial<Record<keyof BenchMetrics, number | undefined>>,
-  prev: Partial<BenchMetrics> | undefined,
-  runtime: string,
-) {
-  console.log(`\npig 工作台（${runtime}）`)
-
-  const row = (
-    label: string,
-    key: keyof BenchMetrics,
-    group: string,
-    extra?: { frame?: boolean; unit?: "ms" | "cls" },
-  ): MetricRow => ({
-    label,
-    group,
-    value: now[key] ?? null,
-    p90: p90s[key] ?? null,
-    previous: prev?.[key] ?? null,
-    ...extra,
-  })
-
-  reportTable([
-    row("打开工作台", "coldToWorkbench", "启动"),
-    row("冷启动 FCP", "coldFcp", "启动"),
-    row("冷启动 CLS", "coldCls", "启动", { unit: "cls" }),
-    row("短会话打开", "sessionFirstOpen", "会话切换"),
-    row("长会话打开", "switchLong", "会话切换"),
-    row("切回短会话", "switchShortRevisit", "会话切换"),
-    row("连切到短会话", "rapidSwitchMs", "会话切换"),
-    row("切后立刻滚动", "switchScrollWorstMs", "滚动", { frame: true }),
-    row("长会话滚动", "longScrollWorstMs", "滚动", { frame: true }),
-    row("侧栏列表滚动", "listScrollWorstMs", "滚动", { frame: true }),
-    row("侧栏收起展开", "sidebarToggleWorstMs", "布局响应", { frame: true }),
-    row("侧栏拖拽调宽", "sidebarDragWorstMs", "布局响应", { frame: true }),
-    row("窗口 resize（最差）", "windowResizeWorstMs", "布局响应", { frame: true }),
-    row("窗口 resize 变窄", "windowResizeShrinkMs", "窗口 resize 分档", { frame: true }),
-    row("窗口 resize 变宽", "windowResizeGrowMs", "窗口 resize 分档", { frame: true }),
-    row("窗口 resize 恢复", "windowResizeRestoreMs", "窗口 resize 分档", { frame: true }),
-    row("空白页 resize 基线", "windowResizeBaselineMs", "窗口 resize 分档", { frame: true }),
-    row("工具组首次展开首帧", "toolExpandFirstFrame", "工具组展开"),
-    row("工具组首次展开完成", "toolExpandComplete", "工具组展开"),
-    row("输入跟手", "composerKeyToFrame", "输入与发送"),
-    row("发送后自己的话", "ownMessageMs", "输入与发送"),
-    row("发送后首条助手", "firstTokenMs", "输入与发送"),
-    row("点停止", "abortMs", "输入与发送"),
-    row("流式首帧唤醒", "streamWakeMs", "流式渲染"),
-    row("流式跟上（稳态）", "streamKeepUpMs", "流式渲染"),
-    row("断线后恢复", "reconnectMs", "可靠性"),
-  ])
-}
-
-async function loadPrevious(
-  config: object,
-  metrics: BenchMetrics,
-): Promise<Partial<BenchMetrics> | undefined> {
   try {
-    const raw = JSON.parse(await readFile(resultPath, "utf8")) as unknown
+    const { page } = session
+    const started = performance.now()
+    await page.goto(session.origin, { waitUntil: "commit" })
+    await waitForWorkbench(page)
+    samples.coldToWorkbench.push(performance.now() - started)
+    samples.composerKeyToFrame.push(await composerLatency(page))
+    samples.listScrollWorstMs.push(await scrollSessionList(page))
+    await openSession(page, SHORT_SESSION_NAME)
+    samples.switchLong.push(await openSession(page, LONG_SESSION_NAME))
+    samples.longScrollWorstMs.push(await scrollTranscript(page, LONG_SESSION_NAME))
+    samples.switchShortRevisit.push(await openSession(page, SHORT_SESSION_NAME))
+  } catch (error) {
+    await captureBenchFailure(session.page, failShot)
+    throw error
+  } finally {
+    await session.close()
+  }
 
-    if (!raw || typeof raw !== "object" || !("config" in raw) || !("metrics" in raw))
-      return undefined
+  // 回合用全新实例，避免上一段的会话状态压进建会话路径
+  const turn = await harness.open()
 
-    if (JSON.stringify(raw.config) !== JSON.stringify(config)) return undefined
-    const previous = raw.metrics
+  try {
+    const result = await runTurn(turn.page, turn.origin)
+    samples.firstTokenMs.push(result.firstTokenMs)
+    samples.streamKeepUpMs.push(result.streamKeepUpMs)
+  } catch (error) {
+    await captureBenchFailure(turn.page, failShot)
+    throw error
+  } finally {
+    await turn.close()
+  }
+}
 
-    if (!previous || typeof previous !== "object") return undefined
-
-    for (const key of Object.keys(metrics)) {
-      const value: unknown = Reflect.get(previous, key)
-
-      if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return undefined
+/** 同口径（版本、运行时、平台）的上次结果才拿来比较。 */
+async function loadPrevious(config: object): Promise<Partial<Record<MetricKey, number>>> {
+  try {
+    const raw = JSON.parse(await readFile(resultPath, "utf8")) as {
+      config?: unknown
+      metrics?: Partial<Record<MetricKey, number>>
     }
-
-    return previous as BenchMetrics
+    return JSON.stringify(raw.config) === JSON.stringify(config) ? (raw.metrics ?? {}) : {}
   } catch {
-    return undefined
+    return {}
   }
 }
 
 async function main() {
   const args = parseArgs(process.argv.slice(2))
 
-  if (!args.skipBuild) buildWeb()
+  if (!args.skipBuild) run("pnpm", ["build:web"], { cwd: root })
 
   const temp = await mkdtemp(join(tmpdir(), "pig-bench-"))
   let gateway: Gateway | undefined
@@ -280,228 +169,53 @@ async function main() {
     await writeFile(join(workspaceDir, ".keep"), "")
     seedBenchSessions(sessionDir, workspaceDir)
     const workspaceId = canonicalizeWorkspacePath(workspaceDir)
-    let origin = ""
 
     if (args.web) {
       const started = await startGateway(workspaceDir, sessionDir)
       gateway = started.gateway
-      origin = started.origin
-      console.log(`Gateway ${origin}`)
-      harness = await createWebHarness({ headed: args.headed, origin, workspaceId })
+      harness = await createWebHarness({ headed: args.headed, origin: started.origin, workspaceId })
     } else {
-      if (args.headed) console.log("桌面端基准始终开窗，--headed 只对 --web 生效")
       harness = await createDesktopHarness({ workspaceId, workspaceDir, sessionDir })
     }
 
-    if (!harness) throw new Error("未创建基准运行时")
+    // 预热一轮不计入：首次冷启动含磁盘与编译缓存
+    const warmup = await harness.open()
+    await warmup.page.goto(warmup.origin, { waitUntil: "commit" })
+    await waitForWorkbench(warmup.page)
+    await warmup.close()
 
-    const open = {
-      coldTo: [] as number[],
-      coldFcp: [] as number[],
-      coldCls: [] as number[],
-      firstOpen: [] as number[],
-      switchLong: [] as number[],
-      switchScroll: [] as number[],
-      scroll: [] as number[],
-      listScroll: [] as number[],
-      switchRevisit: [] as number[],
-      toolExpandFirstFrame: [] as number[],
-      toolExpandComplete: [] as number[],
-      sidebarToggle: [] as number[],
-      sidebarDrag: [] as number[],
-      resizeShrink: [] as number[],
-      resizeGrow: [] as number[],
-      resizeRestore: [] as number[],
-      resizeBaseline: [] as number[],
-      composer: [] as number[],
+    const samples = Object.fromEntries(METRICS.map(({ key }) => [key, []])) as unknown as Samples
+
+    for (let round = 1; round <= args.runs; round += 1) {
+      console.log(`第 ${round}/${args.runs} 轮`)
+      await measureRound(harness, samples)
     }
 
-    if (!args.turnOnly) {
-      const warmup = await openReadyPage(harness, true)
-      await warmup.close()
-    }
-
-    const turns: EdgeSample[] = []
-
-    for (let run = 1; run <= args.runs; run += 1) {
-      console.log(args.turnOnly ? `回合 ${run}/${args.runs}` : `打开+回合 ${run}/${args.runs}`)
-
-      // 打开段：一个实例只量冷启动、切换、滚动、工具展开
-      if (!args.turnOnly) {
-        const session = await openReadyPage(harness, true, async (blank) => {
-          const baseline = await windowResizeSteps(blank.page, blank.size, blank.setSize)
-          open.resizeBaseline.push(Math.max(baseline.shrink, baseline.grow, baseline.restore))
-        })
-
-        try {
-          const { page } = session
-          const cold = await readStartVitals(page)
-
-          open.coldTo.push(session.coldTo)
-          open.coldFcp.push(cold.fcp)
-          open.coldCls.push(cold.cls)
-          open.composer.push(await measureComposer(page, 7))
-          open.listScroll.push(await scrollSessionList(page))
-          open.firstOpen.push(await openSession(page, SHORT_SESSION_NAME))
-          open.switchLong.push(await openSession(page, LONG_SESSION_NAME))
-          open.switchScroll.push(await scrollMainAfterOpen(page))
-          open.scroll.push(await scrollTranscript(page, LONG_SESSION_NAME))
-          open.switchRevisit.push(await openSession(page, SHORT_SESSION_NAME))
-          const toolExpand = await expandToolSteps(page, TOOL_SESSION_NAME, TOOL_STEPS)
-
-          open.toolExpandFirstFrame.push(toolExpand.firstFrameMs)
-          open.toolExpandComplete.push(toolExpand.completeMs)
-          open.sidebarToggle.push(await sidebarToggleWorst(page))
-          open.sidebarDrag.push(await sidebarDragWorst(page))
-          const resize = await windowResizeSteps(page, session.size, session.setSize)
-
-          open.resizeShrink.push(resize.shrink)
-          open.resizeGrow.push(resize.grow)
-          open.resizeRestore.push(resize.restore)
-        } catch (error) {
-          await captureBenchFailure(session.page, failShot)
-          throw error
-        } finally {
-          await session.close()
-        }
-      }
-
-      // 回合段：全新实例，避免上一段的会话状态压进建会话路径
-      const turn = await harness.open(false)
-
-      try {
-        turns.push(await runTurnScenarios(turn.page, turn.origin))
-      } catch (error) {
-        await captureBenchFailure(turn.page, failShot)
-        throw error
-      } finally {
-        await turn.close()
-      }
-    }
-
-    const own = turns.map((sample) => sample.ownMessageMs)
-    const token = turns.map((sample) => sample.firstTokenMs)
-    const streamWake = turns.map((sample) => sample.streamWakeMs)
-    const stream = turns.map((sample) => sample.streamKeepUpMs)
-    const abort = turns.map((sample) => sample.abortMs)
-    const rapid = turns.map((sample) => sample.rapidSwitchMs)
-    const reconnect = turns.map((sample) => sample.reconnectMs)
-    const cold = open.coldTo.length ? collect(open.coldTo) : undefined
-    const fcp = open.coldFcp.length ? collect(open.coldFcp) : undefined
-    const cls = open.coldCls.length ? collect(open.coldCls) : undefined
-    const composer = open.composer.length ? collect(open.composer) : undefined
-    const firstOpen = open.firstOpen.length ? collect(open.firstOpen) : undefined
-    const switchLong = open.switchLong.length ? collect(open.switchLong) : undefined
-    const switchScroll = open.switchScroll.length ? collect(open.switchScroll) : undefined
-    const scroll = open.scroll.length ? collect(open.scroll) : undefined
-    const listScroll = open.listScroll.length ? collect(open.listScroll) : undefined
-    const switchRevisit = open.switchRevisit.length ? collect(open.switchRevisit) : undefined
-    const toolExpandFirstFrame = open.toolExpandFirstFrame.length
-      ? collect(open.toolExpandFirstFrame)
-      : undefined
-    const toolExpandComplete = open.toolExpandComplete.length
-      ? collect(open.toolExpandComplete)
-      : undefined
-    const sidebarToggle = open.sidebarToggle.length ? collect(open.sidebarToggle) : undefined
-    const sidebarDrag = open.sidebarDrag.length ? collect(open.sidebarDrag) : undefined
-    const resizeShrink = open.resizeShrink.length ? collect(open.resizeShrink) : undefined
-    const resizeGrow = open.resizeGrow.length ? collect(open.resizeGrow) : undefined
-    const resizeRestore = open.resizeRestore.length ? collect(open.resizeRestore) : undefined
-    const resizeBaseline = open.resizeBaseline.length ? collect(open.resizeBaseline) : undefined
-    // 总体最差值：每轮取三步最大，再对各轮取中位数
-    const resizeWorstSamples = open.resizeShrink.map((_, index) =>
-      Math.max(
-        open.resizeShrink[index] ?? 0,
-        open.resizeGrow[index] ?? 0,
-        open.resizeRestore[index] ?? 0,
-      ),
-    )
-    const resizeWorst = resizeWorstSamples.length ? collect(resizeWorstSamples) : undefined
-    const ownStat = collect(own)
-    const tokenStat = collect(token)
-    const streamWakeStat = collect(streamWake)
-    const streamStat = collect(stream)
-    const abortStat = collect(abort)
-    const rapidStat = collect(rapid)
-    const reconnectStat = collect(reconnect)
-    const metrics: BenchMetrics = {
-      coldToWorkbench: cold?.median ?? Number.NaN,
-      coldFcp: fcp?.median ?? Number.NaN,
-      coldCls: cls?.median ?? Number.NaN,
-      sessionFirstOpen: firstOpen?.median ?? Number.NaN,
-      switchLong: switchLong?.median ?? Number.NaN,
-      switchScrollWorstMs: switchScroll?.median ?? Number.NaN,
-      longScrollWorstMs: scroll?.median ?? Number.NaN,
-      listScrollWorstMs: listScroll?.median ?? Number.NaN,
-      switchShortRevisit: switchRevisit?.median ?? Number.NaN,
-      toolExpandFirstFrame: toolExpandFirstFrame?.median ?? Number.NaN,
-      toolExpandComplete: toolExpandComplete?.median ?? Number.NaN,
-      composerKeyToFrame: composer?.median ?? Number.NaN,
-      sidebarToggleWorstMs: sidebarToggle?.median ?? Number.NaN,
-      sidebarDragWorstMs: sidebarDrag?.median ?? Number.NaN,
-      windowResizeWorstMs: resizeWorst?.median ?? Number.NaN,
-      windowResizeShrinkMs: resizeShrink?.median ?? Number.NaN,
-      windowResizeGrowMs: resizeGrow?.median ?? Number.NaN,
-      windowResizeRestoreMs: resizeRestore?.median ?? Number.NaN,
-      windowResizeBaselineMs: resizeBaseline?.median ?? Number.NaN,
-      ownMessageMs: ownStat.median,
-      firstTokenMs: tokenStat.median,
-      streamWakeMs: streamWakeStat.median,
-      streamKeepUpMs: streamStat.median,
-      abortMs: abortStat.median,
-      rapidSwitchMs: rapidStat.median,
-      reconnectMs: reconnectStat.median,
-    }
-    const p90s: Partial<Record<keyof BenchMetrics, number | undefined>> = {
-      coldToWorkbench: cold?.p90,
-      coldFcp: fcp?.p90,
-      coldCls: cls?.p90,
-      sessionFirstOpen: firstOpen?.p90,
-      switchLong: switchLong?.p90,
-      switchScrollWorstMs: switchScroll?.p90,
-      longScrollWorstMs: scroll?.p90,
-      listScrollWorstMs: listScroll?.p90,
-      switchShortRevisit: switchRevisit?.p90,
-      toolExpandFirstFrame: toolExpandFirstFrame?.p90,
-      toolExpandComplete: toolExpandComplete?.p90,
-      composerKeyToFrame: composer?.p90,
-      sidebarToggleWorstMs: sidebarToggle?.p90,
-      sidebarDragWorstMs: sidebarDrag?.p90,
-      windowResizeWorstMs: resizeWorst?.p90,
-      windowResizeShrinkMs: resizeShrink?.p90,
-      windowResizeGrowMs: resizeGrow?.p90,
-      windowResizeRestoreMs: resizeRestore?.p90,
-      windowResizeBaselineMs: resizeBaseline?.p90,
-      ownMessageMs: ownStat.p90,
-      firstTokenMs: tokenStat.p90,
-      streamWakeMs: streamWakeStat.p90,
-      streamKeepUpMs: streamStat.p90,
-      abortMs: abortStat.p90,
-      rapidSwitchMs: rapidStat.p90,
-      reconnectMs: reconnectStat.p90,
-    }
     const config = {
-      version: 19,
+      version: 20,
       runs: args.runs,
-      headed: args.headed,
-      turnOnly: args.turnOnly,
-      web: args.web,
       runtime: harness.runtime,
       browser: harness.runtimeLabel,
       platform: process.platform,
       arch: process.arch,
-      node: process.version,
     }
-    const stored = Object.fromEntries(
-      Object.entries(metrics).filter(([, value]) => Number.isFinite(value)),
-    ) as Partial<BenchMetrics>
-    const comparable = args.turnOnly ? undefined : await loadPrevious(config, metrics)
+    const metrics = Object.fromEntries(METRICS.map(({ key }) => [key, median(samples[key])]))
+    const p90s = Object.fromEntries(METRICS.map(({ key }) => [key, p90(samples[key])]))
+    const previous = await loadPrevious(config)
+
     await mkdir(join(root, "test-results"), { recursive: true })
-    await writeFile(
-      resultPath,
-      `${JSON.stringify({ config, metrics: stored, p90s, samples: { ...open, own, token, streamWake, stream, abort, rapid, reconnect } }, null, 2)}\n`,
+    await writeFile(resultPath, `${JSON.stringify({ config, metrics, p90s, samples }, null, 2)}\n`)
+    console.log(`\npig 工作台（${harness.runtimeLabel}）`)
+    reportTable(
+      METRICS.map((metric) => ({
+        label: metric.label,
+        group: metric.group,
+        value: metrics[metric.key] ?? null,
+        p90: p90s[metric.key] ?? null,
+        previous: previous[metric.key] ?? null,
+        frame: "frame" in metric,
+      })),
     )
-    printReport(stored, p90s, comparable, harness.runtimeLabel)
     console.log(`结果已写入 ${resultPath}`)
   } finally {
     try {
@@ -518,12 +232,11 @@ async function main() {
 
 try {
   await main()
-
   const slow = regressionsSoFar()
 
   if (slow.length && !process.argv.includes("--no-fail")) {
     console.error(`\n${slow.length} 项比上次慢 10% 以上：${slow.join("、")}`)
-    console.error("确认是有意取舍就加 --no-fail；基线在 test-results/perf.json")
+    console.error("确认是有意取舍就加 --no-fail；上次结果在 test-results/perf.json")
     process.exitCode = 1
   }
 } catch (error) {
@@ -534,7 +247,7 @@ try {
     console.error("未找到 Chromium。请先运行: pnpm exec playwright install chromium")
 
   if (message.includes("electron.launch") || message.includes("Electron failed"))
-    console.error("未启动 Electron。请先运行: pnpm --filter @pig/desktop exec electron --version")
+    console.error("未启动 Electron。请先运行: pnpm rebuild electron")
 
   process.exitCode = 1
 }
