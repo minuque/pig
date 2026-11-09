@@ -34,6 +34,7 @@ import { useGatewayClient } from "@client/gateway-connection.js"
 
 import ExtensionUi from "@features/extension-ui/index.vue"
 import { provideExtensionUi } from "@features/extension-ui/index.js"
+import { provideSessionRail } from "@features/session-rail/index.js"
 import SessionNav from "@features/session-nav/index.vue"
 import { provideNav } from "@features/session-nav/index.js"
 import SettingsDialog from "@features/settings/components/SettingsDialog.vue"
@@ -50,6 +51,8 @@ const { settingsOpen, settingsPane, openSettings, closeSettings } = useSettingsD
 provideNav(pi, cwd, session)
 
 provideExtensionUi(pi, session)
+
+provideSessionRail()
 
 onMounted(() => {
   prefetchHighlighter()

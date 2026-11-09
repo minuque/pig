@@ -170,6 +170,7 @@ function appendTurn({
         outputText: transcriptText(item),
         outputImages: transcriptImages(item),
         ...(item.truncated ? { truncated: true } : {}),
+        ...(item.details === undefined ? {} : { details: item.details }),
       })
       noteRange(item.timestamp, item.timestamp)
       continue
@@ -223,6 +224,7 @@ function appendTurn({
           outputText: result ? transcriptText(result) : "",
           outputImages: result ? transcriptImages(result) : [],
           ...(result?.truncated ? { truncated: true } : {}),
+          ...(result?.details === undefined ? {} : { details: result.details }),
           startedAt: toolStartedAt(result) ?? item.timestamp,
           ...(settled ? { endedAt: result.timestamp } : {}),
         })
@@ -424,6 +426,7 @@ function sameToolRow(left: ToolRow, right: ToolRow) {
         item.isError === nextItem.isError &&
         item.input === nextItem.input &&
         item.outputText === nextItem.outputText &&
+        item.details === nextItem.details &&
         sameImages(item.outputImages, nextItem.outputImages)
       )
     })

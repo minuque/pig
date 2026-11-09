@@ -167,6 +167,9 @@
   /** macOS 侧栏收起时红绿灯占位：红绿灯簇与间距 60px */
   --size-mac-traffic-lights: 68px;
   --size-drawer: 360px;
+  /* 摘要面板与子会话只读抽屉 */
+  --size-rail: 248px;
+  --size-child-drawer: 560px;
   --size-settings-body: 56rem;
   --size-settings-dialog-width: 80rem;
   --size-settings-dialog-height: 60rem;

@@ -17,6 +17,7 @@
     </div>
 
     <WorkbenchHeader :class="{ 'is-overlay': showHero }" />
+    <SessionRail v-if="!showHero" />
 
     <div class="conversation-column">
       <StartupError v-if="pageError" v-bind="pageError" />
@@ -133,6 +134,7 @@ import { useComposerDock } from "@features/session-workbench/hooks/use-composer-
 import { useSessionDrop } from "@features/session-workbench/hooks/use-session-drop.js"
 import { useTurnFinish } from "@features/session-workbench/hooks/use-turn-finish.js"
 import TranscriptView from "@features/transcript-view/index.vue"
+import SessionRail from "@features/session-rail/index.vue"
 import { prefetchTranscriptView } from "@features/transcript-view/index.js"
 import { ArrowDownIcon, DocumentAddIcon, LoaderIcon } from "@components/icons/index.js"
 
@@ -437,6 +439,8 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 <style scoped>
 .session-panel {
   position: relative;
+  /* 摘要面板按会话面板宽度决定常驻还是收成按钮 */
+  container: session-panel / inline-size;
   flex: 1;
   min-height: 0;
   display: flex;

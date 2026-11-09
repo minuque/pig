@@ -8,7 +8,11 @@ import Gateway from "../packages/gateway/src/index.js"
 import type { DirectoryPort } from "../packages/gateway/src/directory.js"
 import { createFakeRuntime, type FakeProviderSpec } from "./fake-model-runtime.js"
 import { BUILTIN_PROVIDERS } from "./fake-provider-registry.js"
-import { prebuildComplexSession, prebuildFillerSessions } from "./prebuild-session.js"
+import {
+  prebuildComplexSession,
+  prebuildFillerSessions,
+  prebuildChildSession,
+} from "./prebuild-session.js"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const webRoot = join(root, "apps/web/dist")
@@ -88,6 +92,8 @@ type TestFixtures = {
   emptyModelsGateway: E2eGateway
   /** 临时 agentDir 里装一个会弹框的扩展，用来验扩展 UI。 */
   extensionGateway: E2eGateway
+  /** 一个普通会话加一个 subagent 子会话，用来验摘要面板与子会话抽屉。 */
+  subagentGateway: E2eGateway
 }
 
 /** 起 Gateway 并躲开 Chromium 禁用端口。 */
@@ -385,6 +391,15 @@ export const test = base.extend<TestFixtures>({
   extensionGateway: [
     async ({}, use) => {
       await withGateway(() => undefined, use, prepareExtensionAgent)
+    },
+    { scope: "test" },
+  ],
+  subagentGateway: [
+    async ({}, use) => {
+      await withGateway((sessionDir, workspaceDir) => {
+        prebuildFillerSessions(sessionDir, workspaceDir, 1)
+        prebuildChildSession(sessionDir, workspaceDir)
+      }, use)
     },
     { scope: "test" },
   ],

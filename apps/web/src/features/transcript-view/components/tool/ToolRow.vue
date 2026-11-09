@@ -68,7 +68,8 @@
     </Dialog>
 
     <div v-if="open" class="tool-row-body">
-      <ToolCommandBody v-if="variant === 'command'" :call="shownCall" />
+      <ToolSubagentBody v-if="call.toolName === 'subagent'" :call="shownCall" />
+      <ToolCommandBody v-else-if="variant === 'command'" :call="shownCall" />
 
       <ToolFileBody
         v-else-if="variant === 'read' || variant === 'edit' || variant === 'search'"
@@ -90,6 +91,7 @@ import { RollText } from "@components/ui/roll-text/index.js"
 import ToolCommandBody from "@features/transcript-view/components/tool/ToolCommandBody.vue"
 import ToolFileBody from "@features/transcript-view/components/tool/ToolFileBody.vue"
 import ToolGenericBody from "@features/transcript-view/components/tool/ToolGenericBody.vue"
+import ToolSubagentBody from "@features/transcript-view/components/tool/ToolSubagentBody.vue"
 import {
   toolCallLiveVerb,
   toolCallTarget,

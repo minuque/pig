@@ -184,3 +184,35 @@ describe("流式输出只发新增文字", () => {
     expect(end).toMatchObject({ type: "item_finished", item: { id, status: "complete" } })
   })
 })
+
+describe("工具执行中的进度进时间线", () => {
+  it("tool_execution_update 带的 details 作为运行中条目的更新发出", () => {
+    const projection = new TranscriptProjection()
+    projection.progress({
+      type: "tool_execution_start",
+      toolCallId: "call-sub",
+      toolName: "subagent",
+      args: { tasks: [] },
+    } as AgentSessionEvent)
+
+    const update = projection.progress({
+      type: "tool_execution_update",
+      toolCallId: "call-sub",
+      toolName: "subagent",
+      args: { tasks: [] },
+      partialResult: {
+        content: [{ type: "text", text: "1/2" }],
+        details: { mode: "parallel", results: [{ agent: "scout", status: "running" }] },
+      },
+    } as AgentSessionEvent)
+
+    expect(update).toMatchObject({
+      type: "item_updated",
+      item: {
+        id: "call-sub",
+        status: "running",
+        details: { results: [{ agent: "scout", status: "running" }] },
+      },
+    })
+  })
+})

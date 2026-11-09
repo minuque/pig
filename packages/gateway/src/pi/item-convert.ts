@@ -49,7 +49,7 @@ export function toJsonValue(value: unknown, seen = new Set<object>()): JsonValue
 }
 
 /** 工具 details 只作展示：无法表示的值有损转换而不报错。 */
-function sanitizeDetails(value: unknown, seen = new Set<object>()): JsonValue | undefined {
+export function sanitizeDetails(value: unknown, seen = new Set<object>()): JsonValue | undefined {
   if (value === null || typeof value === "string" || typeof value === "boolean") return value
 
   if (typeof value === "number") return Number.isFinite(value) ? value : String(value)

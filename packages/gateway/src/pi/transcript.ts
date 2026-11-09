@@ -5,7 +5,13 @@ import type {
   TranscriptProgress,
   ToolTranscriptItem,
 } from "@pig/protocol"
-import { toAssistantItem, toJsonValue, toToolItem, toUserItem } from "./item-convert.js"
+import {
+  sanitizeDetails,
+  toAssistantItem,
+  toJsonValue,
+  toToolItem,
+  toUserItem,
+} from "./item-convert.js"
 
 /** 会话条目携带的消息（pi-ai 未直接依赖，从官方会话类型提取）。 */
 type AgentMessage = Extract<SessionEntry, { type: "message" }>["message"]
@@ -68,6 +74,30 @@ export class TranscriptProjection {
             toolName: event.toolName,
             input,
             content: [],
+            timestamp: Date.now(),
+            status: "running",
+            isError: false,
+          },
+        }
+      }
+
+      case "tool_execution_update": {
+        // 工具执行中的部分结果（如 subagent 的子任务进度）：作为运行中条目的更新
+        const input = this.toolCalls.get(event.toolCallId)
+        const partial = event.partialResult as { content?: unknown; details?: unknown } | undefined
+
+        if (input === undefined || !partial) return undefined
+        const details = toDetails(partial.details)
+        return {
+          type: "item_updated",
+          item: {
+            id: event.toolCallId,
+            role: "tool",
+            toolCallId: event.toolCallId,
+            toolName: event.toolName,
+            input,
+            content: toolText(partial.content),
+            ...(details === undefined ? {} : { details }),
             timestamp: Date.now(),
             status: "running",
             isError: false,
@@ -223,4 +253,17 @@ export class TranscriptProjection {
 function toolCallArguments(value: JsonValue): { [key: string]: JsonValue } {
   if (typeof value === "object" && value !== null && !Array.isArray(value)) return value
   return {}
+}
+
+const toDetails = (value: unknown) => (value === undefined ? undefined : sanitizeDetails(value))
+
+/** 部分结果里的文本块；其他类型（图片等）在运行中不展示。 */
+function toolText(content: unknown): Array<{ type: "text"; text: string }> {
+  if (!Array.isArray(content)) return []
+  return content.flatMap((part: unknown) => {
+    const block = part as { type?: unknown; text?: unknown }
+    return block?.type === "text" && typeof block.text === "string"
+      ? [{ type: "text" as const, text: block.text }]
+      : []
+  })
 }
