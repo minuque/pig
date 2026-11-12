@@ -167,6 +167,11 @@
   /** macOS 侧栏收起时红绿灯占位：红绿灯簇与间距 60px */
   --size-mac-traffic-lights: 68px;
   --size-drawer: 360px;
+  /* 摘要面板与子会话只读抽屉 */
+  --size-rail: 280px;
+  --size-rail-row: 26px;
+  --size-child-drawer: 560px;
+  --size-dialog-s: 420px;
   --size-settings-body: 56rem;
   --size-settings-dialog-width: 80rem;
   --size-settings-dialog-height: 60rem;
@@ -190,6 +195,8 @@
   /* 侧边栏紧凑图标按钮：图标外 2px */
   --icon-button-pad: 2px;
   --size-scroll-control: 30px;
+  /* 屏外回合未排版前的预估高度；排过一次后浏览器记住真实高度 */
+  --size-turn-estimate: 480px;
   /* 对话正文与输入卡的内容宽度：舒适档 */
   --size-content: 768px;
   /* 正文排版：左右留白、上下留白、轮与行间距、卡片行内边距 */

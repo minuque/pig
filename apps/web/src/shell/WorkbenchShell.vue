@@ -17,6 +17,8 @@
       :refresh-models="pi.refreshModels"
       @update:open="onSettingsToggle"
     />
+
+    <ExtensionUi />
   </Startup>
 
   <AlertToaster />
@@ -28,8 +30,11 @@ import AppLayout from "@components/layout/AppLayout.vue"
 import AlertToaster from "@components/layout/AlertToaster.vue"
 
 import { useLocalWorkspaces } from "@client/local-cwd.js"
-import { usePiClient } from "@client/pi-client.js"
+import { useGatewayClient } from "@client/gateway-connection.js"
 
+import ExtensionUi from "@features/extension-ui/index.vue"
+import { provideExtensionUi } from "@features/extension-ui/index.js"
+import { provideSessionRail } from "@features/session-rail/index.js"
 import SessionNav from "@features/session-nav/index.vue"
 import { provideNav } from "@features/session-nav/index.js"
 import SettingsDialog from "@features/settings/components/SettingsDialog.vue"
@@ -38,12 +43,16 @@ import Startup from "@features/startup/index.vue"
 import { provideSession } from "@features/session-workbench/index.js"
 import { prefetchHighlighter } from "@features/transcript-view/index.js"
 
-const pi = usePiClient()
+const pi = useGatewayClient()
 const cwd = useLocalWorkspaces()
 const session = provideSession(pi, cwd)
 const { settingsOpen, settingsPane, openSettings, closeSettings } = useSettingsDialog()
 
 provideNav(pi, cwd, session)
+
+provideExtensionUi(pi, session)
+
+provideSessionRail()
 
 onMounted(() => {
   prefetchHighlighter()

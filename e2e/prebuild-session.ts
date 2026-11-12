@@ -153,3 +153,15 @@ export function prebuildComplexSession(
   if (!file) throw new Error("预构建未写出会话文件")
   return { id: COMPLEX_SESSION_ID, name: COMPLEX_SESSION_NAME, forked: Boolean(source) }
 }
+
+export const CHILD_SESSION_ID = "e2e-child"
+export const CHILD_MARKER = "子任务里读到了协议层"
+
+/** subagent 开出的子会话：带 pig.subagent 标记，侧栏不列，只能从子任务卡片点开。 */
+export function prebuildChildSession(sessionDir: string, cwd: string) {
+  const manager = SessionManager.create(cwd, sessionDir, { id: CHILD_SESSION_ID })
+  const timestamp = Date.now() - 30_000
+  manager.appendCustomEntry("pig.subagent", { agent: "scout" })
+  manager.appendMessage({ role: "user", content: "摸清协议层", timestamp })
+  manager.appendMessage(assistantMessage([{ type: "text", text: CHILD_MARKER }], timestamp + 1_000))
+}

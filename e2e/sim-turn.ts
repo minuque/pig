@@ -1,20 +1,14 @@
 import type { Page, WebSocketRoute } from "@playwright/test"
-import {
-  ClientMessageDecoder,
-  ServerMessageDecoder,
-  encodeClientMessage,
-  encodeServerMessage,
-  type SessionSnapshot,
-  type TranscriptItem,
-} from "@earendil-works/pi-protocol"
+import type { ClientMessage, ServerMessage, SessionSnapshot, TranscriptItem } from "@pig/protocol"
 
 export const TURN_PROMPT = "e2e 继续这一轮"
 export const TURN_TOKEN = "e2e 首 token"
 export const TURN_STREAM_ID = "e2e-turn"
 export const STOP_TURN = "停止当前 Turn"
 
-function asBytes(data: Buffer | ArrayBuffer | Uint8Array): Uint8Array {
-  return data instanceof Uint8Array ? data : new Uint8Array(data)
+function decode<T>(data: string | Buffer): T {
+  if (typeof data !== "string") throw new Error("e2e 收到非文本协议消息")
+  return JSON.parse(data) as T
 }
 
 /**
@@ -35,11 +29,10 @@ export async function installTurnBridge(page: Page, options: { holdPromptReply?:
     socket = route
     upstream = route.connectToServer()
     connections += 1
-    const serverDecoder = new ServerMessageDecoder()
-    const clientDecoder = new ClientMessageDecoder()
-    const send = (message: Parameters<typeof encodeServerMessage>[0]) => {
+
+    const send = (message: ServerMessage) => {
       if (!socket) throw new Error("e2e WebSocket 尚未建立")
-      socket.send(Buffer.from(encodeServerMessage(message)))
+      socket.send(JSON.stringify(message))
     }
     const reply = (id: string, command: "prompt" | "abort", session: SessionSnapshot) => {
       send({ type: "response", id, ok: true, result: { command, session } })
@@ -54,9 +47,9 @@ export async function installTurnBridge(page: Page, options: { holdPromptReply?:
     }
 
     upstream.onMessage((data) => {
-      if (typeof data === "string") throw new Error("e2e 收到非二进制协议消息")
+      {
+        const message = decode<ServerMessage>(data)
 
-      for (const message of serverDecoder.push(asBytes(data))) {
         if (message.type === "event" && message.event.type === "session_snapshot")
           snapshots.set(message.event.snapshot.id, message.event.snapshot)
 
@@ -67,18 +60,16 @@ export async function installTurnBridge(page: Page, options: { holdPromptReply?:
       route.send(data)
     })
     route.onMessage((data) => {
-      if (typeof data === "string") throw new Error("e2e 收到非二进制协议消息")
-
       if (!upstream) throw new Error("e2e WebSocket 尚未连接上游")
 
-      for (const message of clientDecoder.push(asBytes(data))) {
-        if (message.type === "request" && message.request.command === "prompt") {
-          const sessionId = message.request.sessionId
+      for (const message of [decode<ClientMessage>(data)]) {
+        if (message.type === "request" && message.command.command === "prompt") {
+          const sessionId = message.command.sessionId
           const session = patch(sessionId, "turn")
           const userItem = {
             id: "e2e-user",
             role: "user" as const,
-            content: [{ type: "text" as const, text: message.request.text }],
+            content: [{ type: "text" as const, text: message.command.message }],
             timestamp: Date.now(),
           }
 
@@ -101,8 +92,8 @@ export async function installTurnBridge(page: Page, options: { holdPromptReply?:
           continue
         }
 
-        if (message.type === "request" && message.request.command === "abort") {
-          const sessionId = message.request.sessionId
+        if (message.type === "request" && message.command.command === "abort") {
+          const sessionId = message.command.sessionId
           const session = patch(sessionId, "idle")
           send({
             type: "event",
@@ -135,7 +126,7 @@ export async function installTurnBridge(page: Page, options: { holdPromptReply?:
           continue
         }
 
-        upstream.send(Buffer.from(encodeClientMessage(message)))
+        upstream.send(JSON.stringify(message))
       }
     })
   })
@@ -144,9 +135,9 @@ export async function installTurnBridge(page: Page, options: { holdPromptReply?:
     /** 收到过 prompt 的会话 id，按到达顺序。 */
     prompted,
     connections: () => connections,
-    send(message: Parameters<typeof encodeServerMessage>[0]) {
+    send(message: ServerMessage) {
       if (!socket) throw new Error("e2e WebSocket 尚未建立")
-      socket.send(Buffer.from(encodeServerMessage(message)))
+      socket.send(JSON.stringify(message))
     },
     waitForPrompt() {
       if (promptSessionId) return Promise.resolve(promptSessionId)

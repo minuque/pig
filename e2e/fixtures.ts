@@ -1,4 +1,5 @@
 import { test as base, expect, type Page } from "@playwright/test"
+import { mkdirSync, writeFileSync } from "node:fs"
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { dirname, join, resolve } from "node:path"
@@ -8,7 +9,12 @@ import Gateway from "../packages/gateway/src/index.js"
 import type { DirectoryPort } from "../packages/gateway/src/directory.js"
 import { createFakeRuntime, type FakeProviderSpec } from "./fake-model-runtime.js"
 import { BUILTIN_PROVIDERS } from "./fake-provider-registry.js"
-import { prebuildComplexSession, prebuildFillerSessions } from "./prebuild-session.js"
+import { prepareRemote } from "./remote-fixture.js"
+import {
+  prebuildComplexSession,
+  prebuildFillerSessions,
+  prebuildChildSession,
+} from "./prebuild-session.js"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const webRoot = join(root, "apps/web/dist")
@@ -86,6 +92,12 @@ type TestFixtures = {
   modelsGateway: E2eGateway
   /** 没有任何可用模型，用来验 Composer 空态。 */
   emptyModelsGateway: E2eGateway
+  /** 临时 agentDir 里装一个会弹框的扩展，用来验扩展 UI。 */
+  extensionGateway: E2eGateway
+  /** 一个普通会话加一个 subagent 子会话，用来验摘要面板与子会话抽屉。 */
+  subagentGateway: E2eGateway
+  /** 登记一台替身 SSH 主机（底下是本机目录），用来验远程 workspace。 */
+  remoteGateway: E2eGateway
 }
 
 /** 起 Gateway 并躲开 Chromium 禁用端口。 */
@@ -106,6 +118,10 @@ async function startGateway(options: ConstructorParameters<typeof Gateway>[0]) {
 async function withGateway(
   seed: (sessionDir: string, workspaceDir: string) => void,
   use: (gateway: E2eGateway) => Promise<void>,
+  /** 给出时用临时 agentDir，隔离本机 ~/.pi 的模型与扩展。 */
+  prepareAgent?: (agentDir: string) => Promise<void>,
+  /** 额外的 Gateway 选项，按临时目录生成。 */
+  extra?: (temp: string) => Promise<ConstructorParameters<typeof Gateway>[0]>,
 ) {
   const temp = await mkdtemp(join(tmpdir(), "pig-e2e-"))
   const workspaceDir = join(temp, "workspace")
@@ -114,6 +130,12 @@ async function withGateway(
   await mkdir(sessionDir)
   await writeFile(join(workspaceDir, ".keep"), "")
   seed(sessionDir, workspaceDir)
+  const agentDir = prepareAgent ? join(temp, "agent") : undefined
+
+  if (agentDir && prepareAgent) {
+    await mkdir(agentDir)
+    await prepareAgent(agentDir)
+  }
 
   const workspaceId = canonicalizeWorkspacePath(workspaceDir)
   const platformPort: DirectoryPort = {
@@ -130,6 +152,8 @@ async function withGateway(
     cwd: workspaceDir,
     platformPort,
     port: 0,
+    ...(agentDir ? { agentDir } : {}),
+    ...(extra ? await extra(temp) : {}),
   })
 
   try {
@@ -371,6 +395,68 @@ export const test = base.extend<TestFixtures>({
     },
     { scope: "test" },
   ],
+  extensionGateway: [
+    async ({}, use) => {
+      await withGateway(() => undefined, use, prepareExtensionAgent)
+    },
+    { scope: "test" },
+  ],
+  subagentGateway: [
+    async ({}, use) => {
+      await withGateway((sessionDir, workspaceDir) => {
+        prebuildFillerSessions(sessionDir, workspaceDir, 1)
+        prebuildChildSession(sessionDir, workspaceDir)
+      }, use)
+    },
+    { scope: "test" },
+  ],
+  remoteGateway: [
+    async ({}, use) => {
+      await withGateway(
+        (_sessionDir, workspaceDir) => {
+          mkdirSync(join(workspaceDir, "src"))
+          writeFileSync(join(workspaceDir, "src", "remote-only.ts"), "")
+        },
+        use,
+        prepareExtensionAgent,
+        prepareRemote,
+      )
+    },
+    { scope: "test" },
+  ],
 })
+export const EXTENSION_TITLE = "扩展想确认一件事"
+export const EXTENSION_YES = "扩展收到：是"
+
+/** 一个离线可选的本地模型，加一个 /ask 命令：confirm 之后把答案用 notify 报出来。 */
+async function prepareExtensionAgent(agentDir: string) {
+  await writeFile(
+    join(agentDir, "models.json"),
+    JSON.stringify({
+      providers: {
+        local: {
+          name: "本地",
+          baseUrl: "http://127.0.0.1:9/v1",
+          api: "openai-completions",
+          apiKey: "e2e",
+          models: [{ id: "e2e-model" }],
+        },
+      },
+    }),
+  )
+  await mkdir(join(agentDir, "extensions"))
+  await writeFile(
+    join(agentDir, "extensions", "ask.ts"),
+    `export default function (pi) {
+      pi.registerCommand("ask", {
+        description: "ask",
+        handler: async (_args, ctx) => {
+          const ok = await ctx.ui.confirm("${EXTENSION_TITLE}", "要不要继续")
+          ctx.ui.notify(ok ? "${EXTENSION_YES}" : "否", "info")
+        },
+      })
+    }`,
+  )
+}
 
 export { expect }

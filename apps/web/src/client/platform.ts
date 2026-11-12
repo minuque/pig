@@ -15,20 +15,39 @@ import type {
 import type { SessionCard } from "@/types/session-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 
+/** 选目录；给 environment（ssh://主机）时校验远端目录。 */
 export async function selectDirectory(
   path?: string,
+  environment?: string,
 ): Promise<{ path: string | null; requiresManualInput: boolean }> {
   const result = await platformRequest<{
     path: string | null
     requiresManualInput?: boolean
   }>(
     "/api/v1/platform/select-directory",
-    path === undefined ? { method: "POST" } : { method: "POST", body: JSON.stringify({ path }) },
+    path === undefined
+      ? { method: "POST" }
+      : { method: "POST", body: JSON.stringify({ path, environment }) },
   )
   return {
     path: result.path,
     requiresManualInput: Boolean(result.requiresManualInput),
   }
+}
+
+export type EnvironmentInfo = {
+  id: string
+  kind: "local" | "ssh"
+  host?: string
+  defaultPath?: string
+}
+
+/** 可选环境：本机、pig 保存的环境、~/.ssh/config 里的主机。 */
+export async function listEnvironments(): Promise<EnvironmentInfo[]> {
+  const result = await platformRequest<{ environments: EnvironmentInfo[] }>(
+    "/api/v1/platform/environments",
+  )
+  return result.environments
 }
 
 /** 通知 Host 这个目录马上要用来建会话；Host 在后台预热同一份扩展与技能。 */
@@ -222,14 +241,11 @@ function isTurnTiming(value: unknown): value is TurnTiming {
   )
 }
 
+/** 会话全部历史的轻量形态：大块工具输出被截断，展开时用 transcriptItem 取回。 */
 export async function sessionTranscript(
   sessionId: string,
-  before?: string,
 ): Promise<{ items: TranscriptItem[]; timings: TurnTiming[]; hasMore: boolean }> {
   const query = new URLSearchParams({ sessionId })
-
-  if (before) query.set("before", before)
-
   const result = await platformRequest<{
     items: TranscriptItem[]
     timings?: unknown[]
@@ -240,6 +256,18 @@ export async function sessionTranscript(
     timings: Array.isArray(result.timings) ? result.timings.filter(isTurnTiming) : [],
     hasMore: Boolean(result.hasMore),
   }
+}
+
+/** 单条完整条目；找不到时返回 undefined。 */
+export async function transcriptItem(
+  sessionId: string,
+  id: string,
+): Promise<TranscriptItem | undefined> {
+  const query = new URLSearchParams({ sessionId, id })
+  const result = await platformRequest<{ item?: TranscriptItem }>(
+    `/api/v1/platform/transcript/item?${query.toString()}`,
+  )
+  return result.item
 }
 
 export async function contextUsage(sessionId: string): Promise<ContextUsageEstimate | null> {

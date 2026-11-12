@@ -17,6 +17,8 @@
     </div>
 
     <WorkbenchHeader :class="{ 'is-overlay': showHero }" />
+    <SessionRail v-if="!showHero" />
+    <RemoteWorkspaceDialog v-model:open="remoteOpen" :add="addRemoteWorkspace" />
 
     <div class="conversation-column">
       <StartupError v-if="pageError" v-bind="pageError" />
@@ -35,6 +37,7 @@
                 :adding="addingWorkspace"
                 :ready="connected"
                 @add="addWorkspace()"
+                @add-remote="remoteOpen = true"
               />
             </div>
           </Transition>
@@ -49,9 +52,6 @@
             :sending="submitting"
             :stopping="aborting"
             :timings="turnTimings"
-            :has-more="historyHasMore"
-            :loading-older="loadingOlder"
-            @load-older="loadOlderHistory"
           />
         </div>
 
@@ -136,6 +136,8 @@ import { useComposerDock } from "@features/session-workbench/hooks/use-composer-
 import { useSessionDrop } from "@features/session-workbench/hooks/use-session-drop.js"
 import { useTurnFinish } from "@features/session-workbench/hooks/use-turn-finish.js"
 import TranscriptView from "@features/transcript-view/index.vue"
+import SessionRail from "@features/session-rail/index.vue"
+import RemoteWorkspaceDialog from "@features/remote-workspace/index.vue"
 import { prefetchTranscriptView } from "@features/transcript-view/index.js"
 import { ArrowDownIcon, DocumentAddIcon, LoaderIcon } from "@components/icons/index.js"
 
@@ -161,9 +163,6 @@ const route = useRoute()
 const {
   sessionId,
   transcript,
-  historyHasMore,
-  loadingOlder,
-  loadOlderHistory,
   turnTimings,
   running,
   phase,
@@ -186,7 +185,8 @@ const {
   setWelcomeHandoff,
   transcriptFor,
 } = useSession()
-const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
+const { groups, lastCwd, addingWorkspace, addWorkspace, addRemoteWorkspace } = useNav()
+const remoteOpen = ref(false)
 /** 与侧栏同一份目录：已授权 local + 会话 cwd。 */
 const workspaces = computed(() => groups.value.map((group) => group.canonicalPath))
 const pageError = computed(() => {
@@ -443,6 +443,8 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 <style scoped>
 .session-panel {
   position: relative;
+  /* 摘要面板按会话面板宽度决定常驻还是收成按钮 */
+  container: session-panel / inline-size;
   flex: 1;
   min-height: 0;
   display: flex;

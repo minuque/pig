@@ -1,3 +1,4 @@
+import type { SessionMetadata } from "@pig/protocol"
 import type { SessionEntry } from "@earendil-works/pi-coding-agent"
 
 /** 当前分支第一条用户句正文，供未命名会话当列表名。 */
@@ -42,4 +43,21 @@ export function sessionListName(info: {
 
   if (!first) return undefined
   return first.length > 48 ? `${first.slice(0, 48)}…` : first
+}
+
+/** 最近使用过的会话目录；网关启动时按它预热，与会话文件里存的是同一个目录。 */
+export function recentSessionCwd(sessions: readonly SessionMetadata[]): string | undefined {
+  let latest: SessionMetadata | undefined
+
+  for (const session of sessions) {
+    if (!session.cwd) continue
+
+    if (!latest || usedAt(session) > usedAt(latest)) latest = session
+  }
+
+  return latest?.cwd
+}
+
+function usedAt(session: SessionMetadata): number {
+  return session.updatedAt ?? session.createdAt
 }

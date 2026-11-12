@@ -1,44 +1,18 @@
-import type { TranscriptItem } from "@earendil-works/pi-protocol"
-import type { TurnTiming } from "./turn-timing.js"
+import type { TranscriptItem } from "@pig/protocol"
 
-/** 打开会话只吐最近三轮，上翻再要更早。 */
-export const TRANSCRIPT_PAGE_TURNS = 3
+/** 历史里单段工具文本的上限；超出部分展开时再取。 */
+export const LIGHT_TOOL_TEXT = 4_000
 
-/** 从 before 之前（或全文末尾）往回取一轮用户句及其后内容。 */
-export function pageTranscriptItems(
-  items: readonly TranscriptItem[],
-  options: { before?: string } = {},
-): { items: TranscriptItem[]; hasMore: boolean } {
-  let end = items.length
-
-  if (options.before) {
-    const at = items.findIndex((item) => item.id === options.before)
-
-    if (at <= 0) return { items: [], hasMore: false }
-    end = at
-  }
-
-  const prefix = items.slice(0, end)
-  let remaining = TRANSCRIPT_PAGE_TURNS
-  let start = 0
-
-  for (let i = prefix.length - 1; i >= 0; i -= 1) {
-    if (prefix[i]?.role !== "user") continue
-    remaining -= 1
-
-    if (remaining === 0) {
-      start = i
-      break
-    }
-  }
-
-  return { items: prefix.slice(start), hasMore: start > 0 }
-}
-
-export function pageTurnTimings(
-  timings: readonly TurnTiming[],
-  items: readonly TranscriptItem[],
-): TurnTiming[] {
-  const users = new Set(items.filter((item) => item.role === "user").map((item) => item.id))
-  return timings.filter((timing) => users.has(timing.userId))
+/** 打开会话发的轻量形态：工具的大块文本截到开头并标记，其余原样。 */
+export function lightTranscript(items: readonly TranscriptItem[]): TranscriptItem[] {
+  return items.map((item) => {
+    if (item.role !== "tool") return item
+    let truncated = false
+    const content = item.content.map((part) => {
+      if (part.type !== "text" || part.text.length <= LIGHT_TOOL_TEXT) return part
+      truncated = true
+      return { ...part, text: part.text.slice(0, LIGHT_TOOL_TEXT) }
+    })
+    return truncated ? { ...item, content, truncated } : item
+  })
 }

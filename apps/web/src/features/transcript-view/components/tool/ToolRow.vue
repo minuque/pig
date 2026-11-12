@@ -68,14 +68,15 @@
     </Dialog>
 
     <div v-if="open" class="tool-row-body">
-      <ToolCommandBody v-if="variant === 'command'" :call="call" />
+      <ToolSubagentBody v-if="call.toolName === 'subagent'" :call="shownCall" />
+      <ToolCommandBody v-else-if="variant === 'command'" :call="shownCall" />
 
       <ToolFileBody
         v-else-if="variant === 'read' || variant === 'edit' || variant === 'search'"
-        :call="call"
+        :call="shownCall"
       />
 
-      <ToolGenericBody v-else :call="call" />
+      <ToolGenericBody v-else :call="shownCall" />
     </div>
   </div>
 </template>
@@ -90,6 +91,7 @@ import { RollText } from "@components/ui/roll-text/index.js"
 import ToolCommandBody from "@features/transcript-view/components/tool/ToolCommandBody.vue"
 import ToolFileBody from "@features/transcript-view/components/tool/ToolFileBody.vue"
 import ToolGenericBody from "@features/transcript-view/components/tool/ToolGenericBody.vue"
+import ToolSubagentBody from "@features/transcript-view/components/tool/ToolSubagentBody.vue"
 import {
   toolCallLiveVerb,
   toolCallTarget,
@@ -99,6 +101,7 @@ import {
 import { itemLineChange, readToolPreview } from "@features/transcript-view/lib/tool-summary.js"
 import { transcriptImageSrc } from "@features/transcript-view/lib/transcript-format.js"
 import { formatElapsed } from "@utils/time.js"
+import { useFullToolOutput } from "@features/transcript-view/hooks/use-full-tool-output.js"
 import type { ToolCallView } from "@features/transcript-view/type.js"
 
 const props = defineProps<{
@@ -108,6 +111,11 @@ const props = defineProps<{
 const emit = defineEmits<{ toggle: [open: boolean] }>()
 const { t } = useI18n()
 const previewOpen = ref(false)
+const fullCall = useFullToolOutput(
+  () => props.call,
+  () => props.open,
+)
+const shownCall = computed(fullCall)
 const variant = computed(() => toolCallVariant(props.call))
 const verb = computed(() => toolCallVerb(props.call))
 const liveVerb = computed(() => (props.call.running ? toolCallLiveVerb(props.call) : null))

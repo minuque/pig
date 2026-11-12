@@ -1,5 +1,14 @@
 <template>
-  <div class="turn" :data-turn-id="turn.id">
+  <div
+    v-if="!shown"
+    ref="placeholder"
+    class="turn is-deferred"
+    :data-turn-id="turn.id"
+    :data-row-id="turn.rows[0]?.id"
+    :data-minimap-row="turn.rows[0]?.role === 'user' ? turn.rows[0].id : undefined"
+  />
+
+  <div v-else class="turn" :data-turn-id="turn.id">
     <div
       v-for="row in turn.rows"
       :key="row.id"
@@ -33,7 +42,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref, useTemplateRef } from "vue"
+import { useIntersectionObserver } from "@vueuse/core"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import TurnErrorRow from "@features/transcript-view/components/TurnErrorRow.vue"
 import ToolRun from "@features/transcript-view/components/tool/ToolRun.vue"
@@ -47,11 +57,29 @@ const props = defineProps<{
   running: boolean
   isExpand: (id: string) => boolean | undefined
   expandedTools: Map<string, boolean>
+  /** false 时先占位，滚到附近再挂载内容；挂过一次就一直保留。 */
+  eager: boolean
 }>()
 const emit = defineEmits<{
   toggleExpand: [id: string, open: boolean]
   toggleTool: [rowId: string, id: string, open: boolean]
+  shown: [id: string]
 }>()
+const shown = ref(props.eager)
+const placeholder = useTemplateRef("placeholder")
+const { stop } = useIntersectionObserver(
+  placeholder,
+  ([entry]) => {
+    if (!entry?.isIntersecting) return
+    shown.value = true
+    emit("shown", props.turn.id)
+    stop()
+  },
+  { rootMargin: "200% 0px" },
+)
+
+if (shown.value) stop()
+
 /** 一轮的错误只保留一条：从末尾找最近一次带错误状态的助手行。 */
 const turnError = computed(() => {
   for (let index = props.turn.rows.length - 1; index >= 0; index -= 1) {
@@ -77,6 +105,17 @@ const turnError = computed(() => {
 
 .turn + .turn {
   margin-block-start: var(--transcript-turn-gap);
+}
+
+/* 还没挂载内容的回合按预估高度占位，滚动条长度接近真实 */
+.turn.is-deferred {
+  min-block-size: var(--size-turn-estimate);
+}
+
+/* 屏外的已完成回合跳过排版与绘制；最后一轮在流式中，始终正常渲染 */
+.turn:not(:last-child) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto var(--size-turn-estimate);
 }
 
 .row {

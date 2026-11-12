@@ -1,49 +1,80 @@
-import type { TranscriptItem } from "@earendil-works/pi-protocol"
+import type { TranscriptItem } from "@pig/protocol"
 import { expect, seedWorkspace, test } from "./fixtures.js"
 import { COMPLEX_SESSION_ID, COMPLEX_SESSION_NAME } from "./prebuild-session.js"
 
-/** 两页历史：首屏拿最新一页并标记还有更早的，点按钮再拿上一页。 */
-const LATEST: TranscriptItem[] = [
-  { id: "n-u1", role: "user", content: [{ type: "text", text: "较新的问题" }], timestamp: 10 },
-  {
-    id: "n-a1",
-    role: "assistant",
-    content: [{ type: "text", text: "较新的回答" }],
-    model: { provider: "test", id: "model" },
-    timestamp: 11,
-    status: "complete",
-    stopReason: "stop",
-  },
-] as TranscriptItem[]
-const OLDER: TranscriptItem[] = [
-  { id: "o-u1", role: "user", content: [{ type: "text", text: "更早的问题" }], timestamp: 1 },
-  {
-    id: "o-a1",
-    role: "assistant",
-    content: [{ type: "text", text: "更早的回答" }],
-    model: { provider: "test", id: "model" },
-    timestamp: 2,
-    status: "complete",
-    stopReason: "stop",
-  },
-] as TranscriptItem[]
+const TURNS = 8
+const PREVIEW = "输出开头"
+const FULL = `${PREVIEW}……完整输出的结尾`
 
-test("点按钮按 before 取上一页历史，接在头部且不重复", async ({ page, complexGateway }) => {
+/** 八轮问答，最后一轮带一条被截断的工具输出。 */
+function history(): TranscriptItem[] {
+  const items: TranscriptItem[] = []
+
+  for (let turn = 1; turn <= TURNS; turn += 1) {
+    items.push({
+      id: `u${turn}`,
+      role: "user",
+      content: [{ type: "text", text: `第 ${turn} 个问题` }],
+      timestamp: turn * 10,
+    })
+    items.push({
+      id: `a${turn}`,
+      role: "assistant",
+      content: [
+        { type: "text", text: `第 ${turn} 个回答` },
+        ...(turn === TURNS
+          ? [
+              {
+                type: "toolCall" as const,
+                toolCallId: "big",
+                toolName: "bash",
+                input: { command: "ls" },
+              },
+            ]
+          : []),
+      ],
+      model: { provider: "test", id: "model" },
+      timestamp: turn * 10 + 1,
+      status: "complete",
+      stopReason: turn === TURNS ? "toolUse" : "stop",
+    })
+  }
+
+  items.push({
+    id: "big",
+    role: "tool",
+    toolCallId: "big",
+    toolName: "bash",
+    input: { command: "ls" },
+    content: [{ type: "text", text: PREVIEW }],
+    timestamp: TURNS * 10 + 2,
+    status: "complete",
+    isError: false,
+    truncated: true,
+  })
+  return items
+}
+
+test("打开会话一次显示全部历史；展开被截断的工具输出时取回完整内容", async ({
+  page,
+  complexGateway,
+}) => {
   await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, complexGateway.workspaceId)
+  const fetched: string[] = []
 
-  const before: string[] = []
-
-  await page.route("**/api/v1/platform/transcript**", (route) => {
-    const cursor = new URL(route.request().url()).searchParams.get("before")
-
-    if (cursor) before.push(cursor)
-
-    const payload = cursor
-      ? { items: OLDER, timings: [], hasMore: false }
-      : { items: LATEST, timings: [], hasMore: true }
-    return route.fulfill({ contentType: "application/json", body: JSON.stringify(payload) })
+  await page.route("**/api/v1/platform/transcript/item**", (route) => {
+    const id = new URL(route.request().url()).searchParams.get("id") ?? ""
+    fetched.push(id)
+    const item = { ...history().at(-1), content: [{ type: "text", text: FULL }], truncated: false }
+    return route.fulfill({ contentType: "application/json", body: JSON.stringify({ item }) })
   })
+  await page.route("**/api/v1/platform/transcript?**", (route) =>
+    route.fulfill({
+      contentType: "application/json",
+      body: JSON.stringify({ items: history(), timings: [], hasMore: false }),
+    }),
+  )
 
   await page.goto(complexGateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
@@ -51,34 +82,22 @@ test("点按钮按 before 取上一页历史，接在头部且不重复", async 
     .locator(".session-card", { has: page.getByText(COMPLEX_SESSION_NAME, { exact: true }) })
     .click()
   await expect(page).toHaveURL(new RegExp(`/sessions/${COMPLEX_SESSION_ID}$`))
-  await expect(page.getByText("较新的问题", { exact: true })).toBeVisible({ timeout: 30_000 })
-
-  const older = page.getByText("更早的问题", { exact: true })
-
-  await expect(older).toHaveCount(0)
-
-  // 滚到顶不自动拉：只有点按钮才取上一页
+  await expect(page.getByText(`第 ${TURNS} 个回答`, { exact: true })).toBeVisible({
+    timeout: 30_000,
+  })
+  // 不用点按钮：往上滚到顶，最早一轮就在
   await page.locator("#transcript-panel").evaluate((el) => {
     el.scrollTop = 0
-    el.dispatchEvent(new Event("scroll"))
-    el.dispatchEvent(new WheelEvent("wheel", { deltaY: -120, bubbles: true }))
   })
-  await expect(older).toHaveCount(0)
-
-  const more = page.locator(".older-button")
-  await expect(more).toBeVisible()
-  await more.click()
-
-  await expect(older).toBeVisible()
-  await expect(page.getByText("更早的回答", { exact: true })).toBeVisible()
-  // 分页游标用的是当前窗口第一条
-  expect(before).toEqual(["n-u1"])
-  // 更早的一页接在头部，不再有下一页时入口收起
-  const olderBox = await older.boundingBox()
-  const newerBox = await page.getByText("较新的问题", { exact: true }).boundingBox()
-
-  expect(olderBox?.y ?? 0).toBeLessThan(newerBox?.y ?? 0)
+  await expect(page.getByText("第 1 个问题", { exact: true })).toBeVisible()
+  await page.locator("#transcript-panel").evaluate((el) => {
+    el.scrollTop = el.scrollHeight
+  })
   await expect(page.locator(".older-button")).toHaveCount(0)
-  // 老行保留，没有整页替换
-  await expect(page.getByText("较新的回答", { exact: true })).toBeVisible()
+  expect(fetched).toEqual([])
+
+  await page.locator(".row-tools .tool-run-summary").last().click()
+  await page.locator(".tool-row-trigger").last().click()
+  await expect(page.getByText(FULL)).toBeVisible()
+  expect(fetched).toEqual(["big"])
 })

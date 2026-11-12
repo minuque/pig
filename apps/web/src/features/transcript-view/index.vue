@@ -8,9 +8,6 @@
     :sending="sending"
     :stopping="stopping"
     :timings="timings"
-    :has-more="hasMore"
-    :loading-older="loadingOlder"
-    @load-older="emit('loadOlder')"
   />
 </template>
 
@@ -35,15 +32,10 @@ withDefaults(
     sending?: boolean
     stopping?: boolean
     timings?: readonly TurnTiming[] | undefined
-    hasMore?: boolean
-    loadingOlder?: boolean
   }>(),
-  { hasMore: false, loadingOlder: false },
+  {},
 )
 
-const emit = defineEmits<{
-  loadOlder: []
-}>()
 const body = useTemplateRef("body")
 const showScrollToLatest = computed(() => body.value?.showScrollToLatest ?? false)
 

@@ -1,19 +1,23 @@
 import type { AgentSession, AgentSessionEvent } from "@earendil-works/pi-coding-agent"
 import type {
+  ExtensionUiResponse,
   ModelRef,
   SessionPhase,
   SessionSnapshot,
   ThinkingLevel,
   TranscriptProgress,
-} from "@earendil-works/pi-protocol"
-import { PiServerError, SessionBusyError } from "@earendil-works/pi-server"
+} from "@pig/protocol"
+import { environmentFor } from "@pig/environment"
+import { GatewayError, SessionBusyError } from "./runtime-types.js"
 import type {
-  PiSessionRuntime,
-  PiSessionRuntimeEvent,
+  SessionRuntime,
+  SessionRuntimeEvent,
   PromptInput,
   SteerInput,
-} from "@earendil-works/pi-server"
+} from "./runtime-types.js"
 import { canonicalizePath } from "../directory.js"
+import { sessionBinding, sessionWorkspace, uploadAttachments } from "./remote-session.js"
+import { ExtensionUiBridge } from "./extension-ui.js"
 import { composePrompt, type AttachmentSink } from "./attachments.js"
 import { expandFileMentions } from "./file-mentions.js"
 import { estimateContextUsage, type ContextPreviewKey } from "./context-usage.js"
@@ -34,25 +38,37 @@ const SNAPSHOT_SKIP_EVENTS = new Set([
   "tool_execution_update",
   "bash_execution_update",
 ])
-/** 同一条流式消息的连续 item_updated 合流窗口：只发最后一帧，降低 WS 与客户端克隆开销。 */
+/** 流式合流窗口：同块的连续增量拼成一条，同条目的连续整条更新只留最后一帧。 */
 const PROGRESS_COALESCE_MS = 16
 
+type StreamingProgress = Extract<TranscriptProgress, { type: "item_updated" | "assistant_delta" }>
+
+/** 两帧是否落在同一个流上：同块增量，或同条目的整条更新。 */
+function sameStream(a: StreamingProgress, b: StreamingProgress): boolean {
+  if (a.type === "assistant_delta" && b.type === "assistant_delta")
+    return a.messageId === b.messageId && a.contentIndex === b.contentIndex && a.kind === b.kind
+  return a.type === "item_updated" && b.type === "item_updated" && a.item.id === b.item.id
+}
+
 /**
- * 一个已获取的 AgentSession 的 PiServer 运行时。
+ * 一个已获取的 AgentSession 的会话运行时。
  *
  * 冲突操作（并发 prompt、idle 时 steer/setModel/setThinking）按协议拒绝，
  * 不排队。phase 由 AgentSession 状态推导；branch_summary 与 compaction
  * 共享 isCompacting（Pi 未暴露区分 API），统一按 compaction 展示。
  */
-export class PiHostSession implements PiSessionRuntime {
+export class PiHostSession implements SessionRuntime {
   private readonly projection = new TranscriptProjection()
-  private readonly listeners = new Set<(event: PiSessionRuntimeEvent) => void>()
+  private readonly listeners = new Set<(event: SessionRuntimeEvent) => void>()
   private readonly unsubscribeSession: () => void
   private revision = 0
   private busy: Promise<void> | undefined
   private disposed = false
   private readonly timing: TurnTimingRecorder
-  private pendingUpdateProgress: Extract<TranscriptProgress, { type: "item_updated" }> | undefined
+  private readonly ui = new ExtensionUiBridge((request) =>
+    this.emit({ type: "extension_ui", request }),
+  )
+  private pendingProgress: StreamingProgress[] = []
   private pendingUpdateTimer: ReturnType<typeof setTimeout> | undefined
 
   constructor(
@@ -70,7 +86,12 @@ export class PiHostSession implements PiSessionRuntime {
 
   /** 会话工作目录（规范化拼写）；目录白名单等权限判断用。 */
   get cwd(): string {
-    return canonicalizePath(this.session.sessionManager.getCwd())
+    return sessionWorkspace(this.session.sessionManager)
+  }
+
+  /** 会话持有的资源 loader；含扩展在会话启动后补进来的 skills。 */
+  get loader() {
+    return this.session.resourceLoader
   }
 
   historyTranscript() {
@@ -85,6 +106,9 @@ export class PiHostSession implements PiSessionRuntime {
     if (!model) throw new Error("Session has no active model")
 
     const manager = session.sessionManager
+    // 先推出合帧中的增量：快照里的在途消息已含这些文字，之后再发就会重复
+    this.emitPendingUpdate()
+    const inFlight = this.projection.inFlight(session.state.streamingMessage)
     // 只投影当前分支：getEntries 含被 branch 放弃的条目，会显示错误的 Transcript
     const entries = manager.getBranch()
     const createdAt = this.sessionCreatedAt()
@@ -96,18 +120,18 @@ export class PiHostSession implements PiSessionRuntime {
     return {
       id: session.sessionId,
       ...(listName === undefined ? {} : { name: listName }),
-      cwd: canonicalizePath(manager.getCwd()),
+      cwd: sessionWorkspace(manager),
       createdAt,
       updatedAt: this.sessionUpdatedAt(entries, createdAt),
       phase: this.getPhase(),
       model: { provider: model.provider, id: model.id },
       thinkingLevel: session.thinkingLevel,
-      attached: false, // 由 PiServer 按连接状态覆盖
-      // PiServer 的 normalizedSnapshot 恒覆盖 locked，此处占位
+      attached: false, // 由协议层按连接状态覆盖
+      // 协议层快照恒覆盖 locked，此处占位
       locked: false,
       revision: this.revision,
-      // 全文走 platform HTTP；协议 snapshot 带上会触发 Typebox 校验，打开长会话要数十秒。
-      transcript: [],
+      // 全文走 platform HTTP；只带正在生成的那条，中途挂上的连接才接得上增量
+      transcript: inFlight ? [inFlight] : [],
       queuedSteer: steering.map((text, index) => ({
         id: `steer-${index}`,
         role: "user",
@@ -134,16 +158,18 @@ export class PiHostSession implements PiSessionRuntime {
       if (!this.session.isIdle) throw new SessionBusyError("A prompt is already running")
       // 先取暂存附件：busy 已提前拒绝，取走后 prompt 失败要放回，避免附件静默丢失
       const staged = this.attachments?.take(this.session.sessionId) ?? []
-      const expanded = expandFileMentions(
-        input.text,
-        canonicalizePath(this.session.sessionManager.getCwd()),
-      )
+      const expanded = this.expandMentions(input.text)
       // 无 @token 时同步短路，prompt 的 timing.start 保持同一拍
       const text = expanded instanceof Promise ? await expanded : expanded
-      const composed = composePrompt(text, staged)
       this.timing.start()
 
       try {
+        const binding = sessionBinding(this.session.sessionManager.getEntries())
+        const composed = composePrompt(
+          text,
+          binding ? await uploadAttachments(binding, this.session.sessionId, staged) : staged,
+        )
+
         await this.session.prompt(
           composed.text,
           composed.images.length ? { images: composed.images } : undefined,
@@ -167,10 +193,7 @@ export class PiHostSession implements PiSessionRuntime {
     if (this.session.isIdle) throw new SessionBusyError("There is no active prompt to steer")
 
     // 与 prompt 同一条 @ 展开路径，运行中追加的文件引用同样内联
-    const expanded = expandFileMentions(
-      input.text,
-      canonicalizePath(this.session.sessionManager.getCwd()),
-    )
+    const expanded = this.expandMentions(input.text)
     const text = expanded instanceof Promise ? await expanded : expanded
 
     // 读文件期间 turn 可能已结束，steer 会在空闲会话里静默排队
@@ -190,7 +213,7 @@ export class PiHostSession implements PiSessionRuntime {
       const resolved = this.session.modelRuntime.getModel(model.provider, model.id)
 
       if (!resolved) {
-        throw new PiServerError(
+        throw new GatewayError(
           "invalid_request",
           `Model ${model.provider}/${model.id} is unavailable`,
         )
@@ -212,19 +235,52 @@ export class PiHostSession implements PiSessionRuntime {
     this.session.setSessionName(name)
   }
 
-  subscribe(listener: (event: PiSessionRuntimeEvent) => void): () => void {
+  subscribe(listener: (event: SessionRuntimeEvent) => void): () => void {
     this.listeners.add(listener)
     return () => this.listeners.delete(listener)
+  }
+
+  /** 把扩展接到 web 的 ctx.ui；能力边界照 pi RPC 模式。 */
+  async bindExtensions(): Promise<void> {
+    await this.session.bindExtensions({
+      uiContext: this.ui.context,
+      mode: "rpc",
+      onError: (error) => console.error("extension error:", error),
+    })
+  }
+
+  respondExtensionUi(response: ExtensionUiResponse): void {
+    this.ui.respond(response)
+  }
+
+  extensionDialogs() {
+    return this.ui.dialogs()
   }
 
   async dispose(): Promise<void> {
     if (this.disposed) return
     this.disposed = true
+    this.ui.cancelAll()
+    // 照 pi 自己的收尾：先让扩展收到 session_shutdown 释放监听与子进程，再 dispose
+    const runner = this.session.extensionRunner
+
+    if (runner.hasHandlers("session_shutdown"))
+      await runner
+        .emit({ type: "session_shutdown", reason: "quit" })
+        .catch((error: unknown) => console.error("session_shutdown failed:", error))
     this.unsubscribeSession()
     this.clearPendingUpdate()
     this.session.dispose()
     this.listeners.clear()
     this.onDispose?.()
+  }
+
+  /** @ 引用按会话所在环境展开：远程会话读远端 workspace 里的文件。 */
+  private expandMentions(text: string) {
+    const binding = sessionBinding(this.session.sessionManager.getEntries())
+    return binding
+      ? expandFileMentions(text, binding.path, environmentFor(binding.environment))
+      : expandFileMentions(text, canonicalizePath(this.session.sessionManager.getCwd()))
   }
 
   /** 互斥操作：冲突操作直接拒绝（协议要求 reject rather than queue）。 */
@@ -274,9 +330,16 @@ export class PiHostSession implements PiSessionRuntime {
   }
 
   private forwardProgress(progress: TranscriptProgress): void {
-    if (progress.type === "item_updated") {
-      // 连续 delta 合并：保留最新一帧，窗口内只发一次
-      this.pendingUpdateProgress = progress
+    if (progress.type === "item_updated" || progress.type === "assistant_delta") {
+      const last = this.pendingProgress.at(-1)
+
+      if (last && sameStream(last, progress)) {
+        this.pendingProgress[this.pendingProgress.length - 1] =
+          last.type === "assistant_delta" && progress.type === "assistant_delta"
+            ? { ...last, delta: last.delta + progress.delta }
+            : progress
+      } else this.pendingProgress.push(progress)
+
       this.pendingUpdateTimer ??= setTimeout(() => {
         this.pendingUpdateTimer = undefined
         this.emitPendingUpdate()
@@ -295,18 +358,19 @@ export class PiHostSession implements PiSessionRuntime {
       this.pendingUpdateTimer = undefined
     }
 
-    const pending = this.pendingUpdateProgress
+    const pending = this.pendingProgress
+    this.pendingProgress = []
 
-    if (!pending) return
-    this.pendingUpdateProgress = undefined
-    this.revision += 1
-    this.emit({ type: "progress", progress: pending })
+    for (const progress of pending) {
+      this.revision += 1
+      this.emit({ type: "progress", progress })
+    }
   }
 
   private clearPendingUpdate(): void {
     if (this.pendingUpdateTimer) clearTimeout(this.pendingUpdateTimer)
     this.pendingUpdateTimer = undefined
-    this.pendingUpdateProgress = undefined
+    this.pendingProgress = []
   }
 
   private broadcastSnapshot(): void {
@@ -314,7 +378,7 @@ export class PiHostSession implements PiSessionRuntime {
     this.emit({ type: "snapshot" })
   }
 
-  private emit(event: PiSessionRuntimeEvent): void {
+  private emit(event: SessionRuntimeEvent): void {
     for (const listener of this.listeners) listener(event)
   }
 

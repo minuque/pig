@@ -4,7 +4,6 @@ import { dirname } from "node:path"
 
 import { seedWorkspace } from "../fixtures.js"
 import { armClickStamps, clickStamps, installPageWaitFor, waitInPage } from "./in-page.js"
-import { installObservers } from "./paint.js"
 import {
   SHORT_SESSION_NAME,
   sessionIdOf,
@@ -15,10 +14,6 @@ import {
 
 export const WORKBENCH_TIMEOUT_MS = 30_000
 export const composerInput = (page: Page) => page.locator(".composer .field, .field").first()
-
-export function sessionCard(page: Page, name: BenchSessionName) {
-  return page.locator(".session-card", { has: page.getByText(name, { exact: true }) })
-}
 
 function listMoreButton(page: Page) {
   return page.locator("nav.session-list button.more-button", { hasText: "显示更多" })
@@ -37,7 +32,7 @@ async function expandAllSections(page: Page) {
 }
 
 /** 侧栏折叠时点「显示更多」，再从顶往下扫虚拟列表，返回窗口里的目标卡片。 */
-export async function revealSessionCard(page: Page, name: BenchSessionName) {
+async function revealSessionCard(page: Page, name: BenchSessionName) {
   await expandAllSections(page)
   const more = listMoreButton(page)
 
@@ -82,15 +77,7 @@ export async function revealSessionCard(page: Page, name: BenchSessionName) {
   throw new Error(`侧栏找不到会话：${name}`)
 }
 
-/** 点开会话卡片，不等待后续网络空闲。隐藏窗口里 Playwright 点击会等可见，改走 DOM。 */
-export async function clickSessionCard(page: Page, name: BenchSessionName) {
-  const card = await revealSessionCard(page, name)
-  await card.evaluate((node) => {
-    ;(node as HTMLElement).click()
-  })
-}
-
-export async function revealAllSessionCards(page: Page) {
+async function revealAllSessionCards(page: Page) {
   await expandAllSections(page)
   const more = listMoreButton(page)
 
@@ -163,7 +150,6 @@ function shimPageFunctions(page: Page) {
 export async function prepareBenchPage(
   page: Page,
   workspaceId: string,
-  observers = false,
   options?: { reducedMotion?: boolean },
 ) {
   shimPageFunctions(page)
@@ -173,7 +159,6 @@ export async function prepareBenchPage(
   await seedWorkspace(page, workspaceId)
   await installPageWaitFor(page)
 
-  if (observers) await installObservers(page)
   page.setDefaultTimeout(WORKBENCH_TIMEOUT_MS)
 }
 
@@ -190,24 +175,6 @@ export async function waitForWorkbench(page: Page) {
     textIn: { selector: ".session-card", text: SHORT_SESSION_NAME },
     clickMore: "nav.session-list button.more-button",
   })
-}
-
-export async function waitForSession(page: Page, name: BenchSessionName) {
-  const turns = sessionTurns(name)
-  await page.waitForURL(new RegExp(`/sessions/${sessionIdOf(name)}(?:[?#]|$)`), {
-    timeout: WORKBENCH_TIMEOUT_MS,
-  })
-
-  if (turns === 0) {
-    await page.locator(".idle-hero").waitFor({ state: "visible" })
-  } else {
-    await page.getByText(sessionPrompt(name, turns), { exact: true }).waitFor({
-      state: "visible",
-      timeout: WORKBENCH_TIMEOUT_MS,
-    })
-  }
-
-  await page.locator(".session-loading").waitFor({ state: "hidden", timeout: WORKBENCH_TIMEOUT_MS })
 }
 
 /** Composer 按下一键到双 rAF。 */
@@ -240,23 +207,6 @@ export async function keyToNextFrame(page: Page): Promise<number> {
   return page.evaluate(() => (window as unknown as { __pigK2f: number }).__pigK2f)
 }
 
-/** 遮罩揭开后立刻滚主视口，量最差动画帧。 */
-export async function scrollMainAfterOpen(page: Page): Promise<number> {
-  const root = page.locator(".transcript-viewport")
-  const box = await root.boundingBox()
-
-  if (!box) throw new Error("主视口不存在")
-  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
-  return await worstFrameDuring(page, async () => {
-    for (const direction of [-1, 1]) {
-      for (let step = 0; step < 12; step += 1) {
-        await page.mouse.wheel(0, direction * 80)
-        await waitMs(page, 32)
-      }
-    }
-  })
-}
-
 /** 点侧栏卡片到该会话历史就绪。 */
 export async function openSession(page: Page, name: BenchSessionName): Promise<number> {
   const turns = sessionTurns(name)
@@ -274,7 +224,7 @@ export async function openSession(page: Page, name: BenchSessionName): Promise<n
   return clickStamps(page, "ready")
 }
 
-export async function waitMs(page: Page, ms: number) {
+async function waitMs(page: Page, ms: number) {
   await page.evaluate((delay) => new Promise<void>((resolve) => setTimeout(resolve, delay)), ms)
 }
 
@@ -319,7 +269,7 @@ async function endWorstFrameSample(page: Page): Promise<number> {
 }
 
 /** 采样 action 期间的动画帧，返回最差帧长。 */
-export async function worstFrameDuring(page: Page, action: () => Promise<void>): Promise<number> {
+async function worstFrameDuring(page: Page, action: () => Promise<void>): Promise<number> {
   await beginFrameSample(page)
 
   try {
@@ -471,7 +421,7 @@ export async function scrollSessionList(page: Page): Promise<number> {
   return scrollOverflowWorstFrame(page, ".session-window", "侧栏未产生可滚动内容")
 }
 
-export function quantile(values: readonly number[], q: number): number {
+function quantile(values: readonly number[], q: number): number {
   if (values.length === 0) throw new Error("测量样本为空")
 
   if (

@@ -1,22 +1,8 @@
-/**
- * Browser WebSocket ByteTransport：将浏览器 WebSocket 适配为 PiClient 的有序二进制传输。
- * 约定：本机 Thin Host 在 `GET /api/v1/pi` 提供 PiServer WebSocket listener，
- * 按 length-prefixed CBOR 帧收发（与 @earendil-works/pi-protocol framing 对齐）。
- */
-import type {
-  ByteTransport,
-  ByteTransportFactory,
-  ByteTransportHandlers,
-} from "@/types/common-type.js"
+/** 本机 Gateway 的 WebSocket 地址：Gateway 在 `GET /api/v1/pi` 收 JSON 文本帧。 */
 import { t } from "@i18n/index.js"
 
 // 与 gateway 端 packages/gateway/src/server/websocket.ts 的 WEBSOCKET_PATH 必须一致。
 export const WEBSOCKET_PATH = "/api/v1/pi"
-
-export interface WebSocketTransportOptions {
-  /** 目标 WebSocket URL。 */
-  url: string
-}
 
 function stampedGatewayOrigin(): string | undefined {
   if (typeof document === "undefined") return undefined
@@ -35,7 +21,7 @@ function stampedGatewayOrigin(): string | undefined {
 }
 
 /**
- * 组装本机 PiServer WebSocket URL。
+ * 组装本机 Gateway WebSocket URL。
  * 开发态走页面同源，由 Vite 转到 Gateway。
  * 桌面壳页 origin 是 pig://app，必须用注入的 Gateway 地址。
  */
@@ -55,99 +41,4 @@ export function webSocketUrl(base?: string | URL): string {
 
   url.protocol = url.protocol === "https:" || url.protocol === "wss:" ? "wss:" : "ws:"
   return url.href
-}
-
-/**
- * 创建连接时即打开 WebSocket；握手 hello 帧在 open 后按序发送。
- * 终态通知（onClose/onError）恰好一次：error/close 事件与主动 close() 都收敛到单一终态；
- * openPromise 一定 settle（open resolve，其余路径 reject），send 不会永久挂起。
- */
-export function createWebSocketByteTransportFactory(
-  options: WebSocketTransportOptions,
-): ByteTransportFactory {
-  return (handlers: ByteTransportHandlers): ByteTransport => {
-    const socket = new WebSocket(options.url)
-    socket.binaryType = "arraybuffer"
-
-    let closed = false
-    let opened = false
-    let openResolve: () => void = () => {}
-    let openReject: (reason?: unknown) => void = () => {}
-    const openPromise = new Promise<void>((resolve, reject) => {
-      openResolve = resolve
-      openReject = reject
-    })
-
-    // 无 send 消费者时（open 前失败）也避免 unhandled rejection；await 方仍正常收到 reject
-    openPromise.catch(() => {})
-
-    /** 进入终态：恰好一次，且 settle 尚未打开的 openPromise。 */
-    function fail(error: Error) {
-      if (closed) return
-      closed = true
-      openReject(error)
-      handlers.onError(error)
-    }
-
-    /** 有序终态：恰好一次，onClose 与 onError 互斥。 */
-    function finish() {
-      if (closed) return
-      closed = true
-      handlers.onClose()
-    }
-
-    socket.addEventListener(
-      "open",
-      () => {
-        opened = true
-        openResolve()
-      },
-      { once: true },
-    )
-    socket.addEventListener("error", () => {
-      fail(new Error(t("errors.wsConnectFailed")))
-    })
-    socket.addEventListener("message", (event) => {
-      if (closed) return
-      const data = event.data
-
-      if (typeof data === "string") {
-        // 协议错误：立即终态并主动关闭底层 socket
-        fail(new Error(t("errors.wsTextFrame")))
-        socket.close()
-        return
-      }
-
-      handlers.onData(data instanceof ArrayBuffer ? new Uint8Array(data) : new Uint8Array(data))
-    })
-    socket.addEventListener("close", (event) => {
-      if (event.wasClean && event.code === 1000) finish()
-      else fail(new Error(t("errors.wsClosed", { code: event.code })))
-    })
-    return {
-      async send(chunk: Uint8Array) {
-        await openPromise
-
-        if (closed) throw new Error(t("errors.wsTransportClosed"))
-
-        // 精确发送 [byteOffset, byteOffset+byteLength) 范围；SharedArrayBuffer 防御拷贝
-        const payload =
-          chunk.buffer instanceof ArrayBuffer &&
-          chunk.byteOffset === 0 &&
-          chunk.byteLength === chunk.buffer.byteLength
-            ? chunk.buffer
-            : chunk.slice().buffer
-
-        socket.send(payload)
-      },
-      close() {
-        if (closed) return
-
-        // open 前关闭：settle openPromise，避免 send 永久 pending
-        if (!opened) openReject(new Error(t("errors.wsTransportClosed")))
-        finish()
-        socket.close()
-      },
-    }
-  }
 }

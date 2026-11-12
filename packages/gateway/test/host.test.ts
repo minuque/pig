@@ -2,7 +2,6 @@ import { mkdtemp, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, describe, expect, it } from "vitest"
-import { ServerMessageDecoder } from "@earendil-works/pi-protocol"
 import { WebSocket } from "ws"
 
 import Gateway from "../src/index.js"
@@ -258,34 +257,6 @@ describe("thin host WebSocket", () => {
     })
 
     expect(status).toBe(404)
-  })
-
-  it("hands connections to PiServer after upgrade", async () => {
-    const base = await startGateway()
-    const port = new URL(base).port
-    const socket = new WebSocket(`ws://127.0.0.1:${port}/api/v1/pi`, {
-      headers: { authorization: gateway?.authorizationHeader() ?? "" },
-    })
-    const result = await new Promise<{ message: unknown; closed: boolean }>((resolve, reject) => {
-      const decoder = new ServerMessageDecoder()
-      socket.on("message", (data) => {
-        const messages = decoder.push(data as Buffer)
-
-        for (const message of messages) {
-          if (message.type === "hello_error") {
-            socket.close()
-            resolve({ message, closed: false })
-          }
-        }
-      })
-      socket.once("close", () => resolve({ message: undefined, closed: true }))
-      socket.once("error", reject)
-      socket.once("open", () => socket.send(new Uint8Array([0x00, 0x00, 0x00, 0x01, 0xff])))
-    })
-    const message = result.message as { type: string; error?: { code: string } }
-    expect(message.type).toBe("hello_error")
-    expect(message.error?.code).toBe("invalid_request")
-    expect(result.closed).toBe(false)
   })
 
   it("文件搜索只放行选过的目录，warm 不能自行授权", async () => {

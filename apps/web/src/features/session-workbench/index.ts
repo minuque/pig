@@ -1,6 +1,6 @@
 import { inject, provide, type InjectionKey } from "vue"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
-import type { usePiClient } from "@client/pi-client.js"
+import type { useGatewayClient } from "@client/gateway-connection.js"
 import { useSessionLifecycle } from "@features/session-workbench/hooks/use-session.js"
 
 export type SessionContext = ReturnType<typeof useSessionLifecycle>
@@ -8,7 +8,7 @@ export type SessionContext = ReturnType<typeof useSessionLifecycle>
 export const sessionKey: InjectionKey<SessionContext> = Symbol("session")
 
 export function provideSession(
-  pi: ReturnType<typeof usePiClient>,
+  pi: ReturnType<typeof useGatewayClient>,
   cwd: ReturnType<typeof useLocalWorkspaces>,
 ) {
   const session = useSessionLifecycle(pi, cwd)

@@ -1,5 +1,6 @@
-import type { SessionEntry } from "@earendil-works/pi-coding-agent"
-import type { TranscriptItem } from "@earendil-works/pi-protocol"
+import { SessionManager, type SessionEntry } from "@earendil-works/pi-coding-agent"
+import type { TranscriptItem } from "@pig/protocol"
+import type { IndexedSession } from "./session-index.js"
 import { TranscriptProjection } from "./transcript.js"
 
 /** 协议 SessionMetadata 不带消息数/模型；侧栏卡片从 Pi 文件投影。 */
@@ -71,4 +72,39 @@ export function outcomeFromBranch(
   }
 
   return undefined
+}
+
+function cardOf(info: IndexedSession): SessionCard {
+  try {
+    const branch = SessionManager.open(info.path).getBranch()
+    const model = modelFromBranch(branch)
+    const outcome = outcomeFromBranch(branch)
+    return {
+      id: info.id,
+      messageCount: conversationMessageCount(branch),
+      ...(model ? { model } : {}),
+      ...(outcome ? { outcome } : {}),
+    }
+  } catch {
+    return { id: info.id, messageCount: 0 }
+  }
+}
+
+/** 会话文件路径 → 按文件版本缓存的卡片；文件没变就不重读分支。 */
+export class SessionCardCache {
+  private readonly cache = new Map<string, { version: string; card: SessionCard }>()
+
+  list(infos: readonly IndexedSession[]): SessionCard[] {
+    const live = new Set(infos.map((info) => info.path))
+
+    for (const path of this.cache.keys()) if (!live.has(path)) this.cache.delete(path)
+    return infos.map((info) => {
+      const cached = this.cache.get(info.path)
+
+      if (cached?.version === info.version) return cached.card
+      const card = cardOf(info)
+      this.cache.set(info.path, { version: info.version, card })
+      return card
+    })
+  }
 }

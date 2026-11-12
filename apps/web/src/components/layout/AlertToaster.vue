@@ -5,14 +5,14 @@
       <div v-for="item in noticeQueue" :key="item.id" class="banner-item">
         <Callout
           variant="soft"
-          color="destructive"
+          :color="LEVEL_COLOR[item.level]"
           dismissible
           floating
           class="banner-alert"
           @close="dismissNotice(item.id)"
         >
-          <template #icon><DangerCircleIcon /></template>
-          <template #title>{{ t("common.error") }}</template>
+          <template v-if="item.level === 'error'" #icon><DangerCircleIcon /></template>
+          <template v-if="item.level === 'error'" #title>{{ t("common.error") }}</template>
           <template #default>{{ item.message }}</template>
         </Callout>
       </div>
@@ -23,11 +23,16 @@
 <script setup lang="ts">
 import { useI18n } from "@i18n/index.js"
 
-import { Callout } from "@components/ui/callout/index.js"
-import { dismissNotice, noticeQueue } from "@components/layout/notify.js"
+import { Callout, type CalloutColor } from "@components/ui/callout/index.js"
+import { dismissNotice, noticeQueue, type NoticeLevel } from "@components/layout/notify.js"
 import { DangerCircleIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
+const LEVEL_COLOR: Record<NoticeLevel, CalloutColor> = {
+  info: "info",
+  warning: "warning",
+  error: "destructive",
+}
 </script>
 
 <style scoped>

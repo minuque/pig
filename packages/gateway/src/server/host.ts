@@ -1,13 +1,13 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http"
-import { PiServer } from "@earendil-works/pi-server"
+import { closeEnvironments } from "@pig/environment"
 import { BrowserSession, browserSecretFile } from "../auth/browser-session.js"
 import { PiHostService, type PiHostServiceOptions } from "../pi/service.js"
 import { ManualDirectoryPort, WindowsDirectoryPort, type DirectoryPort } from "../directory.js"
-import { handlePlatformRequest } from "./platform.js"
+import { handlePlatformRequest, type EnvironmentSources } from "./platform.js"
 import { installProviderHttp } from "./provider-http.js"
 import { handleProviderRequest } from "./providers.js"
 import { serveWebFile } from "./static-files.js"
-import { createWebSocketListener } from "./websocket.js"
+import { ProtocolServer } from "./websocket.js"
 
 export interface GatewayOptions {
   webRoot?: string
@@ -25,20 +25,25 @@ export interface GatewayOptions {
   browserSecretFile?: string
   /** Pi 配置目录（auth.json / models.json / settings.json）；缺省 ~/.pi/agent。 */
   agentDir?: string
+  /** 环境列表的来源（ssh config 与 pig 保存的环境），测试可指向临时文件。 */
+  environments?: EnvironmentSources
+  /** 远程会话的本地占位目录根；缺省 ~/.pig/remote。 */
+  remoteRoot?: string
 }
 
 /**
  * Thin Host：本地 HTTP 壳（health / 静态 SPA / 目录选择）
- * + 只绑 127.0.0.1 的 WebSocket listener，连接直接交给官方 PiServer + PiHostService。
+ * + 只绑 127.0.0.1 的 WebSocket 协议端，会话命令交给 PiHostService。
  */
 export class Gateway {
   private readonly server = createServer(this.handleRequest.bind(this))
   private readonly hostService: PiHostService
-  private readonly piServer: PiServer
+  private readonly protocol: ProtocolServer
   private readonly webRoot: string | undefined
   private readonly platformPort: DirectoryPort
   private readonly listenPort: number
   private readonly browser: BrowserSession
+  private readonly environments: EnvironmentSources
 
   constructor(options: GatewayOptions = {}) {
     this.webRoot = options.webRoot
@@ -46,6 +51,7 @@ export class Gateway {
     this.browser = new BrowserSession(
       options.browserSecretFile ?? browserSecretFile(options.sessionDir),
     )
+    this.environments = options.environments ?? {}
     this.platformPort =
       options.platformPort ??
       (process.platform === "win32" ? new WindowsDirectoryPort() : new ManualDirectoryPort())
@@ -55,17 +61,14 @@ export class Gateway {
       ...(options.cwd ? { cwd: options.cwd } : {}),
       ...(options.attachmentRootDir ? { attachmentRootDir: options.attachmentRootDir } : {}),
       ...(options.agentDir ? { agentDir: options.agentDir } : {}),
+      ...(options.remoteRoot ? { remoteRoot: options.remoteRoot } : {}),
       ...(options.createRuntime ? { createRuntime: options.createRuntime } : {}),
     })
-    this.piServer = new PiServer(this.hostService, {
-      listeners: [
-        createWebSocketListener({
-          server: this.server,
-          allow: (req) => this.browser.rejection(req.headers),
-        }),
-      ],
-      onError: (error) => console.error("PiServer error:", error),
-      handshakeTimeoutMs: 30_000,
+    this.protocol = new ProtocolServer({
+      server: this.server,
+      service: this.hostService,
+      allow: (req) => this.browser.rejection(req.headers),
+      onError: (error) => console.error("Gateway protocol error:", error),
     })
   }
 
@@ -151,6 +154,7 @@ export class Gateway {
         body: this.body.bind(this),
         hostService: this.hostService,
         platformPort: this.platformPort,
+        environments: this.environments,
       })
 
       if (handled) return
@@ -163,8 +167,6 @@ export class Gateway {
     await this.browser.open()
     installProviderHttp()
     const warming = this.hostService.warm()
-    await this.piServer.start()
-
     const port = await new Promise<number>((resolveStart, reject) => {
       this.server.once("error", reject)
       this.server.listen(this.listenPort, "127.0.0.1", () => {
@@ -185,8 +187,9 @@ export class Gateway {
   }
 
   async stop() {
-    await this.piServer.close()
+    await this.protocol.close()
     await this.hostService.dispose()
+    await closeEnvironments()
     await new Promise<void>((resolveStop, reject) =>
       this.server.close((error) => (error ? reject(error) : resolveStop())),
     )

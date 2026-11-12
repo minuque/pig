@@ -16,19 +16,9 @@ export function sessionMarkdown(title: string, items: readonly TranscriptItem[])
   return `${parts.join("\n\n")}\n`
 }
 
-/** 拖进输入区的会话：整段正文翻页取完，作为一个 Markdown 附件。 */
+/** 拖进输入区的会话：整段正文作为一个 Markdown 附件。 */
 export async function sessionReferenceFile(session: { id: string; title: string }): Promise<File> {
-  const items: TranscriptItem[] = []
-  let before: string | undefined
-
-  for (;;) {
-    const page = await sessionTranscript(session.id, before)
-    items.unshift(...page.items)
-
-    if (!page.hasMore || !page.items[0]) break
-    before = page.items[0].id
-  }
-
+  const { items } = await sessionTranscript(session.id)
   const name = session.title.replace(/[\\/:*?"<>|]+/g, " ").trim() || session.id
   return new File([sessionMarkdown(session.title, items)], `${name}.md`, { type: "text/markdown" })
 }

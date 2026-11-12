@@ -75,7 +75,9 @@ describe("一轮工作 → HTTP 历史中的真实耗时", () => {
         AgentSession,
         "sessionManager" | "isIdle" | "subscribe" | "prompt" | "abort" | "waitForIdle" | "dispose"
       >
-      const runtime = new PiHostSession(session as unknown as AgentSession)
+      // 释放时会先给扩展发 session_shutdown；这里没有扩展
+      const extensionRunner = { hasHandlers: () => false }
+      const runtime = new PiHostSession({ ...session, extensionRunner } as unknown as AgentSession)
       const prompt = runtime.prompt({ text: "执行任务" })
       await Promise.resolve()
       const active = runtime.historyTranscript()

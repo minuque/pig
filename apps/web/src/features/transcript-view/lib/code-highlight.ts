@@ -7,7 +7,8 @@ const preferredHighlighter = "highlights" as const
 
 export type CodeTokens = { content: string; color?: string }[][]
 
-const TOKEN_CACHE_MAX = 32
+// 够装下最近几次切换涉及的代码块，切回会话不重新分词
+const TOKEN_CACHE_MAX = 256
 const tokenCache = new Map<string, CodeTokens>()
 
 function idle(): Promise<void> {

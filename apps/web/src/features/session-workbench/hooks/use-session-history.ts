@@ -15,10 +15,8 @@ export function useSessionHistory() {
   const cache = createSessionHistoryCache()
   const activeId = shallowRef<string>()
   const version = shallowRef(0)
-  const loadingOlder = shallowRef(false)
   const requestById = new Map<string, number>()
   const inflight = new Map<string, Promise<void>>()
-  let olderRequest = 0
 
   function bump() {
     version.value += 1
@@ -59,11 +57,6 @@ export function useSessionHistory() {
       const request = (requestById.get(id) ?? 0) + 1
       requestById.set(id, request)
 
-      if (activeId.value === id) {
-        olderRequest += 1
-        loadingOlder.value = false
-      }
-
       try {
         const { items, timings, hasMore } = await sessionTranscript(id)
 
@@ -86,44 +79,6 @@ export function useSessionHistory() {
     return run
   }
 
-  async function loadOlderHistory() {
-    const id = activeId.value
-    const page = id ? cache.peek(id) : undefined
-    const before = page?.items[0]?.id
-
-    if (!id || !before || !page?.hasMore || loadingOlder.value) return
-    const request = ++olderRequest
-    loadingOlder.value = true
-
-    try {
-      const { items, timings, hasMore } = await sessionTranscript(id, before)
-
-      if (request !== olderRequest || activeId.value !== id) return
-      const current = cache.peek(id)
-
-      if (!current) return
-      const known = new Set(current.items.map((item) => item.id))
-      const older = items.filter((item) => !known.has(item.id))
-
-      if (older.length > 0) {
-        const seen = new Set(current.timings.map((item) => item.userId))
-        cache.write(id, {
-          items: older.concat(current.items),
-          timings: current.timings.concat(timings.filter((item) => !seen.has(item.userId))),
-          hasMore,
-        })
-        bump()
-      } else {
-        cache.write(id, { hasMore })
-        bump()
-      }
-    } catch {
-      if (request !== olderRequest || activeId.value !== id) return
-    } finally {
-      if (request === olderRequest) loadingOlder.value = false
-    }
-  }
-
   /** 指定会话当前的合并转录（磁盘 + live 覆盖）；前台投影与后台泵队共用。 */
   function transcriptFor(id: string): readonly TranscriptItem[] {
     void version.value
@@ -142,13 +97,6 @@ export function useSessionHistory() {
     if (!id || !cache.isReady(id)) return undefined
     return id
   })
-  const historyHasMore = computed(() => {
-    const id = activeId.value
-    void version.value
-
-    if (!id) return false
-    return cache.peek(id)?.hasMore ?? false
-  })
   const turnTimings = computed(() => {
     const id = activeId.value
     void version.value
@@ -160,8 +108,6 @@ export function useSessionHistory() {
     activeId,
     liveTranscript,
     historyReadyId,
-    historyHasMore,
-    loadingOlder,
     turnTimings,
     setActive,
     overlayLive,
@@ -169,6 +115,5 @@ export function useSessionHistory() {
     transcriptFor,
     isFresh: (id: string) => cache.isFresh(id),
     loadHistory,
-    loadOlderHistory,
   }
 }

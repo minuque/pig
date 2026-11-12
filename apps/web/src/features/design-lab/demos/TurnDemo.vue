@@ -7,6 +7,7 @@
         :running="false"
         :is-expand="(id) => expanded.get(id)"
         :expanded-tools="tools"
+        eager
         @toggle-expand="(id, open) => expanded.set(id, open)"
         @toggle-tool="(_, id, open) => tools.set(id, open)"
       />

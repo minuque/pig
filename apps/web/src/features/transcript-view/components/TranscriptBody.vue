@@ -22,25 +22,6 @@
 
       <div v-if="rows.length || running" ref="column" class="transcript">
         <div ref="list" class="transcript-list">
-          <div v-if="hasMore" class="older-control">
-            <Button
-              class="older-button press-scale"
-              type="button"
-              variant="soft"
-              size="s"
-              radius="full"
-              :disabled="loadingOlder"
-              @click="older.request"
-            >
-              <span class="icon-swap">
-                <LoaderIcon :data-visible="loadingOlder" :class="{ 'is-spinning': loadingOlder }" />
-                <ArrowUpIcon :data-visible="!loadingOlder" />
-              </span>
-
-              {{ t("transcript.loadEarlier") }}
-            </Button>
-          </div>
-
           <div class="timeline-rows">
             <template v-for="(turn, turnIndex) in turns" :key="turn.id">
               <TurnRow
@@ -50,8 +31,10 @@
                 :running="running"
                 :is-expand="isExpand"
                 :expanded-tools="expandedTools"
+                :eager="turnIndex >= turns.length - EAGER_TURNS || shownTurns.has(turn.id)"
                 @toggle-expand="onToggleExpand"
                 @toggle-tool="onToggleTool"
+                @shown="shownTurns.add($event)"
               >
                 <!-- 指示器挂在本轮里：跑道留白落在它之后，贴底时指示器跟着用户消息留在顶部 -->
                 <TranscriptStatus v-if="turnIndex === turns.length - 1" v-bind="statusProps" />
@@ -70,25 +53,31 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  provide,
+  shallowRef,
+  toRef,
+  useTemplateRef,
+  watch,
+} from "vue"
 import SessionLoading from "@features/transcript-view/components/SessionLoading.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
 import TranscriptStatus from "@features/transcript-view/components/TranscriptStatus.vue"
 import TurnRow from "@features/transcript-view/components/TurnRow.vue"
-import { useI18n } from "@i18n/index.js"
-import { Button } from "@components/ui/button/index.js"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
-import {
-  useTranscriptOlder,
-  useTranscriptReveal,
-} from "@features/transcript-view/hooks/use-transcript-edge.js"
+import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-edge.js"
+import { TRANSCRIPT_SESSION_ID } from "@features/transcript-view/hooks/use-full-tool-output.js"
 import type { SessionPhase, TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/turn-type.js"
 import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
 import type { TimelineTurn, TranscriptMinimapItem } from "@features/transcript-view/type.js"
 import { createTimelineRowsBuilder } from "@features/transcript-view/lib/transcript-rows.js"
+import { EAGER_TURNS, shownTurnsOf } from "@features/transcript-view/lib/shown-turns.js"
 import { turnOutputTokens } from "@features/transcript-view/lib/transcript-activity.js"
 import {
   groupTimelineTurns,
@@ -98,7 +87,6 @@ import {
   historyPrepended,
   shouldShowScrollToLatest,
 } from "@features/transcript-view/lib/transcript-scroll.js"
-import { ArrowUpIcon, LoaderIcon } from "@components/icons/index.js"
 
 const props = withDefaults(
   defineProps<{
@@ -109,16 +97,14 @@ const props = withDefaults(
     sending?: boolean
     stopping?: boolean
     timings?: readonly TurnTiming[] | undefined
-    hasMore?: boolean
-    loadingOlder?: boolean
   }>(),
-  { hasMore: false, loadingOlder: false, sending: false, stopping: false },
+  { sending: false, stopping: false },
 )
-const emit = defineEmits<{
-  loadOlder: []
-}>()
-const { t } = useI18n()
+
+provide(TRANSCRIPT_SESSION_ID, toRef(props, "sessionId"))
+
 const turns = shallowRef<TimelineTurn[]>([])
+const shownTurns = computed(() => shownTurnsOf(props.sessionId))
 const rows = computed(() => turns.value.flatMap((turn) => turn.rows))
 const rowsBuilder = createTimelineRowsBuilder()
 /** 运行中轮的起点：turn.id 就是 user 条目 id，timing.userId 与之对应。 */
@@ -224,11 +210,6 @@ const {
   { viewport, column },
   computed(() => rows.value.map((row) => row.id)),
 )
-const older = useTranscriptOlder({
-  hasMore: () => props.hasMore,
-  loading: () => props.loadingOlder,
-  load: () => emit("loadOlder"),
-})
 
 function onTranscriptScroll() {
   onScroll()
@@ -463,26 +444,5 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 .timeline-rows {
   box-sizing: border-box;
   width: 100%;
-}
-
-/* 胶囊钮的水平居中由外层撑满列宽；上下留白与正文其它块同档 */
-.older-control {
-  display: flex;
-  justify-content: center;
-  padding-block: var(--space-sm);
-}
-
-/* soft 强调色是基础件给的；这里只把高度、字级与图标补到胶囊档 */
-.older-button {
-  height: var(--size-scroll-control);
-  padding-inline: var(--space-sm);
-  gap: var(--space-xxs);
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
-}
-
-.older-button :deep(svg) {
-  width: var(--size-icon-xs);
-  height: var(--size-icon-xs);
 }
 </style>
