@@ -1,4 +1,5 @@
 import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises"
+import { homedir } from "node:os"
 import { join } from "node:path"
 
 import { createLocalBashOperations } from "@earendil-works/pi-coding-agent"
@@ -56,6 +57,10 @@ export class LocalEnvironment implements Environment {
     const entries: SearchEntry[] = []
     await walk(root, "", 0, entries, options.signal)
     return rankEntries(entries, query, options.limit)
+  }
+
+  async home() {
+    return homedir()
   }
 
   async close() {}

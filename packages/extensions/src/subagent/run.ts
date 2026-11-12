@@ -119,6 +119,8 @@ export const startChild: StartChild = async (run) => {
   run.signal?.addEventListener("abort", abort, { once: true })
 
   try {
+    // 加载资源与建会话期间就已中止时，监听器来不及收到
+    if (run.signal?.aborted) throw new Error("Subagent aborted")
     await session.prompt(run.task)
     await session.waitForIdle()
     return { output, usage }

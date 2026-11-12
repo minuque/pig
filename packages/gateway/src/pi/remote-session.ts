@@ -4,6 +4,7 @@ import { basename } from "node:path"
 import {
   BINDING_ENTRY,
   environmentFor,
+  listEnvironments,
   parseBinding,
   parseRemoteKey,
   prepareRemoteCwd,
@@ -45,29 +46,37 @@ export function workspaceEnvironment(workspace: string): { env: Environment; roo
     : { env: environmentFor("local"), root: workspace }
 }
 
-/** 远程目录校验：必须是该环境里存在的目录，返回规范的 workspace 键。 */
-export async function validateRemoteDirectory(environment: string, path: string) {
+/** 远程目录校验：环境须在环境列表里，目录须在该环境里存在；返回规范的 workspace 键。 */
+export async function validateRemoteDirectory(
+  environment: string,
+  path: string,
+  sources: { sshConfigPath?: string; savedPath?: string },
+) {
   const binding = parseRemoteKey(`${environment}${path.startsWith("/") ? "" : "/"}${path}`)
 
   if (!binding) return undefined
+  const listed = await listEnvironments(sources)
+
+  if (!listed.some((item) => item.id === binding.environment)) return undefined
   const stat = await environmentFor(binding.environment).stat(binding.path)
   return stat?.kind === "directory" ? canonicalizePath(remoteWorkspaceKey(binding)) : undefined
 }
 
-const REMOTE_ATTACHMENTS = "/tmp/pig-attachments"
-
-/** 远程会话的非图片附件传到远端临时目录，提示里写远端路径；图片仍随消息内联。 */
+/** 远程会话的非图片附件传到远端用户目录下按会话分开的目录，提示里写远端路径；图片仍随消息内联。 */
 export async function uploadAttachments(
   binding: RemoteBinding,
+  sessionId: string,
   staged: readonly StagedAttachment[],
 ): Promise<StagedAttachment[]> {
+  if (!staged.some((item) => item.kind === "file")) return [...staged]
   const env = environmentFor(binding.environment)
+  const dir = `${(await env.home()).replace(/\/$/, "")}/.pig/attachments/${sessionId}`
 
-  if (staged.some((item) => item.kind === "file")) await env.mkdir(REMOTE_ATTACHMENTS)
+  await env.mkdir(dir)
   return Promise.all(
     staged.map(async (item) => {
       if (item.kind !== "file") return item
-      const path = `${REMOTE_ATTACHMENTS}/${basename(item.path)}`
+      const path = `${dir}/${basename(item.path)}`
       await env.writeFile(path, await readFile(item.path))
       return { ...item, path }
     }),

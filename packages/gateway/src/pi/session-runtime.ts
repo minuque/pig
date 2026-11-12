@@ -7,6 +7,7 @@ import type {
   ThinkingLevel,
   TranscriptProgress,
 } from "@pig/protocol"
+import { environmentFor } from "@pig/environment"
 import { GatewayError, SessionBusyError } from "./runtime-types.js"
 import type {
   SessionRuntime,
@@ -157,10 +158,7 @@ export class PiHostSession implements SessionRuntime {
       if (!this.session.isIdle) throw new SessionBusyError("A prompt is already running")
       // 先取暂存附件：busy 已提前拒绝，取走后 prompt 失败要放回，避免附件静默丢失
       const staged = this.attachments?.take(this.session.sessionId) ?? []
-      const expanded = expandFileMentions(
-        input.text,
-        canonicalizePath(this.session.sessionManager.getCwd()),
-      )
+      const expanded = this.expandMentions(input.text)
       // 无 @token 时同步短路，prompt 的 timing.start 保持同一拍
       const text = expanded instanceof Promise ? await expanded : expanded
       this.timing.start()
@@ -169,7 +167,7 @@ export class PiHostSession implements SessionRuntime {
         const binding = sessionBinding(this.session.sessionManager.getEntries())
         const composed = composePrompt(
           text,
-          binding ? await uploadAttachments(binding, staged) : staged,
+          binding ? await uploadAttachments(binding, this.session.sessionId, staged) : staged,
         )
 
         await this.session.prompt(
@@ -195,10 +193,7 @@ export class PiHostSession implements SessionRuntime {
     if (this.session.isIdle) throw new SessionBusyError("There is no active prompt to steer")
 
     // 与 prompt 同一条 @ 展开路径，运行中追加的文件引用同样内联
-    const expanded = expandFileMentions(
-      input.text,
-      canonicalizePath(this.session.sessionManager.getCwd()),
-    )
+    const expanded = this.expandMentions(input.text)
     const text = expanded instanceof Promise ? await expanded : expanded
 
     // 读文件期间 turn 可能已结束，steer 会在空闲会话里静默排队
@@ -278,6 +273,14 @@ export class PiHostSession implements SessionRuntime {
     this.session.dispose()
     this.listeners.clear()
     this.onDispose?.()
+  }
+
+  /** @ 引用按会话所在环境展开：远程会话读远端 workspace 里的文件。 */
+  private expandMentions(text: string) {
+    const binding = sessionBinding(this.session.sessionManager.getEntries())
+    return binding
+      ? expandFileMentions(text, binding.path, environmentFor(binding.environment))
+      : expandFileMentions(text, canonicalizePath(this.session.sessionManager.getCwd()))
   }
 
   /** 互斥操作：冲突操作直接拒绝（协议要求 reject rather than queue）。 */

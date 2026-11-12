@@ -1,3 +1,5 @@
+import { posix } from "node:path"
+
 import type { ExtensionAPI, ToolDefinition } from "@earendil-works/pi-coding-agent"
 import { type AgentConfig, type AgentScope, discoverAgents } from "./agents.ts"
 import { fromEntries } from "../remote-workspace/index.ts"
@@ -182,15 +184,20 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
         result.status = "running"
         publish()
 
+        // 远程会话里 cwd 是远端路径：改的是绑定目录，本地仍用父会话的占位目录
+        const parent = fromEntries(ctx)
+        const remote =
+          parent && task.cwd ? { ...parent, path: posix.resolve(parent.path, task.cwd) } : parent
+
         try {
           const done = await startChild({
             agent,
             task: task.task.replaceAll("{previous}", previous),
-            cwd: task.cwd ?? ctx.cwd,
+            cwd: parent ? ctx.cwd : (task.cwd ?? ctx.cwd),
             model: resolveModel(ctx, agent.model),
             thinkingLevel: ctx.thinkingLevel,
             parentSessionFile: ctx.sessionManager.getSessionFile(),
-            remote: fromEntries(ctx),
+            remote,
             sessionDir: ctx.sessionManager.getSessionDir(),
             signal,
             onSession: (sessionId) => {

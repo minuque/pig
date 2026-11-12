@@ -210,7 +210,7 @@ async function handleSelectDirectory(
     if (typeof payload.environment === "string" && payload.environment !== "local") {
       const remote =
         typeof payload.path === "string"
-          ? await validateRemoteDirectory(payload.environment, payload.path)
+          ? await validateRemoteDirectory(payload.environment, payload.path, deps.environments)
           : undefined
 
       if (remote) await hostService.authorizeWorkspace(remote)

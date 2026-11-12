@@ -33,6 +33,7 @@ class StandInHost implements Environment {
   search: Environment["search"] = (root, query, options) =>
     this.env.search(local(root), query, options)
 
+  home = async () => remotePathOf(await this.env.home())
   close = () => this.env.close()
 }
 

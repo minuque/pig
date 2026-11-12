@@ -1,4 +1,5 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises"
+import { createHmac } from "node:crypto"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
@@ -69,11 +70,13 @@ test("环境列表：本机在前，保存的环境带默认目录，ssh config 
       "  HostName 10.0.0.2",
       "  User ada",
       "  Port 2222",
+      `  UserKnownHostsFile ${join(root, "known_hosts").replaceAll("\\", "/")}`,
       "Host *",
       "  User me",
     ].join("\n"),
   )
   await writeFile(savedPath, JSON.stringify([{ host: "gpu", path: "/srv/train" }]))
+  await writeFile(join(root, "known_hosts"), "[10.0.0.2]:2222 ssh-ed25519 AAAA\n")
 
   expect(await listEnvironments({ sshConfigPath, savedPath })).toEqual([
     { id: "local", kind: "local", saved: false },
@@ -83,4 +86,41 @@ test("环境列表：本机在前，保存的环境带默认目录，ssh config 
 
   const config = await connectConfig("devbox", await readSshConfig(sshConfigPath))
   expect(config).toMatchObject({ host: "10.0.0.2", port: 2222, username: "ada" })
+})
+
+test("主机指纹：只连 known_hosts 里登记过的公钥，吊销的与未登记的主机都拒绝", async () => {
+  const known = Buffer.from("known-key")
+  const salt = Buffer.from("salt")
+  const hashed = createHmac("sha1", salt).update("10.0.0.3").digest("base64")
+  const sshConfigPath = join(root, "config")
+  await writeFile(
+    join(root, "known_hosts"),
+    [
+      `devbox,10.0.0.9 ssh-ed25519 ${known.toString("base64")}`,
+      `|1|${salt.toString("base64")}|${hashed} ssh-ed25519 ${known.toString("base64")}`,
+      `@revoked * ssh-ed25519 ${Buffer.from("stolen").toString("base64")}`,
+    ].join("\n"),
+  )
+  const file = join(root, "known_hosts").replaceAll("\\", "/")
+  await writeFile(
+    sshConfigPath,
+    [
+      "Host devbox",
+      "Host hashed",
+      "  HostName 10.0.0.3",
+      "Host stranger",
+      "  HostName 10.0.0.4",
+      "Host *",
+      `  UserKnownHostsFile ${file}`,
+    ].join("\n"),
+  )
+  const config = await readSshConfig(sshConfigPath)
+  const verify = async (alias: string, key: Buffer) =>
+    ((await connectConfig(alias, config)).hostVerifier as (key: Buffer) => boolean)(key)
+
+  expect(await verify("devbox", known)).toBe(true)
+  expect(await verify("devbox", Buffer.from("other"))).toBe(false)
+  expect(await verify("devbox", Buffer.from("stolen"))).toBe(false)
+  expect(await verify("hashed", known)).toBe(true)
+  await expect(connectConfig("stranger", config)).rejects.toThrow(/known_hosts/)
 })

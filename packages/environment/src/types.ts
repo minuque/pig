@@ -43,5 +43,7 @@ export interface Environment {
     query: string,
     options?: { limit?: number; signal?: AbortSignal | undefined },
   ): Promise<SearchEntry[]>
+  /** 登录用户的主目录（该环境里的绝对路径）。 */
+  home(): Promise<string>
   close(): Promise<void>
 }

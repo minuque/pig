@@ -26,7 +26,7 @@ afterEach(async () => {
 })
 
 /** 父会话的上下文替身：只给子任务用得到的字段。 */
-const ctx = () =>
+const ctx = (entries: unknown[] = []) =>
   ({
     cwd: root,
     model: undefined,
@@ -34,14 +34,19 @@ const ctx = () =>
     sessionManager: {
       getSessionFile: () => join(root, "parent.jsonl"),
       getSessionDir: () => root,
-      getEntries: () => [],
+      getEntries: () => entries,
     },
     modelRegistry: { find: () => undefined, getAvailable: () => [] },
   }) as never
 
 type Update = { details: SubagentDetails }
 
-async function run(params: Record<string, unknown>, startChild: StartChild, signal?: AbortSignal) {
+async function run(
+  params: Record<string, unknown>,
+  startChild: StartChild,
+  signal?: AbortSignal,
+  entries?: unknown[],
+) {
   const updates: Update[] = []
   const tool = createSubagentTool({ startChild })
   const result = await tool.execute(
@@ -51,7 +56,7 @@ async function run(params: Record<string, unknown>, startChild: StartChild, sign
     (update) => {
       updates.push(update as Update)
     },
-    ctx(),
+    ctx(entries),
   )
   return { result: result as Update & { content: Array<{ text: string }> }, updates }
 }
@@ -137,5 +142,23 @@ describe("subagent：派子任务、并行、中止", () => {
     const { result } = await pending
 
     expect(result.details.results.map((item) => item.status)).toEqual(["aborted", "aborted"])
+  })
+
+  it("远程会话：子任务给的 cwd 是远端目录，本地仍用父会话的占位目录", async () => {
+    const runs: ChildRun[] = []
+    const startChild: StartChild = async (child) => {
+      runs.push(child)
+      return { output: "", usage: { input: 0, output: 0, cost: 0 } }
+    }
+    const binding = { environment: "ssh://devbox", path: "/srv/app" }
+    const entries = [{ type: "custom", customType: "pig.remote", data: binding }]
+
+    await run({ agent: "scout", task: "a", cwd: "packages/api" }, startChild, undefined, entries)
+    await run({ agent: "scout", task: "b" }, startChild, undefined, entries)
+
+    expect(runs.map((child) => [child.cwd, child.remote])).toEqual([
+      [root, { environment: "ssh://devbox", path: "/srv/app/packages/api" }],
+      [root, binding],
+    ])
   })
 })

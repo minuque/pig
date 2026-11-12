@@ -1,5 +1,7 @@
 import { readFile, realpath, stat } from "node:fs/promises"
-import { isAbsolute, relative, resolve, sep } from "node:path"
+import { isAbsolute, posix, relative, resolve, sep } from "node:path"
+
+import type { Environment } from "@pig/environment"
 
 /**
  * @ 文件引用展开：把 prompt 里的 @path / @"quoted path" 展开为
@@ -54,16 +56,32 @@ function escapeFileContent(value: string): string {
   return value.replace(/<\/(file)/gi, "<\\/$1")
 }
 
+/** 引用从哪读：把 token 路径解析成根内的真实路径，再取大小与内容。 */
+interface MentionSource {
+  /** 越界返回 undefined；不存在时抛错。 */
+  locate(path: string): Promise<string | undefined>
+  /** 不是普通文件返回 undefined。 */
+  size(path: string): Promise<number | undefined>
+  read(path: string): Promise<string>
+}
+
 /**
  * 展开 prompt 中的 @ 引用。返回展开后的文本；
  * 引用不存在的路径、目录、二进制、超限文件都保留原文 token。
  * 零 mention 时同步短路：调用方可以把它当纯函数串在 prompt 链路里。
+ * 给了环境时按该环境里的 POSIX 根解析（远程会话）。
  */
-export function expandFileMentions(text: string, cwd: string): Promise<string> | string {
+export function expandFileMentions(
+  text: string,
+  cwd: string,
+  env?: Environment,
+): Promise<string> | string {
   const tokens = findMentionTokens(text)
 
   if (!tokens.length) return text
-  return expandTokens(text, tokens, cwd)
+  return (env ? Promise.resolve(remoteSource(env, cwd)) : localSource(cwd)).then((source) =>
+    source ? expandTokens(text, tokens, source) : text,
+  )
 }
 
 /** 真实路径是否在 root 之内（含 root 自身）。相对结果是空，或在 root 下的非 .. 路径才算。 */
@@ -72,51 +90,78 @@ function insideRoot(root: string, target: string): boolean {
   return rel === "" || (rel !== ".." && !rel.startsWith(`..${sep}`) && !isAbsolute(rel))
 }
 
-async function expandTokens(text: string, tokens: MentionToken[], cwd: string): Promise<string> {
+/** 本机：realpath 解析 symlink/junction，越界目标不展开。 */
+async function localSource(cwd: string): Promise<MentionSource | undefined> {
+  const root = await realpath(cwd).catch(() => undefined)
+
+  if (!root) return undefined
+  return {
+    locate: async (path) => {
+      const target = await realpath(resolve(root, path))
+      return insideRoot(root, target) ? target : undefined
+    },
+    size: async (path) => {
+      const stats = await stat(path)
+      return stats.isFile() ? stats.size : undefined
+    },
+    read: (path) => readFile(path, "utf-8"),
+  }
+}
+
+/** 远端：按 POSIX 路径解析，文件经环境读。 */
+function remoteSource(env: Environment, root: string): MentionSource {
+  const base = posix.resolve(root)
+  return {
+    locate: async (path) => {
+      const target = posix.resolve(base, path)
+      return target === base || target.startsWith(`${base.replace(/\/$/, "")}/`)
+        ? target
+        : undefined
+    },
+    size: async (path) => {
+      const stats = await env.stat(path)
+      return stats?.kind === "file" ? stats.size : undefined
+    },
+    read: async (path) => (await env.readFile(path)).toString("utf8"),
+  }
+}
+
+async function expandTokens(
+  text: string,
+  tokens: MentionToken[],
+  source: MentionSource,
+): Promise<string> {
   const blocks: string[] = []
   const seen = new Set<string>()
-  /** 真实 root 一次解析：symlink 比对用真实路径，不用字面前缀。 */
-  let realRoot: string | undefined
-
-  try {
-    realRoot = await realpath(cwd)
-  } catch {
-    return text
-  }
-
   let inlineBytes = 0
 
   for (const token of tokens.slice(0, MAX_MENTION_FILES)) {
-    const absolute = resolve(realRoot, token.path)
-
     try {
-      // realpath 解析 symlink/junction，越界目标不展开；别名按真实路径去重
-      const realTarget = await realpath(absolute)
+      // 别名按真实路径去重
+      const target = await source.locate(token.path)
 
-      if (!insideRoot(realRoot, realTarget) || seen.has(realTarget)) continue
-      seen.add(realTarget)
-      const stats = await stat(realTarget)
+      if (!target || seen.has(target)) continue
+      seen.add(target)
+      const size = await source.size(target)
 
-      if (!stats.isFile() || stats.size === 0) continue
+      if (!size) continue
 
-      if (stats.size > MAX_INLINE_BYTES || inlineBytes + stats.size > MAX_TOTAL_INLINE_BYTES) {
+      if (size > MAX_INLINE_BYTES || inlineBytes + size > MAX_TOTAL_INLINE_BYTES) {
         blocks.push(
-          `<file name="${escapeFileName(realTarget)}">超出内联配额，未内联；请用 read 工具查看。</file>`,
+          `<file name="${escapeFileName(target)}">超出内联配额，未内联；请用 read 工具查看。</file>`,
         )
         continue
       }
 
-      const content = await readFile(realTarget, "utf-8")
+      const content = await source.read(target)
 
       if (BINARY_BYTES.test(content)) {
-        blocks.push(`<file name="${escapeFileName(realTarget)}">二进制文件，未内联。</file>`)
+        blocks.push(`<file name="${escapeFileName(target)}">二进制文件，未内联。</file>`)
         continue
       }
 
-      inlineBytes += stats.size
-      blocks.push(
-        `<file name="${escapeFileName(realTarget)}">\n${escapeFileContent(content)}\n</file>`,
-      )
+      inlineBytes += size
+      blocks.push(`<file name="${escapeFileName(target)}">\n${escapeFileContent(content)}\n</file>`)
     } catch {
       // 读不到的路径保留原 token，agent 可自行 read 或澄清
     }

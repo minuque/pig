@@ -36,15 +36,16 @@ class SocketConnection implements ClientConnection {
   send(message: ServerMessage) {
     if (this.closed) return
     const text = JSON.stringify(message)
+    const bytes = Buffer.byteLength(text)
 
-    if (this.pending + text.length > MAX_PENDING_BYTES) {
+    if (this.pending + bytes > MAX_PENDING_BYTES) {
       this.socket.terminate()
       return
     }
 
-    this.pending += text.length
+    this.pending += bytes
     this.socket.send(text, () => {
-      this.pending -= text.length
+      this.pending -= bytes
     })
   }
 }
@@ -199,9 +200,9 @@ export class ProtocolServer {
       return
     }
 
-    if (!connection.ready) return
-
     try {
+      // 握手前的请求也要回应，否则客户端那条请求会一直挂着
+      if (!connection.ready) throw new GatewayError("invalid_request", "Handshake required")
       const result = await this.sessions.execute(connection, message.command)
       connection.send({ type: "response", id: message.id, ok: true, result })
     } catch (error) {

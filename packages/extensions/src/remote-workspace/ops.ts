@@ -3,6 +3,7 @@ import { isAbsolute, posix, relative, sep } from "node:path"
 import type {
   BashOperations,
   EditOperations,
+  LsOperations,
   ReadOperations,
   WriteOperations,
 } from "@earendil-works/pi-coding-agent"
@@ -38,6 +39,7 @@ export type RemoteOps = {
   write: WriteOperations
   edit: EditOperations
   bash: BashOperations
+  ls: LsOperations
 }
 
 /** pi 四个内置工具的 operations，底层走环境。 */
@@ -61,5 +63,15 @@ export function remoteOperations(
     write: { writeFile, mkdir: (dir) => env.mkdir(map(dir)) },
     edit: { readFile, writeFile, access },
     bash: { exec: (command, cwd, options) => env.exec(command, { ...options, cwd: map(cwd) }) },
+    ls: {
+      exists: async (path) => Boolean(await env.stat(map(path))),
+      stat: async (path) => {
+        const info = await env.stat(map(path))
+
+        if (!info) throw new Error(`Path not found: ${map(path)}`)
+        return { isDirectory: () => info.kind === "directory" }
+      },
+      readdir: async (path) => (await env.readdir(map(path))).map((entry) => entry.name),
+    },
   }
 }

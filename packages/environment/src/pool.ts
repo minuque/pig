@@ -11,6 +11,11 @@ export function registerEnvironment(id: string, env: Environment) {
   pool.set(id, env)
 }
 
+/** 停服：断开全部长连接；之后再用会按需重连。 */
+export async function closeEnvironments() {
+  await Promise.allSettled([...pool.values()].map((env) => env.close()))
+}
+
 /** 按 id 取环境："local" 或 "ssh://<主机别名>"；同一 id 进程内只建一次。 */
 export function environmentFor(id: string): Environment {
   const cached = pool.get(id)

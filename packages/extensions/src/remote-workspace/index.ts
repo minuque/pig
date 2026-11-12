@@ -1,8 +1,12 @@
+import { rm } from "node:fs/promises"
 import { join } from "node:path"
 
 import {
   createBashToolDefinition,
   createEditToolDefinition,
+  createFindToolDefinition,
+  createGrepToolDefinition,
+  createLsToolDefinition,
   createReadToolDefinition,
   createWriteToolDefinition,
   type ExtensionAPI,
@@ -53,7 +57,11 @@ export function fromEntries(
   return undefined
 }
 
-/** 远程 workspace：会话绑定一个环境里的目录后，四个内置工具、! 命令、AGENTS.md 与 skills 都走那个环境。 */
+/** 远端 skills 的本地缓存目录。 */
+const skillCache = (cwd: string, ctx: Pick<ExtensionContext, "sessionManager">) =>
+  join(cwd, ".pig-skills", ctx.sessionManager.getSessionId())
+
+/** 远程 workspace：会话绑定一个环境里的目录后，内置工具、! 命令、AGENTS.md 与 skills 都走那个环境。 */
 export default function remoteWorkspace(pi: ExtensionAPI) {
   let active: Active | undefined
 
@@ -75,6 +83,16 @@ export default function remoteWorkspace(pi: ExtensionAPI) {
     pi.registerTool(createWriteToolDefinition(ctx.cwd, { operations: ops.write }))
     pi.registerTool(createEditToolDefinition(ctx.cwd, { operations: ops.edit }))
     pi.registerTool(createBashToolDefinition(ctx.cwd, { operations: ops.bash }))
+    pi.registerTool(createLsToolDefinition(ctx.cwd, { operations: ops.ls }))
+
+    // grep 与 find 无论给不给 operations 都在本机跑 rg/fd，远程会话里报错让模型改用 bash
+    for (const tool of [createGrepToolDefinition(ctx.cwd), createFindToolDefinition(ctx.cwd)])
+      pi.registerTool({
+        ...tool,
+        execute: async () => {
+          throw new Error(`${tool.name} cannot run on ${binding.environment}; use bash instead`)
+        },
+      })
     active = { binding, env, context: readRemoteContext(env, binding.path).catch(() => []) }
   })
 
@@ -83,13 +101,14 @@ export default function remoteWorkspace(pi: ExtensionAPI) {
     return { operations: remoteOperations(active.env, event.cwd, active.binding.path).bash }
   })
 
-  pi.on("resources_discover", async (event) => {
+  pi.on("resources_discover", async (event, ctx) => {
     if (!active) return undefined
 
+    // 同一远程目录的会话共用占位目录，缓存按会话分开，免得互相清掉
     const skillPaths = await syncRemoteSkills(
       active.env,
       active.binding.path,
-      join(event.cwd, ".pig-skills"),
+      skillCache(event.cwd, ctx),
     ).catch(() => [])
     return { skillPaths }
   })
@@ -103,7 +122,9 @@ export default function remoteWorkspace(pi: ExtensionAPI) {
     return undefined
   })
 
-  pi.on("session_shutdown", () => {
+  pi.on("session_shutdown", async (_event, ctx) => {
+    if (!active) return
     active = undefined
+    await rm(skillCache(ctx.cwd, ctx), { recursive: true, force: true }).catch(() => undefined)
   })
 }

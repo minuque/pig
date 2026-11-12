@@ -124,6 +124,11 @@ export class SshEnvironment implements Environment {
     return rankEntries(parseFindOutput(text), query, options.limit)
   }
 
+  async home() {
+    const { sftp } = await this.connect()
+    return call<string>((done) => sftp.realpath(".", done))
+  }
+
   async close() {
     const pending = this.connection
     this.connection = undefined
