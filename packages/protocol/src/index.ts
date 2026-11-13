@@ -53,3 +53,5 @@ export type {
 export type { ComposerCommand, EnvironmentInfo, FileSearchEntry } from "./workspace.js"
 
 export type { AgentTask, Task, TaskDetails, TaskStatus } from "./task.js"
+
+export type { BashTask, TaskStopEvent, TasksEvent } from "./task.js"
