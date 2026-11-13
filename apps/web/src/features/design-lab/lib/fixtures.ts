@@ -1,4 +1,4 @@
-import type { ProviderView } from "@/types/provider-type.js"
+import type { ProviderView } from "@/types/common-type.js"
 import type { CustomModelDraft } from "@features/settings/lib/provider-view.js"
 import type {
   AssistantRow,

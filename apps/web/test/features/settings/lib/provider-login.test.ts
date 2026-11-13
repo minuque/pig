@@ -6,7 +6,7 @@ import {
   initialLoginState,
   reduceLoginEvents,
 } from "@features/settings/lib/provider-login.js"
-import type { LoginEvent } from "@/types/provider-type.js"
+import type { LoginEvent } from "@/types/common-type.js"
 
 const prompt = (seq: number, id: string): LoginEvent => ({
   type: "prompt",

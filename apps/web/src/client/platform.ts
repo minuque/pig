@@ -2,18 +2,22 @@
  * 具名 platform HTTP API。路径字符串只出现在本文件。
  */
 import { PlatformRequestError, platformRequest } from "@client/http.js"
-import type { TranscriptItem } from "@/types/common-type.js"
-import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
-import type { ModelMetadata } from "@/types/common-type.js"
 import type {
+  ComposerCommand,
+  ContextUsageEstimate,
+  ContextUsagePreview,
   CustomProviderInput,
+  EnvironmentInfo,
+  FileSearchEntry,
   LoginEvent,
+  ModelMetadata,
   ModelParamsPatch,
   ProviderListResponse,
   ProviderTestResult,
-} from "@/types/provider-type.js"
-import type { SessionCard } from "@/types/session-type.js"
-import type { TurnTiming } from "@/types/turn-type.js"
+  SessionCard,
+  TranscriptItem,
+  TurnTiming,
+} from "@/types/common-type.js"
 
 /** 选目录；给 environment（ssh://主机）时校验远端目录。 */
 export async function selectDirectory(
@@ -33,13 +37,6 @@ export async function selectDirectory(
     path: result.path,
     requiresManualInput: Boolean(result.requiresManualInput),
   }
-}
-
-export type EnvironmentInfo = {
-  id: string
-  kind: "local" | "ssh"
-  host?: string
-  defaultPath?: string
 }
 
 /** 可选环境：本机、pig 保存的环境、~/.ssh/config 里的主机。 */
@@ -280,10 +277,8 @@ export async function contextUsage(sessionId: string): Promise<ContextUsageEstim
 export async function contextPreview(
   sessionId: string,
   segmentId: string,
-): Promise<{ title: string; content: string } | null> {
-  const result = await platformRequest<{
-    preview: { title: string; content: string } | null
-  }>(
+): Promise<ContextUsagePreview | null> {
+  const result = await platformRequest<{ preview: ContextUsagePreview | null }>(
     `/api/v1/platform/context-usage?sessionId=${encodeURIComponent(sessionId)}&preview=${encodeURIComponent(segmentId)}`,
   )
   return result.preview
@@ -330,12 +325,6 @@ export async function discardAttachments(batch: string): Promise<void> {
   })
 }
 
-/** @ 文件引用候选：cwd 相对路径，目录带尾斜杠。 */
-export interface FileSearchEntry {
-  path: string
-  kind: "file" | "directory"
-}
-
 export async function searchWorkspaceFiles(
   cwd: string,
   query: string,
@@ -347,14 +336,6 @@ export async function searchWorkspaceFiles(
     signal ? { signal } : undefined,
   )
   return result.entries
-}
-
-/** / 菜单候选：Pi 资源加载器发现的技能与 prompt 模板。 */
-export interface ComposerCommand {
-  name: string
-  description: string
-  /** 模板用法提示，如 "<issue-number>"。 */
-  argumentHint?: string
 }
 
 export async function listWorkspaceCommands(

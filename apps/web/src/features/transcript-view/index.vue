@@ -15,7 +15,7 @@
 import { computed, defineAsyncComponent, useTemplateRef } from "vue"
 import SessionLoading from "@features/transcript-view/components/SessionLoading.vue"
 import type { SessionPhase, TranscriptItem } from "@/types/common-type.js"
-import type { TurnTiming } from "@/types/turn-type.js"
+import type { TurnTiming } from "@/types/common-type.js"
 
 const TranscriptBody = defineAsyncComponent({
   loader: () => import("@features/transcript-view/components/TranscriptBody.vue"),

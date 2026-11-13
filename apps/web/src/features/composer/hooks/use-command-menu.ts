@@ -1,10 +1,6 @@
 import { computed, nextTick, onScopeDispose, ref, watch, type Ref } from "vue"
-import {
-  listWorkspaceCommands,
-  searchWorkspaceFiles,
-  type ComposerCommand,
-  type FileSearchEntry,
-} from "@client/platform.js"
+import { listWorkspaceCommands, searchWorkspaceFiles } from "@client/platform.js"
+import type { ComposerCommand, FileSearchEntry } from "@/types/common-type.js"
 import type {
   CommandMenuGroup,
   CommandMenuRow,

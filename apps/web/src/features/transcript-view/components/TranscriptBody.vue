@@ -73,7 +73,7 @@ import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transc
 import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-edge.js"
 import { TRANSCRIPT_SESSION_ID } from "@features/transcript-view/hooks/use-full-tool-output.js"
 import type { SessionPhase, TranscriptItem } from "@/types/common-type.js"
-import type { TurnTiming } from "@/types/turn-type.js"
+import type { TurnTiming } from "@/types/common-type.js"
 import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
 import type { TimelineTurn, TranscriptMinimapItem } from "@features/transcript-view/type.js"
 import { createTimelineRowsBuilder } from "@features/transcript-view/lib/transcript-rows.js"

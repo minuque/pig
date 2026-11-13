@@ -1,12 +1,8 @@
 import type { IncomingMessage, ServerResponse } from "node:http"
 
-import {
-  ProviderServiceError,
-  type CustomModelInput,
-  type LoginEventView,
-  type ModelParamsPatch,
-  type ProviderService,
-} from "../pi/provider-service.js"
+import type { CustomModelInput, LoginEvent, ModelParamsPatch } from "@pig/protocol"
+
+import { ProviderServiceError, type ProviderService } from "../pi/provider-service.js"
 
 export type ProviderRequestDeps = {
   send(res: ServerResponse, status: number, body?: unknown): void
@@ -370,7 +366,7 @@ async function readBody(
   }
 }
 
-function frame(event: LoginEventView): string {
+function frame(event: LoginEvent): string {
   return `id: ${event.seq}\nevent: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`
 }
 

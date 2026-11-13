@@ -90,7 +90,7 @@ import { Button } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import VendorMark from "@features/composer/components/VendorMark.vue"
 import { groupProviders, providerSourceText } from "@features/settings/lib/provider-view.js"
-import type { ProviderView } from "@/types/provider-type.js"
+import type { ProviderView } from "@/types/common-type.js"
 import { Card } from "@components/ui/card/index.js"
 
 const props = defineProps<{

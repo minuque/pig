@@ -107,11 +107,8 @@ import { updateModelParams } from "@client/platform.js"
 import { errorMessage } from "@client/http.js"
 import { paramsPatchFrom } from "@features/settings/lib/provider-view.js"
 import { useI18n } from "@i18n/index.js"
-import type {
-  ModelParamsFormState,
-  ProviderModelView,
-  ThinkingLevel,
-} from "@/types/provider-type.js"
+import type { ProviderModelView, ThinkingLevel } from "@/types/common-type.js"
+import type { ModelParamsFormState } from "@/types/provider-type.js"
 
 const props = defineProps<{ providerId: string; model: ProviderModelView }>()
 const emit = defineEmits<{ saved: [] }>()

@@ -1,6 +1,6 @@
 /** 登录事件流的状态归约；seq 单调，旧事件丢弃。 */
 
-import type { LoginEvent, LoginPrompt } from "@/types/provider-type.js"
+import type { LoginEvent, LoginPrompt } from "@/types/common-type.js"
 
 export interface LoginDeviceCode {
   userCode: string

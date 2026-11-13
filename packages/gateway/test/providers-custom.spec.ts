@@ -4,7 +4,7 @@ import { join } from "node:path"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import Gateway from "../src/index.js"
 import { ProviderService } from "../src/pi/provider-service.js"
-import type { CustomProviderInput } from "../src/pi/provider-service.js"
+import type { CustomProviderInput } from "@pig/protocol"
 
 const input = (overrides: Partial<CustomProviderInput> = {}): CustomProviderInput => ({
   id: "ollama",

@@ -2,7 +2,7 @@ import { computed, onMounted, ref } from "vue"
 
 import { errorMessage } from "@client/http.js"
 import { listProviders, refreshProviderCatalog } from "@client/platform.js"
-import type { ProviderView } from "@/types/provider-type.js"
+import type { ProviderView } from "@/types/common-type.js"
 
 /** 模型分区状态：供应商列表、下钻选中项与加载错误。 */
 export function useProviders() {

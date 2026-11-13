@@ -1,4 +1,4 @@
-import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
+import type { ContextUsageEstimate } from "@/types/common-type.js"
 import { t } from "@i18n/index.js"
 import type { ContextUsage } from "@features/composer/type.js"
 

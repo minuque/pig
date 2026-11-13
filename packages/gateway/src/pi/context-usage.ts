@@ -1,4 +1,5 @@
 import { estimateTokens, formatSkillsForPrompt, type Skill } from "@earendil-works/pi-coding-agent"
+import type { ContextPreviewKey, ContextUsageEstimate, ContextUsagePreview } from "@pig/protocol"
 
 export const CONTEXT_PREVIEW_KEYS = [
   "systemPrompt",
@@ -7,32 +8,7 @@ export const CONTEXT_PREVIEW_KEYS = [
   "tools",
   "toolResults",
   "conversation",
-] as const
-
-export type ContextPreviewKey = (typeof CONTEXT_PREVIEW_KEYS)[number]
-
-export interface ContextUsagePreview {
-  key: ContextPreviewKey
-  title: string
-  content: string
-}
-
-export interface ContextUsageEstimate {
-  used: number
-  window: number
-  segments: {
-    systemPrompt: number
-    memory: number
-    skills: number
-    tools: number
-    toolResults: number
-    conversation: number
-    other: number
-    idle: number
-  }
-  preview?: ContextUsagePreview
-}
-
+] as const satisfies readonly ContextPreviewKey[]
 const PREVIEW_META: Record<ContextPreviewKey, { title: string; empty: string }> = {
   systemPrompt: { title: "系统提示词", empty: "无系统提示词。" },
   memory: { title: "记忆", empty: "当前上下文没有记忆文件。" },

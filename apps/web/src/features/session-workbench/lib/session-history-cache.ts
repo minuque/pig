@@ -1,5 +1,5 @@
 import type { TranscriptItem } from "@/types/common-type.js"
-import type { TurnTiming } from "@/types/turn-type.js"
+import type { TurnTiming } from "@/types/common-type.js"
 
 /** 切走的会话历史留着，切回立刻能画。 */
 export const SESSION_VIEW_CACHE = 5

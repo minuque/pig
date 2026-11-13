@@ -1,4 +1,4 @@
-import type { TurnTiming } from "@/types/turn-type.js"
+import type { TurnTiming } from "@/types/common-type.js"
 
 export type TranscriptImage = { data: string; mimeType: string }
 
