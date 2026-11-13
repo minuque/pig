@@ -24,6 +24,8 @@ export type {
   ProviderView,
   ServerSnapshot,
   SessionCard,
+  Task,
+  TaskStatus,
   SessionMetadata,
   SessionPhase,
   SessionSnapshot,

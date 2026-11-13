@@ -67,17 +67,17 @@
 
       <template v-else-if="id === 'tasks'">
         <button
-          v-for="(task, index) in tasks"
-          :key="`${task.agent}:${index}`"
+          v-for="task in tasks"
+          :key="task.id"
           type="button"
           class="rail-task"
           :disabled="!task.sessionId"
-          @click="task.sessionId && emit('open', { sessionId: task.sessionId, agent: task.agent })"
+          @click="openTask(task)"
         >
           <span class="rail-dot" :data-status="task.status" />
-          <span class="rail-task-name">{{ task.agent }}</span>
+          <span class="rail-task-name">{{ task.description }}</span>
           <span class="rail-task-meta">{{ taskMeta(task) }}</span>
-          <span class="rail-task-step">{{ task.error ?? task.steps.at(-1) ?? task.task }}</span>
+          <span class="rail-task-step">{{ task.error ?? task.steps.at(-1) ?? task.prompt }}</span>
         </button>
 
         <div v-for="line in statusLines" :key="line" class="rail-status">{{ line }}</div>
@@ -102,7 +102,7 @@ import RailCard from "@features/session-rail/components/RailCard.vue"
 import RailContext from "@features/session-rail/components/RailContext.vue"
 import { useSessionRail, type OpenChild } from "@features/session-rail/index.js"
 import { RAIL_SECTIONS, type RailSectionId } from "@features/session-rail/lib/sections.js"
-import type { SubagentTask } from "@features/session-rail/lib/subagent.js"
+import type { Task } from "@/types/common-type.js"
 
 const REMOTE_KEY = /^ssh:[/][/]([^/]+)([/].*)?$/
 const props = defineProps<{
@@ -110,7 +110,7 @@ const props = defineProps<{
   model: string | undefined
   usage: ContextUsage | undefined
   sessionId: string | undefined
-  tasks: readonly SubagentTask[]
+  tasks: readonly Task[]
   statuses: ReadonlyMap<string, string> | undefined
 }>()
 const emit = defineEmits<{ open: [child: OpenChild] }>()
@@ -126,7 +126,7 @@ const severity = computed(() => {
   const percent = props.usage?.percent ?? 0
   return percent >= 90 ? "critical" : percent >= 75 ? "warning" : undefined
 })
-const doneCount = computed(() => props.tasks.filter((task) => task.status === "done").length)
+const doneCount = computed(() => props.tasks.filter((task) => task.status === "completed").length)
 /** 远程 workspace 键 ssh://主机/路径 拆成主机与远端路径。 */
 const place = computed(() => {
   const remote = props.cwd ? REMOTE_KEY.exec(props.cwd) : null
@@ -170,12 +170,16 @@ function nudge(id: RailSectionId, step: number) {
   if (to >= 0 && to < shown.value.length) rail.move(shown.value, id, to)
 }
 
-function taskMeta(task: SubagentTask): string {
+function openTask(task: Task) {
+  if (task.sessionId) emit("open", { sessionId: task.sessionId, agent: task.description })
+}
+
+function taskMeta(task: Task): string {
   if (task.status === "queued") return t("rail.queued")
 
   if (task.status === "failed") return t("rail.failed")
 
-  if (task.status === "aborted") return t("rail.aborted")
+  if (task.status === "stopped") return t("rail.aborted")
   return task.tokens > 0 ? formatTokenCount(task.tokens) : ""
 }
 </script>
@@ -270,7 +274,7 @@ function taskMeta(task: SubagentTask): string {
   background: var(--primary);
 }
 
-.rail-dot[data-status="done"] {
+.rail-dot[data-status="completed"] {
   background: var(--success);
 }
 

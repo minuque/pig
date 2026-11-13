@@ -68,7 +68,7 @@
     </Dialog>
 
     <div v-if="open" class="tool-row-body">
-      <ToolSubagentBody v-if="call.toolName === 'subagent'" :call="shownCall" />
+      <ToolTaskBody v-if="tasks.length" :tasks="tasks" />
       <ToolCommandBody v-else-if="variant === 'command'" :call="shownCall" />
 
       <ToolFileBody
@@ -91,7 +91,7 @@ import { RollText } from "@components/ui/roll-text/index.js"
 import ToolCommandBody from "@features/transcript-view/components/tool/ToolCommandBody.vue"
 import ToolFileBody from "@features/transcript-view/components/tool/ToolFileBody.vue"
 import ToolGenericBody from "@features/transcript-view/components/tool/ToolGenericBody.vue"
-import ToolSubagentBody from "@features/transcript-view/components/tool/ToolSubagentBody.vue"
+import ToolTaskBody from "@features/transcript-view/components/tool/ToolTaskBody.vue"
 import {
   toolCallLiveVerb,
   toolCallTarget,
@@ -99,6 +99,7 @@ import {
   toolCallVerb,
 } from "@features/transcript-view/lib/tool-run.js"
 import { itemLineChange, readToolPreview } from "@features/transcript-view/lib/tool-summary.js"
+import { toolTasks } from "@features/transcript-view/lib/tool-tasks.js"
 import { transcriptImageSrc } from "@features/transcript-view/lib/transcript-format.js"
 import { formatElapsed } from "@utils/time.js"
 import { useFullToolOutput } from "@features/transcript-view/hooks/use-full-tool-output.js"
@@ -116,6 +117,7 @@ const fullCall = useFullToolOutput(
   () => props.open,
 )
 const shownCall = computed(fullCall)
+const tasks = computed(() => toolTasks(shownCall.value.details))
 const variant = computed(() => toolCallVariant(props.call))
 const verb = computed(() => toolCallVerb(props.call))
 const liveVerb = computed(() => (props.call.running ? toolCallLiveVerb(props.call) : null))

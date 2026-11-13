@@ -78,7 +78,7 @@ const label = computed(() => {
   if (tasks.value.length)
     parts.push(
       t("rail.taskCount", {
-        done: tasks.value.filter((task) => task.status === "done").length,
+        done: tasks.value.filter((task) => task.status === "completed").length,
         total: tasks.value.length,
       }),
     )

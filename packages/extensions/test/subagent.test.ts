@@ -86,19 +86,24 @@ describe("subagent：派子任务、并行、中止", () => {
     )
 
     expect(result.details.mode).toBe("parallel")
-    expect(result.details.results.map((item) => [item.agent, item.status, item.sessionId])).toEqual(
-      [
-        ["scout", "done", "child-scout"],
-        ["planner", "done", "child-planner"],
-        ["reviewer", "done", "child-reviewer"],
-      ],
-    )
-    expect(result.details.results[0]?.output).toBe("scout 完成")
+    expect(
+      result.details.tasks.map((item) => [item.id, item.description, item.status, item.sessionId]),
+    ).toEqual([
+      ["agent:call-1:0", "scout", "completed", "child-scout"],
+      ["agent:call-1:1", "planner", "completed", "child-planner"],
+      ["agent:call-1:2", "reviewer", "completed", "child-reviewer"],
+    ])
+    expect(result.details.tasks[0]).toMatchObject({
+      kind: "agent",
+      prompt: "看协议",
+      summary: "scout 完成",
+      tokens: 3,
+    })
     expect(peak).toBeLessThanOrEqual(4)
     // 卡片实时进度：跑的过程中有「运行中 + 最近一步」的更新
     expect(
       updates.some((update) =>
-        update.details.results.some(
+        update.details.tasks.some(
           (item) => item.status === "running" && item.steps.includes("read scout.ts"),
         ),
       ),
@@ -119,7 +124,7 @@ describe("subagent：派子任务、并行、中止", () => {
     expect(result.content[0]?.text).toContain("8")
   })
 
-  it("中止主会话：所有在跑的子任务收到中止，状态记为 aborted", async () => {
+  it("中止主会话：所有在跑的子任务收到中止，状态记为 stopped", async () => {
     const controller = new AbortController()
     const startChild: StartChild = (child) =>
       new Promise((_resolve, reject) => {
@@ -141,7 +146,7 @@ describe("subagent：派子任务、并行、中止", () => {
     controller.abort()
     const { result } = await pending
 
-    expect(result.details.results.map((item) => item.status)).toEqual(["aborted", "aborted"])
+    expect(result.details.tasks.map((item) => item.status)).toEqual(["stopped", "stopped"])
   })
 
   it("远程会话：子任务给的 cwd 是远端目录，本地仍用父会话的占位目录", async () => {
