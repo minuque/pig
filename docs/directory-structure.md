@@ -17,9 +17,9 @@ pnpm workspace：
 
 ```
 apps/web/src/
-├── App.vue         # 组合根
+├── App.vue         # 主题与路由出口
 ├── assets/         # 字体等静态资源
-├── style/          # 全局样式：app.css 定 token，components.css 汇总组件层
+├── style/          # 全局样式：app.css 是入口，tokens.css 定 token，components.css 是原子类
 ├── client/         # 网络、凭证、传输、本地目录偏好
 ├── components/
 │   ├── layout/     # 壳层
@@ -32,7 +32,9 @@ apps/web/src/
 └── router/
 ```
 
-`App.vue`：`usePiClient` + `useLocalWorkspaces` → `provideSession(pi, cwd)` → `provideNav(pi, cwd, session)`，再把 `connect` / `initialize` 交给启动门。子树只用 `useSession()` / `useNav()`，不写创建/发送/重命名等领域规则。
+`shell/WorkbenchShell.vue` 是组合根：`useGatewayClient` + `useLocalWorkspaces` → `provideSession(pi, cwd)` → `provideNav(pi, cwd, session)`，再把 `connect` / `initialize` 交给启动门。子树只用 `useSession()` / `useNav()`，不写创建/发送/重命名等领域规则。
+
+会话状态在 `features/session/`（连接、历史、乐观消息、后台发送），没有视图。`features/session-workbench/` 只是主视图，除了 shell 和 router 没有模块引用它。feature 之间的引用保持单向：`session-nav`、`session-rail`、`extension-ui` 引用 `session`，不反过来。
 
 `apps/web/test/` 镜像 `src/` 分层：`test/components/ui/` 对 `src/components/ui/`，`test/features/<module>/` 对 `features/<module>/`，`test/style/` 对 `style/`。根级只放 `setup.ts`。测 `src` 根文件的用例用相对路径。整页浏览器旅程不要放进本目录，写到仓库根 `e2e/`。
 

@@ -1,5 +1,6 @@
 import { inject, provide, shallowRef, type InjectionKey } from "vue"
 import { readFlag, writeFlag } from "@utils/storage.js"
+import { openTaskSessionKey } from "@features/transcript-view/index.js"
 import {
   moveShown,
   readRailLayout,
@@ -66,10 +67,11 @@ const key: InjectionKey<SessionRailContext> = Symbol("session-rail")
 export function provideSessionRail() {
   const state = useSessionRailState()
   provide(key, state)
+  provide(openTaskSessionKey, state.openChild)
   return state
 }
 
-/** 时间线里的子任务卡片用它打开抽屉；不在面板树里时返回 undefined。 */
+/** 面板自己的状态；不在面板树里时返回 undefined。 */
 export function useSessionRail(): SessionRailContext | undefined {
   return inject(key, undefined)
 }

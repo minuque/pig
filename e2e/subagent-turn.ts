@@ -35,21 +35,25 @@ export async function startSubagentTurn(page: Page, subagentGateway: E2eGateway)
           content: [],
           details: {
             mode: "parallel",
-            results: [
+            tasks: [
               {
-                agent: "scout",
-                task: "摸清协议层",
-                status: "done",
+                id: "agent:call-sub:0",
+                kind: "agent",
+                description: "scout",
+                prompt: "摸清协议层",
+                status: "completed",
                 sessionId: CHILD_SESSION_ID,
                 steps: ["read websocket.ts"],
-                usage: { input: 1, output: 1, cost: 0 },
+                tokens: 2,
               },
               {
-                agent: "planner",
-                task: "出方案",
+                id: "agent:call-sub:1",
+                kind: "agent",
+                description: "planner",
+                prompt: "出方案",
                 status: "running",
                 steps: ["read service.ts"],
-                usage: { input: 0, output: 0, cost: 0 },
+                tokens: 0,
               },
             ],
           },

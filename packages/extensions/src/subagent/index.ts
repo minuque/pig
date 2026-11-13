@@ -1,6 +1,7 @@
 import { posix } from "node:path"
 
 import type { ExtensionAPI, ToolDefinition } from "@earendil-works/pi-coding-agent"
+import type { AgentTask, TaskDetails } from "@pig/protocol"
 import { type AgentConfig, type AgentScope, discoverAgents } from "./agents.ts"
 import { fromEntries } from "../remote-workspace/index.ts"
 import { startChild as defaultStartChild, type ChildRun, type StartChild } from "./run.ts"
@@ -20,24 +21,10 @@ type Params = {
   agentScope?: AgentScope
 }
 
-export type SubagentStatus = "queued" | "running" | "done" | "failed" | "aborted"
-
-/** 一个子任务的进展；web 按它画卡片，TUI 读 content 文本。 */
-export interface SubagentResult {
-  agent: string
-  task: string
-  status: SubagentStatus
-  sessionId?: string
-  /** 最近几步工具调用的单行摘要。 */
-  steps: string[]
-  output?: string
-  error?: string
-  usage: { input: number; output: number; cost: number }
-}
-
-export interface SubagentDetails {
+/** 子任务的进展按 @pig/protocol 的 Task 形状产出；web 按它画卡片，TUI 读 content 文本。 */
+export interface SubagentDetails extends TaskDetails {
   mode: "single" | "parallel" | "chain"
-  results: SubagentResult[]
+  tasks: AgentTask[]
 }
 
 type Ctx = Parameters<ToolDefinition["execute"]>[4]
@@ -106,10 +93,14 @@ function resolveModel(ctx: Ctx, wanted: string | undefined): ChildRun["model"] {
 }
 
 function summary(details: SubagentDetails): string {
-  return details.results
+  return details.tasks
     .map((item) => {
-      const head = `[${item.agent}] ${item.status}`
-      return item.output ? `${head}\n${item.output}` : item.error ? `${head}: ${item.error}` : head
+      const head = `[${item.description}] ${item.status}`
+      return item.summary
+        ? `${head}\n${item.summary}`
+        : item.error
+          ? `${head}: ${item.error}`
+          : head
     })
     .join("\n\n")
 }
@@ -126,7 +117,7 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
       "Agents come from the agents directory under the pi config, and .pi/agents in the project.",
     ].join(" "),
     parameters: parameters as never,
-    async execute(_toolCallId, rawParams, signal, onUpdate: Update, ctx: Ctx) {
+    async execute(toolCallId, rawParams, signal, onUpdate: Update, ctx: Ctx) {
       const params = rawParams as Params
       const agents = discoverAgents(ctx.cwd, params.agentScope ?? "user").agents
       const mode: SubagentDetails["mode"] = params.chain?.length
@@ -142,12 +133,14 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
           : [])
       const details: SubagentDetails = {
         mode,
-        results: tasks.map((task) => ({
-          agent: task.agent,
-          task: task.task,
+        tasks: tasks.map((task, index) => ({
+          id: `agent:${toolCallId}:${index}`,
+          kind: "agent",
+          description: task.agent,
+          prompt: task.task,
           status: "queued",
           steps: [],
-          usage: { input: 0, output: 0, cost: 0 },
+          tokens: 0,
         })),
       }
       const reply = (text: string) => ({ content: [{ type: "text" as const, text }], details })
@@ -166,11 +159,11 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
           details: structuredClone(details),
         })
       const runOne = async (task: Task, index: number, previous = "") => {
-        const result = details.results[index] as SubagentResult
+        const result = details.tasks[index] as AgentTask
         const agent: AgentConfig | undefined = agents.find((item) => item.name === task.agent)
 
         if (signal?.aborted) {
-          result.status = "aborted"
+          result.status = "stopped"
           return ""
         }
 
@@ -210,13 +203,13 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
             },
           })
 
-          result.status = signal?.aborted ? "aborted" : "done"
-          result.output = done.output
-          result.usage = done.usage
+          result.status = signal?.aborted ? "stopped" : "completed"
+          result.summary = done.output
+          result.tokens = done.usage.input + done.usage.output
           return done.output
         } catch (error) {
           // 子任务失败只记在自己的结果里，不冒到主会话
-          result.status = signal?.aborted ? "aborted" : "failed"
+          result.status = signal?.aborted ? "stopped" : "failed"
           result.error = error instanceof Error ? error.message : String(error)
           return ""
         } finally {
@@ -230,7 +223,7 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
         for (const [index, task] of tasks.entries()) {
           previous = await runOne(task, index, previous)
 
-          if (details.results[index]?.status !== "done") break
+          if (details.tasks[index]?.status !== "completed") break
         }
       } else {
         await mapLimited(tasks, MAX_CONCURRENCY, (task, index) => runOne(task, index))

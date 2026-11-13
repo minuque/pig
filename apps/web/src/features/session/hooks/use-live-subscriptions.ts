@@ -3,8 +3,8 @@ import type { GatewaySession } from "@client/gateway-session.js"
 import type { ContextUsageEstimate } from "@/types/common-type.js"
 import type { SessionState, TranscriptItem } from "@/types/common-type.js"
 import { contextUsage } from "@client/platform.js"
-import type { useSessionHistory } from "@features/session-workbench/hooks/use-session-history.js"
-import { coalesceByFrame } from "@features/session-workbench/lib/coalesce-by-frame.js"
+import type { useSessionHistory } from "@features/session/hooks/use-session-history.js"
+import { coalesceByFrame } from "@features/session/lib/coalesce-by-frame.js"
 
 /** 一条 Session 的 live 订阅：前台写 state，后台只覆盖 live 与拉历史，发布逻辑两处共用。 */
 export interface LiveSubscription {

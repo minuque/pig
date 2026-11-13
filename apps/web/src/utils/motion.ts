@@ -84,27 +84,25 @@ export function useDragReorder(opts: DragReorderOptions) {
     return { its, rects }
   }
 
-  /** 拖动目标的目标槽位：按拖动元素中点越过的槽位数算。 */
+  /** 目标槽位：往下看拖动项的下沿、往上看上沿越过了谁的中线；用中点时，比邻项高的卡片到不了两端。 */
   function targetIndex(): number {
     const st = s!
-    const fromRect = st.rects[st.from]
-    const mid = st.offset + (fromRect?.size ?? 0) / 2
     let to = st.from
 
-    if (fromRect && mid > fromRect.pos + fromRect.size) {
-      for (let i = st.from + 1; i < st.rects.length; i++) {
-        const r = st.rects[i]
+    for (let i = st.from + 1; i < st.rects.length; i++) {
+      const r = st.rects[i]
 
-        if (r && mid > r.pos + r.size / 2) to = i
-        else break
-      }
-    } else {
-      for (let i = st.from - 1; i >= 0; i--) {
-        const r = st.rects[i]
+      if (r && st.offset + st.self > r.pos + r.size / 2) to = i
+      else break
+    }
 
-        if (r && mid < r.pos + r.size / 2) to = i
-        else break
-      }
+    if (to !== st.from) return to
+
+    for (let i = st.from - 1; i >= 0; i--) {
+      const r = st.rects[i]
+
+      if (r && st.offset < r.pos + r.size / 2) to = i
+      else break
     }
 
     return to
@@ -167,7 +165,9 @@ export function useDragReorder(opts: DragReorderOptions) {
 
     let next = st.base + delta
     const min = st.rects[0]?.pos ?? 0
-    const max = st.rects[st.rects.length - 1]?.pos ?? 0
+    const last = st.rects[st.rects.length - 1]
+    // 下界是列表底部减去自身高度：拖动项落在最后一格时的位置
+    const max = last ? last.pos + last.size - st.self : 0
 
     if (next < min) next = min + (next - min) * rubber
     else if (next > max) next = max + (next - max) * rubber

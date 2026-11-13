@@ -2,10 +2,11 @@ import { computed, inject, provide, shallowRef, watch, type InjectionKey } from 
 import { useRouter } from "vue-router"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
-import type { SessionContext } from "@features/session-workbench/index.js"
+import type { SessionContext } from "@features/session/index.js"
 import { useSessionCards } from "@features/session-nav/hooks/use-session-cards.js"
 import { useSessionMarkers } from "@features/session-nav/hooks/use-session-markers.js"
 import { useSessionOpen } from "@features/session-nav/hooks/use-session-open.js"
+import { useRevealNewSessions } from "@features/session-nav/hooks/use-reveal-new-sessions.js"
 import { useWorkspaceNav } from "@features/session-nav/hooks/use-workspace-nav.js"
 import {
   conversationItemCount,
@@ -14,7 +15,7 @@ import {
 } from "@features/session-nav/lib/session-list.js"
 import type { SidebarPlacement, SidebarSessionState } from "@features/session-nav/type.js"
 
-export { sessionTitle, workspaceName, untitledSession } from "@features/session-nav/lib/format.js"
+export { workspaceName } from "@features/session-nav/lib/format.js"
 
 export {
   SESSION_DROP_EVENT,
@@ -116,34 +117,7 @@ function createNav(
     return placements.value.get(id) ?? { running: false, settled: false }
   }
 
-  /** 新建的会话落进收着的架子时自动展开一次，免得刚建完就看不见。 */
-  const knownSessionIds = shallowRef<ReadonlySet<string> | null>(null)
-  /** 刚出现、还没定段的会话：等它被标成在跑或已归档再展开。 */
-  const pendingNewIds = new Set<string>()
-  watch(
-    nav.listedSessions,
-    (list) => {
-      const known = knownSessionIds.value
-      knownSessionIds.value = new Set(list.map((item) => item.id))
-
-      if (!known) return
-
-      for (const item of list) if (!known.has(item.id)) pendingNewIds.add(item.id)
-
-      for (const id of pendingNewIds) if (!knownSessionIds.value.has(id)) pendingNewIds.delete(id)
-    },
-    { flush: "post" },
-  )
-  watch(placements, () => {
-    for (const id of pendingNewIds) {
-      const placement = placements.value.get(id)
-
-      if (placement?.running) nav.expandSection("working")
-      else if (placement?.settled) nav.expandSection("settled")
-      else continue
-      pendingNewIds.delete(id)
-    }
-  })
+  useRevealNewSessions(nav.listedSessions, placements, nav.expandSection)
 
   /** 每个在跑的会话从什么时候开始跑：本地记，协议列表不带开始时间。 */
   const runningSince = shallowRef<Record<string, number>>({})
