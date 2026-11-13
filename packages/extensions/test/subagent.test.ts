@@ -3,7 +3,9 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 import { createSubagentTool, type SubagentDetails } from "../src/subagent/index.ts"
+import type { Task } from "@pig/protocol"
 import type { ChildRun, StartChild } from "../src/subagent/run.ts"
+import { dropRegistry, registryFor } from "../src/tasks/registry.ts"
 
 let root: string
 const previousAgentDir = process.env.PI_CODING_AGENT_DIR
@@ -34,6 +36,7 @@ const ctx = (entries: unknown[] = []) =>
     sessionManager: {
       getSessionFile: () => join(root, "parent.jsonl"),
       getSessionDir: () => root,
+      getSessionId: () => "parent",
       getEntries: () => entries,
     },
     modelRegistry: { find: () => undefined, getAvailable: () => [] },
@@ -122,6 +125,7 @@ describe("subagent：派子任务、并行、中止", () => {
 
     expect(started).toBe(0)
     expect(result.content[0]?.text).toContain("8")
+    expect(result.details.tasks).toEqual([])
   })
 
   it("中止主会话：所有在跑的子任务收到中止，状态记为 stopped", async () => {
@@ -165,5 +169,90 @@ describe("subagent：派子任务、并行、中止", () => {
       [root, { environment: "ssh://devbox", path: "/srv/app/packages/api" }],
       [root, binding],
     ])
+  })
+})
+
+describe("subagent：后台派出", () => {
+  afterEach(() => dropRegistry("parent"))
+
+  /** 接住登记表发出的任务列表与结束通知。 */
+  const host = () => {
+    const published: Task[][] = []
+    const notified: Array<{ task: Task; wake: boolean }> = []
+    registryFor("parent").bind({
+      publish: (tasks) => published.push(tasks),
+      notify: (task, wake) => notified.push({ task, wake }),
+    })
+    return { published, notified }
+  }
+
+  it("工具调用立刻返回 task id；子任务进登记表，跑完后叫醒模型", async () => {
+    const { published, notified } = host()
+    let finish: (value: Awaited<ReturnType<StartChild>>) => void = () => undefined
+    const startChild: StartChild = (child) => {
+      child.onSession("child-scout")
+      return new Promise((resolve) => (finish = resolve))
+    }
+    const { result } = await run({ agent: "scout", task: "看协议", background: true }, startChild)
+
+    expect(result.content[0]!.text).toContain("agent:call-1:0")
+    // 工具结果不带任务：状态只认登记表，落盘的结果不会留下永远排队的任务
+    expect(result.details.tasks).toEqual([])
+    // 登记表把进行中的更新合并后再发
+    await new Promise((resolve) => setTimeout(resolve, 150))
+    expect(published.at(-1)?.[0]).toMatchObject({
+      id: "agent:call-1:0",
+      kind: "agent",
+      status: "running",
+      sessionId: "child-scout",
+    })
+    expect(notified).toHaveLength(0)
+
+    finish({ output: "协议看完了", usage: { input: 1, output: 2, cost: 0 } })
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(notified).toEqual([
+      {
+        task: expect.objectContaining({ status: "completed", summary: "协议看完了" }),
+        wake: true,
+      },
+    ])
+  })
+
+  it("从登记表停止：中止子会话，记为已停止，不叫醒模型", async () => {
+    const { notified } = host()
+    let aborted = false
+    const startChild: StartChild = (child) =>
+      new Promise((_resolve, reject) =>
+        child.signal?.addEventListener("abort", () => {
+          aborted = true
+          reject(new Error("Subagent aborted"))
+        }),
+      )
+
+    await run({ agent: "scout", task: "看协议", background: true }, startChild)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(registryFor("parent").stop("agent:call-1:0")).toBe(true)
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(aborted).toBe(true)
+    expect(notified).toEqual([
+      { task: expect.objectContaining({ status: "stopped" }), wake: false },
+    ])
+  })
+
+  it("链式不支持后台，直接拒绝，不启动子任务", async () => {
+    host()
+    let started = 0
+    const { result } = await run(
+      { chain: [{ agent: "scout", task: "x" }], background: true },
+      async () => {
+        started += 1
+        return { output: "", usage: { input: 0, output: 0, cost: 0 } }
+      },
+    )
+
+    expect(started).toBe(0)
+    expect(result.content[0]!.text).toMatch(/chain/i)
+    expect(result.details.tasks).toEqual([])
+    expect(registryFor("parent").list()).toEqual([])
   })
 })

@@ -39,6 +39,7 @@ function snapshot(model = { provider: "a", id: "one" }, thinkingLevel = "high") 
     transcript: [],
     queuedSteer: [],
     queuedSteerCount: 0,
+    tasks: [],
   } as SessionSnapshot
 }
 

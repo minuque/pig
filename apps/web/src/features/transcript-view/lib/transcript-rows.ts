@@ -159,6 +159,12 @@ function appendTurn({
   }
 
   for (const [itemIndex, item] of rest.entries()) {
+    if (item.role === "task") {
+      flushTools("done")
+      rows.push({ id: `task:${item.id}`, role: "task", task: item.task, timestamp: item.timestamp })
+      continue
+    }
+
     if (isToolItem(item)) {
       if (describedToolCalls.has(item.toolCallId) || live) continue
       appendTool({

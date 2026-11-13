@@ -10,7 +10,7 @@ export function prefetchTranscriptView(): void {
   void import("@features/transcript-view/components/TranscriptBody.vue")
 }
 
-export { latestToolTasks } from "@features/transcript-view/lib/tool-tasks.js"
+export { latestToolTasks, taskDetail } from "@features/transcript-view/lib/tool-tasks.js"
 
 /** 时间线里的任务行用它打开子会话；没人提供时任务行不可点。 */
 export const openTaskSessionKey: InjectionKey<

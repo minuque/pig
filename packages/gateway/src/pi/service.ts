@@ -1,12 +1,14 @@
 import { mkdir, rm, writeFile } from "node:fs/promises"
-import { dirname } from "node:path"
+import { dirname, join } from "node:path"
 import {
   createAgentSession,
+  createEventBus,
   DefaultResourceLoader,
   ModelRuntime,
   SessionManager,
 } from "@earendil-works/pi-coding-agent"
 import type { SessionEntry, SessionHeader } from "@earendil-works/pi-coding-agent"
+import { defaultTaskLogRoot } from "@pig/environment"
 import type {
   ComposerCommand,
   ContextPreviewKey,
@@ -73,6 +75,8 @@ export class PiHostService implements SessionService {
   private readonly activeSessions = new Map<string, PiHostSession>()
   /** 规范化 cwd → 该目录已 reload 的 loader。 */
   private readonly resourceSlots = new Map<string, Promise<ResourceSlot>>()
+  /** 所有会话的扩展共用一条事件总线；后台任务按会话 id 区分。 */
+  private readonly events = createEventBus()
   /** 用户选过的目录（懒加载）；见 authorizedWorkspacesFile。 */
   private authorizedLoad: Promise<Set<string>> | undefined
   /** 已判定为已知的目录（含靠磁盘会话命中的），免每次重扫会话。 */
@@ -323,6 +327,7 @@ export class PiHostService implements SessionService {
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
     await rm(path, { force: true })
     await this.attachments.clearSession(sessionId)
+    await rm(join(defaultTaskLogRoot(), sessionId), { recursive: true, force: true })
     this.sessionPaths.delete(sessionId)
     this.sessionsCache = undefined
   }
@@ -412,7 +417,9 @@ export class PiHostService implements SessionService {
   }
 
   private runtime(): Promise<Runtime> {
-    return (this.runtimePromise ??= (this.options.createRuntime ?? createDefaultRuntime)())
+    return (this.runtimePromise ??= this.options.createRuntime
+      ? this.options.createRuntime()
+      : createDefaultRuntime(this.options.agentDir))
   }
 
   /** 取该目录预热好的 loader 交给会话，并在后台为下一个会话预热一份新的。 */
@@ -423,7 +430,7 @@ export class PiHostService implements SessionService {
     const pending = this.slot(key)
     const slot = await pending
 
-    if (slot.taken) return createResourceLoader(key, this.options.agentDir)
+    if (slot.taken) return createResourceLoader(key, this.options.agentDir, this.events)
     slot.taken = true
 
     if (this.resourceSlots.get(key) === pending) this.resourceSlots.delete(key)
@@ -443,7 +450,7 @@ export class PiHostService implements SessionService {
       if (!oldest.done) this.resourceSlots.delete(oldest.value)
     }
 
-    const pending = createResourceLoader(cwd, this.options.agentDir).then(
+    const pending = createResourceLoader(cwd, this.options.agentDir, this.events).then(
       (loader) => ({ loader, taken: false }),
       (error: unknown) => {
         this.resourceSlots.delete(cwd)
@@ -471,6 +478,7 @@ export class PiHostService implements SessionService {
         }
       },
       this.attachments,
+      this.events,
     )
     this.activeSessions.set(session.sessionId, host)
 
@@ -491,9 +499,14 @@ export class PiHostService implements SessionService {
   }
 }
 
-/** 测试注入用默认 ModelRuntime：不做网络刷新，避免启动时拉取模型目录。 */
-function createDefaultRuntime(): Promise<Runtime> {
-  return ModelRuntime.create({ allowModelNetwork: false })
+/** 默认 ModelRuntime：凭据与模型读配置目录（缺省 ~/.pi/agent）；不做网络刷新，避免启动时拉取模型目录。 */
+function createDefaultRuntime(agentDir: string | undefined): Promise<Runtime> {
+  return ModelRuntime.create({
+    allowModelNetwork: false,
+    ...(agentDir
+      ? { authPath: join(agentDir, "auth.json"), modelsPath: join(agentDir, "models.json") }
+      : {}),
+  })
 }
 
 /** 与仓库既有做法一致：header + 条目逐行 JSON 落盘。 */

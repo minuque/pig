@@ -5,6 +5,7 @@ import {
   DefaultResourceLoader,
   getAgentDir,
   SettingsManager,
+  type EventBus,
 } from "@earendil-works/pi-coding-agent"
 import { createRequire } from "node:module"
 import { dirname, join } from "node:path"
@@ -18,13 +19,16 @@ const BUILTIN_PACKAGE = dirname(
 export async function createResourceLoader(
   cwd: string,
   agentDir = getAgentDir(),
+  eventBus?: EventBus,
 ): Promise<DefaultResourceLoader> {
   const settingsManager = SettingsManager.create(cwd, agentDir)
   const loader = new DefaultResourceLoader({
     cwd,
     agentDir,
     settingsManager,
-    additionalExtensionPaths: ["subagent", "remote-workspace"].map((name) =>
+    // 扩展间的公开事件总线；宿主也挂在上面收后台任务、发停止请求
+    ...(eventBus ? { eventBus } : {}),
+    additionalExtensionPaths: ["subagent", "remote-workspace", "tasks"].map((name) =>
       join(BUILTIN_PACKAGE, "src", name, "index.ts"),
     ),
     // CLI 内置的这三个扩展 SDK 不会自带；照 CLI 加上，启用与否仍由用户的 pi 设置决定

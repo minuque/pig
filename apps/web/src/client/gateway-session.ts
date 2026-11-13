@@ -117,6 +117,11 @@ export class GatewaySession {
     )
   }
 
+  /** 停止一个后台任务；不占会话的操作锁，回合进行中也能停。 */
+  async stopTask(taskId: string) {
+    await this.client.requestSession({ command: "stop_task", sessionId: this.#require(), taskId })
+  }
+
   async setModel(model: ModelRef) {
     const sessionId = this.#requireIdle("change model")
     await this.#run("setModel", () =>

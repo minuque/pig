@@ -27,6 +27,11 @@ export type BackgroundIdleResult = "sent" | "done"
 /** 工具条目挂上客户端记的开始时刻；只是本地附加字段，不走协议校验。 */
 type TimedToolItem = TranscriptItem & { startedAt: number }
 
+/** 会话里还有后台任务在跑：这样的连接切走时不放掉。 */
+export function hasRunningTasks(sub: LiveSubscription): boolean {
+  return sub.lastState?.snapshot?.tasks.some((task) => task.status === "running") ?? false
+}
+
 /** running 占位自带开始时刻；完成条目没这个字段，按 toolCallId 从订阅里回填。 */
 function withToolStart(sub: LiveSubscription, item: TranscriptItem): TranscriptItem {
   if (item.role !== "tool") return item
@@ -119,7 +124,8 @@ export function useLiveSubscriptions(deps: LiveDeps) {
   function retireBackground(sub: LiveSubscription) {
     const id = sub.session.id
 
-    if (!id || background.get(id) !== sub) return
+    // 还有后台任务在跑：留在池里继续收它的状态，任务结束后的快照再来收尾
+    if (!id || background.get(id) !== sub || hasRunningTasks(sub)) return
     background.delete(id)
     history.releaseLive(id)
     sub.stop()

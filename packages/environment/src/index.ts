@@ -15,6 +15,7 @@ export type * from "./types.js"
 export {
   BINDING_ENTRY,
   defaultRemoteRoot,
+  defaultTaskLogRoot,
   parseBinding,
   parseRemoteKey,
   prepareRemoteCwd,

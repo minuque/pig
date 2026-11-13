@@ -11,7 +11,8 @@
   "pi": {
     "extensions": [
       "./src/subagent/index.ts",
-      "./src/remote-workspace/index.ts"
+      "./src/remote-workspace/index.ts",
+      "./src/tasks/index.ts"
     ]
   },
   "scripts": {

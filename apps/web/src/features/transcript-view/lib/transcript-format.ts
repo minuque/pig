@@ -19,6 +19,7 @@ export function isToolItem(item: TranscriptItem): item is ToolTranscriptItem {
 }
 
 export function transcriptText(item: TranscriptItem): string {
+  if (item.role === "task") return ""
   return item.content
     .filter((block): block is { type: "text"; text: string } => block.type === "text")
     .map((block) => block.text)
@@ -48,6 +49,7 @@ export function userMessageText(item: TranscriptItem): string {
 }
 
 export function transcriptImages(item: TranscriptItem): TranscriptImage[] {
+  if (item.role === "task") return []
   return item.content
     .filter(
       (block): block is { type: "image"; data: string; mimeType: string } => block.type === "image",

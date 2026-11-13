@@ -1,0 +1,332 @@
+<template>
+  <div class="rail-tasks">
+    <template v-for="section in sections" :key="section.id">
+      <div v-if="section.tasks.length" class="rail-tasks-head">
+        <span>{{ section.title }}</span>
+
+        <Tooltip v-if="section.id === 'finished'">
+          <TooltipTrigger as-child>
+            <IconButton
+              class="rail-tasks-clear"
+              type="button"
+              size="s"
+              variant="ghost"
+              :aria-label="t('rail.clearFinished')"
+              @click="clearFinished"
+            >
+              <TrashBinMinimalisticIcon aria-hidden="true" />
+            </IconButton>
+          </TooltipTrigger>
+
+          <TooltipContent>{{ t("rail.clearFinished") }}</TooltipContent>
+        </Tooltip>
+      </div>
+
+      <article
+        v-for="task in section.tasks"
+        :key="task.id"
+        class="rail-task"
+        :data-status="task.status"
+        :data-kind="task.kind"
+      >
+        <div class="rail-task-top">
+          <button
+            type="button"
+            class="rail-task-title"
+            :aria-expanded="task.kind === 'bash' ? isOpen(task.id) : undefined"
+            :disabled="task.kind === 'agent' && !task.sessionId"
+            @click="activate(task)"
+          >
+            <span class="rail-task-name" :class="{ shimmer: task.status === 'running' }">
+              {{ task.description }}
+            </span>
+          </button>
+
+          <IconButton
+            v-if="stoppable.has(task.id)"
+            class="rail-task-stop"
+            type="button"
+            size="s"
+            variant="ghost"
+            :aria-label="t('rail.stopTask')"
+            :disabled="stopping.has(task.id)"
+            @click="stop(task.id)"
+          >
+            <StopIcon aria-hidden="true" />
+          </IconButton>
+        </div>
+
+        <div class="rail-task-meta">
+          <span>{{ t(`rail.taskKind.${task.kind}`) }}</span>
+
+          <span v-if="statusText(task)" :class="{ 'rail-task-failed': task.status === 'failed' }">
+            {{ statusText(task) }}
+          </span>
+
+          <span v-if="elapsed(task)" class="rail-task-time">{{ elapsed(task) }}</span>
+
+          <span v-if="task.kind === 'agent' && task.tokens > 0">
+            {{ formatTokenCount(task.tokens) }}
+          </span>
+        </div>
+
+        <div
+          v-if="task.kind === 'agent' && task.status === 'running' && task.steps.length"
+          class="rail-task-step"
+        >
+          {{ task.steps.at(-1) }}
+        </div>
+
+        <div v-if="task.kind === 'bash' && isOpen(task.id)" class="rail-task-output">
+          <div class="rail-task-command">{{ task.command }}</div>
+
+          <pre v-if="task.output" :ref="(el) => bindOutput(task.id, el)">{{
+            plainOutput(task.output)
+          }}</pre>
+
+          <span v-else>
+            {{ task.status === "running" ? t("rail.noOutputYet") : t("rail.noOutput") }}
+          </span>
+        </div>
+      </article>
+    </template>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, nextTick, ref, watch, type ComponentPublicInstance } from "vue"
+import { useNow } from "@vueuse/core"
+import { useI18n } from "@i18n/index.js"
+import { IconButton } from "@components/ui/button/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { StopIcon, TrashBinMinimalisticIcon } from "@components/icons/index.js"
+import { formatTokenCount } from "@features/composer/lib/context-usage.js"
+import {
+  dismissTasks,
+  plainOutput,
+  readDismissed,
+  taskSections,
+} from "@features/session-rail/lib/task-list.js"
+import { formatElapsed } from "@utils/time.js"
+import type { Task } from "@/types/common-type.js"
+
+const props = defineProps<{
+  tasks: readonly Task[]
+  stoppable: ReadonlySet<string>
+  sessionId: string | undefined
+}>()
+const emit = defineEmits<{
+  open: [child: { sessionId: string; agent: string }]
+  stop: [taskId: string]
+}>()
+const { t } = useI18n()
+const now = useNow({ interval: 1000 })
+const openIds = ref(new Set<string>())
+const stopping = ref(new Set<string>())
+const dismissed = ref<string[]>([])
+
+watch(
+  () => props.sessionId,
+  (id) => {
+    dismissed.value = id ? readDismissed(id) : []
+  },
+  { immediate: true },
+)
+
+const sections = computed(() => {
+  const hidden = new Set(dismissed.value)
+  // 清除过的任务又跑起来时照常显示
+  const visible = props.tasks.filter((task) => task.status === "running" || !hidden.has(task.id))
+  const { running, finished } = taskSections(visible)
+  return [
+    { id: "running", title: t("rail.tasksRunning"), tasks: running },
+    { id: "finished", title: t("rail.tasksFinished"), tasks: finished },
+  ]
+})
+const isOpen = (id: string) => openIds.value.has(id)
+
+/** 命令任务展开看输出；代理任务打开子会话。 */
+function activate(task: Task) {
+  if (task.kind === "agent") {
+    if (task.sessionId) emit("open", { sessionId: task.sessionId, agent: task.description })
+    return
+  }
+
+  const next = new Set(openIds.value)
+
+  if (!next.delete(task.id)) next.add(task.id)
+  openIds.value = next
+}
+
+function stop(id: string) {
+  stopping.value = new Set(stopping.value).add(id)
+  emit("stop", id)
+}
+
+function clearFinished() {
+  const ids = sections.value[1]!.tasks.map((task) => task.id)
+
+  if (props.sessionId && ids.length) dismissed.value = dismissTasks(props.sessionId, ids)
+}
+
+/** 离底部这么近算「在看最新」，新输出到来时跟到底部。 */
+const FOLLOW_SLACK_PX = 16
+const outputs = new Map<string, HTMLElement>()
+const toBottom = (el: HTMLElement) => void nextTick(() => (el.scrollTop = el.scrollHeight))
+
+/** 每次渲染都会调；只在第一次挂上时跳到底部。 */
+function bindOutput(id: string, el: Element | ComponentPublicInstance | null) {
+  if (!(el instanceof HTMLElement)) return void outputs.delete(id)
+
+  if (outputs.get(id) !== el) toBottom(el)
+  outputs.set(id, el)
+}
+
+// 渲染前量位置：用户已经往上翻的输出不跟
+watch(
+  () => props.tasks.map((task) => (task.kind === "bash" ? task.output : "")),
+  () => {
+    for (const el of outputs.values())
+      if (el.scrollHeight - el.scrollTop - el.clientHeight <= FOLLOW_SLACK_PX) toBottom(el)
+  },
+  { flush: "pre" },
+)
+
+function statusText(task: Task): string {
+  if (task.status === "queued") return t("rail.queued")
+
+  if (task.status === "failed") return t("rail.failed")
+
+  if (task.status === "stopped") return t("rail.stopped")
+  return ""
+}
+
+function elapsed(task: Task): string {
+  if (task.startedAt === undefined) return ""
+  const end = task.status === "running" ? now.value.getTime() : task.completedAt
+  return end === undefined ? "" : formatElapsed(end - task.startedAt, { showMs: false })
+}
+</script>
+
+<style scoped>
+.rail-tasks {
+  display: grid;
+  gap: var(--space-xxs);
+}
+
+.rail-tasks-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-block-size: var(--space-xl);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+  color: var(--contrast-foreground-faint);
+}
+
+.rail-task + .rail-tasks-head {
+  margin-block-start: var(--space-xs);
+}
+
+.rail-task {
+  display: grid;
+  gap: var(--space-xxs);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--fill-quiet);
+  border-radius: var(--radius-control);
+}
+
+.rail-task-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.rail-task-title {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-xs);
+  min-inline-size: 0;
+  padding: 0;
+  color: inherit;
+  text-align: start;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.rail-task-title:disabled {
+  cursor: default;
+}
+
+.rail-task-title:not(:disabled):hover .rail-task-name {
+  color: var(--link);
+}
+
+.rail-task-name {
+  min-inline-size: 0;
+  overflow: hidden;
+  font-size: var(--text-body);
+  color: var(--contrast-foreground-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rail-task[data-status="running"] .rail-task-name {
+  color: var(--contrast-foreground);
+}
+
+.rail-task-meta,
+.rail-task-step,
+.rail-task-output {
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+  color: var(--contrast-foreground-faint);
+}
+
+.rail-task-meta {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.rail-task-failed {
+  color: var(--danger);
+}
+
+.rail-task-time {
+  font-variant-numeric: tabular-nums;
+}
+
+.rail-task-step {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rail-task-output {
+  display: grid;
+  gap: var(--space-xxs);
+  font-family: var(--font-mono);
+}
+
+.rail-task-command {
+  max-block-size: var(--size-task-output-max);
+  overflow: auto;
+  color: var(--contrast-foreground-secondary);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.rail-task-output pre {
+  max-block-size: var(--size-task-output-max);
+  margin: 0;
+  padding: var(--space-xs);
+  overflow: auto;
+  color: var(--contrast-foreground-secondary);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: var(--fill-quiet);
+  border-radius: var(--radius-control);
+}
+</style>

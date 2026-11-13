@@ -48,7 +48,7 @@
 
       <!-- Tooltip 会把触发器的锚点登记到自己名下，浮层改用显式锚点 -->
       <PopoverContent class="rail-popover" align="end" :reference="popoverButton?.$el">
-        <RailCards v-bind="cards" @open="rail.openChild" />
+        <RailCards v-bind="cards" @open="rail.openChild" @stop="stopTask" />
       </PopoverContent>
     </Popover>
   </div>
@@ -67,7 +67,7 @@ import { useSessionRail } from "@features/session-rail/index.js"
 
 const { t } = useI18n()
 const rail = useSessionRail()!
-const { session, tasks, runningCount, cards } = useRailCards()
+const { session, tasks, runningCount, cards, stopTask } = useRailCards()
 const popoverOpen = ref(false)
 const popoverButton = useTemplateRef<ComponentPublicInstance>("popoverButton")
 /** 提示里带上上下文用量与任务进度，收起时也能一眼看到。 */

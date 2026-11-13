@@ -195,3 +195,134 @@ describe("扩展弹框：在客户端作答，扩展拿到结果", () => {
     client.socket.close()
   }, 30_000)
 })
+
+describe("后台任务：扩展经事件总线上报，客户端能看到、能停", () => {
+  it("任务进快照；没人连着时会话不销毁；按 id 停止；结束通知进时间线", async () => {
+    root = await mkdtemp(join(tmpdir(), "pig-bg-task-"))
+    const agentDir = join(root, "agent")
+    await mkdir(join(agentDir, "extensions"), { recursive: true })
+    // 替身扩展：用和内置 tasks 扩展相同的总线频道与消息类型
+    await writeFile(
+      join(agentDir, "extensions", "bg.ts"),
+      `export default function (pi) {
+        pi.registerCommand("bg", {
+          description: "bg",
+          handler: async (_args, ctx) => {
+            const sessionId = ctx.sessionManager.getSessionId()
+            const task = { id: "bash:t1", kind: "bash", description: "开发服务器", command: "pnpm dev", status: "running", output: "ready" }
+            pi.events.emit("pig:tasks", { sessionId, tasks: [task] })
+            await new Promise((resolve) => setTimeout(resolve, 50))
+            pi.events.emit("pig:tasks", { sessionId, tasks: [{ ...task, output: "ready 2" }] })
+            pi.events.on("pig:tasks:stop", (event) => {
+              if (event.sessionId !== sessionId || event.taskId !== task.id) return
+              const stopped = { ...task, status: "stopped" }
+              pi.events.emit("pig:tasks", { sessionId, tasks: [stopped] })
+              pi.sendMessage({ customType: "pig.task", content: "stopped", display: true, details: stopped }, { triggerTurn: false })
+            })
+          },
+        })
+      }`,
+    )
+    const cwd = join(root, "work")
+    await mkdir(cwd)
+    gateway = new Gateway({ sessionDir: join(root, "sessions"), cwd, agentDir })
+    const port = await gateway.start()
+    const client = await connect(port)
+    const created = await client.request({ command: "create_session", cwd })
+    const sessionId = (created as { result: { session: SessionSnapshot } }).result.session.id
+    const tasksOf = (message: ServerMessage) =>
+      message.type === "event" && message.event.type === "session_snapshot"
+        ? message.event.snapshot.tasks
+        : undefined
+    const revisionOf = (message: ServerMessage) =>
+      message.type === "event" && message.event.type === "session_snapshot"
+        ? message.event.snapshot.revision
+        : undefined
+
+    void client.request({ command: "prompt", sessionId, message: "/bg" })
+
+    const outputIs = (output: string) => (message: ServerMessage) => {
+      const task = tasksOf(message)?.[0]
+      return task?.kind === "bash" && task.output === output
+    }
+    const first = await client.next(outputIs("ready"))
+    const second = await client.next(outputIs("ready 2"))
+
+    // 只是任务输出变了：revision 不变，客户端不必重拉历史
+    expect(revisionOf(second)).toBe(revisionOf(first))
+
+    // 切走再切回：运行时还是同一个，任务仍在
+    await client.request({ command: "detach_session", sessionId })
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    const back = await client.request({ command: "attach_session", sessionId })
+
+    expect((back as { result: { session: SessionSnapshot } }).result.session.tasks).toMatchObject([
+      { id: "bash:t1", status: "running", output: "ready 2" },
+    ])
+
+    await client.request({ command: "stop_task", sessionId, taskId: "bash:t1" })
+    await client.next((message) => tasksOf(message)?.[0]?.status === "stopped")
+
+    const history = await fetch(
+      `http://127.0.0.1:${port}/api/v1/platform/transcript?sessionId=${sessionId}`,
+      { headers: { authorization: gateway.authorizationHeader() } },
+    )
+    const body = (await history.json()) as { items: Array<{ role: string; task?: unknown }> }
+
+    expect(body.items.filter((item) => item.role === "task")).toMatchObject([
+      { task: { id: "bash:t1", status: "stopped" } },
+    ])
+    client.socket.close()
+  }, 30_000)
+})
+
+describe("Pi 配置目录：给了 agentDir 就只读那里的模型与凭据", () => {
+  const previousAgentDir = process.env.PI_CODING_AGENT_DIR
+
+  afterEach(() => {
+    if (previousAgentDir === undefined) delete process.env.PI_CODING_AGENT_DIR
+    else process.env.PI_CODING_AGENT_DIR = previousAgentDir
+  })
+
+  /** 一份 Pi 配置：一个 provider、一个模型、一把 key。 */
+  async function piConfig(dir: string, provider: string) {
+    await mkdir(dir, { recursive: true })
+    await writeFile(
+      join(dir, "models.json"),
+      JSON.stringify({
+        providers: {
+          [provider]: {
+            baseUrl: "http://127.0.0.1:9/v1",
+            api: "openai-completions",
+            apiKey: "key",
+            models: [{ id: `${provider}-model` }],
+          },
+        },
+      }),
+    )
+    await writeFile(join(dir, "auth.json"), JSON.stringify({}))
+  }
+
+  it("新会话用 agentDir 里的模型，不用本机默认配置目录里的", async () => {
+    root = await mkdtemp(join(tmpdir(), "pig-agent-dir-"))
+    // 本机默认目录里有另一份配置：不该被读到
+    process.env.PI_CODING_AGENT_DIR = join(root, "home-pi")
+    await piConfig(join(root, "home-pi"), "home")
+    await piConfig(join(root, "agent"), "isolated")
+    const cwd = join(root, "work")
+    await mkdir(cwd)
+    gateway = new Gateway({
+      sessionDir: join(root, "sessions"),
+      cwd,
+      agentDir: join(root, "agent"),
+    })
+    const port = await gateway.start()
+    const client = await connect(port)
+    const created = await client.request({ command: "create_session", cwd })
+
+    expect(
+      (created as { result: { session: SessionSnapshot } }).result.session.model,
+    ).toMatchObject({ provider: "isolated" })
+    client.socket.close()
+  }, 30_000)
+})

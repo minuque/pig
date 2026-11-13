@@ -136,6 +136,8 @@ export { StarIcon as StarBoldIcon } from "@solar-icons/vue/bold/star"
 
 export { StarsMinimalisticIcon } from "@solar-icons/vue/linear/stars-minimalistic"
 
+export { StopIcon } from "@solar-icons/vue/linear/stop"
+
 export { SunIcon } from "@solar-icons/vue/linear/sun"
 
 export { TrashBinMinimalisticIcon } from "@solar-icons/vue/linear/trash-bin-minimalistic"

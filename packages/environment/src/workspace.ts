@@ -12,6 +12,8 @@ export interface RemoteBinding {
 /** 会话文件里记绑定的自定义条目类型。 */
 export const BINDING_ENTRY = "pig.remote"
 export const defaultRemoteRoot = () => join(homedir(), ".pig", "remote")
+/** 后台任务日志的根目录：<根>/<会话 id>/<任务 id>.log。 */
+export const defaultTaskLogRoot = () => join(homedir(), ".pig", "tasks")
 /** 侧栏与会话索引用的 workspace 键，如 ssh://devbox/srv/app。 */
 export const remoteWorkspaceKey = (binding: RemoteBinding) =>
   `${binding.environment}${binding.path.startsWith("/") ? "" : "/"}${binding.path}`

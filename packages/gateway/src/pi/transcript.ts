@@ -10,6 +10,7 @@ import {
   sanitizeDetails,
   toAssistantItem,
   toJsonValue,
+  toTaskItem,
   toToolItem,
   toUserItem,
 } from "./item-convert.js"
@@ -123,6 +124,13 @@ export class TranscriptProjection {
     const items: TranscriptItem[] = []
 
     for (const entry of entries) {
+      if (entry.type === "custom_message") {
+        const task = toTaskItem(entry.details, entry.id, Date.parse(entry.timestamp))
+
+        if (task) items.push(task)
+        continue
+      }
+
       if (entry.type !== "message") continue
       const message = entry.message
 
@@ -222,8 +230,17 @@ export class TranscriptProjection {
         }
       }
 
+      case "custom": {
+        // 后台任务的结束通知；其他自定义消息不进 transcript
+        const item =
+          stage === "finished"
+            ? toTaskItem(message.details, this.allocateId(), message.timestamp)
+            : undefined
+        return item ? { type: "item_started", item } : undefined
+      }
+
       default:
-        return undefined // 自定义消息（bash/custom/compaction 等）不进 transcript
+        return undefined // 其余自定义角色（bash/compaction 等）不进 transcript
     }
   }
 

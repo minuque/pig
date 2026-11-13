@@ -34,6 +34,8 @@
         @toggle-expand="emit('toggleExpand', row.id, $event)"
         @toggle-tool="(id, open) => emit('toggleTool', row.id, id, open)"
       />
+
+      <TaskNotice v-else-if="row.role === 'task'" :task="row.task" />
     </div>
 
     <TurnErrorRow v-if="turnError" class="turn-error-row" v-bind="turnError" />
@@ -45,6 +47,7 @@
 import { computed, ref, useTemplateRef } from "vue"
 import { useIntersectionObserver } from "@vueuse/core"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
+import TaskNotice from "@features/transcript-view/components/TaskNotice.vue"
 import TurnErrorRow from "@features/transcript-view/components/TurnErrorRow.vue"
 import ToolRun from "@features/transcript-view/components/tool/ToolRun.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"

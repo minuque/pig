@@ -1,4 +1,5 @@
 import type { ModelRef } from "./model.js"
+import type { Task } from "./task.js"
 
 export type JsonValue =
   string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue }
@@ -82,7 +83,16 @@ type ErrorTool = ToolBase & { status: "error"; isError: true }
 
 export type ToolTranscriptItem = RunningTool | CompleteTool | ErrorTool
 
-export type TranscriptItem = UserTranscriptItem | AssistantTranscriptItem | ToolTranscriptItem
+/** 后台任务结束的通知：任务此刻的状态。 */
+export interface TaskTranscriptItem {
+  id: string
+  role: "task"
+  task: Task
+  timestamp: number
+}
+
+export type TranscriptItem =
+  UserTranscriptItem | AssistantTranscriptItem | ToolTranscriptItem | TaskTranscriptItem
 
 /** 增量活动；快照始终是权威。 */
 export type TranscriptProgress =

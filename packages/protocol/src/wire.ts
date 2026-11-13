@@ -1,5 +1,6 @@
 import type { ExtensionUiRequest, ExtensionUiResponse } from "./extension-ui.js"
 import type { ModelMetadata, ModelRef, ThinkingLevel } from "./model.js"
+import type { Task } from "./task.js"
 import type { TranscriptItem, TranscriptProgress, UserTranscriptItem } from "./transcript.js"
 
 /** 协议版本；两端写字面量 1，类型保证一致。 */
@@ -32,6 +33,8 @@ export interface SessionSnapshot {
   transcript: TranscriptItem[]
   queuedSteer: UserTranscriptItem[]
   queuedSteerCount: number
+  /** 会话里的后台任务：在跑的和已结束的。 */
+  tasks: Task[]
 }
 
 export interface ServerSnapshot {
@@ -60,6 +63,7 @@ export type Command =
   | { command: "set_model"; sessionId: string; model: ModelRef }
   | { command: "set_thinking_level"; sessionId: string; level: ThinkingLevel }
   | { command: "extension_ui_response"; sessionId: string; response: ExtensionUiResponse }
+  | { command: "stop_task"; sessionId: string; taskId: string }
 
 export type CommandResult =
   | { command: "list_sessions"; sessions: SessionMetadata[] }

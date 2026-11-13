@@ -66,19 +66,13 @@
       <RailContext v-else-if="id === 'context' && usage" :usage="usage" :session-id="sessionId" />
 
       <template v-else-if="id === 'tasks'">
-        <button
-          v-for="task in tasks"
-          :key="task.id"
-          type="button"
-          class="rail-task"
-          :disabled="!task.sessionId"
-          @click="openTask(task)"
-        >
-          <span class="rail-dot" :data-status="task.status" />
-          <span class="rail-task-name">{{ task.description }}</span>
-          <span class="rail-task-meta">{{ taskMeta(task) }}</span>
-          <span class="rail-task-step">{{ task.error ?? task.steps.at(-1) ?? task.prompt }}</span>
-        </button>
+        <RailTasks
+          :tasks="tasks"
+          :stoppable="stoppable"
+          :session-id="sessionId"
+          @open="emit('open', $event)"
+          @stop="emit('stop', $event)"
+        />
 
         <div v-for="line in statusLines" :key="line" class="rail-status">{{ line }}</div>
       </template>
@@ -96,10 +90,10 @@ import {
   ContextMenuLabel,
   ContextMenuSeparator,
 } from "@components/ui/context-menu/index.js"
-import { formatTokenCount } from "@features/composer/lib/context-usage.js"
 import type { ContextUsage } from "@features/composer/type.js"
 import RailCard from "@features/session-rail/components/RailCard.vue"
 import RailContext from "@features/session-rail/components/RailContext.vue"
+import RailTasks from "@features/session-rail/components/RailTasks.vue"
 import { useSessionRail, type OpenChild } from "@features/session-rail/index.js"
 import { RAIL_SECTIONS, type RailSectionId } from "@features/session-rail/lib/sections.js"
 import type { Task } from "@/types/common-type.js"
@@ -111,9 +105,10 @@ const props = defineProps<{
   usage: ContextUsage | undefined
   sessionId: string | undefined
   tasks: readonly Task[]
+  stoppable: ReadonlySet<string>
   statuses: ReadonlyMap<string, string> | undefined
 }>()
-const emit = defineEmits<{ open: [child: OpenChild] }>()
+const emit = defineEmits<{ open: [child: OpenChild]; stop: [taskId: string] }>()
 const { t } = useI18n()
 const rail = useSessionRail()!
 const titles = computed<Record<RailSectionId, string>>(() => ({
@@ -169,19 +164,6 @@ function nudge(id: RailSectionId, step: number) {
 
   if (to >= 0 && to < shown.value.length) rail.move(shown.value, id, to)
 }
-
-function openTask(task: Task) {
-  if (task.sessionId) emit("open", { sessionId: task.sessionId, agent: task.description })
-}
-
-function taskMeta(task: Task): string {
-  if (task.status === "queued") return t("rail.queued")
-
-  if (task.status === "failed") return t("rail.failed")
-
-  if (task.status === "stopped") return t("rail.aborted")
-  return task.tokens > 0 ? formatTokenCount(task.tokens) : ""
-}
 </script>
 
 <style scoped>
@@ -234,57 +216,6 @@ function taskMeta(task: Task): string {
 
 .rail-battery[data-severity="critical"] i {
   background: var(--danger);
-}
-
-.rail-task {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0 var(--space-xs);
-  inline-size: 100%;
-  padding: var(--space-xxs) 0;
-  color: inherit;
-  text-align: start;
-  background: none;
-  border: 0;
-  border-block-start: 1px solid var(--border-soft);
-  cursor: pointer;
-}
-
-.rail-task:first-of-type {
-  border-block-start: 0;
-}
-
-.rail-task:disabled {
-  cursor: default;
-}
-
-.rail-task:not(:disabled):hover .rail-task-name {
-  color: var(--link);
-}
-
-.rail-dot {
-  inline-size: var(--space-xs);
-  block-size: var(--space-xs);
-  background: var(--contrast-foreground-faint);
-  border-radius: var(--radius-pill);
-}
-
-.rail-dot[data-status="running"] {
-  background: var(--primary);
-}
-
-.rail-dot[data-status="completed"] {
-  background: var(--success);
-}
-
-.rail-dot[data-status="failed"] {
-  background: var(--danger);
-}
-
-.rail-task-name {
-  font-size: var(--text-body);
-  color: var(--contrast-foreground);
 }
 
 .rail-task-meta,

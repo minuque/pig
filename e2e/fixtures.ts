@@ -9,6 +9,7 @@ import Gateway from "../packages/gateway/src/index.js"
 import type { DirectoryPort } from "../packages/gateway/src/directory.js"
 import { createFakeRuntime, type FakeProviderSpec } from "./fake-model-runtime.js"
 import { BUILTIN_PROVIDERS } from "./fake-provider-registry.js"
+import { writeBackgroundTaskExtension } from "./background-task-agent.js"
 import { prepareRemote } from "./remote-fixture.js"
 import {
   prebuildComplexSession,
@@ -94,6 +95,8 @@ type TestFixtures = {
   emptyModelsGateway: E2eGateway
   /** 临时 agentDir 里装一个会弹框的扩展，用来验扩展 UI。 */
   extensionGateway: E2eGateway
+  /** 真实会话加 /bg 与 /bg-fail 命令：不经模型，直接让内置 tasks 扩展起后台命令。 */
+  backgroundTaskGateway: E2eGateway
   /** 一个普通会话加一个 subagent 子会话，用来验摘要面板与子会话抽屉。 */
   subagentGateway: E2eGateway
   /** 登记一台替身 SSH 主机（底下是本机目录），用来验远程 workspace。 */
@@ -401,6 +404,12 @@ export const test = base.extend<TestFixtures>({
     },
     { scope: "test" },
   ],
+  backgroundTaskGateway: [
+    async ({}, use) => {
+      await withGateway(() => undefined, use, prepareBackgroundTaskAgent)
+    },
+    { scope: "test" },
+  ],
   subagentGateway: [
     async ({}, use) => {
       await withGateway((sessionDir, workspaceDir) => {
@@ -457,6 +466,12 @@ async function prepareExtensionAgent(agentDir: string) {
       })
     }`,
   )
+}
+
+/** /bg 一类的测试命令：不经模型，直接让内置 tasks 扩展登记后台任务。 */
+async function prepareBackgroundTaskAgent(agentDir: string) {
+  await prepareExtensionAgent(agentDir)
+  await writeBackgroundTaskExtension(agentDir, root)
 }
 
 export { expect }

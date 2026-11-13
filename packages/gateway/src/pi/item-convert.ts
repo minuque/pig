@@ -2,6 +2,8 @@ import type { SessionEntry } from "@earendil-works/pi-coding-agent"
 import type {
   AssistantTranscriptItem,
   JsonValue,
+  Task,
+  TaskTranscriptItem,
   ToolTranscriptItem,
   Usage,
   UserTranscriptItem,
@@ -192,4 +194,26 @@ export function toToolItem(
   return message.isError
     ? { ...common, status: "error", isError: true }
     : { ...common, status: "complete", isError: false }
+}
+
+const TASK_STATUSES = new Set(["queued", "running", "completed", "failed", "stopped"])
+
+/** 自定义消息的 details 是任务形状时转成任务通知条目；不认消息类型，只认形状。 */
+export function toTaskItem(
+  details: unknown,
+  id: string,
+  timestamp: number,
+): TaskTranscriptItem | undefined {
+  const task = details as Partial<Task> | null | undefined
+
+  if (
+    !task ||
+    typeof task !== "object" ||
+    typeof task.id !== "string" ||
+    typeof task.description !== "string" ||
+    (task.kind !== "agent" && task.kind !== "bash") ||
+    !TASK_STATUSES.has(String(task.status))
+  )
+    return undefined
+  return { id, role: "task", task: sanitizeDetails(task) as unknown as Task, timestamp }
 }

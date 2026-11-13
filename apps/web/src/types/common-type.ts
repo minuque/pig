@@ -26,6 +26,7 @@ export type {
   SessionCard,
   Task,
   TaskStatus,
+  TaskTranscriptItem,
   SessionMetadata,
   SessionPhase,
   SessionSnapshot,
