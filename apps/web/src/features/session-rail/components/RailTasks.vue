@@ -68,9 +68,16 @@
           </span>
         </div>
 
-        <div class="rail-task-step">{{ taskDetail(task) }}</div>
+        <div
+          v-if="task.kind === 'agent' && task.status === 'running' && task.steps.length"
+          class="rail-task-step"
+        >
+          {{ task.steps.at(-1) }}
+        </div>
 
         <div v-if="task.kind === 'bash' && isOpen(task.id)" class="rail-task-output">
+          <div class="rail-task-command">{{ task.command }}</div>
+
           <pre v-if="task.output" :ref="(el) => bindOutput(task.id, el)">{{
             plainOutput(task.output)
           }}</pre>
@@ -92,7 +99,6 @@ import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { StopIcon, TrashBinMinimalisticIcon } from "@components/icons/index.js"
 import { formatTokenCount } from "@features/composer/lib/context-usage.js"
-import { taskDetail } from "@features/transcript-view/index.js"
 import {
   dismissTasks,
   plainOutput,
@@ -299,6 +305,19 @@ function elapsed(task: Task): string {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.rail-task-output {
+  display: grid;
+  gap: var(--space-xxs);
+}
+
+.rail-task-command {
+  max-block-size: var(--size-task-output-max);
+  overflow: auto;
+  color: var(--contrast-foreground-secondary);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .rail-task-output pre {
