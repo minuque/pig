@@ -211,6 +211,8 @@ describe("后台任务：扩展经事件总线上报，客户端能看到、能�
             const sessionId = ctx.sessionManager.getSessionId()
             const task = { id: "bash:t1", kind: "bash", description: "开发服务器", command: "pnpm dev", status: "running", output: "ready" }
             pi.events.emit("pig:tasks", { sessionId, tasks: [task] })
+            await new Promise((resolve) => setTimeout(resolve, 50))
+            pi.events.emit("pig:tasks", { sessionId, tasks: [{ ...task, output: "ready 2" }] })
             pi.events.on("pig:tasks:stop", (event) => {
               if (event.sessionId !== sessionId || event.taskId !== task.id) return
               const stopped = { ...task, status: "stopped" }
@@ -232,9 +234,22 @@ describe("后台任务：扩展经事件总线上报，客户端能看到、能�
       message.type === "event" && message.event.type === "session_snapshot"
         ? message.event.snapshot.tasks
         : undefined
+    const revisionOf = (message: ServerMessage) =>
+      message.type === "event" && message.event.type === "session_snapshot"
+        ? message.event.snapshot.revision
+        : undefined
 
     void client.request({ command: "prompt", sessionId, message: "/bg" })
-    await client.next((message) => tasksOf(message)?.[0]?.status === "running")
+
+    const outputIs = (output: string) => (message: ServerMessage) => {
+      const task = tasksOf(message)?.[0]
+      return task?.kind === "bash" && task.output === output
+    }
+    const first = await client.next(outputIs("ready"))
+    const second = await client.next(outputIs("ready 2"))
+
+    // 只是任务输出变了：revision 不变，客户端不必重拉历史
+    expect(revisionOf(second)).toBe(revisionOf(first))
 
     // 切走再切回：运行时还是同一个，任务仍在
     await client.request({ command: "detach_session", sessionId })
@@ -242,7 +257,7 @@ describe("后台任务：扩展经事件总线上报，客户端能看到、能�
     const back = await client.request({ command: "attach_session", sessionId })
 
     expect((back as { result: { session: SessionSnapshot } }).result.session.tasks).toMatchObject([
-      { id: "bash:t1", status: "running", output: "ready" },
+      { id: "bash:t1", status: "running", output: "ready 2" },
     ])
 
     await client.request({ command: "stop_task", sessionId, taskId: "bash:t1" })

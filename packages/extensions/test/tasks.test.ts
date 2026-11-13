@@ -125,6 +125,18 @@ describe("后台任务：启动、结束、停止", () => {
     expect(sent[0]!.message.content).toContain("ok 12 tests")
   })
 
+  it("结束时先叫醒模型再发任务列表：宿主看到「没有在跑的任务」时会话已经忙起来，不会被销毁", async () => {
+    const { call, runs, sent, pi, settle } = setup()
+    const order: string[] = []
+
+    await call("bg_task_start", { command: "pnpm test", description: "跑测试" })
+    await settle()
+    pi.events.on("pig:tasks", () => order.push(`publish:${sent.length}`))
+    runs[0]!.exit(0)
+    await settle()
+    expect(order[0]).toBe("publish:1")
+  })
+
   it("非零退出码算失败，通知里带退出码", async () => {
     const { call, runs, sent, settle } = setup()
 

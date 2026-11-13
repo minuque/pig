@@ -152,14 +152,19 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
         })),
       }
       const reply = (text: string) => ({ content: [{ type: "text" as const, text }], details })
+      // 没跑起来或交给后台的调用不带任务，免得落盘的结果里留下永远排队的任务
+      const withoutTasks = (text: string) => ({
+        content: [{ type: "text" as const, text }],
+        details: { mode, tasks: [] },
+      })
 
       if (tasks.length === 0) {
         const names = agents.map((agent) => agent.name).join(", ") || "none"
-        return reply(`Provide agent + task, tasks, or chain. Available agents: ${names}`)
+        return withoutTasks(`Provide agent + task, tasks, or chain. Available agents: ${names}`)
       }
 
       if (tasks.length > MAX_TASKS)
-        return reply(`Too many tasks (${tasks.length}). At most ${MAX_TASKS} per call.`)
+        return withoutTasks(`Too many tasks (${tasks.length}). At most ${MAX_TASKS} per call.`)
 
       const publishAll = () =>
         onUpdate?.({
@@ -233,11 +238,11 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
       }
 
       if (params.background) {
-        if (mode === "chain") return reply("Chain mode cannot run in the background.")
+        if (mode === "chain") return withoutTasks("Chain mode cannot run in the background.")
         const registry = registryFor(ctx.sessionManager.getSessionId())
 
         if (registry.runningCount() + tasks.length > taskConfig.maxRunning)
-          return reply(
+          return withoutTasks(
             `Too many background tasks running (limit ${taskConfig.maxRunning}). Stop one with bg_task_stop or wait for one to finish.`,
           )
         const controllers = tasks.map(() => new AbortController())
@@ -257,7 +262,9 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
           registry.finish(item.id, { ...item }, item.status !== "stopped")
         })
         const ids = details.tasks.map((item) => item.id).join(", ")
-        return reply(`Started background tasks ${ids}. You will be notified as each finishes.`)
+        return withoutTasks(
+          `Started background tasks ${ids}. You will be notified as each finishes.`,
+        )
       }
 
       if (mode === "chain") {

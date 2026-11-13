@@ -9,6 +9,7 @@ import Gateway from "../packages/gateway/src/index.js"
 import type { DirectoryPort } from "../packages/gateway/src/directory.js"
 import { createFakeRuntime, type FakeProviderSpec } from "./fake-model-runtime.js"
 import { BUILTIN_PROVIDERS } from "./fake-provider-registry.js"
+import { writeBackgroundTaskExtension } from "./background-task-agent.js"
 import { prepareRemote } from "./remote-fixture.js"
 import {
   prebuildComplexSession,
@@ -467,46 +468,10 @@ async function prepareExtensionAgent(agentDir: string) {
   )
 }
 
-export const BG_TASK_TITLE = "开发服务器"
-export const BG_FAIL_TITLE = "会失败的构建"
-
-/**
- * /bg 起一个一直输出的命令，/bg-fail 起一个马上以非零码退出的命令。
- * 两个命令走内置 tasks 扩展的登记表与命令运行器，只是不经模型的工具调用。
- */
+/** /bg 一类的测试命令：不经模型，直接让内置 tasks 扩展登记后台任务。 */
 async function prepareBackgroundTaskAgent(agentDir: string) {
-  const tasks = join(root, "packages/extensions/src/tasks").replaceAll("\\", "/")
-  const environment = join(root, "packages/environment/src/index.ts").replaceAll("\\", "/")
-
   await prepareExtensionAgent(agentDir)
-  await writeFile(
-    join(agentDir, "extensions", "bg.ts"),
-    `import { startBashTask } from "${tasks}/bash.ts"
-    import { taskConfig } from "${tasks}/config.ts"
-    import { registryFor } from "${tasks}/registry.ts"
-    import { environmentFor } from "${environment}"
-
-    export default function (pi) {
-      const start = (description, command) => (_args, ctx) => {
-        const sessionId = ctx.sessionManager.getSessionId()
-        startBashTask(registryFor(sessionId), taskConfig, {
-          sessionId,
-          env: environmentFor("local"),
-          cwd: ctx.cwd,
-          command,
-          description,
-        })
-      }
-      pi.registerCommand("bg", {
-        description: "bg",
-        handler: start("${BG_TASK_TITLE}", "while true; do echo tick; sleep 0.2; done"),
-      })
-      pi.registerCommand("bg-fail", {
-        description: "bg-fail",
-        handler: start("${BG_FAIL_TITLE}", "echo boom; exit 3"),
-      })
-    }`,
-  )
+  await writeBackgroundTaskExtension(agentDir, root)
 }
 
 export { expect }

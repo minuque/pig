@@ -68,6 +68,7 @@
       <template v-else-if="id === 'tasks'">
         <RailTasks
           :tasks="tasks"
+          :stoppable="stoppable"
           :session-id="sessionId"
           @open="emit('open', $event)"
           @stop="emit('stop', $event)"
@@ -104,6 +105,7 @@ const props = defineProps<{
   usage: ContextUsage | undefined
   sessionId: string | undefined
   tasks: readonly Task[]
+  stoppable: ReadonlySet<string>
   statuses: ReadonlyMap<string, string> | undefined
 }>()
 const emit = defineEmits<{ open: [child: OpenChild]; stop: [taskId: string] }>()

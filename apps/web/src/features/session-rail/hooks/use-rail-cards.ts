@@ -14,6 +14,15 @@ export function useRailCards() {
   const runningCount = computed(
     () => tasks.value.filter((task) => task.status === "running").length,
   )
+  // 只有后台任务能停：前台工具里的任务随工具调用结束
+  const stoppable = computed(
+    () =>
+      new Set(
+        session.tasks.value
+          .filter((task) => task.status === "running" || task.status === "queued")
+          .map((task) => task.id),
+      ),
+  )
   const cards = computed(() => {
     const model = session.projection.value?.model
     const id = session.sessionId.value
@@ -23,6 +32,7 @@ export function useRailCards() {
       model: model ? model.id : undefined,
       usage: session.contextUsage.value,
       tasks: tasks.value,
+      stoppable: stoppable.value,
       statuses: id ? ui.statuses.value.get(id) : undefined,
     }
   })

@@ -55,8 +55,9 @@ export class TaskRegistry {
 
     if (!live(entry)) return
     Object.assign(entry.task, patch, { completedAt: Date.now() })
-    this.publishNow()
+    // 先通知：叫醒让会话先忙起来，宿主收到「没有在跑的任务」时才不会销毁会话
     this.host?.notify(structuredClone(entry.task), wake)
+    this.publishNow()
   }
 
   /** 主动停止：先记为已停止，再中止命令；不叫醒模型。 */

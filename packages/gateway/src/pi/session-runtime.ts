@@ -93,7 +93,8 @@ export class PiHostSession implements SessionRuntime {
 
       if (event.sessionId !== session.sessionId || this.disposed) return
       this.tasks = event.tasks
-      this.broadcastSnapshot()
+      // 任务列表不是时间线：不加 revision，客户端只换任务，不重拉历史
+      this.emit({ type: "snapshot" })
     })
   }
 

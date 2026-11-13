@@ -125,6 +125,7 @@ describe("subagent：派子任务、并行、中止", () => {
 
     expect(started).toBe(0)
     expect(result.content[0]?.text).toContain("8")
+    expect(result.details.tasks).toEqual([])
   })
 
   it("中止主会话：所有在跑的子任务收到中止，状态记为 stopped", async () => {
@@ -195,6 +196,8 @@ describe("subagent：后台派出", () => {
     const { result } = await run({ agent: "scout", task: "看协议", background: true }, startChild)
 
     expect(result.content[0]!.text).toContain("agent:call-1:0")
+    // 工具结果不带任务：状态只认登记表，落盘的结果不会留下永远排队的任务
+    expect(result.details.tasks).toEqual([])
     // 登记表把进行中的更新合并后再发
     await new Promise((resolve) => setTimeout(resolve, 150))
     expect(published.at(-1)?.[0]).toMatchObject({
@@ -249,6 +252,7 @@ describe("subagent：后台派出", () => {
 
     expect(started).toBe(0)
     expect(result.content[0]!.text).toMatch(/chain/i)
+    expect(result.details.tasks).toEqual([])
     expect(registryFor("parent").list()).toEqual([])
   })
 })

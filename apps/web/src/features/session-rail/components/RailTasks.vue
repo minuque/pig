@@ -45,7 +45,7 @@
           </button>
 
           <IconButton
-            v-if="task.kind === 'bash' && task.status === 'running'"
+            v-if="stoppable.has(task.id)"
             class="rail-task-stop"
             type="button"
             size="s"
@@ -71,7 +71,7 @@
         <div class="rail-task-step">{{ taskDetail(task) }}</div>
 
         <div v-if="task.kind === 'bash' && isOpen(task.id)" class="rail-task-output">
-          <pre v-if="task.output" :ref="(el) => follow(task.id, el)">{{
+          <pre v-if="task.output" :ref="(el) => bindOutput(task.id, el)">{{
             plainOutput(task.output)
           }}</pre>
 
@@ -102,7 +102,11 @@ import {
 import { formatElapsed } from "@utils/time.js"
 import type { Task } from "@/types/common-type.js"
 
-const props = defineProps<{ tasks: readonly Task[]; sessionId: string | undefined }>()
+const props = defineProps<{
+  tasks: readonly Task[]
+  stoppable: ReadonlySet<string>
+  sessionId: string | undefined
+}>()
 const emit = defineEmits<{
   open: [child: { sessionId: string; agent: string }]
   stop: [taskId: string]
@@ -157,10 +161,28 @@ function clearFinished() {
   if (props.sessionId && ids.length) dismissed.value = dismissTasks(props.sessionId, ids)
 }
 
-/** 新输出到来时跟到底部。 */
-function follow(_id: string, el: Element | ComponentPublicInstance | null) {
-  if (el instanceof HTMLElement) void nextTick(() => (el.scrollTop = el.scrollHeight))
+/** 离底部这么近算「在看最新」，新输出到来时跟到底部。 */
+const FOLLOW_SLACK_PX = 16
+const outputs = new Map<string, HTMLElement>()
+const toBottom = (el: HTMLElement) => void nextTick(() => (el.scrollTop = el.scrollHeight))
+
+/** 每次渲染都会调；只在第一次挂上时跳到底部。 */
+function bindOutput(id: string, el: Element | ComponentPublicInstance | null) {
+  if (!(el instanceof HTMLElement)) return void outputs.delete(id)
+
+  if (outputs.get(id) !== el) toBottom(el)
+  outputs.set(id, el)
 }
+
+// 渲染前量位置：用户已经往上翻的输出不跟
+watch(
+  () => props.tasks.map((task) => (task.kind === "bash" ? task.output : "")),
+  () => {
+    for (const el of outputs.values())
+      if (el.scrollHeight - el.scrollTop - el.clientHeight <= FOLLOW_SLACK_PX) toBottom(el)
+  },
+  { flush: "pre" },
+)
 
 function statusText(task: Task): string {
   if (task.status === "queued") return t("rail.queued")
