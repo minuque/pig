@@ -275,3 +275,54 @@ describe("后台任务：扩展经事件总线上报，客户端能看到、能�
     client.socket.close()
   }, 30_000)
 })
+
+describe("Pi 配置目录：给了 agentDir 就只读那里的模型与凭据", () => {
+  const previousAgentDir = process.env.PI_CODING_AGENT_DIR
+
+  afterEach(() => {
+    if (previousAgentDir === undefined) delete process.env.PI_CODING_AGENT_DIR
+    else process.env.PI_CODING_AGENT_DIR = previousAgentDir
+  })
+
+  /** 一份 Pi 配置：一个 provider、一个模型、一把 key。 */
+  async function piConfig(dir: string, provider: string) {
+    await mkdir(dir, { recursive: true })
+    await writeFile(
+      join(dir, "models.json"),
+      JSON.stringify({
+        providers: {
+          [provider]: {
+            baseUrl: "http://127.0.0.1:9/v1",
+            api: "openai-completions",
+            apiKey: "key",
+            models: [{ id: `${provider}-model` }],
+          },
+        },
+      }),
+    )
+    await writeFile(join(dir, "auth.json"), JSON.stringify({}))
+  }
+
+  it("新会话用 agentDir 里的模型，不用本机默认配置目录里的", async () => {
+    root = await mkdtemp(join(tmpdir(), "pig-agent-dir-"))
+    // 本机默认目录里有另一份配置：不该被读到
+    process.env.PI_CODING_AGENT_DIR = join(root, "home-pi")
+    await piConfig(join(root, "home-pi"), "home")
+    await piConfig(join(root, "agent"), "isolated")
+    const cwd = join(root, "work")
+    await mkdir(cwd)
+    gateway = new Gateway({
+      sessionDir: join(root, "sessions"),
+      cwd,
+      agentDir: join(root, "agent"),
+    })
+    const port = await gateway.start()
+    const client = await connect(port)
+    const created = await client.request({ command: "create_session", cwd })
+
+    expect(
+      (created as { result: { session: SessionSnapshot } }).result.session.model,
+    ).toMatchObject({ provider: "isolated" })
+    client.socket.close()
+  }, 30_000)
+})

@@ -417,7 +417,9 @@ export class PiHostService implements SessionService {
   }
 
   private runtime(): Promise<Runtime> {
-    return (this.runtimePromise ??= (this.options.createRuntime ?? createDefaultRuntime)())
+    return (this.runtimePromise ??= this.options.createRuntime
+      ? this.options.createRuntime()
+      : createDefaultRuntime(this.options.agentDir))
   }
 
   /** 取该目录预热好的 loader 交给会话，并在后台为下一个会话预热一份新的。 */
@@ -497,9 +499,14 @@ export class PiHostService implements SessionService {
   }
 }
 
-/** 测试注入用默认 ModelRuntime：不做网络刷新，避免启动时拉取模型目录。 */
-function createDefaultRuntime(): Promise<Runtime> {
-  return ModelRuntime.create({ allowModelNetwork: false })
+/** 默认 ModelRuntime：凭据与模型读配置目录（缺省 ~/.pi/agent）；不做网络刷新，避免启动时拉取模型目录。 */
+function createDefaultRuntime(agentDir: string | undefined): Promise<Runtime> {
+  return ModelRuntime.create({
+    allowModelNetwork: false,
+    ...(agentDir
+      ? { authPath: join(agentDir, "auth.json"), modelsPath: join(agentDir, "models.json") }
+      : {}),
+  })
 }
 
 /** 与仓库既有做法一致：header + 条目逐行 JSON 落盘。 */
