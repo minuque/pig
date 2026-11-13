@@ -2,7 +2,7 @@ import { mkdtemp, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { SessionManager } from "@earendil-works/pi-coding-agent"
-import type { TranscriptItem } from "@pig/protocol"
+import type { ToolTranscriptItem, TranscriptItem } from "@pig/protocol"
 import { afterEach, describe, expect, it } from "vitest"
 
 import Gateway from "../src/index.js"
@@ -79,7 +79,7 @@ describe("打开长会话：历史一次给全，大块工具输出按需取", (
       await fetch(`${base}/api/v1/platform/transcript/item?sessionId=long&id=${tool?.id}`, {
         headers,
       })
-    ).json()) as { item: TranscriptItem }
+    ).json()) as { item: ToolTranscriptItem }
     const fullText = full.item.content.find((part) => part.type === "text")
     expect(fullText && "text" in fullText ? fullText.text : "").toBe(BIG_OUTPUT)
   })

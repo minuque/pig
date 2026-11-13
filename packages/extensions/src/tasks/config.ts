@@ -1,5 +1,4 @@
-import { homedir } from "node:os"
-import { join } from "node:path"
+import { defaultTaskLogRoot } from "@pig/environment/source"
 
 /** 后台任务的规格都在这里；以后做设置入口只换这个对象的来源。 */
 export const taskConfig = {
@@ -10,7 +9,7 @@ export const taskConfig = {
   /** 单个任务日志文件的字节上限；超出后停止写入，任务继续跑。 */
   logMaxBytes: 10 * 1024 * 1024,
   /** 日志目录：<logDir>/<会话 id>/<任务 id>.log。 */
-  logDir: join(homedir(), ".pig", "tasks"),
+  logDir: defaultTaskLogRoot(),
 }
 
 export type TaskConfig = typeof taskConfig

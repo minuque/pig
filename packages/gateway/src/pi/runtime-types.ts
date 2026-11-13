@@ -67,6 +67,10 @@ export interface SessionRuntime {
   respondExtensionUi(response: ExtensionUiResponse): void
   /** 还在等回答的扩展对话框，新挂上的连接要补收。 */
   extensionDialogs(): ExtensionUiDialog[]
+  /** 请求停止一个后台任务；未知 id 忽略。 */
+  stopTask(taskId: string): void
+  /** 有后台任务在跑：这样的会话没人连着也不销毁。 */
+  hasRunningTasks(): boolean
   dispose(): Promise<void>
 }
 

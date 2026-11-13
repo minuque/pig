@@ -195,3 +195,68 @@ describe("扩展弹框：在客户端作答，扩展拿到结果", () => {
     client.socket.close()
   }, 30_000)
 })
+
+describe("后台任务：扩展经事件总线上报，客户端能看到、能停", () => {
+  it("任务进快照；没人连着时会话不销毁；按 id 停止；结束通知进时间线", async () => {
+    root = await mkdtemp(join(tmpdir(), "pig-bg-task-"))
+    const agentDir = join(root, "agent")
+    await mkdir(join(agentDir, "extensions"), { recursive: true })
+    // 替身扩展：用和内置 tasks 扩展相同的总线频道与消息类型
+    await writeFile(
+      join(agentDir, "extensions", "bg.ts"),
+      `export default function (pi) {
+        pi.registerCommand("bg", {
+          description: "bg",
+          handler: async (_args, ctx) => {
+            const sessionId = ctx.sessionManager.getSessionId()
+            const task = { id: "bash:t1", kind: "bash", description: "开发服务器", command: "pnpm dev", status: "running", output: "ready" }
+            pi.events.emit("pig:tasks", { sessionId, tasks: [task] })
+            pi.events.on("pig:tasks:stop", (event) => {
+              if (event.sessionId !== sessionId || event.taskId !== task.id) return
+              const stopped = { ...task, status: "stopped" }
+              pi.events.emit("pig:tasks", { sessionId, tasks: [stopped] })
+              pi.sendMessage({ customType: "pig.task", content: "stopped", display: true, details: stopped }, { triggerTurn: false })
+            })
+          },
+        })
+      }`,
+    )
+    const cwd = join(root, "work")
+    await mkdir(cwd)
+    gateway = new Gateway({ sessionDir: join(root, "sessions"), cwd, agentDir })
+    const port = await gateway.start()
+    const client = await connect(port)
+    const created = await client.request({ command: "create_session", cwd })
+    const sessionId = (created as { result: { session: SessionSnapshot } }).result.session.id
+    const tasksOf = (message: ServerMessage) =>
+      message.type === "event" && message.event.type === "session_snapshot"
+        ? message.event.snapshot.tasks
+        : undefined
+
+    void client.request({ command: "prompt", sessionId, message: "/bg" })
+    await client.next((message) => tasksOf(message)?.[0]?.status === "running")
+
+    // 切走再切回：运行时还是同一个，任务仍在
+    await client.request({ command: "detach_session", sessionId })
+    await new Promise((resolve) => setTimeout(resolve, 100))
+    const back = await client.request({ command: "attach_session", sessionId })
+
+    expect((back as { result: { session: SessionSnapshot } }).result.session.tasks).toMatchObject([
+      { id: "bash:t1", status: "running", output: "ready" },
+    ])
+
+    await client.request({ command: "stop_task", sessionId, taskId: "bash:t1" })
+    await client.next((message) => tasksOf(message)?.[0]?.status === "stopped")
+
+    const history = await fetch(
+      `http://127.0.0.1:${port}/api/v1/platform/transcript?sessionId=${sessionId}`,
+      { headers: { authorization: gateway.authorizationHeader() } },
+    )
+    const body = (await history.json()) as { items: Array<{ role: string; task?: unknown }> }
+
+    expect(body.items.filter((item) => item.role === "task")).toMatchObject([
+      { task: { id: "bash:t1", status: "stopped" } },
+    ])
+    client.socket.close()
+  }, 30_000)
+})

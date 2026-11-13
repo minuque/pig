@@ -4,12 +4,12 @@
       <button
         type="button"
         class="task-row"
-        :disabled="!task.sessionId || !openSession"
+        :disabled="task.kind !== 'agent' || !task.sessionId || !openSession"
         @click="open(task)"
       >
         <span class="task-dot" :data-status="task.status" />
         <span class="task-name">{{ task.description }}</span>
-        <span class="task-step">{{ task.error ?? task.steps.at(-1) ?? task.prompt }}</span>
+        <span class="task-step">{{ taskDetail(task) }}</span>
       </button>
     </li>
   </ul>
@@ -18,6 +18,7 @@
 <script setup lang="ts">
 import { inject } from "vue"
 import { openTaskSessionKey } from "@features/transcript-view/index.js"
+import { taskDetail } from "@features/transcript-view/lib/tool-tasks.js"
 import type { Task } from "@/types/common-type.js"
 
 defineProps<{ tasks: readonly Task[] }>()
@@ -25,7 +26,8 @@ defineProps<{ tasks: readonly Task[] }>()
 const openSession = inject(openTaskSessionKey, undefined)
 
 function open(task: Task) {
-  if (task.sessionId) openSession?.({ sessionId: task.sessionId, agent: task.description })
+  if (task.kind === "agent" && task.sessionId)
+    openSession?.({ sessionId: task.sessionId, agent: task.description })
 }
 </script>
 

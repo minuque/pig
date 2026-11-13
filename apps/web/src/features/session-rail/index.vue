@@ -6,7 +6,7 @@
       :data-open="rail.docked.value || undefined"
       :aria-label="t('rail.title')"
     >
-      <RailCards v-bind="cards" @open="rail.openChild" />
+      <RailCards v-bind="cards" @open="rail.openChild" @stop="stopTask" />
     </aside>
 
     <ChildDrawer :child="rail.child.value" :progress="childProgress" @close="rail.closeChild" />
@@ -23,12 +23,16 @@ import { useSessionRail } from "@features/session-rail/index.js"
 
 const { t } = useI18n()
 const rail = useSessionRail()!
-const { session, tasks, cards } = useRailCards()
+const { session, tasks, cards, stopTask } = useRailCards()
 /** 抽屉里那个子任务的进展指纹：状态或最近一步变了就重读子会话。 */
 const childProgress = computed(() => {
   const open = rail.child.value
-  const task = tasks.value.find((item) => item.sessionId === open?.sessionId)
-  return task ? `${task.status}:${task.steps.length}:${task.steps.at(-1) ?? ""}` : ""
+  const task = tasks.value.find(
+    (item) => item.kind === "agent" && item.sessionId === open?.sessionId,
+  )
+  return task?.kind === "agent"
+    ? `${task.status}:${task.steps.length}:${task.steps.at(-1) ?? ""}`
+    : ""
 })
 </script>
 

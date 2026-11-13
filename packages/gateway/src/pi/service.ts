@@ -1,12 +1,14 @@
 import { mkdir, rm, writeFile } from "node:fs/promises"
-import { dirname } from "node:path"
+import { dirname, join } from "node:path"
 import {
   createAgentSession,
+  createEventBus,
   DefaultResourceLoader,
   ModelRuntime,
   SessionManager,
 } from "@earendil-works/pi-coding-agent"
 import type { SessionEntry, SessionHeader } from "@earendil-works/pi-coding-agent"
+import { defaultTaskLogRoot } from "@pig/environment"
 import type {
   ComposerCommand,
   ContextPreviewKey,
@@ -73,6 +75,8 @@ export class PiHostService implements SessionService {
   private readonly activeSessions = new Map<string, PiHostSession>()
   /** 规范化 cwd → 该目录已 reload 的 loader。 */
   private readonly resourceSlots = new Map<string, Promise<ResourceSlot>>()
+  /** 所有会话的扩展共用一条事件总线；后台任务按会话 id 区分。 */
+  private readonly events = createEventBus()
   /** 用户选过的目录（懒加载）；见 authorizedWorkspacesFile。 */
   private authorizedLoad: Promise<Set<string>> | undefined
   /** 已判定为已知的目录（含靠磁盘会话命中的），免每次重扫会话。 */
@@ -323,6 +327,7 @@ export class PiHostService implements SessionService {
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
     await rm(path, { force: true })
     await this.attachments.clearSession(sessionId)
+    await rm(join(defaultTaskLogRoot(), sessionId), { recursive: true, force: true })
     this.sessionPaths.delete(sessionId)
     this.sessionsCache = undefined
   }
@@ -423,7 +428,7 @@ export class PiHostService implements SessionService {
     const pending = this.slot(key)
     const slot = await pending
 
-    if (slot.taken) return createResourceLoader(key, this.options.agentDir)
+    if (slot.taken) return createResourceLoader(key, this.options.agentDir, this.events)
     slot.taken = true
 
     if (this.resourceSlots.get(key) === pending) this.resourceSlots.delete(key)
@@ -443,7 +448,7 @@ export class PiHostService implements SessionService {
       if (!oldest.done) this.resourceSlots.delete(oldest.value)
     }
 
-    const pending = createResourceLoader(cwd, this.options.agentDir).then(
+    const pending = createResourceLoader(cwd, this.options.agentDir, this.events).then(
       (loader) => ({ loader, taken: false }),
       (error: unknown) => {
         this.resourceSlots.delete(cwd)
@@ -471,6 +476,7 @@ export class PiHostService implements SessionService {
         }
       },
       this.attachments,
+      this.events,
     )
     this.activeSessions.set(session.sessionId, host)
 

@@ -1,4 +1,4 @@
-import type { TurnTiming } from "@/types/common-type.js"
+import type { Task, TurnTiming } from "@/types/common-type.js"
 
 export type TranscriptImage = { data: string; mimeType: string }
 
@@ -69,7 +69,15 @@ export type ToolRow = {
   timing?: TurnTiming
 }
 
-export type TimelineRow = UserRow | AssistantRow | ToolRow
+/** 后台任务结束的一行通知。 */
+export type TaskNoticeRow = {
+  id: string
+  role: "task"
+  task: Task
+  timestamp: number
+}
+
+export type TimelineRow = UserRow | AssistantRow | ToolRow | TaskNoticeRow
 
 /** 窗口项：一轮（user 条目 id，无 user 时用 orphan 锚点）。 */
 export type TimelineTurn = {

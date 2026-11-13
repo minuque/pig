@@ -28,6 +28,7 @@ export type {
 export type {
   AssistantTranscriptItem,
   JsonValue,
+  TaskTranscriptItem,
   ToolTranscriptItem,
   TranscriptItem,
   TranscriptProgress,

@@ -313,6 +313,13 @@ export function useSessionLifecycle(
     }
   }
 
+  /** 会话里的后台任务；只有挂着连接时才有。 */
+  const tasks = computed(() => snapshot.value?.tasks ?? [])
+
+  async function stopTask(taskId: string) {
+    await remote.value?.stopTask(taskId)
+  }
+
   const turnPending = computed(() => submitting.value || running.value)
   const transcript = computed(() =>
     withPendingAssistant(
@@ -356,6 +363,8 @@ export function useSessionLifecycle(
     turnTimings: history.turnTimings,
     sessionCwd,
     contextUsage: usage,
+    tasks,
+    stopTask,
     catalog,
     preset,
     prompt,

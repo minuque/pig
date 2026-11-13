@@ -170,6 +170,7 @@
   --size-mac-traffic-lights: 68px;
   --size-drawer: 360px;
   /* 电池式用量条：24×10 的槽，内边距 2px，电量最窄 6px */
+  --size-task-output-max: 240px;
   --size-battery-block: 10px;
   --size-battery-pad: 2px;
   --size-battery-fill-min: 6px;

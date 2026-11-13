@@ -1,10 +1,13 @@
-import type { AgentSession, AgentSessionEvent } from "@earendil-works/pi-coding-agent"
+import type { AgentSession, AgentSessionEvent, EventBus } from "@earendil-works/pi-coding-agent"
 import type {
   ContextPreviewKey,
   ExtensionUiResponse,
   ModelRef,
   SessionPhase,
   SessionSnapshot,
+  Task,
+  TaskStopEvent,
+  TasksEvent,
   ThinkingLevel,
   TranscriptProgress,
 } from "@pig/protocol"
@@ -39,6 +42,9 @@ const SNAPSHOT_SKIP_EVENTS = new Set([
   "tool_execution_update",
   "bash_execution_update",
 ])
+/** 后台任务的总线频道；与 @pig/extensions 的 tasks 扩展约定一致。 */
+const TASKS_CHANNEL = "pig:tasks"
+const TASK_STOP_CHANNEL = "pig:tasks:stop"
 /** 流式合流窗口：同块的连续增量拼成一条，同条目的连续整条更新只留最后一帧。 */
 const PROGRESS_COALESCE_MS = 16
 
@@ -71,14 +77,33 @@ export class PiHostSession implements SessionRuntime {
   )
   private pendingProgress: StreamingProgress[] = []
   private pendingUpdateTimer: ReturnType<typeof setTimeout> | undefined
+  private tasks: Task[] = []
+  private readonly unsubscribeTasks: (() => void) | undefined
 
   constructor(
     private readonly session: AgentSession,
     private readonly onDispose?: () => void,
     private readonly attachments?: AttachmentSink,
+    private readonly events?: EventBus,
   ) {
     this.timing = new TurnTimingRecorder(session.sessionManager)
     this.unsubscribeSession = session.subscribe((event) => this.handleEvent(event))
+    this.unsubscribeTasks = events?.on(TASKS_CHANNEL, (data) => {
+      const event = data as TasksEvent
+
+      if (event.sessionId !== session.sessionId || this.disposed) return
+      this.tasks = event.tasks
+      this.broadcastSnapshot()
+    })
+  }
+
+  stopTask(taskId: string): void {
+    const event: TaskStopEvent = { sessionId: this.session.sessionId, taskId }
+    this.events?.emit(TASK_STOP_CHANNEL, event)
+  }
+
+  hasRunningTasks(): boolean {
+    return this.tasks.some((task) => task.status === "running")
   }
 
   contextUsage(previewKey?: ContextPreviewKey) {
@@ -140,6 +165,7 @@ export class PiHostSession implements SessionRuntime {
         timestamp: Date.now(),
       })),
       queuedSteerCount: steering.length,
+      tasks: this.tasks,
     }
   }
 
@@ -270,6 +296,7 @@ export class PiHostSession implements SessionRuntime {
         .emit({ type: "session_shutdown", reason: "quit" })
         .catch((error: unknown) => console.error("session_shutdown failed:", error))
     this.unsubscribeSession()
+    this.unsubscribeTasks?.()
     this.clearPendingUpdate()
     this.session.dispose()
     this.listeners.clear()

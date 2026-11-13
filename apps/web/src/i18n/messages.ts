@@ -242,6 +242,17 @@ export const zh = {
     collapseAll: "全部收起",
     reorder: "拖动调整「{name}」的位置",
     taskCount: "{done}/{total} 任务",
+    tasksRunning: "进行中",
+    tasksFinished: "已结束",
+    stopTask: "停止这个任务",
+    clearFinished: "清除已结束的任务",
+    noOutputYet: "还没有输出",
+    noOutput: "没有捕获到输出。",
+    taskKind: { agent: "代理", bash: "命令" },
+  },
+  taskNotice: {
+    bash: { completed: "后台命令已完成", failed: "后台命令失败", stopped: "后台命令已停止" },
+    agent: { completed: "后台代理已完成", failed: "后台代理失败", stopped: "后台代理已停止" },
   },
   transcript: {
     aborted: "已中止",
@@ -578,6 +589,25 @@ export const en: Messages = {
     collapseAll: "Collapse all",
     reorder: "Reorder {name}",
     taskCount: "{done}/{total} tasks",
+    tasksRunning: "Running",
+    tasksFinished: "Finished",
+    stopTask: "Stop this task",
+    clearFinished: "Clear finished tasks",
+    noOutputYet: "No output yet",
+    noOutput: "No output captured.",
+    taskKind: { agent: "Agent", bash: "Command" },
+  },
+  taskNotice: {
+    bash: {
+      completed: "Background command completed",
+      failed: "Background command failed",
+      stopped: "Background command stopped",
+    },
+    agent: {
+      completed: "Background agent completed",
+      failed: "Background agent failed",
+      stopped: "Background agent stopped",
+    },
   },
   transcript: {
     aborted: "Aborted",
