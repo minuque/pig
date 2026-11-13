@@ -9,6 +9,7 @@ import {
   isOpenAborted,
 } from "@features/session/hooks/abortable-open.js"
 import {
+  hasRunningTasks,
   useLiveSubscriptions,
   type LiveSubscription,
 } from "@features/session/hooks/use-live-subscriptions.js"
@@ -77,13 +78,13 @@ export function useForegroundSession(
     clearForeground()
   }
 
-  /** 切走前台会话：还在运行就转入后台订阅池，空闲则放弃连接。 */
+  /** 切走前台会话：回合或后台任务还在跑就转入后台订阅池，否则放弃连接。 */
   function release() {
     const previous = remote.value
     const sub = activeSub
     const id = previous?.id
 
-    if (sub && id && sub.running) {
+    if (sub && id && (sub.running || hasRunningTasks(sub))) {
       live.moveToBackground(sub)
       activeSub = undefined
       clearForeground()

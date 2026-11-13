@@ -50,6 +50,10 @@ const E2E_BY_AREA = [
     ],
   },
   {
+    prefix: "apps/web/src/features/session-rail/",
+    specs: ["e2e/subagent-rail.spec.ts", "e2e/background-task.spec.ts"],
+  },
+  {
     prefix: "apps/web/src/features/settings/",
     specs: ["e2e/models-connect.spec.ts", "e2e/models-list.spec.ts"],
   },

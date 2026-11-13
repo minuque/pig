@@ -94,6 +94,8 @@ type TestFixtures = {
   emptyModelsGateway: E2eGateway
   /** 临时 agentDir 里装一个会弹框的扩展，用来验扩展 UI。 */
   extensionGateway: E2eGateway
+  /** 真实会话加 /bg 与 /bg-fail 命令：不经模型，直接让内置 tasks 扩展起后台命令。 */
+  backgroundTaskGateway: E2eGateway
   /** 一个普通会话加一个 subagent 子会话，用来验摘要面板与子会话抽屉。 */
   subagentGateway: E2eGateway
   /** 登记一台替身 SSH 主机（底下是本机目录），用来验远程 workspace。 */
@@ -401,6 +403,12 @@ export const test = base.extend<TestFixtures>({
     },
     { scope: "test" },
   ],
+  backgroundTaskGateway: [
+    async ({}, use) => {
+      await withGateway(() => undefined, use, prepareBackgroundTaskAgent)
+    },
+    { scope: "test" },
+  ],
   subagentGateway: [
     async ({}, use) => {
       await withGateway((sessionDir, workspaceDir) => {
@@ -454,6 +462,48 @@ async function prepareExtensionAgent(agentDir: string) {
           const ok = await ctx.ui.confirm("${EXTENSION_TITLE}", "要不要继续")
           ctx.ui.notify(ok ? "${EXTENSION_YES}" : "否", "info")
         },
+      })
+    }`,
+  )
+}
+
+export const BG_TASK_TITLE = "开发服务器"
+export const BG_FAIL_TITLE = "会失败的构建"
+
+/**
+ * /bg 起一个一直输出的命令，/bg-fail 起一个马上以非零码退出的命令。
+ * 两个命令走内置 tasks 扩展的登记表与命令运行器，只是不经模型的工具调用。
+ */
+async function prepareBackgroundTaskAgent(agentDir: string) {
+  const tasks = join(root, "packages/extensions/src/tasks").replaceAll("\\", "/")
+  const environment = join(root, "packages/environment/src/index.ts").replaceAll("\\", "/")
+
+  await prepareExtensionAgent(agentDir)
+  await writeFile(
+    join(agentDir, "extensions", "bg.ts"),
+    `import { startBashTask } from "${tasks}/bash.ts"
+    import { taskConfig } from "${tasks}/config.ts"
+    import { registryFor } from "${tasks}/registry.ts"
+    import { environmentFor } from "${environment}"
+
+    export default function (pi) {
+      const start = (description, command) => (_args, ctx) => {
+        const sessionId = ctx.sessionManager.getSessionId()
+        startBashTask(registryFor(sessionId), taskConfig, {
+          sessionId,
+          env: environmentFor("local"),
+          cwd: ctx.cwd,
+          command,
+          description,
+        })
+      }
+      pi.registerCommand("bg", {
+        description: "bg",
+        handler: start("${BG_TASK_TITLE}", "while true; do echo tick; sleep 0.2; done"),
+      })
+      pi.registerCommand("bg-fail", {
+        description: "bg-fail",
+        handler: start("${BG_FAIL_TITLE}", "echo boom; exit 3"),
       })
     }`,
   )

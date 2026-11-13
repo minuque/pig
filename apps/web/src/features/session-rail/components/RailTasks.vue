@@ -167,7 +167,7 @@ function statusText(task: Task): string {
 
   if (task.status === "failed") return t("rail.failed")
 
-  if (task.status === "stopped") return t("rail.aborted")
+  if (task.status === "stopped") return t("rail.stopped")
   return ""
 }
 
