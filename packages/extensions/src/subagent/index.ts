@@ -4,6 +4,8 @@ import type { ExtensionAPI, ToolDefinition } from "@earendil-works/pi-coding-age
 import type { AgentTask, TaskDetails } from "@pig/protocol"
 import { type AgentConfig, type AgentScope, discoverAgents } from "./agents.ts"
 import { fromEntries } from "../remote-workspace/index.ts"
+import { taskConfig } from "../tasks/config.ts"
+import { registryFor } from "../tasks/registry.ts"
 import { startChild as defaultStartChild, type ChildRun, type StartChild } from "./run.ts"
 
 const MAX_TASKS = 8
@@ -19,6 +21,7 @@ type Params = {
   tasks?: Task[]
   chain?: Task[]
   agentScope?: AgentScope
+  background?: boolean
 }
 
 /** 子任务的进展按 @pig/protocol 的 Task 形状产出；web 按它画卡片，TUI 读 content 文本。 */
@@ -59,6 +62,11 @@ const parameters = {
       type: "string",
       enum: ["user", "project", "both"],
       description: 'Which agent directories to use. Default "user"; "both" adds project agents',
+    },
+    background: {
+      type: "boolean",
+      description:
+        "Return task ids immediately and run in the background; you are notified as each task finishes. Not for chain mode",
     },
   },
 }
@@ -117,7 +125,7 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
       "Agents come from the agents directory under the pi config, and .pi/agents in the project.",
     ].join(" "),
     parameters: parameters as never,
-    async execute(toolCallId, rawParams, signal, onUpdate: Update, ctx: Ctx) {
+    async execute(toolCallId, rawParams, toolSignal, onUpdate: Update, ctx: Ctx) {
       const params = rawParams as Params
       const agents = discoverAgents(ctx.cwd, params.agentScope ?? "user").agents
       const mode: SubagentDetails["mode"] = params.chain?.length
@@ -153,12 +161,18 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
       if (tasks.length > MAX_TASKS)
         return reply(`Too many tasks (${tasks.length}). At most ${MAX_TASKS} per call.`)
 
-      const publish = () =>
+      const publishAll = () =>
         onUpdate?.({
           content: [{ type: "text", text: summary(details) }],
           details: structuredClone(details),
         })
-      const runOne = async (task: Task, index: number, previous = "") => {
+      const runOne = async (
+        task: Task,
+        index: number,
+        previous = "",
+        signal = toolSignal,
+        publish = publishAll,
+      ) => {
         const result = details.tasks[index] as AgentTask
         const agent: AgentConfig | undefined = agents.find((item) => item.name === task.agent)
 
@@ -175,6 +189,7 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
         }
 
         result.status = "running"
+        result.startedAt = Date.now()
         publish()
 
         // 远程会话里 cwd 是远端路径：改的是绑定目录，本地仍用父会话的占位目录
@@ -215,6 +230,34 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
         } finally {
           publish()
         }
+      }
+
+      if (params.background) {
+        if (mode === "chain") return reply("Chain mode cannot run in the background.")
+        const registry = registryFor(ctx.sessionManager.getSessionId())
+
+        if (registry.runningCount() + tasks.length > taskConfig.maxRunning)
+          return reply(
+            `Too many background tasks running (limit ${taskConfig.maxRunning}). Stop one with bg_task_stop or wait for one to finish.`,
+          )
+        const controllers = tasks.map(() => new AbortController())
+        details.tasks.forEach((item, index) =>
+          registry.add(structuredClone(item), () => controllers[index]?.abort()),
+        )
+        // 不等子任务：工具调用先返回，每个子任务结束时由登记表通知会话
+        void mapLimited(tasks, MAX_CONCURRENCY, async (task, index) => {
+          const item = details.tasks[index] as AgentTask
+          const signal = (controllers[index] as AbortController).signal
+          // 结束只走 finish，进行中的更新不能把任务改成已结束
+          const progress = () => {
+            if (item.status === "running") registry.patch(item.id, { ...item })
+          }
+
+          await runOne(task, index, "", signal, progress)
+          registry.finish(item.id, { ...item }, item.status !== "stopped")
+        })
+        const ids = details.tasks.map((item) => item.id).join(", ")
+        return reply(`Started background tasks ${ids}. You will be notified as each finishes.`)
       }
 
       if (mode === "chain") {

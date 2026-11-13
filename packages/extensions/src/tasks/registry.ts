@@ -9,6 +9,9 @@ export interface TaskHost {
 type Entry = { task: Task; abort(): void }
 
 const PUBLISH_DELAY_MS = 100
+/** 排队中的任务也算在跑：占名额，可以停止。 */
+const live = (entry: Entry | undefined): entry is Entry =>
+  entry?.task.status === "queued" || entry?.task.status === "running"
 
 /** 一个会话的后台任务：登记、更新、结束、停止。任务一旦结束就不再变。 */
 export class TaskRegistry {
@@ -29,7 +32,7 @@ export class TaskRegistry {
   }
 
   runningCount(): number {
-    return [...this.entries.values()].filter((entry) => entry.task.status === "running").length
+    return [...this.entries.values()].filter(live).length
   }
 
   add(task: Task, abort: () => void) {
@@ -41,7 +44,7 @@ export class TaskRegistry {
   patch(id: string, patch: Partial<Task>) {
     const entry = this.entries.get(id)
 
-    if (!entry || entry.task.status !== "running") return
+    if (!live(entry)) return
     Object.assign(entry.task, patch)
     this.timer ??= setTimeout(() => this.publishNow(), PUBLISH_DELAY_MS)
   }
@@ -50,7 +53,7 @@ export class TaskRegistry {
   finish(id: string, patch: Partial<Task>, wake: boolean) {
     const entry = this.entries.get(id)
 
-    if (!entry || entry.task.status !== "running") return
+    if (!live(entry)) return
     Object.assign(entry.task, patch, { completedAt: Date.now() })
     this.publishNow()
     this.host?.notify(structuredClone(entry.task), wake)
@@ -60,7 +63,7 @@ export class TaskRegistry {
   stop(id: string): boolean {
     const entry = this.entries.get(id)
 
-    if (!entry || entry.task.status !== "running") return false
+    if (!live(entry)) return false
     this.finish(id, { status: "stopped" }, false)
     entry.abort()
     return true
