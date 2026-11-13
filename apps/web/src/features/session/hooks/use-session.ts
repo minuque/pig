@@ -19,17 +19,17 @@ import {
   createBackgroundSender,
   dropBatch,
   stageBatchFor,
-} from "@features/session-workbench/hooks/use-background-send.js"
-import { useSessionHistory } from "@features/session-workbench/hooks/use-session-history.js"
+} from "@features/session/hooks/use-background-send.js"
+import { useSessionHistory } from "@features/session/hooks/use-session-history.js"
 import {
   createAbortableOpen,
   isDisconnectedError,
   isOpenAborted,
-} from "@features/session-workbench/hooks/abortable-open.js"
+} from "@features/session/hooks/abortable-open.js"
 import {
   useLiveSubscriptions,
   type LiveSubscription,
-} from "@features/session-workbench/hooks/use-live-subscriptions.js"
+} from "@features/session/hooks/use-live-subscriptions.js"
 import {
   emptyClientState,
   handOffIdle,
@@ -38,8 +38,8 @@ import {
   projectSessionSnapshot,
   sessionState,
   withPendingAssistant,
-} from "@features/session-workbench/lib/session-state.js"
-import type { SessionClientState } from "@features/session-workbench/type.js"
+} from "@features/session/lib/session-state.js"
+import type { SessionClientState } from "@features/session/type.js"
 
 interface CreateSessionInput {
   cwd: string

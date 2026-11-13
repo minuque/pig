@@ -20,17 +20,6 @@ export function projectMonogram(name: string): string {
   return (first.slice(0, 1) + consonant).toUpperCase()
 }
 
-/** 未命名 Session 的列表/标题回退文案。 */
-export function untitledSession(): string {
-  return t("session.untitled")
-}
-
-/** 列表标题：Pi sessionName，否则「新会话」。 */
-export function sessionTitle(session: Pick<SessionMetadata, "sessionName">): string {
-  const name = session.sessionName?.trim()
-  return name || untitledSession()
-}
-
 /** 最近活动时刻：优先 updatedAt。 */
 export function sessionRecency(session: Pick<SessionMetadata, "createdAt" | "updatedAt">): number {
   return session.updatedAt ?? session.createdAt

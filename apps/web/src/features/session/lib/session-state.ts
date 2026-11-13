@@ -1,20 +1,19 @@
 import { reactive } from "vue"
 import type {
   AssistantTranscriptItem,
-  SessionMetadata,
   SessionPhase,
   SessionSnapshot,
   TranscriptItem,
 } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/common-type.js"
 import { t } from "@i18n/index.js"
-import { sessionTitle, untitledSession } from "@features/session-nav/index.js"
+import { untitledSession } from "@features/session/lib/session-title.js"
 import { userMessageText } from "@features/transcript-view/index.js"
 import type {
   OptimisticUserMessage,
   SessionClientState,
   SessionProjection,
-} from "@features/session-workbench/type.js"
+} from "@features/session/type.js"
 
 export function emptyClientState(): SessionClientState {
   return reactive<SessionClientState>({
@@ -239,17 +238,4 @@ export function phaseLabel(phase: SessionPhase): string {
     default:
       return t("composer.contextIdle")
   }
-}
-
-/** 顶栏标题：列表名优先（改名后随 listSessions 更新），否则 snapshot 名。 */
-export function workbenchHeaderTitle(input: {
-  sessionId: string | undefined
-  listed: readonly Pick<SessionMetadata, "id" | "sessionName">[]
-  projectionName: string | undefined
-}): string {
-  if (!input.sessionId) return ""
-  const meta = input.listed.find((session) => session.id === input.sessionId)
-
-  if (meta) return sessionTitle(meta)
-  return input.projectionName?.trim() || untitledSession()
 }

@@ -7,8 +7,8 @@ import { sessionTranscript } from "@client/platform.js"
 import {
   absorbLatestTranscriptPage,
   mergeLiveTranscript,
-} from "@features/session-workbench/lib/session-state.js"
-import { createSessionHistoryCache } from "@features/session-workbench/lib/session-history-cache.js"
+} from "@features/session/lib/session-state.js"
+import { createSessionHistoryCache } from "@features/session/lib/session-history-cache.js"
 
 /** HTTP 历史按 Session 留最近几份；切走不清掉，切回立刻能画。 */
 export function useSessionHistory() {

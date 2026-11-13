@@ -113,8 +113,7 @@ import SessionItemDelete from "@features/session-nav/components/SessionItemDelet
 import RailToggle from "@features/session-rail/components/RailToggle.vue"
 import { useNav } from "@features/session-nav/index.js"
 import { workspaceName } from "@features/session-nav/lib/format.js"
-import { useSession } from "@features/session-workbench/index.js"
-import { workbenchHeaderTitle } from "@features/session-workbench/lib/session-state.js"
+import { sessionTitle, untitledSession, useSession } from "@features/session/index.js"
 import {
   AltArrowDownIcon,
   FolderIcon,
@@ -142,13 +141,12 @@ const {
 /** 当前会话 id：实时会话缺失时回落到高亮会话。 */
 const currentId = computed(() => sessionId.value ?? highlightedSessionId.value)
 const isPinned = computed(() => (currentId.value ? pinnedIds.value.has(currentId.value) : false))
-const title = computed(() =>
-  workbenchHeaderTitle({
-    sessionId: sessionId.value,
-    listed: listedSessions.value,
-    projectionName: projection.value?.name,
-  }),
-)
+/** 顶栏标题：列表名优先（改名后随 listSessions 更新），否则 snapshot 名。 */
+const title = computed(() => {
+  if (!sessionId.value) return ""
+  const meta = listedSessions.value.find((session) => session.id === sessionId.value)
+  return meta ? sessionTitle(meta) : projection.value?.name?.trim() || untitledSession()
+})
 const cwdLabel = computed(() => (sessionCwd.value ? workspaceName(sessionCwd.value) : ""))
 const titleInput = useTemplateRef("titleInput")
 const draft = ref("")

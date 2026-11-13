@@ -12,7 +12,8 @@ import type {
   SessionCardExtra,
   SessionCardLive,
 } from "@features/session-nav/type.js"
-import { sessionRecency, sessionTitle, workspaceName } from "@features/session-nav/lib/format.js"
+import { sessionRecency, workspaceName } from "@features/session-nav/lib/format.js"
+import { sessionTitle } from "@features/session/index.js"
 
 /** 首屏一次建多少行；够填满侧栏，剩下的滚到底再补。 */
 const SECTION_PAGE = 10

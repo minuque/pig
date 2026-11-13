@@ -40,7 +40,7 @@ import { provideNav } from "@features/session-nav/index.js"
 import SettingsDialog from "@features/settings/components/SettingsDialog.vue"
 import { useSettingsDialog } from "@features/settings/hooks/use-settings-dialog.js"
 import Startup from "@features/startup/index.vue"
-import { provideSession } from "@features/session-workbench/index.js"
+import { provideSession } from "@features/session/index.js"
 import { prefetchHighlighter } from "@features/transcript-view/index.js"
 
 const pi = useGatewayClient()

@@ -1,12 +1,9 @@
 import type { TranscriptItem } from "@/types/common-type.js"
 import { bindAttachments, discardAttachments, stageAttachment } from "@client/platform.js"
 import type { ComposerAttachmentBatch } from "@features/composer/hooks/use-composer-attachments.js"
-import type { LiveSubscription } from "@features/session-workbench/hooks/use-live-subscriptions.js"
-import {
-  optimisticUserMessage,
-  sessionState,
-} from "@features/session-workbench/lib/session-state.js"
-import type { SessionClientState } from "@features/session-workbench/type.js"
+import type { LiveSubscription } from "@features/session/hooks/use-live-subscriptions.js"
+import { optimisticUserMessage, sessionState } from "@features/session/lib/session-state.js"
+import type { SessionClientState } from "@features/session/type.js"
 
 /**
  * 逐个 stage 再 bind 到指定 Session；aborted() 为真则中止并返回 false。

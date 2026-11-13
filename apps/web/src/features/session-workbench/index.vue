@@ -126,7 +126,7 @@ import { useComposerQueue, type QueuedPrompt } from "@features/composer/hooks/us
 import { useSound } from "@features/click-sound/index.js"
 import { useI18n } from "@i18n/index.js"
 import { sessionDropTargetAttrs, useNav } from "@features/session-nav/index.js"
-import { useSession } from "@features/session-workbench/index.js"
+import { useSession } from "@features/session/index.js"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
 import WelcomeGlyphField from "@features/session-workbench/components/WelcomeGlyphField.vue"

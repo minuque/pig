@@ -1,7 +1,7 @@
 import { inject, provide, type InjectionKey } from "vue"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
-import { useSessionLifecycle } from "@features/session-workbench/hooks/use-session.js"
+import { useSessionLifecycle } from "@features/session/hooks/use-session.js"
 
 export type SessionContext = ReturnType<typeof useSessionLifecycle>
 
@@ -22,3 +22,5 @@ export function useSession(): SessionContext {
   if (!session) throw new Error("useSession() 需要在 provideSession() 之后调用")
   return session
 }
+
+export { sessionTitle, untitledSession } from "@features/session/lib/session-title.js"

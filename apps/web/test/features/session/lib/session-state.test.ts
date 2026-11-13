@@ -5,7 +5,7 @@ import {
   mergeLiveTranscript,
   projectClientTranscript,
   withPendingAssistant,
-} from "@features/session-workbench/lib/session-state.js"
+} from "@features/session/lib/session-state.js"
 
 function row(id: string, role: "user" | "assistant", text: string): TranscriptItem {
   return { id, role, content: [{ type: "text", text }], timestamp: 0 } as TranscriptItem

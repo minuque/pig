@@ -1,6 +1,6 @@
 import { computed } from "vue"
 import { useExtensionUi } from "@features/extension-ui/index.js"
-import { useSession } from "@features/session-workbench/index.js"
+import { useSession } from "@features/session/index.js"
 import { latestSubagentTasks } from "@features/session-rail/lib/subagent.js"
 
 /** 摘要卡片的数据：常驻面板与窄屏浮层共用。 */

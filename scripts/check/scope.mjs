@@ -32,6 +32,15 @@ const E2E_BY_AREA = [
     ],
   },
   {
+    prefix: "apps/web/src/features/session/",
+    specs: [
+      "e2e/critical-journey.spec.ts",
+      "e2e/one-turn.spec.ts",
+      "e2e/new-session.spec.ts",
+      "e2e/workspace.spec.ts",
+    ],
+  },
+  {
     prefix: "apps/web/src/features/session-nav/",
     specs: [
       "e2e/session-nav.spec.ts",

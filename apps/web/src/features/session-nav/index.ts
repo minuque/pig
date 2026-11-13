@@ -2,7 +2,7 @@ import { computed, inject, provide, shallowRef, watch, type InjectionKey } from 
 import { useRouter } from "vue-router"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
-import type { SessionContext } from "@features/session-workbench/index.js"
+import type { SessionContext } from "@features/session/index.js"
 import { useSessionCards } from "@features/session-nav/hooks/use-session-cards.js"
 import { useSessionMarkers } from "@features/session-nav/hooks/use-session-markers.js"
 import { useSessionOpen } from "@features/session-nav/hooks/use-session-open.js"
@@ -14,7 +14,7 @@ import {
 } from "@features/session-nav/lib/session-list.js"
 import type { SidebarPlacement, SidebarSessionState } from "@features/session-nav/type.js"
 
-export { sessionTitle, workspaceName, untitledSession } from "@features/session-nav/lib/format.js"
+export { workspaceName } from "@features/session-nav/lib/format.js"
 
 export {
   SESSION_DROP_EVENT,
