@@ -37,8 +37,6 @@
             :disabled="task.kind === 'agent' && !task.sessionId"
             @click="activate(task)"
           >
-            <span class="rail-dot" :data-status="task.status" aria-hidden="true" />
-
             <span class="rail-task-name" :class="{ shimmer: task.status === 'running' }">
               {{ task.description }}
             </span>
@@ -60,7 +58,11 @@
 
         <div class="rail-task-meta">
           <span>{{ t(`rail.taskKind.${task.kind}`) }}</span>
-          <span v-if="statusText(task)">{{ statusText(task) }}</span>
+
+          <span v-if="statusText(task)" :class="{ 'rail-task-failed': task.status === 'failed' }">
+            {{ statusText(task) }}
+          </span>
+
           <span v-if="elapsed(task)" class="rail-task-time">{{ elapsed(task) }}</span>
 
           <span v-if="task.kind === 'agent' && task.tokens > 0">
@@ -209,6 +211,7 @@ function elapsed(task: Task): string {
 <style scoped>
 .rail-tasks {
   display: grid;
+  gap: var(--space-xxs);
 }
 
 .rail-tasks-head {
@@ -217,14 +220,20 @@ function elapsed(task: Task): string {
   justify-content: space-between;
   min-block-size: var(--space-xl);
   font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
   color: var(--contrast-foreground-faint);
+}
+
+.rail-task + .rail-tasks-head {
+  margin-block-start: var(--space-xs);
 }
 
 .rail-task {
   display: grid;
   gap: var(--space-xxs);
-  padding: var(--space-xs) 0;
-  border-block-start: 1px solid var(--border-soft);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--fill-quiet);
+  border-radius: var(--radius-control);
 }
 
 .rail-task-top {
@@ -255,46 +264,34 @@ function elapsed(task: Task): string {
   color: var(--link);
 }
 
-.rail-dot {
-  flex: none;
-  inline-size: var(--space-xs);
-  block-size: var(--space-xs);
-  background: var(--contrast-foreground-faint);
-  border-radius: var(--radius-pill);
-}
-
-.rail-dot[data-status="running"] {
-  background: var(--primary);
-}
-
-.rail-dot[data-status="completed"] {
-  background: var(--success);
-}
-
-.rail-dot[data-status="failed"] {
-  background: var(--danger);
-}
-
 .rail-task-name {
   min-inline-size: 0;
   overflow: hidden;
   font-size: var(--text-body);
-  color: var(--contrast-foreground);
+  color: var(--contrast-foreground-secondary);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.rail-task[data-status="running"] .rail-task-name {
+  color: var(--contrast-foreground);
 }
 
 .rail-task-meta,
 .rail-task-step,
 .rail-task-output {
-  font-family: var(--font-mono);
   font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
   color: var(--contrast-foreground-faint);
 }
 
 .rail-task-meta {
   display: flex;
   gap: var(--space-xs);
+}
+
+.rail-task-failed {
+  color: var(--danger);
 }
 
 .rail-task-time {
@@ -310,6 +307,7 @@ function elapsed(task: Task): string {
 .rail-task-output {
   display: grid;
   gap: var(--space-xxs);
+  font-family: var(--font-mono);
 }
 
 .rail-task-command {
