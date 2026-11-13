@@ -6,11 +6,14 @@ test("subagent 子任务：时间线卡片与摘要面板都列出进展，点�
   page,
   subagentGateway,
 }) => {
+  // 会话面板窄于 1012px：摘要面板收成头部按钮加浮层
+  await page.setViewportSize({ width: 1000, height: 800 })
   await startSubagentTurn(page, subagentGateway)
 
-  // 窄于常驻宽度：右上角按钮带进度，点开浮层看 Task 块
-  const toggle = page.locator(".rail-toggle")
-  await expect(toggle).toContainText("1/2")
+  // 窄于常驻宽度：头部图标按钮，悬停提示带进度，点开浮层看 Task 块
+  const toggle = page.locator(".rail-toggle-popover")
+  await toggle.hover()
+  await expect(page.locator(".rt-TooltipContent")).toContainText("1/2")
   await toggle.click()
   const popover = page.locator(".rail-popover")
   await expect(popover.getByText("planner")).toBeVisible()
@@ -30,6 +33,24 @@ test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({
   const titles = rail.locator(".rail-title")
   await expect(titles.first()).toHaveText("环境")
   await expect(titles.last()).toHaveText("任务")
+
+  // 摘要面板独占右列：输入框让位，不压在面板下
+  const railBox = (await rail.boundingBox())!
+  const composerBox = (await page.locator(".composer-stack").boundingBox())!
+  expect(composerBox.x + composerBox.width).toBeLessThanOrEqual(railBox.x)
+  // 正文滚动区横跨到最右，滚动条贴边，不夹在正文和面板之间
+  const viewportBox = (await page.locator(".transcript-viewport").boundingBox())!
+  const panelBox = (await page.locator(".session-panel").boundingBox())!
+  expect(viewportBox.x + viewportBox.width).toBeCloseTo(panelBox.x + panelBox.width, 0)
+
+  // 上下文展开：按分类列 token 与占比，点分类在模态框里看实际进上下文的内容
+  const contextCard = rail.locator(".rail-card", { hasText: "上下文" })
+  await contextCard.locator("button.ctx-row").first().click()
+  const preview = page.locator(".ctx-preview")
+  await expect(preview.locator(".ctx-preview-text")).not.toBeEmpty({ timeout: 30_000 })
+  await expect(preview.locator(".ctx-preview-text")).not.toHaveText("无法加载预览。")
+  await page.keyboard.press("Escape")
+  await expect(preview).toBeHidden()
 
   // 收起环境：正文收起，标题行显示摘要
   const env = rail.locator(".rail-card").first()
@@ -61,4 +82,14 @@ test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({
   )
   const order = await page.evaluate(() => localStorage.getItem("pig.rail.layout"))
   expect(JSON.parse(order ?? "{}").order[0]).toBe("tasks")
+
+  // 头部按钮收起常驻面板，刷新后仍收起
+  const toggle = page.locator(".rail-toggle-docked")
+  await expect(toggle).toHaveAttribute("aria-pressed", "true")
+  await toggle.click()
+  await expect(rail).toBeHidden()
+  await page.reload()
+  await page.locator(".session-card").first().click()
+  await expect(toggle).toHaveAttribute("aria-pressed", "false", { timeout: 30_000 })
+  await expect(rail).toBeHidden()
 })

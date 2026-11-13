@@ -15,8 +15,8 @@
 
         <template v-else-if="id === 'context' && usage">
           {{ usage.percent }}%
-          <span class="rail-bar" data-mini aria-hidden="true">
-            <i :style="{ inlineSize: `${usage.percent}%` }" />
+          <span class="rail-battery" :data-severity="severity" aria-hidden="true">
+            <i :style="{ inlineSize: `${Math.min(100, usage.percent)}%` }" />
           </span>
         </template>
 
@@ -63,26 +63,7 @@
         </div>
       </template>
 
-      <template v-else-if="id === 'context' && usage">
-        <div
-          class="rail-bar"
-          role="meter"
-          :aria-valuenow="usage.percent"
-          aria-valuemin="0"
-          aria-valuemax="100"
-        >
-          <i :style="{ inlineSize: `${usage.percent}%` }" />
-        </div>
-
-        <div class="rail-kv">
-          <span>{{ t("rail.used") }}</span>
-
-          <span class="rail-value">
-            {{ formatTokenCount(usage.used) }} / {{ formatTokenCount(usage.window) }} ·
-            {{ usage.percent }}%
-          </span>
-        </div>
-      </template>
+      <RailContext v-else-if="id === 'context' && usage" :usage="usage" :session-id="sessionId" />
 
       <template v-else-if="id === 'tasks'">
         <button
@@ -118,6 +99,7 @@ import {
 import { formatTokenCount } from "@features/composer/lib/context-usage.js"
 import type { ContextUsage } from "@features/composer/type.js"
 import RailCard from "@features/session-rail/components/RailCard.vue"
+import RailContext from "@features/session-rail/components/RailContext.vue"
 import { useSessionRail, type OpenChild } from "@features/session-rail/index.js"
 import { RAIL_SECTIONS, type RailSectionId } from "@features/session-rail/lib/sections.js"
 import type { SubagentTask } from "@features/session-rail/lib/subagent.js"
@@ -127,6 +109,7 @@ const props = defineProps<{
   cwd: string | undefined
   model: string | undefined
   usage: ContextUsage | undefined
+  sessionId: string | undefined
   tasks: readonly SubagentTask[]
   statuses: ReadonlyMap<string, string> | undefined
 }>()
@@ -138,6 +121,11 @@ const titles = computed<Record<RailSectionId, string>>(() => ({
   context: t("rail.context"),
   tasks: t("rail.tasks"),
 }))
+/** 用量分档（与 cc-wrapper 一致）：75% 起警告，90% 起危险。 */
+const severity = computed(() => {
+  const percent = props.usage?.percent ?? 0
+  return percent >= 90 ? "critical" : percent >= 75 ? "warning" : undefined
+})
 const doneCount = computed(() => props.tasks.filter((task) => task.status === "done").length)
 /** 远程 workspace 键 ssh://主机/路径 拆成主机与远端路径。 */
 const place = computed(() => {
@@ -219,24 +207,29 @@ function taskMeta(task: SubagentTask): string {
   white-space: nowrap;
 }
 
-.rail-bar {
-  block-size: var(--space-xxs);
-  margin-block: var(--space-xxs);
-  overflow: hidden;
-  background: var(--border-soft);
+/* 收起时摘要里的电池：圆角槽里一段电量，随用量分档变色 */
+.rail-battery {
+  display: flex;
+  flex-shrink: 0;
+  inline-size: var(--space-lg);
+  block-size: var(--size-battery-block);
+  padding: var(--size-battery-pad);
+  background: var(--fill-strong);
   border-radius: var(--radius-pill);
 }
 
-/* 收起时摘要里的小量表 */
-.rail-bar[data-mini] {
-  inline-size: var(--space-lg);
-  margin-block: 0;
+.rail-battery i {
+  min-inline-size: var(--size-battery-fill-min);
+  background: var(--primary);
+  border-radius: var(--radius-pill);
 }
 
-.rail-bar i {
-  display: block;
-  block-size: 100%;
-  background: var(--primary);
+.rail-battery[data-severity="warning"] i {
+  background: var(--warning);
+}
+
+.rail-battery[data-severity="critical"] i {
+  background: var(--danger);
 }
 
 .rail-task {

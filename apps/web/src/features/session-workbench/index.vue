@@ -16,7 +16,7 @@
       </span>
     </div>
 
-    <WorkbenchHeader :class="{ 'is-overlay': showHero }" />
+    <WorkbenchHeader :class="{ 'is-overlay': showHero }" :rail="!showHero" />
     <SessionRail v-if="!showHero" />
     <RemoteWorkspaceDialog v-model:open="remoteOpen" :add="addRemoteWorkspace" />
 
@@ -94,7 +94,6 @@
               :attachments="composerAttachments"
               :running="turnPending"
               :aborting="aborting"
-              :usage="sessionId ? contextUsage : undefined"
               :session-id="sessionId"
               :cwd="composerCwd"
               :send-disabled="sendDisabled"
@@ -176,7 +175,6 @@ const {
   prompt,
   aborting,
   sessionCwd,
-  contextUsage,
   creating,
   abortSession,
   sendPrompt,
@@ -441,14 +439,19 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 </script>
 
 <style scoped>
+/* 两列：头部横跨，下方对话列在左、摘要面板独占右列；面板收起时右列宽 0。
+   摘要面板按会话面板宽度决定常驻还是收成按钮 */
 .session-panel {
   position: relative;
-  /* 摘要面板按会话面板宽度决定常驻还是收成按钮 */
   container: session-panel / inline-size;
   flex: 1;
   min-height: 0;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template: auto minmax(0, 1fr) / minmax(0, 1fr) auto;
+}
+
+.session-panel > .workbench-header {
+  grid-column: 1 / -1;
 }
 
 .drop-guide {
@@ -485,7 +488,9 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   height: var(--size-icon);
 }
 
+/* 横跨两列：滚动条贴窗口右边；摘要面板常驻时，正文、输入条与浮动按钮让出右侧 */
 .conversation-column {
+  grid-area: 2 / 1 / 3 / 3;
   position: relative;
   min-width: 0;
   min-height: 0;
@@ -494,6 +499,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   flex-direction: column;
   /* 测量前占位，挂上后由输入条边框盒覆盖 */
   --composer-reserve: 7rem;
+  --rail-reserve: 0px;
   /* 首屏输入条底边离列底的距离：标题加输入条整组的中线落在列高 45% 处 */
   --hero-dock: calc(55% - var(--composer-reserve) / 2 - 2rem);
 }
@@ -521,9 +527,15 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   padding-bottom: var(--space-xl);
 }
 
+@container session-panel (min-width: 1012px) {
+  .session-panel:has(.rail-docked[data-open]) .conversation-column {
+    --rail-reserve: var(--size-rail-reserve);
+  }
+}
+
 .composer-bar {
   position: absolute;
-  inset-inline: 0;
+  inset-inline: 0 var(--rail-reserve);
   bottom: 0;
   z-index: 2;
   padding-bottom: calc(var(--space-sm) + env(safe-area-inset-bottom, 0px));
@@ -565,7 +577,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 .session-floating-controls {
   position: absolute;
   inset-block-start: 0;
-  inset-inline: 0;
+  inset-inline: 0 var(--rail-reserve);
   z-index: 1;
   display: flex;
   justify-content: center;

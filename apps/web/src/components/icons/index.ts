@@ -110,6 +110,8 @@ export { PanelLeftCloseIcon } from "@solar-icons/vue/linear/panel-left-close"
 
 export { PanelRightOpenIcon } from "@solar-icons/vue/linear/panel-right-open"
 
+export { PanelTextRightIcon } from "@solar-icons/vue/linear/panel-text-right"
+
 export { PenIcon } from "@solar-icons/vue/linear/pen"
 
 export { PinIcon } from "@solar-icons/vue/linear/pin"

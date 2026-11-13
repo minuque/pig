@@ -429,7 +429,18 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   padding-top: var(--transcript-pad-block);
   /* 底部留白：正文留白 + 输入条占位 */
   padding-bottom: calc(var(--transcript-pad-block) + var(--composer-reserve, 0px));
-  padding-inline: max(var(--transcript-gutter), calc((100% - var(--size-content)) / 2));
+  /* 在让出摘要面板后的宽度里居中；没有面板时 --rail-reserve 为 0 */
+  padding-inline-start: max(
+    var(--transcript-gutter),
+    calc((100% - var(--rail-reserve, 0px) - var(--size-content)) / 2)
+  );
+  padding-inline-end: calc(
+    var(--rail-reserve, 0px) +
+      max(
+        var(--transcript-gutter),
+        calc((100% - var(--rail-reserve, 0px) - var(--size-content)) / 2)
+      )
+  );
   /* 横向裁在列内，避免视口 overflow-x 裁掉竖条；内边距留给满宽卡片边框 */
   overflow-x: clip;
 }

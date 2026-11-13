@@ -1,23 +1,13 @@
 <template>
   <div v-if="session.sessionId.value" class="session-rail">
-    <!-- 宽屏：常驻在正文右侧留白里 -->
-    <aside class="rail-docked" :aria-label="t('rail.title')">
+    <!-- 宽屏：常驻在正文右侧留白里，头部的图标按钮开关它；窄屏改由按钮弹浮层 -->
+    <aside
+      class="rail-docked"
+      :data-open="rail.docked.value || undefined"
+      :aria-label="t('rail.title')"
+    >
       <RailCards v-bind="cards" @open="rail.openChild" />
     </aside>
-
-    <!-- 窄屏：收成右上角按钮，点开浮层 -->
-    <Popover>
-      <PopoverTrigger as-child>
-        <Button class="rail-toggle" variant="soft" color="gray" size="s">
-          <span class="rail-toggle-dot" :data-running="runningCount > 0 || undefined" />
-          {{ toggleLabel }}
-        </Button>
-      </PopoverTrigger>
-
-      <PopoverContent class="rail-popover" align="end">
-        <RailCards v-bind="cards" @open="rail.openChild" />
-      </PopoverContent>
-    </Popover>
 
     <ChildDrawer :child="rail.child.value" :progress="childProgress" @close="rail.closeChild" />
   </div>
@@ -26,45 +16,14 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { Button } from "@components/ui/button/index.js"
-import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover/index.js"
-import { useExtensionUi } from "@features/extension-ui/index.js"
-import { useSession } from "@features/session-workbench/index.js"
 import ChildDrawer from "@features/session-rail/components/ChildDrawer.vue"
 import RailCards from "@features/session-rail/components/RailCards.vue"
+import { useRailCards } from "@features/session-rail/hooks/use-rail-cards.js"
 import { useSessionRail } from "@features/session-rail/index.js"
-import { latestSubagentTasks } from "@features/session-rail/lib/subagent.js"
 
 const { t } = useI18n()
-const session = useSession()
-const ui = useExtensionUi()
 const rail = useSessionRail()!
-const tasks = computed(() => latestSubagentTasks(session.transcript.value))
-const runningCount = computed(() => tasks.value.filter((task) => task.status === "running").length)
-const cards = computed(() => {
-  const model = session.projection.value?.model
-  const id = session.sessionId.value
-  return {
-    cwd: session.sessionCwd.value,
-    model: model ? model.id : undefined,
-    usage: session.contextUsage.value,
-    tasks: tasks.value,
-    statuses: id ? ui.statuses.value.get(id) : undefined,
-  }
-})
-const toggleLabel = computed(() => {
-  const usage = session.contextUsage.value
-  const parts = usage ? [`${usage.percent}%`] : []
-
-  if (tasks.value.length)
-    parts.push(
-      t("rail.taskCount", {
-        done: tasks.value.filter((task) => task.status === "done").length,
-        total: tasks.value.length,
-      }),
-    )
-  return parts.join(" · ") || t("rail.title")
-})
+const { session, tasks, cards } = useRailCards()
 /** 抽屉里那个子任务的进展指纹：状态或最近一步变了就重读子会话。 */
 const childProgress = computed(() => {
   const open = rail.child.value
@@ -78,55 +37,32 @@ const childProgress = computed(() => {
   display: contents;
 }
 
-/* 正文居中、两侧都放得下面板才常驻；容器宽度由会话面板提供 */
+/* 会话面板的右列，叠在横跨两列的对话列上方：高度随内容，最高到列底，超出自己滚；
+   右侧留的间距里是对话列的滚动条 */
 .rail-docked {
-  position: absolute;
-  inset-block-start: calc(var(--header-height) + var(--space-xs));
-  inset-inline-end: var(--space-md);
-  z-index: var(--z-menu);
+  position: relative;
+  z-index: 1;
+  grid-area: 2 / 2;
+  align-self: start;
   display: none;
   inline-size: var(--size-rail);
-  max-block-size: calc(100% - var(--header-height) - var(--space-md));
+  max-block-size: calc(100% - var(--space-xs) - var(--space-sm));
+  margin-block: var(--space-xs) var(--space-sm);
+  margin-inline-end: var(--space-sm);
   padding: 1px;
   overflow-y: auto;
   scrollbar-width: none;
 }
 
-.rail-toggle {
-  position: absolute;
-  inset-block-start: calc((var(--header-height) - var(--size-icon-button)) / 2);
-  inset-inline-end: var(--space-md);
-  z-index: var(--z-menu);
-  gap: var(--space-xxs);
-  font-size: var(--text-meta);
+/* 拖着卡片往下时，卡片会越过面板的内容高度：拖拽期间不裁剪 */
+.rail-docked:has(.is-drag-live) {
+  overflow: visible;
 }
 
-.rail-toggle-dot {
-  inline-size: var(--space-xs);
-  block-size: var(--space-xs);
-  background: var(--contrast-foreground-faint);
-  border-radius: var(--radius-pill);
-}
-
-.rail-toggle-dot[data-running] {
-  background: var(--primary);
-}
-
-@container session-panel (min-width: 1320px) {
-  .rail-docked {
+/* 放得下最小正文宽（640）加面板与间距才常驻（照 t3code：640 + 280 + 12 + 32 + 48） */
+@container session-panel (min-width: 1012px) {
+  .rail-docked[data-open] {
     display: block;
   }
-
-  .rail-toggle {
-    display: none;
-  }
-}
-</style>
-
-<style>
-/* 浮层经 Portal 挂到 body，scoped 打不中 */
-.rail-popover.rt-PopoverContent {
-  inline-size: var(--size-rail);
-  padding: var(--space-xs);
 }
 </style>
