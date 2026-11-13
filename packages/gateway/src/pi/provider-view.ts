@@ -1,4 +1,5 @@
 import type { ModelRuntime } from "@earendil-works/pi-coding-agent"
+import type { ProviderView, ThinkingLevel } from "@pig/protocol"
 
 export type ModelRuntimeLike = Awaited<ReturnType<typeof ModelRuntime.create>>
 
@@ -8,40 +9,15 @@ export type RuntimeModel = ReturnType<ModelRuntimeLike["getModels"]>[number]
 
 export type ProviderAuthStatus = ReturnType<ModelRuntimeLike["getProviderAuthStatus"]>
 
-export type ProviderSource = NonNullable<ProviderAuthStatus["source"]>
-
-export const THINKING_LEVELS = ["off", "minimal", "low", "medium", "high", "xhigh", "max"] as const
-
-export type ThinkingLevel = (typeof THINKING_LEVELS)[number]
-
-export interface ProviderModelView {
-  id: string
-  name: string
-  input?: string[]
-  reasoning: boolean
-  contextWindow: number
-  maxTokens: number
-  samplingParams?: Record<string, unknown>
-  thinkingLevel?: ThinkingLevel
-  /** 是否在 enabledModels 开放列表内；未配置表示全部开放，空列表表示全部关闭。 */
-  enabled: boolean
-}
-
-export interface ProviderView {
-  id: string
-  name: string
-  baseUrl?: string
-  api?: string
-  kind: "builtin" | "custom"
-  capabilities: { apiKey: boolean; oauth: boolean; ambient: boolean }
-  status: { configured: boolean; source: ProviderSource | null; hint: string | null }
-  models: ProviderModelView[]
-}
-
-export interface DefaultModelView {
-  provider: string
-  id: string
-}
+export const THINKING_LEVELS = [
+  "off",
+  "minimal",
+  "low",
+  "medium",
+  "high",
+  "xhigh",
+  "max",
+] as const satisfies readonly ThinkingLevel[]
 
 /** runtime 的供应商是唯一真源；这里只做可序列化投影，不读凭据。 */
 export function projectProvider(

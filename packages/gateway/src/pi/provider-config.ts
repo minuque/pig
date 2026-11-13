@@ -1,12 +1,7 @@
-import { isThinkingLevel, type ThinkingLevel } from "./provider-view.js"
-import { ProviderServiceError } from "./provider-error.js"
+import type { ModelParamsPatch } from "@pig/protocol"
 
-export interface ModelParamsPatch {
-  thinkingLevel?: ThinkingLevel | null
-  maxTokens?: number | null
-  contextWindow?: number | null
-  samplingParams?: Record<string, unknown> | null
-}
+import { isThinkingLevel } from "./provider-view.js"
+import { ProviderServiceError } from "./provider-error.js"
 
 export interface StoredCredential {
   type?: string

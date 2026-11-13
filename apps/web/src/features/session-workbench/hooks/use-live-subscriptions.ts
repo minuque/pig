@@ -1,6 +1,6 @@
 import { shallowRef } from "vue"
 import type { GatewaySession } from "@client/gateway-session.js"
-import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
+import type { ContextUsageEstimate } from "@/types/common-type.js"
 import type { SessionState, TranscriptItem } from "@/types/common-type.js"
 import { contextUsage } from "@client/platform.js"
 import type { useSessionHistory } from "@features/session-workbench/hooks/use-session-history.js"

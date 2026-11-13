@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto"
+import type { LoginPrompt } from "@pig/protocol"
 
 import { ProviderServiceError } from "./provider-error.js"
 import { errorText } from "./provider-config.js"
@@ -12,17 +13,9 @@ type AuthPrompt = Parameters<AuthInteraction["prompt"]>[0]
 
 type AuthEvent = Parameters<AuthInteraction["notify"]>[0]
 
-export interface LoginPromptView {
-  id: string
-  type: AuthPrompt["type"]
-  message: string
-  placeholder?: string
-  options?: Array<{ id: string; label: string; description?: string }>
-}
-
 export type LoginEvent =
   | AuthEvent
-  | { type: "prompt"; id: string; prompt: LoginPromptView }
+  | { type: "prompt"; id: string; prompt: LoginPrompt }
   | { type: "done" }
   | { type: "error"; message: string }
 
@@ -214,7 +207,7 @@ export class LoginSessions {
   }
 }
 
-function promptView(id: string, prompt: AuthPrompt): LoginPromptView {
+function promptView(id: string, prompt: AuthPrompt): LoginPrompt {
   return {
     id,
     type: prompt.type,

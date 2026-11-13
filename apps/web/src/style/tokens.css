@@ -162,13 +162,34 @@
   --size-control: 40px;
   /* 页面内标题条：只有 macOS 的浮层标题条占高度，其余平台为 0 */
   --titlebar-inset: 0px;
+  /* 右上角系统窗控占的宽：只有 Windows 的窗控浮在页面上，其余平台为 0 */
+  --titlebar-controls-inset: 0px;
   /* 头部高：两栏首行与窗口标题条同高；28px 图标按钮 + 上下各 8px */
   --header-height: 44px;
   /** macOS 侧栏收起时红绿灯占位：红绿灯簇与间距 60px */
   --size-mac-traffic-lights: 68px;
   --size-drawer: 360px;
+  /* 电池式用量条：24×10 的槽，内边距 2px，电量最窄 6px */
+  --size-battery-block: 10px;
+  --size-battery-pad: 2px;
+  --size-battery-fill-min: 6px;
+  /* 分类用量条与图例：条高 6px、色块 10px、占比列最窄 44px */
+  --size-meter-block: 6px;
+  /* 上下文分类色：相邻分类色相拉开；不用 red，它在项目里表示危险 */
+  --chart-system: var(--indigo-9);
+  --chart-memory: var(--violet-9);
+  --chart-skills: var(--cyan-9);
+  --chart-tools: var(--amber-9);
+  --chart-results: var(--green-9);
+  --chart-conversation: var(--orange-9);
+  --chart-other: var(--slate-8);
+  --chart-free: var(--fill-strong);
+  --size-legend-swatch: 10px;
+  --size-legend-share: 44px;
   /* 摘要面板与子会话只读抽屉 */
   --size-rail: 280px;
+  /* 摘要面板常驻时对话列右侧让出的宽：面板加两侧间距 */
+  --size-rail-reserve: calc(var(--size-rail) + 2 * var(--space-sm));
   --size-rail-row: 26px;
   --size-child-drawer: 560px;
   --size-dialog-s: 420px;
@@ -302,6 +323,10 @@
   --radius-control: 6px;
   --radius-card: 10px;
   --radius-dialog: 14px;
+  /* 对话框内边距：不小于外圆角（内容不撞圆角），向上对齐 4px 网格（再大显空）。
+     大号 14 → 16，小号随卡片圆角 10 → 12；改圆角时内边距跟着走 */
+  --space-dialog: round(up, var(--radius-dialog), var(--spacing));
+  --space-dialog-compact: round(up, var(--radius-card), var(--spacing));
   --radius-composer: 32px;
   /* 项目自用的全圆角，别改回 --radius-full：rt 拿那个名字当胶囊开关，medium 档是 0 */
   --radius-pill: 9999px;
@@ -312,6 +337,11 @@
 html[data-pig-desktop-platform="darwin"] {
   --titlebar-inset: 44px;
   --header-height: var(--titlebar-inset);
+}
+
+/* Windows 窗控宽度由 Electron 的 env 给出：视口宽减去标题条可用宽 */
+html[data-pig-desktop-platform="win32"] {
+  --titlebar-controls-inset: calc(100vw - env(titlebar-area-width, 100vw));
 }
 
 /* ------ 深色覆盖：只覆盖颜色与阴影 ------ */

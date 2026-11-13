@@ -1,4 +1,5 @@
 import { inject, provide, shallowRef, type InjectionKey } from "vue"
+import { readFlag, writeFlag } from "@utils/storage.js"
 import {
   moveShown,
   readRailLayout,
@@ -13,9 +14,12 @@ export interface OpenChild {
   agent: string
 }
 
+const DOCKED_KEY = "pig.rail.docked"
+
 function useSessionRailState() {
   const child = shallowRef<OpenChild>()
   const layout = shallowRef<RailLayout>(readRailLayout())
+  const docked = shallowRef(readFlag(DOCKED_KEY))
   const toggled = (list: RailSectionId[], id: RailSectionId) =>
     list.includes(id) ? list.filter((item) => item !== id) : [...list, id]
 
@@ -31,6 +35,12 @@ function useSessionRailState() {
     },
     closeChild() {
       child.value = undefined
+    },
+    /** 宽屏常驻面板开着与否；跨会话记住。 */
+    docked,
+    toggleDocked() {
+      docked.value = !docked.value
+      writeFlag(DOCKED_KEY, docked.value)
     },
     /** 常驻面板与窄屏浮层共用一份排列。 */
     layout,

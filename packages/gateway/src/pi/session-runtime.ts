@@ -1,5 +1,6 @@
 import type { AgentSession, AgentSessionEvent } from "@earendil-works/pi-coding-agent"
 import type {
+  ContextPreviewKey,
   ExtensionUiResponse,
   ModelRef,
   SessionPhase,
@@ -20,7 +21,7 @@ import { sessionBinding, sessionWorkspace, uploadAttachments } from "./remote-se
 import { ExtensionUiBridge } from "./extension-ui.js"
 import { composePrompt, type AttachmentSink } from "./attachments.js"
 import { expandFileMentions } from "./file-mentions.js"
-import { estimateContextUsage, type ContextPreviewKey } from "./context-usage.js"
+import { estimateContextUsage } from "./context-usage.js"
 import { firstUserMessageText, sessionListName } from "./session-label.js"
 import { TranscriptProjection } from "./transcript.js"
 import { readTurnTimings, TurnTimingRecorder } from "./turn-timing.js"

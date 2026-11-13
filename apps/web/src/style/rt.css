@@ -152,6 +152,16 @@
   max-inline-size: var(--dialog-max-width, 600px);
 }
 
+/* 对话框内边距按圆角推算（见 tokens.css 的 --space-dialog），替换 rt 的 12/16/24/48 四档；
+   与 rt 同为 0-1-0、写在其后，调用方 scoped 类仍可覆盖 */
+.rt-BaseDialogContent:where(.rt-r-size-1, .rt-r-size-2) {
+  --dialog-content-padding: var(--space-dialog-compact);
+}
+
+.rt-BaseDialogContent:where(.rt-r-size-3, .rt-r-size-4) {
+  --dialog-content-padding: var(--space-dialog);
+}
+
 /* 模态框内容区统一取主区底色，不用 rt 的面板色 */
 .rt-BaseDialogContent {
   background-color: var(--background);

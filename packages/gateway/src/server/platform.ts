@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http"
+import type { EnvironmentInfo, FileSearchEntry } from "@pig/protocol"
 import { GatewayError, SessionNotFoundError } from "../pi/runtime-types.js"
 import type { DirectoryPort } from "../directory.js"
 import { AttachmentError, sanitizeMimeType, type AttachmentErrorCode } from "../pi/attachments.js"
@@ -268,7 +269,9 @@ async function handleWarmWorkspace(
 /** 可选的环境：本机、pig 保存的环境、~/.ssh/config 里的主机。 */
 async function handleEnvironments(res: ServerResponse, deps: PlatformRequestDeps) {
   try {
-    deps.send(res, 200, { environments: await listEnvironments(deps.environments) })
+    const environments: EnvironmentInfo[] = await listEnvironments(deps.environments)
+
+    deps.send(res, 200, { environments })
   } catch (error) {
     console.error("environments failed:", error)
     deps.send(res, 500, { code: "INTERNAL_ERROR" })
@@ -310,7 +313,7 @@ async function handleFiles(
 
   try {
     const { env, root } = workspaceEnvironment(cwd)
-    const entries = await env.search(root, query, { signal: controller.signal })
+    const entries: FileSearchEntry[] = await env.search(root, query, { signal: controller.signal })
     send(res, 200, { entries })
   } catch (error) {
     console.error("files failed:", error)

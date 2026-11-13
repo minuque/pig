@@ -26,7 +26,7 @@ import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.
 import TranscriptView from "@features/transcript-view/index.vue"
 import type { OpenChild } from "@features/session-rail/index.js"
 import type { TranscriptItem } from "@/types/common-type.js"
-import type { TurnTiming } from "@/types/turn-type.js"
+import type { TurnTiming } from "@/types/common-type.js"
 
 const props = defineProps<{
   child: OpenChild | undefined

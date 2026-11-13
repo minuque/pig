@@ -7,7 +7,7 @@ pnpm workspace：
 - `apps/web/` — Vue 3 + TypeScript + Vite
 - `apps/desktop/` — Electron main / preload
 - `packages/gateway/` — Thin Host：平台接入与本地安全
-- `packages/protocol/` — gateway 与 web 之间的 WebSocket 协议，只有类型
+- `packages/protocol/` — gateway 与 web 之间的 WebSocket 消息与 HTTP 数据形状，只有类型
 - `packages/extensions/` — pig 内置的 pi 包（subagent、remote-workspace），只用公开 Extension API，pi TUI 里也能装
 - `packages/environment/` — 工具运行的环境：本机或 SSH 主机；执行命令、读写文件、搜索、环境列表
 
@@ -42,7 +42,7 @@ apps/web/src/
 
 `style/components.css`：原子类的类名沿用 shadcn 与 Tailwind 的写法（`flex`、`items-center`、`truncate`、`w-full`、`text-body-md`、`rounded-md`），值只读 `app.css` 的 token。间距按 `--space-*` 命名（`gap-sm`、`p-md`）而不是数字刻度：项目已经把间距收进 `--space-*` 命名空间，再引入一套数字换算就是两套刻度并行。新增类名前先确认名字没有被任何 scoped 块当作业务类名用过。
 
-`types/`：被两条及以上路径依赖的类型，按业务写成 `xxx-type.ts`，消费写 `@/types/xxx-type.js`。三方依赖类型（如 `@earendil-works/*`）放 `types/common-type.ts` 再导出，消费写 `@/types/common-type.js`；运行时值仍从原包引入。模块或组件目录内多文件共用的类型放该目录 `type.ts`。只被一个文件使用的类型留在该文件。
+`types/`：被两条及以上路径依赖的类型，按业务写成 `xxx-type.ts`，消费写 `@/types/xxx-type.js`。三方依赖类型（如 `@earendil-works/*`）与 `@pig/protocol` 的接口形状放 `types/common-type.ts` 再导出；接口形状只在 `@pig/protocol` 定义，web 与 gateway 不各写一份，消费写 `@/types/common-type.js`；运行时值仍从原包引入。模块或组件目录内多文件共用的类型放该目录 `type.ts`。只被一个文件使用的类型留在该文件。
 
 ### features/\<module\>/
 

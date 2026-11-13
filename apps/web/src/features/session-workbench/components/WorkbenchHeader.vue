@@ -91,6 +91,7 @@
       </ol>
     </nav>
 
+    <RailToggle v-if="rail" />
     <SessionItemDelete v-model:open="deleteOpen" :title="title" @confirm="confirmDelete" />
   </header>
 </template>
@@ -109,6 +110,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
+import RailToggle from "@features/session-rail/components/RailToggle.vue"
 import { useNav } from "@features/session-nav/index.js"
 import { workspaceName } from "@features/session-nav/lib/format.js"
 import { useSession } from "@features/session-workbench/index.js"
@@ -122,6 +124,9 @@ import {
   PinBoldIcon,
   TrashBinMinimalisticIcon,
 } from "@components/icons/index.js"
+
+/** rail：右侧显示摘要面板开关（开场页不显示）。 */
+defineProps<{ rail?: boolean }>()
 
 const { t } = useI18n()
 const { sbState, setSbState } = useLeftPanelToggle()
@@ -245,6 +250,8 @@ function confirmDelete(): void {
   height: var(--header-height);
   min-height: var(--header-height);
   padding: var(--space-xxs) var(--space-sm);
+  /* Windows 的系统窗控浮在右上角，头部让出这一块 */
+  padding-inline-end: calc(var(--space-sm) + var(--titlebar-controls-inset));
   /* 与下方正文同底色：头部不另起一层 */
   background: transparent;
   color: var(--contrast-foreground);
@@ -408,11 +415,6 @@ html[data-pig-desktop-platform]
   ) {
   -webkit-app-region: no-drag;
   app-region: no-drag;
-}
-
-/* Windows 的系统窗控浮在右上角，头部让出这一块（宽度由 Electron 的 env 给出） */
-html[data-pig-desktop-platform="win32"] .workbench-header {
-  padding-inline-end: calc(100vw - env(titlebar-area-width, 100vw) + var(--space-sm));
 }
 
 /* macOS 侧栏收起后红绿灯落在头部左上角，头部让位 */

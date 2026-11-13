@@ -166,7 +166,7 @@ import {
 import { deleteCustomProvider, saveCustomProvider } from "@client/platform.js"
 import { errorMessage } from "@client/http.js"
 import { useI18n } from "@i18n/index.js"
-import type { ProviderView } from "@/types/provider-type.js"
+import type { ProviderView } from "@/types/common-type.js"
 
 const props = defineProps<{ provider?: ProviderView }>()
 const emit = defineEmits<{ saved: [id: string]; deleted: [id: string] }>()

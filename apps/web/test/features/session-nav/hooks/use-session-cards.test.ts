@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { effectScope, nextTick, ref } from "vue"
-import type { SessionCard } from "@/types/session-type.js"
+import type { SessionCard } from "@/types/common-type.js"
 
 const { listSessionCardsMock } = vi.hoisted(() => ({
   listSessionCardsMock: vi.fn(async (): Promise<SessionCard[]> => []),

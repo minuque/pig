@@ -1,15 +1,7 @@
 import { SessionManager, type SessionEntry } from "@earendil-works/pi-coding-agent"
-import type { TranscriptItem } from "@pig/protocol"
+import type { SessionCard, TranscriptItem } from "@pig/protocol"
 import type { IndexedSession } from "./session-index.js"
 import { TranscriptProjection } from "./transcript.js"
-
-/** 协议 SessionMetadata 不带消息数/模型；侧栏卡片从 Pi 文件投影。 */
-export interface SessionCard {
-  id: string
-  messageCount: number
-  model?: { provider: string; id: string }
-  outcome?: "complete" | "error"
-}
 
 function transcriptText(item: TranscriptItem): string {
   return item.content

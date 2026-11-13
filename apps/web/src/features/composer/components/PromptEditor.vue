@@ -51,7 +51,6 @@
         </div>
 
         <div class="cluster right">
-          <slot name="usage" />
           <slot name="right" />
         </div>
       </div>

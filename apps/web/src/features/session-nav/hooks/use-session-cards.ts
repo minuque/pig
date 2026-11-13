@@ -1,5 +1,5 @@
 import { shallowRef, toValue, watch, type MaybeRefOrGetter } from "vue"
-import type { SessionCard } from "@/types/session-type.js"
+import type { SessionCard } from "@/types/common-type.js"
 import { listSessionCards } from "@client/platform.js"
 
 /** 连上后全量拉一次卡片；按工作目录局部刷新另接。失败不挡列表。 */

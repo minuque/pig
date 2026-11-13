@@ -1,7 +1,14 @@
 import { readFile } from "node:fs/promises"
 import { join } from "node:path"
 import { getAgentDir, SettingsManager } from "@earendil-works/pi-coding-agent"
-import type { ModelMetadata } from "@pig/protocol"
+import type {
+  CustomProviderInput,
+  DefaultModelView,
+  ModelMetadata,
+  ModelParamsPatch,
+  ProviderTestResult,
+  ProviderView,
+} from "@pig/protocol"
 
 import { toModelMetadata } from "./model-metadata.js"
 import { ModelsConfigError, ProviderConfigStore } from "./models-config.js"
@@ -14,7 +21,6 @@ import {
   keyHint,
   objectOf,
   validatePatch,
-  type ModelParamsPatch,
   type StoredCredential,
 } from "./provider-config.js"
 import { ProviderServiceError } from "./provider-error.js"
@@ -23,44 +29,14 @@ import {
   isModelEnabled,
   projectProvider,
   toggleEnabledModel,
-  type DefaultModelView,
   type ModelRuntimeLike,
-  type ProviderView,
 } from "./provider-view.js"
 
 export { ProviderServiceError } from "./provider-error.js"
 
-export type { LoginEvent, LoginEventView, LoginPromptView } from "./provider-login.js"
-
-export type { ModelParamsPatch } from "./provider-config.js"
+export type { LoginEvent, LoginEventView } from "./provider-login.js"
 
 type AuthType = Parameters<ModelRuntimeLike["login"]>[1]
-
-export interface TestConnectionResult {
-  ok: boolean
-  latencyMs?: number
-  message?: string
-}
-
-export interface CustomModelInput {
-  id: string
-  name?: string
-  reasoning?: boolean
-  input?: string[]
-  contextWindow?: number
-  maxTokens?: number
-  samplingParams?: Record<string, unknown>
-}
-
-export interface CustomProviderInput {
-  id: string
-  name: string
-  baseUrl?: string
-  api: string
-  /** 空串或省略表示保留旧值。 */
-  apiKey?: string
-  models: CustomModelInput[]
-}
 
 export interface ProviderServiceOptions {
   runtime: () => Promise<ModelRuntimeLike>
@@ -156,7 +132,7 @@ export class ProviderService {
   }
 
   /** 最小请求验证凭据；失败不写配置。 */
-  async testConnection(providerId: string, modelId?: string): Promise<TestConnectionResult> {
+  async testConnection(providerId: string, modelId?: string): Promise<ProviderTestResult> {
     const runtime = await this.runtime()
 
     if (!runtime.getProvider(providerId)) throw new ProviderServiceError(404, "NOT_FOUND")

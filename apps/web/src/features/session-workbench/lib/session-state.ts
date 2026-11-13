@@ -6,7 +6,7 @@ import type {
   SessionSnapshot,
   TranscriptItem,
 } from "@/types/common-type.js"
-import type { TurnTiming } from "@/types/turn-type.js"
+import type { TurnTiming } from "@/types/common-type.js"
 import { t } from "@i18n/index.js"
 import { sessionTitle, untitledSession } from "@features/session-nav/index.js"
 import { userMessageText } from "@features/transcript-view/index.js"

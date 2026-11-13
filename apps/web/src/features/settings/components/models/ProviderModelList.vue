@@ -61,7 +61,7 @@ import { errorMessage } from "@client/http.js"
 import { setModelEnabled } from "@client/platform.js"
 import { modelMeta } from "@features/settings/lib/provider-view.js"
 import { useI18n } from "@i18n/index.js"
-import type { ProviderModelView, ProviderView } from "@/types/provider-type.js"
+import type { ProviderModelView, ProviderView } from "@/types/common-type.js"
 import { Card } from "@components/ui/card/index.js"
 
 const props = defineProps<{ provider: ProviderView }>()

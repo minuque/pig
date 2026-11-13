@@ -1,6 +1,6 @@
 import { computed, type Ref } from "vue"
 import type { ModelMetadata, SessionPhase, ThinkingLevel } from "@/types/common-type.js"
-import type { ContextUsageEstimate } from "@/types/context-usage-type.js"
+import type { ContextUsageEstimate } from "@/types/common-type.js"
 import { useComposerBinding } from "@features/composer/hooks/use-composer-binding.js"
 import { projectContextUsage } from "@features/composer/lib/context-usage.js"
 import { catalogFromModels, thinkingLevelOf } from "@features/composer/lib/model-preset.js"

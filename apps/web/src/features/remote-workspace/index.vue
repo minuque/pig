@@ -44,7 +44,8 @@
 <script setup lang="ts">
 import { computed, ref, shallowRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { listEnvironments, type EnvironmentInfo } from "@client/platform.js"
+import { listEnvironments } from "@client/platform.js"
+import type { EnvironmentInfo } from "@/types/common-type.js"
 import { Button } from "@components/ui/button/index.js"
 import {
   Dialog,

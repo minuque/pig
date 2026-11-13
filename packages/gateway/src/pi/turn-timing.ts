@@ -1,12 +1,9 @@
 import type { SessionEntry, SessionManager } from "@earendil-works/pi-coding-agent"
+import type { TurnTiming } from "@pig/protocol"
 
 const CUSTOM_TYPE = "pig.turn-timing"
 
 type Outcome = "complete" | "error" | "aborted"
-
-export type TurnTiming = { userId: string; startedAt: number } & (
-  { outcome: "running"; endedAt?: never } | { outcome: Outcome; endedAt: number }
-)
 
 function parseTiming(data: unknown): TurnTiming | undefined {
   if (

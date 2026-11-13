@@ -32,7 +32,7 @@
           </h3>
 
           <span
-            class="rail-grip motion-hint"
+            class="rail-grip"
             role="button"
             tabindex="0"
             :aria-label="t('rail.reorder', { name: title })"
@@ -156,28 +156,31 @@ const bodyId = useId()
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-/* 展开时摘要让给正文；悬停时让给拖拽把手 */
-.rail-summary[aria-hidden="true"],
-.rail-top:hover .rail-summary {
+/* 展开时摘要让给正文 */
+.rail-summary[aria-hidden="true"] {
   opacity: 0;
 }
 
+/* 拖拽把手常驻在标题行末尾，悬停时高亮 */
 .rail-grip {
-  position: absolute;
-  inset-block: 0;
-  inset-inline-end: 0;
   display: flex;
+  flex-shrink: 0;
   align-items: center;
-  padding-inline: var(--space-xxs);
+  justify-content: center;
+  inline-size: var(--size-rail-row);
+  block-size: var(--size-rail-row);
   color: var(--contrast-foreground-faint);
+  border-radius: var(--radius-control);
   cursor: grab;
   touch-action: none;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
 }
 
-/* 点过标题后焦点留在行内：只有悬停或把手自己获焦时才亮，不压住摘要 */
-.rail-top:focus-within:not(:hover) > .rail-grip:not(:focus-visible) {
-  opacity: 0;
-  pointer-events: none;
+.rail-grip:hover {
+  color: var(--contrast-foreground);
+  background: var(--btn-hover);
 }
 
 .rail-grip:active {

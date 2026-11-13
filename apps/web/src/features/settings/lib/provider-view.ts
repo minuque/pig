@@ -2,12 +2,14 @@
 import type {
   CustomModelInput,
   CustomProviderInput,
-  ModelParamsFormState,
   ModelParamsPatch,
-  ProviderBadge,
-  ProviderGroup,
   ProviderModelView,
   ProviderView,
+} from "@/types/common-type.js"
+import type {
+  ModelParamsFormState,
+  ProviderBadge,
+  ProviderGroup,
   ProviderSourceText,
 } from "@/types/provider-type.js"
 

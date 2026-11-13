@@ -4,7 +4,7 @@ import type {
   TranscriptItem,
   UserTranscriptItem,
 } from "@/types/common-type.js"
-import type { TurnTiming } from "@/types/turn-type.js"
+import type { TurnTiming } from "@/types/common-type.js"
 import type {
   AssistantRow,
   TimelineRow,

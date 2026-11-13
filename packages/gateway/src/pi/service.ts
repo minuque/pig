@@ -7,16 +7,24 @@ import {
   SessionManager,
 } from "@earendil-works/pi-coding-agent"
 import type { SessionEntry, SessionHeader } from "@earendil-works/pi-coding-agent"
-import type { ModelMetadata, SessionMetadata, TranscriptItem } from "@pig/protocol"
+import type {
+  ComposerCommand,
+  ContextPreviewKey,
+  ContextUsageEstimate,
+  ModelMetadata,
+  SessionCard,
+  SessionMetadata,
+  TranscriptItem,
+  TurnTiming,
+} from "@pig/protocol"
 import { GatewayError, SessionBusyError, SessionNotFoundError } from "./runtime-types.js"
 import type { CreateSessionOptions, SessionService, SessionRuntime } from "./runtime-types.js"
 import { canonicalizePath } from "../directory.js"
 import { loadAuthorizedWorkspaces, saveAuthorizedWorkspaces } from "./authorized-workspaces.js"
 import { AttachmentStore } from "./attachments.js"
-import { selectComposerPrompts, type ComposerCommand } from "./composer-commands.js"
-import type { ContextPreviewKey, ContextUsageEstimate } from "./context-usage.js"
+import { selectComposerPrompts } from "./composer-commands.js"
 import { ProviderService } from "./provider-service.js"
-import { SessionCardCache, type SessionCard } from "./session-card.js"
+import { SessionCardCache } from "./session-card.js"
 import { SessionIndex, type IndexedSession } from "./session-index.js"
 import { recentSessionCwd, sessionListName } from "./session-label.js"
 import { BINDING_ENTRY, parseRemoteKey, prepareRemoteCwd } from "./remote-session.js"
@@ -24,7 +32,6 @@ import { PiHostSession } from "./session-runtime.js"
 import { DiskTranscripts } from "./disk-transcripts.js"
 import { createResourceLoader } from "./resource-loader.js"
 import { lightTranscript } from "./transcript-page.js"
-import type { TurnTiming } from "./turn-timing.js"
 
 export type Runtime = Awaited<ReturnType<typeof ModelRuntime.create>>
 
@@ -34,9 +41,6 @@ type SessionFactory = typeof createAgentSession
 type ResourceSlot = { loader: DefaultResourceLoader; taken: boolean }
 
 const MAX_RESOURCE_SLOTS = 4
-
-/** 输入卡 / 菜单的一行候选：技能与 prompt 模板同形。 */
-export type { ComposerCommand } from "./composer-commands.js"
 
 export interface PiHostServiceOptions {
   /** 统一会话目录；缺省用 Pi 默认（~/.pi/agent/sessions/<cwd>/）。 */

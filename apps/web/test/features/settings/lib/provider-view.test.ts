@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import type { ProviderView } from "@/types/provider-type.js"
+import type { ProviderView } from "@/types/common-type.js"
 import {
   customProviderPayload,
   groupProviders,

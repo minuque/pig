@@ -249,7 +249,7 @@ import { errorMessage } from "@client/http.js"
 import { copyProviderKey, logoutProvider, testProvider } from "@client/platform.js"
 import { providerStatusBadge } from "@features/settings/lib/provider-view.js"
 import { useI18n } from "@i18n/index.js"
-import type { ProviderView } from "@/types/provider-type.js"
+import type { ProviderView } from "@/types/common-type.js"
 import { Card } from "@components/ui/card/index.js"
 
 type AuthMethod = "apiKey" | "oauth" | "ambient"

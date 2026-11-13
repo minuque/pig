@@ -1,8 +1,8 @@
 import { stat } from "node:fs/promises"
 import { SessionManager } from "@earendil-works/pi-coding-agent"
-import type { TranscriptItem } from "@pig/protocol"
+import type { TranscriptItem, TurnTiming } from "@pig/protocol"
 import { TranscriptProjection } from "./transcript.js"
-import { readTurnTimings, type TurnTiming } from "./turn-timing.js"
+import { readTurnTimings } from "./turn-timing.js"
 
 /** 同时缓存的会话数；切回最近打开过的会话不重读文件。 */
 const MAX_CACHED = 20

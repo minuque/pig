@@ -60,18 +60,6 @@
         />
       </template>
 
-      <template #usage>
-        <Popover v-if="usage" :open="usageOpen" :modal="false" @update:open="usageOpen = $event">
-          <PopoverTrigger as-child>
-            <span class="usage-anchor">
-              <ContextUsageRing :usage="usage" :open="usageOpen" />
-            </span>
-          </PopoverTrigger>
-
-          <ContextUsagePanel :usage="usage" :session-id="sessionId" @close="usageOpen = false" />
-        </Popover>
-      </template>
-
       <template #tools>
         <ModelPicker
           v-model:open="modelPickerOpen"
@@ -121,15 +109,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, ref, useTemplateRef, watch } from "vue"
+import { computed, ref, useTemplateRef, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
-import { Popover, PopoverTrigger } from "@components/ui/popover/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import AttachmentChips from "@features/composer/components/AttachmentChips.vue"
 import AttachmentLightbox from "@features/composer/components/AttachmentLightbox.vue"
-import ContextUsageRing from "@features/composer/components/ContextUsageRing.vue"
 import ModelPicker from "@features/composer/components/ModelPicker.vue"
 import PromptEditor from "@features/composer/components/PromptEditor.vue"
 import QueuePanel from "@features/composer/components/QueuePanel.vue"
@@ -139,18 +125,10 @@ import {
   type ComposerAttachmentsApi,
 } from "@features/composer/hooks/use-composer-attachments.js"
 import type { ComposerQueueApi, QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
-import type {
-  ComposerModel,
-  ComposerPreset,
-  ComposerVendor,
-  ContextUsage,
-} from "@features/composer/type.js"
+import type { ComposerModel, ComposerPreset, ComposerVendor } from "@features/composer/type.js"
 import { ArrowUpIcon, PaperclipIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
-const ContextUsagePanel = defineAsyncComponent(
-  () => import("@features/composer/components/ContextUsagePanel.vue"),
-)
 const props = withDefaults(
   defineProps<{
     catalog: ComposerVendor[]
@@ -162,7 +140,6 @@ const props = withDefaults(
     aborting?: boolean
     /** 外部禁用发送（如 welcome 的 workspace/预设/提交中守卫） */
     sendDisabled?: boolean
-    usage?: ContextUsage | undefined
     sessionId?: string | undefined
     cwd?: string | undefined
     queue: ComposerQueueApi
@@ -171,7 +148,6 @@ const props = withDefaults(
     running: false,
     aborting: false,
     sendDisabled: false,
-    usage: undefined,
     sessionId: undefined,
     cwd: undefined,
   },
@@ -198,7 +174,6 @@ const level = computed({
 })
 // 附件不单独发送：正文非空才允许提交，附件随这次提交一起走
 const sendActive = computed(() => prompt.value.trim() !== "" && !props.sendDisabled)
-const usageOpen = ref(false)
 const modelPickerOpen = ref(false)
 const previewItem = ref<ComposerAttachment>()
 const fileInput = useTemplateRef("fileInput")
@@ -237,7 +212,6 @@ const primaryDisabled = computed(() => {
 watch(
   () => props.sessionId,
   () => {
-    usageOpen.value = false
     modelPickerOpen.value = false
   },
 )
@@ -320,11 +294,6 @@ function onAbortHotkey(event: KeyboardEvent) {
 </script>
 
 <style scoped>
-/* 用量环外面套一层，交给 Popover 的触发器接管点击 */
-.usage-anchor {
-  display: inline-flex;
-}
-
 .prompt {
   position: relative;
   width: 100%;
