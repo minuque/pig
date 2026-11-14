@@ -1,17 +1,20 @@
 <template>
-  <div ref="scroller" class="file-tree">
-    <TreeRoot
-      v-slot="{ flattenItems }"
-      class="file-tree-root"
-      :items="rootNodes"
-      :get-key="(node: TreeNode) => node.path"
-      :get-children="childrenOf"
-      :expanded="pane.expanded.value"
-      :aria-label="t('files.title')"
-      @update:expanded="onExpanded"
+  <TreeRoot
+    ref="root"
+    class="file-tree"
+    :items="rootNodes"
+    :get-key="(node: TreeNode) => node.path"
+    :get-children="childrenOf"
+    :expanded="pane.expanded.value"
+    :aria-label="t('files.title')"
+    @update:expanded="onExpanded"
+  >
+    <TreeVirtualizer
+      v-slot="{ item }"
+      :estimate-size="ROW_HEIGHT"
+      :text-content="(node) => String(node.name).toLowerCase()"
     >
       <TreeItem
-        v-for="item in flattenItems"
         v-slot="{ isExpanded }"
         :key="item._id"
         v-bind="item.bind"
@@ -21,7 +24,7 @@
         :data-ignored="item.value.ignored || undefined"
         :data-git="marks.get(item.value.path)"
         :style="{ '--tree-level': item.level - 1 }"
-        @select="(event: Event) => onSelect(event, item.value)"
+        @select="(event: Event) => onSelect(event, item.value as TreeNode)"
         @dblclick="item.value.kind === 'file' && pane.openFile(item.value.path, { pin: true })"
       >
         <template v-if="item.value.kind === 'directory'">
@@ -42,18 +45,18 @@
           {{ marks.get(item.value.path) === "dir" ? "•" : marks.get(item.value.path) }}
         </span>
       </TreeItem>
-    </TreeRoot>
-  </div>
+    </TreeVirtualizer>
+  </TreeRoot>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue"
-import { TreeItem, TreeRoot } from "reka-ui"
+import { TreeItem, TreeRoot, TreeVirtualizer } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
 import { listWorkspaceDir, workspaceGitStatus } from "@client/platform.js"
 import LanguageIcon from "@components/icons/LanguageIcon.vue"
 import { AltArrowRightIcon, FolderIcon, FolderOpenIcon } from "@components/icons/index.js"
-import { ancestors, gitMarks } from "@features/file-pane/lib/tree.js"
+import { ancestors, gitMarks, rowIndex } from "@features/file-pane/lib/tree.js"
 import { useFilePane } from "@features/file-pane/index.js"
 import type { DirectoryEntry, GitFileStatus } from "@/types/common-type.js"
 
@@ -61,7 +64,9 @@ type TreeNode = DirectoryEntry & { path: string }
 
 const { t } = useI18n()
 const pane = useFilePane()
-const scroller = useTemplateRef("scroller")
+/** 与 tokens.css 的 --size-rail-row 一致：虚拟列表按它算每行的位置。 */
+const ROW_HEIGHT = 26
+const root = useTemplateRef<{ $el: HTMLElement }>("root")
 /** 已读过的目录：键是工作区相对路径，根是 ""。 */
 const listed = shallowRef<Record<string, TreeNode[]>>({})
 const status = shallowRef<GitFileStatus[]>([])
@@ -130,9 +135,17 @@ watch(
     await Promise.all(dirs.filter((dir) => !listed.value[dir]).map(load))
     pane.setExpanded([...new Set([...pane.expanded.value, ...dirs])])
     await nextTick()
-    scroller.value
-      ?.querySelector(`[data-path="${CSS.escape(request.path)}"]`)
-      ?.scrollIntoView({ block: "nearest" })
+
+    // 行可能还没渲染：按它在展开后的位置算，看不见时滚到中间
+    const el = root.value?.$el
+    const index = rowIndex(rootNodes.value, childrenOf, pane.expanded.value, request.path)
+
+    if (!el || index < 0) return
+
+    const top = index * ROW_HEIGHT
+
+    if (top < el.scrollTop || top + ROW_HEIGHT > el.scrollTop + el.clientHeight)
+      el.scrollTop = top - (el.clientHeight - ROW_HEIGHT) / 2
   },
   { immediate: true },
 )
@@ -146,7 +159,9 @@ watch(
   overflow: auto;
 }
 
+/* 虚拟列表把行绝对定位，只给了左边：右边也贴住，行才铺满 */
 .file-tree-row {
+  inset-inline-end: 0;
   display: flex;
   align-items: center;
   gap: var(--space-xxs);

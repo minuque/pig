@@ -1,25 +1,28 @@
 <template>
-  <div ref="scroller" class="file-code">
+  <div class="file-code">
     <p v-if="plain" class="file-code-notice">{{ t("files.plainNotice") }}</p>
 
-    <div class="file-code-lines" :style="{ '--line-number-width': `${numberWidth}ch` }">
-      <div
-        v-for="(line, index) in lines"
-        :key="index"
-        class="file-code-line"
-        :data-line="index + 1"
-        :data-hl="inRange(index + 1) || undefined"
-      >
-        <span class="file-code-number">{{ index + 1 }}</span>
-        <code v-if="tokens[index]" v-token-line="tokens[index]" />
-        <code v-else>{{ line }}</code>
+    <div v-bind="containerProps" class="file-code-scroller">
+      <div v-bind="wrapperProps" class="file-code-lines" :style="[wrapperProps.style, linesStyle]">
+        <div
+          v-for="{ data: line, index } in list"
+          :key="index"
+          class="file-code-line"
+          :data-line="index + 1"
+          :data-hl="inRange(index + 1) || undefined"
+        >
+          <span class="file-code-number">{{ index + 1 }}</span>
+          <code v-if="tokens[index]" v-token-line="tokens[index]" />
+          <code v-else>{{ line }}</code>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue"
+import { computed, shallowRef, watch } from "vue"
+import { useVirtualList } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { useColorScheme } from "@features/theme/index.js"
 import {
@@ -33,6 +36,8 @@ import { fileLanguage } from "@features/transcript-view/lib/tool-summary.js"
 const MAX_CODE_UNITS = 100_000
 const MAX_LINES = 2_000
 const MAX_LINE_UNITS = 1_000
+/** 与 tokens.css 的 --text-code-line 一致：虚拟列表按它算每行的位置。 */
+const LINE_HEIGHT = 24.5
 const props = defineProps<{
   path: string
   text: string
@@ -41,9 +46,20 @@ const props = defineProps<{
 }>()
 const { t } = useI18n()
 const { codeBlockProps } = useColorScheme()
-const scroller = useTemplateRef("scroller")
 const lines = computed(() => props.text.split(/\r\n|\n|\r/))
 const numberWidth = computed(() => Math.max(3, String(lines.value.length).length))
+const { list, containerProps, wrapperProps } = useVirtualList(lines, { itemHeight: LINE_HEIGHT })
+/** 只渲染看得见的行，宽度按最长的一行撑开，左右滚动时不跳。 */
+const linesStyle = computed(() => {
+  const longest = lines.value.reduce(
+    (max, line) => Math.max(max, line.replace(/\t/g, "  ").length),
+    0,
+  )
+  return {
+    "--line-number-width": `${numberWidth.value}ch`,
+    minInlineSize: `calc(${longest + numberWidth.value}ch + var(--space-md) * 2 + var(--space-sm))`,
+  }
+})
 const language = computed(() => fileLanguage(props.path))
 const plain = computed(
   () =>
@@ -74,24 +90,23 @@ watch(
   { immediate: true },
 )
 
+// 把要看的行滚到视口中间；没渲染的行靠位置算，不靠查 DOM。挂载后容器出现也算一次
 watch(
-  () => props.range?.seq,
-  async () => {
-    if (!props.range) return
-    await nextTick()
-    scroller.value
-      ?.querySelector(`[data-line="${props.range.line}"]`)
-      ?.scrollIntoView({ block: "center" })
+  () => [props.range?.seq, containerProps.ref.value] as const,
+  ([, el]) => {
+    if (props.range && el)
+      el.scrollTop = (props.range.line - 0.5) * LINE_HEIGHT - el.clientHeight / 2
   },
-  { immediate: true, flush: "post" },
+  { flush: "post" },
 )
 </script>
 
 <style scoped>
 .file-code {
+  display: flex;
   flex: 1;
+  flex-direction: column;
   min-block-size: 0;
-  overflow: auto;
   font-size: var(--text-code);
 }
 
@@ -102,10 +117,13 @@ watch(
   font-size: var(--text-meta);
 }
 
+.file-code-scroller {
+  flex: 1;
+  min-block-size: 0;
+  overflow: auto;
+}
+
 .file-code-lines {
-  inline-size: max-content;
-  min-inline-size: 100%;
-  padding-block: var(--space-xs);
   font-family: var(--font-mono);
   line-height: var(--text-code-line);
   tab-size: 2;
@@ -114,6 +132,7 @@ watch(
 .file-code-line {
   display: flex;
   gap: var(--space-sm);
+  block-size: var(--text-code-line);
   padding-inline-end: var(--space-md);
   white-space: pre;
 }
