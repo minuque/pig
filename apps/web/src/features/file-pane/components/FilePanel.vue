@@ -59,7 +59,7 @@
 
     <div class="file-panel-body">
       <!-- 没打开文件时树占满；打开后树在左、查看器在右，中间可拖 -->
-      <FileTree v-if="pane.treeShown.value && !active" />
+      <FileSearch v-if="pane.treeShown.value && !active"><FileTree /></FileSearch>
 
       <SplitterGroup
         v-else-if="pane.treeShown.value && active"
@@ -72,7 +72,7 @@
           size-unit="px"
           class="file-panel-col"
         >
-          <FileTree />
+          <FileSearch><FileTree /></FileSearch>
         </SplitterPanel>
 
         <SplitterResizeHandle class="file-panel-handle" />
@@ -101,6 +101,7 @@ import {
   PanelRightOpenIcon,
 } from "@components/icons/index.js"
 import FileTabs from "@features/file-pane/components/FileTabs.vue"
+import FileSearch from "@features/file-pane/components/FileSearch.vue"
 import FileTree from "@features/file-pane/components/FileTree.vue"
 import FileViewer from "@features/file-pane/components/FileViewer.vue"
 import { useFilePane } from "@features/file-pane/index.js"

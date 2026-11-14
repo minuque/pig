@@ -134,9 +134,13 @@ watch(
   { immediate: true },
 )
 
-watch(range, (next) => {
-  if (next && kind.value === "markdown") source.value = true
-})
+watch(
+  range,
+  (next) => {
+    if (next && kind.value === "markdown") source.value = true
+  },
+  { immediate: true },
+)
 
 // agent 改过这个文件就静默重读，滚动位置留在原处
 watch(
