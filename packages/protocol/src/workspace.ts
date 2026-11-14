@@ -65,7 +65,12 @@ export interface ContentSearchMatch {
   text: string
 }
 
+/** 内容搜索没搜全的原因，界面据此给出不同的提示。 */
+export type SearchTruncation =
+  "result-limit" | "deadline" | "candidate-limit" | "content-file-limit" | "content-byte-limit"
+
 export interface ContentSearchResponse {
   matches: ContentSearchMatch[]
   truncated: boolean
+  truncationReasons: SearchTruncation[]
 }

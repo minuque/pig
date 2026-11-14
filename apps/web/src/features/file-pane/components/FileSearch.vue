@@ -49,6 +49,14 @@
         </button>
       </section>
 
+      <p v-if="notice" class="file-search-limit">
+        {{
+          notice.key === "files.limitResults"
+            ? t(notice.key, { count: notice.count })
+            : t(notice.key)
+        }}
+      </p>
+
       <div v-if="searching && !names.length && !matches.length" class="file-search-status">
         <Spinner :size="16" />
       </div>
@@ -69,7 +77,8 @@ import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js
 import { MagnifierIcon } from "@components/icons/index.js"
 import { pathBasename } from "@features/transcript-view/lib/tool-summary.js"
 import { useFilePane } from "@features/file-pane/index.js"
-import type { ContentSearchMatch, FileSearchEntry } from "@/types/common-type.js"
+import { searchLimitNotice } from "@features/file-pane/lib/search-limit.js"
+import type { ContentSearchMatch, FileSearchEntry, SearchTruncation } from "@/types/common-type.js"
 
 /** 输入停顿多久再搜，免得每敲一个字就扫一遍工作区。 */
 const DEBOUNCE_MS = 200
@@ -79,6 +88,8 @@ const query = shallowRef("")
 const trimmed = computed(() => query.value.trim())
 const names = shallowRef<FileSearchEntry[]>([])
 const matches = shallowRef<ContentSearchMatch[]>([])
+const reasons = shallowRef<SearchTruncation[]>([])
+const notice = computed(() => searchLimitNotice(reasons.value, matches.value.length))
 const searching = shallowRef(false)
 const parent = (path: string) => path.split("/").slice(0, -1).join("/")
 
@@ -94,6 +105,7 @@ watch([trimmed, () => pane.cwd.value], ([text, cwd], _, onCleanup) => {
 async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
   names.value = []
   matches.value = []
+  reasons.value = []
 
   if (!text || !cwd) return
   searching.value = true
@@ -105,7 +117,9 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
     .catch(() => undefined)
   const contents = searchWorkspaceContents(cwd, text, signal)
     .then((result) => {
-      if (!signal.aborted) matches.value = result.matches
+      if (signal.aborted) return
+      matches.value = result.matches
+      reasons.value = result.truncationReasons
     })
     .catch(() => undefined)
 
@@ -195,6 +209,15 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
   color: var(--contrast-foreground-faint);
   font-size: var(--text-meta);
   text-overflow: ellipsis;
+}
+
+/* 照 cc-wrapper 的 .sfs-limit：结果末尾一行弱色小字 */
+.file-search-limit {
+  margin: 0;
+  padding: var(--space-xs);
+  color: var(--contrast-foreground-faint);
+  font-size: var(--text-meta);
+  user-select: none;
 }
 
 .file-search-status {

@@ -1,13 +1,19 @@
 import { quote, type Environment } from "@pig/environment"
-import type { ContentSearchMatch, GitFileStatus } from "@pig/protocol"
+import type {
+  ContentSearchMatch,
+  ContentSearchResponse,
+  GitFileStatus,
+  SearchTruncation,
+} from "@pig/protocol"
 
 /** 一次命令行最多带多少个路径：Windows 命令行有长度上限。 */
 const IGNORE_BATCH = 200
-/** 内容搜索的上限：与 cc-wrapper 一样，命中、文件数、耗时都封顶。 */
-const MAX_MATCHES = 200
+/** 内容搜索的上限取 cc-wrapper 的值：命中、单文件、总字节、耗时都封顶。 */
+const MAX_MATCHES = 241
 const MAX_FILES = 5_000
-const MAX_FILE_BYTES = 1024 * 1024
-const SEARCH_DEADLINE_MS = 3_000
+const MAX_FILE_BYTES = 2 * 1024 * 1024
+const MAX_TOTAL_BYTES = 32 * 1024 * 1024
+const SEARCH_DEADLINE_MS = 4_000
 const MAX_LINE_CHARS = 300
 
 async function run(env: Environment, cwd: string, command: string, signal?: AbortSignal) {
@@ -93,11 +99,13 @@ async function candidates(env: Environment, root: string, signal: AbortSignal) {
     "git -c core.quotepath=off ls-files -co --exclude-standard -z",
     signal,
   )
-
-  if (listed.exitCode === 0) return listed.output.split("\0").filter(Boolean).slice(0, MAX_FILES)
-
-  const entries = await env.search(root, "", { limit: MAX_FILES, signal })
-  return entries.filter((entry) => entry.kind === "file").map((entry) => entry.path)
+  const paths =
+    listed.exitCode === 0
+      ? listed.output.split("\0").filter(Boolean)
+      : (await env.search(root, "", { limit: MAX_FILES + 1, signal }))
+          .filter((entry) => entry.kind === "file")
+          .map((entry) => entry.path)
+  return { paths: paths.slice(0, MAX_FILES), capped: paths.length > MAX_FILES }
 }
 
 /** 逐个文件找包含 query 的行，大小写不敏感；跳过二进制与过大的文件。 */
@@ -110,18 +118,48 @@ export async function searchContents(
 ) {
   const needle = query.toLowerCase()
   const matches: ContentSearchMatch[] = []
+  const reasons = new Set<SearchTruncation>()
   const deadline = Date.now() + SEARCH_DEADLINE_MS
+  const done = (): ContentSearchResponse => ({
+    matches,
+    truncated: reasons.size > 0,
+    truncationReasons: [...reasons],
+  })
+  let readBytes = 0
 
-  if (!needle) return { matches, truncated: false }
+  if (!needle) return done()
 
-  for (const path of await candidates(env, root, signal)) {
-    if (signal.aborted || Date.now() > deadline || matches.length >= MAX_MATCHES)
-      return { matches, truncated: true }
+  const { paths, capped } = await candidates(env, root, signal)
+
+  if (capped) reasons.add("candidate-limit")
+
+  for (const path of paths) {
+    if (matches.length >= MAX_MATCHES) {
+      reasons.add("result-limit")
+      return done()
+    }
+
+    if (signal.aborted || Date.now() > deadline) {
+      reasons.add("deadline")
+      return done()
+    }
 
     const file = join(root, path)
     const info = await env.stat(file).catch(() => undefined)
 
-    if (info?.kind !== "file" || info.size > MAX_FILE_BYTES) continue
+    if (info?.kind !== "file") continue
+
+    if (info.size > MAX_FILE_BYTES) {
+      reasons.add("content-file-limit")
+      continue
+    }
+
+    if (readBytes + info.size > MAX_TOTAL_BYTES) {
+      reasons.add("content-byte-limit")
+      return done()
+    }
+
+    readBytes += info.size
 
     const bytes = await env.readFile(file).catch(() => undefined)
 
@@ -132,10 +170,14 @@ export async function searchContents(
     for (let index = 0; index < lines.length && matches.length < MAX_MATCHES; index += 1) {
       const line = lines[index]!
 
-      if (line.toLowerCase().includes(needle))
-        matches.push({ path, line: index + 1, text: line.trim().slice(0, MAX_LINE_CHARS) })
+      if (!line.toLowerCase().includes(needle)) continue
+
+      matches.push({ path, line: index + 1, text: line.trim().slice(0, MAX_LINE_CHARS) })
+
+      // 上限在这个文件里填满，后面的行没再看
+      if (matches.length >= MAX_MATCHES && index < lines.length - 1) reasons.add("result-limit")
     }
   }
 
-  return { matches, truncated: matches.length >= MAX_MATCHES }
+  return done()
 }

@@ -29,6 +29,7 @@ export type {
   ProviderModelView,
   ProviderSource,
   ProviderTestResult,
+  SearchTruncation,
   ProviderView,
   ServerSnapshot,
   SessionCard,

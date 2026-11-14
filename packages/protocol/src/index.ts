@@ -62,6 +62,7 @@ export type {
   FileStatResponse,
   GitFileStatus,
   GitStatusResponse,
+  SearchTruncation,
   FileTextResponse,
 } from "./workspace.js"
 

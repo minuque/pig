@@ -238,6 +238,33 @@ describe("目录、git 状态与内容搜索", () => {
     expect(body.matches).toEqual([{ path: "src/main.ts", line: 2, text: "const needle = 1" }])
   })
 
+  it("内容搜索截断时说明原因：命中条数到上限、跳过过大的文件", async () => {
+    await writeFile(join(workspace, "many.txt"), "hit\n".repeat(300))
+    await writeFile(join(workspace, "huge.txt"), `hit${"x".repeat(2 * 1024 * 1024)}`)
+
+    const body = (await (
+      await get(
+        `/api/v1/platform/fs/search?${new URLSearchParams({ cwd: workspace, q: "hit" }).toString()}`,
+      )
+    ).json()) as { matches: unknown[]; truncated: boolean; truncationReasons: string[] }
+
+    expect(body.matches).toHaveLength(241)
+    expect(body.truncated).toBe(true)
+    expect(body.truncationReasons).toEqual(
+      expect.arrayContaining(["result-limit", "content-file-limit"]),
+    )
+  })
+
+  it("内容搜索没截断时原因为空", async () => {
+    const body = (await (
+      await get(
+        `/api/v1/platform/fs/search?${new URLSearchParams({ cwd: workspace, q: "answer" }).toString()}`,
+      )
+    ).json()) as { truncated: boolean; truncationReasons: string[] }
+
+    expect(body).toMatchObject({ truncated: false, truncationReasons: [] })
+  })
+
   it("未授权的工作区 list、status、search 都 403", async () => {
     const cwd = encodeURIComponent(outside)
 
