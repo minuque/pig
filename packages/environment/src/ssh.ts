@@ -114,6 +114,16 @@ export class SshEnvironment implements Environment {
     })
   }
 
+  async realpath(path: string) {
+    const { sftp } = await this.connect()
+    return call<string>((done) => sftp.realpath(path, done))
+  }
+
+  async readStream(path: string, range?: { start: number; end: number }) {
+    const { sftp } = await this.connect()
+    return sftp.createReadStream(path, range)
+  }
+
   /** 远端一次 find 列出候选，本地打分；逐目录走 SFTP 每层都要一次往返。 */
   async search(
     root: string,

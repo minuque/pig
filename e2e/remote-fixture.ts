@@ -30,6 +30,8 @@ class StandInHost implements Environment {
   mkdir = (path: string) => this.env.mkdir(local(path))
   stat = (path: string) => this.env.stat(local(path))
   readdir = (path: string) => this.env.readdir(local(path))
+  realpath = async (path: string) => remotePathOf(await this.env.realpath(local(path)))
+  readStream: Environment["readStream"] = (path, range) => this.env.readStream(local(path), range)
   search: Environment["search"] = (root, query, options) =>
     this.env.search(local(root), query, options)
 

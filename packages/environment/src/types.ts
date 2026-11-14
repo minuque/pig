@@ -1,3 +1,5 @@
+import type { Readable } from "node:stream"
+
 export type EntryKind = "file" | "directory"
 
 export interface FileStat {
@@ -38,6 +40,10 @@ export interface Environment {
   /** 不存在返回 undefined，其他错误照抛。 */
   stat(path: string): Promise<FileStat | undefined>
   readdir(path: string): Promise<DirEntry[]>
+  /** 解开符号链接后的真实路径；不存在时抛错。 */
+  realpath(path: string): Promise<string>
+  /** 流式读字节；给 range 时只读 [start, end]（含两端）。 */
+  readStream(path: string, range?: { start: number; end: number }): Promise<Readable>
   search(
     root: string,
     query: string,

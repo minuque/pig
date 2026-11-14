@@ -20,3 +20,18 @@ export interface ComposerCommand {
   /** 模板用法提示，如 "<issue-number>"。 */
   argumentHint?: string
 }
+
+/** 工作区里一个路径的元信息。 */
+export interface FileStatResponse {
+  kind: "file" | "directory" | "other"
+  size: number
+  mtimeMs: number
+}
+
+/** 读文本：二进制或超限时只给分类，不给 content。 */
+export interface FileTextResponse {
+  content?: string
+  size: number
+  binary: boolean
+  tooLarge: boolean
+}
