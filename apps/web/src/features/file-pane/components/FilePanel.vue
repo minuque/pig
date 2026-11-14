@@ -39,9 +39,8 @@
     </header>
 
     <div class="file-panel-body">
-      <slot :path="active">
-        <p v-if="!active" class="file-panel-empty">{{ t("files.empty") }}</p>
-      </slot>
+      <FileViewer v-if="active" :key="active" :path="active" />
+      <p v-else class="file-panel-empty">{{ t("files.empty") }}</p>
     </div>
   </section>
 </template>
@@ -53,6 +52,7 @@ import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { ArrowLeftIcon, CloseIcon } from "@components/icons/index.js"
 import FileTabs from "@features/file-pane/components/FileTabs.vue"
+import FileViewer from "@features/file-pane/components/FileViewer.vue"
 import { useFilePane } from "@features/file-pane/index.js"
 
 /** covering：窄屏盖住对话，头部给返回按钮代替关闭。 */
