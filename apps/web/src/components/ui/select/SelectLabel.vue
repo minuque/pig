@@ -21,3 +21,10 @@ const props = withDefaults(defineProps<SelectLabelProps & { class?: HTMLAttribut
 const delegatedProps = reactiveOmit(props, "class")
 const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectLabelProps>
 </script>
+
+<style scoped>
+/* 与选项同一组左右边距：选项不再留勾选图标的槽位 */
+.rt-SelectLabel[data-slot="select-label"] {
+  padding-inline: var(--space-sm);
+}
+</style>

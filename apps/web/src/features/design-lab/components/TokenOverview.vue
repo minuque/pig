@@ -5,9 +5,7 @@
       +
       <code>style/rt.css</code>
       ·
-      {{
-        locale === "en" ? "live values, follow theme and font size" : "实时读取，跟随主题与字号档"
-      }}
+      {{ locale === "en" ? "live values, follow theme" : "实时读取，跟随主题" }}
     </p>
 
     <section v-for="group in groups" :key="group.id" class="group">
@@ -115,10 +113,10 @@ const COLOR_PREFIX: [RegExp, GroupId][] = [
 ]
 // 有可视样例的分组；其余只列名字和值
 const VISUAL = new Set<GroupId>(["color", "text", "font", "space", "radius", "shadow", "size"])
-// 只收根作用域里的声明：.dark 与字号档是同名覆盖，不另列
+// 只收根作用域里的声明：.dark 是同名覆盖，不另列
 const NAMES = [...new Set([...declared(tokensCss), ...declared(rtCss)])]
 const { isDark } = useColorScheme()
-const { fontSize, locale } = useGeneralPrefs()
+const { locale } = useGeneralPrefs()
 const values = ref<Token[]>([])
 const groups = computed(() =>
   GROUPS.map((group) => ({
@@ -172,7 +170,7 @@ function fontSample(name: string): string {
 
 onMounted(read)
 
-watch([isDark, fontSize], () => nextTick(read))
+watch(isDark, () => nextTick(read))
 </script>
 
 <style scoped>

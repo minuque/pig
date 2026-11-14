@@ -23,12 +23,6 @@
             <SegmentedControlItem value="en">EN</SegmentedControlItem>
           </SegmentedControl>
 
-          <SegmentedControl :model-value="fontSize" size="s" @update:model-value="pickFontSize">
-            <SegmentedControlItem v-for="size in FONT_SIZES" :key="size" :value="size">
-              {{ size.toUpperCase() }}
-            </SegmentedControlItem>
-          </SegmentedControl>
-
           <SegmentedControl
             :model-value="isDark ? 'dark' : 'light'"
             size="s"
@@ -70,7 +64,6 @@ import CardTuner from "@features/design-lab/components/CardTuner.vue"
 import TokenOverview from "@features/design-lab/components/TokenOverview.vue"
 import { demoGroups, type Label, type NavGroup } from "@features/design-lab/lib/nav.js"
 
-const FONT_SIZES = ["s", "m", "l"] as const
 const groups: NavGroup[] = [
   {
     id: "overview",
@@ -87,7 +80,7 @@ const groups: NavGroup[] = [
 const route = useRoute()
 const router = useRouter()
 const { isDark, setScheme } = useColorScheme()
-const { fontSize, setFontSize, locale, setLocale } = useGeneralPrefs()
+const { locale, setLocale } = useGeneralPrefs()
 // 当前页记在地址里，刷新后停在原处；找不到时回到总览
 const current = computed(() => {
   const id = route.query.page
@@ -115,12 +108,6 @@ function pickLocale(next: string) {
 
 function pickScheme(next: string) {
   setScheme(next === "dark" ? "dark" : "light")
-}
-
-function pickFontSize(next: string) {
-  const size = FONT_SIZES.find((item) => item === next)
-
-  if (size) setFontSize(size)
 }
 
 // 设计页不经过启动门，自己撤掉 index.html 里的启动画面

@@ -1,4 +1,4 @@
-/* 设置分区共用的分组与行样式：GeneralPane 与 NotificationsPane 共用。 */
+/* 设置分区共用的分组与行样式：各分区共用。 */
 .pane {
   display: flex;
   flex-direction: column;
@@ -53,6 +53,13 @@
   font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body--line-height);
+}
+
+.desc {
+  margin: 0;
+  color: var(--contrast-foreground-faint);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
 }
 
 @media (max-width: 720px) {

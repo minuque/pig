@@ -24,6 +24,10 @@
       <StartupError v-if="pageError" v-bind="pageError" />
 
       <template v-else>
+        <Transition name="welcome-field" appear>
+          <WelcomeField v-if="showHero && welcomeField !== 'off'" />
+        </Transition>
+
         <div class="session-stage">
           <Transition name="dock-hero" appear>
             <div v-if="showHero" key="hero" class="idle-hero">
@@ -85,9 +89,9 @@
               :aborting="aborting"
               :session-id="sessionId"
               :cwd="composerCwd"
+              :usage="showHero ? undefined : contextUsage"
               :send-disabled="sendDisabled"
               :queue="composerQueue"
-              :usage="showHero ? undefined : contextUsage"
               @send="onSend"
               @send-now="onQueueSendNow"
               @queue="onQueue"
@@ -116,8 +120,10 @@ import { useSound } from "@features/click-sound/index.js"
 import { useI18n } from "@i18n/index.js"
 import { sessionDropTargetAttrs, useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session/index.js"
+import { useAppearancePrefs } from "@features/settings/index.js"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
+import WelcomeField from "@features/session-workbench/components/WelcomeField.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { useComposerDock } from "@features/session-workbench/hooks/use-composer-dock.js"
 import { useSessionDrop } from "@features/session-workbench/hooks/use-session-drop.js"
@@ -174,6 +180,7 @@ const {
 } = useSession()
 const { groups, lastCwd, addingWorkspace, addWorkspace, addRemoteWorkspace } = useNav()
 const remoteOpen = ref(false)
+const { welcomeField } = useAppearancePrefs()
 /** 与侧栏同一份目录：已授权 local + 会话 cwd。 */
 const workspaces = computed(() => groups.value.map((group) => group.canonicalPath))
 const pageError = computed(() => {

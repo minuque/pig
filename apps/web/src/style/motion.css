@@ -358,6 +358,22 @@
   transition: transform var(--duration-fast) var(--ease-out);
 }
 
+/* ------ 欢迎页字符背景：Hero 落位后慢慢浮现；离开首屏与 Hero 同拍淡出 ------ */
+.welcome-field-enter-active,
+.welcome-field-appear-active {
+  transition: opacity var(--duration-reveal) var(--ease-out) var(--duration-settle);
+}
+
+.welcome-field-leave-active {
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.welcome-field-enter-from,
+.welcome-field-appear-from,
+.welcome-field-leave-to {
+  opacity: 0;
+}
+
 /* ------ 淡入淡出 ------ */
 .fade-layer-enter-active,
 .fade-layer-leave-active {
@@ -818,7 +834,10 @@
   .dock-thread-leave-active,
   .dock-hero-enter-active,
   .dock-hero-appear-active,
-  .dock-hero-leave-active {
+  .dock-hero-leave-active,
+  .welcome-field-enter-active,
+  .welcome-field-appear-active,
+  .welcome-field-leave-active {
     transition: none;
   }
 
