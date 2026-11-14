@@ -306,6 +306,10 @@ function onAbortHotkey(event: KeyboardEvent) {
 <style scoped>
 .prompt {
   position: relative;
+  display: flex;
+  flex-direction: column;
+  /* 整组封顶后由队列先让位，输入卡保持原高 */
+  min-block-size: 0;
   width: 100%;
   margin-inline: auto;
   padding: 0;

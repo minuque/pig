@@ -76,6 +76,11 @@ onBeforeUnmount(() => reorder.detach())
 <style scoped>
 /* 托盘：左右内缩 16px，顶部 16px 圆角，底边 18px 垫在输入卡后面 */
 .queue-panel {
+  /* 队列长了从自己这儿让位：内部滚动，不把输入卡顶到头部 */
+  flex: 0 1 auto;
+  min-block-size: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   margin-inline: var(--space-md);
   margin-bottom: calc(-1 * 18px);
   padding: 0 var(--space-xs) 18px;

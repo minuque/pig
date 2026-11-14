@@ -577,8 +577,12 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 
 .composer-stack {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: min(calc(var(--size-content) + var(--space-sm)), calc(100% - 2 * var(--space-md)));
+  /* 整组最高到头部下沿：队列再长也从这里让位，不压住头部与窗控 */
+  max-block-size: calc(100dvh - var(--header-height) - 2 * var(--space-sm));
   margin-inline: auto;
   background: transparent;
   pointer-events: auto;
