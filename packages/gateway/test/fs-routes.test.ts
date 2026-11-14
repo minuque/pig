@@ -150,6 +150,9 @@ describe("fs routes", () => {
   })
 })
 
+// git 钩子里跑测试时会带上 GIT_DIR 等变量，不清掉的话 git 命令会落到真仓库上
+for (const key of Object.keys(process.env)) if (key.startsWith("GIT_")) delete process.env[key]
+
 describe("目录、git 状态与内容搜索", () => {
   async function gitWorkspace() {
     const git = (...args: string[]) => execFileSync("git", args, { cwd: workspace, stdio: "pipe" })
