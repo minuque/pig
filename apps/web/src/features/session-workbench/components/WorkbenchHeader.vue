@@ -91,6 +91,9 @@
       </ol>
     </nav>
 
+    <!-- 摘要在前、Files 在后：右侧按钮组从摘要开始数 -->
+    <RailToggle v-if="rail" />
+
     <Tooltip v-if="rail && sessionId">
       <TooltipTrigger as-child>
         <IconButton
@@ -111,7 +114,6 @@
       <TooltipContent>{{ t("files.toggle") }}</TooltipContent>
     </Tooltip>
 
-    <RailToggle v-if="rail" />
     <SessionItemDelete v-model:open="deleteOpen" :title="title" @confirm="confirmDelete" />
   </header>
 </template>
