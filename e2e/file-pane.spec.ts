@@ -55,3 +55,41 @@ test("点工具行里的文件名，Files 面板打开这个文件并标出读�
     page.getByRole("region", { name: "文件" }).getByRole("tab", { name: "example.ts" }),
   ).toBeVisible()
 })
+
+test("从头部打开 Files，在树里展开目录、搜索内容并跳到命中的行", async ({
+  page,
+  complexGateway,
+}) => {
+  test.setTimeout(90_000)
+  await mkdir(join(complexGateway.workspaceDir, "src"), { recursive: true })
+  await writeFile(join(complexGateway.workspaceDir, "src", "example.ts"), SOURCE)
+  await writeFile(join(complexGateway.workspaceDir, "notes.md"), "# 笔记\n\nneedle-in-notes\n")
+  await seedWorkspace(page, complexGateway.workspaceId)
+  await page.goto(complexGateway.entryUrl)
+  await page
+    .locator(".session-card", { has: page.getByText(COMPLEX_SESSION_NAME, { exact: true }) })
+    .click()
+  await expect(page.getByText(COMPLEX_MARKER, { exact: true })).toBeVisible({ timeout: 30_000 })
+
+  await page.getByRole("button", { name: "开关文件面板" }).click()
+  const pane = page.getByRole("region", { name: "文件" })
+  const tree = pane.getByRole("tree")
+
+  await tree.getByRole("treeitem", { name: "src" }).click()
+  await tree.getByRole("treeitem", { name: "example.ts" }).click()
+  await expect(pane.getByRole("tab", { name: "example.ts" })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  )
+
+  await pane.getByRole("textbox", { name: "搜索文件" }).fill("needle-in")
+  const hit = pane.getByRole("button", { name: /notes\.md:3/ })
+
+  await expect(hit).toBeVisible()
+  await hit.click()
+  await expect(pane.getByRole("tab", { name: "notes.md" })).toHaveAttribute("aria-selected", "true")
+  // 临时标签被替换，带行号打开的 Markdown 从源码开始并标出那一行
+  await expect(pane.getByRole("tab", { name: "example.ts" })).toHaveCount(0)
+  await expect(pane.locator(".file-code-line[data-hl]")).toContainText("needle-in-notes")
+  await checkpoint(page, "file-pane-search")
+})
