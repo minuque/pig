@@ -28,6 +28,7 @@
     "check:touched": "node scripts/check/check.mjs --touched",
     "check:release": "pnpm check && pnpm build && pnpm test:e2e",
     "setup:worktree": "node scripts/setup-worktree.mjs",
+    "arch": "node scripts/arch/build.mjs",
     "prepare": "husky"
   },
   "devDependencies": {

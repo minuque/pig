@@ -11,6 +11,8 @@ pnpm workspace：
 - `packages/extensions/` — pig 内置的 pi 包（subagent、remote-workspace），只用公开 Extension API，pi TUI 里也能装
 - `packages/environment/` — 工具运行的环境：本机或 SSH 主机；执行命令、读写文件、搜索、环境列表
 
+架构看板：`pnpm arch` 扫描源码生成 `docs/architecture/dist/index.html`（不提交），含总览、可下钻的依赖图、数据流与接口表。生成器在 `scripts/arch/`。数据流手写在 `docs/architecture/flows.ts`，每步的 `ref` 指向真实代码，`pnpm check` 校验它们仍然存在。
+
 浏览器 UI 旅程在仓库根 `e2e/`（Playwright，跨 Web 构建物与 Gateway），不是 `apps/web/test/` 的模块单测。`pnpm test:e2e` 写出 `playwright-report/`。
 
 ## apps/web/src

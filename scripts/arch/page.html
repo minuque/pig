@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="zh-CN" data-accent-color="indigo" data-gray-color="slate">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>pig 架构看板</title>
+    <style>
+      /*__CSS__*/
+    </style>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--background);
+        color: var(--foreground);
+        font-family: var(--font-sans);
+        font-size: var(--text-body);
+        line-height: var(--text-body--line-height);
+      }
+
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm) var(--space-lg);
+        align-items: center;
+        padding: var(--space-sm) var(--space-lg);
+        border-bottom: 1px solid var(--border);
+        background: var(--sidebar);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: var(--text-title);
+        font-weight: 600;
+      }
+
+      h2 {
+        margin: 0 0 var(--space-xs);
+        font-size: var(--text-title);
+        font-weight: 600;
+      }
+
+      .meta,
+      .hint {
+        color: var(--foreground-faint);
+        font-size: var(--text-meta);
+      }
+
+      nav {
+        display: flex;
+        gap: var(--space-xxs);
+      }
+
+      nav a {
+        padding: var(--space-xxs) var(--space-sm);
+        border-radius: var(--radius-control);
+        color: var(--foreground-secondary);
+        text-decoration: none;
+      }
+
+      nav a:hover {
+        background: var(--btn-hover);
+      }
+
+      nav a[aria-current="page"] {
+        background: var(--btn-selected);
+        color: var(--foreground);
+      }
+
+      main {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--space-lg);
+        padding: var(--space-lg);
+      }
+
+      .card {
+        padding: var(--space-md);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-card);
+        background: var(--surface);
+      }
+
+      .diagram {
+        overflow: hidden;
+        min-height: 240px;
+        max-height: 72vh;
+        cursor: grab;
+      }
+
+      /* 依赖图的边是主要信息，深色下不能用边框色 */
+      .dark .diagram {
+        --pele-line: var(--foreground-faint);
+      }
+
+      .crumbs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-xxs);
+        align-items: center;
+        margin-bottom: var(--space-sm);
+      }
+
+      .crumbs a::after {
+        content: " /";
+        color: var(--foreground-faint);
+      }
+
+      a {
+        color: var(--link);
+      }
+
+      code,
+      .mono {
+        font-family: var(--font-mono);
+        font-size: var(--text-meta);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      th,
+      td {
+        padding: var(--space-xxs) var(--space-xs);
+        border-bottom: 1px solid var(--border);
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        color: var(--foreground-secondary);
+        font-weight: 500;
+      }
+
+      .cols {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: var(--space-lg);
+      }
+
+      ol {
+        margin: var(--space-xs) 0 0;
+        padding-left: var(--space-lg);
+      }
+
+      .tag {
+        padding: 0 var(--space-xs);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-pill);
+        color: var(--foreground-secondary);
+        font-size: var(--text-meta);
+      }
+
+      .error {
+        color: var(--red-11);
+        white-space: pre-wrap;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>pig 架构看板</h1>
+      <nav>
+        <a href="#overview">总览</a>
+        <a href="#dep/">依赖</a>
+        <a href="#flows">数据流</a>
+        <a href="#api">接口</a>
+      </nav>
+      <span class="meta" id="meta"></span>
+    </header>
+    <main id="view"></main>
+    <script>
+      /*__PELE__*/
+    </script>
+    <script>
+      /*__PANZOOM__*/
+    </script>
+    <script>
+      const DATA = /*__DATA__*/
+      const { files, edges } = DATA.graph
+      const byId = new Map(files.map((f) => [f.id, f]))
+      const view = document.getElementById("view")
+
+      const dark = matchMedia("(prefers-color-scheme: dark)")
+      const applyTheme = () => document.documentElement.classList.toggle("dark", dark.matches)
+      applyTheme()
+      dark.addEventListener("change", () => {
+        applyTheme()
+        route()
+      })
+
+      const esc = (s) =>
+        String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c])
+      const label = (s) => String(s).replace(/"/g, "'")
+      const tail = (id, parent) => (parent && id.startsWith(`${parent}/`) ? id.slice(parent.length + 1) : id)
+      const depLink = (id, text = id) => `<a class="mono" href="#dep/${esc(id)}">${esc(text)}</a>`
+
+      function card(html) {
+        const el = document.createElement("section")
+        el.className = "card"
+        el.innerHTML = html
+        view.append(el)
+        return el
+      }
+
+      function diagram(parent, source) {
+        const box = document.createElement("div")
+        box.className = "diagram mermaid-diagram"
+        parent.append(box)
+
+        try {
+          box.innerHTML = pele.render(source, { links: true, responsive: false }).svg
+          const svg = box.querySelector("svg")
+          const fit = box.clientWidth / svg.getBoundingClientRect().width
+          const zoom = Panzoom(svg, { origin: "0 0", maxScale: 6, minScale: 0.2, startScale: Math.min(1, Math.max(0.6, fit)) })
+          box.addEventListener("wheel", zoom.zoomWithWheel)
+        } catch (error) {
+          box.innerHTML = `<p class="error">${esc(error.message)}</p>`
+        }
+      }
+
+      const dirPkg = new Map(files.map((f) => [f.dir, f.pkg]))
+      const pkgOf = (focus) => (dirPkg.has(focus) ? dirPkg.get(focus) : focus)
+
+      /** 文件按焦点归到节点：焦点内展开一级，同包的折成目录，别的包折成包。 */
+      function keyFor(file, focus) {
+        if (!focus || file.pkg !== pkgOf(focus)) return file.pkg
+        return file.dir === focus ? file.id : file.dir
+      }
+
+      function isInside(key, focus) {
+        if (!focus) return true
+        if (!dirPkg.has(focus)) return dirPkg.get(key) === focus
+        return byId.get(key)?.dir === focus
+      }
+
+      function graphSource(focus) {
+        const nodes = new Map()
+        const counts = new Map()
+        const id = (key) => {
+          if (!nodes.has(key)) nodes.set(key, `n${nodes.size}`)
+          return nodes.get(key)
+        }
+
+        for (const f of files) if (isInside(keyFor(f, focus), focus)) id(keyFor(f, focus))
+
+        for (const e of edges) {
+          const from = keyFor(byId.get(e.from), focus)
+          const to = keyFor(byId.get(e.to), focus)
+          if (from === to || !(isInside(from, focus) || isInside(to, focus))) continue
+          const pair = `${id(from)} --> ${id(to)}`
+          counts.set(pair, (counts.get(pair) ?? 0) + 1)
+        }
+
+        const lines = ["flowchart TB"]
+
+        for (const [key, n] of nodes) {
+          const inside = isInside(key, focus)
+          lines.push(`  ${n}["${label(inside ? tail(key, focus).replace(/^src\//, "") : key)}"]`)
+          lines.push(`  click ${n} href "#dep/${key}"`)
+          if (!inside) lines.push(`  class ${n} outside`)
+        }
+
+        for (const pair of counts.keys()) lines.push(`  ${pair}`)
+
+        lines.push("  classDef outside stroke-dasharray: 4 3")
+        return lines.join("\n")
+      }
+
+      function crumbs(path) {
+        const parts = [`<a href="#dep/">全部</a>`]
+        const file = byId.get(path)
+        const pkg = file?.pkg ?? (path ? pkgOf(path) : undefined)
+        const dir = file?.dir ?? (dirPkg.has(path) ? path : undefined)
+        if (pkg) parts.push(depLink(pkg))
+        if (dir && dir !== pkg) parts.push(depLink(dir, tail(dir, pkg)))
+        if (file) parts.push(`<span class="mono">${esc(tail(file.id, file.dir))}</span>`)
+        return `<div class="crumbs">${parts.join("")}</div>`
+      }
+
+      function fileList(list, title) {
+        const items = list.map((id) => `<li>${depLink(id)}</li>`).join("")
+        return `<div><h2>${title}（${list.length}）</h2><ol>${items || "<li>无</li>"}</ol></div>`
+      }
+
+      function renderDeps(path) {
+        const file = byId.get(path)
+
+        if (file) {
+          const into = edges.filter((e) => e.to === path).map((e) => e.from)
+          const out = edges.filter((e) => e.from === path).map((e) => e.to)
+          const nodes = [path, ...into, ...out]
+          const n = (id) => `n${nodes.indexOf(id)}`
+          const lines = ["flowchart LR", `  ${n(path)}["${label(tail(path, file.pkg))}"]`]
+          for (const id of new Set([...into, ...out]))
+            lines.push(`  ${n(id)}["${label(id)}"]`, `  click ${n(id)} href "#dep/${id}"`)
+          for (const id of into) lines.push(`  ${n(id)} --> ${n(path)}`)
+          for (const id of out) lines.push(`  ${n(path)} --> ${n(id)}`)
+          const el = card(`${crumbs(path)}<p class="hint">点相邻文件跳过去；滚轮缩放，拖动平移。</p>`)
+          diagram(el, lines.join("\n"))
+          card(`<div class="cols">${fileList(into, "谁引用它")}${fileList(out, "它引用谁")}</div>`)
+          return
+        }
+
+        const focus = path || undefined
+        const el = card(
+          `${crumbs(path)}<p class="hint">点节点下钻；虚线框是焦点外的模块。滚轮缩放，拖动平移。</p>`,
+        )
+        diagram(el, graphSource(focus))
+      }
+
+      function renderOverview() {
+        const pkgs = [...new Set(files.map((f) => f.pkg))]
+        const n = (p) => `p${pkgs.indexOf(p)}`
+        const counts = new Map()
+        for (const e of edges) {
+          const a = byId.get(e.from).pkg
+          const b = byId.get(e.to).pkg
+          if (a !== b) counts.set(`${n(a)} --> ${n(b)}`, (counts.get(`${n(a)} --> ${n(b)}`) ?? 0) + 1)
+        }
+        const lines = ["flowchart TB"]
+        for (const p of pkgs) {
+          const size = files.filter((f) => f.pkg === p).length
+          lines.push(`  ${n(p)}["${p}<br/>${size} 个文件"]`, `  click ${n(p)} href "#dep/${p}"`)
+        }
+        for (const [pair, count] of counts) lines.push(`  ${pair.replace("-->", `-->|${count}|`)}`)
+        for (const [from, to, text] of DATA.runtime) {
+          const a = pkgs.includes(from) ? n(from) : `x${label(from).replace(/\W/g, "")}`
+          const b = pkgs.includes(to) ? n(to) : `x${label(to).replace(/\W/g, "")}`
+          if (!pkgs.includes(from)) lines.push(`  ${a}(["${label(from)}"])`)
+          if (!pkgs.includes(to)) lines.push(`  ${b}(["${label(to)}"])`)
+          lines.push(`  ${a} -.->|${label(text)}| ${b}`)
+        }
+        const el = card(
+          `<h2>总览</h2><p class="hint">实线是 import（数字为条数），虚线是运行时通道；点包进入依赖下钻。</p>`,
+        )
+        diagram(el, lines.join("\n"))
+      }
+
+      function renderFlows() {
+        for (const flow of DATA.flows) {
+          const actors = [...new Set(flow.steps.flatMap((s) => [s.from, s.to]))]
+          const a = (name) => `a${actors.indexOf(name)}`
+          const lines = ["sequenceDiagram", ...actors.map((name) => `  participant ${a(name)} as ${name}`)]
+          flow.steps.forEach((s, i) => lines.push(`  ${a(s.from)}->>${a(s.to)}: ${i + 1}. ${s.text.replace(/[;#]/g, "，")}`))
+          const steps = flow.steps
+            .map((s) => {
+              const [path, symbol] = (s.ref ?? "").split("#")
+              const ref = path ? `${depLink(path)}${symbol ? ` <code>${esc(symbol)}</code>` : ""}` : ""
+              return `<li>${esc(s.text)}<br/>${ref}</li>`
+            })
+            .join("")
+          const el = card(`<h2 id="flow-${flow.id}">${esc(flow.title)} <span class="tag">${flow.channel}</span></h2>`)
+          diagram(el, lines.join("\n"))
+          el.insertAdjacentHTML("beforeend", `<ol>${steps}</ol>`)
+        }
+      }
+
+      function renderApi() {
+        const rows = DATA.api.http
+          .map(
+            (r) =>
+              `<tr><td class="mono">${r.method}</td><td class="mono">${esc(r.path)}</td><td>${depLink(r.handler, tail(r.handler, "packages/gateway/src"))}</td><td>${r.callers.map((c) => depLink(c, tail(c, "apps/web/src"))).join("<br/>") || '<span class="hint">无</span>'}</td></tr>`,
+          )
+          .join("")
+        card(
+          `<h2>HTTP（${DATA.api.http.length}）</h2><table><thead><tr><th>方法</th><th>路径</th><th>处理</th><th>web 调用方</th></tr></thead><tbody>${rows}</tbody></table>`,
+        )
+        const list = (items) => `<ol>${items.map((x) => `<li class="mono">${esc(x)}</li>`).join("")}</ol>`
+        card(
+          `<h2>WebSocket <code>${esc(DATA.api.ws.path)}</code></h2><div class="cols"><div><h2>命令</h2>${list(DATA.api.ws.commands)}</div><div><h2>事件</h2>${list(DATA.api.ws.events)}</div></div>`,
+        )
+      }
+
+      function route() {
+        const hash = decodeURIComponent(location.hash.slice(1)) || "overview"
+        const tab = hash.startsWith("dep/") ? "#dep/" : `#${hash}`
+        for (const a of document.querySelectorAll("nav a"))
+          a.toggleAttribute("aria-current", a.getAttribute("href") === tab)
+        document.querySelector("nav a[aria-current]")?.setAttribute("aria-current", "page")
+        view.replaceChildren()
+        if (hash.startsWith("dep/")) renderDeps(hash.slice(4))
+        else if (hash === "flows") renderFlows()
+        else if (hash === "api") renderApi()
+        else renderOverview()
+        scrollTo(0, 0)
+      }
+
+      document.getElementById("meta").textContent =
+        `${DATA.commit} · ${files.length} 个文件 · ${edges.length} 条 import · 生成于 ${DATA.generatedAt}`
+      addEventListener("hashchange", route)
+      route()
+    </script>
+  </body>
+</html>
