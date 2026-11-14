@@ -17,3 +17,20 @@ export function formatElapsed(
   if (hours === 0) return `${minutes}m ${seconds}s`
   return `${hours}h ${String(minutes % 60).padStart(2, "0")}m ${seconds}s`
 }
+
+const RELATIVE_UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
+  ["year", 31_536_000],
+  ["month", 2_592_000],
+  ["week", 604_800],
+  ["day", 86_400],
+  ["hour", 3_600],
+  ["minute", 60],
+]
+
+/** 相对时间：一分钟内说「现在」，其余取最大的整单位，如「5 分钟前」「昨天」。 */
+export function formatRelative(dateMs: number, nowMs: number, locale: string): string {
+  const format = new Intl.RelativeTimeFormat(locale, { numeric: "auto" })
+  const seconds = Math.round((dateMs - nowMs) / 1000)
+  const unit = RELATIVE_UNITS.find(([, span]) => Math.abs(seconds) >= span)
+  return unit ? format.format(Math.round(seconds / unit[1]), unit[0]) : format.format(0, "second")
+}

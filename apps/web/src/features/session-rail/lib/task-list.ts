@@ -1,4 +1,5 @@
 import { readJson, writeJson, type PrefStorage } from "@utils/storage.js"
+import { formatElapsed } from "@utils/time.js"
 import type { Task } from "@/types/common-type.js"
 
 const DISMISSED_KEY = "pig.rail.dismissedTasks"
@@ -25,6 +26,15 @@ export function taskSections(tasks: readonly Task[]) {
       .filter((task) => !active(task))
       .sort((a, b) => (b.completedAt ?? -Infinity) - (a.completedAt ?? -Infinity)),
   }
+}
+
+export type TaskSections = ReturnType<typeof taskSections>
+
+/** 任务跑了多久：进行中算到 now，结束的算到结束时间；没有开始时间就空着。 */
+export function taskElapsed(task: Task, now: number): string {
+  if (task.startedAt === undefined) return ""
+  const end = task.status === "running" ? now : task.completedAt
+  return end === undefined ? "" : formatElapsed(end - task.startedAt, { showMs: false })
 }
 
 /** 去掉终端颜色码，只留文字。 */

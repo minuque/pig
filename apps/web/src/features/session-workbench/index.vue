@@ -24,7 +24,9 @@
       <StartupError v-if="pageError" v-bind="pageError" />
 
       <template v-else>
-        <WelcomeGlyphField v-if="showHero" />
+        <Transition name="welcome-field" appear>
+          <WelcomeField v-if="showHero && welcomeField !== 'off'" />
+        </Transition>
 
         <div class="session-stage">
           <Transition name="dock-hero" appear>
@@ -62,29 +64,20 @@
         >
           <div class="composer-stack">
             <div class="session-floating-controls" :class="{ shown: showScrollToLatest }">
-              <Tooltip>
-                <TooltipTrigger as-child>
-                  <IconButton
-                    class="icon-control scroll-latest-control press-scale"
-                    type="button"
-                    :aria-label="t('transcript.scrollToBottom')"
-                    variant="outline"
-                    size="s"
-                    @click="scrollToLatest('smooth')"
-                  >
-                    <span class="icon-swap">
-                      <LoaderIcon
-                        :data-visible="turnPending"
-                        :class="{ 'is-spinning': turnPending }"
-                      />
-
-                      <ArrowDownIcon :data-visible="!turnPending" />
-                    </span>
-                  </IconButton>
-                </TooltipTrigger>
-
-                <TooltipContent>{{ t("transcript.scrollToBottom") }}</TooltipContent>
-              </Tooltip>
+              <span class="scroll-latest">
+                <Button
+                  class="scroll-latest-button"
+                  type="button"
+                  variant="soft"
+                  size="s"
+                  radius="full"
+                  @click="scrollToLatest('smooth')"
+                >
+                  <LoaderIcon v-if="turnPending" class="size-icon is-spinning" />
+                  <ArrowDownIcon v-else class="size-icon" />
+                  {{ t("transcript.scrollToBottom") }}
+                </Button>
+              </span>
             </div>
 
             <Composer
@@ -96,6 +89,7 @@
               :aborting="aborting"
               :session-id="sessionId"
               :cwd="composerCwd"
+              :usage="showHero ? undefined : contextUsage"
               :send-disabled="sendDisabled"
               :queue="composerQueue"
               @send="onSend"
@@ -115,8 +109,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, 
 import { useEventListener, useResizeObserver } from "@vueuse/core"
 import { useRoute } from "vue-router"
 import { warmWorkspace } from "@client/platform.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { Button } from "@components/ui/button/index.js"
 import Composer from "@features/composer/index.vue"
 import {
   useComposerAttachments,
@@ -127,9 +120,10 @@ import { useSound } from "@features/click-sound/index.js"
 import { useI18n } from "@i18n/index.js"
 import { sessionDropTargetAttrs, useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session/index.js"
+import { useAppearancePrefs } from "@features/settings/index.js"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
-import WelcomeGlyphField from "@features/session-workbench/components/WelcomeGlyphField.vue"
+import WelcomeField from "@features/session-workbench/components/WelcomeField.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { useComposerDock } from "@features/session-workbench/hooks/use-composer-dock.js"
 import { useSessionDrop } from "@features/session-workbench/hooks/use-session-drop.js"
@@ -182,9 +176,11 @@ const {
   setBackgroundIdleHandler,
   setWelcomeHandoff,
   transcriptFor,
+  contextUsage,
 } = useSession()
 const { groups, lastCwd, addingWorkspace, addWorkspace, addRemoteWorkspace } = useNav()
 const remoteOpen = ref(false)
+const { welcomeField } = useAppearancePrefs()
 /** 与侧栏同一份目录：已授权 local + 会话 cwd。 */
 const workspaces = computed(() => groups.value.map((group) => group.canonicalPath))
 const pageError = computed(() => {
@@ -439,7 +435,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 </script>
 
 <style scoped>
-/* 两列：头部横跨，下方对话列在左、摘要面板独占右列；面板收起时右列宽 0。
+/* 三列：头部横跨，下方对话列在左、摘要面板独占中列，右侧面板（打开时）在最右；空列宽 0。
    摘要面板按会话面板宽度决定常驻还是收成按钮 */
 .session-panel {
   position: relative;
@@ -447,7 +443,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template: auto minmax(0, 1fr) / minmax(0, 1fr) auto;
+  grid-template: auto minmax(0, 1fr) / minmax(0, 1fr) auto auto;
 }
 
 .session-panel > .workbench-header {
@@ -527,7 +523,21 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   padding-bottom: var(--space-xl);
 }
 
+/* 与常驻摘要面板同一组门槛（见 session-rail） */
 @container session-panel (min-width: 1012px) {
+  .session-panel:has(.rail-docked[data-open]):not(:has(.rail-pane)) .conversation-column {
+    --rail-reserve: var(--size-rail-reserve);
+  }
+}
+
+@container session-panel (min-width: 1464px) {
+  .session-panel:has(.rail-docked[data-open]):not(:has(.rail-pane[data-wide]))
+    .conversation-column {
+    --rail-reserve: var(--size-rail-reserve);
+  }
+}
+
+@container session-panel (min-width: 1904px) {
   .session-panel:has(.rail-docked[data-open]) .conversation-column {
     --rail-reserve: var(--size-rail-reserve);
   }
@@ -577,7 +587,8 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 .session-floating-controls {
   position: absolute;
   inset-block-start: 0;
-  inset-inline: 0 var(--rail-reserve);
+  /* composer-bar 已经让出侧栏，这里再让一次会偏左 */
+  inset-inline: 0;
   z-index: 1;
   display: flex;
   justify-content: center;
@@ -596,13 +607,27 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   translate: 0 0;
 }
 
-.session-floating-controls.shown .scroll-latest-control {
+.session-floating-controls.shown .scroll-latest {
   pointer-events: auto;
 }
 
-/* 外观走全局 .icon-control，这里只负责浮在输入卡上方 */
-.scroll-latest-control {
+/* soft 按钮底色半透明，垫一层同形实底，悬停时不透出正文；浮在输入卡上方 */
+.scroll-latest {
+  display: flex;
+  align-self: flex-start;
+  border-radius: var(--radius-pill);
+  background: var(--popover);
   translate: 0 calc(-100% - var(--space-sm));
+}
+
+/* 外边框沿用原圆形图标钮：盒内一圈 --border 细环 */
+.scroll-latest-button {
+  box-shadow: inset 0 0 0 var(--border-width) var(--border);
+}
+
+/* 不要按下反馈：按住时保持悬停的底色 */
+.scroll-latest-button:active {
+  background-color: var(--accent-a4);
 }
 
 @media (max-width: 900px) {
@@ -612,8 +637,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .session-floating-controls,
-  .scroll-latest-control {
+  .session-floating-controls {
     transition: none;
   }
 

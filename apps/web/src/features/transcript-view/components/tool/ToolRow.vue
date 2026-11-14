@@ -18,7 +18,14 @@
               {{ shownVerb }}
             </span>
 
-            <span v-if="target.text" class="tool-row-target" :title="target.path || target.text">
+            <!-- 文件名点开 Files 面板，不展开行；照 cc-wrapper 的 ToolPath -->
+            <span
+              v-if="target.text"
+              class="tool-row-target"
+              :class="{ 'is-openable': openable }"
+              :title="target.path || target.text"
+              @click="openable && openTarget($event)"
+            >
               {{ target.text }}
             </span>
 
@@ -56,16 +63,12 @@
       <AltArrowRightIcon class="tool-row-caret" :class="{ 'is-open': open }" data-icon="inline" />
     </div>
 
-    <Dialog v-if="thumb" v-model:open="previewOpen">
-      <DialogContent
-        class="tool-thumb-dialog"
-        :aria-label="t('common.preview', { name: t('transcript.image') })"
-        :show-close-button="false"
-        @click.self="previewOpen = false"
-      >
-        <img :src="thumb" alt="" class="tool-thumb-full" @click="previewOpen = false" />
-      </DialogContent>
-    </Dialog>
+    <PreviewDialog
+      v-if="thumb"
+      v-model:open="previewOpen"
+      :src="thumb"
+      :title="target.text || t('transcript.image')"
+    />
 
     <div v-if="open" class="tool-row-body">
       <ToolTaskBody v-if="tasks.length" :tasks="tasks" />
@@ -82,12 +85,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { computed, inject, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { AltArrowRightIcon } from "@components/icons/index.js"
-import { Dialog, DialogContent } from "@components/ui/dialog/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { RollText } from "@components/ui/roll-text/index.js"
+import PreviewDialog from "@features/preview/index.vue"
 import ToolCommandBody from "@features/transcript-view/components/tool/ToolCommandBody.vue"
 import ToolFileBody from "@features/transcript-view/components/tool/ToolFileBody.vue"
 import ToolGenericBody from "@features/transcript-view/components/tool/ToolGenericBody.vue"
@@ -98,7 +101,12 @@ import {
   toolCallVariant,
   toolCallVerb,
 } from "@features/transcript-view/lib/tool-run.js"
-import { itemLineChange, readToolPreview } from "@features/transcript-view/lib/tool-summary.js"
+import {
+  editDiffPreview,
+  itemLineChange,
+  readToolPreview,
+} from "@features/transcript-view/lib/tool-summary.js"
+import { openFileKey } from "@features/transcript-view/index.js"
 import { toolTasks } from "@features/transcript-view/lib/tool-tasks.js"
 import { transcriptImageSrc } from "@features/transcript-view/lib/transcript-format.js"
 import { formatElapsed } from "@utils/time.js"
@@ -131,14 +139,35 @@ const duration = computed(() => {
   if (startedAt === undefined || endedAt === undefined) return ""
   return formatElapsed(endedAt - startedAt)
 })
-const readRange = computed(() => {
-  if (variant.value !== "read" || props.call.running || props.call.isError) return ""
+const readLines = computed(() => {
+  // 读图片时输出只有一行占位说明，不是文件行
+  if (variant.value !== "read" || props.call.running || props.call.isError) return undefined
+
+  if (props.call.outputImages.length) return undefined
 
   const read = readToolPreview(props.call.input, props.call.outputText)
 
-  if (read.lines.length === 0) return ""
-  return `${read.startLine}-${read.startLine + read.lines.length - 1}`
+  if (read.lines.length === 0) return undefined
+  return { line: read.startLine, endLine: read.startLine + read.lines.length - 1 }
 })
+const readRange = computed(() =>
+  readLines.value ? `${readLines.value.line}-${readLines.value.endLine}` : "",
+)
+const fileOpener = inject(openFileKey, undefined)
+const openable = computed(() => Boolean(fileOpener && target.value.path))
+
+function openTarget(event: MouseEvent) {
+  event.stopPropagation()
+  const path = target.value.path
+
+  if (!fileOpener || !path) return
+  fileOpener.open({
+    path,
+    ...readLines.value,
+    find: editDiffPreview(props.call.input)?.hunks[0]?.modified || undefined,
+  })
+}
+
 const thumb = computed(() => {
   const image = props.call.outputImages[0]
   return image ? transcriptImageSrc(image.data, image.mimeType) : null
@@ -215,6 +244,18 @@ const thumb = computed(() => {
 .tool-row-trigger.is-file .tool-row-target {
   color: var(--contrast-foreground);
   font-weight: var(--font-weight-medium);
+}
+
+/* 与缩略图一样浮在整行伪元素之上，才点得到 */
+.tool-row-target.is-openable {
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+}
+
+.tool-row-target.is-openable:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .tool-row-caret {
@@ -347,27 +388,4 @@ const thumb = computed(() => {
 }
 
 /* 大图预览与附件预览同款：铺满视口、点任意处关闭，图整体缩进窗口 */
-.tool-thumb-dialog {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  max-inline-size: none;
-  max-block-size: none;
-  padding: var(--space-xl);
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  cursor: zoom-out;
-}
-
-.tool-thumb-full {
-  display: block;
-  width: auto;
-  height: auto;
-  max-inline-size: 100%;
-  max-block-size: calc(100vh - 2 * var(--space-xl));
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-dialog);
-}
 </style>

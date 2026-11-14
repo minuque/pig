@@ -51,7 +51,20 @@ export type {
   SessionSnapshot,
 } from "./wire.js"
 
-export type { ComposerCommand, EnvironmentInfo, FileSearchEntry } from "./workspace.js"
+export type {
+  ComposerCommand,
+  EnvironmentInfo,
+  ContentSearchMatch,
+  ContentSearchResponse,
+  DirectoryEntry,
+  DirectoryListResponse,
+  FileSearchEntry,
+  FileStatResponse,
+  GitFileStatus,
+  GitStatusResponse,
+  SearchTruncation,
+  FileTextResponse,
+} from "./workspace.js"
 
 export type { AgentTask, Task, TaskDetails, TaskStatus } from "./task.js"
 

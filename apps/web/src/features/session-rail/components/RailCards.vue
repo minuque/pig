@@ -20,8 +20,8 @@
           </span>
         </template>
 
-        <template v-else-if="id === 'tasks' && tasks.length">
-          {{ doneCount }}/{{ tasks.length }}
+        <template v-else-if="id === 'tasks' && sections.running.length">
+          {{ t("rail.runningCount", { count: sections.running.length }) }}
         </template>
       </template>
 
@@ -63,14 +63,18 @@
         </div>
       </template>
 
-      <RailContext v-else-if="id === 'context' && usage" :usage="usage" :session-id="sessionId" />
+      <RailContext
+        v-else-if="id === 'context' && usage"
+        :usage="usage"
+        :session-id="sessionId"
+        @preview="(segment) => rail.openPane({ kind: 'context', segment })"
+      />
 
       <template v-else-if="id === 'tasks'">
-        <RailTasks
-          :tasks="tasks"
+        <RailTaskRows
+          :sections="sections"
           :stoppable="stoppable"
-          :session-id="sessionId"
-          @open="emit('open', $event)"
+          @open="(focus) => rail.openPane({ kind: 'tasks', focus })"
           @stop="emit('stop', $event)"
         />
 
@@ -91,11 +95,13 @@ import {
   ContextMenuSeparator,
 } from "@components/ui/context-menu/index.js"
 import type { ContextUsage } from "@features/composer/type.js"
+import { contextSeverity } from "@features/composer/lib/context-usage.js"
 import RailCard from "@features/session-rail/components/RailCard.vue"
 import RailContext from "@features/session-rail/components/RailContext.vue"
-import RailTasks from "@features/session-rail/components/RailTasks.vue"
-import { useSessionRail, type OpenChild } from "@features/session-rail/index.js"
+import RailTaskRows from "@features/session-rail/components/RailTaskRows.vue"
+import { useSessionRail } from "@features/session-rail/index.js"
 import { RAIL_SECTIONS, type RailSectionId } from "@features/session-rail/lib/sections.js"
+import type { TaskSections } from "@features/session-rail/lib/task-list.js"
 import type { Task } from "@/types/common-type.js"
 
 const REMOTE_KEY = /^ssh:[/][/]([^/]+)([/].*)?$/
@@ -105,10 +111,11 @@ const props = defineProps<{
   usage: ContextUsage | undefined
   sessionId: string | undefined
   tasks: readonly Task[]
+  sections: TaskSections
   stoppable: ReadonlySet<string>
   statuses: ReadonlyMap<string, string> | undefined
 }>()
-const emit = defineEmits<{ open: [child: OpenChild]; stop: [taskId: string] }>()
+const emit = defineEmits<{ stop: [taskId: string] }>()
 const { t } = useI18n()
 const rail = useSessionRail()!
 const titles = computed<Record<RailSectionId, string>>(() => ({
@@ -116,12 +123,7 @@ const titles = computed<Record<RailSectionId, string>>(() => ({
   context: t("rail.context"),
   tasks: t("rail.tasks"),
 }))
-/** 用量分档（与 cc-wrapper 一致）：75% 起警告，90% 起危险。 */
-const severity = computed(() => {
-  const percent = props.usage?.percent ?? 0
-  return percent >= 90 ? "critical" : percent >= 75 ? "warning" : undefined
-})
-const doneCount = computed(() => props.tasks.filter((task) => task.status === "completed").length)
+const severity = computed(() => contextSeverity(props.usage?.percent ?? 0))
 /** 远程 workspace 键 ssh://主机/路径 拆成主机与远端路径。 */
 const place = computed(() => {
   const remote = props.cwd ? REMOTE_KEY.exec(props.cwd) : null
@@ -144,7 +146,6 @@ const reorder = useDragReorder({
   axis: "y",
   container: () => list.value,
   itemSelector: ".rail-card",
-  handleSelector: ".rail-grip",
   onMove: (id, toIndex) => rail.move(shown.value, id as RailSectionId, toIndex),
 })
 let release: (() => void) | undefined
@@ -218,18 +219,9 @@ function nudge(id: RailSectionId, step: number) {
   background: var(--danger);
 }
 
-.rail-task-meta,
-.rail-task-step,
 .rail-status {
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   color: var(--contrast-foreground-faint);
-}
-
-.rail-task-step {
-  grid-column: 2 / 4;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 </style>

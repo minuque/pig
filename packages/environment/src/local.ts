@@ -1,4 +1,5 @@
-import { mkdir, readFile, readdir, stat, writeFile } from "node:fs/promises"
+import { createReadStream } from "node:fs"
+import { mkdir, readFile, readdir, realpath, stat, writeFile } from "node:fs/promises"
 import { homedir } from "node:os"
 import { join } from "node:path"
 
@@ -47,6 +48,14 @@ export class LocalEnvironment implements Environment {
       if (entry.isDirectory()) return [{ name: entry.name, kind: "directory" }]
       return entry.isFile() ? [{ name: entry.name, kind: "file" }] : []
     })
+  }
+
+  realpath(path: string) {
+    return realpath(path)
+  }
+
+  async readStream(path: string, range?: { start: number; end: number }) {
+    return createReadStream(path, range)
   }
 
   async search(

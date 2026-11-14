@@ -32,6 +32,7 @@
                 :is-expand="isExpand"
                 :expanded-tools="expandedTools"
                 :eager="turnIndex >= turns.length - EAGER_TURNS || shownTurns.has(turn.id)"
+                :latest="turnIndex === turns.length - 1"
                 @toggle-expand="onToggleExpand"
                 @toggle-tool="onToggleTool"
                 @shown="shownTurns.add($event)"

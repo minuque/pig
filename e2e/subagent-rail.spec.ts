@@ -2,7 +2,7 @@ import { expect, test } from "./fixtures.js"
 import { CHILD_MARKER } from "./prebuild-session.js"
 import { startSubagentTurn } from "./subagent-turn.js"
 
-test("subagent 子任务：时间线卡片与摘要面板都列出进展，点开在抽屉里只读看子会话", async ({
+test("subagent 子任务：时间线卡片与摘要面板都列出进展，点开在右侧面板里只读看子会话", async ({
   page,
   subagentGateway,
 }) => {
@@ -17,12 +17,20 @@ test("subagent 子任务：时间线卡片与摘要面板都列出进展，点�
   await toggle.click()
   const popover = page.locator(".rail-popover")
   await expect(popover.getByText("planner")).toBeVisible()
-  await expect(popover.getByText("read service.ts")).toBeVisible()
 
-  await popover.getByRole("button", { name: /scout/ }).click()
-  const drawer = page.locator(".child-drawer")
-  await expect(drawer.getByText("子任务 · 只读")).toBeVisible()
-  await expect(drawer.getByText(CHILD_MARKER)).toBeVisible({ timeout: 30_000 })
+  // 卡片里点任务：右侧面板列出全部任务与进展，浮层让开
+  await popover.locator(".task-row-open").first().click()
+  await expect(popover).toBeHidden()
+  const pane = page.locator(".rail-pane")
+  await expect(pane.getByText("read service.ts")).toBeVisible()
+
+  // 查看过程：同一个面板换成子会话，只读
+  await pane
+    .locator(".rail-task", { hasText: "scout" })
+    .getByRole("button", { name: "查看过程" })
+    .click()
+  await expect(pane.getByText("子任务 · 只读")).toBeVisible()
+  await expect(pane.getByText(CHILD_MARKER)).toBeVisible({ timeout: 30_000 })
 })
 
 test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({ page, subagentGateway }) => {
@@ -32,7 +40,7 @@ test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({
   const rail = page.locator(".rail-docked")
   const titles = rail.locator(".rail-title")
   await expect(titles.first()).toHaveText("环境")
-  await expect(titles.last()).toHaveText("任务")
+  await expect(titles.last()).toHaveText("后台任务")
 
   // 摘要面板独占右列：输入框让位，不压在面板下
   const railBox = (await rail.boundingBox())!
@@ -43,13 +51,13 @@ test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({
   const panelBox = (await page.locator(".session-panel").boundingBox())!
   expect(viewportBox.x + viewportBox.width).toBeCloseTo(panelBox.x + panelBox.width, 0)
 
-  // 上下文展开：按分类列 token 与占比，点分类在模态框里看实际进上下文的内容
+  // 上下文展开：按分类列 token 与占比，点分类在右侧面板里看实际进上下文的内容
   const contextCard = rail.locator(".rail-card", { hasText: "上下文" })
   await contextCard.locator("button.ctx-row").first().click()
-  const preview = page.locator(".ctx-preview")
+  const preview = page.locator(".rail-pane")
   await expect(preview.locator(".ctx-preview-text")).not.toBeEmpty({ timeout: 30_000 })
   await expect(preview.locator(".ctx-preview-text")).not.toHaveText("无法加载预览。")
-  await page.keyboard.press("Escape")
+  await preview.getByRole("button", { name: "关闭" }).click()
   await expect(preview).toBeHidden()
 
   // 收起环境：正文收起，标题行显示摘要
@@ -59,16 +67,18 @@ test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({
   await expect(envHead).toHaveAttribute("aria-expanded", "false")
   await expect(env.locator(".rail-summary")).toHaveText("本机")
 
-  // 拖任务卡的把手到最上方
+  // 按住任务卡标题直接拖到最上方，松手不算点击，开合不变
   const tasks = rail.locator(".rail-card").last()
-  await tasks.hover()
-  const from = (await tasks.locator(".rail-grip").boundingBox())!
+  const tasksHead = tasks.locator(".rail-head")
+  const expanded = await tasksHead.getAttribute("aria-expanded")
+  const from = (await tasksHead.boundingBox())!
   const top = (await env.boundingBox())!
   await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2)
   await page.mouse.down()
   await page.mouse.move(from.x + from.width / 2, top.y - 160, { steps: 16 })
   await page.mouse.up()
-  await expect(titles.first()).toHaveText("任务")
+  await expect(titles.first()).toHaveText("后台任务")
+  await expect(rail.locator(".rail-head").first()).toHaveAttribute("aria-expanded", expanded!)
 
   // 排列与开合记在本地，刷新后仍是这样
   await page.reload()

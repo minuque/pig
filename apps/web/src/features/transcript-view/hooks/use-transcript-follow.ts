@@ -1,6 +1,9 @@
 import { onBeforeUnmount, onMounted, shallowRef } from "vue"
 import { prefersReducedMotion } from "@utils/motion.js"
 import {
+  createGlideSpring,
+  GLIDE_MAX_CATCHUP_FRAMES,
+  GLIDE_MAX_VIEWPORTS,
   isTranscriptVisuallyAtBottom,
   resolveFollowTarget,
   transcriptFloorTop,
@@ -42,6 +45,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   let navRoot: HTMLElement | null = null
   let onNavEnd: (() => void) | null = null
   let navTimer = 0
+  let glideRaf = 0
   let lastScrollTop = 0
   let lastWritten = 0
 
@@ -110,6 +114,9 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   }
 
   function stopNavigate() {
+    if (glideRaf) cancelAnimationFrame(glideRaf)
+    glideRaf = 0
+
     if (navTimer) {
       window.clearTimeout(navTimer)
       navTimer = 0
@@ -280,16 +287,40 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     settle()
   }
 
-  function beginNavigate(root: HTMLElement, top: number) {
+  /** 回底滑动（同 zeron）：每帧重读底部再用弹簧逼近，途中挂载的回合长高也不会在终点补跳。 */
+  function glideToBottom() {
     stopNavigate()
     stopSettle()
     navigating = true
-    navRoot = root
-    markProgrammatic()
-    onNavEnd = () => finishNavigate()
-    root.addEventListener("scrollend", onNavEnd, { once: true })
-    navTimer = window.setTimeout(finishNavigate, COOLDOWN_MS) // ponytail: 无 scrollend 时收尾
-    root.scrollTo({ top, behavior: "smooth" })
+    const step = createGlideSpring()
+    let last = performance.now()
+    // 自己记小数位置：scrollTop 会被取整，慢速尾段读回来会卡住不动
+    let pos = getRoot()?.scrollTop ?? 0
+    const frame = (now: number) => {
+      glideRaf = 0
+      const root = getRoot()
+
+      if (!root || !navigating) return
+      const frames = Math.min(GLIDE_MAX_CATCHUP_FRAMES, ((now - last) * 60) / 1000)
+      last = now
+      const target = transcriptFloorTop(root.scrollHeight, root.clientHeight)
+      pos = step(
+        Math.max(pos, target - GLIDE_MAX_VIEWPORTS * root.clientHeight),
+        target,
+        Math.max(frames, 0.25),
+      )
+      writeScrollTop(root, pos)
+      markProgrammatic()
+
+      if (pos >= target) {
+        finishNavigate()
+        return
+      }
+
+      glideRaf = requestAnimationFrame(frame)
+    }
+
+    glideRaf = requestAnimationFrame(frame)
   }
 
   function onScroll() {
@@ -385,7 +416,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
       return
     }
 
-    beginNavigate(root, floor)
+    glideToBottom()
   }
 
   function scrollToElement(el: HTMLElement) {

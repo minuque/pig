@@ -41,7 +41,7 @@ const props = withDefaults(
       placeholder?: string
     }
   >(),
-  { class: undefined, variant: "surface", placeholder: "" },
+  { class: undefined, variant: "classic", placeholder: "" },
 )
 const delegatedProps = reactiveOmit(props, "class", "variant", "color", "radius", "placeholder")
 const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectTriggerProps>

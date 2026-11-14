@@ -8,7 +8,9 @@
         />
       </template>
 
-      <RouterView />
+      <FilePane>
+        <RouterView />
+      </FilePane>
     </AppLayout>
 
     <SettingsDialog
@@ -33,6 +35,8 @@ import { useLocalWorkspaces } from "@client/local-cwd.js"
 import { useGatewayClient } from "@client/gateway-connection.js"
 
 import ExtensionUi from "@features/extension-ui/index.vue"
+import FilePane from "@features/file-pane/index.vue"
+import { provideFilePane } from "@features/file-pane/index.js"
 import { provideExtensionUi } from "@features/extension-ui/index.js"
 import { provideSessionRail } from "@features/session-rail/index.js"
 import SessionNav from "@features/session-nav/index.vue"
@@ -53,6 +57,8 @@ provideNav(pi, cwd, session)
 provideExtensionUi(pi, session)
 
 provideSessionRail()
+
+provideFilePane(session)
 
 onMounted(() => {
   prefetchHighlighter()

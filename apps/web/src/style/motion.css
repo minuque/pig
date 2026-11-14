@@ -113,7 +113,7 @@
   }
 }
 
-/* ------ 微交互：按压缩放、图标切换、箭头翻转 ------ */
+/* ------ 微交互：按压缩放、箭头翻转 ------ */
 .press-scale:not(:disabled):active {
   scale: 0.96;
 }
@@ -147,63 +147,6 @@
   .icon-toggle {
     width: var(--size-control);
     min-height: var(--size-control);
-  }
-}
-
-.icon-swap {
-  display: grid;
-  place-items: center;
-}
-
-.icon-swap > * {
-  grid-area: 1 / 1;
-  transition:
-    opacity var(--duration-slow) var(--ease-icon),
-    scale var(--duration-slow) var(--ease-icon),
-    filter var(--duration-slow) var(--ease-icon);
-}
-
-.icon-swap > [data-visible="false"] {
-  opacity: 0;
-  scale: 0.25;
-  filter: blur(4px);
-}
-
-.motion-icon {
-  transition:
-    opacity var(--duration-slow) var(--ease-icon),
-    scale var(--duration-slow) var(--ease-icon),
-    filter var(--duration-slow) var(--ease-icon);
-}
-
-.motion-hint {
-  opacity: 0;
-  scale: 0.25;
-  filter: blur(4px);
-  pointer-events: none;
-  transition:
-    opacity var(--duration-slow) var(--ease-icon),
-    scale var(--duration-slow) var(--ease-icon),
-    filter var(--duration-slow) var(--ease-icon);
-}
-
-@media (hover: hover) {
-  :hover > .motion-hint,
-  :focus-within > .motion-hint,
-  .motion-hint:focus-visible {
-    opacity: 1;
-    scale: 1;
-    filter: blur(0);
-    pointer-events: auto;
-  }
-}
-
-@media (hover: none) {
-  .motion-hint {
-    opacity: 1;
-    scale: 1;
-    filter: blur(0);
-    pointer-events: auto;
   }
 }
 
@@ -413,6 +356,22 @@
 
 .list-reveal-move {
   transition: transform var(--duration-fast) var(--ease-out);
+}
+
+/* ------ 欢迎页字符背景：Hero 落位后慢慢浮现；离开首屏与 Hero 同拍淡出 ------ */
+.welcome-field-enter-active,
+.welcome-field-appear-active {
+  transition: opacity var(--duration-reveal) var(--ease-out) var(--duration-settle);
+}
+
+.welcome-field-leave-active {
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.welcome-field-enter-from,
+.welcome-field-appear-from,
+.welcome-field-leave-to {
+  opacity: 0;
 }
 
 /* ------ 淡入淡出 ------ */
@@ -862,19 +821,8 @@
     transition: none;
   }
 
-  .icon-swap > *,
-  .motion-icon,
-  .motion-hint,
   .motion-turn {
     transition: none;
-  }
-
-  .icon-swap > [data-visible="false"] {
-    filter: none;
-  }
-
-  .motion-hint {
-    filter: none;
   }
 
   .settle-in,
@@ -886,7 +834,10 @@
   .dock-thread-leave-active,
   .dock-hero-enter-active,
   .dock-hero-appear-active,
-  .dock-hero-leave-active {
+  .dock-hero-leave-active,
+  .welcome-field-enter-active,
+  .welcome-field-appear-active,
+  .welcome-field-leave-active {
     transition: none;
   }
 

@@ -95,6 +95,7 @@
           <div ref="scroller" class="settings-scroll">
             <div class="settings-body">
               <GeneralPane v-if="active === 'general'" />
+              <AppearancePane v-else-if="active === 'appearance'" />
               <NotificationsPane v-else-if="active === 'notifications'" />
               <ModelsPane v-else :refresh-models="refreshModels" />
             </div>
@@ -114,9 +115,11 @@ import {
   CloseIcon,
   CloudIcon,
   MagnifierIcon,
+  PaletteIcon,
   Tuning2OutlineIcon,
 } from "@components/icons/index.js"
 import { Kbd } from "@components/ui/kbd/index.js"
+import AppearancePane from "./AppearancePane.vue"
 import GeneralPane from "./GeneralPane.vue"
 import ModelsPane from "./models/ModelsPane.vue"
 import NotificationsPane from "./NotificationsPane.vue"
@@ -149,6 +152,7 @@ const tabs = computed<{ id: Pane; label: string; icon: typeof Tuning2OutlineIcon
     label: t("settings.general"),
     icon: Tuning2OutlineIcon,
   },
+  { id: "appearance", label: t("settings.appearance"), icon: PaletteIcon },
   { id: "models", label: t("settings.models.title"), icon: CloudIcon },
   { id: "notifications", label: t("settings.notifications"), icon: BellIcon },
 ])
@@ -166,12 +170,6 @@ const searchInput = ref<HTMLInputElement>()
 /** 可搜的设置项：标题配所属分组，命中后按 id 滚动。 */
 const searchEntries = computed<SettingsSearchEntry[]>(() => [
   {
-    id: "setting-appearance",
-    pane: "general",
-    title: t("settings.appearance"),
-    section: t("settings.general"),
-  },
-  {
     id: "setting-user-name",
     pane: "general",
     title: t("settings.userName"),
@@ -184,16 +182,34 @@ const searchEntries = computed<SettingsSearchEntry[]>(() => [
     section: t("settings.interface"),
   },
   {
-    id: "setting-font-size",
-    pane: "general",
-    title: t("settings.fontSize"),
-    section: t("settings.interface"),
+    id: "setting-theme",
+    pane: "appearance",
+    title: t("settings.theme"),
+    section: t("settings.appearance"),
+  },
+  {
+    id: "setting-welcome-field",
+    pane: "appearance",
+    title: t("settings.welcomeField"),
+    section: t("settings.appearance"),
+  },
+  {
+    id: "setting-ui-font",
+    pane: "appearance",
+    title: t("settings.uiFont"),
+    section: t("settings.appearance"),
+  },
+  {
+    id: "setting-code-font",
+    pane: "appearance",
+    title: t("settings.codeFont"),
+    section: t("settings.appearance"),
   },
   {
     id: "setting-chat-width",
-    pane: "general",
+    pane: "appearance",
     title: t("settings.chatWidth"),
-    section: t("settings.interface"),
+    section: t("settings.appearance"),
   },
   {
     id: "",

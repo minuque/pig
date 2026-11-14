@@ -3,6 +3,7 @@ import { closeEnvironments } from "@pig/environment"
 import { BrowserSession, browserSecretFile } from "../auth/browser-session.js"
 import { PiHostService, type PiHostServiceOptions } from "../pi/service.js"
 import { ManualDirectoryPort, WindowsDirectoryPort, type DirectoryPort } from "../directory.js"
+import { handlePreviewRequest } from "./file-preview.js"
 import { handlePlatformRequest, type EnvironmentSources } from "./platform.js"
 import { installProviderHttp } from "./provider-http.js"
 import { handleProviderRequest } from "./providers.js"
@@ -128,6 +129,15 @@ export class Gateway {
         res,
         typeof req.headers["accept-encoding"] === "string" ? req.headers["accept-encoding"] : "",
       ))
+    )
+      return
+
+    // HTML 预览在沙箱里拿不到 cookie，凭地址里的令牌放行
+    if (
+      await handlePreviewRequest(req, res, url, {
+        send: this.send.bind(this),
+        hostService: this.hostService,
+      })
     )
       return
 

@@ -7,8 +7,13 @@ import type {
   ContextUsageEstimate,
   ContextUsagePreview,
   CustomProviderInput,
+  ContentSearchResponse,
+  DirectoryListResponse,
   EnvironmentInfo,
   FileSearchEntry,
+  FileStatResponse,
+  FileTextResponse,
+  GitStatusResponse,
   LoginEvent,
   ModelMetadata,
   ModelParamsPatch,
@@ -346,4 +351,56 @@ export async function listWorkspaceCommands(
     prompts: ComposerCommand[]
   }>(`/api/v1/platform/skills?cwd=${encodeURIComponent(cwd)}`)
   return { skills: result.skills, prompts: result.prompts }
+}
+
+const fsQuery = (cwd: string, path: string) => new URLSearchParams({ cwd, path }).toString()
+
+/** 工作区内文件的原始字节地址；图片、音视频、PDF 直接用它加载。 */
+export function fileRawUrl(cwd: string, path: string): string {
+  return `/api/v1/platform/fs/raw?${fsQuery(cwd, path)}`
+}
+
+export function statWorkspaceFile(cwd: string, path: string): Promise<FileStatResponse> {
+  return platformRequest<FileStatResponse>(`/api/v1/platform/fs/stat?${fsQuery(cwd, path)}`)
+}
+
+/** force：二进制也按文本读出。 */
+export function readWorkspaceFile(
+  cwd: string,
+  path: string,
+  force = false,
+): Promise<FileTextResponse> {
+  return platformRequest<FileTextResponse>(
+    `/api/v1/platform/fs/text?${fsQuery(cwd, path)}${force ? "&force=1" : ""}`,
+  )
+}
+
+/** 列一个目录；path 用 "." 表示工作区根。 */
+export function listWorkspaceDir(cwd: string, path: string): Promise<DirectoryListResponse> {
+  return platformRequest<DirectoryListResponse>(`/api/v1/platform/fs/list?${fsQuery(cwd, path)}`)
+}
+
+export function workspaceGitStatus(cwd: string): Promise<GitStatusResponse> {
+  return platformRequest<GitStatusResponse>(
+    `/api/v1/platform/git/status?${new URLSearchParams({ cwd }).toString()}`,
+  )
+}
+
+export function searchWorkspaceContents(
+  cwd: string,
+  query: string,
+  signal?: AbortSignal,
+): Promise<ContentSearchResponse> {
+  return platformRequest<ContentSearchResponse>(
+    `/api/v1/platform/fs/search?${new URLSearchParams({ cwd, q: query }).toString()}`,
+    signal ? { signal } : undefined,
+  )
+}
+
+/** HTML 预览用的令牌：沙箱页面没有 cookie，凭它取工作区里的同目录资源。 */
+export async function filePreviewToken(cwd: string): Promise<string> {
+  const result = await platformRequest<{ token: string }>(
+    `/api/v1/platform/fs/preview-token?${new URLSearchParams({ cwd }).toString()}`,
+  )
+  return result.token
 }

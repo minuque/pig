@@ -7,6 +7,7 @@ import { isContextPreviewKey } from "../pi/context-usage.js"
 import { listEnvironments } from "@pig/environment"
 
 import { validateRemoteDirectory, workspaceEnvironment } from "../pi/remote-session.js"
+import { handleFsRequest } from "./fs-routes.js"
 import type { PiHostService } from "../pi/service.js"
 
 export type PlatformRequestDeps = {
@@ -75,6 +76,8 @@ export async function handlePlatformRequest(
     await handleFiles(req, res, url, deps)
     return true
   }
+
+  if (await handleFsRequest(req, res, url, deps)) return true
 
   if (url.pathname === "/api/v1/platform/skills" && req.method === "GET") {
     await handleSkills(res, url, deps)

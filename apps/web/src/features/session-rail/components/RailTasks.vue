@@ -1,80 +1,76 @@
 <template>
-  <div class="rail-tasks">
-    <template v-for="section in sections" :key="section.id">
-      <div v-if="section.tasks.length" class="rail-tasks-head">
-        <span>{{ section.title }}</span>
-
-        <Tooltip v-if="section.id === 'finished'">
-          <TooltipTrigger as-child>
-            <IconButton
-              class="rail-tasks-clear"
-              type="button"
-              size="s"
-              variant="ghost"
-              :aria-label="t('rail.clearFinished')"
-              @click="clearFinished"
-            >
-              <TrashBinMinimalisticIcon aria-hidden="true" />
-            </IconButton>
-          </TooltipTrigger>
-
-          <TooltipContent>{{ t("rail.clearFinished") }}</TooltipContent>
-        </Tooltip>
-      </div>
+  <div ref="root" class="rail-tasks">
+    <section v-for="section in shown" :key="section.id" class="rail-tasks-section">
+      <h3 class="rail-tasks-head">{{ section.title }}</h3>
 
       <article
         v-for="task in section.tasks"
         :key="task.id"
         class="rail-task"
+        :data-task-id="task.id"
         :data-status="task.status"
         :data-kind="task.kind"
       >
         <div class="rail-task-top">
-          <button
-            type="button"
+          <component
+            :is="task.kind === 'bash' ? 'button' : 'span'"
+            :type="task.kind === 'bash' ? 'button' : undefined"
             class="rail-task-title"
             :aria-expanded="task.kind === 'bash' ? isOpen(task.id) : undefined"
-            :disabled="task.kind === 'agent' && !task.sessionId"
-            @click="activate(task)"
+            @click="task.kind === 'bash' && toggle(task.id)"
           >
             <span class="rail-task-name" :class="{ shimmer: task.status === 'running' }">
               {{ task.description }}
             </span>
-          </button>
+          </component>
 
-          <IconButton
-            v-if="stoppable.has(task.id)"
-            class="rail-task-stop"
-            type="button"
-            size="s"
-            variant="ghost"
-            :aria-label="t('rail.stopTask')"
-            :disabled="stopping.has(task.id)"
-            @click="stop(task.id)"
-          >
-            <StopIcon aria-hidden="true" />
-          </IconButton>
+          <Tooltip v-if="stoppable.has(task.id)">
+            <TooltipTrigger as-child>
+              <IconButton
+                type="button"
+                size="s"
+                variant="soft"
+                color="gray"
+                :aria-label="t('rail.stopTask')"
+                :disabled="stopping.has(task.id)"
+                @click="stop(task.id)"
+              >
+                <StopIcon class="size-icon" />
+              </IconButton>
+            </TooltipTrigger>
+
+            <TooltipContent>{{ t("rail.stopTask") }}</TooltipContent>
+          </Tooltip>
         </div>
 
         <div class="rail-task-meta">
-          <span>{{ t(`rail.taskKind.${task.kind}`) }}</span>
+          <span class="rail-task-value">{{ t(`rail.taskKind.${task.kind}`) }}</span>
 
           <span v-if="statusText(task)" :class="{ 'rail-task-failed': task.status === 'failed' }">
             {{ statusText(task) }}
           </span>
 
-          <span v-if="elapsed(task)" class="rail-task-time">{{ elapsed(task) }}</span>
-
-          <span v-if="task.kind === 'agent' && task.tokens > 0">
-            {{ formatTokenCount(task.tokens) }}
-          </span>
+          <span class="rail-task-time">{{ taskElapsed(task, now.getTime()) }}</span>
         </div>
 
-        <div
-          v-if="task.kind === 'agent' && task.status === 'running' && task.steps.length"
-          class="rail-task-step"
-        >
-          {{ task.steps.at(-1) }}
+        <div v-if="task.kind === 'agent'" class="rail-task-meta">
+          <span v-if="task.tokens > 0">
+            <span class="rail-task-value">{{ formatTokenCount(task.tokens) }}</span>
+            {{ t("rail.tokens") }}
+          </span>
+
+          <span v-if="task.status === 'running' && task.steps.length" class="rail-task-step">
+            {{ task.steps.at(-1) }}
+          </span>
+
+          <button
+            v-if="task.sessionId"
+            type="button"
+            class="rail-task-link"
+            @click="emit('open', { sessionId: task.sessionId, agent: task.description })"
+          >
+            {{ t("rail.viewTranscript") }}
+          </button>
         </div>
 
         <div v-if="task.kind === 'bash' && isOpen(task.id)" class="rail-task-output">
@@ -89,84 +85,72 @@
           </span>
         </div>
       </article>
-    </template>
+    </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch, type ComponentPublicInstance } from "vue"
+import { computed, nextTick, ref, useTemplateRef, watch, type ComponentPublicInstance } from "vue"
 import { useNow } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { StopIcon, TrashBinMinimalisticIcon } from "@components/icons/index.js"
+import { StopIcon } from "@components/icons/index.js"
 import { formatTokenCount } from "@features/composer/lib/context-usage.js"
+import type { OpenChild } from "@features/session-rail/index.js"
 import {
-  dismissTasks,
   plainOutput,
-  readDismissed,
-  taskSections,
+  taskElapsed,
+  type TaskSections,
 } from "@features/session-rail/lib/task-list.js"
-import { formatElapsed } from "@utils/time.js"
 import type { Task } from "@/types/common-type.js"
 
 const props = defineProps<{
-  tasks: readonly Task[]
+  sections: TaskSections
   stoppable: ReadonlySet<string>
-  sessionId: string | undefined
+  /** 从摘要卡点进来的那条任务：滚到它，命令任务顺带展开输出。 */
+  focus?: string | undefined
 }>()
-const emit = defineEmits<{
-  open: [child: { sessionId: string; agent: string }]
-  stop: [taskId: string]
-}>()
+const emit = defineEmits<{ open: [child: OpenChild]; stop: [taskId: string] }>()
 const { t } = useI18n()
 const now = useNow({ interval: 1000 })
 const openIds = ref(new Set<string>())
 const stopping = ref(new Set<string>())
-const dismissed = ref<string[]>([])
+const root = useTemplateRef("root")
+const shown = computed(() =>
+  [
+    { id: "running", title: t("rail.tasksRunning"), tasks: props.sections.running },
+    { id: "finished", title: t("rail.tasksFinished"), tasks: props.sections.finished },
+  ].filter((section) => section.tasks.length),
+)
+const isOpen = (id: string) => openIds.value.has(id)
+
+/** 命令任务展开看输出。 */
+function toggle(id: string) {
+  const next = new Set(openIds.value)
+
+  if (!next.delete(id)) next.add(id)
+  openIds.value = next
+}
 
 watch(
-  () => props.sessionId,
-  (id) => {
-    dismissed.value = id ? readDismissed(id) : []
+  () => props.focus,
+  async (id) => {
+    if (!id) return
+    const task = [...props.sections.running, ...props.sections.finished].find((t) => t.id === id)
+
+    if (task?.kind === "bash") openIds.value = new Set(openIds.value).add(id)
+    await nextTick()
+    root.value
+      ?.querySelector(`[data-task-id="${CSS.escape(id)}"]`)
+      ?.scrollIntoView({ block: "start" })
   },
   { immediate: true },
 )
 
-const sections = computed(() => {
-  const hidden = new Set(dismissed.value)
-  // 清除过的任务又跑起来时照常显示
-  const visible = props.tasks.filter((task) => task.status === "running" || !hidden.has(task.id))
-  const { running, finished } = taskSections(visible)
-  return [
-    { id: "running", title: t("rail.tasksRunning"), tasks: running },
-    { id: "finished", title: t("rail.tasksFinished"), tasks: finished },
-  ]
-})
-const isOpen = (id: string) => openIds.value.has(id)
-
-/** 命令任务展开看输出；代理任务打开子会话。 */
-function activate(task: Task) {
-  if (task.kind === "agent") {
-    if (task.sessionId) emit("open", { sessionId: task.sessionId, agent: task.description })
-    return
-  }
-
-  const next = new Set(openIds.value)
-
-  if (!next.delete(task.id)) next.add(task.id)
-  openIds.value = next
-}
-
 function stop(id: string) {
   stopping.value = new Set(stopping.value).add(id)
   emit("stop", id)
-}
-
-function clearFinished() {
-  const ids = sections.value[1]!.tasks.map((task) => task.id)
-
-  if (props.sessionId && ids.length) dismissed.value = dismissTasks(props.sessionId, ids)
 }
 
 /** 离底部这么近算「在看最新」，新输出到来时跟到底部。 */
@@ -184,7 +168,10 @@ function bindOutput(id: string, el: Element | ComponentPublicInstance | null) {
 
 // 渲染前量位置：用户已经往上翻的输出不跟
 watch(
-  () => props.tasks.map((task) => (task.kind === "bash" ? task.output : "")),
+  () =>
+    [...props.sections.running, ...props.sections.finished].map((task) =>
+      task.kind === "bash" ? task.output : "",
+    ),
   () => {
     for (const el of outputs.values())
       if (el.scrollHeight - el.scrollTop - el.clientHeight <= FOLLOW_SLACK_PX) toBottom(el)
@@ -200,94 +187,84 @@ function statusText(task: Task): string {
   if (task.status === "stopped") return t("rail.stopped")
   return ""
 }
-
-function elapsed(task: Task): string {
-  if (task.startedAt === undefined) return ""
-  const end = task.status === "running" ? now.value.getTime() : task.completedAt
-  return end === undefined ? "" : formatElapsed(end - task.startedAt, { showMs: false })
-}
 </script>
 
 <style scoped>
+/* 分段：段名在上，卡片在下；卡片铺浅底，正文三行：标题、类别与用时、细节 */
 .rail-tasks {
-  display: grid;
-  gap: var(--space-xxs);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.rail-tasks-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
 }
 
 .rail-tasks-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-block-size: var(--space-xl);
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
+  margin: 0;
   color: var(--contrast-foreground-faint);
-}
-
-.rail-task + .rail-tasks-head {
-  margin-block-start: var(--space-xs);
+  font-size: var(--text-meta);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--text-meta--line-height);
 }
 
 .rail-task {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-xxs);
-  padding: var(--space-xs) var(--space-sm);
+  padding: var(--space-sm);
+  overflow-wrap: anywhere;
   background: var(--fill-quiet);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-card);
 }
 
 .rail-task-top {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-xs);
 }
 
 .rail-task-title {
   display: flex;
   flex: 1;
-  align-items: center;
-  gap: var(--space-xs);
   min-inline-size: 0;
   padding: 0;
-  color: inherit;
+  color: var(--contrast-foreground-secondary);
+  font: inherit;
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
   text-align: start;
   background: none;
   border: 0;
+}
+
+button.rail-task-title {
   cursor: pointer;
 }
 
-.rail-task-title:disabled {
-  cursor: default;
-}
-
-.rail-task-title:not(:disabled):hover .rail-task-name {
+button.rail-task-title:hover .rail-task-name {
   color: var(--link);
 }
 
-.rail-task-name {
-  min-inline-size: 0;
-  overflow: hidden;
-  font-size: var(--text-body);
-  color: var(--contrast-foreground-secondary);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.rail-task[data-status="running"] .rail-task-name {
+.rail-task[data-status="running"] .rail-task-title {
   color: var(--contrast-foreground);
-}
-
-.rail-task-meta,
-.rail-task-step,
-.rail-task-output {
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
-  color: var(--contrast-foreground-faint);
 }
 
 .rail-task-meta {
   display: flex;
-  gap: var(--space-xs);
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-xxs) var(--space-xs);
+  color: var(--contrast-foreground-faint);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+}
+
+.rail-task[data-status="running"] .rail-task-value {
+  color: var(--contrast-foreground-secondary);
 }
 
 .rail-task-failed {
@@ -298,16 +275,33 @@ function elapsed(task: Task): string {
   font-variant-numeric: tabular-nums;
 }
 
-.rail-task-step {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.rail-task-link {
+  padding: 0;
+  color: var(--link);
+  font: inherit;
+  background: none;
+  border: 0;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.rail-task-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 1px;
+}
+
+.rail-task-link:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .rail-task-output {
   display: grid;
   gap: var(--space-xxs);
+  color: var(--contrast-foreground-faint);
   font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
 }
 
 .rail-task-command {

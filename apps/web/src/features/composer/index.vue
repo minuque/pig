@@ -66,7 +66,9 @@
           v-model:model="model"
           v-model:level="level"
           :catalog="catalog"
-        />
+        >
+          <ContextRing v-if="usage" :usage="usage" />
+        </ModelPicker>
       </template>
 
       <template #right>
@@ -83,10 +85,8 @@
               @mousedown.prevent
               @click="onPrimaryAction"
             >
-              <span class="primary-icon icon-swap" aria-hidden="true">
-                <span class="stop-square" :data-visible="primaryMode === 'stop'"></span>
-                <ArrowUpIcon :data-visible="primaryMode !== 'stop'" class="size-icon send-arrow" />
-              </span>
+              <span v-if="primaryMode === 'stop'" class="stop-square" aria-hidden="true"></span>
+              <ArrowUpIcon v-else class="size-icon send-arrow" aria-hidden="true" />
             </IconButton>
           </TooltipTrigger>
 
@@ -99,11 +99,12 @@
       </template>
     </PromptEditor>
 
-    <AttachmentLightbox
+    <PreviewDialog
       v-if="previewItem"
-      :url="previewItem.url"
-      :name="previewItem.name"
-      @close="previewItem = undefined"
+      open
+      :src="previewItem.url"
+      :title="previewItem.name"
+      @update:open="previewItem = undefined"
     />
   </form>
 </template>
@@ -115,8 +116,9 @@ import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import AttachmentChips from "@features/composer/components/AttachmentChips.vue"
-import AttachmentLightbox from "@features/composer/components/AttachmentLightbox.vue"
+import PreviewDialog from "@features/preview/index.vue"
 import ModelPicker from "@features/composer/components/ModelPicker.vue"
+import ContextRing from "@features/composer/components/ContextRing.vue"
 import PromptEditor from "@features/composer/components/PromptEditor.vue"
 import QueuePanel from "@features/composer/components/QueuePanel.vue"
 import {
@@ -125,7 +127,12 @@ import {
   type ComposerAttachmentsApi,
 } from "@features/composer/hooks/use-composer-attachments.js"
 import type { ComposerQueueApi, QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
-import type { ComposerModel, ComposerPreset, ComposerVendor } from "@features/composer/type.js"
+import type {
+  ComposerModel,
+  ComposerPreset,
+  ComposerVendor,
+  ContextUsage,
+} from "@features/composer/type.js"
 import { ArrowUpIcon, PaperclipIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
@@ -142,6 +149,8 @@ const props = withDefaults(
     sendDisabled?: boolean
     sessionId?: string | undefined
     cwd?: string | undefined
+    /** 当前会话的上下文占用；新会话没有 */
+    usage?: ContextUsage | undefined
     queue: ComposerQueueApi
   }>(),
   {
@@ -150,6 +159,7 @@ const props = withDefaults(
     sendDisabled: false,
     sessionId: undefined,
     cwd: undefined,
+    usage: undefined,
   },
 )
 const prompt = defineModel<string>("prompt", { required: true })
@@ -396,13 +406,6 @@ function onAbortHotkey(event: KeyboardEvent) {
 
 .send--abort:disabled {
   opacity: 0.5;
-}
-
-.primary-icon {
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  min-height: 0;
 }
 
 .stop-square {

@@ -1,8 +1,3 @@
-export interface LinkChipDescriptor {
-  label: string
-  isGitHub: boolean
-}
-
 const HTTP_URL = /https?:\/\/[^\s<>()[\]]+/gi
 const TRAILING_PUNCTUATION = /[.,;:!?'"]+$/
 
@@ -19,59 +14,12 @@ function parseUrl(raw: string): URL | null {
   }
 }
 
-function stripGitSuffix(repo: string): string {
-  return repo.endsWith(".git") ? repo.slice(0, -4) : repo
-}
-
-function isGitHubHost(url: string): boolean {
-  const parsed = parseUrl(url)
-
-  if (!parsed) return false
-  const host = parsed.hostname.toLowerCase()
-  return host === "github.com" || host === "www.github.com"
-}
-
-function shortenGitHubLink(url: string): string | null {
-  if (!isGitHubHost(url)) return null
-  const parsed = parseUrl(url)
-
-  if (!parsed) return null
-  const parts = parsed.pathname.split("/").filter((part) => part.length > 0)
-  const owner = parts[0]
-
-  if (!owner) return null
-  const repo = parts[1] ? stripGitSuffix(parts[1]) : undefined
-
-  if (!repo) return owner
-  const kind = parts[2]
-
-  if (!kind) return `${owner}/${repo}`
-  const ref = parts[3]
-
-  if ((kind === "pull" || kind === "issues") && ref && /^\d+$/.test(ref)) {
-    return `${owner}/${repo}#${ref}`
-  }
-
-  if (kind === "commit" && ref && /^[0-9a-f]{7,40}$/i.test(ref)) {
-    return `${owner}/${repo}@${ref.slice(0, 7)}`
-  }
-
-  return null
-}
-
-function prettifyUrl(url: string): string {
+/** 链接的显示文字：去掉协议头、www 和末尾斜杠。 */
+export function prettifyUrl(url: string): string {
   return url
     .replace(/^https?:\/\//i, "")
     .replace(/^www\./i, "")
     .replace(/\/$/, "")
-}
-
-/** GitHub 常见地址收成 owner/repo。其余 GitHub 地址保留路径，仍用同一枚标。 */
-export function describeLinkChip(url: string): LinkChipDescriptor {
-  const shortened = shortenGitHubLink(url)
-
-  if (shortened) return { label: shortened, isGitHub: true }
-  return { label: prettifyUrl(url), isGitHub: isGitHubHost(url) }
 }
 
 /** 链接文字就是地址本身时用缩短标签，手写标签保留原文。 */
@@ -84,7 +32,7 @@ export function linkChipLabel(href: string, text: string | undefined): string {
     href === `https://${plain}` ||
     href === `http://${plain}`
   ) {
-    return describeLinkChip(href).label
+    return prettifyUrl(href)
   }
 
   return plain
@@ -118,50 +66,4 @@ export function splitLinkText(text: string): LinkTextPart[] {
 
   if (cursor < text.length) parts.push({ kind: "text", text: text.slice(cursor) })
   return parts
-}
-
-const statusCache = new Map<string, "ok" | "fail">()
-const inFlight = new Map<string, Promise<"ok" | "fail">>()
-
-/** 站点自己的 /favicon.ico。同一主机只请求一次。 */
-export function siteFaviconSrc(url: string): string | null {
-  try {
-    const parsed = new URL(url)
-
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null
-
-    if (!parsed.hostname) return null
-    return `${parsed.origin}/favicon.ico`
-  } catch {
-    return null
-  }
-}
-
-export function markSiteFaviconFailed(src: string): void {
-  statusCache.set(src, "fail")
-}
-
-/** 用 Image 预检，避免把裂图画进链接里。结果按地址缓存。 */
-export function probeSiteFavicon(src: string): Promise<"ok" | "fail"> {
-  const cached = statusCache.get(src)
-
-  if (cached) return Promise.resolve(cached)
-  const pending = inFlight.get(src)
-
-  if (pending) return pending
-
-  const promise = new Promise<"ok" | "fail">((resolve) => {
-    const image = new Image()
-
-    image.onload = () => resolve("ok")
-    image.onerror = () => resolve("fail")
-    image.src = src
-  }).then((status) => {
-    statusCache.set(src, status)
-    inFlight.delete(src)
-    return status
-  })
-
-  inFlight.set(src, promise)
-  return promise
 }

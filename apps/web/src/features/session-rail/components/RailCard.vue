@@ -89,6 +89,8 @@ const bodyId = useId()
 .rail-card.is-drag-live {
   z-index: 2;
   box-shadow: var(--shadow-popover);
+  cursor: grabbing;
+  user-select: none;
 }
 
 .rail-top {
@@ -161,8 +163,9 @@ const bodyId = useId()
   opacity: 0;
 }
 
-/* 拖拽把手常驻在标题行末尾，悬停时高亮 */
+/* 整张卡都能拖；把手只在悬停或键盘聚焦时露出（鼠标按下留下的焦点不算），位置照留 */
 .rail-grip {
+  opacity: 0;
   display: flex;
   flex-shrink: 0;
   align-items: center;
@@ -174,8 +177,21 @@ const bodyId = useId()
   cursor: grab;
   touch-action: none;
   transition:
+    opacity var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out),
     background var(--duration-fast) var(--ease-out);
+}
+
+.rail-card:hover .rail-grip,
+.rail-card:has(:focus-visible) .rail-grip,
+.rail-card.is-drag-live .rail-grip {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .rail-grip {
+    opacity: 1;
+  }
 }
 
 .rail-grip:hover {

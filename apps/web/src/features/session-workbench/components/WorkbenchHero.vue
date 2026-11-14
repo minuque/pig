@@ -6,9 +6,9 @@
       <span class="hero-target">
         <DropdownMenu v-if="selectable" :modal="false">
           <DropdownMenuTrigger as-child>
-            <button type="button" class="hero-picker">
+            <Link as="button" type="button" class="hero-picker" weight="medium" underline="hover">
               <span class="hero-name">{{ label }}</span>
-            </button>
+            </Link>
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="center" :side-offset="6" variant="soft">
@@ -59,6 +59,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
+import { Link } from "@components/ui/link/index.js"
 import { AddFolderIcon, FolderIcon } from "@components/icons/index.js"
 
 withDefaults(
@@ -111,33 +112,17 @@ const suffix = computed(() => t(workspaceId.value ? "hero.askSuffix" : "hero.pic
   text-align: center;
 }
 
-/* 项目名即选择器：加粗，悬停或菜单打开时出下划线 */
+/* 项目名即选择器：外观交给 rt-Link，这里只管限宽，行高字距跟标题走 */
 .hero-picker {
   display: inline-flex;
   max-width: min(100%, 16rem);
-  min-height: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  border-radius: calc(var(--radius-control) / 2);
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  font-weight: var(--font-weight-medium);
   letter-spacing: inherit;
   line-height: inherit;
-  vertical-align: bottom;
-  text-underline-offset: 4px;
-  cursor: pointer;
 }
 
-.hero-picker:hover,
+/* 主题色常驻；下划线 rt 只在悬停时出，菜单打开时也保留 */
 .hero-picker[data-state="open"] {
-  text-decoration: underline;
-}
-
-.hero-picker:active {
-  transform: none;
+  text-decoration-line: underline;
 }
 
 /* 项目名与句尾连成一块，换行时不拆开 */

@@ -91,6 +91,26 @@
       </ol>
     </nav>
 
+    <Tooltip v-if="rail && sessionId">
+      <TooltipTrigger as-child>
+        <IconButton
+          class="files-toggle"
+          type="button"
+          size="m"
+          color="gray"
+          variant="ghost"
+          :data-active="files.open.value || undefined"
+          :aria-pressed="files.open.value"
+          :aria-label="t('files.toggle')"
+          @click="files.toggle"
+        >
+          <FoldersIcon :size="16" />
+        </IconButton>
+      </TooltipTrigger>
+
+      <TooltipContent>{{ t("files.toggle") }}</TooltipContent>
+    </Tooltip>
+
     <RailToggle v-if="rail" />
     <SessionItemDelete v-model:open="deleteOpen" :title="title" @confirm="confirmDelete" />
   </header>
@@ -111,12 +131,14 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 import { IconButton } from "@components/ui/button/index.js"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import RailToggle from "@features/session-rail/components/RailToggle.vue"
+import { useFilePane } from "@features/file-pane/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import { workspaceName } from "@features/session-nav/lib/format.js"
 import { sessionTitle, untitledSession, useSession } from "@features/session/index.js"
 import {
   AltArrowDownIcon,
   FolderIcon,
+  FoldersIcon,
   PanelRightOpenIcon,
   PenIcon,
   PinIcon,
@@ -129,6 +151,7 @@ defineProps<{ rail?: boolean }>()
 
 const { t } = useI18n()
 const { sbState, setSbState } = useLeftPanelToggle()
+const files = useFilePane()
 const { sessionId, projection, sessionCwd } = useSession()
 const {
   listedSessions,
@@ -238,6 +261,12 @@ function confirmDelete(): void {
 </script>
 
 <style scoped>
+/* 与摘要面板开关同一选中态 */
+.files-toggle[data-active] {
+  color: var(--contrast-foreground);
+  background: var(--btn-selected);
+}
+
 .workbench-header {
   position: relative;
   z-index: 2;

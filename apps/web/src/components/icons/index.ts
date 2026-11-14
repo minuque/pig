@@ -92,11 +92,17 @@ export { MagnifierZoomInIcon } from "@solar-icons/vue/linear/magnifier-zoom-in"
 
 export { MagnifierZoomOutIcon } from "@solar-icons/vue/linear/magnifier-zoom-out"
 
+export { MaximizeIcon } from "@solar-icons/vue/linear/maximize"
+
 export { MaximizeSquareIcon } from "@solar-icons/vue/linear/maximize-square"
 
 export { MenuDotsIcon } from "@solar-icons/vue/bold/menu-dots"
 
+export { MinimizeIcon } from "@solar-icons/vue/linear/minimize"
+
 export { MinimizeSquareIcon } from "@solar-icons/vue/linear/minimize-square"
+
+export { MinusIcon } from "@solar-icons/vue/linear/minus"
 
 export { MonitorIcon } from "@solar-icons/vue/linear/monitor"
 
@@ -109,6 +115,8 @@ export { ParagraphSpacingIcon } from "@solar-icons/vue/linear/paragraph-spacing"
 export { PanelLeftCloseIcon } from "@solar-icons/vue/linear/panel-left-close"
 
 export { PanelRightOpenIcon } from "@solar-icons/vue/linear/panel-right-open"
+
+export { PaletteIcon } from "@solar-icons/vue/linear/palette"
 
 export { PanelTextRightIcon } from "@solar-icons/vue/linear/panel-text-right"
 

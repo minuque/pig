@@ -8,6 +8,7 @@
       class="message-stamp"
       :timestamp="item.timestamp"
       :text="item.text"
+      :pinned="pinned"
     />
   </article>
 </template>
@@ -23,6 +24,8 @@ const props = withDefaults(
     item: AssistantRow
     streaming?: boolean
     sessionId?: string
+    /** 底栏常驻显示，不等悬停。 */
+    pinned?: boolean
   }>(),
   { streaming: false, sessionId: "" },
 )

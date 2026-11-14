@@ -1,30 +1,12 @@
 <template>
   <div class="diagram" :data-view="view">
-    <div class="diagram-actions">
-      <Tooltip v-if="drawn">
-        <TooltipTrigger as-child>
-          <IconButton
-            type="button"
-            size="s"
-            variant="ghost"
-            color="gray"
-            :aria-label="modeLabel"
-            @click.stop="showSource = !showSource"
-          >
-            <CodeSquareIcon v-if="!showSource" class="size-icon" />
-            <ChartSquareIcon v-else class="size-icon" />
-          </IconButton>
-        </TooltipTrigger>
-
-        <TooltipContent>{{ modeLabel }}</TooltipContent>
-      </Tooltip>
-
+    <!-- 画好后不放按钮：点图进预览，复制源码在预览头部 -->
+    <div v-if="!drawn" class="diagram-actions">
       <CopyButton :text="source" :label="t('transcript.copyCode')" />
     </div>
 
     <!-- 画布始终可见：pele 对隐藏容器会推迟绘制 -->
     <div
-      v-show="!showSource"
       ref="host"
       class="diagram-canvas mermaid-diagram"
       :data-zoomable="drawn || undefined"
@@ -33,16 +15,16 @@
 
     <div v-if="view === 'source'" class="diagram-source">{{ source }}</div>
 
-    <Dialog v-model:open="previewOpen">
-      <DialogContent class="diagram-dialog" :aria-label="previewLabel">
-        <MermaidPreview
-          v-if="preview"
-          :svg="preview.svg"
-          :width="preview.width"
-          :height="preview.height"
-        />
-      </DialogContent>
-    </Dialog>
+    <MermaidPreview
+      v-if="preview"
+      v-model:open="previewOpen"
+      :svg="preview.svg"
+      :width="preview.width"
+      :height="preview.height"
+      :type="preview.type"
+      :source="source"
+      :title="previewTitle"
+    />
   </div>
 </template>
 
@@ -50,12 +32,9 @@
 import { computed, onBeforeUnmount, ref, shallowRef, useTemplateRef, watch } from "vue"
 import type { Mounted, RenderResult } from "pele/lazy"
 import { useI18n } from "@i18n/index.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { Dialog, DialogContent } from "@components/ui/dialog/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { ChartSquareIcon, CodeSquareIcon } from "@components/icons/index.js"
 import CopyButton from "@features/transcript-view/components/CopyButton.vue"
 import MermaidPreview from "@features/transcript-view/components/markdown/MermaidPreview.vue"
+import { headingBefore } from "@features/transcript-view/lib/nearest-heading.js"
 import {
   cachedDiagram,
   loadDiagramType,
@@ -70,15 +49,11 @@ const host = useTemplateRef("host")
 const mounted = shallowRef<Mounted | null>(null)
 const previewOpen = ref(false)
 const preview = shallowRef<RenderResult | null>(null)
-const previewLabel = computed(() => t("common.preview", { name: "Mermaid" }))
+const previewTitle = ref("")
 const drawn = ref(false)
-const showSource = ref(false)
 /** 从缓存贴上的定稿图；没有 pele 实例，预览直接用它。 */
 const pasted = shallowRef<RenderResult | null>(null)
-const view = computed(() => (drawn.value && !showSource.value ? "diagram" : "source"))
-const modeLabel = computed(() =>
-  showSource.value ? t("transcript.diagramShow") : t("transcript.diagramSource"),
-)
+const view = computed(() => (drawn.value ? "diagram" : "source"))
 
 /** 只把能解析通过的源码交给 pele：图随内容逐步长出来，半截语法不闪错误层。 */
 async function draw(source: string, live: boolean) {
@@ -142,6 +117,7 @@ watch(
 /** 预览沿用正文里已排好的那张图，比例与所见一致，不再按弹框宽度重新排版。 */
 function openPreview() {
   preview.value = mounted.value?.result ?? pasted.value
+  previewTitle.value = headingBefore(host.value) ?? "Mermaid"
   previewOpen.value = preview.value !== null
 }
 
@@ -183,18 +159,5 @@ onBeforeUnmount(() => mounted.value?.destroy())
 
 .diagram-canvas[data-zoomable] {
   cursor: zoom-in;
-}
-</style>
-
-<style>
-/* 面板经 Portal 挂到 body，scoped 打不中；尺寸与设置弹窗同档 */
-.diagram-dialog {
-  display: flex;
-  flex-direction: column;
-  width: min(88vw, var(--size-settings-dialog-width));
-  max-width: min(88vw, var(--size-settings-dialog-width));
-  height: clamp(var(--size-settings-dialog-height-min), 85vh, var(--size-settings-dialog-height));
-  max-height: none;
-  overflow: hidden;
 }
 </style>
