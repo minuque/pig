@@ -246,6 +246,13 @@ const thumb = computed(() => {
   font-weight: var(--font-weight-medium);
 }
 
+/* 与缩略图一样浮在整行伪元素之上，才点得到 */
+.tool-row-target.is-openable {
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+}
+
 .tool-row-target.is-openable:hover {
   text-decoration: underline;
   text-underline-offset: 2px;
