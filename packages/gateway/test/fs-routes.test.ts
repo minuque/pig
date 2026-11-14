@@ -2,7 +2,8 @@ import { execFileSync } from "node:child_process"
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { afterEach, beforeEach, describe, expect, it } from "vitest"
+import { LocalEnvironment } from "@pig/environment"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import Gateway from "../src/index.js"
 
@@ -315,5 +316,55 @@ describe("HTML 预览的令牌地址", () => {
 
     expect((await fetch(`${base}/api/v1/preview/nope/src/main.ts`)).status).toBe(403)
     expect((await fetch(`${base}/api/v1/preview/${value}/..%2F..%2Fsecret.txt`)).status).toBe(403)
+  })
+})
+
+describe("preview 的边界情况", () => {
+  async function previewToken() {
+    const response = await get(
+      `/api/v1/platform/fs/preview-token?${new URLSearchParams({ cwd: workspace }).toString()}`,
+    )
+    return ((await response.json()) as { token: string }).token
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+    vi.useRealTimers()
+  })
+
+  it("读文件出错时回 500，gateway 照常服务", async () => {
+    const value = await previewToken()
+    vi.spyOn(LocalEnvironment.prototype, "readStream").mockRejectedValueOnce(
+      Object.assign(new Error("busy"), { code: "EBUSY" }),
+    )
+    vi.spyOn(console, "error").mockImplementation(() => {})
+
+    expect((await fetch(`${base}/api/v1/preview/${value}/src/main.ts`)).status).toBe(500)
+    expect((await get("/health")).status).toBe(200)
+  })
+
+  it("页面引用的音视频等资源按 Range 分段给出", async () => {
+    await writeFile(join(workspace, "clip.mp4"), Buffer.from("0123456789"))
+    const value = await previewToken()
+    const part = await fetch(`${base}/api/v1/preview/${value}/clip.mp4`, {
+      headers: { range: "bytes=2-5" },
+    })
+
+    expect(part.status).toBe(206)
+    expect(part.headers.get("content-range")).toBe("bytes 2-5/10")
+    expect(await part.text()).toBe("2345")
+  })
+
+  it("预览一直在用，令牌就不过期；闲置超过一小时才失效", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] })
+    const value = await previewToken()
+    const asset = () => fetch(`${base}/api/v1/preview/${value}/src/main.ts`)
+
+    vi.advanceTimersByTime(50 * 60 * 1000)
+    expect((await asset()).status).toBe(200)
+    vi.advanceTimersByTime(50 * 60 * 1000)
+    expect((await asset()).status).toBe(200)
+    vi.advanceTimersByTime(61 * 60 * 1000)
+    expect((await asset()).status).toBe(403)
   })
 })
