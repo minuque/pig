@@ -7,7 +7,7 @@
         </span>
       </nav>
 
-      <Tooltip v-if="kind === 'markdown' && loaded?.content !== undefined">
+      <Tooltip v-if="previewable && loaded?.content !== undefined">
         <TooltipTrigger as-child>
           <IconButton
             type="button"
@@ -43,6 +43,16 @@
       <MarkdownContent :nodes="nodes" />
     </div>
 
+    <FileTable v-else-if="kind === 'csv' && !source" :path="path" :text="loaded?.content ?? ''" />
+
+    <!-- SVG 当图片画：data URL 里的脚本不会执行 -->
+    <img
+      v-else-if="kind === 'svg' && !source && loaded?.content !== undefined"
+      :src="svgUrl"
+      :alt="path"
+      class="file-viewer-image"
+    />
+
     <FileCode v-else-if="loaded" :path="path" :text="loaded.content ?? ''" :range="range" />
   </div>
 </template>
@@ -60,6 +70,7 @@ import MarkdownContent from "@features/transcript-view/components/markdown/Markd
 import { useMarkdownNodes } from "@features/transcript-view/hooks/use-markdown-nodes.js"
 import FileCode from "@features/file-pane/components/FileCode.vue"
 import FileNotice from "@features/file-pane/components/FileNotice.vue"
+import FileTable from "@features/file-pane/components/FileTable.vue"
 import { fileViewKind } from "@features/file-pane/lib/file-kind.js"
 import { locateLines } from "@features/file-pane/lib/paths.js"
 import { useFilePane } from "@features/file-pane/index.js"
@@ -76,6 +87,10 @@ const loading = shallowRef(false)
 const failure = shallowRef("")
 /** Markdown 默认渲染；带行号打开时从源码开始。 */
 const source = shallowRef(false)
+const previewable = computed(() => ["markdown", "csv", "svg"].includes(kind.value))
+const svgUrl = computed(
+  () => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(loaded.value?.content ?? "")}`,
+)
 const toggleLabel = computed(() => (source.value ? t("files.preview") : t("files.viewSource")))
 const nodes = useMarkdownNodes({
   text: () => (kind.value === "markdown" ? (loaded.value?.content ?? "") : ""),
@@ -137,7 +152,7 @@ watch(
 watch(
   range,
   (next) => {
-    if (next && kind.value === "markdown") source.value = true
+    if (next && previewable.value) source.value = true
   },
   { immediate: true },
 )

@@ -12,8 +12,14 @@ describe("文件按类型分流", () => {
       expect(fileViewKind(path)).toBe("image")
   })
 
-  it("SVG 不当位图，其余按文本读", () => {
-    for (const path of ["icon.svg", "main.ts", "Dockerfile", "a.png.txt"])
+  it("CSV 与 TSV 画成表格，SVG 画成图", () => {
+    expect(fileViewKind("data.csv")).toBe("csv")
+    expect(fileViewKind("data.TSV")).toBe("csv")
+    expect(fileViewKind("icon.svg")).toBe("svg")
+  })
+
+  it("其余按文本读", () => {
+    for (const path of ["main.ts", "Dockerfile", "a.png.txt"])
       expect(fileViewKind(path)).toBe("text")
   })
 })
