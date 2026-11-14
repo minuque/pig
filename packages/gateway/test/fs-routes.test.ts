@@ -246,3 +246,47 @@ describe("目录、git 状态与内容搜索", () => {
     expect((await get(`/api/v1/platform/fs/search?cwd=${cwd}&q=x`)).status).toBe(403)
   })
 })
+
+describe("HTML 预览的令牌地址", () => {
+  async function token(cwd = workspace) {
+    const response = await get(
+      `/api/v1/platform/fs/preview-token?${new URLSearchParams({ cwd }).toString()}`,
+    )
+    return { status: response.status, token: ((await response.json()) as { token?: string }).token }
+  }
+
+  it("只给授权过的工作区发令牌", async () => {
+    expect((await token(outside)).status).toBe(403)
+    expect((await token()).token).toMatch(/^[\w-]{20,}$/)
+  })
+
+  it("不带 cookie 也能凭令牌取页面与同目录的资源，响应禁同源并且不外泄地址", async () => {
+    await mkdir(join(workspace, "site"))
+    await writeFile(
+      join(workspace, "site", "index.html"),
+      "<html><head></head><body>hi</body></html>",
+    )
+    await writeFile(join(workspace, "site", "app.js"), "console.log(1)")
+    const { token: value } = await token()
+    const page = await fetch(`${base}/api/v1/preview/${value}/site/index.html`)
+
+    expect(page.status).toBe(200)
+    expect(page.headers.get("content-type")).toBe("text/html; charset=utf-8")
+    expect(page.headers.get("content-security-policy")).toBe("sandbox allow-scripts")
+    expect(page.headers.get("referrer-policy")).toBe("no-referrer")
+    // 注入的脚本把外链交给外层确认
+    expect(await page.text()).toContain("pig-preview-link")
+
+    const asset = await fetch(`${base}/api/v1/preview/${value}/site/app.js`)
+
+    expect(asset.status).toBe(200)
+    expect(await asset.text()).toBe("console.log(1)")
+  })
+
+  it("令牌不对或路径越界都拒绝", async () => {
+    const { token: value } = await token()
+
+    expect((await fetch(`${base}/api/v1/preview/nope/src/main.ts`)).status).toBe(403)
+    expect((await fetch(`${base}/api/v1/preview/${value}/..%2F..%2Fsecret.txt`)).status).toBe(403)
+  })
+})

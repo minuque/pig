@@ -396,3 +396,11 @@ export function searchWorkspaceContents(
     signal ? { signal } : undefined,
   )
 }
+
+/** HTML 预览用的令牌：沙箱页面没有 cookie，凭它取工作区里的同目录资源。 */
+export async function filePreviewToken(cwd: string): Promise<string> {
+  const result = await platformRequest<{ token: string }>(
+    `/api/v1/platform/fs/preview-token?${new URLSearchParams({ cwd }).toString()}`,
+  )
+  return result.token
+}

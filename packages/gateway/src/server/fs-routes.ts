@@ -12,13 +12,20 @@ import type { Environment } from "@pig/environment"
 
 import { workspaceEnvironment } from "../pi/remote-session.js"
 import type { PlatformRequestDeps } from "./platform.js"
+import { issuePreviewToken } from "./file-preview.js"
 import { gitIgnored, gitStatus, searchContents } from "./workspace-git.js"
 
 /** 与 cc-wrapper 的 PREVIEW_LIMIT 一致：超过就不读文本。 */
 const TEXT_LIMIT = 1024 * 1024
 /** 与 git 的判定一致：前 8000 字节里有 NUL 就当二进制。 */
 const BINARY_PROBE = 8000
-const MIME: Record<string, string> = {
+export const MIME: Record<string, string> = {
+  html: "text/html; charset=utf-8",
+  htm: "text/html; charset=utf-8",
+  css: "text/css; charset=utf-8",
+  js: "text/javascript; charset=utf-8",
+  mjs: "text/javascript; charset=utf-8",
+  json: "application/json; charset=utf-8",
   png: "image/png",
   jpg: "image/jpeg",
   jpeg: "image/jpeg",
@@ -46,9 +53,11 @@ const MIME: Record<string, string> = {
 type PathApi = typeof posix
 
 /** 解析后的目标：file 与 root 都是解开符号链接后的真实路径。 */
-type Target = { env: Environment; file: string; root: string; path: PathApi }
+export type Target = { env: Environment; file: string; root: string; path: PathApi }
 
 type Workspace = { env: Environment; root: string; path: PathApi }
+
+const cwd = (url: URL) => url.searchParams.get("cwd")?.trim() ?? ""
 
 /** 工作区内文件的只读接口；true=已处理。 */
 export async function handleFsRequest(
@@ -57,19 +66,20 @@ export async function handleFsRequest(
   url: URL,
   deps: PlatformRequestDeps,
 ): Promise<boolean> {
-  const kind = /^\/api\/v1\/platform\/(?:fs\/(stat|text|raw|list|search)|git\/(status))$/
-    .exec(url.pathname)
-    ?.slice(1)
-    .find(Boolean)
+  const kind =
+    /^\/api\/v1\/platform\/(?:fs\/(stat|text|raw|list|search|preview-token)|git\/(status))$/
+      .exec(url.pathname)
+      ?.slice(1)
+      .find(Boolean)
 
   if (!kind || req.method !== "GET") return false
 
-  if (kind === "search" || kind === "status") {
+  if (kind === "search" || kind === "status" || kind === "preview-token") {
     await handleWorkspaceRequest(req, res, url, deps, kind)
     return true
   }
 
-  const target = await resolveTarget(url, deps)
+  const target = await resolveFile(cwd(url), url.searchParams.get("path") ?? "", deps)
 
   if (typeof target === "number") {
     deps.send(res, target, { code: target === 403 ? "FORBIDDEN" : "NOT_FOUND" })
@@ -99,11 +109,9 @@ export async function handleFsRequest(
 
 /** 授权过的工作区：环境、根目录与该环境的路径规则。 */
 async function authorizedWorkspace(
-  url: URL,
-  deps: PlatformRequestDeps,
+  cwd: string,
+  deps: Pick<PlatformRequestDeps, "hostService">,
 ): Promise<Workspace | undefined> {
-  const cwd = url.searchParams.get("cwd")?.trim() ?? ""
-
   if (!cwd || !(await deps.hostService.isKnownWorkspace(cwd))) return undefined
 
   const { env, root } = workspaceEnvironment(cwd)
@@ -111,9 +119,12 @@ async function authorizedWorkspace(
 }
 
 /** 授权工作区 + 解开符号链接后仍在根内，才给出目标；否则返回状态码。 */
-async function resolveTarget(url: URL, deps: PlatformRequestDeps): Promise<Target | number> {
-  const requested = url.searchParams.get("path") ?? ""
-  const workspace = requested ? await authorizedWorkspace(url, deps) : undefined
+export async function resolveFile(
+  cwd: string,
+  requested: string,
+  deps: Pick<PlatformRequestDeps, "hostService">,
+): Promise<Target | number> {
+  const workspace = requested ? await authorizedWorkspace(cwd, deps) : undefined
 
   if (!workspace) return 403
 
@@ -135,9 +146,9 @@ async function handleWorkspaceRequest(
   res: ServerResponse,
   url: URL,
   deps: PlatformRequestDeps,
-  kind: "search" | "status",
+  kind: "search" | "status" | "preview-token",
 ) {
-  const workspace = await authorizedWorkspace(url, deps)
+  const workspace = await authorizedWorkspace(cwd(url), deps)
 
   if (!workspace) {
     deps.send(res, 403, { code: "FORBIDDEN" })
@@ -149,16 +160,18 @@ async function handleWorkspaceRequest(
 
   try {
     const { env, root, path } = workspace
-    const body: GitStatusResponse | ContentSearchResponse =
-      kind === "status"
-        ? await gitStatus(env, root)
-        : await searchContents(
-            env,
-            root,
-            path.join,
-            url.searchParams.get("q") ?? "",
-            controller.signal,
-          )
+    const body: GitStatusResponse | ContentSearchResponse | { token: string } =
+      kind === "preview-token"
+        ? { token: issuePreviewToken(cwd(url)) }
+        : kind === "status"
+          ? await gitStatus(env, root)
+          : await searchContents(
+              env,
+              root,
+              path.join,
+              url.searchParams.get("q") ?? "",
+              controller.signal,
+            )
 
     deps.send(res, 200, body)
   } catch (error) {

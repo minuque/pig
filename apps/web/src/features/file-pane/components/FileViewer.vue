@@ -46,6 +46,12 @@
       <MarkdownContent :nodes="nodes" />
     </div>
 
+    <FileHtml
+      v-else-if="kind === 'html' && !source"
+      :path="path"
+      :revision="pane.revisions.value[path] ?? 0"
+    />
+
     <FileTable v-else-if="kind === 'csv' && !source" :path="path" :text="loaded?.content ?? ''" />
 
     <!-- SVG 当图片画：data URL 里的脚本不会执行 -->
@@ -72,6 +78,7 @@ import { CodeSquareIcon, EyeIcon } from "@components/icons/index.js"
 import MarkdownContent from "@features/transcript-view/components/markdown/MarkdownContent.vue"
 import { useMarkdownNodes } from "@features/transcript-view/hooks/use-markdown-nodes.js"
 import FileCode from "@features/file-pane/components/FileCode.vue"
+import FileHtml from "@features/file-pane/components/FileHtml.vue"
 import FileNotice from "@features/file-pane/components/FileNotice.vue"
 import FileTable from "@features/file-pane/components/FileTable.vue"
 import { fileViewKind } from "@features/file-pane/lib/file-kind.js"
@@ -92,7 +99,7 @@ const loading = shallowRef(false)
 const failure = shallowRef("")
 /** Markdown 默认渲染；带行号打开时从源码开始。 */
 const source = shallowRef(false)
-const previewable = computed(() => ["markdown", "csv", "svg"].includes(kind.value))
+const previewable = computed(() => ["markdown", "csv", "svg", "html"].includes(kind.value))
 const svgUrl = computed(
   () => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(loaded.value?.content ?? "")}`,
 )

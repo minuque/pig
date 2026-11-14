@@ -27,6 +27,11 @@ describe("文件按类型分流", () => {
     expect(fileViewKind("spec.PDF")).toBe("pdf")
   })
 
+  it("HTML 放进沙箱预览", () => {
+    expect(fileViewKind("index.html")).toBe("html")
+    expect(fileViewKind("old.HTM")).toBe("html")
+  })
+
   it("其余按文本读", () => {
     for (const path of ["main.ts", "Dockerfile", "a.png.txt"])
       expect(fileViewKind(path)).toBe("text")
