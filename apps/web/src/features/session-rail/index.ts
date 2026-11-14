@@ -1,7 +1,8 @@
-import { inject, provide, shallowRef, type InjectionKey } from "vue"
+import { computed, inject, provide, shallowRef, type InjectionKey } from "vue"
 import { readFlag, writeFlag } from "@utils/storage.js"
 import { openTaskSessionKey } from "@features/transcript-view/index.js"
 import type { ContextUsageSegment } from "@features/composer/type.js"
+import { railModeOf } from "@features/session-rail/lib/layout.js"
 import { dismissTasks, readDismissed } from "@features/session-rail/lib/task-list.js"
 import {
   moveShown,
@@ -34,6 +35,13 @@ function useSessionRailState() {
   const dismissed = shallowRef<string[]>([])
   const layout = shallowRef<RailLayout>(readRailLayout())
   const docked = shallowRef(readFlag(DOCKED_KEY))
+  /** 会话面板的宽度：决定摘要是常驻还是收成头部浮层。 */
+  const width = shallowRef(window.innerWidth)
+  const mode = computed(() =>
+    railModeOf(width.value, pane.value ? { wide: paneWide.value } : undefined),
+  )
+  /** 用户开着常驻面板，且宽度放得下：卡片才真的挂出来。 */
+  const dockedShown = computed(() => docked.value && mode.value === "docked")
   const toggled = (list: RailSectionId[], id: RailSectionId) =>
     list.includes(id) ? list.filter((item) => item !== id) : [...list, id]
 
@@ -71,6 +79,11 @@ function useSessionRailState() {
     },
     /** 宽屏常驻面板开着与否；跨会话记住。 */
     docked,
+    dockedShown,
+    mode,
+    setWidth(next: number) {
+      width.value = next
+    },
     toggleDocked() {
       docked.value = !docked.value
       writeFlag(DOCKED_KEY, docked.value)

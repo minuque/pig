@@ -121,7 +121,7 @@ function clearFinished() {
 <style scoped>
 /* 会话面板的第三列：头部之下、贴右边，宽度两档；正文自己滚，头部不动 */
 .rail-pane {
-  grid-area: 2 / 3;
+  grid-area: pane;
   display: flex;
   flex-direction: column;
   inline-size: min(var(--size-pane), 50cqw);

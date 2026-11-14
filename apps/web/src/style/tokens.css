@@ -189,8 +189,6 @@
   --size-legend-share: 44px;
   /* 摘要面板与子会话只读抽屉 */
   --size-rail: 280px;
-  /* 摘要面板常驻时对话列右侧让出的宽：面板加两侧间距 */
-  --size-rail-reserve: calc(var(--size-rail) + 2 * var(--space-sm));
   --size-rail-row: 26px;
   --size-pane: 440px;
   --size-pane-wide: 880px;

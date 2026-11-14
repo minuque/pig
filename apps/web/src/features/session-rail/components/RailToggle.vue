@@ -1,7 +1,7 @@
 <template>
   <div v-if="session.sessionId.value" class="rail-toggle">
-    <!-- 宽屏：开关常驻面板 -->
-    <Tooltip>
+    <!-- 常驻：开关右侧的摘要卡 -->
+    <Tooltip v-if="rail.mode.value === 'docked'">
       <TooltipTrigger as-child>
         <IconButton
           class="rail-toggle-docked"
@@ -22,8 +22,8 @@
       <TooltipContent>{{ label }}</TooltipContent>
     </Tooltip>
 
-    <!-- 窄屏：点开浮层 -->
-    <Popover v-model:open="popoverOpen">
+    <!-- 放不下常驻宽度：点开浮层 -->
+    <Popover v-else v-model:open="popoverOpen">
       <Tooltip>
         <PopoverTrigger as-child>
           <TooltipTrigger as-child>
@@ -99,10 +99,6 @@ const label = computed(() => {
   align-items: center;
 }
 
-.rail-toggle-docked {
-  display: none;
-}
-
 .rail-toggle :is(.rail-toggle-docked, .rail-toggle-popover) {
   position: relative;
 }
@@ -122,37 +118,6 @@ const label = computed(() => {
   block-size: var(--space-xs);
   background: var(--primary);
   border-radius: var(--radius-pill);
-}
-
-/* 与常驻面板同一组门槛：右侧面板开着时按它的宽度抬高 */
-@container session-panel (min-width: 1012px) {
-  .session-panel:not(:has(.rail-pane)) .rail-toggle-docked {
-    display: inline-flex;
-  }
-
-  .session-panel:not(:has(.rail-pane)) .rail-toggle-popover {
-    display: none;
-  }
-}
-
-@container session-panel (min-width: 1464px) {
-  .session-panel:not(:has(.rail-pane[data-wide])) .rail-toggle-docked {
-    display: inline-flex;
-  }
-
-  .session-panel:not(:has(.rail-pane[data-wide])) .rail-toggle-popover {
-    display: none;
-  }
-}
-
-@container session-panel (min-width: 1904px) {
-  .rail-toggle-docked {
-    display: inline-flex;
-  }
-
-  .rail-toggle-popover {
-    display: none;
-  }
 }
 </style>
 

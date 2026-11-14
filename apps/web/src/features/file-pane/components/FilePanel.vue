@@ -138,7 +138,6 @@ const active = computed(() => pane.tabs.value.active)
   align-items: center;
   gap: var(--space-xxs);
   padding: var(--space-xxs) var(--space-xs);
-  padding-inline-end: calc(var(--space-xs) + var(--titlebar-controls-inset));
 }
 
 .file-panel-tabs {

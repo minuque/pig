@@ -286,6 +286,12 @@ function confirmDelete(): void {
   color: var(--contrast-foreground);
 }
 
+/* 欢迎页头部浮在背景上，不占高度；拖窗与侧栏入口照常可用 */
+.workbench-header.is-overlay {
+  position: absolute;
+  inset: 0 0 auto;
+}
+
 .header-toggle {
   overflow: hidden;
   /* 与侧栏同档 200ms；opacity 稍快进出，让形状先到位 */

@@ -8,6 +8,12 @@
         />
       </template>
 
+      <!-- 头部在面板之上横跨整个工作区，右侧按钮贴窗口右边 -->
+      <WorkbenchHeader
+        :class="{ 'is-overlay': session.welcome.value }"
+        :rail="!session.welcome.value"
+      />
+
       <FilePane>
         <RouterView />
       </FilePane>
@@ -45,6 +51,7 @@ import SettingsDialog from "@features/settings/components/SettingsDialog.vue"
 import { useSettingsDialog } from "@features/settings/hooks/use-settings-dialog.js"
 import Startup from "@features/startup/index.vue"
 import { provideSession } from "@features/session/index.js"
+import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
 import { prefetchHighlighter } from "@features/transcript-view/index.js"
 
 const pi = useGatewayClient()

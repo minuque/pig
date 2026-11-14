@@ -1,13 +1,7 @@
 <template>
   <div ref="root" class="file-split">
     <SplitterGroup direction="horizontal" auto-save-id="pig.files.split" class="file-split-group">
-      <SplitterPanel
-        :order="1"
-        :min-size="CHAT_MIN"
-        size-unit="px"
-        class="file-split-chat"
-        :data-pane="docked || undefined"
-      >
+      <SplitterPanel :order="1" :min-size="CHAT_MIN" size-unit="px" class="file-split-chat">
         <slot />
       </SplitterPanel>
 
@@ -79,19 +73,12 @@ useResizeObserver(root, ([entry]) => {
   min-width: 0;
 }
 
-/* Files 贴在窗口右边：Windows 窗控让位挪到 Files 头部 */
-.file-split-chat[data-pane] {
-  --titlebar-controls-inset: 0px;
-}
-
-/* 卡片从头部下沿开始：右上角那一行只属于头部与窗控，面板不伸进去；
-   头部不再让窗控位，按钮贴到卡片自己的右边缘 */
+/* 卡片在头部下沿之内：右上角那一行是头部与窗控的 */
 .file-split-pane {
-  --titlebar-controls-inset: 0px;
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: calc(var(--header-height) + var(--space-xs)) var(--space-sm) var(--space-sm) 0;
+  padding: var(--space-sm) var(--space-sm) var(--space-sm) 0;
 }
 
 /* 拖拽区就是对话与面板之间的空隙 */

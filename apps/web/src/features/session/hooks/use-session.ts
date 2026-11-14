@@ -333,6 +333,15 @@ export function useSessionLifecycle(
       pi.sessions.value.find((item) => item.id === sessionId.value)?.cwd ??
       (sessionId.value ? undefined : cwd.lastCwd.value),
   )
+  /** 开场页：没有正文也没有在跑；已有会话但历史还没落地时不当作开场页。 */
+  const welcome = computed(() => {
+    if (transcript.value.length > 0 || running.value) return false
+
+    if (sessionId.value === undefined) return true
+
+    if (sessionPending.value && !creatingCwd.value) return false
+    return true
+  })
 
   pi.bindAttachedReconnect(async () => {
     if (remote.value) await reconnect()
@@ -358,6 +367,7 @@ export function useSessionLifecycle(
     connected: pi.connected,
     connectionError: pi.connectionError,
     transcript,
+    welcome,
     loadHistory: history.loadHistory,
     historyFresh: history.isFresh,
     turnTimings: history.turnTimings,
