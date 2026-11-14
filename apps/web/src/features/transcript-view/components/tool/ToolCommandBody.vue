@@ -1,9 +1,9 @@
 <template>
   <div class="tool-command-body">
     <CodeCard v-if="commandLines.length" class="command-block">
-      <CopyButton v-if="command" :text="command" />
-
       <div class="command-scroll">
+        <StickyCopyButton v-if="command" :text="command" />
+
         <div v-for="(line, index) in commandLines" :key="index" class="command-row">
           <span class="prompt" aria-hidden="true">{{ index === 0 ? "$" : "" }}</span>
           <code v-if="tokens[index]" v-token-line="tokens[index]" class="command" />
@@ -24,7 +24,7 @@
 import { computed, shallowRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import CodeCard from "@features/transcript-view/components/CodeCard.vue"
-import CopyButton from "@features/transcript-view/components/CopyButton.vue"
+import StickyCopyButton from "@features/transcript-view/components/StickyCopyButton.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import {
   highlightCodeTokens,
@@ -96,7 +96,7 @@ watch(
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: var(--space-xs) 0 var(--space-xs) var(--space-sm);
+  padding-inline-start: var(--space-sm);
   font-family: var(--font-mono);
   font-size: var(--text-code);
   line-height: var(--text-code-line);
@@ -108,11 +108,16 @@ watch(
   flex-direction: column;
   min-width: 0;
   /* 滚动条贴卡片右缘：右内边距放在滚动区里，只给内容让出复制按钮的位置 */
+  padding-block: var(--space-xs);
   padding-inline-end: calc(var(--space-sm) + 22px);
   max-height: var(--transcript-tool-max);
   overflow: auto;
   /* 卡片底比全局滚动条色深，滚动条会看不出，这里提到 ink 12% */
   --scrollbar-thumb: var(--fill-strong);
+}
+
+.command-scroll :deep(.copy-backdrop) {
+  background: var(--surface);
 }
 
 .command-row {

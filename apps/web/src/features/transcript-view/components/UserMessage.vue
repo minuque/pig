@@ -137,7 +137,7 @@ useResizeObserver(body, measure)
   padding: 0;
   border: 0;
   background: none;
-  color: var(--contrast-foreground);
+  color: var(--contrast-foreground-secondary);
   font: inherit;
   font-size: var(--text-meta);
   line-height: 1.4;

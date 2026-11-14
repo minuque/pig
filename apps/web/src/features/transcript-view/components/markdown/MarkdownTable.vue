@@ -84,11 +84,17 @@ function openPreview() {
   max-width: none;
 }
 
-/* 放大按钮压在表头右上角，表头末格给它让位 */
+/* 放大按钮压在表头右上角，表头末格给它让位；叠在表格之上，不被单元格文字盖住 */
 .md-table-zoom {
   position: absolute;
+  z-index: 1;
   top: var(--space-xxs);
   inset-inline-end: var(--space-xxs);
+  color: var(--contrast-foreground-secondary);
+}
+
+.md-table-zoom:hover {
+  color: var(--contrast-foreground);
 }
 
 .md-table-root:not(.is-preview) :deep(.rt-TableColumnHeaderCell:last-child) {
