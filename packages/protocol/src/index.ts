@@ -54,8 +54,14 @@ export type {
 export type {
   ComposerCommand,
   EnvironmentInfo,
+  ContentSearchMatch,
+  ContentSearchResponse,
+  DirectoryEntry,
+  DirectoryListResponse,
   FileSearchEntry,
   FileStatResponse,
+  GitFileStatus,
+  GitStatusResponse,
   FileTextResponse,
 } from "./workspace.js"
 

@@ -1,3 +1,4 @@
+import { execFileSync } from "node:child_process"
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
@@ -132,5 +133,103 @@ describe("fs routes", () => {
     await writeFile(join(workspace, "a.png"), Buffer.from([1]))
 
     expect((await get(fsUrl("raw", "a.png"))).headers.get("content-type")).toBe("image/png")
+  })
+})
+
+describe("目录、git 状态与内容搜索", () => {
+  async function gitWorkspace() {
+    const git = (...args: string[]) => execFileSync("git", args, { cwd: workspace, stdio: "pipe" })
+    git("init", "-q")
+    git("config", "user.email", "e2e@pig.local")
+    git("config", "user.name", "pig")
+    await writeFile(join(workspace, ".gitignore"), "dist/\n*.log\n")
+    await mkdir(join(workspace, "dist"))
+    await writeFile(join(workspace, "dist", "out.js"), "needle in build output\n")
+    await writeFile(join(workspace, "debug.log"), "needle in log\n")
+    await writeFile(join(workspace, "file10.ts"), "")
+    await writeFile(join(workspace, "file9.ts"), "")
+    git("add", ".gitignore", "src/main.ts", "file9.ts")
+    git("commit", "-q", "-m", "init")
+    await writeFile(
+      join(workspace, "src", "main.ts"),
+      "export const answer = 43\nconst needle = 1\n",
+    )
+  }
+
+  it("list 目录在前、名字按自然序，gitignore 命中的打标记", async () => {
+    await gitWorkspace()
+    const response = await get(fsUrl("list", "."))
+
+    expect(response.status).toBe(200)
+
+    const { entries } = (await response.json()) as {
+      entries: { name: string; kind: string; ignored: boolean }[]
+    }
+
+    expect(entries.map((entry) => entry.name)).toEqual([
+      ".git",
+      "dist",
+      "src",
+      ".gitignore",
+      "big.txt",
+      "debug.log",
+      "file9.ts",
+      "file10.ts",
+      "logo.bin",
+    ])
+    expect(entries.find((entry) => entry.name === "dist")?.ignored).toBe(true)
+    expect(entries.find((entry) => entry.name === "debug.log")?.ignored).toBe(true)
+    expect(entries.find((entry) => entry.name === "src")?.ignored).toBe(false)
+  })
+
+  it("不是 git 仓库时 list 照常列出，都不标忽略", async () => {
+    const { entries } = (await (await get(fsUrl("list", "src"))).json()) as {
+      entries: { name: string; ignored: boolean }[]
+    }
+
+    expect(entries).toEqual([{ name: "main.ts", kind: "file", ignored: false }])
+  })
+
+  it("git status 报告修改与未跟踪的文件，路径相对工作区", async () => {
+    await gitWorkspace()
+
+    const body = (await (
+      await get(`/api/v1/platform/git/status?cwd=${encodeURIComponent(workspace)}`)
+    ).json()) as { repo: boolean; files: { path: string; status: string }[] }
+
+    expect(body.repo).toBe(true)
+    expect(body.files).toEqual(
+      expect.arrayContaining([
+        { path: "src/main.ts", status: "M" },
+        { path: "file10.ts", status: "U" },
+      ]),
+    )
+    expect(body.files.some((file) => file.path.startsWith("dist/"))).toBe(false)
+  })
+
+  it("git status 在非仓库返回 repo false", async () => {
+    await expect(
+      (await get(`/api/v1/platform/git/status?cwd=${encodeURIComponent(workspace)}`)).json(),
+    ).resolves.toEqual({ repo: false, files: [] })
+  })
+
+  it("内容搜索给出路径、行号与那一行，跳过 gitignore 命中的文件", async () => {
+    await gitWorkspace()
+
+    const body = (await (
+      await get(
+        `/api/v1/platform/fs/search?${new URLSearchParams({ cwd: workspace, q: "NEEDLE" }).toString()}`,
+      )
+    ).json()) as { matches: { path: string; line: number; text: string }[] }
+
+    expect(body.matches).toEqual([{ path: "src/main.ts", line: 2, text: "const needle = 1" }])
+  })
+
+  it("未授权的工作区 list、status、search 都 403", async () => {
+    const cwd = encodeURIComponent(outside)
+
+    expect((await get(fsUrl("list", ".", outside))).status).toBe(403)
+    expect((await get(`/api/v1/platform/git/status?cwd=${cwd}`)).status).toBe(403)
+    expect((await get(`/api/v1/platform/fs/search?cwd=${cwd}&q=x`)).status).toBe(403)
   })
 })

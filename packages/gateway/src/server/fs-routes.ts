@@ -1,11 +1,18 @@
 import type { IncomingMessage, ServerResponse } from "node:http"
 import { posix, win32 } from "node:path"
 import { pipeline } from "node:stream/promises"
-import type { FileStatResponse, FileTextResponse } from "@pig/protocol"
+import type {
+  ContentSearchResponse,
+  DirectoryListResponse,
+  FileStatResponse,
+  FileTextResponse,
+  GitStatusResponse,
+} from "@pig/protocol"
 import type { Environment } from "@pig/environment"
 
 import { workspaceEnvironment } from "../pi/remote-session.js"
 import type { PlatformRequestDeps } from "./platform.js"
+import { gitIgnored, gitStatus, searchContents } from "./workspace-git.js"
 
 /** 与 cc-wrapper 的 PREVIEW_LIMIT 一致：超过就不读文本。 */
 const TEXT_LIMIT = 1024 * 1024
@@ -36,7 +43,12 @@ const MIME: Record<string, string> = {
   oga: "audio/ogg",
 }
 
-type Target = { env: Environment; file: string }
+type PathApi = typeof posix
+
+/** 解析后的目标：file 与 root 都是解开符号链接后的真实路径。 */
+type Target = { env: Environment; file: string; root: string; path: PathApi }
+
+type Workspace = { env: Environment; root: string; path: PathApi }
 
 /** 工作区内文件的只读接口；true=已处理。 */
 export async function handleFsRequest(
@@ -45,9 +57,17 @@ export async function handleFsRequest(
   url: URL,
   deps: PlatformRequestDeps,
 ): Promise<boolean> {
-  const kind = /^\/api\/v1\/platform\/fs\/(stat|text|raw)$/.exec(url.pathname)?.[1]
+  const kind = /^\/api\/v1\/platform\/(?:fs\/(stat|text|raw|list|search)|git\/(status))$/
+    .exec(url.pathname)
+    ?.slice(1)
+    .find(Boolean)
 
   if (!kind || req.method !== "GET") return false
+
+  if (kind === "search" || kind === "status") {
+    await handleWorkspaceRequest(req, res, url, deps, kind)
+    return true
+  }
 
   const target = await resolveTarget(url, deps)
 
@@ -61,6 +81,8 @@ export async function handleFsRequest(
 
     if (!info) deps.send(res, 404, { code: "NOT_FOUND" })
     else if (kind === "stat") deps.send(res, 200, info satisfies FileStatResponse)
+    else if (kind === "list")
+      deps.send(res, info.kind === "directory" ? 200 : 400, await listDirectory(target))
     else if (info.kind !== "file") deps.send(res, 400, { code: "NOT_A_FILE" })
     else if (kind === "text")
       deps.send(res, 200, await readText(target, info.size, url.searchParams.has("force")))
@@ -75,24 +97,94 @@ export async function handleFsRequest(
   return true
 }
 
-/** 授权工作区 + 解开符号链接后仍在根内，才给出目标；否则返回状态码。 */
-async function resolveTarget(url: URL, deps: PlatformRequestDeps): Promise<Target | number> {
+/** 授权过的工作区：环境、根目录与该环境的路径规则。 */
+async function authorizedWorkspace(
+  url: URL,
+  deps: PlatformRequestDeps,
+): Promise<Workspace | undefined> {
   const cwd = url.searchParams.get("cwd")?.trim() ?? ""
-  const requested = url.searchParams.get("path") ?? ""
 
-  if (!cwd || !requested || !(await deps.hostService.isKnownWorkspace(cwd))) return 403
+  if (!cwd || !(await deps.hostService.isKnownWorkspace(cwd))) return undefined
 
   const { env, root } = workspaceEnvironment(cwd)
-  const path = env.id === "local" && process.platform === "win32" ? win32 : posix
+  return { env, root, path: env.id === "local" && process.platform === "win32" ? win32 : posix }
+}
+
+/** 授权工作区 + 解开符号链接后仍在根内，才给出目标；否则返回状态码。 */
+async function resolveTarget(url: URL, deps: PlatformRequestDeps): Promise<Target | number> {
+  const requested = url.searchParams.get("path") ?? ""
+  const workspace = requested ? await authorizedWorkspace(url, deps) : undefined
+
+  if (!workspace) return 403
+
+  const { env, root, path } = workspace
   const file = path.resolve(root, requested)
 
   if (!inside(path, root, file)) return 403
 
   try {
     const [realRoot, realFile] = await Promise.all([env.realpath(root), env.realpath(file)])
-    return inside(path, realRoot, realFile) ? { env, file: realFile } : 403
+    return inside(path, realRoot, realFile) ? { env, file: realFile, root: realRoot, path } : 403
   } catch {
     return 404
+  }
+}
+
+async function handleWorkspaceRequest(
+  req: IncomingMessage,
+  res: ServerResponse,
+  url: URL,
+  deps: PlatformRequestDeps,
+  kind: "search" | "status",
+) {
+  const workspace = await authorizedWorkspace(url, deps)
+
+  if (!workspace) {
+    deps.send(res, 403, { code: "FORBIDDEN" })
+    return
+  }
+
+  const controller = new AbortController()
+  req.once("close", () => controller.abort())
+
+  try {
+    const { env, root, path } = workspace
+    const body: GitStatusResponse | ContentSearchResponse =
+      kind === "status"
+        ? await gitStatus(env, root)
+        : await searchContents(
+            env,
+            root,
+            path.join,
+            url.searchParams.get("q") ?? "",
+            controller.signal,
+          )
+
+    deps.send(res, 200, body)
+  } catch (error) {
+    console.error(`workspace ${kind} failed:`, error)
+    deps.send(res, 500, { code: "INTERNAL_ERROR" })
+  }
+}
+
+const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" })
+
+/** 目录在前、名字按自然序；顺带标出被 .gitignore 命中的项。 */
+async function listDirectory({ env, file, root, path }: Target): Promise<DirectoryListResponse> {
+  const items = (await env.readdir(file)).sort(
+    (a, b) =>
+      Number(b.kind === "directory") - Number(a.kind === "directory") ||
+      collator.compare(a.name, b.name),
+  )
+  const dir = path.relative(root, file).split(path.sep).filter(Boolean).join("/")
+  const relative = (name: string) => (dir ? `${dir}/${name}` : name)
+  const ignored = await gitIgnored(
+    env,
+    root,
+    items.map((item) => `${relative(item.name)}${item.kind === "directory" ? "/" : ""}`),
+  )
+  return {
+    entries: items.map((item) => ({ ...item, ignored: ignored.has(relative(item.name)) })),
   }
 }
 
