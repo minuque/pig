@@ -129,6 +129,19 @@ describe("fs routes", () => {
     )
   })
 
+  it("raw 默认禁止脚本，PDF 例外让浏览器自带的查看器能打开", async () => {
+    await writeFile(join(workspace, "page.html"), "<script>1</script>")
+    await writeFile(join(workspace, "doc.pdf"), "%PDF-1.4")
+
+    expect((await get(fsUrl("raw", "page.html"))).headers.get("content-security-policy")).toBe(
+      "sandbox",
+    )
+    const pdf = await get(fsUrl("raw", "doc.pdf"))
+
+    expect(pdf.headers.get("content-type")).toBe("application/pdf")
+    expect(pdf.headers.get("content-security-policy")).toBeNull()
+  })
+
   it("raw 按扩展名给 Content-Type", async () => {
     await writeFile(join(workspace, "a.png"), Buffer.from([1]))
 

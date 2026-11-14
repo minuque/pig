@@ -18,6 +18,15 @@ describe("文件按类型分流", () => {
     expect(fileViewKind("icon.svg")).toBe("svg")
   })
 
+  it("音视频与 PDF 直接播放和显示", () => {
+    for (const path of ["a.mp4", "b.webm", "c.MOV", "d.m4v", "e.ogv"])
+      expect(fileViewKind(path)).toBe("video")
+
+    for (const path of ["a.mp3", "b.m4a", "c.aac", "d.wav", "e.flac", "f.opus", "g.ogg", "h.oga"])
+      expect(fileViewKind(path)).toBe("audio")
+    expect(fileViewKind("spec.PDF")).toBe("pdf")
+  })
+
   it("其余按文本读", () => {
     for (const path of ["main.ts", "Dockerfile", "a.png.txt"])
       expect(fileViewKind(path)).toBe("text")

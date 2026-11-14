@@ -217,12 +217,13 @@ function parseRange(header: string | undefined, size: number) {
 async function sendRaw(req: IncomingMessage, res: ServerResponse, target: Target, size: number) {
   const ext = target.file.split(".").pop()?.toLowerCase() ?? ""
   const range = parseRange(req.headers.range, size)
+  const type = MIME[ext] ?? "application/octet-stream"
   const headers = {
-    "Content-Type": MIME[ext] ?? "application/octet-stream",
+    "Content-Type": type,
     "Accept-Ranges": "bytes",
     "Cache-Control": "no-cache",
-    // 工作区文件是 agent 写的：直接打开时也不能以 pig 的源执行脚本
-    "Content-Security-Policy": "sandbox",
+    // agent 写的文件打开时不能以 pig 的源跑脚本；PDF 除外，Chromium 的查看器在 sandbox 里不工作
+    ...(type === "application/pdf" ? {} : { "Content-Security-Policy": "sandbox" }),
     "X-Content-Type-Options": "nosniff",
   }
 

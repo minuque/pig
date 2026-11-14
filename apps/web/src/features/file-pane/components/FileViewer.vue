@@ -27,6 +27,9 @@
     </div>
 
     <img v-if="kind === 'image'" :src="rawUrl" :alt="path" class="file-viewer-image" />
+    <video v-else-if="kind === 'video'" :src="rawUrl" controls class="file-viewer-media" />
+    <audio v-else-if="kind === 'audio'" :src="rawUrl" controls class="file-viewer-audio" />
+    <iframe v-else-if="kind === 'pdf'" :src="rawUrl" :title="path" class="file-viewer-pdf" />
     <div v-else-if="loading" class="file-viewer-status"><Spinner :size="24" /></div>
     <FileNotice v-else-if="failure" :text="failure" />
 
@@ -76,6 +79,8 @@ import { locateLines } from "@features/file-pane/lib/paths.js"
 import { useFilePane } from "@features/file-pane/index.js"
 import type { FileTextResponse } from "@/types/common-type.js"
 
+/** 这些类型直接从字节地址加载，不读文本。 */
+const MEDIA = new Set(["image", "video", "audio", "pdf"])
 const props = defineProps<{ path: string }>()
 const { t } = useI18n()
 const pane = useFilePane()
@@ -116,7 +121,7 @@ let loadSeq = 0
 async function load(force = false, quiet = false) {
   const cwd = pane.cwd.value
 
-  if (!cwd || kind.value === "image") return
+  if (!cwd || MEDIA.has(kind.value)) return
 
   const seq = ++loadSeq
 
@@ -213,6 +218,25 @@ watch(
   min-block-size: 0;
   padding: var(--space-sm) var(--space-lg) var(--space-lg);
   overflow: auto;
+}
+
+.file-viewer-media {
+  display: block;
+  max-inline-size: calc(100% - 2 * var(--space-md));
+  max-block-size: calc(100% - 2 * var(--space-md));
+  margin: auto;
+  border-radius: var(--radius-card);
+}
+
+.file-viewer-audio {
+  inline-size: calc(100% - 2 * var(--space-md));
+  margin: auto;
+}
+
+.file-viewer-pdf {
+  flex: 1;
+  inline-size: 100%;
+  border: 0;
 }
 
 .file-viewer-image {
