@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto"
 import type { IncomingMessage, ServerResponse } from "node:http"
 
-import { MIME, resolveFile } from "./fs-routes.js"
+import { MIME, resolveFile, sendRaw, type Target } from "./fs-routes.js"
 import type { PlatformRequestDeps } from "./platform.js"
 
 /** 令牌活多久：一次预览会话够用，过期后面板重新取。 */
@@ -34,29 +34,41 @@ export async function handlePreviewRequest(
   const [token = "", ...rest] = url.pathname.slice(PREFIX.length).split("/")
   const entry = tokens.get(token)
   const requested = decodePath(rest)
-  const target =
-    entry && entry.expires > Date.now() ? await resolveFile(entry.cwd, requested, deps) : 403
+  const now = Date.now()
 
-  if (typeof target === "number") {
-    deps.send(res, target, { code: target === 403 ? "FORBIDDEN" : "NOT_FOUND" })
-    return true
+  // 每用一次就续期：开着的预览一直可用，闲置一小时才失效
+  if (entry && entry.expires > now) entry.expires = now + TOKEN_TTL_MS
+
+  try {
+    const target =
+      entry && entry.expires > now ? await resolveFile(entry.cwd, requested, deps) : 403
+
+    if (typeof target === "number") {
+      deps.send(res, target, { code: target === 403 ? "FORBIDDEN" : "NOT_FOUND" })
+      return true
+    }
+
+    const info = await target.env.stat(target.file)
+
+    if (info?.kind !== "file") deps.send(res, 404, { code: "NOT_FOUND" })
+    else if (target.file.toLowerCase().match(/\.html?$/)) await sendPage(res, target)
+    else await sendRaw(req, res, target, info.size)
+  } catch (error) {
+    console.error("preview failed:", error)
+
+    if (!res.headersSent) deps.send(res, 500, { code: "INTERNAL_ERROR" })
+    else res.destroy()
   }
 
-  const info = await target.env.stat(target.file)
+  return true
+}
 
-  if (info?.kind !== "file") {
-    deps.send(res, 404, { code: "NOT_FOUND" })
-    return true
-  }
-
-  const ext = target.file.split(".").pop()?.toLowerCase() ?? ""
-  const type = MIME[ext] ?? "application/octet-stream"
-  let body = await target.env.readFile(target.file)
-
-  if (type.startsWith("text/html")) body = Buffer.from(injectLinkScript(body.toString("utf8")))
+/** 页面要注入外链脚本，整份读出；其余资源流式给出，支持 Range。 */
+async function sendPage(res: ServerResponse, target: Target) {
+  const body = Buffer.from(injectLinkScript((await target.env.readFile(target.file)).toString()))
 
   res.writeHead(200, {
-    "Content-Type": type,
+    "Content-Type": MIME.html,
     "Content-Length": String(body.length),
     "Cache-Control": "no-cache",
     // 顶层直接打开也是沙箱；令牌在地址里，不能经 Referer 带给外站
@@ -65,7 +77,6 @@ export async function handlePreviewRequest(
     "X-Content-Type-Options": "nosniff",
   })
   res.end(body)
-  return true
 }
 
 function injectLinkScript(html: string): string {

@@ -227,7 +227,12 @@ function parseRange(header: string | undefined, size: number) {
   return start <= end && start < size ? { start, end } : null
 }
 
-async function sendRaw(req: IncomingMessage, res: ServerResponse, target: Target, size: number) {
+export async function sendRaw(
+  req: IncomingMessage,
+  res: ServerResponse,
+  target: Target,
+  size: number,
+) {
   const ext = target.file.split(".").pop()?.toLowerCase() ?? ""
   const range = parseRange(req.headers.range, size)
   const type = MIME[ext] ?? "application/octet-stream"
@@ -238,6 +243,8 @@ async function sendRaw(req: IncomingMessage, res: ServerResponse, target: Target
     // agent 写的文件打开时不能以 pig 的源跑脚本；PDF 除外，Chromium 的查看器在 sandbox 里不工作
     ...(type === "application/pdf" ? {} : { "Content-Security-Policy": "sandbox" }),
     "X-Content-Type-Options": "nosniff",
+    // 预览地址里带令牌，PDF 里的外链不能经 Referer 带走
+    "Referrer-Policy": "no-referrer",
   }
 
   if (range === null) {
@@ -247,6 +254,8 @@ async function sendRaw(req: IncomingMessage, res: ServerResponse, target: Target
   }
 
   const { start, end } = range ?? { start: 0, end: size - 1 }
+  // 先拿到流再写头：连不上远端时还能回 500
+  const stream = size > 0 ? await target.env.readStream(target.file, { start, end }) : undefined
 
   res.writeHead(range ? 206 : 200, {
     ...headers,
@@ -254,10 +263,6 @@ async function sendRaw(req: IncomingMessage, res: ServerResponse, target: Target
     ...(range ? { "Content-Range": `bytes ${start}-${end}/${size}` } : {}),
   })
 
-  if (size === 0) {
-    res.end()
-    return
-  }
-
-  await pipeline(await target.env.readStream(target.file, { start, end }), res)
+  if (stream) await pipeline(stream, res)
+  else res.end()
 }
