@@ -6,6 +6,7 @@
         :key="index"
         :data="image.data"
         :mime-type="image.mimeType"
+        :alt="target.text"
       />
     </div>
 
@@ -66,7 +67,7 @@ import {
   writeDiffPreview,
 } from "@features/transcript-view/lib/tool-summary.js"
 import { toolCallDetail } from "@features/transcript-view/lib/transcript-format.js"
-import { toolCallVariant } from "@features/transcript-view/lib/tool-run.js"
+import { toolCallTarget, toolCallVariant } from "@features/transcript-view/lib/tool-run.js"
 import { useColorScheme } from "@features/theme/index.js"
 import type { EditDiffPreview, ToolCallView } from "@features/transcript-view/type.js"
 
@@ -77,6 +78,7 @@ const { t } = useI18n()
 const { codeBlockProps } = useColorScheme()
 const variant = computed(() => toolCallVariant(props.call))
 const images = computed(() => props.call.outputImages)
+const target = computed(() => toolCallTarget(props.call))
 const read = computed(() => {
   if (variant.value !== "read" || props.call.isError || props.call.running) return null
   return readToolPreview(props.call.input, props.call.outputText)

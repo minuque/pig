@@ -99,11 +99,12 @@
       </template>
     </PromptEditor>
 
-    <AttachmentLightbox
+    <PreviewDialog
       v-if="previewItem"
-      :url="previewItem.url"
-      :name="previewItem.name"
-      @close="previewItem = undefined"
+      open
+      :src="previewItem.url"
+      :title="previewItem.name"
+      @update:open="previewItem = undefined"
     />
   </form>
 </template>
@@ -115,7 +116,7 @@ import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import AttachmentChips from "@features/composer/components/AttachmentChips.vue"
-import AttachmentLightbox from "@features/composer/components/AttachmentLightbox.vue"
+import PreviewDialog from "@features/preview/index.vue"
 import ModelPicker from "@features/composer/components/ModelPicker.vue"
 import PromptEditor from "@features/composer/components/PromptEditor.vue"
 import QueuePanel from "@features/composer/components/QueuePanel.vue"

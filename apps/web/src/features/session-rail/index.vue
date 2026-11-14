@@ -6,27 +6,37 @@
       :data-open="rail.docked.value || undefined"
       :aria-label="t('rail.title')"
     >
-      <RailCards v-bind="cards" @open="rail.openChild" @stop="stopTask" />
+      <RailCards v-bind="cards" @stop="stopTask" />
     </aside>
 
-    <ChildDrawer :child="rail.child.value" :progress="childProgress" @close="rail.closeChild" />
+    <!-- 摘要卡里点开的内容都放进右侧面板 -->
+    <RailPane
+      v-if="rail.pane.value"
+      :pane="rail.pane.value"
+      :sections="sections"
+      :stoppable="cards.stoppable"
+      :session-id="session.sessionId.value"
+      :progress="childProgress"
+      @stop="stopTask"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
-import ChildDrawer from "@features/session-rail/components/ChildDrawer.vue"
 import RailCards from "@features/session-rail/components/RailCards.vue"
+import RailPane from "@features/session-rail/components/RailPane.vue"
 import { useRailCards } from "@features/session-rail/hooks/use-rail-cards.js"
 import { useSessionRail } from "@features/session-rail/index.js"
 
 const { t } = useI18n()
 const rail = useSessionRail()!
-const { session, tasks, cards, stopTask } = useRailCards()
-/** 抽屉里那个子任务的进展指纹：状态或最近一步变了就重读子会话。 */
+const { session, tasks, sections, cards, stopTask } = useRailCards()
+/** 面板里那个子任务的进展指纹：状态或最近一步变了就重读子会话。 */
 const childProgress = computed(() => {
-  const open = rail.child.value
+  const pane = rail.pane.value
+  const open = pane?.kind === "child" ? pane.child : undefined
   const task = tasks.value.find(
     (item) => item.kind === "agent" && item.sessionId === open?.sessionId,
   )
@@ -34,6 +44,8 @@ const childProgress = computed(() => {
     ? `${task.status}:${task.steps.length}:${task.steps.at(-1) ?? ""}`
     : ""
 })
+
+watch(session.sessionId, rail.enterSession, { immediate: true })
 </script>
 
 <style scoped>
@@ -63,8 +75,21 @@ const childProgress = computed(() => {
   overflow: visible;
 }
 
-/* 放得下最小正文宽（640）加面板与间距才常驻（照 t3code：640 + 280 + 12 + 32 + 48） */
+/* 放得下最小正文宽（640）加面板与间距才常驻（照 t3code：640 + 280 + 12 + 32 + 48）；
+   右侧面板开着时门槛再加上它的宽度与外边距（440 + 12，宽档 880 + 12） */
 @container session-panel (min-width: 1012px) {
+  .session-rail:not(:has(.rail-pane)) .rail-docked[data-open] {
+    display: block;
+  }
+}
+
+@container session-panel (min-width: 1464px) {
+  .session-rail:not(:has(.rail-pane[data-wide])) .rail-docked[data-open] {
+    display: block;
+  }
+}
+
+@container session-panel (min-width: 1904px) {
   .rail-docked[data-open] {
     display: block;
   }

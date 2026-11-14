@@ -31,7 +31,7 @@
           :type="canPreview(segment) ? 'button' : undefined"
           class="ctx-row"
           :data-idle="segment.id === 'idle' || undefined"
-          @click="canPreview(segment) && openPreview(segment)"
+          @click="canPreview(segment) && emit('preview', segment)"
         >
           <span class="ctx-swatch" :style="{ background: segment.color }" />
           <span class="ctx-label">{{ segment.label }}</span>
@@ -40,29 +40,12 @@
         </component>
       </li>
     </ul>
-
-    <Dialog :open="previewOpen" @update:open="(open) => !open && closePreview()">
-      <DialogContent class="ctx-preview" @open-auto-focus="onOpenAutoFocus">
-        <DialogTitle>{{ previewTitle }}</DialogTitle>
-
-        <div ref="previewPane" class="ctx-preview-body" tabindex="-1">
-          <div v-if="previewLoading" class="ctx-preview-status">
-            <Spinner :size="24" />
-          </div>
-
-          <pre v-else class="ctx-preview-text">{{ previewBody }}</pre>
-        </div>
-      </DialogContent>
-    </Dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, useTemplateRef, watch } from "vue"
+import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { contextPreview } from "@client/platform.js"
-import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
-import { Spinner } from "@components/ui/spinner/index.js"
 import {
   contextUsageSummary,
   formatTokenCount,
@@ -71,6 +54,7 @@ import {
 import type { ContextUsage, ContextUsageSegment } from "@features/composer/type.js"
 
 const props = defineProps<{ usage: ContextUsage; sessionId: string | undefined }>()
+const emit = defineEmits<{ preview: [segment: ContextUsageSegment] }>()
 const { t } = useI18n()
 /** 已占用的分类按 token 从多到少排；剩余空间单列在最后。 */
 const used = computed(() =>
@@ -85,52 +69,6 @@ const rows = computed(() => [
 const share = (segment: ContextUsageSegment) =>
   props.usage.window > 0 ? `${segmentShare(segment.tokens, props.usage.window).toFixed(1)}%` : "—"
 const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && segment.previewable)
-const previewOpen = ref(false)
-const previewLoading = ref(false)
-const previewTitle = ref("")
-const previewBody = ref("")
-const previewPane = useTemplateRef("previewPane")
-let previewRequest = 0
-
-/** 点分类打开模态框，取这一类实际进上下文的内容；连点只认最后一次。 */
-async function openPreview(segment: ContextUsageSegment) {
-  const sessionId = props.sessionId
-
-  if (!sessionId) return
-  const request = ++previewRequest
-  previewTitle.value = segment.label
-  previewBody.value = ""
-  previewLoading.value = true
-  previewOpen.value = true
-
-  try {
-    const preview = await contextPreview(sessionId, segment.id)
-
-    if (request !== previewRequest) return
-    previewTitle.value = preview?.title || segment.label
-    previewBody.value = preview?.content || t("rail.previewEmpty")
-  } catch {
-    if (request === previewRequest) previewBody.value = t("rail.previewFailed")
-  } finally {
-    if (request === previewRequest) previewLoading.value = false
-  }
-
-  await nextTick()
-}
-
-function closePreview() {
-  previewRequest += 1
-  previewOpen.value = false
-  previewLoading.value = false
-  previewBody.value = ""
-}
-
-watch(() => props.sessionId, closePreview)
-
-function onOpenAutoFocus(event: Event) {
-  event.preventDefault()
-  previewPane.value?.focus()
-}
 </script>
 
 <style scoped>
@@ -229,47 +167,5 @@ button.ctx-row:hover {
   font-variant-numeric: tabular-nums;
   text-align: end;
   white-space: nowrap;
-}
-</style>
-
-<style>
-/* 预览模态框经 Portal 挂到 body，scoped 打不中：占视口七成，内容区自己滚；
-   标题与正文的间距只取标题自带的下边距，不再叠一层 gap */
-.ctx-preview.rt-DialogContent {
-  display: flex;
-  flex-direction: column;
-  inline-size: 70vw;
-  max-inline-size: 70vw;
-  block-size: 70vh;
-  overflow: hidden;
-}
-
-.ctx-preview-body {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-block-size: 0;
-}
-
-.ctx-preview-body:focus {
-  outline: none;
-}
-
-.ctx-preview-status {
-  display: grid;
-  flex: 1;
-  place-items: center;
-}
-
-.ctx-preview-text {
-  flex: 1;
-  min-block-size: 0;
-  margin: 0;
-  overflow: auto;
-  color: var(--contrast-foreground);
-  font: inherit;
-  font-size: var(--text-body);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
 }
 </style>

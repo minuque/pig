@@ -74,6 +74,11 @@ watch(
 </script>
 
 <style scoped>
+/* 代码块底色用 surface，从正文里托出来 */
+.code-block {
+  --card-background-color: var(--surface);
+}
+
 .code-header {
   display: flex;
   align-items: center;

@@ -24,8 +24,6 @@
       <StartupError v-if="pageError" v-bind="pageError" />
 
       <template v-else>
-        <WelcomeGlyphField v-if="showHero" />
-
         <div class="session-stage">
           <Transition name="dock-hero" appear>
             <div v-if="showHero" key="hero" class="idle-hero">
@@ -129,7 +127,6 @@ import { sessionDropTargetAttrs, useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session/index.js"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
-import WelcomeGlyphField from "@features/session-workbench/components/WelcomeGlyphField.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { useComposerDock } from "@features/session-workbench/hooks/use-composer-dock.js"
 import { useSessionDrop } from "@features/session-workbench/hooks/use-session-drop.js"
@@ -439,7 +436,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 </script>
 
 <style scoped>
-/* 两列：头部横跨，下方对话列在左、摘要面板独占右列；面板收起时右列宽 0。
+/* 三列：头部横跨，下方对话列在左、摘要面板独占中列，右侧面板（打开时）在最右；空列宽 0。
    摘要面板按会话面板宽度决定常驻还是收成按钮 */
 .session-panel {
   position: relative;
@@ -447,7 +444,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template: auto minmax(0, 1fr) / minmax(0, 1fr) auto;
+  grid-template: auto minmax(0, 1fr) / minmax(0, 1fr) auto auto;
 }
 
 .session-panel > .workbench-header {
@@ -527,7 +524,21 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   padding-bottom: var(--space-xl);
 }
 
+/* 与常驻摘要面板同一组门槛（见 session-rail） */
 @container session-panel (min-width: 1012px) {
+  .session-panel:has(.rail-docked[data-open]):not(:has(.rail-pane)) .conversation-column {
+    --rail-reserve: var(--size-rail-reserve);
+  }
+}
+
+@container session-panel (min-width: 1464px) {
+  .session-panel:has(.rail-docked[data-open]):not(:has(.rail-pane[data-wide]))
+    .conversation-column {
+    --rail-reserve: var(--size-rail-reserve);
+  }
+}
+
+@container session-panel (min-width: 1904px) {
   .session-panel:has(.rail-docked[data-open]) .conversation-column {
     --rail-reserve: var(--size-rail-reserve);
   }

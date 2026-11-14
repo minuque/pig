@@ -2,22 +2,20 @@
   <div
     v-if="valid"
     class="stamp"
-    :class="{
-      'is-copied': status === 'copied',
-      'is-error': status === 'error',
-      'copy-before': copyBefore,
-    }"
+    :data-pinned="pinned || undefined"
+    :data-status="status === 'idle' ? undefined : status"
+    :data-copy-before="copyBefore || undefined"
+    role="toolbar"
+    :aria-label="t('transcript.messageActions')"
   >
-    <time :datetime="iso" :title="full">{{ clock }}</time>
-
     <Tooltip v-if="text">
       <TooltipTrigger as-child>
         <IconButton
           type="button"
-          variant="outline"
+          variant="ghost"
+          color="gray"
           size="s"
-          class="copy"
-          :class="{ 'is-copied': status === 'copied', 'is-error': status === 'error' }"
+          class="stamp-copy"
           :aria-label="copyLabel"
           @click="copy"
         >
@@ -30,49 +28,54 @@
 
       <TooltipContent>{{ copyLabel }}</TooltipContent>
     </Tooltip>
+
+    <Tooltip>
+      <TooltipTrigger as-child>
+        <time class="stamp-time" :datetime="iso">{{ relative }}</time>
+      </TooltipTrigger>
+
+      <TooltipContent side="top">{{ full }}</TooltipContent>
+    </Tooltip>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
-import { useTimeoutFn } from "@vueuse/core"
+import { useNow, useTimeoutFn } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { CheckIcon, CopyIcon } from "@components/icons/index.js"
+import { formatRelative } from "@utils/time.js"
 
 const props = withDefaults(
   defineProps<{
     timestamp: number
     text?: string
+    /** 复制按钮放在时间后面（用户消息靠右，时间贴着气泡外侧）。 */
     copyBefore?: boolean
+    /** 常驻显示，不等悬停。 */
+    pinned?: boolean
   }>(),
-  { text: "", copyBefore: false },
+  { text: "", copyBefore: false, pinned: false },
 )
 const { t, locale } = useI18n()
+// 相对时间按分钟走
+const now = useNow({ interval: 60_000 })
 const valid = computed(() => Number.isFinite(props.timestamp) && props.timestamp > 0)
 const date = computed(() => new Date(props.timestamp))
 const iso = computed(() => (valid.value ? date.value.toISOString() : ""))
-const clock = computed(() => {
-  if (!valid.value) return ""
-  const now = new Date()
-  const sameDay = date.value.toDateString() === now.toDateString()
-  return new Intl.DateTimeFormat(
-    locale.value,
-    sameDay
-      ? { hour: "2-digit", minute: "2-digit", hour12: false }
-      : { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false },
-  ).format(date.value)
-})
+const relative = computed(() =>
+  valid.value ? formatRelative(props.timestamp, now.value.getTime(), locale.value) : "",
+)
 const full = computed(() =>
   valid.value
     ? new Intl.DateTimeFormat(locale.value, {
         year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
+        month: "short",
+        day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
-        second: "2-digit",
         hour12: false,
       }).format(date.value)
     : "",
@@ -102,50 +105,39 @@ async function copy() {
 </script>
 
 <style scoped>
+/* 消息底栏：复制在前、时间在后，高度与图标按钮一致；时间不可聚焦，悬停看完整日期 */
 .stamp {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: var(--space-xs);
+  gap: var(--space-xxs);
   width: fit-content;
+  min-height: var(--size-icon-button);
   color: var(--contrast-foreground-faint);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }
 
-.stamp.copy-before {
+.stamp[data-copy-before] {
   flex-direction: row-reverse;
 }
 
-.copy {
-  width: 1em;
-  height: 1em;
-  padding: 0;
-  border: 0;
-  border-radius: calc(var(--radius-control) / 2);
-  background: transparent;
-  color: var(--contrast-foreground-secondary);
-  box-shadow: none;
-  transition:
-    color var(--duration-fast) var(--ease-out),
-    background-color var(--duration-fast) var(--ease-out);
+.stamp-time {
+  padding-inline: var(--space-xxs);
+  font-variant-numeric: tabular-nums;
+  user-select: none;
 }
 
-.copy:hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
-}
-
-.copy.is-copied {
+.stamp[data-status="copied"] .stamp-copy {
   color: var(--success);
 }
 
-.copy.is-error {
+.stamp[data-status="error"] .stamp-copy {
   color: var(--danger);
 }
 
 .icon-swap,
 .icon-swap :deep(svg) {
-  width: 1em;
-  height: 1em;
+  width: var(--size-icon);
+  height: var(--size-icon);
 }
 </style>

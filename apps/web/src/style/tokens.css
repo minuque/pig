@@ -192,6 +192,8 @@
   /* 摘要面板常驻时对话列右侧让出的宽：面板加两侧间距 */
   --size-rail-reserve: calc(var(--size-rail) + 2 * var(--space-sm));
   --size-rail-row: 26px;
+  --size-pane: 440px;
+  --size-pane-wide: 880px;
   --size-child-drawer: 560px;
   --size-dialog-s: 420px;
   --size-settings-body: 56rem;
@@ -225,8 +227,8 @@
   --transcript-gutter: 32px;
   --transcript-gutter-narrow: 20px;
   --transcript-pad-block: 48px;
-  --transcript-turn-gap: 15px;
-  --transcript-item-gap: 10px;
+  --transcript-turn-gap: 24px;
+  --transcript-item-gap: 16px;
   --transcript-row-pad: 10px;
   --transcript-tool-max: 400px;
   /* 侧栏行高 */
@@ -302,9 +304,8 @@
   --text-heading: 20px;
   --text-heading--line-height: 1.3;
   --text-heading--letter-spacing: -0.2px;
-  /* 图形尺寸，不算字号：项目缩写方块的字母、欢迎页涟漪字符 */
+  /* 图形尺寸，不算字号：项目缩写方块的字母 */
   --text-monogram: calc(var(--text-body) - 5px);
-  --text-glyph: calc(var(--text-body) - 5px);
 
   --font-weight-normal: 400;
   --font-weight-medium: 500;

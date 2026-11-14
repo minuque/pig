@@ -134,7 +134,7 @@ spacing:
 | `--text-code`    | 13 等宽 | 12   | 14   | 代码、路径、快捷键             |
 
 - 字重只用 400、500、600。
-- `--text-monogram`、`--text-glyph` 是图形尺寸，不算字号。
+- `--text-monogram` 是图形尺寸，不算字号。
 - 对话区 Markdown 排版对齐 cc-wrapper，不受四档约束。
 
 ## 圆角

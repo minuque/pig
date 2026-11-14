@@ -48,14 +48,14 @@
 
       <!-- Tooltip 会把触发器的锚点登记到自己名下，浮层改用显式锚点 -->
       <PopoverContent class="rail-popover" align="end" :reference="popoverButton?.$el">
-        <RailCards v-bind="cards" @open="rail.openChild" @stop="stopTask" />
+        <RailCards v-bind="cards" @stop="stopTask" />
       </PopoverContent>
     </Popover>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, useTemplateRef, type ComponentPublicInstance } from "vue"
+import { computed, ref, useTemplateRef, watch, type ComponentPublicInstance } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { PanelTextRightIcon } from "@components/icons/index.js"
 import { IconButton } from "@components/ui/button/index.js"
@@ -70,6 +70,12 @@ const rail = useSessionRail()!
 const { session, tasks, runningCount, cards, stopTask } = useRailCards()
 const popoverOpen = ref(false)
 const popoverButton = useTemplateRef<ComponentPublicInstance>("popoverButton")
+
+// 浮层里点开的条目进右侧面板，浮层让开
+watch(rail.pane, (pane) => {
+  if (pane) popoverOpen.value = false
+})
+
 /** 提示里带上上下文用量与任务进度，收起时也能一眼看到。 */
 const label = computed(() => {
   const usage = session.contextUsage.value
@@ -118,8 +124,28 @@ const label = computed(() => {
   border-radius: var(--radius-pill);
 }
 
-/* 与常驻面板同一门槛 */
+/* 与常驻面板同一组门槛：右侧面板开着时按它的宽度抬高 */
 @container session-panel (min-width: 1012px) {
+  .session-panel:not(:has(.rail-pane)) .rail-toggle-docked {
+    display: inline-flex;
+  }
+
+  .session-panel:not(:has(.rail-pane)) .rail-toggle-popover {
+    display: none;
+  }
+}
+
+@container session-panel (min-width: 1464px) {
+  .session-panel:not(:has(.rail-pane[data-wide])) .rail-toggle-docked {
+    display: inline-flex;
+  }
+
+  .session-panel:not(:has(.rail-pane[data-wide])) .rail-toggle-popover {
+    display: none;
+  }
+}
+
+@container session-panel (min-width: 1904px) {
   .rail-toggle-docked {
     display: inline-flex;
   }

@@ -1,21 +1,15 @@
 <template>
-  <Dialog>
-    <DialogTrigger as-child>
-      <button type="button" class="thumb">
-        <img :src="src" :alt="altText" class="thumb-img" />
-      </button>
-    </DialogTrigger>
+  <button type="button" class="thumb" @click="open = true">
+    <img :src="src" :alt="altText" class="thumb-img" />
+  </button>
 
-    <DialogContent class="zoom-dialog">
-      <img :src="src" :alt="altText" class="full" />
-    </DialogContent>
-  </Dialog>
+  <PreviewDialog v-model:open="open" :src="src" :title="altText" />
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { Dialog, DialogContent, DialogTrigger } from "@components/ui/dialog/index.js"
+import PreviewDialog from "@features/preview/index.vue"
 import { transcriptImageSrc } from "@features/transcript-view/lib/transcript-format.js"
 
 const { t } = useI18n()
@@ -27,6 +21,7 @@ const props = withDefaults(
   }>(),
   { alt: "" },
 )
+const open = ref(false)
 const altText = computed(() => props.alt || t("transcript.image"))
 const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
 </script>
@@ -43,33 +38,12 @@ const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
   cursor: zoom-in;
 }
 
-/* 图片预览：按内容收缩，再受视口约束 */
-.zoom-dialog {
-  place-items: center;
-  inline-size: fit-content;
-  max-inline-size: calc(100vw - 2rem);
-  max-block-size: 90vh;
-  overflow: auto;
-  padding: var(--space-sm);
-}
-
-.thumb-img,
-.full {
+.thumb-img {
   display: block;
+  width: 100%;
   height: auto;
   border-radius: inherit;
   outline: var(--border-width) solid var(--border-soft);
   outline-offset: -1px;
-}
-
-.thumb-img {
-  width: 100%;
-}
-
-.full {
-  width: auto;
-  max-width: none;
-  margin-inline: auto;
-  border-radius: var(--radius-card);
 }
 </style>

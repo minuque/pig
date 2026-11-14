@@ -56,16 +56,12 @@
       <AltArrowRightIcon class="tool-row-caret" :class="{ 'is-open': open }" data-icon="inline" />
     </div>
 
-    <Dialog v-if="thumb" v-model:open="previewOpen">
-      <DialogContent
-        class="tool-thumb-dialog"
-        :aria-label="t('common.preview', { name: t('transcript.image') })"
-        :show-close-button="false"
-        @click.self="previewOpen = false"
-      >
-        <img :src="thumb" alt="" class="tool-thumb-full" @click="previewOpen = false" />
-      </DialogContent>
-    </Dialog>
+    <PreviewDialog
+      v-if="thumb"
+      v-model:open="previewOpen"
+      :src="thumb"
+      :title="target.text || t('transcript.image')"
+    />
 
     <div v-if="open" class="tool-row-body">
       <ToolTaskBody v-if="tasks.length" :tasks="tasks" />
@@ -85,9 +81,9 @@
 import { computed, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { AltArrowRightIcon } from "@components/icons/index.js"
-import { Dialog, DialogContent } from "@components/ui/dialog/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { RollText } from "@components/ui/roll-text/index.js"
+import PreviewDialog from "@features/preview/index.vue"
 import ToolCommandBody from "@features/transcript-view/components/tool/ToolCommandBody.vue"
 import ToolFileBody from "@features/transcript-view/components/tool/ToolFileBody.vue"
 import ToolGenericBody from "@features/transcript-view/components/tool/ToolGenericBody.vue"
@@ -132,7 +128,10 @@ const duration = computed(() => {
   return formatElapsed(endedAt - startedAt)
 })
 const readRange = computed(() => {
+  // 读图片时输出只有一行占位说明，不是文件行
   if (variant.value !== "read" || props.call.running || props.call.isError) return ""
+
+  if (props.call.outputImages.length) return ""
 
   const read = readToolPreview(props.call.input, props.call.outputText)
 
@@ -347,27 +346,4 @@ const thumb = computed(() => {
 }
 
 /* 大图预览与附件预览同款：铺满视口、点任意处关闭，图整体缩进窗口 */
-.tool-thumb-dialog {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  max-inline-size: none;
-  max-block-size: none;
-  padding: var(--space-xl);
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
-  cursor: zoom-out;
-}
-
-.tool-thumb-full {
-  display: block;
-  width: auto;
-  height: auto;
-  max-inline-size: 100%;
-  max-block-size: calc(100vh - 2 * var(--space-xl));
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-dialog);
-}
 </style>
