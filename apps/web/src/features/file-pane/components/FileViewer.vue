@@ -61,6 +61,7 @@ import { useMarkdownNodes } from "@features/transcript-view/hooks/use-markdown-n
 import FileCode from "@features/file-pane/components/FileCode.vue"
 import FileNotice from "@features/file-pane/components/FileNotice.vue"
 import { fileViewKind } from "@features/file-pane/lib/file-kind.js"
+import { locateLines } from "@features/file-pane/lib/paths.js"
 import { useFilePane } from "@features/file-pane/index.js"
 import type { FileTextResponse } from "@/types/common-type.js"
 
@@ -84,8 +85,16 @@ const nodes = useMarkdownNodes({
 const range = computed(() => {
   const request = pane.request.value
 
-  if (request?.path !== props.path || request.line === undefined) return undefined
-  return { line: request.line, endLine: request.endLine ?? request.line, seq: request.seq }
+  if (request?.path !== props.path) return undefined
+
+  const found =
+    request.find && loaded.value?.content !== undefined
+      ? locateLines(loaded.value.content, request.find)
+      : undefined
+  const line = found?.line ?? request.line
+
+  if (line === undefined) return undefined
+  return { line, endLine: found?.endLine ?? request.endLine ?? line, seq: request.seq }
 })
 let loadSeq = 0
 

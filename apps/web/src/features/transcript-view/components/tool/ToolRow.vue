@@ -18,7 +18,14 @@
               {{ shownVerb }}
             </span>
 
-            <span v-if="target.text" class="tool-row-target" :title="target.path || target.text">
+            <!-- 文件名点开 Files 面板，不展开行；照 cc-wrapper 的 ToolPath -->
+            <span
+              v-if="target.text"
+              class="tool-row-target"
+              :class="{ 'is-openable': openable }"
+              :title="target.path || target.text"
+              @click="openable && openTarget($event)"
+            >
               {{ target.text }}
             </span>
 
@@ -78,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { computed, inject, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { AltArrowRightIcon } from "@components/icons/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
@@ -94,7 +101,12 @@ import {
   toolCallVariant,
   toolCallVerb,
 } from "@features/transcript-view/lib/tool-run.js"
-import { itemLineChange, readToolPreview } from "@features/transcript-view/lib/tool-summary.js"
+import {
+  editDiffPreview,
+  itemLineChange,
+  readToolPreview,
+} from "@features/transcript-view/lib/tool-summary.js"
+import { openFileKey } from "@features/transcript-view/index.js"
 import { toolTasks } from "@features/transcript-view/lib/tool-tasks.js"
 import { transcriptImageSrc } from "@features/transcript-view/lib/transcript-format.js"
 import { formatElapsed } from "@utils/time.js"
@@ -127,17 +139,35 @@ const duration = computed(() => {
   if (startedAt === undefined || endedAt === undefined) return ""
   return formatElapsed(endedAt - startedAt)
 })
-const readRange = computed(() => {
+const readLines = computed(() => {
   // 读图片时输出只有一行占位说明，不是文件行
-  if (variant.value !== "read" || props.call.running || props.call.isError) return ""
+  if (variant.value !== "read" || props.call.running || props.call.isError) return undefined
 
-  if (props.call.outputImages.length) return ""
+  if (props.call.outputImages.length) return undefined
 
   const read = readToolPreview(props.call.input, props.call.outputText)
 
-  if (read.lines.length === 0) return ""
-  return `${read.startLine}-${read.startLine + read.lines.length - 1}`
+  if (read.lines.length === 0) return undefined
+  return { line: read.startLine, endLine: read.startLine + read.lines.length - 1 }
 })
+const readRange = computed(() =>
+  readLines.value ? `${readLines.value.line}-${readLines.value.endLine}` : "",
+)
+const fileOpener = inject(openFileKey, undefined)
+const openable = computed(() => Boolean(fileOpener && target.value.path))
+
+function openTarget(event: MouseEvent) {
+  event.stopPropagation()
+  const path = target.value.path
+
+  if (!fileOpener || !path) return
+  fileOpener.open({
+    path,
+    ...readLines.value,
+    find: editDiffPreview(props.call.input)?.hunks[0]?.modified || undefined,
+  })
+}
+
 const thumb = computed(() => {
   const image = props.call.outputImages[0]
   return image ? transcriptImageSrc(image.data, image.mimeType) : null
@@ -214,6 +244,11 @@ const thumb = computed(() => {
 .tool-row-trigger.is-file .tool-row-target {
   color: var(--contrast-foreground);
   font-weight: var(--font-weight-medium);
+}
+
+.tool-row-target.is-openable:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .tool-row-caret {

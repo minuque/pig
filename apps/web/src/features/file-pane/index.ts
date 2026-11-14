@@ -2,6 +2,7 @@ import { computed, inject, provide, shallowRef, watch, type InjectionKey } from 
 import { readPref, writePref } from "@utils/storage.js"
 import type { SessionContext } from "@features/session/index.js"
 import { openFileKey } from "@features/transcript-view/index.js"
+import { finishedWrites, workspacePath } from "@features/file-pane/lib/paths.js"
 import {
   closeTab,
   emptyTabs,
@@ -17,18 +18,22 @@ export interface FileRequest {
   path: string
   line?: number | undefined
   endLine?: number | undefined
+  find?: string | undefined
   seq: number
 }
 
 export interface OpenOptions {
   line?: number | undefined
   endLine?: number | undefined
+  find?: string | undefined
   pin?: boolean
 }
 
 const OPEN_KEY = "pig.files.open"
 
-function useFilePaneState(session: Pick<SessionContext, "sessionId" | "sessionCwd">) {
+type SessionSource = Pick<SessionContext, "sessionId" | "sessionCwd" | "transcript">
+
+function useFilePaneState(session: SessionSource) {
   const open = shallowRef(readPref(OPEN_KEY) === "on")
   const tabs = shallowRef<TabsState>(emptyTabs())
   const request = shallowRef<FileRequest>()
@@ -60,8 +65,38 @@ function useFilePaneState(session: Pick<SessionContext, "sessionId" | "sessionCw
 
   function openFile(path: string, options: OpenOptions = {}) {
     update(openTab(tabs.value, path, options.pin ?? false))
-    request.value = { path, line: options.line, endLine: options.endLine, seq: ++seq }
+    request.value = {
+      path,
+      line: options.line,
+      endLine: options.endLine,
+      find: options.find,
+      seq: ++seq,
+    }
     setOpen(true)
+  }
+
+  // agent 写完一个已打开的文件就让查看器重读；进会话时已有的写入不算
+  let seen = new Set<string>()
+  let seenSession: string | undefined
+
+  watch(
+    () => [session.transcript.value, cwd.value] as const,
+    ([items, root]) => {
+      const writes = root ? finishedWrites(root, items) : []
+      const fresh = session.sessionId.value === seenSession
+      seenSession = session.sessionId.value
+      const opened = new Set(tabs.value.tabs.map((tab) => tab.path))
+
+      for (const write of writes)
+        if (fresh && !seen.has(write.id) && opened.has(write.path)) invalidate(write.path)
+
+      seen = new Set(writes.map((write) => write.id))
+    },
+    { immediate: true },
+  )
+
+  function invalidate(path: string) {
+    revisions.value = { ...revisions.value, [path]: (revisions.value[path] ?? 0) + 1 }
   }
 
   return {
@@ -76,9 +111,6 @@ function useFilePaneState(session: Pick<SessionContext, "sessionId" | "sessionCw
     activate: (path: string) => update(openTab(tabs.value, path, false)),
     pin: (path: string) => update(pinTab(tabs.value, path)),
     close: (path: string) => update(closeTab(tabs.value, path)),
-    invalidate(path: string) {
-      revisions.value = { ...revisions.value, [path]: (revisions.value[path] ?? 0) + 1 }
-    },
   }
 }
 
@@ -86,10 +118,25 @@ export type FilePaneContext = ReturnType<typeof useFilePaneState>
 
 const key: InjectionKey<FilePaneContext> = Symbol("file-pane")
 
-export function provideFilePane(session: Pick<SessionContext, "sessionId" | "sessionCwd">) {
+export function provideFilePane(session: SessionSource) {
   const state = useFilePaneState(session)
+  const resolve = (raw: string) =>
+    state.cwd.value ? workspacePath(state.cwd.value, raw) : undefined
+
   provide(key, state)
-  provide(openFileKey, ({ path, line, endLine }) => state.openFile(path, { line, endLine }))
+  provide(openFileKey, {
+    accepts: (raw) => Boolean(resolve(raw)),
+    open({ path, line, endLine, find }) {
+      const target = resolve(path)
+
+      if (target)
+        state.openFile(target.path, {
+          line: line ?? target.line,
+          endLine: endLine ?? target.endLine,
+          find,
+        })
+    },
+  })
   return state
 }
 
