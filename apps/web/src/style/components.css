@@ -361,27 +361,6 @@
   border-color: var(--border);
 }
 
-/* ------ 浮起的圆形图标钮：滚动到底、加载更早共用；浮在正文上，所以带浮层阴影 ------ */
-.icon-control {
-  width: var(--size-scroll-control);
-  height: var(--size-scroll-control);
-  border-radius: var(--radius-pill);
-  background: var(--popover);
-  color: var(--contrast-foreground-secondary);
-  cursor: pointer;
-  box-shadow:
-    var(--shadow-popover),
-    inset 0 0 0 var(--border-width) var(--border);
-  transition:
-    background var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
-}
-
-.icon-control:hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
-}
-
 /* ------ 圆角 ------ */
 .rounded-xs {
   border-radius: calc(var(--radius-control) / 2);

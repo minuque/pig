@@ -67,16 +67,18 @@ test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({
   await expect(envHead).toHaveAttribute("aria-expanded", "false")
   await expect(env.locator(".rail-summary")).toHaveText("本机")
 
-  // 拖任务卡的把手到最上方
+  // 按住任务卡标题直接拖到最上方，松手不算点击，开合不变
   const tasks = rail.locator(".rail-card").last()
-  await tasks.hover()
-  const from = (await tasks.locator(".rail-grip").boundingBox())!
+  const tasksHead = tasks.locator(".rail-head")
+  const expanded = await tasksHead.getAttribute("aria-expanded")
+  const from = (await tasksHead.boundingBox())!
   const top = (await env.boundingBox())!
   await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2)
   await page.mouse.down()
   await page.mouse.move(from.x + from.width / 2, top.y - 160, { steps: 16 })
   await page.mouse.up()
   await expect(titles.first()).toHaveText("后台任务")
+  await expect(rail.locator(".rail-head").first()).toHaveAttribute("aria-expanded", expanded!)
 
   // 排列与开合记在本地，刷新后仍是这样
   await page.reload()

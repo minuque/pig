@@ -192,6 +192,9 @@ export function useDragReorder(opts: DragReorderOptions) {
       return
     }
 
+    // 拖过之后松手会在起点元素上补一次 click，吞掉它，免得整项可拖时误触按钮
+    window.addEventListener("click", swallowClick, { capture: true, once: true })
+    setTimeout(() => window.removeEventListener("click", swallowClick, { capture: true }))
     const to = targetIndex()
     const landing = (st.rects[to]?.pos ?? st.offset) - st.base
     const live = st.offset - st.base
@@ -228,6 +231,11 @@ export function useDragReorder(opts: DragReorderOptions) {
     st.node.classList.remove("is-drag-live")
     s = null
     sweep()
+  }
+
+  function swallowClick(e: MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
   }
 
   function detach() {

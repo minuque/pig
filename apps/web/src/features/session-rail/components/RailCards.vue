@@ -149,7 +149,6 @@ const reorder = useDragReorder({
   axis: "y",
   container: () => list.value,
   itemSelector: ".rail-card",
-  handleSelector: ".rail-grip",
   onMove: (id, toIndex) => rail.move(shown.value, id as RailSectionId, toIndex),
 })
 let release: (() => void) | undefined

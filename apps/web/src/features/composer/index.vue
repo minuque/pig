@@ -83,10 +83,8 @@
               @mousedown.prevent
               @click="onPrimaryAction"
             >
-              <span class="primary-icon icon-swap" aria-hidden="true">
-                <span class="stop-square" :data-visible="primaryMode === 'stop'"></span>
-                <ArrowUpIcon :data-visible="primaryMode !== 'stop'" class="size-icon send-arrow" />
-              </span>
+              <span v-if="primaryMode === 'stop'" class="stop-square" aria-hidden="true"></span>
+              <ArrowUpIcon v-else class="size-icon send-arrow" aria-hidden="true" />
             </IconButton>
           </TooltipTrigger>
 
@@ -397,13 +395,6 @@ function onAbortHotkey(event: KeyboardEvent) {
 
 .send--abort:disabled {
   opacity: 0.5;
-}
-
-.primary-icon {
-  width: 100%;
-  height: 100%;
-  min-width: 0;
-  min-height: 0;
 }
 
 .stop-square {

@@ -60,29 +60,20 @@
         >
           <div class="composer-stack">
             <div class="session-floating-controls" :class="{ shown: showScrollToLatest }">
-              <Tooltip>
-                <TooltipTrigger as-child>
-                  <IconButton
-                    class="icon-control scroll-latest-control press-scale"
-                    type="button"
-                    :aria-label="t('transcript.scrollToBottom')"
-                    variant="outline"
-                    size="s"
-                    @click="scrollToLatest('smooth')"
-                  >
-                    <span class="icon-swap">
-                      <LoaderIcon
-                        :data-visible="turnPending"
-                        :class="{ 'is-spinning': turnPending }"
-                      />
-
-                      <ArrowDownIcon :data-visible="!turnPending" />
-                    </span>
-                  </IconButton>
-                </TooltipTrigger>
-
-                <TooltipContent>{{ t("transcript.scrollToBottom") }}</TooltipContent>
-              </Tooltip>
+              <span class="scroll-latest">
+                <Button
+                  class="scroll-latest-button"
+                  type="button"
+                  variant="soft"
+                  size="s"
+                  radius="full"
+                  @click="scrollToLatest('smooth')"
+                >
+                  <LoaderIcon v-if="turnPending" class="size-icon is-spinning" />
+                  <ArrowDownIcon v-else class="size-icon" />
+                  {{ t("transcript.scrollToBottom") }}
+                </Button>
+              </span>
             </div>
 
             <Composer
@@ -113,8 +104,7 @@ import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, 
 import { useEventListener, useResizeObserver } from "@vueuse/core"
 import { useRoute } from "vue-router"
 import { warmWorkspace } from "@client/platform.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { Button } from "@components/ui/button/index.js"
 import Composer from "@features/composer/index.vue"
 import {
   useComposerAttachments,
@@ -588,7 +578,8 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 .session-floating-controls {
   position: absolute;
   inset-block-start: 0;
-  inset-inline: 0 var(--rail-reserve);
+  /* composer-bar 已经让出侧栏，这里再让一次会偏左 */
+  inset-inline: 0;
   z-index: 1;
   display: flex;
   justify-content: center;
@@ -607,13 +598,27 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   translate: 0 0;
 }
 
-.session-floating-controls.shown .scroll-latest-control {
+.session-floating-controls.shown .scroll-latest {
   pointer-events: auto;
 }
 
-/* 外观走全局 .icon-control，这里只负责浮在输入卡上方 */
-.scroll-latest-control {
+/* soft 按钮底色半透明，垫一层同形实底，悬停时不透出正文；浮在输入卡上方 */
+.scroll-latest {
+  display: flex;
+  align-self: flex-start;
+  border-radius: var(--radius-pill);
+  background: var(--popover);
   translate: 0 calc(-100% - var(--space-sm));
+}
+
+/* 外边框沿用原圆形图标钮：盒内一圈 --border 细环 */
+.scroll-latest-button {
+  box-shadow: inset 0 0 0 var(--border-width) var(--border);
+}
+
+/* 不要按下反馈：按住时保持悬停的底色 */
+.scroll-latest-button:active {
+  background-color: var(--accent-a4);
 }
 
 @media (max-width: 900px) {
@@ -623,8 +628,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .session-floating-controls,
-  .scroll-latest-control {
+  .session-floating-controls {
     transition: none;
   }
 

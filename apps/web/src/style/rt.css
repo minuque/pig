@@ -101,7 +101,7 @@
   background-color: var(--btn-hover);
 }
 
-/* 类卡片外观的唯一来源：Card 与 surface 表格共用 --border 细环、--radius-card 圆角，不铺底。
+/* 类卡片外观的唯一来源：Card 与 surface 表格共用 --border 细环、--radius-card 圆角，外壳不铺底。
    rt 原生 surface 环是 gray-a5，与其它卡片并排会一淡一实。 */
 .rt-Card {
   --card-border-radius: var(--radius-card);
@@ -115,9 +115,26 @@
 .rt-TableRoot:where(.rt-variant-surface) {
   --table-border-radius: var(--radius-card);
 
-  border-color: var(--border);
+  /* 外框和 Card 一样画成细环，不占盒子尺寸；圆角裁住单元格底色 */
+  overflow: hidden;
+  border: 0;
   background-color: var(--card-surface);
   backdrop-filter: none;
+}
+
+/* 细环画在盒内、盖在单元格底色上：画在盒外会被正文容器的溢出裁掉左右两边 */
+.rt-TableRoot:where(.rt-variant-surface)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--border);
+  pointer-events: none;
+}
+
+/* 正文单元格铺一层面板底，与表头的灰底分出层次 */
+.rt-TableRoot:where(.rt-variant-surface) :where(.rt-TableBody) {
+  --table-row-background-color: var(--surface);
 }
 
 /* Reka 与 rt 对浮层用的 CSS 变量前缀不同：rt 的组件 CSS 读 --radix-*，

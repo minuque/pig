@@ -19,10 +19,8 @@
           :aria-label="copyLabel"
           @click="copy"
         >
-          <span class="icon-swap">
-            <CopyIcon :data-visible="status !== 'copied'" />
-            <CheckIcon :data-visible="status === 'copied'" />
-          </span>
+          <CheckIcon v-if="status === 'copied'" class="size-icon" />
+          <CopyIcon v-else class="size-icon" />
         </IconButton>
       </TooltipTrigger>
 
@@ -133,11 +131,5 @@ async function copy() {
 
 .stamp[data-status="error"] .stamp-copy {
   color: var(--danger);
-}
-
-.icon-swap,
-.icon-swap :deep(svg) {
-  width: var(--size-icon);
-  height: var(--size-icon);
 }
 </style>
