@@ -23,6 +23,8 @@
               <span class="selector-name">{{ label }}</span>
               <RollText v-if="effortLabel" class="selector-effort" :text="effortLabel" />
             </span>
+
+            <slot />
           </Button>
         </DropdownMenuTrigger>
       </TooltipTrigger>
@@ -351,8 +353,8 @@ function onSelectModel(event: Event, provider: string, id: string) {
 </script>
 
 <style scoped>
-/* 触发器：rt ghost 按钮，取消 ghost 的负外边距，宽度随标签收缩 */
-.selector[data-slot="button"] {
+/* 触发器：rt ghost 按钮，取消 ghost 的负外边距，宽度随标签收缩；data-slot 会被 Tooltip 改写，按 rt 类匹配 */
+.selector.rt-Button {
   min-width: 0;
   flex-shrink: 1;
   margin: 0;
@@ -361,7 +363,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   font-weight: var(--font-weight-medium);
 }
 
-.selector[data-slot="button"][data-state="open"] {
+.selector.rt-Button[data-state="open"] {
   background-color: var(--btn-hover);
 }
 

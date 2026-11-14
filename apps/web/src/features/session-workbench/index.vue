@@ -87,6 +87,7 @@
               :cwd="composerCwd"
               :send-disabled="sendDisabled"
               :queue="composerQueue"
+              :usage="showHero ? undefined : contextUsage"
               @send="onSend"
               @send-now="onQueueSendNow"
               @queue="onQueue"
@@ -169,6 +170,7 @@ const {
   setBackgroundIdleHandler,
   setWelcomeHandoff,
   transcriptFor,
+  contextUsage,
 } = useSession()
 const { groups, lastCwd, addingWorkspace, addWorkspace, addRemoteWorkspace } = useNav()
 const remoteOpen = ref(false)

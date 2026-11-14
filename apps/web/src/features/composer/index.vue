@@ -66,7 +66,9 @@
           v-model:model="model"
           v-model:level="level"
           :catalog="catalog"
-        />
+        >
+          <ContextRing v-if="usage" :usage="usage" />
+        </ModelPicker>
       </template>
 
       <template #right>
@@ -116,6 +118,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 import AttachmentChips from "@features/composer/components/AttachmentChips.vue"
 import PreviewDialog from "@features/preview/index.vue"
 import ModelPicker from "@features/composer/components/ModelPicker.vue"
+import ContextRing from "@features/composer/components/ContextRing.vue"
 import PromptEditor from "@features/composer/components/PromptEditor.vue"
 import QueuePanel from "@features/composer/components/QueuePanel.vue"
 import {
@@ -124,7 +127,12 @@ import {
   type ComposerAttachmentsApi,
 } from "@features/composer/hooks/use-composer-attachments.js"
 import type { ComposerQueueApi, QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
-import type { ComposerModel, ComposerPreset, ComposerVendor } from "@features/composer/type.js"
+import type {
+  ComposerModel,
+  ComposerPreset,
+  ComposerVendor,
+  ContextUsage,
+} from "@features/composer/type.js"
 import { ArrowUpIcon, PaperclipIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
@@ -141,6 +149,8 @@ const props = withDefaults(
     sendDisabled?: boolean
     sessionId?: string | undefined
     cwd?: string | undefined
+    /** 当前会话的上下文占用；新会话没有 */
+    usage?: ContextUsage | undefined
     queue: ComposerQueueApi
   }>(),
   {
@@ -149,6 +159,7 @@ const props = withDefaults(
     sendDisabled: false,
     sessionId: undefined,
     cwd: undefined,
+    usage: undefined,
   },
 )
 const prompt = defineModel<string>("prompt", { required: true })

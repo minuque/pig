@@ -1,22 +1,24 @@
 <template>
   <Teleport to="body">
-    <!-- 需行动/需知悉：顶部 banner 层，挤压视口提示权重最高 -->
-    <TransitionGroup name="banner" tag="div" class="banner-layer">
-      <div v-for="item in noticeQueue" :key="item.id" class="banner-item">
-        <Callout
-          variant="soft"
-          :color="LEVEL_COLOR[item.level]"
-          dismissible
-          floating
-          class="banner-alert"
-          @close="dismissNotice(item.id)"
-        >
-          <template v-if="item.level === 'error'" #icon><DangerCircleIcon /></template>
-          <template v-if="item.level === 'error'" #title>{{ t("common.error") }}</template>
-          <template #default>{{ item.message }}</template>
-        </Callout>
-      </div>
-    </TransitionGroup>
+    <!-- 需行动/需知悉：顶部 banner 层；包 ThemeRoot 才拿得到 rt 的间距、圆角与配色 token -->
+    <ThemeRoot>
+      <TransitionGroup name="banner" tag="div" class="banner-layer">
+        <div v-for="item in noticeQueue" :key="item.id" class="banner-item">
+          <Callout
+            variant="soft"
+            :color="LEVEL_COLOR[item.level]"
+            dismissible
+            floating
+            class="banner-alert"
+            @close="dismissNotice(item.id)"
+          >
+            <template v-if="item.level === 'error'" #icon><DangerCircleIcon /></template>
+            <template v-if="item.level === 'error'" #title>{{ t("common.error") }}</template>
+            <template #default>{{ item.message }}</template>
+          </Callout>
+        </div>
+      </TransitionGroup>
+    </ThemeRoot>
   </Teleport>
 </template>
 
@@ -24,6 +26,7 @@
 import { useI18n } from "@i18n/index.js"
 
 import { Callout, type CalloutColor } from "@components/ui/callout/index.js"
+import ThemeRoot from "@components/ui/rt/ThemeRoot.vue"
 import { dismissNotice, noticeQueue, type NoticeLevel } from "@components/layout/notify.js"
 import { DangerCircleIcon } from "@components/icons/index.js"
 

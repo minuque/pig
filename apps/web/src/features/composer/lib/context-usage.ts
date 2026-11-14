@@ -94,6 +94,11 @@ export function segmentShare(tokens: number, window: number): number {
   return Math.min(100, (tokens / window) * 100)
 }
 
+/** 用量分档（与 cc-wrapper 一致）：75% 起警告，90% 起危险。 */
+export function contextSeverity(percent: number): "warning" | "critical" | undefined {
+  return percent >= 90 ? "critical" : percent >= 75 ? "warning" : undefined
+}
+
 export function contextUsageSummary(usage: ContextUsage): string {
   return `${formatTokenCount(usage.used)} / ${formatTokenCount(usage.window)} tokens`
 }

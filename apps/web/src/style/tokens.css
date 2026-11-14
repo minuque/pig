@@ -207,6 +207,8 @@
   /* 折叠箭头等比正文缩一档 */
   --size-icon-xs: calc(var(--size-icon) - 2px);
   --size-icon-2xs: 16px;
+  /* 模型标签旁的上下文占用圆环 */
+  --size-context-ring: 15px;
   --size-icon-button: 28px;
   /* 侧栏左下角的头像 */
   --size-avatar: 20px;

@@ -95,6 +95,7 @@ import {
   ContextMenuSeparator,
 } from "@components/ui/context-menu/index.js"
 import type { ContextUsage } from "@features/composer/type.js"
+import { contextSeverity } from "@features/composer/lib/context-usage.js"
 import RailCard from "@features/session-rail/components/RailCard.vue"
 import RailContext from "@features/session-rail/components/RailContext.vue"
 import RailTaskRows from "@features/session-rail/components/RailTaskRows.vue"
@@ -122,11 +123,7 @@ const titles = computed<Record<RailSectionId, string>>(() => ({
   context: t("rail.context"),
   tasks: t("rail.tasks"),
 }))
-/** 用量分档（与 cc-wrapper 一致）：75% 起警告，90% 起危险。 */
-const severity = computed(() => {
-  const percent = props.usage?.percent ?? 0
-  return percent >= 90 ? "critical" : percent >= 75 ? "warning" : undefined
-})
+const severity = computed(() => contextSeverity(props.usage?.percent ?? 0))
 /** 远程 workspace 键 ssh://主机/路径 拆成主机与远端路径。 */
 const place = computed(() => {
   const remote = props.cwd ? REMOTE_KEY.exec(props.cwd) : null

@@ -81,6 +81,7 @@ beforeEach(() => {
   })
   vi.stubGlobal("cancelAnimationFrame", (id: number) => frames.delete(id))
   vi.stubGlobal("Node", class NodeStub {})
+  vi.stubGlobal("matchMedia", () => ({ matches: false }))
 })
 
 afterEach(() => {
@@ -143,6 +144,28 @@ describe("一轮工作：流式视口跟随", () => {
     frame()
     expect(follow.atBottom.value).toBe(true)
     expect(root.scrollTop).toBe(800)
+  })
+
+  it("回到底部平滑滑动：途中内容长高也一路向下落到真实底部，不在终点回跳", () => {
+    const { root, follow } = fixture()
+
+    root.scrollHeight = 4000
+    root.scrollTop = 0
+    frame()
+    frame()
+    expect(follow.atBottom.value).toBe(false)
+    follow.scrollToLatest("smooth")
+    const seen: number[] = []
+
+    for (let index = 0; index < 120 && frames.size > 0; index += 1) {
+      if (index === 10) root.scrollHeight += 800
+      frame()
+      seen.push(root.scrollTop)
+    }
+
+    expect(root.scrollTop).toBe(root.scrollHeight - root.clientHeight)
+    expect(seen.every((top, index) => index === 0 || top >= seen[index - 1]!)).toBe(true)
+    expect(follow.atBottom.value).toBe(true)
   })
 
   it("失败路径：滚轮上滚立即脱底并停掉自动贴底", () => {
