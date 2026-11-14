@@ -12,6 +12,8 @@ export type {
   DefaultModelView,
   EnvironmentInfo,
   FileSearchEntry,
+  FileStatResponse,
+  FileTextResponse,
   LoginEvent,
   LoginPrompt,
   ModelMetadata,

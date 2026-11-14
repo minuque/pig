@@ -9,6 +9,8 @@ import type {
   CustomProviderInput,
   EnvironmentInfo,
   FileSearchEntry,
+  FileStatResponse,
+  FileTextResponse,
   LoginEvent,
   ModelMetadata,
   ModelParamsPatch,
@@ -346,4 +348,26 @@ export async function listWorkspaceCommands(
     prompts: ComposerCommand[]
   }>(`/api/v1/platform/skills?cwd=${encodeURIComponent(cwd)}`)
   return { skills: result.skills, prompts: result.prompts }
+}
+
+const fsQuery = (cwd: string, path: string) => new URLSearchParams({ cwd, path }).toString()
+
+/** 工作区内文件的原始字节地址；图片、音视频、PDF 直接用它加载。 */
+export function fileRawUrl(cwd: string, path: string): string {
+  return `/api/v1/platform/fs/raw?${fsQuery(cwd, path)}`
+}
+
+export function statWorkspaceFile(cwd: string, path: string): Promise<FileStatResponse> {
+  return platformRequest<FileStatResponse>(`/api/v1/platform/fs/stat?${fsQuery(cwd, path)}`)
+}
+
+/** force：二进制也按文本读出。 */
+export function readWorkspaceFile(
+  cwd: string,
+  path: string,
+  force = false,
+): Promise<FileTextResponse> {
+  return platformRequest<FileTextResponse>(
+    `/api/v1/platform/fs/text?${fsQuery(cwd, path)}${force ? "&force=1" : ""}`,
+  )
 }
