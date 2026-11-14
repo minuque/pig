@@ -1,4 +1,5 @@
-import { readPref, writePref, type PrefStorage } from "@utils/storage.js"
+import type { PrefStorage } from "@utils/storage.js"
+import { readSessionValue, writeSessionValue } from "@features/file-pane/lib/session-memory.js"
 
 /** 一个打开的文件；preview 是单击打开的临时标签，下一次单击会替换它。 */
 export interface FileTab {
@@ -12,8 +13,6 @@ export interface TabsState {
 }
 
 const TABS_KEY = "pig.files.tabs"
-/** 与 cc-wrapper 的会话布局记忆同一上限：超出时最久没用的先丢。 */
-const MAX_SESSIONS = 100
 export const emptyTabs = (): TabsState => ({ tabs: [] })
 
 export function openTab(state: TabsState, path: string, pin: boolean): TabsState {
@@ -55,17 +54,6 @@ export function closeTab(state: TabsState, path: string): TabsState {
   return { tabs, active }
 }
 
-type Stored = Record<string, TabsState>
-
-function readAll(storage: PrefStorage): Stored {
-  try {
-    const value: unknown = JSON.parse(readPref(TABS_KEY, storage) ?? "{}")
-    return value && typeof value === "object" && !Array.isArray(value) ? (value as Stored) : {}
-  } catch {
-    return {}
-  }
-}
-
 function valid(state: unknown): state is TabsState {
   if (!state || typeof state !== "object") return false
 
@@ -77,23 +65,20 @@ function valid(state: unknown): state is TabsState {
 }
 
 export function readSessionTabs(sessionId: string, storage: PrefStorage = localStorage): TabsState {
-  const state = readAll(storage)[sessionId]
-
-  if (!valid(state)) return emptyTabs()
-  return state.tabs.length ? { tabs: state.tabs, active: state.active } : emptyTabs()
+  const state = readSessionValue(TABS_KEY, sessionId, valid, storage)
+  return state?.tabs.length ? { tabs: state.tabs, active: state.active } : emptyTabs()
 }
 
-/** 只记路径与临时标记，不记内容；最近写的会话排在最后。 */
+/** 只记路径与临时标记，不记内容。 */
 export function writeSessionTabs(
   sessionId: string,
   state: TabsState,
   storage: PrefStorage = localStorage,
 ): void {
-  const all = readAll(storage)
-  delete all[sessionId]
-
-  if (state.tabs.length) all[sessionId] = { tabs: state.tabs, active: state.active }
-
-  const kept = Object.entries(all).slice(-MAX_SESSIONS)
-  writePref(TABS_KEY, JSON.stringify(Object.fromEntries(kept)), storage)
+  writeSessionValue(
+    TABS_KEY,
+    sessionId,
+    state.tabs.length ? { tabs: state.tabs, active: state.active } : undefined,
+    storage,
+  )
 }

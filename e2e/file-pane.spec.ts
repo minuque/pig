@@ -39,6 +39,10 @@ test("点工具行里的文件名，Files 面板打开这个文件并标出读�
   await expect(pane.locator(".file-code-line[data-hl]").first()).toContainText(
     "export const fromWorkspace = 42",
   )
+  // 树里展开到这个文件并标为当前
+  await expect(
+    pane.locator('.file-tree-row[data-active][data-path="src/example.ts"]'),
+  ).toBeVisible()
   await checkpoint(page, "file-pane-open")
 
   // 头部按钮收起面板，再打开时标签还在

@@ -7,10 +7,13 @@ import type {
   ContextUsageEstimate,
   ContextUsagePreview,
   CustomProviderInput,
+  ContentSearchResponse,
+  DirectoryListResponse,
   EnvironmentInfo,
   FileSearchEntry,
   FileStatResponse,
   FileTextResponse,
+  GitStatusResponse,
   LoginEvent,
   ModelMetadata,
   ModelParamsPatch,
@@ -369,5 +372,27 @@ export function readWorkspaceFile(
 ): Promise<FileTextResponse> {
   return platformRequest<FileTextResponse>(
     `/api/v1/platform/fs/text?${fsQuery(cwd, path)}${force ? "&force=1" : ""}`,
+  )
+}
+
+/** 列一个目录；path 用 "." 表示工作区根。 */
+export function listWorkspaceDir(cwd: string, path: string): Promise<DirectoryListResponse> {
+  return platformRequest<DirectoryListResponse>(`/api/v1/platform/fs/list?${fsQuery(cwd, path)}`)
+}
+
+export function workspaceGitStatus(cwd: string): Promise<GitStatusResponse> {
+  return platformRequest<GitStatusResponse>(
+    `/api/v1/platform/git/status?${new URLSearchParams({ cwd }).toString()}`,
+  )
+}
+
+export function searchWorkspaceContents(
+  cwd: string,
+  query: string,
+  signal?: AbortSignal,
+): Promise<ContentSearchResponse> {
+  return platformRequest<ContentSearchResponse>(
+    `/api/v1/platform/fs/search?${new URLSearchParams({ cwd, q: query }).toString()}`,
+    signal ? { signal } : undefined,
   )
 }

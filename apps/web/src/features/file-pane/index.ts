@@ -1,8 +1,9 @@
 import { computed, inject, provide, shallowRef, watch, type InjectionKey } from "vue"
-import { readPref, writePref } from "@utils/storage.js"
+import { readFlag, readPref, writeFlag, writePref } from "@utils/storage.js"
 import type { SessionContext } from "@features/session/index.js"
 import { openFileKey } from "@features/transcript-view/index.js"
 import { finishedWrites, workspacePath } from "@features/file-pane/lib/paths.js"
+import { readSessionValue, writeSessionValue } from "@features/file-pane/lib/session-memory.js"
 import {
   closeTab,
   emptyTabs,
@@ -30,6 +31,10 @@ export interface OpenOptions {
 }
 
 const OPEN_KEY = "pig.files.open"
+const TREE_KEY = "pig.files.tree"
+const EXPANDED_KEY = "pig.files.expanded"
+const isStringArray = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every((item) => typeof item === "string")
 
 type SessionSource = Pick<SessionContext, "sessionId" | "sessionCwd" | "transcript">
 
@@ -39,6 +44,11 @@ function useFilePaneState(session: SessionSource) {
   const request = shallowRef<FileRequest>()
   /** 被 agent 改过的文件：计数变了查看器就重读。 */
   const revisions = shallowRef<Record<string, number>>({})
+  /** agent 每写完一个文件加一：树与改动标记据此刷新。 */
+  const changes = shallowRef(0)
+  const treeShown = shallowRef(readFlag(TREE_KEY))
+  /** 树里展开的目录，按会话记住。 */
+  const expanded = shallowRef<string[]>([])
   const cwd = computed(() => session.sessionCwd.value)
   let seq = 0
 
@@ -46,6 +56,7 @@ function useFilePaneState(session: SessionSource) {
     session.sessionId,
     (id) => {
       tabs.value = id ? readSessionTabs(id) : emptyTabs()
+      expanded.value = (id && readSessionValue(EXPANDED_KEY, id, isStringArray)) || []
       request.value = undefined
     },
     { immediate: true },
@@ -86,9 +97,11 @@ function useFilePaneState(session: SessionSource) {
       const fresh = session.sessionId.value === seenSession
       seenSession = session.sessionId.value
       const opened = new Set(tabs.value.tabs.map((tab) => tab.path))
+      const added = fresh ? writes.filter((write) => !seen.has(write.id)) : []
 
-      for (const write of writes)
-        if (fresh && !seen.has(write.id) && opened.has(write.path)) invalidate(write.path)
+      for (const write of added) if (opened.has(write.path)) invalidate(write.path)
+
+      if (added.length) changes.value += 1
 
       seen = new Set(writes.map((write) => write.id))
     },
@@ -111,6 +124,19 @@ function useFilePaneState(session: SessionSource) {
     activate: (path: string) => update(openTab(tabs.value, path, false)),
     pin: (path: string) => update(pinTab(tabs.value, path)),
     close: (path: string) => update(closeTab(tabs.value, path)),
+    changes,
+    treeShown,
+    toggleTree() {
+      treeShown.value = !treeShown.value
+      writeFlag(TREE_KEY, treeShown.value)
+    },
+    expanded,
+    setExpanded(next: string[]) {
+      expanded.value = next
+      const id = session.sessionId.value
+
+      if (id) writeSessionValue(EXPANDED_KEY, id, next.length ? next : undefined)
+    },
   }
 }
 
