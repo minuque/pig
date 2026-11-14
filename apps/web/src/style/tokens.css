@@ -195,6 +195,12 @@
   --size-pane: 440px;
   --size-pane-wide: 880px;
   --size-child-drawer: 560px;
+  /* Files 面板的标签：照 cc-wrapper 的 basis 192、最窄 104、标签文字最宽 140、高 24 */
+  --size-file-tab: 192px;
+  --size-file-tab-min: 104px;
+  --size-file-tab-label: 140px;
+  --size-file-tab-height: 24px;
+  --size-file-tab-close: 20px;
   --size-dialog-s: 420px;
   --size-settings-body: 56rem;
   --size-settings-dialog-width: 80rem;

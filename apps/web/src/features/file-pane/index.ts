@@ -27,12 +27,9 @@ export interface OpenOptions {
 }
 
 const OPEN_KEY = "pig.files.open"
-const SIZE_KEY = "pig.files.size"
-const DEFAULT_SIZE = 45
 
 function useFilePaneState(session: Pick<SessionContext, "sessionId" | "sessionCwd">) {
   const open = shallowRef(readPref(OPEN_KEY) === "on")
-  const size = shallowRef(Number(readPref(SIZE_KEY)) || DEFAULT_SIZE)
   const tabs = shallowRef<TabsState>(emptyTabs())
   const request = shallowRef<FileRequest>()
   /** 被 agent 改过的文件：计数变了查看器就重读。 */
@@ -69,7 +66,6 @@ function useFilePaneState(session: Pick<SessionContext, "sessionId" | "sessionCw
 
   return {
     open,
-    size,
     tabs,
     request,
     revisions,
@@ -80,10 +76,6 @@ function useFilePaneState(session: Pick<SessionContext, "sessionId" | "sessionCw
     activate: (path: string) => update(openTab(tabs.value, path, false)),
     pin: (path: string) => update(pinTab(tabs.value, path)),
     close: (path: string) => update(closeTab(tabs.value, path)),
-    resize(next: number) {
-      size.value = next
-      writePref(SIZE_KEY, String(Math.round(next)))
-    },
     invalidate(path: string) {
       revisions.value = { ...revisions.value, [path]: (revisions.value[path] ?? 0) + 1 }
     },

@@ -233,6 +233,14 @@ export const zh = {
     notFound: "这台主机上没有这个目录，或连不上主机",
     noHosts: "~/.ssh/config 里还没有可用的主机",
   },
+  files: {
+    title: "文件",
+    toggle: "开关文件面板",
+    back: "返回对话",
+    empty: "没有打开的文件",
+    closeTab: "关闭标签",
+    allTabs: "全部标签",
+  },
   rail: {
     title: "摘要",
     toggle: "开关摘要面板",
@@ -603,6 +611,14 @@ export const en: Messages = {
     add: "Add",
     notFound: "The folder does not exist on this host, or the host is unreachable",
     noHosts: "No hosts found in ~/.ssh/config",
+  },
+  files: {
+    title: "Files",
+    toggle: "Toggle files pane",
+    back: "Back to conversation",
+    empty: "No open files",
+    closeTab: "Close tab",
+    allTabs: "All tabs",
   },
   rail: {
     title: "Summary",
