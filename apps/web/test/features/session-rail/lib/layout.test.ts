@@ -6,11 +6,4 @@ describe("railModeOf", () => {
     expect(railModeOf(1011)).toBe("popover")
     expect(railModeOf(1012)).toBe("docked")
   })
-
-  it("右侧面板开着时再让出它的宽度", () => {
-    expect(railModeOf(1463, { wide: false })).toBe("popover")
-    expect(railModeOf(1464, { wide: false })).toBe("docked")
-    expect(railModeOf(1903, { wide: true })).toBe("popover")
-    expect(railModeOf(1904, { wide: true })).toBe("docked")
-  })
 })

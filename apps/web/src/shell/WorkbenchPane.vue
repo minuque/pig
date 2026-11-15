@@ -11,9 +11,11 @@
       :rail="!session.welcome.value"
     />
 
-    <FilePane>
+    <PaneBody :host="host" :split="split.split.value">
       <SessionWorkbench />
-    </FilePane>
+    </PaneBody>
+
+    <FilePane />
   </section>
 </template>
 
@@ -24,12 +26,20 @@ import { provideSession, type SessionContext } from "@features/session/index.js"
 import { provideSessionRail } from "@features/session-rail/index.js"
 import SessionWorkbench from "@features/session-workbench/index.vue"
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
-import { providePaneSide, useSplitView, type Side } from "@features/split-view/index.js"
+import PaneBody from "@features/split-view/components/PaneBody.vue"
+import {
+  providePaneSide,
+  providePanelHost,
+  useSplitView,
+  type Side,
+} from "@features/split-view/index.js"
 
 const props = defineProps<{ side: Side; session: SessionContext }>()
 const split = useSplitView()
 
 providePaneSide(props.side)
+
+const host = providePanelHost()
 
 provideSession(props.session)
 

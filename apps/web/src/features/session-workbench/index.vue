@@ -434,17 +434,14 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 </script>
 
 <style scoped>
-/* 正文一列，右侧各面板各占一列，没开的面板列宽为 0；头部在面板外，横跨整个工作区。
-   面板宽度按 50cqw / 70cqw 收，容器就是这个面板 */
+/* 正文一列；摘要卡浮在右上角，右侧面板在 workbench 的面板列里 */
 .session-panel {
   position: relative;
   container-type: inline-size;
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template:
-    "conversation rail pane" minmax(0, 1fr)
-    / minmax(0, 1fr) auto auto;
+  grid-template: "conversation" minmax(0, 1fr) / minmax(0, 1fr);
 }
 
 .drop-guide {

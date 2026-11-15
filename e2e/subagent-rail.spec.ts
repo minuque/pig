@@ -63,12 +63,13 @@ test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({
   expect(headerBox.x).toBeCloseTo(mainBox.x, 0)
   expect(headerBox.x + headerBox.width).toBeCloseTo(mainBox.x + mainBox.width, 0)
 
-  // 正文与输入条在摘要面板左侧结束，不压在面板下
+  // 摘要卡浮在正文右上角，不占正文的列；输入条在它左侧结束
   const railBox = (await rail.boundingBox())!
   const composerBox = (await page.locator(".composer-stack").boundingBox())!
   expect(composerBox.x + composerBox.width).toBeLessThanOrEqual(railBox.x)
   const viewportBox = (await page.locator(".transcript-viewport").boundingBox())!
-  expect(viewportBox.x + viewportBox.width).toBeLessThanOrEqual(railBox.x)
+  expect(viewportBox.x + viewportBox.width).toBeGreaterThan(railBox.x)
+  expect(railBox.x + railBox.width).toBeLessThanOrEqual(viewportBox.x + viewportBox.width + 1)
 
   // 上下文展开：按分类列 token 与占比，点分类在右侧面板里看实际进上下文的内容
   const contextCard = rail.locator(".rail-card", { hasText: "上下文" })

@@ -108,7 +108,7 @@
           :data-active="files.open.value || undefined"
           :aria-pressed="files.open.value"
           :aria-label="t('files.toggle')"
-          @click="files.toggle"
+          @click="toggleFiles"
         >
           <FoldersIcon class="size-icon-2xs" />
         </IconButton>
@@ -175,7 +175,7 @@ import { useFilePane } from "@features/file-pane/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import { workspaceName } from "@features/session-nav/lib/format.js"
 import { sessionTitle, untitledSession, useSession } from "@features/session/index.js"
-import { usePaneSide, useSplitView } from "@features/split-view/index.js"
+import { usePaneSide, usePanelHost, useSplitView } from "@features/split-view/index.js"
 import {
   ArrowLeftRightIcon,
   ChevronDownIcon,
@@ -194,6 +194,7 @@ defineProps<{ rail?: boolean }>()
 const { t } = useI18n()
 const side = usePaneSide()
 const split = useSplitView()
+const panels = usePanelHost()
 const sideBySide = computed(() => split.split.value && split.fits.value)
 /** 窗口最左边的 header：给红绿灯让位、放侧栏入口。 */
 const leftmost = computed(() => side === "left" || !sideBySide.value)
@@ -281,6 +282,12 @@ function commit(): void {
   if (currentId.value && name && name !== title.value) onRename(name)
   else draft.value = title.value
   titleInput.value?.blur()
+}
+
+/** 文件面板被面板列收起时，点图标把它挪回最下面，而不是关掉。 */
+function toggleFiles(): void {
+  if (panels?.hidden("files")) panels.raise("files")
+  else files.toggle()
 }
 
 function focusTitle(): void {

@@ -1,7 +1,22 @@
-import { computed, inject, provide, shallowRef, watch, type InjectionKey, type Ref } from "vue"
+import {
+  computed,
+  inject,
+  provide,
+  shallowReactive,
+  shallowRef,
+  watch,
+  type InjectionKey,
+  type Ref,
+} from "vue"
 import { readPref, writePref } from "@utils/storage.js"
 import type { SessionContext } from "@features/session/index.js"
 import { useSplitRoute } from "@features/split-view/hooks/use-split-route.js"
+import {
+  closePanel,
+  openPanel,
+  visiblePanels,
+  type PanelKind,
+} from "@features/split-view/lib/panel-stack.js"
 import {
   closeSide,
   fitsSplit,
@@ -16,6 +31,8 @@ import {
 } from "@features/split-view/lib/split-state.js"
 
 export type { Side, SplitState } from "@features/split-view/lib/split-state.js"
+
+export type { PanelKind } from "@features/split-view/lib/panel-stack.js"
 
 const STORAGE_KEY = "pig.split"
 
@@ -101,4 +118,48 @@ export function providePaneSide(side: Side) {
 
 export function usePaneSide(): Side {
   return inject(sideKey, "left")
+}
+
+/** 一侧 workbench 的面板列：各面板按打开顺序登记，列给每个放得下的面板一个挂载点。 */
+function createPanelHost() {
+  const order = shallowRef<PanelKind[]>([])
+  const height = shallowRef(Number.POSITIVE_INFINITY)
+  const slots = shallowReactive(new Map<PanelKind, HTMLElement>())
+  /** 面板列宽度不够时整列盖住对话。 */
+  const covering = shallowRef(false)
+  const visible = computed(() => visiblePanels(order.value, height.value))
+  return {
+    order,
+    visible,
+    covering,
+    slots,
+    setHeight: (value: number) => {
+      height.value = value
+    },
+    open: (kind: PanelKind) => {
+      order.value = openPanel(order.value, kind)
+    },
+    close: (kind: PanelKind) => {
+      order.value = closePanel(order.value, kind)
+    },
+    /** 被收起的面板点回来：挪到最下面，成为最新打开的。 */
+    raise: (kind: PanelKind) => {
+      order.value = [...closePanel(order.value, kind), kind]
+    },
+    hidden: (kind: PanelKind) => order.value.includes(kind) && !visible.value.includes(kind),
+  }
+}
+
+export type PanelHost = ReturnType<typeof createPanelHost>
+
+const panelHostKey: InjectionKey<PanelHost> = Symbol("panel-host")
+
+export function providePanelHost() {
+  const host = createPanelHost()
+  provide(panelHostKey, host)
+  return host
+}
+
+export function usePanelHost(): PanelHost | undefined {
+  return inject(panelHostKey, undefined)
 }

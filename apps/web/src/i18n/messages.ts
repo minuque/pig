@@ -307,8 +307,6 @@ export const zh = {
     runningCount: "{count} 个进行中",
     viewTranscript: "查看过程",
     tokens: "tokens",
-    widenPane: "加宽面板",
-    narrowPane: "收窄面板",
   },
   taskNotice: {
     bash: { completed: "后台命令已完成", failed: "后台命令失败", stopped: "后台命令已停止" },
@@ -717,8 +715,6 @@ export const en: Messages = {
     runningCount: "{count} running",
     viewTranscript: "View transcript",
     tokens: "tokens",
-    widenPane: "Widen panel",
-    narrowPane: "Narrow panel",
   },
   taskNotice: {
     bash: {

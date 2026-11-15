@@ -28,7 +28,6 @@ const DOCKED_KEY = "pig.rail.docked"
 
 function useSessionRailState() {
   const pane = shallowRef<RailPane>()
-  const paneWide = shallowRef(false)
   /** 面板内容所属的会话；回到同一会话时面板照旧开着。 */
   let paneOwner: string | undefined
   /** 当前会话里清除过的已结束任务 id。 */
@@ -37,9 +36,7 @@ function useSessionRailState() {
   const docked = shallowRef(readFlag(DOCKED_KEY))
   /** 会话面板的宽度：决定摘要是常驻还是收成头部浮层。 */
   const width = shallowRef(window.innerWidth)
-  const mode = computed(() =>
-    railModeOf(width.value, pane.value ? { wide: paneWide.value } : undefined),
-  )
+  const mode = computed(() => railModeOf(width.value))
   /** 用户开着常驻面板，且宽度放得下：卡片才真的挂出来。 */
   const dockedShown = computed(() => docked.value && mode.value === "docked")
   const toggled = (list: RailSectionId[], id: RailSectionId) =>
@@ -56,16 +53,12 @@ function useSessionRailState() {
 
   return {
     pane,
-    paneWide,
     openPane,
     openChild(child: OpenChild) {
       openPane({ kind: "child", child })
     },
     closePane() {
       pane.value = undefined
-    },
-    toggleWide() {
-      paneWide.value = !paneWide.value
     },
     /** 进入会话：面板里是别的会话的内容就收起；清除记录按会话读。 */
     enterSession(sessionId: string | undefined) {

@@ -1,5 +1,5 @@
 <template>
-  <aside class="rail-pane" :data-wide="rail.paneWide.value || undefined" :aria-label="title">
+  <aside class="rail-pane" :aria-label="title">
     <header class="rail-pane-head">
       <h2 class="rail-pane-title">
         <span class="rail-pane-name">{{ title }}</span>
@@ -52,7 +52,7 @@ import { computed, ref, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { XIcon, MaximizeIcon, MinimizeIcon, TrashIcon } from "@components/icons/index.js"
+import { XIcon, TrashIcon } from "@components/icons/index.js"
 import RailChild from "@features/session-rail/components/RailChild.vue"
 import RailContextPreview from "@features/session-rail/components/RailContextPreview.vue"
 import RailTasks from "@features/session-rail/components/RailTasks.vue"
@@ -89,13 +89,6 @@ const actions = computed(() => [
         },
       ]
     : []),
-  {
-    key: "wide",
-    label: rail.paneWide.value ? t("rail.narrowPane") : t("rail.widenPane"),
-    icon: rail.paneWide.value ? MinimizeIcon : MaximizeIcon,
-    disabled: false,
-    run: rail.toggleWide,
-  },
   { key: "close", label: t("common.close"), icon: XIcon, disabled: false, run: rail.closePane },
 ])
 
@@ -115,21 +108,16 @@ function clearFinished() {
 
 <style scoped>
 /* 会话面板的第三列：头部之下、贴右边，宽度两档；正文自己滚，头部不动 */
+/* 面板列里的一张卡片：宽高都随所在的挂载点 */
 .rail-pane {
-  grid-area: pane;
   display: flex;
+  flex: 1;
   flex-direction: column;
-  inline-size: min(var(--size-pane), 50cqw);
   min-block-size: 0;
-  margin: 0 var(--space-sm) var(--space-sm) 0;
   overflow: hidden;
   background: var(--surface);
   border-radius: var(--radius-card);
   box-shadow: 0 0 0 1px var(--border-soft);
-}
-
-.rail-pane[data-wide] {
-  inline-size: min(var(--size-pane-wide), 70cqw);
 }
 
 .rail-pane-head {
