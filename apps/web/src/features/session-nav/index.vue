@@ -6,9 +6,7 @@
       v-model:search-open="searchOpen"
       v-model:scope-filter="scopeFilter"
       :groups="groups"
-      :sort="sort"
       :sessions="listedSessions"
-      @update:sort="setSort"
       @toggle-sidebar="onToggleSidebar"
       @add-project="onAddProject"
       @create="onCreateSession"
@@ -73,8 +71,6 @@ const {
   listedSessions,
   openSession,
   primeSession,
-  sort,
-  setSort,
   sectionsFor,
   expandedSections,
   moreBySection,

@@ -53,9 +53,7 @@
 
         <ScopeMenu
           :groups="groups"
-          :sort="sort"
           :scope-filter="scopeFilter"
-          @update:sort="emit('update:sort', $event)"
           @update:scope-filter="emit('update:scopeFilter', $event)"
         />
       </DropdownMenu>
@@ -98,7 +96,6 @@
     <SearchDialog
       :open="searchOpen"
       :sessions="sessions"
-      :sort="sort"
       @update:open="emit('update:searchOpen', $event)"
       @open="emit('open', $event)"
     />
@@ -110,7 +107,7 @@ import type { SessionMetadata } from "@/types/common-type.js"
 import { useI18n } from "@i18n/index.js"
 import ScopeMenu from "@features/session-nav/components/ScopeMenu.vue"
 import SearchDialog from "@features/session-nav/components/SearchDialog.vue"
-import type { SessionGroup, SidebarSort } from "@features/session-nav/type.js"
+import type { SessionGroup } from "@features/session-nav/type.js"
 import {
   FolderPlusIcon,
   MessageCirclePlusIcon,
@@ -124,7 +121,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 
 defineProps<{
   groups: readonly SessionGroup[]
-  sort: SidebarSort
   scopeFilter: ReadonlySet<string>
   searchOpen: boolean
   sessions: readonly SessionMetadata[]
@@ -133,7 +129,6 @@ defineProps<{
 const emit = defineEmits<{
   "update:searchOpen": [open: boolean]
   "update:scopeFilter": [scopeFilter: ReadonlySet<string>]
-  "update:sort": [sort: SidebarSort]
   toggleSidebar: []
   addProject: []
   create: [cwd?: string]

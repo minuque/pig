@@ -8,7 +8,6 @@ import type {
   SidebarRowFoot,
   SidebarSection,
   SidebarSession,
-  SidebarSort,
   SessionCardExtra,
   SessionCardLive,
 } from "@features/session-nav/type.js"
@@ -36,29 +35,17 @@ function sessionCwd(session: Pick<SessionMetadata, "cwd">): string | undefined {
   return session.cwd ? canonicalizeWorkspacePath(session.cwd) : undefined
 }
 
-function sortKey(session: Pick<SessionMetadata, "createdAt" | "updatedAt">, sort: SidebarSort) {
-  return sort === "created" ? session.createdAt : sessionRecency(session)
-}
-
-/** 侧栏会话序：排序键新→旧，同分按 id。 */
-export function sortSessionsForSidebar(
-  sessions: readonly SessionMetadata[],
-  sort: SidebarSort = "updated",
-): SessionMetadata[] {
+/** 侧栏会话序：最近活动新→旧，同分按 id。 */
+export function sortSessionsForSidebar(sessions: readonly SessionMetadata[]): SessionMetadata[] {
   return [...sessions].sort(
-    (left, right) => sortKey(right, sort) - sortKey(left, sort) || left.id.localeCompare(right.id),
+    (left, right) =>
+      sessionRecency(right) - sessionRecency(left) || left.id.localeCompare(right.id),
   )
 }
 
 /** 会话维列表：无 cwd 的 Session 不进侧栏。 */
-export function listSessionsForSidebar(
-  sessions: readonly SessionMetadata[],
-  sort: SidebarSort = "updated",
-): SessionMetadata[] {
-  return sortSessionsForSidebar(
-    sessions.filter((session) => sessionCwd(session) !== undefined),
-    sort,
-  )
+export function listSessionsForSidebar(sessions: readonly SessionMetadata[]): SessionMetadata[] {
+  return sortSessionsForSidebar(sessions.filter((session) => sessionCwd(session) !== undefined))
 }
 
 /** 按标题或目录名过滤侧栏会话，空查询原样返回。 */
@@ -96,7 +83,6 @@ export function moveSessionId(ids: readonly string[], id: string, slot: number):
 export function groupSessionsByProject(
   sessions: readonly SessionMetadata[],
   localWorkspaces: readonly string[],
-  sort: SidebarSort = "updated",
 ): SessionGroup[] {
   const byPath = new Map<string, SessionMetadata[]>()
 
@@ -114,25 +100,22 @@ export function groupSessionsByProject(
   return [
     ...[...local].map((canonicalPath) => ({
       canonicalPath,
-      sessions: sortSessionsForSidebar(byPath.get(canonicalPath) ?? [], sort),
+      sessions: sortSessionsForSidebar(byPath.get(canonicalPath) ?? []),
     })),
     ...[...byPath]
       .filter(([canonicalPath]) => !local.has(canonicalPath))
       .map(([canonicalPath, groupedSessions]) => ({
         canonicalPath,
-        sessions: sortSessionsForSidebar(groupedSessions, sort),
+        sessions: sortSessionsForSidebar(groupedSessions),
       })),
   ]
 }
 
-export function toSidebarSession(
-  session: SessionMetadata,
-  sort: SidebarSort = "updated",
-): SidebarSession {
+export function toSidebarSession(session: SessionMetadata): SidebarSession {
   return {
     id: session.id,
     title: sessionTitle(session),
-    sortKey: sortKey(session, sort),
+    sortKey: sessionRecency(session),
     ...(session.cwd !== undefined ? { cwd: session.cwd } : {}),
     updatedAt: sessionRecency(session),
     ...(isDraftSessionId(session.id) ? { draft: true } : {}),
@@ -144,7 +127,6 @@ function toSection(
   label: string,
   sessions: readonly SessionMetadata[],
   moreBySection: Readonly<Record<string, number>>,
-  sort: SidebarSort,
   /** 首屏行数；不传就一次全建。 */
   initial?: number,
 ): SidebarSection {
@@ -157,7 +139,7 @@ function toSection(
     key: kind,
     kind,
     label,
-    sessions: sessions.slice(0, shown).map((session) => toSidebarSession(session, sort)),
+    sessions: sessions.slice(0, shown).map((session) => toSidebarSession(session)),
     total: sessions.length,
     shown,
   }
@@ -168,10 +150,9 @@ export function sidebarSections(input: {
   sessions: readonly SessionMetadata[]
   pinnedOrder?: readonly string[]
   placement: (id: string) => SidebarPlacement
-  sort: SidebarSort
   moreBySection: Readonly<Record<string, number>>
 }): SidebarSection[] {
-  const list = listSessionsForSidebar(input.sessions, input.sort)
+  const list = listSessionsForSidebar(input.sessions)
   const buckets: Record<"active" | "working" | "settled", SessionMetadata[]> = {
     active: [],
     working: [],
@@ -200,7 +181,7 @@ export function sidebarSections(input: {
   buckets.working = buckets.working.filter((session) => !pinnedIds.has(session.id))
   return [
     ...(pinned.length
-      ? [toSection("pinned", t("session.pinned"), pinned, input.moreBySection, input.sort)]
+      ? [toSection("pinned", t("session.pinned"), pinned, input.moreBySection)]
       : []),
     ...(buckets.active.length
       ? [
@@ -209,21 +190,12 @@ export function sidebarSections(input: {
             t("session.sectionInbox"),
             buckets.active,
             input.moreBySection,
-            input.sort,
             ACTIVE_PAGE,
           ),
         ]
       : []),
     ...(buckets.working.length
-      ? [
-          toSection(
-            "working",
-            t("session.sectionWorking"),
-            buckets.working,
-            input.moreBySection,
-            input.sort,
-          ),
-        ]
+      ? [toSection("working", t("session.sectionWorking"), buckets.working, input.moreBySection)]
       : []),
     ...(list.length
       ? [
@@ -232,7 +204,6 @@ export function sidebarSections(input: {
             t("session.sectionSettled"),
             buckets.settled,
             input.moreBySection,
-            input.sort,
             SECTION_PAGE,
           ),
         ]

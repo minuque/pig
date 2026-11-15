@@ -71,14 +71,12 @@ import {
   sortSessionsForSidebar,
 } from "@features/session-nav/lib/session-list.js"
 import { formatRelativeTime } from "@features/session-nav/lib/format.js"
-import type { SidebarSort } from "@features/session-nav/type.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import { ArrowDownLeftIcon, XIcon, SquareCodeIcon, SearchIcon } from "@components/icons/index.js"
 
 const props = defineProps<{
   open: boolean
   sessions: readonly SessionMetadata[]
-  sort: SidebarSort
 }>()
 const emit = defineEmits<{
   "update:open": [open: boolean]
@@ -90,7 +88,7 @@ const activeIndex = shallowRef(0)
 const inputEl = useTemplateRef("inputEl")
 const rows = computed(() => {
   const filtered = filterSessionsForSearch(props.sessions, query.value)
-  return sortSessionsForSidebar(filtered, props.sort)
+  return sortSessionsForSidebar(filtered)
     .slice(0, 50)
     .map((session) => ({
       id: session.id,

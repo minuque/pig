@@ -15,17 +15,12 @@ import {
   listSessionsForSidebar,
   sidebarSections,
 } from "@features/session-nav/lib/session-list.js"
-import type { SidebarPlacement, SidebarSection, SidebarSort } from "@features/session-nav/type.js"
+import type { SidebarPlacement, SidebarSection } from "@features/session-nav/type.js"
 import { readPref, writePref } from "@utils/storage.js"
 
 type LocalWorkspaces = ReturnType<typeof useLocalWorkspaces>
 
 const DELETE_RETRY_MS = 400
-const SORT_KEY = "pig.sidebarSort"
-
-function loadSort(): SidebarSort {
-  return readPref(SORT_KEY) === "created" ? "created" : "updated"
-}
 
 function isBusy(error: unknown): boolean {
   return error instanceof PlatformRequestError && error.code === "BUSY"
@@ -122,13 +117,6 @@ export function useWorkspaceNav(
     moreBySection.value = next
   }
 
-  const sort = shallowRef<SidebarSort>(loadSort())
-
-  function setSort(next: SidebarSort): void {
-    sort.value = next
-    writePref(SORT_KEY, next)
-  }
-
   /** 已展开的架子：三个架子默认收起，改动持久化。 */
   const EXPANDED_KEY = "pig.sidebarShelfExpanded"
   const SECTION_KEYS = new Set(["pinned", "active", "working", "settled"])
@@ -178,7 +166,6 @@ export function useWorkspaceNav(
         sessions,
         pinnedOrder: toValue(pinnedOrder),
         placement,
-        sort: sort.value,
         moreBySection: moreBySection.value,
       })
     })
@@ -274,8 +261,6 @@ export function useWorkspaceNav(
     moreBySection,
     revealMore,
     collapseGroup,
-    sort,
-    setSort,
     expandedSections,
     toggleSection,
     expandSection,

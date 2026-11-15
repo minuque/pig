@@ -153,8 +153,6 @@ function createNav(
     collapseGroup: nav.collapseGroup,
     sectionsFor: (include?: Parameters<typeof nav.sectionsFor>[2]) =>
       nav.sectionsFor(markers.pinnedOrder, placementOf, include),
-    sort: nav.sort,
-    setSort: nav.setSort,
     moreBySection: nav.moreBySection,
     runningSince,
     settledIds: markers.settledIds,
