@@ -112,7 +112,14 @@ const sideSession = (side: Side) =>
   })
 const left = sideSession("left")
 const right = sideSession("right")
-const focused = focusedSession(() => (split.focused.value === "right" ? right : left))
+const onSide = (side: Side) => (side === "right" ? right : left)
+const focused = focusedSession(
+  () => onSide(split.focused.value),
+  () =>
+    split.split.value
+      ? onSide(split.focused.value === "left" ? "right" : "left")
+      : onSide(split.focused.value),
+)
 const { settingsOpen, settingsPane, openSettings, closeSettings } = useSettingsDialog()
 
 provideSharedBuckets()

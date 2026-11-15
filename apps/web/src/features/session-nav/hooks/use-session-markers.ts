@@ -21,8 +21,15 @@ function readEpoch(): number {
 
 export function useSessionMarkers(
   sessions: MaybeRefOrGetter<readonly SessionMetadata[]>,
-  activeSessionId: MaybeRefOrGetter<string | undefined>,
+  /** 正在显示的会话：单个 id，或分屏时两侧的 id。 */
+  activeSessionId: MaybeRefOrGetter<string | undefined | readonly (string | undefined)[]>,
 ) {
+  const shownIds = () => {
+    const value = toValue(activeSessionId)
+    return (Array.isArray(value) ? value : [value]).filter(
+      (id): id is string => typeof id === "string",
+    )
+  }
   const pinnedIdList = shallowRef(readStringArray(PINNED_KEY))
   const settledIdList = shallowRef(readStringArray(SETTLED_KEY))
   const readAtById = shallowRef<Record<string, number>>(
@@ -77,22 +84,25 @@ export function useSessionMarkers(
   function isUnread(session: SessionMetadata): boolean {
     if (isDraftSessionId(session.id)) return false
 
-    if (session.id === toValue(activeSessionId)) return false
+    if (shownIds().includes(session.id)) return false
     return sessionRecency(session) > (readAtById.value[session.id] ?? epoch)
   }
 
   watch(
-    [() => toValue(activeSessionId), () => toValue(sessions)],
-    ([sessionId, currentSessions]) => {
-      if (!sessionId) return
-      const session = currentSessions.find((item) => item.id === sessionId)
+    [shownIds, () => toValue(sessions)],
+    ([ids, currentSessions]) => {
+      let next = readAtById.value
 
-      if (!session) return
-      const readAt = sessionRecency(session)
+      for (const sessionId of ids) {
+        const session = currentSessions.find((item) => item.id === sessionId)
 
-      if (readAtById.value[sessionId] === readAt) return
-      readAtById.value = { ...readAtById.value, [sessionId]: readAt }
-      writeJson(READ_AT_KEY, readAtById.value)
+        if (!session || next[sessionId] === sessionRecency(session)) continue
+        next = { ...next, [sessionId]: sessionRecency(session) }
+      }
+
+      if (next === readAtById.value) return
+      readAtById.value = next
+      writeJson(READ_AT_KEY, next)
     },
     { immediate: true },
   )

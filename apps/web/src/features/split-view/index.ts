@@ -90,8 +90,14 @@ export function useSplitView(): SplitViewContext {
   return split
 }
 
-/** 聚焦那一侧的会话视图：给 sidebar、扩展弹窗这些全局只认一个会话的地方用。 */
-export function focusedSession(read: () => SessionContext) {
+/** 聚焦那一侧的会话视图：给 sidebar、扩展弹窗这些全局只认一个会话的地方用。
+ * 在跑与在显示两件事要算上另一侧：另一侧的前台会话不在后台池里。 */
+export function focusedSession(read: () => SessionContext, readOther: () => SessionContext) {
+  const otherId = () => {
+    const other = readOther()
+    return other === read() ? undefined : other.sessionId.value
+  }
+
   return {
     sessionId: computed(() => read().sessionId.value),
     projection: computed(() => read().projection.value),
@@ -102,7 +108,14 @@ export function focusedSession(read: () => SessionContext) {
         read().prompt.value = value
       },
     }),
-    backgroundRunningIds: computed(() => read().backgroundRunningIds.value),
+    backgroundRunningIds: computed(() => {
+      const ids = read().backgroundRunningIds.value
+      const id = otherId()
+
+      if (!id || !readOther().projection.value?.running || ids.has(id)) return ids
+      return new Set([...ids, id])
+    }),
+    shownIds: computed(() => [read().sessionId.value, otherId()]),
     loadHistory: (id: string, options?: { force?: boolean }) => read().loadHistory(id, options),
   }
 }

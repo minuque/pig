@@ -48,7 +48,7 @@ function createNav(
     router,
     refreshSessions: pi.refreshSessions,
   })
-  const markers = useSessionMarkers(nav.listedSessions, session.sessionId)
+  const markers = useSessionMarkers(nav.listedSessions, session.shownIds)
   const highlightedSessionId = computed(
     () => baseHighlightedSessionId.value ?? nav.draftSessionId.value,
   )
