@@ -292,3 +292,24 @@ describe("thin host WebSocket", () => {
     }
   })
 })
+
+describe("thin host 停止", () => {
+  it("停止时还连着、但没发完请求的客户端不挡住停止", async () => {
+    const base = await startGateway()
+    const { connect } = await import("node:net")
+    const socket = connect(Number(new URL(base).port), "127.0.0.1")
+    await new Promise((resolve) => socket.once("connect", resolve))
+    socket.on("error", () => undefined)
+
+    const stopping = gateway!.stop()
+    gateway = undefined
+
+    const outcome = await Promise.race([
+      stopping.then(() => "stopped"),
+      new Promise((resolve) => setTimeout(() => resolve("hung"), 2000)),
+    ])
+
+    socket.destroy()
+    expect(outcome).toBe("stopped")
+  })
+})

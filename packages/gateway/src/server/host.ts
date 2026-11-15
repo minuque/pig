@@ -204,9 +204,14 @@ export class Gateway {
     await this.protocol.close()
     await this.hostService.dispose()
     await closeEnvironments()
-    await new Promise<void>((resolveStop, reject) =>
+
+    const closed = new Promise<void>((resolveStop, reject) =>
       this.server.close((error) => (error ? reject(error) : resolveStop())),
     )
+
+    // 停止期间新连上、还没发完请求的客户端不会自己断，server.close 会一直等它
+    this.server.closeAllConnections()
+    await closed
   }
 }
 
