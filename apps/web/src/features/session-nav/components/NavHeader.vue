@@ -41,14 +41,14 @@
                 type="button"
                 size="m"
                 variant="ghost"
-                :aria-label="t('session.allProjects')"
+                :aria-label="t('session.filterByWorkspace')"
               >
                 <ListFilterIcon class="size-icon-2xs" />
               </IconButton>
             </DropdownMenuTrigger>
           </TooltipTrigger>
 
-          <TooltipContent>{{ t("session.allProjects") }}</TooltipContent>
+          <TooltipContent>{{ t("session.filterByWorkspace") }}</TooltipContent>
         </Tooltip>
 
         <ScopeMenu
