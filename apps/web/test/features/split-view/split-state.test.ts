@@ -59,6 +59,11 @@ describe("分屏状态", () => {
     expect(setRatio(emptySplit, 0.95).ratio).toBe(0.8)
   })
 
+  it("按主区宽度限制比例，两侧对话都不低于 480px", () => {
+    expect(setRatio(emptySplit, 0.2, 1200).ratio).toBe(0.4)
+    expect(setRatio(emptySplit, 0.9, 1200).ratio).toBe(0.6)
+  })
+
   it("持久化往返，损坏的存档回落到未分屏", () => {
     const state = openToSide(openInFocused(emptySplit, "a"), "b")
 

@@ -64,8 +64,12 @@ export function closeSide(state: SplitState, side: Side): SplitState {
   return { ...state, left: kept, right: undefined, split: false, focused: "left" }
 }
 
-export function setRatio(state: SplitState, ratio: number): SplitState {
-  return { ...state, ratio: Math.min(RATIO_MAX, Math.max(RATIO_MIN, ratio)) }
+/** 给了主区宽度时，两侧对话都保住 SPLIT_CHAT_MIN；不给时按固定上下限。 */
+export function setRatio(state: SplitState, ratio: number, width?: number): SplitState {
+  const floor = width && fitsSplit(width) ? SPLIT_CHAT_MIN / width : RATIO_MIN
+  const min = Math.max(RATIO_MIN, floor)
+  const max = Math.min(RATIO_MAX, 1 - floor)
+  return { ...state, ratio: Math.min(max, Math.max(min, ratio)) }
 }
 
 export function fitsSplit(width: number): boolean {

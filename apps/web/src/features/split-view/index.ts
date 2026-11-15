@@ -55,14 +55,17 @@ function createSplitView(
     focused: computed(() => state.value.focused),
     /** 两侧能并排放下。 */
     fits: computed(() => fitsSplit(width.value)),
+    /** 主区变窄时把已存的比例收回到两侧都放得下的范围。 */
     setWidth: (value: number) => {
       width.value = value
+
+      if (state.value.split) update((s) => setRatio(s, s.ratio, value))
     },
     openInFocused: (id: string | undefined) => update((s) => openInFocused(s, id)),
     openToSide: (id: string | undefined) => update((s) => openToSide(s, id)),
     focusSide: (side: Side) => update((s) => focusSide(s, side)),
     closeSide: (side: Side) => update((s) => closeSide(s, side)),
-    setRatio: (ratio: number) => update((s) => setRatio(s, ratio)),
+    setRatio: (ratio: number) => update((s) => setRatio(s, ratio, width.value)),
     /** 这一侧建出新会话：显示它并聚焦这一侧。 */
     showIn: (side: Side, id: string) => update((s) => ({ ...s, [side]: id, focused: side })),
   }
