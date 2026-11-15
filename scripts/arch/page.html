@@ -234,8 +234,7 @@
         rotate: 90deg;
       }
 
-      .rel summary:hover,
-      .file-row:hover {
+      .rel summary:hover {
         background: var(--btn-hover);
       }
 
@@ -245,15 +244,11 @@
 
       .pairs {
         display: grid;
-        gap: var(--space-xxs);
+        grid-template-columns: max-content auto minmax(0, 1fr);
+        gap: var(--space-xxs) var(--space-xs);
         margin: 0 0 var(--space-sm);
         padding: 0 0 0 calc(1em + var(--space-xxs));
         list-style: none;
-      }
-
-      .pairs {
-        grid-template-columns: max-content auto minmax(0, 1fr);
-        column-gap: var(--space-xs);
       }
 
       .pairs li {
@@ -261,12 +256,13 @@
       }
 
       .pairs a,
-      .file-row {
+      .file-table a {
         color: var(--foreground);
         text-decoration: none;
       }
 
-      .pairs a:hover {
+      .pairs a:hover,
+      .file-table a:hover {
         text-decoration: underline;
       }
 
@@ -274,37 +270,40 @@
         color: var(--foreground-faint);
       }
 
-      .file-list {
-        display: grid;
-        max-width: 720px;
+      .table-box {
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-card);
       }
 
-      .file-head,
-      .file-row {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) 72px 72px;
-        align-items: baseline;
-        padding: var(--space-xxs) var(--space-xs);
-        border-radius: var(--radius-control);
-      }
-
-      .file-head {
-        color: var(--foreground-faint);
+      .file-table th {
+        background: var(--btn-hover);
         font-size: var(--text-meta);
       }
 
-      .file-head span + span,
-      .num {
+      .file-table th,
+      .file-table td {
+        padding: var(--space-xs) var(--space-md);
+        vertical-align: baseline;
+      }
+
+      .file-table tbody tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .file-table tbody tr:hover {
+        background: var(--btn-hover);
+      }
+
+      .file-table .num {
+        width: 96px;
         text-align: right;
+        font-family: var(--font-mono);
+        font-size: var(--text-meta);
         font-variant-numeric: tabular-nums;
       }
 
-      .num {
-        font-family: var(--font-mono);
-        font-size: var(--text-meta);
-      }
-
-      .num[data-zero] {
+      .file-table .num[data-zero] {
         color: var(--foreground-faint);
       }
 
@@ -582,13 +581,13 @@
       /** 选中模块的文件表，以及它和上下游之间具体的文件引用。 */
       function renderModule(dir, users = new Map(), uses = new Map(), focus) {
         const own = files.filter((f) => f.dir === dir)
-        const num = (n) => `<span class="num"${n ? "" : " data-zero"}>${n}</span>`
+        const num = (n) => `<td class="num"${n ? "" : " data-zero"}>${n}</td>`
         const rows = own
           .map((f) => [f.id, importers.get(f.id)?.length ?? 0, imports.get(f.id)?.length ?? 0])
           .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-          .map(([id, into, out]) => `<a class="file-row" href="#dep/${esc(id)}">${fileName(id, dir)}${num(into)}${num(out)}</a>`)
+          .map(([id, into, out]) => `<tr><td><a href="#dep/${esc(id)}">${fileName(id, dir)}</a></td>${num(into)}${num(out)}</tr>`)
           .join("")
-        const fileCard = `<h2>文件 <span class="count">${own.length}</span></h2><div class="file-list"><div class="file-head"><span>文件</span><span>被引用</span><span>引用</span></div>${rows}</div>`
+        const fileCard = `<h2>文件 <span class="count">${own.length}</span></h2><div class="table-box"><table class="file-table"><thead><tr><th>文件</th><th class="num">被引用</th><th class="num">引用</th></tr></thead><tbody>${rows}</tbody></table></div>`
         if (!focus) return card(`${crumbs(dir)}${fileCard}`)
         const links = (map) =>
           [...map]
