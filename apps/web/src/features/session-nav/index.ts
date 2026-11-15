@@ -2,7 +2,7 @@ import { computed, inject, provide, shallowRef, watch, type InjectionKey } from 
 import { useRouter } from "vue-router"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
-import type { SessionContext } from "@features/session/index.js"
+import type { FocusedSession } from "@features/split-view/index.js"
 import { useSessionCards } from "@features/session-nav/hooks/use-session-cards.js"
 import { useSessionMarkers } from "@features/session-nav/hooks/use-session-markers.js"
 import { useSessionOpen } from "@features/session-nav/hooks/use-session-open.js"
@@ -30,7 +30,7 @@ export const navKey: InjectionKey<NavContext> = Symbol("nav")
 function createNav(
   pi: ReturnType<typeof useGatewayClient>,
   cwd: ReturnType<typeof useLocalWorkspaces>,
-  session: SessionContext,
+  session: FocusedSession,
 ) {
   const router = useRouter()
   const {
@@ -187,7 +187,7 @@ function createNav(
 export function provideNav(
   pi: ReturnType<typeof useGatewayClient>,
   cwd: ReturnType<typeof useLocalWorkspaces>,
-  session: SessionContext,
+  session: FocusedSession,
 ) {
   const nav = createNav(pi, cwd, session)
   provide(navKey, nav)

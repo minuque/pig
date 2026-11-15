@@ -99,6 +99,7 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
       progress: ref(new Map()),
     }),
     (stash) => stash.files.value.forEach(release),
+    "attachments",
   )
   const bucket = buckets.current
   // 批次记住来源桶：欢迎页发送后路由已切到新会话，仍要清欢迎页那桶
@@ -257,7 +258,8 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     stash.progress.value = new Map()
   }
 
-  if (getCurrentInstance()) onUnmounted(() => buckets.clearAll())
+  // 共用的桶归壳层所有，一侧卸下时不清
+  if (getCurrentInstance() && !buckets.shared) onUnmounted(() => buckets.clearAll())
   return {
     files,
     progress,

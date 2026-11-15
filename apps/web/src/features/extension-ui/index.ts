@@ -2,7 +2,7 @@ import { inject, provide, shallowRef, watch, type InjectionKey } from "vue"
 import type { ExtensionUiDialog, ExtensionUiRequest, ExtensionUiResponse } from "@pig/protocol"
 import type { useGatewayClient } from "@client/gateway-connection.js"
 import { notify } from "@components/layout/notify.js"
-import type { SessionContext } from "@features/session/index.js"
+import type { FocusedSession } from "@features/split-view/index.js"
 
 type Pending = { sessionId: string; request: ExtensionUiDialog }
 
@@ -11,7 +11,7 @@ const isDialog = (request: ExtensionUiRequest): request is ExtensionUiDialog =>
   DIALOGS.has(request.method)
 
 /** 扩展经 ctx.ui 发来的界面请求：对话框排队作答，通知、状态、widget 按会话记下。 */
-function useExtensionUiState(pi: ReturnType<typeof useGatewayClient>, session: SessionContext) {
+function useExtensionUiState(pi: ReturnType<typeof useGatewayClient>, session: FocusedSession) {
   const dialogs = shallowRef<readonly Pending[]>([])
   /** 会话 id → 状态键 → 文本；摘要面板读它。 */
   const statuses = shallowRef(new Map<string, ReadonlyMap<string, string>>())
@@ -90,7 +90,7 @@ const key: InjectionKey<ExtensionUiContext> = Symbol("extension-ui")
 
 export function provideExtensionUi(
   pi: ReturnType<typeof useGatewayClient>,
-  session: SessionContext,
+  session: FocusedSession,
 ) {
   const state = useExtensionUiState(pi, session)
   provide(key, state)
