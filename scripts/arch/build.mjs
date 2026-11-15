@@ -75,6 +75,10 @@ const html = read(join(import.meta.dirname, "page.html"))
   .replace("/*__PANZOOM__*/", () =>
     inlineJs(read(join(pkgDir("@panzoom/panzoom"), "dist/panzoom.min.js"))),
   )
+  .replace(
+    "__ICON__",
+    `data:image/png;base64,${readFileSync(join(root, "apps/web/public/pwa-icon-192.png")).toString("base64")}`,
+  )
   .replace("/*__DATA__*/", () => JSON.stringify(data).replaceAll("<", "\\u003c"))
 
 mkdirSync(dirname(out), { recursive: true })

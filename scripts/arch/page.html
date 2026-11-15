@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>pig 架构看板</title>
+    <link rel="icon" type="image/png" href="__ICON__" />
     <style>
       /*__CSS__*/
     </style>
@@ -251,6 +252,18 @@
         list-style: none;
       }
 
+      .files {
+        display: grid;
+        gap: var(--space-xxs);
+        margin: 0 0 var(--space-sm);
+        padding: 0 0 0 calc(1em + var(--space-xxs));
+        list-style: none;
+      }
+
+      .files a {
+        color: var(--foreground);
+      }
+
       .pairs li {
         display: contents;
       }
@@ -259,11 +272,6 @@
       .file-table a {
         color: var(--foreground);
         text-decoration: none;
-      }
-
-      .pairs a:hover,
-      .file-table a:hover {
-        text-decoration: underline;
       }
 
       .arrow {
@@ -299,7 +307,7 @@
         width: 96px;
         text-align: right;
         font-family: var(--font-mono);
-        font-size: var(--text-meta);
+        font-size: var(--text-body);
         font-variant-numeric: tabular-nums;
       }
 
@@ -334,24 +342,44 @@
       .crumbs {
         display: flex;
         flex-wrap: wrap;
-        gap: var(--space-xxs);
+        gap: var(--space-xs);
         align-items: center;
         margin-bottom: var(--space-sm);
       }
 
-      .crumbs a::after {
-        content: " /";
+      .crumbs {
+        font-family: var(--font-mono);
+      }
+
+      .crumbs a {
+        color: var(--foreground-secondary);
+      }
+
+      .crumbs > * + *::before {
+        content: "/";
+        display: inline-block;
+        margin-right: var(--space-xs);
         color: var(--foreground-faint);
+      }
+
+      .crumbs [aria-current] {
+        color: var(--foreground);
+        font-weight: 600;
       }
 
       a {
         color: var(--link);
+        text-decoration: none;
+      }
+
+      main a:not(.tile):hover {
+        text-decoration: underline;
       }
 
       code,
       .mono {
         font-family: var(--font-mono);
-        font-size: var(--text-meta);
+        font-size: var(--text-body);
       }
 
       table {
@@ -472,14 +500,19 @@
       }
 
       function crumbs(path) {
-        const parts = [`<a href="#dep/">全部</a>`]
         const file = byId.get(path)
         const pkg = file?.pkg ?? (path ? pkgOf(path) : undefined)
         const dir = file?.dir ?? (dirPkg.has(path) ? path : undefined)
-        if (pkg) parts.push(depLink(pkg))
-        if (dir && dir !== pkg) parts.push(depLink(dir, tail(dir, pkg)))
-        if (file) parts.push(`<span class="mono">${esc(tail(file.id, file.dir))}</span>`)
-        return `<div class="crumbs">${parts.join("")}</div>`
+        const parts = [["", "全部"]]
+        if (pkg) parts.push([pkg, pkg])
+        if (dir && dir !== pkg) parts.push([dir, short(dir, pkg)])
+        if (file) parts.push([file.id, tail(file.id, file.dir)])
+        const items = parts.map(([id, text], i) =>
+          i === parts.length - 1
+            ? `<span aria-current="page">${esc(text)}</span>`
+            : `<a href="#dep/${esc(id)}">${esc(text)}</a>`,
+        )
+        return `<div class="crumbs">${items.join("")}</div>`
       }
 
       /** 文件按目录折叠，目录按文件数从多到少。 */
@@ -489,11 +522,12 @@
         return [...groups]
           .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))
           .map(([dir, list]) => {
+            const pkg = dirPkg.get(dir)
             const items = list
               .sort()
-              .map((id) => `<li>${depLink(id, tail(id, dir))}</li>`)
+              .map((id) => `<li><a href="#dep/${esc(id)}">${fileName(id, dir)}</a></li>`)
               .join("")
-            return `<details><summary><span class="mono">${esc(`${dirPkg.get(dir)}/${short(dir, dirPkg.get(dir))}`)}</span> <span class="hint">${list.length}</span></summary><ol>${items}</ol></details>`
+            return `<details><summary><span class="mono"><span class="faint">${esc(pkg)}/</span>${esc(short(dir, pkg))}</span><span class="count">${list.length}</span></summary><ul class="files">${items}</ul></details>`
           })
           .join("")
       }
@@ -627,7 +661,7 @@
         const impact = layers.map((l, i) => `<h3>${i ? `第 ${i + 1} 层` : "直接引用"}（${l.length}）</h3>${grouped(l)}`).join("")
         const out = imports.get(path) ?? []
         card(
-          `${crumbs(path)}<div class="cols"><div><h2>谁引用它（共波及 ${total}）</h2>${impact || '<p class="hint">无</p>'}</div><div><h2>它引用谁（${out.length}）</h2>${grouped(out)}</div></div>`,
+          `${crumbs(path)}<div class="cols"><div class="rel"><h2>谁引用它 <span class="count">共波及 ${total}</span></h2>${impact || '<p class="hint">无</p>'}</div><div class="rel"><h2>它引用谁 <span class="count">${out.length}</span></h2>${grouped(out)}</div></div>`,
         )
       }
 
