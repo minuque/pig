@@ -33,7 +33,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue"
+import { computed, onBeforeUnmount, onMounted } from "vue"
+import { useRoute, useRouter } from "vue-router"
 import AppLayout from "@components/layout/AppLayout.vue"
 import AlertToaster from "@components/layout/AlertToaster.vue"
 
@@ -50,13 +51,26 @@ import { provideNav } from "@features/session-nav/index.js"
 import SettingsDialog from "@features/settings/components/SettingsDialog.vue"
 import { useSettingsDialog } from "@features/settings/hooks/use-settings-dialog.js"
 import Startup from "@features/startup/index.vue"
-import { provideSession } from "@features/session/index.js"
+import { createSessionHub, provideSession, useSessionLifecycle } from "@features/session/index.js"
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
 import { prefetchHighlighter } from "@features/transcript-view/index.js"
 
 const pi = useGatewayClient()
 const cwd = useLocalWorkspaces()
-const session = provideSession(pi, cwd)
+const route = useRoute()
+const router = useRouter()
+const routeSessionId = computed(() => {
+  const raw = route.params.sessionId
+  return typeof raw === "string" && raw.length > 0 ? raw : undefined
+})
+const hub = createSessionHub(pi)
+const session = provideSession(
+  useSessionLifecycle(pi, cwd, {
+    hub,
+    sessionId: routeSessionId,
+    navigate: (id) => router.push({ name: "session", params: { sessionId: id } }),
+  }),
+)
 const { settingsOpen, settingsPane, openSettings, closeSettings } = useSettingsDialog()
 
 provideNav(pi, cwd, session)
@@ -70,6 +84,8 @@ provideFilePane(session)
 onMounted(() => {
   prefetchHighlighter()
 })
+
+onBeforeUnmount(() => void hub.dispose())
 
 function onSettingsToggle(open: boolean) {
   if (open) openSettings()

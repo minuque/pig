@@ -93,7 +93,7 @@ export const flows: Flow[] = [
         from: "session",
         to: "Gateway",
         text: "GET platform/transcript 取历史轻量形态，不阻塞连接",
-        ref: "apps/web/src/features/session/hooks/use-session-history.ts#useSessionHistory",
+        ref: "apps/web/src/features/session/hooks/use-session-history.ts#createHistoryStore",
       },
       {
         from: "session",

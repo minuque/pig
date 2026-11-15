@@ -1,15 +1,20 @@
 import { shallowRef } from "vue"
 import type { GatewaySession } from "@client/gateway-session.js"
-import type { ContextUsageEstimate } from "@/types/common-type.js"
 import type { SessionState, TranscriptItem } from "@/types/common-type.js"
-import { contextUsage } from "@client/platform.js"
-import type { useSessionHistory } from "@features/session/hooks/use-session-history.js"
+import type { HistoryStore } from "@features/session/hooks/use-session-history.js"
 import { coalesceByFrame } from "@features/session/lib/coalesce-by-frame.js"
 
 /** 一条 Session 的 live 订阅：前台写 state，后台只覆盖 live 与拉历史，发布逻辑两处共用。 */
+/** 挂着这条订阅的前台：每侧 workbench 一个，收状态与 revision 变化。 */
+export interface ForegroundOwner {
+  state(next: SessionState): void
+  revision(id: string): void
+}
+
 export interface LiveSubscription {
   session: GatewaySession
   foreground: boolean
+  owner: ForegroundOwner | undefined
   running: boolean
   /** 后台空闲正在交给接管者（泵队/收尾），期间重复的空闲快照不重复触发。 */
   idlePending: boolean
@@ -48,44 +53,20 @@ function withToolStart(sub: LiveSubscription, item: TranscriptItem): TranscriptI
 }
 
 interface LiveDeps {
-  history: ReturnType<typeof useSessionHistory>
+  history: HistoryStore
   discard(session: GatewaySession): Promise<void>
-  foregroundId(): string | undefined
-  onForegroundState(state: SessionState): void
 }
 
-/** 运行中的 Session 继续订阅：切走不停订，跑完或断线才放连接。 */
+/** 运行中的 Session 继续订阅：切走不停订，跑完或断线才放连接。两侧前台共用一个池。 */
 export function useLiveSubscriptions(deps: LiveDeps) {
-  const { history, discard, foregroundId, onForegroundState } = deps
+  const { history, discard } = deps
   const background = new Map<string, LiveSubscription>()
   const backgroundRunningIds = shallowRef<ReadonlySet<string>>(new Set())
-  const contextUsageEstimate = shallowRef<ContextUsageEstimate>()
-  let contextUsageRequest = 0
   let backgroundIdleHandler: ((id: string) => Promise<BackgroundIdleResult>) | undefined
 
   /** 接管后台会话空闲后的泵队与收尾；不注册就直接出池。 */
   function setBackgroundIdle(fn?: (id: string) => Promise<BackgroundIdleResult>) {
     backgroundIdleHandler = fn
-  }
-
-  /** 占用估算只给前台：切走或换会话就作废在飞的请求。 */
-  function clearContextUsage() {
-    contextUsageRequest += 1
-    contextUsageEstimate.value = undefined
-  }
-
-  async function refreshContextUsage(id: string | undefined) {
-    if (!id) return
-    const request = ++contextUsageRequest
-
-    try {
-      const usage = await contextUsage(id)
-
-      if (request !== contextUsageRequest || foregroundId() !== id) return
-      contextUsageEstimate.value = usage ?? undefined
-    } catch {
-      /* 占用估算失败不挡主流程 */
-    }
   }
 
   function syncBackgroundRunning() {
@@ -134,10 +115,11 @@ export function useLiveSubscriptions(deps: LiveDeps) {
   }
 
   /** 订阅 Session：live 覆盖缓存、revision 重拉历史；前台写 state 与用量，后台跑完就出池。 */
-  function subscribeLive(session: GatewaySession, foreground: boolean): LiveSubscription {
+  function subscribeLive(session: GatewaySession, owner?: ForegroundOwner): LiveSubscription {
     const sub: LiveSubscription = {
       session,
-      foreground,
+      foreground: owner !== undefined,
+      owner,
       running: false,
       idlePending: false,
       usageRevision: undefined,
@@ -149,7 +131,7 @@ export function useLiveSubscriptions(deps: LiveDeps) {
     const publish = (nextState: SessionState) => {
       sub.lastState = nextState
 
-      if (sub.foreground) onForegroundState(nextState)
+      sub.owner?.state(nextState)
 
       if (nextState.snapshot) {
         const running = nextState.snapshot.phase !== "idle"
@@ -171,7 +153,7 @@ export function useLiveSubscriptions(deps: LiveDeps) {
         const hadRevision = sub.usageRevision !== undefined
         sub.usageRevision = revision
 
-        if (sub.foreground) refreshContextUsage(id)
+        sub.owner?.revision(id)
 
         if (hadRevision) {
           reloaded = true
@@ -242,26 +224,26 @@ export function useLiveSubscriptions(deps: LiveDeps) {
 
     if (!id) return
     sub.foreground = false
+    sub.owner = undefined
     background.set(id, sub)
     syncBackgroundRunning()
   }
 
   /** 后台池里有该会话就挂回前台，复用同一条连接。 */
-  function promoteBackground(id: string) {
+  function promoteBackground(id: string, owner: ForegroundOwner) {
     const sub = background.get(id)
 
     if (!sub) return undefined
     background.delete(id)
     syncBackgroundRunning()
     sub.foreground = true
-    refreshContextUsage(id)
+    sub.owner = owner
+    owner.revision(id)
     return sub
   }
 
   return {
     backgroundRunningIds,
-    contextUsage: contextUsageEstimate,
-    clearContextUsage,
     subscribeLive,
     moveToBackground,
     promoteBackground,

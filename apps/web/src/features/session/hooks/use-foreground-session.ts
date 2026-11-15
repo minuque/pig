@@ -1,16 +1,19 @@
 import { shallowRef, type ComputedRef } from "vue"
 import { GatewaySession } from "@client/gateway-session.js"
-import type { ModelRef, SessionState, ThinkingLevel } from "@/types/common-type.js"
+import type {
+  ContextUsageEstimate,
+  ModelRef,
+  SessionState,
+  ThinkingLevel,
+} from "@/types/common-type.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
-import type { useSessionHistory } from "@features/session/hooks/use-session-history.js"
-import {
-  createAbortableOpen,
-  isDisconnectedError,
-  isOpenAborted,
-} from "@features/session/hooks/abortable-open.js"
+import { contextUsage } from "@client/platform.js"
+import { useHistoryView } from "@features/session/hooks/use-session-history.js"
+import type { SessionHub } from "@features/session/hooks/use-session-hub.js"
+import { isDisconnectedError, isOpenAborted } from "@features/session/hooks/abortable-open.js"
 import {
   hasRunningTasks,
-  useLiveSubscriptions,
+  type ForegroundOwner,
   type LiveSubscription,
 } from "@features/session/hooks/use-live-subscriptions.js"
 
@@ -20,30 +23,51 @@ interface CreateSessionInput {
   thinkingLevel?: ThinkingLevel
 }
 
-/** 前台会话的连接：挂上、摘下、切换、转入后台池、释放。同一时刻只有一条前台连接。 */
+/** 一侧 workbench 的前台连接：挂上、摘下、切换、转入共用后台池、释放。每侧同一时刻只有一条。 */
 export function useForegroundSession(
-  pi: ReturnType<typeof useGatewayClient>,
+  pi: Pick<ReturnType<typeof useGatewayClient>, "client" | "connected">,
   sessionId: ComputedRef<string | undefined>,
-  history: ReturnType<typeof useSessionHistory>,
+  hub: SessionHub,
 ) {
   const remote = shallowRef<GatewaySession>()
   const state = shallowRef<SessionState>()
+  const contextUsageEstimate = shallowRef<ContextUsageEstimate>()
+  let contextUsageRequest = 0
   let activeSub: LiveSubscription | undefined
   let replaceChain: Promise<void> = Promise.resolve()
   let abortInflightOpen: (() => void) | undefined
-  const { raceRemoteOpen, discard } = createAbortableOpen()
-  const live = useLiveSubscriptions({
-    history,
-    discard,
-    foregroundId: () => remote.value?.id,
-    onForegroundState: (next) => {
+  const { raceRemoteOpen, discard, live } = hub
+  const history = useHistoryView(hub.history)
+  const owner: ForegroundOwner = {
+    state: (next) => {
       state.value = next
     },
-  })
+    revision: (id) => void refreshContextUsage(id),
+  }
+  const unregister = hub.registerForeground(() => remote.value)
+
+  /** 占用估算只给前台：切走或换会话就作废在飞的请求。 */
+  function clearContextUsage() {
+    contextUsageRequest += 1
+    contextUsageEstimate.value = undefined
+  }
+
+  async function refreshContextUsage(id: string) {
+    const request = ++contextUsageRequest
+
+    try {
+      const usage = await contextUsage(id)
+
+      if (request !== contextUsageRequest || remote.value?.id !== id) return
+      contextUsageEstimate.value = usage ?? undefined
+    } catch {
+      /* 占用估算失败不挡主流程 */
+    }
+  }
 
   /** 后台池命中就把该会话挂回前台，复用同一条连接。 */
   function promote(id: string) {
-    const sub = live.promoteBackground(id)
+    const sub = live.promoteBackground(id, owner)
 
     if (!sub) return false
     activeSub = sub
@@ -54,7 +78,7 @@ export function useForegroundSession(
   }
 
   function clearForeground() {
-    live.clearContextUsage()
+    clearContextUsage()
     remote.value = undefined
     state.value = undefined
   }
@@ -65,7 +89,7 @@ export function useForegroundSession(
     detach()
 
     if (previous && previous !== next) void discard(previous)
-    activeSub = live.subscribeLive(next, true)
+    activeSub = live.subscribeLive(next, owner)
     remote.value = next
   }
 
@@ -181,18 +205,13 @@ export function useForegroundSession(
     })
   }
 
+  /** 这一侧卸下：运行中的会话照旧转入共用后台池，池本身由 hub 收尾。 */
   async function dispose() {
+    unregister()
     history.setActive(undefined)
     abortInflightOpen?.()
     abortInflightOpen = undefined
-    const current = remote.value
-    const pooled = live.takeBackground()
-
-    detach()
-
-    for (const sub of pooled) await discard(sub.session)
-
-    if (current) await discard(current)
+    release()
   }
 
   /** 回到新建页：只放下前台，运行中的会话留在后台池继续订阅。 */
@@ -207,6 +226,8 @@ export function useForegroundSession(
     remote,
     state,
     live,
+    history,
+    contextUsage: contextUsageEstimate,
     release,
     ensureRemote,
     createRemoteSession,
