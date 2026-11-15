@@ -9,7 +9,7 @@
     <slot />
 
     <div class="rt-BaseMenuShortcut rt-DropdownMenuShortcut">
-      <AltArrowRightIcon class="rt-BaseMenuSubTriggerIcon rt-DropdownMenuSubtriggerIcon" />
+      <ChevronRightIcon class="rt-BaseMenuSubTriggerIcon rt-DropdownMenuSubtriggerIcon" />
     </div>
   </DropdownMenuSubTrigger>
 </template>
@@ -19,7 +19,7 @@ import type { DropdownMenuSubTriggerProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { DropdownMenuSubTrigger, useForwardProps } from "reka-ui"
-import { AltArrowRightIcon } from "@components/icons/index.js"
+import { ChevronRightIcon } from "@components/icons/index.js"
 
 const props = withDefaults(
   defineProps<DropdownMenuSubTriggerProps & { class?: HTMLAttributes["class"]; color?: string }>(),

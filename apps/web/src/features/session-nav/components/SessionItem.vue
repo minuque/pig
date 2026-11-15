@@ -25,7 +25,7 @@
           <template v-if="variant === 'card'">
             <span class="meta-line">
               <span class="project-icon" aria-hidden="true">
-                <PinBoldIcon v-if="pinned" :size="16" />
+                <PinFilledIcon class="size-icon-2xs" v-if="pinned" />
 
                 <Badge v-else-if="projectName" class="project-mono" variant="soft" color="gray">
                   {{ projectMonogram(projectName) }}
@@ -37,7 +37,7 @@
               <span v-if="!renaming" class="state-slot">
                 <span class="state-mark" aria-hidden="true">
                   <span v-if="startedAt !== undefined" class="working-status">
-                    <CircleDashedIcon :size="16" class="working-icon" />
+                    <CircleDashedIcon class="size-icon-2xs working-icon" />
                     <span>{{ t("session.sectionWorking") }}</span>
                     <span class="working-elapsed">{{ elapsed }}</span>
                   </span>
@@ -59,7 +59,7 @@
                   @click.prevent.stop="onRowAction"
                   @pointerdown.stop="onActionPointerDown"
                 >
-                  <UndoLeftRoundIcon v-if="settled" class="size-icon" />
+                  <Undo2Icon v-if="settled" class="size-icon" />
                   <CheckIcon v-else class="size-icon" />
 
                   <span class="row-action-label">
@@ -148,7 +148,7 @@
                 @click.prevent.stop="onRowAction"
                 @pointerdown.stop="onActionPointerDown"
               >
-                <UndoLeftRoundIcon v-if="settled" class="size-icon" />
+                <Undo2Icon v-if="settled" class="size-icon" />
                 <CheckIcon v-else class="size-icon" />
               </button>
             </span>
@@ -163,7 +163,7 @@
         </ContextMenuItem>
 
         <ContextMenuItem @select="emit('togglePinned', session.id)">
-          <PinBoldIcon v-if="pinned" />
+          <PinFilledIcon v-if="pinned" />
           <PinIcon v-else />
           {{ pinned ? t("session.unpin") : t("session.pin") }}
         </ContextMenuItem>
@@ -172,14 +172,14 @@
 
         <template v-if="settled">
           <ContextMenuItem @select="emit('unsettle', session.id)">
-            <RestartIcon />
+            <RotateCcwIcon />
             {{ t("session.unsettle") }}
           </ContextMenuItem>
         </template>
 
         <template v-else>
           <ContextMenuItem @select="emit('settle', session.id)">
-            <CheckCircleIcon />
+            <CircleCheckIcon />
             {{ t("session.settle") }}
           </ContextMenuItem>
         </template>
@@ -187,7 +187,7 @@
         <ContextMenuSeparator />
 
         <ContextMenuItem variant="destructive" @select="deleteOpen = true">
-          <TrashBinMinimalisticIcon />
+          <TrashIcon />
           {{ t("session.deleteTitle") }}
         </ContextMenuItem>
       </ContextMenuContent>
@@ -228,16 +228,16 @@ import { formatElapsed } from "@utils/time.js"
 import type { DropVerb } from "@features/session-nav/lib/drag-plan.js"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import {
-  CheckCircleIcon,
+  CircleCheckIcon,
   CheckIcon,
   CircleDashedIcon,
-  CloseIcon,
+  XIcon,
   PenIcon,
   PinIcon,
-  PinBoldIcon,
-  RestartIcon,
-  TrashBinMinimalisticIcon,
-  UndoLeftRoundIcon,
+  PinFilledIcon,
+  RotateCcwIcon,
+  TrashIcon,
+  Undo2Icon,
 } from "@components/icons/index.js"
 
 const props = withDefaults(
@@ -381,7 +381,7 @@ function onActionPointerDown(event: PointerEvent) {
   if (event.button === 0 && !props.placeholder) emit("sweepStart", event)
 }
 
-const verbIcons = { pin: PinIcon, unpin: CloseIcon, settle: CheckIcon, unsettle: UndoLeftRoundIcon }
+const verbIcons = { pin: PinIcon, unpin: XIcon, settle: CheckIcon, unsettle: Undo2Icon }
 const verb = computed(() => {
   const value = props.dragging ? props.dropVerb : null
   return value ? { icon: verbIcons[value], label: t(`session.${value}`) } : null

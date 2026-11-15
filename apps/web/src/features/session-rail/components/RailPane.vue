@@ -52,12 +52,7 @@ import { computed, ref, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import {
-  CloseIcon,
-  MaximizeIcon,
-  MinimizeIcon,
-  TrashBinMinimalisticIcon,
-} from "@components/icons/index.js"
+import { XIcon, MaximizeIcon, MinimizeIcon, TrashIcon } from "@components/icons/index.js"
 import RailChild from "@features/session-rail/components/RailChild.vue"
 import RailContextPreview from "@features/session-rail/components/RailContextPreview.vue"
 import RailTasks from "@features/session-rail/components/RailTasks.vue"
@@ -88,7 +83,7 @@ const actions = computed(() => [
         {
           key: "clear",
           label: t("rail.clearFinished"),
-          icon: TrashBinMinimalisticIcon,
+          icon: TrashIcon,
           disabled: props.sections.finished.length === 0,
           run: clearFinished,
         },
@@ -101,7 +96,7 @@ const actions = computed(() => [
     disabled: false,
     run: rail.toggleWide,
   },
-  { key: "close", label: t("common.close"), icon: CloseIcon, disabled: false, run: rail.closePane },
+  { key: "close", label: t("common.close"), icon: XIcon, disabled: false, run: rail.closePane },
 ])
 
 watch(

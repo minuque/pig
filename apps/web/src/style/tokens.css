@@ -211,6 +211,8 @@
   /* 折叠箭头等比正文缩一档 */
   --size-icon-xs: calc(var(--size-icon) - 2px);
   --size-icon-2xs: 16px;
+  /* 启动失败页的主图标 */
+  --size-icon-hero: 32px;
   /* 模型标签旁的上下文占用圆环 */
   --size-context-ring: 15px;
   --size-icon-button: 28px;
@@ -218,10 +220,6 @@
   --size-avatar: 20px;
   /* 24 画布线宽；低于 1.71 时 14px 图标下等效不到 1px，会糊成半调灰 */
   --line-icon-width: 1.75px;
-  /* @solar-icons/vue 的 IconBase 读这两个名字定尺寸与线宽（width/height 是 1em，靠 font-size 撑开）；
-     未定义时回退 24px / 1.5，比设计大一档，不要删。 */
-  --solar-size: var(--size-icon);
-  --solar-stroke-width: var(--line-icon-width);
   /* 侧边栏紧凑图标按钮：图标外 2px */
   --icon-button-pad: 2px;
   /* 屏外回合未排版前的预估高度；排过一次后浏览器记住真实高度 */

@@ -17,7 +17,7 @@
             class="dlg-close rt-reset rt-BaseButton rt-IconButton rt-variant-ghost rt-r-size-1"
             data-accent-color="gray"
           >
-            <CloseIcon class="size-icon" />
+            <XIcon class="size-icon" />
           </DialogClose>
         </DialogContent>
       </DialogOverlay>
@@ -33,7 +33,7 @@ import { reactiveOmit } from "@vueuse/core"
 import { DialogClose, DialogContent, DialogPortal, useForwardPropsEmits } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
 import { ThemeRoot } from "@components/ui/rt/index.js"
-import { CloseIcon } from "@components/icons/index.js"
+import { XIcon } from "@components/icons/index.js"
 import DialogOverlay from "./DialogOverlay.vue"
 
 defineOptions({

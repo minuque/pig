@@ -28,7 +28,7 @@
         @dblclick="item.value.kind === 'file' && pane.openFile(item.value.path, { pin: true })"
       >
         <template v-if="item.value.kind === 'directory'">
-          <AltArrowRightIcon class="file-tree-caret" :data-open="isExpanded || undefined" />
+          <ChevronRightIcon class="file-tree-caret" :data-open="isExpanded || undefined" />
           <FolderOpenIcon v-if="isExpanded" class="file-tree-icon" />
           <FolderIcon v-else class="file-tree-icon" />
         </template>
@@ -55,7 +55,7 @@ import { TreeItem, TreeRoot, TreeVirtualizer } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
 import { listWorkspaceDir, workspaceGitStatus } from "@client/platform.js"
 import LanguageIcon from "@components/icons/LanguageIcon.vue"
-import { AltArrowRightIcon, FolderIcon, FolderOpenIcon } from "@components/icons/index.js"
+import { ChevronRightIcon, FolderIcon, FolderOpenIcon } from "@components/icons/index.js"
 import { ancestors, gitMarks, rowIndex } from "@features/file-pane/lib/tree.js"
 import { useFilePane } from "@features/file-pane/index.js"
 import type { DirectoryEntry, GitFileStatus } from "@/types/common-type.js"

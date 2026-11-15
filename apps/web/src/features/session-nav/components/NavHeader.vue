@@ -11,7 +11,7 @@
             :aria-label="t('nav.collapseSidebar')"
             @click="emit('toggleSidebar')"
           >
-            <PanelLeftCloseIcon :size="16" />
+            <PanelLeftCloseIcon class="size-icon-2xs" />
           </IconButton>
         </TooltipTrigger>
 
@@ -28,7 +28,7 @@
         color="gray"
         @click="emit('update:searchOpen', true)"
       >
-        <MagnifierIcon :size="16" />
+        <SearchIcon class="size-icon-2xs" />
         <span>{{ t("nav.search") }}</span>
       </Button>
 
@@ -43,7 +43,7 @@
                 variant="ghost"
                 :aria-label="t('session.allProjects')"
               >
-                <Tuning2Icon :size="16" />
+                <SlidersHorizontalIcon class="size-icon-2xs" />
               </IconButton>
             </DropdownMenuTrigger>
           </TooltipTrigger>
@@ -70,7 +70,7 @@
             :aria-label="t('session.addFolder')"
             @click="emit('addProject')"
           >
-            <AddFolderIcon :size="16" />
+            <FolderPlusIcon class="size-icon-2xs" />
           </IconButton>
         </TooltipTrigger>
 
@@ -87,7 +87,7 @@
             :aria-label="t('session.newSession')"
             @click="emit('create')"
           >
-            <ChatRoundAddIcon :size="16" />
+            <MessageCirclePlusIcon class="size-icon-2xs" />
           </IconButton>
         </TooltipTrigger>
 
@@ -112,11 +112,11 @@ import ScopeMenu from "@features/session-nav/components/ScopeMenu.vue"
 import SearchDialog from "@features/session-nav/components/SearchDialog.vue"
 import type { SessionGroup, SidebarSort } from "@features/session-nav/type.js"
 import {
-  AddFolderIcon,
-  ChatRoundAddIcon,
-  MagnifierIcon,
+  FolderPlusIcon,
+  MessageCirclePlusIcon,
+  SearchIcon,
   PanelLeftCloseIcon,
-  Tuning2Icon,
+  SlidersHorizontalIcon,
 } from "@components/icons/index.js"
 import { Button, IconButton } from "@components/ui/button/index.js"
 import { DropdownMenu, DropdownMenuTrigger } from "@components/ui/dropdown-menu/index.js"

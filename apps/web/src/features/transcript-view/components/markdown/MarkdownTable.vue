@@ -13,7 +13,7 @@
           :aria-label="previewLabel"
           @click.stop="openPreview"
         >
-          <MaximizeSquareIcon class="size-icon" />
+          <Maximize2Icon class="size-icon" />
         </IconButton>
       </TooltipTrigger>
 
@@ -37,7 +37,7 @@ import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { TableRoot } from "@components/ui/table/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { MaximizeSquareIcon } from "@components/icons/index.js"
+import { Maximize2Icon } from "@components/icons/index.js"
 import PreviewDialog from "@features/preview/index.vue"
 import { headingBefore } from "@features/transcript-view/lib/nearest-heading.js"
 

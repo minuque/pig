@@ -17,7 +17,7 @@
         </span>
       </span>
 
-      <AltArrowRightIcon class="tool-run-caret" :class="{ 'is-open': open }" data-icon="inline" />
+      <ChevronRightIcon class="tool-run-caret" :class="{ 'is-open': open }" data-icon="inline" />
     </button>
 
     <ToolRunCard
@@ -32,7 +32,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { AltArrowRightIcon } from "@components/icons/index.js"
+import { ChevronRightIcon } from "@components/icons/index.js"
 import { RollText } from "@components/ui/roll-text/index.js"
 import ToolRunCard from "@features/transcript-view/components/tool/ToolRunCard.vue"
 import { runningToolLabel, toolRunSummary } from "@features/transcript-view/lib/tool-run.js"

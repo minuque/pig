@@ -11,7 +11,7 @@
   >
     <div class="drop-guide" aria-hidden="true">
       <span class="drop-guide-label">
-        <DocumentAddIcon class="drop-guide-icon" />
+        <FilePlusIcon class="drop-guide-icon" />
         {{ t("composer.dropGuide") }}
       </span>
     </div>
@@ -131,7 +131,7 @@ import SessionRail from "@features/session-rail/index.vue"
 import { useSessionRail } from "@features/session-rail/index.js"
 import RemoteWorkspaceDialog from "@features/remote-workspace/index.vue"
 import { prefetchTranscriptView } from "@features/transcript-view/index.js"
-import { ArrowDownIcon, DocumentAddIcon, LoaderIcon } from "@components/icons/index.js"
+import { ArrowDownIcon, FilePlusIcon, LoaderIcon } from "@components/icons/index.js"
 
 onMounted(() => {
   if (typeof requestIdleCallback === "function")

@@ -21,7 +21,7 @@
             :disabled="!previousItem"
             @click="previousItem && emit('select', previousItem)"
           >
-            <AltArrowUpIcon :size="12" />
+            <ChevronUpIcon class="size-icon-xs" />
           </button>
         </TooltipTrigger>
 
@@ -58,7 +58,7 @@
             :disabled="!nextItem"
             @click="nextItem && emit('select', nextItem)"
           >
-            <AltArrowDownIcon :size="12" />
+            <ChevronDownIcon class="size-icon-xs" />
           </button>
         </TooltipTrigger>
 
@@ -102,7 +102,7 @@ import {
   resolveMinimapHeightStyle,
   resolveMinimapTopPercent,
 } from "@features/transcript-view/lib/transcript-minimap.js"
-import { AltArrowDownIcon, AltArrowUpIcon } from "@components/icons/index.js"
+import { ChevronDownIcon, ChevronUpIcon } from "@components/icons/index.js"
 
 const props = defineProps<{
   items: readonly TranscriptMinimapItem[]

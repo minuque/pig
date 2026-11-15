@@ -75,7 +75,7 @@
             :aria-label="t('settings.models.removeParam')"
             @click="removeParam(index)"
           >
-            <TrashBinMinimalisticIcon />
+            <TrashIcon />
           </button>
         </TextFieldSlot>
       </TextFieldRoot>
@@ -100,7 +100,7 @@
 import { reactive, ref, watch } from "vue"
 
 import { Button } from "@components/ui/button/index.js"
-import { TrashBinMinimalisticIcon } from "@components/icons/index.js"
+import { TrashIcon } from "@components/icons/index.js"
 import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
 import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
 import { updateModelParams } from "@client/platform.js"

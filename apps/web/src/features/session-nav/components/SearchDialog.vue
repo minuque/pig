@@ -9,7 +9,7 @@
       <DialogTitle class="sr-only">{{ t("nav.search") }}</DialogTitle>
 
       <label class="search-bar">
-        <span class="search-lead"><MagnifierIcon :size="16" /></span>
+        <span class="search-lead"><SearchIcon class="size-icon-2xs" /></span>
 
         <input
           ref="inputEl"
@@ -30,7 +30,7 @@
           :aria-label="t('common.close')"
           @click="emit('update:open', false)"
         >
-          <CloseIcon :size="14" />
+          <XIcon />
         </button>
       </label>
 
@@ -48,11 +48,11 @@
           @pointerenter="activeIndex = index"
           @click="activate(index)"
         >
-          <span class="row-icon" aria-hidden="true"><CodeSquareIcon :size="16" /></span>
+          <span class="row-icon" aria-hidden="true"><SquareCodeIcon class="size-icon-2xs" /></span>
           <span class="row-title">{{ row.title }}</span>
 
           <span v-if="index === activeIndex" class="row-go" aria-hidden="true">
-            <ArrowLeftDownIcon :size="14" />
+            <ArrowDownLeftIcon />
           </span>
 
           <span v-else class="row-time">{{ row.time }}</span>
@@ -73,12 +73,7 @@ import {
 import { formatRelativeTime } from "@features/session-nav/lib/format.js"
 import type { SidebarSort } from "@features/session-nav/type.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
-import {
-  ArrowLeftDownIcon,
-  CloseIcon,
-  CodeSquareIcon,
-  MagnifierIcon,
-} from "@components/icons/index.js"
+import { ArrowDownLeftIcon, XIcon, SquareCodeIcon, SearchIcon } from "@components/icons/index.js"
 
 const props = defineProps<{
   open: boolean

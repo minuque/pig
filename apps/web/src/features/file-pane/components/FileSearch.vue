@@ -10,7 +10,7 @@
       :aria-label="t('files.search')"
       @keydown.escape="query = ''"
     >
-      <TextFieldSlot side="left"><MagnifierIcon class="size-icon" /></TextFieldSlot>
+      <TextFieldSlot side="left"><SearchIcon class="size-icon" /></TextFieldSlot>
     </TextFieldRoot>
 
     <slot v-if="!trimmed" />
@@ -74,7 +74,7 @@ import { useI18n } from "@i18n/index.js"
 import { searchWorkspaceContents, searchWorkspaceFiles } from "@client/platform.js"
 import { Spinner } from "@components/ui/spinner/index.js"
 import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
-import { MagnifierIcon } from "@components/icons/index.js"
+import { SearchIcon } from "@components/icons/index.js"
 import { pathBasename } from "@features/transcript-view/lib/tool-summary.js"
 import { useFilePane } from "@features/file-pane/index.js"
 import { searchLimitNotice } from "@features/file-pane/lib/search-limit.js"

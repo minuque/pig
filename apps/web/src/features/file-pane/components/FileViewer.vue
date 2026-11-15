@@ -17,7 +17,7 @@
             :aria-label="toggleLabel"
             @click="source = !source"
           >
-            <CodeSquareIcon v-if="!source" class="size-icon" />
+            <SquareCodeIcon v-if="!source" class="size-icon" />
             <EyeIcon v-else class="size-icon" />
           </IconButton>
         </TooltipTrigger>
@@ -74,7 +74,7 @@ import { PlatformRequestError } from "@client/http.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Spinner } from "@components/ui/spinner/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { CodeSquareIcon, EyeIcon } from "@components/icons/index.js"
+import { SquareCodeIcon, EyeIcon } from "@components/icons/index.js"
 import MarkdownContent from "@features/transcript-view/components/markdown/MarkdownContent.vue"
 import { useMarkdownNodes } from "@features/transcript-view/hooks/use-markdown-nodes.js"
 import FileCode from "@features/file-pane/components/FileCode.vue"

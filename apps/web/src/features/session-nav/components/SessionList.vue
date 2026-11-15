@@ -83,7 +83,7 @@
           class="drag-ghost"
           :style="{ transform: `translate(${ghost.x + 12}px, ${ghost.y + 12}px)` }"
         >
-          <ChatSquareIcon class="size-icon" />
+          <MessageSquareIcon class="size-icon" />
           <span class="drag-ghost-title">{{ overlay.props.session.title }}</span>
         </div>
       </ThemeRoot>
@@ -95,7 +95,7 @@
 import { computed, onUpdated, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { ThemeRoot } from "@components/ui/rt/index.js"
-import { ChatSquareIcon } from "@components/icons/index.js"
+import { MessageSquareIcon } from "@components/icons/index.js"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import SessionSection from "@features/session-nav/components/SessionSection.vue"
 import { useRowSweep } from "@features/session-nav/hooks/use-row-sweep.js"

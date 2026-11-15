@@ -14,10 +14,10 @@
   "dependencies": {
     "@comark/vue": "0.8.1",
     "@lobehub/icons-static-svg": "1.95.0",
+    "@lucide/vue": "1.72.0",
     "@panzoom/panzoom": "4.6.2",
     "@pierre/vscode-icons": "0.0.9",
     "@radix-ui/themes": "3.3.0",
-    "@solar-icons/vue": "2.3.2",
     "@vueuse/core": "14.4.0",
     "comark": "0.8.1",
     "pele": "1.6.0",

@@ -18,8 +18,8 @@
       @pointerdown.stop
       @click.stop="emit('toggleFavorite')"
     >
-      <StarBoldIcon v-if="favorite" :size="14" />
-      <StarIcon v-else :size="14" />
+      <StarFilledIcon v-if="favorite" />
+      <StarIcon v-else />
     </button>
   </div>
 </template>
@@ -28,7 +28,7 @@
 import { useI18n } from "@i18n/index.js"
 import { DropdownMenuItem } from "@components/ui/dropdown-menu/index.js"
 import VendorMark from "@features/composer/components/VendorMark.vue"
-import { StarBoldIcon, StarIcon } from "@components/icons/index.js"
+import { StarFilledIcon, StarIcon } from "@components/icons/index.js"
 
 defineProps<{
   vendorId: string

@@ -26,7 +26,7 @@
         </DropdownMenuItem>
 
         <DropdownMenuItem @select.prevent="toggleLocale">
-          <EarthIcon :size="14" />
+          <GlobeIcon />
           {{ t("settings.language") }}
           <span class="profile-value">{{ currentLocale }}</span>
         </DropdownMenuItem>
@@ -43,7 +43,7 @@
           :aria-label="t('nav.settings')"
           @click="emit('settings')"
         >
-          <SettingsIcon :size="16" />
+          <SettingsIcon class="size-icon-2xs" />
         </IconButton>
       </TooltipTrigger>
 
@@ -63,7 +63,7 @@ import {
 } from "@components/ui/dropdown-menu/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useI18n } from "@i18n/index.js"
-import { EarthIcon, MoonIcon, SettingsIcon, SunIcon } from "@components/icons/index.js"
+import { GlobeIcon, MoonIcon, SettingsIcon, SunIcon } from "@components/icons/index.js"
 import { useGeneralPrefs } from "@features/settings/index.js"
 import { useColorScheme } from "@features/theme/index.js"
 

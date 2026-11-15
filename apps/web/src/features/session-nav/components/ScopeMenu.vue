@@ -26,7 +26,7 @@
       :model-value="scopeFilter.size === 0"
       @select.prevent="emit('update:scopeFilter', new Set())"
     >
-      <FolderIcon :size="12" />
+      <FolderIcon class="size-icon-xs" />
       <span class="scope-name">{{ t("session.allProjects") }}</span>
       <span class="scope-cnt">{{ allSessionsCount }}</span>
     </DropdownMenuCheckboxItem>
@@ -38,7 +38,7 @@
         :model-value="scopeFilter.has(group.canonicalPath)"
         @select.prevent="toggleProject(group.canonicalPath)"
       >
-        <FolderIcon :size="12" />
+        <FolderIcon class="size-icon-xs" />
         <span class="scope-name">{{ workspaceName(group.canonicalPath) }}</span>
         <span class="scope-cnt">{{ group.sessions.length }}</span>
       </DropdownMenuCheckboxItem>
@@ -58,7 +58,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
 } from "@components/ui/dropdown-menu/index.js"
-import { DocumentAddIcon, FolderIcon, HistoryIcon } from "@components/icons/index.js"
+import { FilePlusIcon, FolderIcon, RotateCcwClockIcon } from "@components/icons/index.js"
 import type { SessionGroup, SidebarSort } from "@features/session-nav/type.js"
 
 const props = defineProps<{
@@ -72,8 +72,8 @@ const emit = defineEmits<{
 }>()
 const { t } = useI18n()
 const sortOptions = computed(() => [
-  { value: "updated" as const, label: t("session.sortUpdated"), icon: HistoryIcon },
-  { value: "created" as const, label: t("session.sortCreated"), icon: DocumentAddIcon },
+  { value: "updated" as const, label: t("session.sortUpdated"), icon: RotateCcwClockIcon },
+  { value: "created" as const, label: t("session.sortCreated"), icon: FilePlusIcon },
 ])
 const allSessionsCount = computed(() =>
   props.groups.reduce((sum, group) => sum + group.sessions.length, 0),

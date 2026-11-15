@@ -12,7 +12,7 @@
     </span>
 
     <SelectIcon class="rt-SelectIcon">
-      <AltArrowDownIcon />
+      <ChevronDownIcon />
     </SelectIcon>
   </SelectTrigger>
 </template>
@@ -26,7 +26,7 @@ import { SelectIcon, SelectTrigger, SelectValue, useForwardProps } from "reka-ui
 import type { Radius } from "@components/ui/button/index.js"
 import { sizeClass as rtSizeClass } from "@components/ui/rt/size.js"
 import { useSelectSize } from "@components/ui/select/select-context.js"
-import { AltArrowDownIcon } from "@components/icons/index.js"
+import { ChevronDownIcon } from "@components/icons/index.js"
 
 defineOptions({ inheritAttrs: false })
 

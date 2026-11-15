@@ -35,7 +35,7 @@
                 :disabled="stopping.has(task.id)"
                 @click="stop(task.id)"
               >
-                <StopIcon class="size-icon" />
+                <SquareIcon class="size-icon" />
               </IconButton>
             </TooltipTrigger>
 
@@ -95,7 +95,7 @@ import { useNow } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { StopIcon } from "@components/icons/index.js"
+import { SquareIcon } from "@components/icons/index.js"
 import { formatTokenCount } from "@features/composer/lib/context-usage.js"
 import type { OpenChild } from "@features/session-rail/index.js"
 import {

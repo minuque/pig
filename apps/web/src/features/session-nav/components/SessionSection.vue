@@ -16,7 +16,7 @@
         <span class="section-label">{{ section.label }}</span>
         <span class="section-rule" aria-hidden="true"></span>
         <span class="section-count">{{ section.total }}</span>
-        <AltArrowDownIcon class="section-chevron" :class="{ 'is-collapsed': !open }" :size="12" />
+        <ChevronDownIcon class="size-icon-xs section-chevron" :class="{ 'is-collapsed': !open }" />
       </button>
     </div>
 
@@ -64,7 +64,7 @@
             type="button"
             @click="emit('revealMore', section.key)"
           >
-            <AltArrowDownIcon class="more-icon" :size="16" />
+            <ChevronDownIcon class="size-icon-2xs more-icon" />
             {{ t("common.showMore") }}
           </button>
 
@@ -74,7 +74,7 @@
             type="button"
             @click="emit('collapseGroup', section.key)"
           >
-            <AltArrowDownIcon class="more-icon is-up" :size="16" />
+            <ChevronDownIcon class="size-icon-2xs more-icon is-up" />
             {{ t("common.collapse") }}
           </button>
         </li>
@@ -87,7 +87,7 @@
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
-import { AltArrowDownIcon } from "@components/icons/index.js"
+import { ChevronDownIcon } from "@components/icons/index.js"
 import { sidebarItemProps } from "@features/session-nav/lib/session-list.js"
 import type { SidebarRowFoot, SidebarSection, SidebarSession } from "@features/session-nav/type.js"
 

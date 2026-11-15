@@ -58,8 +58,8 @@
                   :data-current="scope === FAVORITES_SCOPE ? '' : undefined"
                   @click="selectScope(FAVORITES_SCOPE)"
                 >
-                  <StarBoldIcon v-if="scope === FAVORITES_SCOPE" :size="16" />
-                  <StarIcon v-else :size="16" />
+                  <StarFilledIcon class="size-icon-2xs" v-if="scope === FAVORITES_SCOPE" />
+                  <StarIcon class="size-icon-2xs" v-else />
                 </IconButton>
               </TooltipTrigger>
 
@@ -96,7 +96,7 @@
                 :disabled="effortIsDefault"
                 @click="resetEffort"
               >
-                <RestartIcon :size="14" aria-hidden="true" />
+                <RotateCcwIcon aria-hidden="true" />
               </IconButton>
             </TooltipTrigger>
 
@@ -105,7 +105,7 @@
         </div>
 
         <div class="search">
-          <MagnifierIcon :size="14" class="search-icon" />
+          <SearchIcon class="search-icon" />
 
           <input
             ref="searchRef"
@@ -185,7 +185,7 @@ import {
   formatThinkingLevel,
   pickerTriggerText,
 } from "@features/composer/lib/thinking-level.js"
-import { MagnifierIcon, RestartIcon, StarBoldIcon, StarIcon } from "@components/icons/index.js"
+import { SearchIcon, RotateCcwIcon, StarFilledIcon, StarIcon } from "@components/icons/index.js"
 
 const props = withDefaults(
   defineProps<{

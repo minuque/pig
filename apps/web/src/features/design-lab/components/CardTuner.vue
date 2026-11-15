@@ -12,7 +12,7 @@
       <MarkdownContent :nodes="nodes" />
 
       <Callout variant="surface" size="s" color="destructive">
-        <template #icon><DangerCircleIcon /></template>
+        <template #icon><CircleExclamationPointIcon /></template>
         <template #title>出错了</template>
         Callout 的边框不读卡片变量，放在这里作对照。
       </Callout>
@@ -95,7 +95,7 @@ import { Card } from "@components/ui/card/index.js"
 import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
 import { Slider } from "@components/ui/slider/index.js"
 import { Switch } from "@components/ui/switch/index.js"
-import { DangerCircleIcon } from "@components/icons/index.js"
+import { CircleExclamationPointIcon } from "@components/icons/index.js"
 import MarkdownContent from "@features/transcript-view/components/markdown/MarkdownContent.vue"
 import { useMarkdownNodes } from "@features/transcript-view/hooks/use-markdown-nodes.js"
 

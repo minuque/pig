@@ -12,7 +12,7 @@
           :aria-label="t('nav.openSidebar')"
           @click="setSbState('expanded')"
         >
-          <PanelRightOpenIcon :size="16" />
+          <PanelRightOpenIcon class="size-icon-2xs" />
         </IconButton>
       </TooltipTrigger>
 
@@ -25,7 +25,7 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <span class="crumb-project-label">
-                <FolderIcon class="crumb-icon" :size="14" />
+                <FolderIcon class="crumb-icon" />
                 <span class="crumb-text">{{ cwdLabel }}</span>
               </span>
             </TooltipTrigger>
@@ -63,13 +63,13 @@
                 variant="ghost"
                 :aria-label="t('common.more')"
               >
-                <AltArrowDownIcon :size="14" />
+                <ChevronDownIcon />
               </IconButton>
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end" class="select-none">
               <DropdownMenuItem @select="onTogglePinned">
-                <PinBoldIcon v-if="isPinned" />
+                <PinFilledIcon v-if="isPinned" />
                 <PinIcon v-else />
                 {{ isPinned ? t("session.unpin") : t("session.pin") }}
               </DropdownMenuItem>
@@ -82,7 +82,7 @@
               <DropdownMenuSeparator />
 
               <DropdownMenuItem variant="destructive" @select="deleteOpen = true">
-                <TrashBinMinimalisticIcon />
+                <TrashIcon />
                 {{ t("session.deleteTitle") }}
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -107,7 +107,7 @@
           :aria-label="t('files.toggle')"
           @click="files.toggle"
         >
-          <FoldersIcon :size="16" />
+          <FoldersIcon class="size-icon-2xs" />
         </IconButton>
       </TooltipTrigger>
 
@@ -138,14 +138,14 @@ import { useNav } from "@features/session-nav/index.js"
 import { workspaceName } from "@features/session-nav/lib/format.js"
 import { sessionTitle, untitledSession, useSession } from "@features/session/index.js"
 import {
-  AltArrowDownIcon,
+  ChevronDownIcon,
   FolderIcon,
   FoldersIcon,
   PanelRightOpenIcon,
   PenIcon,
   PinIcon,
-  PinBoldIcon,
-  TrashBinMinimalisticIcon,
+  PinFilledIcon,
+  TrashIcon,
 } from "@components/icons/index.js"
 
 /** rail：右侧显示摘要面板开关（开场页不显示）。 */

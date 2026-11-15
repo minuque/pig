@@ -95,7 +95,7 @@ const PREFIX: [RegExp, GroupId][] = [
   [/^--spac(e|ing)/, "space"],
   [/radius/, "radius"],
   [/^--(shadow|divider|focus-ring)/, "shadow"],
-  [/^--(size|line-icon|border-width|solar|icon-button|startup-logo)/, "size"],
+  [/^--(size|line-icon|border-width|icon-button|startup-logo)/, "size"],
   [/^--(transcript|header|titlebar|edge-fade|corner)/, "layout"],
   [/^--z-/, "layer"],
   [/^--(opacity|contrast-boost)/, "material"],

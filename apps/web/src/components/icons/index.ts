@@ -1,167 +1,74 @@
-// 图标注册表：Solar Icons Linear 款（480 Design，CC BY 4.0），实心态取 Bold 款配对
+// 图标注册表：Lucide（ISC），实心态用同一图标填 currentColor
+import { Pin, Star, type LucideProps } from "@lucide/vue"
+import { h, type FunctionalComponent } from "vue"
 
 export { default as RunningPigGlyph } from "@components/icons/RunningPigGlyph.vue"
 
 export { default as LanguageIcon } from "@components/icons/LanguageIcon.vue"
 
-export { AddIcon } from "@solar-icons/vue/linear/add"
-
-export { AddFolderIcon } from "@solar-icons/vue/linear/add-folder"
-
-export { AlignLeftIcon } from "@solar-icons/vue/linear/align-left"
-
-export { AltArrowDownIcon } from "@solar-icons/vue/linear/alt-arrow-down"
-
-export { AltArrowRightIcon } from "@solar-icons/vue/linear/alt-arrow-right"
-
-export { AltArrowUpIcon } from "@solar-icons/vue/linear/alt-arrow-up"
-
-export { ArrowDownIcon } from "@solar-icons/vue/linear/arrow-down"
-
-export { ArrowLeftDownIcon } from "@solar-icons/vue/linear/arrow-left-down"
-
-export { ArrowLeftIcon } from "@solar-icons/vue/linear/arrow-left"
-
-export { ArrowUpIcon } from "@solar-icons/vue/linear/arrow-up"
-
-export { BellIcon } from "@solar-icons/vue/linear/bell"
-
-export { Book2Icon } from "@solar-icons/vue/linear/book-2"
-
-export { ChartSquareIcon } from "@solar-icons/vue/linear/chart-square"
-
-export { ChatRoundAddIcon } from "@solar-icons/vue/linear/chat-round-add"
-
-export { ChatSquareIcon } from "@solar-icons/vue/linear/chat-square"
-
-export { CheckCircleIcon } from "@solar-icons/vue/linear/check-circle"
-
-export { CheckIcon } from "@solar-icons/vue/linear/check"
-
-export { ClockCircleIcon } from "@solar-icons/vue/linear/clock-circle"
-
-export { CloudIcon } from "@solar-icons/vue/linear/cloud"
-
-export { HistoryIcon } from "@solar-icons/vue/linear/history"
-
-export { KeyMinimalisticIcon } from "@solar-icons/vue/linear/key-minimalistic"
-
-export { CloseIcon } from "@solar-icons/vue/linear/close"
-
-export { CodeSquareIcon } from "@solar-icons/vue/linear/code-square"
-
-export { CommandIcon } from "@solar-icons/vue/linear/command"
-
-export { CopyIcon } from "@solar-icons/vue/linear/copy"
-
-export { DangerCircleIcon } from "@solar-icons/vue/linear/danger-circle"
-
-export { DocumentAddIcon } from "@solar-icons/vue/linear/document-add"
-
-export { DocumentIcon } from "@solar-icons/vue/linear/document"
-
-export { DoubleAltArrowDownIcon } from "@solar-icons/vue/linear/double-alt-arrow-down"
-
-export { DoubleAltArrowUpIcon } from "@solar-icons/vue/linear/double-alt-arrow-up"
-
-export { EarthIcon } from "@solar-icons/vue/linear/earth"
-
-export { EyeIcon } from "@solar-icons/vue/linear/eye"
-
-export { FolderIcon } from "@solar-icons/vue/linear/folder"
-
-export { FolderOpenIcon } from "@solar-icons/vue/linear/folder-open"
-
-export { FoldersIcon } from "@solar-icons/vue/linear/folders"
-
-export { GripVerticalIcon } from "@solar-icons/vue/linear/grip-vertical"
-
-export { LightbulbMinimalisticIcon } from "@solar-icons/vue/linear/lightbulb-minimalistic"
-
-export { LinkMinimalisticIcon } from "@solar-icons/vue/linear/link-minimalistic"
-
-export { ListIcon } from "@solar-icons/vue/linear/list"
-
-export { CircleDashedIcon } from "@solar-icons/vue/linear/circle-dashed"
-
-export { LoaderIcon } from "@solar-icons/vue/linear/loader"
-
-export { MagnifierIcon } from "@solar-icons/vue/linear/magnifier"
-
-export { MagnifierZoomInIcon } from "@solar-icons/vue/linear/magnifier-zoom-in"
-
-export { MagnifierZoomOutIcon } from "@solar-icons/vue/linear/magnifier-zoom-out"
-
-export { MaximizeIcon } from "@solar-icons/vue/linear/maximize"
-
-export { MaximizeSquareIcon } from "@solar-icons/vue/linear/maximize-square"
-
-export { MenuDotsIcon } from "@solar-icons/vue/bold/menu-dots"
-
-export { MinimizeIcon } from "@solar-icons/vue/linear/minimize"
-
-export { MinimizeSquareIcon } from "@solar-icons/vue/linear/minimize-square"
-
-export { MinusIcon } from "@solar-icons/vue/linear/minus"
-
-export { MonitorIcon } from "@solar-icons/vue/linear/monitor"
-
-export { MoonIcon } from "@solar-icons/vue/linear/moon"
-
-export { PaperclipIcon } from "@solar-icons/vue/linear/paperclip"
-
-export { ParagraphSpacingIcon } from "@solar-icons/vue/linear/paragraph-spacing"
-
-export { PanelLeftCloseIcon } from "@solar-icons/vue/linear/panel-left-close"
-
-export { PanelRightOpenIcon } from "@solar-icons/vue/linear/panel-right-open"
-
-export { PaletteIcon } from "@solar-icons/vue/linear/palette"
-
-export { PanelTextRightIcon } from "@solar-icons/vue/linear/panel-text-right"
-
-export { PenIcon } from "@solar-icons/vue/linear/pen"
-
-export { PinIcon } from "@solar-icons/vue/linear/pin"
-
-export { PinIcon as PinBoldIcon } from "@solar-icons/vue/bold/pin"
-
-export { QuestionCircleIcon } from "@solar-icons/vue/linear/question-circle"
-
-export { RestartIcon } from "@solar-icons/vue/linear/restart"
-
-export { SettingsIcon } from "@solar-icons/vue/linear/settings"
-
-export { SettingsMinimalisticIcon } from "@solar-icons/vue/linear/settings-minimalistic"
-
-export { SliderMinimalisticHorizontalIcon } from "@solar-icons/vue/linear/slider-minimalistic-horizontal"
-
-export { SledgehammerIcon } from "@solar-icons/vue/linear/sledgehammer"
-
-export { StarIcon } from "@solar-icons/vue/linear/star"
-
-export { StarIcon as StarBoldIcon } from "@solar-icons/vue/bold/star"
-
-export { StarsMinimalisticIcon } from "@solar-icons/vue/linear/stars-minimalistic"
-
-export { StopIcon } from "@solar-icons/vue/linear/stop"
-
-export { SunIcon } from "@solar-icons/vue/linear/sun"
-
-export { TrashBinMinimalisticIcon } from "@solar-icons/vue/linear/trash-bin-minimalistic"
-
-export { Tuning2Icon } from "@solar-icons/vue/linear/tuning-2"
-
-export { Tuning2Icon as Tuning2OutlineIcon } from "@solar-icons/vue/outline/tuning-2"
-
-export { UndoLeftRoundIcon } from "@solar-icons/vue/linear/undo-left-round"
-
-export { UserIcon } from "@solar-icons/vue/linear/user"
-
-export { VolumeCrossIcon } from "@solar-icons/vue/linear/volume-cross"
-
-export { VolumeLoudIcon } from "@solar-icons/vue/linear/volume-loud"
-
-export { Widget5Icon } from "@solar-icons/vue/linear/widget-5"
-
-export { WidgetAddIcon } from "@solar-icons/vue/linear/widget-add"
+export {
+  ArrowDownIcon,
+  ArrowDownLeftIcon,
+  ArrowLeftIcon,
+  ArrowUpIcon,
+  BellIcon,
+  BlocksIcon,
+  CheckIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  ChevronUpIcon,
+  CircleCheckIcon,
+  CircleDashedIcon,
+  CircleExclamationPointIcon,
+  CircleQuestionMarkIcon,
+  CloudIcon,
+  CopyIcon,
+  EyeIcon,
+  FilePlusIcon,
+  FileTextIcon,
+  FolderIcon,
+  FolderOpenIcon,
+  FolderPlusIcon,
+  FoldersIcon,
+  GlobeIcon,
+  GripVerticalIcon,
+  KeyRoundIcon,
+  LinkIcon,
+  LoaderIcon,
+  Maximize2Icon,
+  MaximizeIcon,
+  MessageCirclePlusIcon,
+  MessageSquareIcon,
+  MinimizeIcon,
+  MinusIcon,
+  MoonIcon,
+  PaletteIcon,
+  PanelLeftCloseIcon,
+  PanelRightIcon,
+  PanelRightOpenIcon,
+  PaperclipIcon,
+  PenIcon,
+  PinIcon,
+  PlusIcon,
+  RotateCcwClockIcon,
+  RotateCcwIcon,
+  SearchIcon,
+  SettingsIcon,
+  SlidersHorizontalIcon,
+  SparklesIcon,
+  SquareCodeIcon,
+  SquareIcon,
+  StarIcon,
+  SunIcon,
+  TrashIcon,
+  Undo2Icon,
+  UserIcon,
+  XIcon,
+} from "@lucide/vue"
+
+const filled =
+  (icon: FunctionalComponent<LucideProps>): FunctionalComponent<LucideProps> =>
+  (_, { attrs }) =>
+    h(icon, { ...attrs, fill: "currentColor" })
+export const PinFilledIcon = filled(Pin)
+export const StarFilledIcon = filled(Star)

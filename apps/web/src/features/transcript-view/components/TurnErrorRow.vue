@@ -1,6 +1,6 @@
 <template>
   <Callout variant="surface" size="s" :color="error ? 'destructive' : 'warning'" role="alert">
-    <template #icon><DangerCircleIcon /></template>
+    <template #icon><CircleExclamationPointIcon /></template>
     <template v-if="message" #title>{{ label }}</template>
     {{ message || label }}
   </Callout>
@@ -10,7 +10,7 @@
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Callout } from "@components/ui/callout/index.js"
-import { DangerCircleIcon } from "@components/icons/index.js"
+import { CircleExclamationPointIcon } from "@components/icons/index.js"
 
 const props = defineProps<{
   error: boolean

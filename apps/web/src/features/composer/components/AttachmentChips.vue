@@ -17,7 +17,7 @@
       </button>
 
       <span v-else class="file">
-        <DocumentIcon class="file-icon" aria-hidden="true" />
+        <FileTextIcon class="file-icon" aria-hidden="true" />
 
         <span class="file-name">
           <span class="file-base">{{ row.base }}</span>
@@ -54,7 +54,7 @@
         @mousedown.prevent
         @click="emit('remove', row.item.id)"
       >
-        <CloseIcon class="remove-icon" aria-hidden="true" />
+        <XIcon class="remove-icon" aria-hidden="true" />
       </button>
     </div>
   </TransitionGroup>
@@ -64,7 +64,7 @@
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import type { ComposerAttachment } from "@features/composer/hooks/use-composer-attachments.js"
-import { CloseIcon, DocumentIcon } from "@components/icons/index.js"
+import { XIcon, FileTextIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 const props = defineProps<{

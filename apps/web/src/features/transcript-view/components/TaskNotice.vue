@@ -10,7 +10,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { CheckCircleIcon, DangerCircleIcon, StopIcon } from "@components/icons/index.js"
+import { CircleCheckIcon, CircleExclamationPointIcon, SquareIcon } from "@components/icons/index.js"
 import { formatElapsed } from "@utils/time.js"
 import type { Task } from "@/types/common-type.js"
 
@@ -20,10 +20,10 @@ const { t } = useI18n()
 const label = computed(() => t(`taskNotice.${props.task.kind}.${props.task.status}`))
 const icon = computed(() =>
   props.task.status === "completed"
-    ? CheckCircleIcon
+    ? CircleCheckIcon
     : props.task.status === "failed"
-      ? DangerCircleIcon
-      : StopIcon,
+      ? CircleExclamationPointIcon
+      : SquareIcon,
 )
 const elapsed = computed(() => {
   const { startedAt, completedAt } = props.task

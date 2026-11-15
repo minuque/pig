@@ -16,7 +16,7 @@
           :aria-label="t('composer.queueRemove', { text: item.text })"
           @click="emit('remove', item.id)"
         >
-          <TrashBinMinimalisticIcon class="action-icon" aria-hidden="true" />
+          <TrashIcon class="action-icon" aria-hidden="true" />
         </button>
 
         <button
@@ -41,7 +41,7 @@ import { onBeforeUnmount, onMounted, useTemplateRef } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { useDragReorder } from "@utils/motion.js"
 import type { QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
-import { GripVerticalIcon, PenIcon, TrashBinMinimalisticIcon } from "@components/icons/index.js"
+import { GripVerticalIcon, PenIcon, TrashIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 

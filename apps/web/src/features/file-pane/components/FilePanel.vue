@@ -49,7 +49,7 @@
             :aria-label="t('common.close')"
             @click="pane.setOpen(false)"
           >
-            <CloseIcon class="size-icon" />
+            <XIcon class="size-icon" />
           </IconButton>
         </TooltipTrigger>
 
@@ -96,7 +96,7 @@ import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import {
   ArrowLeftIcon,
-  CloseIcon,
+  XIcon,
   PanelLeftCloseIcon,
   PanelRightOpenIcon,
 } from "@components/icons/index.js"

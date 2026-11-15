@@ -60,7 +60,7 @@
         <span v-if="duration" class="tool-row-time">{{ duration }}</span>
       </span>
 
-      <AltArrowRightIcon class="tool-row-caret" :class="{ 'is-open': open }" data-icon="inline" />
+      <ChevronRightIcon class="tool-row-caret" :class="{ 'is-open': open }" data-icon="inline" />
     </div>
 
     <PreviewDialog
@@ -87,7 +87,7 @@
 <script setup lang="ts">
 import { computed, inject, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { AltArrowRightIcon } from "@components/icons/index.js"
+import { ChevronRightIcon } from "@components/icons/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { RollText } from "@components/ui/roll-text/index.js"
 import PreviewDialog from "@features/preview/index.vue"

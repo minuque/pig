@@ -2,7 +2,7 @@
   <Card size="s" class="login-panel">
     <div class="login-status" :data-state="state.phase">
       <LoaderIcon v-if="state.phase === 'running'" class="is-spinning" />
-      <DangerCircleIcon v-else-if="state.phase === 'error'" />
+      <CircleExclamationPointIcon v-else-if="state.phase === 'error'" />
       <span>{{ statusText }}</span>
     </div>
 
@@ -18,7 +18,7 @@
       rel="noopener noreferrer"
     >
       {{ t("settings.models.openAuthPage") }}
-      <LinkMinimalisticIcon />
+      <LinkIcon />
     </Link>
 
     <div v-for="code in state.deviceCodes" :key="code.userCode" class="device-row">
@@ -95,8 +95,8 @@ import { Link } from "@components/ui/link/index.js"
 import {
   CheckIcon,
   CopyIcon,
-  DangerCircleIcon,
-  LinkMinimalisticIcon,
+  CircleExclamationPointIcon,
+  LinkIcon,
   LoaderIcon,
 } from "@components/icons/index.js"
 import { useI18n } from "@i18n/index.js"

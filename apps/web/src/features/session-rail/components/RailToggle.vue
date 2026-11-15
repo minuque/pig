@@ -14,7 +14,7 @@
           :aria-label="t('rail.toggle')"
           @click="rail.toggleDocked"
         >
-          <PanelTextRightIcon :size="16" />
+          <PanelRightIcon class="size-icon-2xs" />
           <span v-if="runningCount > 0" class="rail-toggle-dot" />
         </IconButton>
       </TooltipTrigger>
@@ -37,7 +37,7 @@
               :data-active="popoverOpen || undefined"
               :aria-label="t('rail.toggle')"
             >
-              <PanelTextRightIcon :size="16" />
+              <PanelRightIcon class="size-icon-2xs" />
               <span v-if="runningCount > 0" class="rail-toggle-dot" />
             </IconButton>
           </TooltipTrigger>
@@ -57,7 +57,7 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch, type ComponentPublicInstance } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { PanelTextRightIcon } from "@components/icons/index.js"
+import { PanelRightIcon } from "@components/icons/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
