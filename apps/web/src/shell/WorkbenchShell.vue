@@ -85,6 +85,7 @@ import { useSettingsDialog } from "@features/settings/hooks/use-settings-dialog.
 import Startup from "@features/startup/index.vue"
 import { createSessionHub, useSessionLifecycle } from "@features/session/index.js"
 import { focusedSession, provideSplitView, type Side } from "@features/split-view/index.js"
+import { splitShortcut } from "@features/split-view/lib/split-shortcut.js"
 import { prefetchHighlighter } from "@features/transcript-view/index.js"
 import WorkbenchPane from "@/shell/WorkbenchPane.vue"
 
@@ -146,6 +147,22 @@ function startResize(event: PointerEvent) {
     stopUp()
   })
 }
+
+const isMac = /mac/i.test(navigator.platform || navigator.userAgent)
+
+useEventListener(window, "keydown", (event: KeyboardEvent) => {
+  const command = splitShortcut(event, isMac)
+
+  if (!command) return
+  event.preventDefault()
+
+  if (command === "new-right") return split.openToSide(undefined)
+
+  if (!split.split.value) return
+
+  if (command === "close") return split.closeSide(split.focused.value)
+  split.focusSide(split.focused.value === "left" ? "right" : "left")
+})
 
 const dropZones: Side[] = ["left", "right"]
 
