@@ -117,39 +117,42 @@
       <TooltipContent>{{ t("files.toggle") }}</TooltipContent>
     </Tooltip>
 
-    <Tooltip v-if="split.split.value && !split.fits.value">
-      <TooltipTrigger as-child>
-        <IconButton
-          type="button"
-          size="m"
-          color="gray"
-          variant="ghost"
-          :aria-label="t('split.switchSide')"
-          @click="split.focusSide(side === 'left' ? 'right' : 'left')"
-        >
-          <ArrowLeftRightIcon class="size-icon-2xs" />
-        </IconButton>
-      </TooltipTrigger>
+    <!-- 分屏操作贴住头部右端：没有标题的新会话页也一样 -->
+    <span v-if="split.split.value" class="split-actions">
+      <Tooltip v-if="!split.fits.value">
+        <TooltipTrigger as-child>
+          <IconButton
+            type="button"
+            size="m"
+            color="gray"
+            variant="ghost"
+            :aria-label="t('split.switchSide')"
+            @click="split.focusSide(side === 'left' ? 'right' : 'left')"
+          >
+            <ArrowLeftRightIcon class="size-icon-2xs" />
+          </IconButton>
+        </TooltipTrigger>
 
-      <TooltipContent>{{ t("split.switchSide") }}</TooltipContent>
-    </Tooltip>
+        <TooltipContent>{{ t("split.switchSide") }}</TooltipContent>
+      </Tooltip>
 
-    <Tooltip v-if="split.split.value">
-      <TooltipTrigger as-child>
-        <IconButton
-          type="button"
-          size="m"
-          color="gray"
-          variant="ghost"
-          :aria-label="t('split.close')"
-          @click="split.closeSide(side)"
-        >
-          <XIcon class="size-icon-2xs" />
-        </IconButton>
-      </TooltipTrigger>
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <IconButton
+            type="button"
+            size="m"
+            color="gray"
+            variant="ghost"
+            :aria-label="t('split.close')"
+            @click="split.closeSide(side)"
+          >
+            <XIcon class="size-icon-2xs" />
+          </IconButton>
+        </TooltipTrigger>
 
-      <TooltipContent>{{ t("split.close") }}</TooltipContent>
-    </Tooltip>
+        <TooltipContent>{{ t("split.close") }}</TooltipContent>
+      </Tooltip>
+    </span>
 
     <SessionItemDelete v-model:open="deleteOpen" :title="title" @confirm="confirmDelete" />
   </header>
@@ -339,6 +342,13 @@ function confirmDelete(): void {
   /* 与下方正文同底色：头部不另起一层 */
   background: transparent;
   color: var(--contrast-foreground);
+}
+
+.split-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-inline-start: auto;
 }
 
 .workbench-header.is-rightmost {
