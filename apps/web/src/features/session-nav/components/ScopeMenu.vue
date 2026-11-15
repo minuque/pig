@@ -204,6 +204,11 @@ function toggleProject(canonicalPath: string): void {
   background-color: transparent;
 }
 
+/* 滚动列是纵向 flex：行不许被压缩，否则没有按钮撑着的「全部项目」会变矮 */
+.scope-item {
+  flex: none;
+}
+
 .scope-icon {
   position: relative;
   display: flex;
