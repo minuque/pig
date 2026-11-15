@@ -22,7 +22,7 @@ export default defineConfig({
         globPatterns: [
           "index.html",
           "assets/index-*.{js,css}",
-          "assets/session-workbench-*.{js,css}",
+          "assets/WorkbenchShell-*.{js,css}",
           "pwa-icon-*.png",
         ],
         maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
