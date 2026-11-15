@@ -43,7 +43,7 @@
                 variant="ghost"
                 :aria-label="t('session.allProjects')"
               >
-                <FunnelIcon class="size-icon-2xs" />
+                <ListFilterIcon class="size-icon-2xs" />
               </IconButton>
             </DropdownMenuTrigger>
           </TooltipTrigger>
@@ -116,7 +116,7 @@ import {
   MessageCirclePlusIcon,
   SearchIcon,
   PanelLeftCloseIcon,
-  FunnelIcon,
+  ListFilterIcon,
 } from "@components/icons/index.js"
 import { Button, IconButton } from "@components/ui/button/index.js"
 import { DropdownMenu, DropdownMenuTrigger } from "@components/ui/dropdown-menu/index.js"

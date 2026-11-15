@@ -30,7 +30,7 @@ export {
   FolderOpenIcon,
   FolderPlusIcon,
   FoldersIcon,
-  FunnelIcon,
+  ListFilterIcon,
   GlobeIcon,
   GripVerticalIcon,
   KeyRoundIcon,
