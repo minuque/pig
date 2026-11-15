@@ -77,7 +77,8 @@ test("长耗时命令失败：任务显示失败，时间线出现失败通知",
   await expect(task).toContainText("失败")
   await expect(page.locator(".task-notice").first()).toContainText("后台命令失败")
 
-  await task.locator(".rail-task-title").click()
+  // 从摘要卡的任务行点进来：面板定位到这条命令，输出直接展开
+  await expect(task.locator(".rail-task-title")).toHaveAttribute("aria-expanded", "true")
   await expect(task.locator(".rail-task-output pre")).toContainText("boom")
 })
 
