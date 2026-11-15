@@ -21,7 +21,7 @@ import type {
 } from "@pig/protocol"
 import { GatewayError, SessionBusyError, SessionNotFoundError } from "./runtime-types.js"
 import type { CreateSessionOptions, SessionService, SessionRuntime } from "./runtime-types.js"
-import { canonicalizePath } from "../directory.js"
+import { canonicalizePath } from "../system/directory.js"
 import { loadAuthorizedWorkspaces, saveAuthorizedWorkspaces } from "./authorized-workspaces.js"
 import { AttachmentStore } from "./attachments.js"
 import { selectComposerPrompts } from "./composer-commands.js"

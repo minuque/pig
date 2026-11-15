@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from "vitest"
 import { WebSocket } from "ws"
 
 import Gateway from "../src/index.js"
-import type { DirectoryPort } from "../src/directory.js"
+import type { DirectoryPort } from "../src/system/directory.js"
 
 let selectedDirectory: string | undefined
 const directoryPort: DirectoryPort = {

@@ -6,7 +6,7 @@ import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
 import Gateway from "../packages/gateway/src/index.js"
-import type { DirectoryPort } from "../packages/gateway/src/directory.js"
+import type { DirectoryPort } from "../packages/gateway/src/system/directory.js"
 import { createFakeRuntime, type FakeProviderSpec } from "./fake-model-runtime.js"
 import { BUILTIN_PROVIDERS } from "./fake-provider-registry.js"
 import { writeBackgroundTaskExtension } from "./background-task-agent.js"

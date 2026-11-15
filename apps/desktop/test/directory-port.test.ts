@@ -3,7 +3,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, describe, expect, it } from "vitest"
 
-import { canonicalizePath } from "../../../packages/gateway/src/directory.js"
+import { canonicalizePath } from "../../../packages/gateway/src/system/directory.js"
 import { createElectronDirectoryPort } from "../src/main/directory-port.js"
 
 describe("createElectronDirectoryPort", () => {

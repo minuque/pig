@@ -54,7 +54,7 @@ export const layers: Record<string, Layer[]> = {
     { name: "入口", note: "CLI 与导出", dirs: [""] },
     { name: "服务", note: "HTTP 与 WebSocket", dirs: ["server"] },
     { name: "运行时", note: "Pi Agent 会话", dirs: ["pi"] },
-    { name: "底座", note: "登录态", dirs: ["auth"] },
+    { name: "底座", note: "登录态与系统对接", dirs: ["auth", "system"] },
   ],
   "packages/extensions": [
     { name: "扩展", note: "对外能力", dirs: ["subagent"] },

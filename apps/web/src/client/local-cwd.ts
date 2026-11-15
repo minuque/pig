@@ -11,7 +11,7 @@ export const LOCAL_WORKSPACES_KEY = "pig.localWorkspaces"
 export const LAST_CWD_KEY = "pig.lastCwd"
 
 /** 兼容旧偏好：统一分隔符、尾斜杠；Windows 盘符路径整段小写。新路径由 Host realpath。 */
-// 与 gateway 端 packages/gateway/src/directory.ts 的 canonicalizePath 是同一套
+// 与 gateway 端 packages/gateway/src/system/directory.ts 的 canonicalizePath 是同一套
 // 规范化逻辑（分隔符/大小写/尾斜杠），跨包各自维护，修改时需两处同步。
 export function canonicalizeWorkspacePath(path: string): string {
   const trimmed = path.replaceAll("\\", "/").replace(/\/+$/, "")

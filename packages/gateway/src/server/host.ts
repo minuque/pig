@@ -2,7 +2,11 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { closeEnvironments } from "@pig/environment"
 import { BrowserSession, browserSecretFile } from "../auth/browser-session.js"
 import { PiHostService, type PiHostServiceOptions } from "../pi/service.js"
-import { ManualDirectoryPort, WindowsDirectoryPort, type DirectoryPort } from "../directory.js"
+import {
+  ManualDirectoryPort,
+  WindowsDirectoryPort,
+  type DirectoryPort,
+} from "../system/directory.js"
 import { handlePreviewRequest } from "./file-preview.js"
 import { handlePlatformRequest, type EnvironmentSources } from "./platform.js"
 import { installProviderHttp } from "./provider-http.js"
