@@ -82,7 +82,7 @@
       }
 
       .card {
-        padding: var(--space-md);
+        padding: var(--space-lg);
         border: 1px solid var(--border);
         border-radius: var(--radius-card);
         background: var(--surface);
@@ -90,9 +90,124 @@
 
       .diagram {
         overflow: hidden;
-        min-height: 240px;
-        max-height: 72vh;
-        cursor: grab;
+        padding: var(--space-md);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-card);
+        cursor: zoom-in;
+      }
+
+      .diagram:hover {
+        border-color: var(--accent-7);
+      }
+
+      .diagram svg,
+      .preview-body svg {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 0 auto;
+      }
+
+      .preview {
+        width: min(96vw, 1600px);
+        max-width: none;
+        max-height: 92vh;
+        padding: 0;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-card);
+        background: var(--surface);
+        color: var(--foreground);
+        box-shadow: var(--shadow-dialog);
+      }
+
+      .preview::backdrop {
+        background: var(--slate-a8);
+      }
+
+      .preview-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: var(--space-sm) var(--space-md);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .preview-body {
+        padding: var(--space-lg);
+      }
+
+      .preview-body svg {
+        width: 100%;
+        max-height: calc(92vh - 120px);
+      }
+
+      .icon-btn {
+        display: inline-grid;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border: 0;
+        border-radius: var(--radius-control);
+        background: none;
+        color: var(--foreground-secondary);
+        cursor: pointer;
+      }
+
+      .icon-btn:hover {
+        background: var(--btn-hover);
+        color: var(--foreground);
+      }
+
+      #theme {
+        margin-left: auto;
+      }
+
+      .flow-head {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-sm);
+        align-items: center;
+        margin-bottom: var(--space-md);
+      }
+
+      .flow-head h2 {
+        margin: 0;
+      }
+
+      .steps {
+        display: grid;
+        gap: var(--space-md);
+        margin: var(--space-lg) 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .steps li {
+        display: grid;
+        grid-template-columns: 24px minmax(0, 1fr);
+        gap: var(--space-sm);
+      }
+
+      .step-no {
+        display: grid;
+        place-items: center;
+        width: 24px;
+        height: 24px;
+        border-radius: var(--radius-pill);
+        background: var(--accent-a3);
+        color: var(--accent-11);
+        font-size: var(--text-meta);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .steps p {
+        margin: 0;
+      }
+
+      .step-ref {
+        margin-top: var(--space-xxs);
+        color: var(--foreground-secondary);
       }
 
       /* 依赖图的边是主要信息，深色下不能用边框色 */
@@ -435,26 +550,67 @@
         <a href="#api">接口</a>
       </nav>
       <span class="meta" id="meta"></span>
+      <button class="icon-btn" id="theme" type="button"></button>
     </header>
     <main id="view"></main>
+    <dialog class="preview" id="preview">
+      <div class="preview-head">
+        <h2 id="preview-title"></h2>
+        <button
+          class="icon-btn"
+          type="button"
+          aria-label="关闭"
+          title="关闭"
+          onclick="this.closest('dialog').close()"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <path d="M18 6 6 18M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      <div class="preview-body mermaid-diagram" id="preview-body"></div>
+    </dialog>
     <script>
       /*__PELE__*/
     </script>
-    <script>
-      /*__PANZOOM__*/
-    </script>
+    <script></script>
     <script>
       const DATA = /*__DATA__*/
       const { files, edges } = DATA.graph
       const byId = new Map(files.map((f) => [f.id, f]))
       const view = document.getElementById("view")
 
-      const dark = matchMedia("(prefers-color-scheme: dark)")
-      const applyTheme = () => document.documentElement.classList.toggle("dark", dark.matches)
+      const THEME_KEY = "pig-arch-theme"
+      const systemDark = matchMedia("(prefers-color-scheme: dark)")
+      const themeButton = document.getElementById("theme")
+      const SUN = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" /></svg>'
+      const MOON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg>'
+      /** 手动选过就用手动的，否则跟随系统。 */
+      function applyTheme() {
+        const isDark = (localStorage.getItem(THEME_KEY) ?? (systemDark.matches ? "dark" : "light")) === "dark"
+        document.documentElement.classList.toggle("dark", isDark)
+        themeButton.innerHTML = isDark ? SUN : MOON
+        themeButton.title = isDark ? "切换到浅色" : "切换到深色"
+        themeButton.setAttribute("aria-label", themeButton.title)
+      }
       applyTheme()
-      dark.addEventListener("change", () => {
+      systemDark.addEventListener("change", applyTheme)
+      themeButton.addEventListener("click", () => {
+        localStorage.setItem(THEME_KEY, document.documentElement.classList.contains("dark") ? "light" : "dark")
         applyTheme()
-        route()
+      })
+
+      const previewDialog = document.getElementById("preview")
+      previewDialog.addEventListener("click", (event) => {
+        if (event.target === previewDialog) previewDialog.close()
       })
 
       const esc = (s) =>
@@ -471,20 +627,32 @@
         return el
       }
 
-      function diagram(parent, source) {
+      /** 图按宽度缩放；点空白处放大预览，点节点链接照常跳转。 */
+      function diagram(parent, source, title) {
         const box = document.createElement("div")
         box.className = "diagram mermaid-diagram"
+        box.tabIndex = 0
+        box.title = "点击放大"
         parent.append(box)
 
         try {
           box.innerHTML = pele.render(source, { links: true, responsive: false }).svg
-          const svg = box.querySelector("svg")
-          const fit = box.clientWidth / svg.getBoundingClientRect().width
-          const zoom = Panzoom(svg, { origin: "0 0", maxScale: 6, minScale: 0.2, startScale: Math.min(1, Math.max(0.6, fit)) })
-          box.addEventListener("wheel", zoom.zoomWithWheel)
         } catch (error) {
           box.innerHTML = `<p class="error">${esc(error.message)}</p>`
+          return
         }
+
+        const open = () => {
+          document.getElementById("preview-title").textContent = title
+          document.getElementById("preview-body").replaceChildren(box.querySelector("svg").cloneNode(true))
+          previewDialog.showModal()
+        }
+        box.addEventListener("click", (event) => {
+          if (!event.target.closest("a")) open()
+        })
+        box.addEventListener("keydown", (event) => {
+          if (event.key === "Enter") open()
+        })
       }
 
       const dirPkg = new Map(files.map((f) => [f.dir, f.pkg]))
@@ -698,7 +866,7 @@
         const el = card(
           `<h2>总览</h2><p class="hint">实线是 import（数字为条数），虚线是运行时通道；点包进入依赖下钻。</p>`,
         )
-        diagram(el, lines.join("\n"))
+        diagram(el, lines.join("\n"), "总览")
       }
 
       function renderFlows() {
@@ -708,15 +876,19 @@
           const lines = ["sequenceDiagram", ...actors.map((name) => `  participant ${a(name)} as ${name}`)]
           flow.steps.forEach((s, i) => lines.push(`  ${a(s.from)}->>${a(s.to)}: ${i + 1}. ${s.text.replace(/[;#]/g, "，")}`))
           const steps = flow.steps
-            .map((s) => {
+            .map((s, i) => {
               const [path, symbol] = (s.ref ?? "").split("#")
-              const ref = path ? `${depLink(path)}${symbol ? ` <code>${esc(symbol)}</code>` : ""}` : ""
-              return `<li>${esc(s.text)}<br/>${ref}</li>`
+              const ref = path
+                ? `<p class="step-ref">${depLink(path)}${symbol ? ` <code class="faint">${esc(symbol)}</code>` : ""}</p>`
+                : ""
+              return `<li><span class="step-no">${i + 1}</span><div><p>${esc(s.text)}</p>${ref}</div></li>`
             })
             .join("")
-          const el = card(`<h2 id="flow-${flow.id}">${esc(flow.title)} <span class="tag">${flow.channel}</span></h2>`)
-          diagram(el, lines.join("\n"))
-          el.insertAdjacentHTML("beforeend", `<ol>${steps}</ol>`)
+          const el = card(
+            `<div class="flow-head"><h2 id="flow-${flow.id}">${esc(flow.title)}</h2><span class="tag">${flow.channel}</span><span class="hint">${flow.steps.length} 步</span></div>`,
+          )
+          diagram(el, lines.join("\n"), flow.title)
+          el.insertAdjacentHTML("beforeend", `<ol class="steps">${steps}</ol>`)
         }
       }
 
@@ -742,6 +914,7 @@
         for (const a of document.querySelectorAll("nav a"))
           a.toggleAttribute("aria-current", a.getAttribute("href") === tab)
         document.querySelector("nav a[aria-current]")?.setAttribute("aria-current", "page")
+        if (previewDialog.open) previewDialog.close()
         view.replaceChildren()
         if (hash.startsWith("dep/")) renderDeps(hash.slice(4))
         else if (hash === "flows") renderFlows()
