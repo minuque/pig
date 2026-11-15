@@ -52,9 +52,8 @@
   /* 按钮与可点行共用：取 Radix 主题色 alpha 第 3 档做悬停、第 4 档做选中，深浅主题由色板自己切 */
   --btn-hover: var(--accent-a3);
   --btn-selected: var(--accent-a4);
-  /* 菜单与下拉选项：悬停底比 rt soft 的 a4 弱两档，行间留一道缝 */
-  --menu-item-hover: var(--accent-a2);
-  --menu-item-gap: calc(var(--spacing) / 2);
+  /* 菜单与下拉选项之间的外间距；行高与内边距仍由 rt 定 */
+  --menu-item-gap: var(--space-xxs);
   /* 代码块语言图标的色相，取自 @pierre/vscode-icons 调色板：浅色 600 档，深色 400 档 */
   --language-gray: #6c6c71;
   --language-red: #d52c36;

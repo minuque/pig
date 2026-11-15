@@ -204,10 +204,6 @@ function toggleProject(canonicalPath: string): void {
   background-color: transparent;
 }
 
-.scope-projects .scope-item[data-state="checked"][data-highlighted] {
-  background-color: var(--menu-item-hover);
-}
-
 .scope-icon {
   position: relative;
   display: flex;

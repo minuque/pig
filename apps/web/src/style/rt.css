@@ -68,12 +68,7 @@
   line-height: var(--text-body--line-height);
 }
 
-/* soft 菜单与下拉的悬停底与行距走 token：rt 原值 a4 偏重、行间无缝 */
-.rt-BaseMenuContent:where(.rt-variant-soft) :where(.rt-BaseMenuItem[data-highlighted]),
-.rt-SelectContent:where(.rt-variant-soft) :where(.rt-SelectItem[data-highlighted]) {
-  background-color: var(--menu-item-hover);
-}
-
+/* 菜单与下拉选项之间留外间距：rt 原生行与行贴着排 */
 .rt-BaseMenuViewport,
 .rt-SelectViewport {
   gap: var(--menu-item-gap);
