@@ -185,6 +185,9 @@ function toggleProject(canonicalPath: string): void {
 
 /* 项目多时只露固定行数，其余在菜单内滚动，菜单不会被撑到视口外 */
 .scope-projects {
+  display: flex;
+  flex-direction: column;
+  gap: var(--menu-item-gap);
   max-block-size: calc(var(--size-nav-rail) * 9);
   overflow-y: auto;
   overscroll-behavior: contain;
@@ -199,6 +202,10 @@ function toggleProject(canonicalPath: string): void {
 /* 选中态对齐 t3code：图标右下角打勾，行本身不铺选中底 */
 .scope-item[data-state="checked"]:not([data-highlighted]) {
   background-color: transparent;
+}
+
+.scope-projects .scope-item[data-state="checked"][data-highlighted] {
+  background-color: var(--menu-item-hover);
 }
 
 .scope-icon {

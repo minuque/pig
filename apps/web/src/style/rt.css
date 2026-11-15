@@ -68,6 +68,22 @@
   line-height: var(--text-body--line-height);
 }
 
+/* soft 菜单与下拉的悬停底与行距走 token：rt 原值 a4 偏重、行间无缝 */
+.rt-BaseMenuContent:where(.rt-variant-soft) :where(.rt-BaseMenuItem[data-highlighted]),
+.rt-SelectContent:where(.rt-variant-soft) :where(.rt-SelectItem[data-highlighted]) {
+  background-color: var(--menu-item-hover);
+}
+
+.rt-BaseMenuViewport,
+.rt-SelectViewport {
+  gap: var(--menu-item-gap);
+}
+
+.rt-SelectViewport {
+  display: flex;
+  flex-direction: column;
+}
+
 /* 图标按钮定档：s=24、m=28（`--size-nav-rail`）。
    rt 原生：m 是 32px、圆角 max(--radius-1)=3px、ghost 尺寸靠 content-box 自撑、悬停是 accent-a3。
    这里统一成固定方框 + `--radius-control` + 前景色 + `--btn-hover`，接管房里所有 28px 图标按钮。 */
