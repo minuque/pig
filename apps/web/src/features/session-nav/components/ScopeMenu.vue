@@ -19,26 +19,57 @@
       />
     </div>
 
-    <DropdownMenuCheckboxItem
-      v-if="!needle"
-      :model-value="scopeFilter.size === 0"
-      @select.prevent="emit('update:scopeFilter', new Set())"
-    >
-      <FolderIcon class="size-icon-xs" />
-      <span class="scope-name">{{ t("session.allProjects") }}</span>
-      <span class="scope-cnt">{{ allSessionsCount }}</span>
-    </DropdownMenuCheckboxItem>
-
     <div class="scope-projects">
+      <DropdownMenuCheckboxItem
+        v-if="!needle"
+        :model-value="scopeFilter.size === 0"
+        @select.prevent="emit('update:scopeFilter', new Set())"
+      >
+        <FolderIcon class="size-icon-xs" />
+        <span class="scope-name">{{ t("session.allProjects") }}</span>
+      </DropdownMenuCheckboxItem>
+
       <DropdownMenuCheckboxItem
         v-for="group in matched"
         :key="group.canonicalPath"
+        class="scope-row"
         :model-value="scopeFilter.has(group.canonicalPath)"
         @select.prevent="toggleProject(group.canonicalPath)"
       >
-        <FolderIcon class="size-icon-xs" />
+        <ProjectIcon :path="group.canonicalPath" class="size-icon-xs" />
         <span class="scope-name">{{ workspaceName(group.canonicalPath) }}</span>
-        <span class="scope-cnt">{{ group.sessions.length }}</span>
+
+        <span class="scope-actions" @pointerdown.stop @pointerup.stop>
+          <IconButton
+            class="row-action"
+            type="button"
+            size="s"
+            variant="ghost"
+            color="gray"
+            tabindex="-1"
+            :title="t('session.projectIcon')"
+            :aria-label="t('session.projectIcon')"
+            @click.stop.prevent="emit('settings', group.canonicalPath)"
+          >
+            <SettingsIcon class="size-icon-xs" />
+          </IconButton>
+
+          <IconButton
+            class="row-action"
+            :data-pinned="isPinned(group.canonicalPath) || undefined"
+            type="button"
+            size="s"
+            variant="ghost"
+            color="gray"
+            tabindex="-1"
+            :title="pinLabel(group.canonicalPath)"
+            :aria-label="pinLabel(group.canonicalPath)"
+            @click.stop.prevent="togglePinned(group.canonicalPath)"
+          >
+            <PinFilledIcon v-if="isPinned(group.canonicalPath)" class="size-icon-xs" />
+            <PinIcon v-else class="size-icon-xs" />
+          </IconButton>
+        </span>
       </DropdownMenuCheckboxItem>
 
       <p v-if="!matched.length" class="scope-empty">{{ t("session.noMatchingProjects") }}</p>
@@ -54,7 +85,17 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
 } from "@components/ui/dropdown-menu/index.js"
-import { FolderIcon, SearchIcon } from "@components/icons/index.js"
+import { IconButton } from "@components/ui/button/index.js"
+import {
+  FolderIcon,
+  PinFilledIcon,
+  PinIcon,
+  SearchIcon,
+  SettingsIcon,
+} from "@components/icons/index.js"
+import ProjectIcon from "@features/session-nav/components/ProjectIcon.vue"
+import { useProjectPrefs } from "@features/session-nav/hooks/use-project-prefs.js"
+import { orderPinnedFirst } from "@features/session-nav/lib/project-prefs.js"
 import type { SessionGroup } from "@features/session-nav/type.js"
 
 const props = defineProps<{
@@ -63,21 +104,25 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   "update:scopeFilter": [scopeFilter: ReadonlySet<string>]
+  settings: [canonicalPath: string]
 }>()
 const { t } = useI18n()
 const query = shallowRef("")
 const searchRef = useTemplateRef<HTMLInputElement>("searchRef")
+const { prefs, isPinned, togglePinned } = useProjectPrefs()
 const needle = computed(() => query.value.trim().toLowerCase())
 const matched = computed(() =>
-  needle.value
-    ? props.groups.filter((group) =>
-        workspaceName(group.canonicalPath).toLowerCase().includes(needle.value),
-      )
-    : props.groups,
+  orderPinnedFirst(props.groups, prefs.value.pinned).filter((group) =>
+    workspaceName(group.canonicalPath).toLowerCase().includes(needle.value),
+  ),
 )
-const allSessionsCount = computed(() =>
-  props.groups.reduce((sum, group) => sum + group.sessions.length, 0),
-)
+
+function pinLabel(canonicalPath: string): string {
+  const name = workspaceName(canonicalPath)
+  return isPinned(canonicalPath)
+    ? t("session.unpinProject", { name })
+    : t("session.pinProject", { name })
+}
 
 function openSearch(): void {
   query.value = ""
@@ -141,11 +186,18 @@ function toggleProject(canonicalPath: string): void {
   white-space: nowrap;
 }
 
-.scope-cnt {
+.scope-actions {
+  display: flex;
   margin-inline-start: auto;
   padding-inline-start: var(--space-xs);
-  color: var(--contrast-foreground-faint);
-  font-size: var(--text-meta);
-  font-variant-numeric: tabular-nums;
+}
+
+/* t3code 式行尾操作：悬停或键盘高亮时出现；已置顶的图钉常显 */
+.row-action:not([data-pinned]) {
+  visibility: hidden;
+}
+
+.scope-row[data-highlighted] .row-action {
+  visibility: visible;
 }
 </style>

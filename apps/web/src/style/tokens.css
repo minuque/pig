@@ -425,3 +425,8 @@ html[data-chat-width="wide"] {
 html[data-chat-width="full"] {
   --size-content: 100%;
 }
+
+/* 着色图标：在带 data-accent-color 的元素上取该色板第 11 级，项目图标用 */
+[data-accent-color] {
+  --tint: var(--accent-11);
+}

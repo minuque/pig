@@ -32,7 +32,7 @@
         <span>{{ t("nav.search") }}</span>
       </Button>
 
-      <DropdownMenu :modal="false">
+      <DropdownMenu v-model:open="scopeOpen" :modal="false">
         <Tooltip>
           <TooltipTrigger as-child>
             <DropdownMenuTrigger as-child>
@@ -55,6 +55,7 @@
           :groups="groups"
           :scope-filter="scopeFilter"
           @update:scope-filter="emit('update:scopeFilter', $event)"
+          @settings="openIconDialog"
         />
       </DropdownMenu>
 
@@ -93,6 +94,8 @@
       </Tooltip>
     </div>
 
+    <ProjectIconDialog :path="iconPath" @close="iconPath = undefined" />
+
     <SearchDialog
       :open="searchOpen"
       :sessions="sessions"
@@ -105,6 +108,8 @@
 <script setup lang="ts">
 import type { SessionMetadata } from "@/types/common-type.js"
 import { useI18n } from "@i18n/index.js"
+import { nextTick, shallowRef } from "vue"
+import ProjectIconDialog from "@features/session-nav/components/ProjectIconDialog.vue"
 import ScopeMenu from "@features/session-nav/components/ScopeMenu.vue"
 import SearchDialog from "@features/session-nav/components/SearchDialog.vue"
 import type { SessionGroup } from "@features/session-nav/type.js"
@@ -137,6 +142,15 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const isMac = /mac/i.test(navigator.platform || navigator.userAgent)
 const modKey = isMac ? "⌘" : "Ctrl"
+const scopeOpen = shallowRef(false)
+const iconPath = shallowRef<string>()
+
+/** 先收起筛选菜单，再开图标弹框，免得两层焦点互抢。 */
+async function openIconDialog(canonicalPath: string): Promise<void> {
+  scopeOpen.value = false
+  await nextTick()
+  iconPath.value = canonicalPath
+}
 </script>
 
 <style scoped>

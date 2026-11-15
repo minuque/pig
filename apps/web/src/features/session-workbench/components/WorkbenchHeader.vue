@@ -25,7 +25,7 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <span class="crumb-project-label">
-                <FolderIcon class="crumb-icon" />
+                <ProjectIcon class="crumb-icon" :path="sessionCwd" />
                 <span class="crumb-text">{{ cwdLabel }}</span>
               </span>
             </TooltipTrigger>
@@ -131,6 +131,7 @@ import {
 } from "@components/ui/dropdown-menu/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { IconButton } from "@components/ui/button/index.js"
+import ProjectIcon from "@features/session-nav/components/ProjectIcon.vue"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import RailToggle from "@features/session-rail/components/RailToggle.vue"
 import { useFilePane } from "@features/file-pane/index.js"
@@ -139,7 +140,6 @@ import { workspaceName } from "@features/session-nav/lib/format.js"
 import { sessionTitle, untitledSession, useSession } from "@features/session/index.js"
 import {
   ChevronDownIcon,
-  FolderIcon,
   FoldersIcon,
   PanelRightOpenIcon,
   PenIcon,

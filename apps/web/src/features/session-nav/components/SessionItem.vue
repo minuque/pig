@@ -27,9 +27,12 @@
               <span class="project-icon" aria-hidden="true">
                 <PinFilledIcon class="size-icon-2xs" v-if="pinned" />
 
-                <Badge v-else-if="projectName" class="project-mono" variant="soft" color="gray">
-                  {{ projectMonogram(projectName) }}
-                </Badge>
+                <ProjectIcon
+                  v-else-if="projectName"
+                  class="project-mono"
+                  :path="session.cwd"
+                  fallback="monogram"
+                />
               </span>
 
               <span class="project-name">{{ projectName }}</span>
@@ -99,9 +102,12 @@
 
           <template v-else>
             <span class="project-icon" aria-hidden="true">
-              <Badge v-if="projectName" class="project-mono" variant="soft" color="gray">
-                {{ projectMonogram(projectName) }}
-              </Badge>
+              <ProjectIcon
+                v-if="projectName"
+                class="project-mono"
+                :path="session.cwd"
+                fallback="monogram"
+              />
             </span>
 
             <input
@@ -218,12 +224,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import SessionStateIcon from "@features/session-nav/components/SessionStateIcon.vue"
 import { sessionGlyph } from "@features/session-nav/lib/status-cycle.js"
-import { Badge } from "@components/ui/badge/index.js"
-import {
-  formatRelativeTime,
-  projectMonogram,
-  workspaceName,
-} from "@features/session-nav/lib/format.js"
+import ProjectIcon from "@features/session-nav/components/ProjectIcon.vue"
+import { formatRelativeTime, workspaceName } from "@features/session-nav/lib/format.js"
 import { formatElapsed } from "@utils/time.js"
 import type { DropVerb } from "@features/session-nav/lib/drag-plan.js"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"

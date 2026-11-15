@@ -20,7 +20,7 @@
                 :title="item"
                 @select="workspaceId = item"
               >
-                <FolderIcon class="size-icon-xs" />
+                <ProjectIcon class="size-icon-xs" :path="item" />
                 <span class="hero-option">{{ workspaceName(item) }}</span>
               </DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
@@ -60,7 +60,8 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
 import { Link } from "@components/ui/link/index.js"
-import { FolderPlusIcon, FolderIcon } from "@components/icons/index.js"
+import { FolderPlusIcon } from "@components/icons/index.js"
+import ProjectIcon from "@features/session-nav/components/ProjectIcon.vue"
 
 withDefaults(
   defineProps<{
