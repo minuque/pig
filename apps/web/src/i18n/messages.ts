@@ -54,6 +54,13 @@ export const zh = {
     settle: "归档",
     unsettle: "取消归档",
   },
+  split: {
+    close: "关闭这一侧",
+    switchSide: "切到另一侧",
+    openToSide: "在右侧打开",
+    openToOther: "在另一侧打开",
+    dropHere: "在这一侧打开",
+  },
   nav: {
     collapseSidebar: "收起侧边栏",
     profileMenu: "外观与语言",
@@ -456,6 +463,13 @@ export const en: Messages = {
     sectionSettled: "Settled",
     settle: "Settle",
     unsettle: "Unsettle",
+  },
+  split: {
+    close: "Close this side",
+    switchSide: "Switch to the other side",
+    openToSide: "Open on the right",
+    openToOther: "Open on the other side",
+    dropHere: "Open on this side",
   },
   nav: {
     collapseSidebar: "Collapse sidebar",

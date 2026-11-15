@@ -1,6 +1,9 @@
 <template>
-  <header class="workbench-header">
-    <Tooltip>
+  <header
+    class="workbench-header"
+    :class="{ 'is-leftmost': leftmost, 'is-rightmost': rightmost, 'is-dimmed': dimmed }"
+  >
+    <Tooltip v-if="leftmost">
       <TooltipTrigger as-child>
         <IconButton
           class="header-toggle"
@@ -114,6 +117,40 @@
       <TooltipContent>{{ t("files.toggle") }}</TooltipContent>
     </Tooltip>
 
+    <Tooltip v-if="split.split.value && !split.fits.value">
+      <TooltipTrigger as-child>
+        <IconButton
+          type="button"
+          size="m"
+          color="gray"
+          variant="ghost"
+          :aria-label="t('split.switchSide')"
+          @click="split.focusSide(side === 'left' ? 'right' : 'left')"
+        >
+          <ArrowLeftRightIcon class="size-icon-2xs" />
+        </IconButton>
+      </TooltipTrigger>
+
+      <TooltipContent>{{ t("split.switchSide") }}</TooltipContent>
+    </Tooltip>
+
+    <Tooltip v-if="split.split.value">
+      <TooltipTrigger as-child>
+        <IconButton
+          type="button"
+          size="m"
+          color="gray"
+          variant="ghost"
+          :aria-label="t('split.close')"
+          @click="split.closeSide(side)"
+        >
+          <XIcon class="size-icon-2xs" />
+        </IconButton>
+      </TooltipTrigger>
+
+      <TooltipContent>{{ t("split.close") }}</TooltipContent>
+    </Tooltip>
+
     <SessionItemDelete v-model:open="deleteOpen" :title="title" @confirm="confirmDelete" />
   </header>
 </template>
@@ -138,7 +175,9 @@ import { useFilePane } from "@features/file-pane/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import { workspaceName } from "@features/session-nav/lib/format.js"
 import { sessionTitle, untitledSession, useSession } from "@features/session/index.js"
+import { usePaneSide, useSplitView } from "@features/split-view/index.js"
 import {
+  ArrowLeftRightIcon,
   ChevronDownIcon,
   FoldersIcon,
   PanelRightOpenIcon,
@@ -146,12 +185,22 @@ import {
   PinIcon,
   PinOffIcon,
   TrashIcon,
+  XIcon,
 } from "@components/icons/index.js"
 
 /** rail：右侧显示摘要面板开关（开场页不显示）。 */
 defineProps<{ rail?: boolean }>()
 
 const { t } = useI18n()
+const side = usePaneSide()
+const split = useSplitView()
+const sideBySide = computed(() => split.split.value && split.fits.value)
+/** 窗口最左边的 header：给红绿灯让位、放侧栏入口。 */
+const leftmost = computed(() => side === "left" || !sideBySide.value)
+/** 窗口最右边的 header：给 Windows 窗控让位。 */
+const rightmost = computed(() => side === "right" || !sideBySide.value)
+/** 分屏时没聚焦的一侧，标题退一档。 */
+const dimmed = computed(() => sideBySide.value && split.focused.value !== side)
 const { sbState, setSbState } = useLeftPanelToggle()
 const files = useFilePane()
 const { sessionId, projection, sessionCwd } = useSession()
@@ -279,11 +328,18 @@ function confirmDelete(): void {
   height: var(--header-height);
   min-height: var(--header-height);
   padding: var(--space-xxs) var(--space-sm);
-  /* Windows 的系统窗控浮在右上角，头部让出这一块 */
-  padding-inline-end: calc(var(--space-sm) + var(--titlebar-controls-inset));
+  /* Windows 的系统窗控浮在整个窗口右上角，只有最右侧的头部让出这一块 */
   /* 与下方正文同底色：头部不另起一层 */
   background: transparent;
   color: var(--contrast-foreground);
+}
+
+.workbench-header.is-rightmost {
+  padding-inline-end: calc(var(--space-sm) + var(--titlebar-controls-inset));
+}
+
+.workbench-header.is-dimmed .crumb-title {
+  color: var(--contrast-foreground-secondary);
 }
 
 /* 欢迎页头部浮在背景上，不占高度；拖窗与侧栏入口照常可用 */
@@ -453,7 +509,7 @@ html[data-pig-desktop-platform]
 }
 
 /* macOS 侧栏收起后红绿灯落在头部左上角，头部让位 */
-html[data-pig-desktop-platform="darwin"] .shell.sb-offcanvas .workbench-header {
+html[data-pig-desktop-platform="darwin"] .shell.sb-offcanvas .workbench-header.is-leftmost {
   padding-inline-start: calc(var(--space-sm) + var(--size-mac-traffic-lights));
 }
 
