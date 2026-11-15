@@ -52,7 +52,7 @@
           <IconButton
             class="row-action"
             type="button"
-            size="s"
+            size="m"
             variant="ghost"
             color="gray"
             tabindex="-1"
@@ -67,7 +67,7 @@
             class="row-action"
             :data-pinned="isPinned(group.canonicalPath) || undefined"
             type="button"
-            size="s"
+            size="m"
             variant="ghost"
             color="gray"
             tabindex="-1"
