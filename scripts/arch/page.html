@@ -192,6 +192,122 @@
         vertical-align: -1px;
       }
 
+      .count {
+        margin-left: var(--space-xs);
+        padding: 0 var(--space-xs);
+        border-radius: var(--radius-pill);
+        background: var(--btn-hover);
+        color: var(--foreground-secondary);
+        font-size: var(--text-meta);
+        font-weight: 400;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .faint {
+        color: var(--foreground-faint);
+      }
+
+      .rel h2 {
+        display: flex;
+        align-items: center;
+        margin-bottom: var(--space-sm);
+      }
+
+      .rel details {
+        border-top: 1px solid var(--border);
+      }
+
+      .rel summary {
+        display: flex;
+        align-items: center;
+        padding: var(--space-xs) var(--space-xxs);
+        list-style: none;
+      }
+
+      .rel summary::before {
+        content: "›";
+        width: 1em;
+        color: var(--foreground-faint);
+      }
+
+      .rel details[open] summary::before {
+        rotate: 90deg;
+      }
+
+      .rel summary:hover,
+      .file-row:hover {
+        background: var(--btn-hover);
+      }
+
+      .rel summary .count {
+        margin-left: auto;
+      }
+
+      .pairs {
+        display: grid;
+        gap: var(--space-xxs);
+        margin: 0 0 var(--space-sm);
+        padding: 0 0 0 calc(1em + var(--space-xxs));
+        list-style: none;
+      }
+
+      .pairs {
+        grid-template-columns: max-content auto minmax(0, 1fr);
+        column-gap: var(--space-xs);
+      }
+
+      .pairs li {
+        display: contents;
+      }
+
+      .pairs a,
+      .file-row {
+        color: var(--foreground);
+        text-decoration: none;
+      }
+
+      .pairs a:hover {
+        text-decoration: underline;
+      }
+
+      .arrow {
+        color: var(--foreground-faint);
+      }
+
+      .file-list {
+        display: grid;
+        max-width: 720px;
+      }
+
+      .file-head,
+      .file-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 72px 72px;
+        align-items: baseline;
+        padding: var(--space-xxs) var(--space-xs);
+        border-radius: var(--radius-control);
+      }
+
+      .file-head {
+        color: var(--foreground-faint);
+        font-size: var(--text-meta);
+      }
+
+      .file-head span + span,
+      .num {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .num {
+        font-family: var(--font-mono);
+        font-size: var(--text-meta);
+      }
+
+      .num[data-zero] {
+        color: var(--foreground-faint);
+      }
+
       .callout {
         margin-top: var(--space-xs);
         padding: var(--space-sm) var(--space-md);
@@ -456,30 +572,41 @@
         if (sel) renderModule(sel, users, uses, focus)
       }
 
+      /** 文件名在前，所在子目录淡显。 */
+      function fileName(id, dir) {
+        const rest = tail(id, dir)
+        const at = rest.lastIndexOf("/") + 1
+        return `<span class="mono"><span class="faint">${esc(rest.slice(0, at))}</span>${esc(rest.slice(at))}</span>`
+      }
+
       /** 选中模块的文件表，以及它和上下游之间具体的文件引用。 */
       function renderModule(dir, users = new Map(), uses = new Map(), focus) {
         const own = files.filter((f) => f.dir === dir)
+        const num = (n) => `<span class="num"${n ? "" : " data-zero"}>${n}</span>`
         const rows = own
           .map((f) => [f.id, importers.get(f.id)?.length ?? 0, imports.get(f.id)?.length ?? 0])
           .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-          .map(([id, into, out]) => `<tr><td>${depLink(id, tail(id, dir))}</td><td>${into}</td><td>${out}</td></tr>`)
+          .map(([id, into, out]) => `<a class="file-row" href="#dep/${esc(id)}">${fileName(id, dir)}${num(into)}${num(out)}</a>`)
           .join("")
-        const table = `<table><thead><tr><th>文件</th><th>被引用</th><th>引用</th></tr></thead><tbody>${rows}</tbody></table>`
-        if (!focus) return card(`${crumbs(dir)}${table}`)
+        const fileCard = `<h2>文件 <span class="count">${own.length}</span></h2><div class="file-list"><div class="file-head"><span>文件</span><span>被引用</span><span>引用</span></div>${rows}</div>`
+        if (!focus) return card(`${crumbs(dir)}${fileCard}`)
         const links = (map) =>
           [...map]
             .sort((a, b) => b[1].length - a[1].length)
             .map(
               ([k, list]) =>
-                `<details><summary><span class="mono">${esc(short(k, focus))}</span> <span class="hint">${list.length}</span></summary><ol>${list
-                  .map((e) => `<li>${depLink(e.from, tail(e.from, focus))} → ${depLink(e.to, tail(e.to, focus))}</li>`)
-                  .join("")}</ol></details>`,
+                `<details><summary><span class="mono">${esc(short(k, focus))}</span><span class="count">${list.length}</span></summary><ul class="pairs">${list
+                  .map(
+                    (e) =>
+                      `<li><a href="#dep/${esc(e.from)}">${fileName(e.from, byId.get(e.from).dir)}</a><span class="arrow">→</span><a href="#dep/${esc(e.to)}">${fileName(e.to, byId.get(e.to).dir)}</a></li>`,
+                  )
+                  .join("")}</ul></details>`,
             )
             .join("") || '<p class="hint">无</p>'
-        card(
-          `<div class="cols"><div><h2>谁用它（${users.size}）</h2>${links(users)}</div><div><h2>它用谁（${uses.size}）</h2>${links(uses)}</div></div>`,
-        )
-        card(`<h2>文件（${own.length}）</h2>${table}`)
+        const side = (state, title, map) =>
+          `<div class="rel"><h2><span class="swatch" data-state="${state}"></span>${title} <span class="count">${map.size}</span></h2>${links(map)}</div>`
+        card(`<div class="cols">${side("up", "谁用它", users)}${side("down", "它用谁", uses)}</div>`)
+        card(fileCard)
       }
 
       /** 反向逐层展开：第 1 层是直接引用方，之后是间接受影响的文件。 */
