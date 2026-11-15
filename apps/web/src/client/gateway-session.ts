@@ -136,13 +136,12 @@ export class GatewaySession {
     )
   }
 
-  /** 连接重建后重新挂上同一会话，拿新的权威快照。 */
-  async reconnect() {
+  /** 客户端重连后在新连接上重新挂上同一会话，拿新的权威快照；两侧共用一次重连。 */
+  async reattach() {
     const sessionId = this.#require()
-    await this.#bindWith("reconnect", async () => {
-      await this.client.reconnect()
-      return this.client.requestSession({ command: "attach_session", sessionId })
-    })
+    await this.#bindWith("reconnect", () =>
+      this.client.requestSession({ command: "attach_session", sessionId }),
+    )
   }
 
   async dispose() {

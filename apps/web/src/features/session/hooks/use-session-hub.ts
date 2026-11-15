@@ -22,15 +22,13 @@ export function createSessionHub(
     backgroundSubscription: live.backgroundSubscription,
     transcriptFor: history.transcriptFor,
   })
-  /** 每侧挂着的前台连接；断线重连时逐条重挂，没有前台就只重连客户端。 */
+  /** 每侧挂着的前台连接；断线后客户端只重连一次，再把每侧的会话挂到新连接上。 */
   const foregrounds = new Set<() => GatewaySession | undefined>()
 
   pi.bindAttachedReconnect(async () => {
-    const remotes = [...foregrounds].map((read) => read()).filter((remote) => remote !== undefined)
+    await pi.client.value?.reconnect()
 
-    if (remotes.length === 0) return void (await pi.client.value?.reconnect())
-
-    for (const remote of remotes) await remote.reconnect()
+    for (const read of foregrounds) await read()?.reattach()
   })
 
   const stopClientSync = watch(

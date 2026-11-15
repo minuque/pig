@@ -14,8 +14,11 @@ class FakeSession {
   emit(state: SessionState) {
     for (const listener of this.listeners) listener(state)
   }
+  reattached = 0
   async dispose() {}
-  async reconnect() {}
+  async reattach() {
+    this.reattached += 1
+  }
 }
 
 vi.mock("@client/gateway-session.js", () => ({
@@ -38,7 +41,7 @@ const { useForegroundSession } = await import("@features/session/hooks/use-foreg
 
 function fakePi() {
   return {
-    client: shallowRef({}),
+    client: shallowRef({ reconnect: vi.fn(async () => undefined) }),
     connected: computed(() => true),
     bindAttachedReconnect: vi.fn(),
   }
@@ -123,6 +126,39 @@ describe("两侧共用会话后台池", () => {
     expect(right.remote.value?.id).toBe("b")
     expect(right.state.value?.snapshot?.revision).toBe(3)
     expect(left.state.value).toBeUndefined()
+    scope.stop()
+  })
+
+  it("断线重连：客户端只重连一次，两侧前台连接各自重新挂上", async () => {
+    const scope = effectScope()
+    const pi = fakePi()
+    const { left, right } = scope.run(() => {
+      const hub = createSessionHub(pi as never)
+      return {
+        left: useForegroundSession(
+          pi as never,
+          computed(() => "a"),
+          hub,
+        ),
+        right: useForegroundSession(
+          pi as never,
+          computed(() => "b"),
+          hub,
+        ),
+      }
+    })!
+
+    left.showHistory("a")
+    right.showHistory("b")
+    await Promise.all([left.ensureRemote("a"), right.ensureRemote("b")])
+    const reconnect = pi.bindAttachedReconnect.mock.calls[0]![0] as () => Promise<void>
+    await reconnect()
+
+    expect(pi.client.value.reconnect).toHaveBeenCalledTimes(1)
+    expect(opened.map((session) => [session.id, session.reattached])).toEqual([
+      ["a", 1],
+      ["b", 1],
+    ])
     scope.stop()
   })
 })
