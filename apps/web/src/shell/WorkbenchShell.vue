@@ -163,7 +163,7 @@ useEventListener(window, "keydown", (event: KeyboardEvent) => {
   if (!command) return
   event.preventDefault()
 
-  if (command === "new-right") return split.openToSide(undefined)
+  if (command === "new-right") return split.newOnRight()
 
   if (!split.split.value) return
 

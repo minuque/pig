@@ -21,6 +21,7 @@ import {
   closeSide,
   fitsSplit,
   focusSide,
+  newOnRight,
   openInFocused,
   openToSide,
   parseSplit,
@@ -65,6 +66,7 @@ function createSplitView(
     openToSide: (id: string | undefined) => update((s) => openToSide(s, id)),
     focusSide: (side: Side) => update((s) => focusSide(s, side)),
     closeSide: (side: Side) => update((s) => closeSide(s, side)),
+    newOnRight: () => update(newOnRight),
     setRatio: (ratio: number) => update((s) => setRatio(s, ratio, width.value)),
     /** 这一侧建出新会话：显示它并聚焦这一侧。 */
     showIn: (side: Side, id: string) => update((s) => ({ ...s, [side]: id, focused: side })),

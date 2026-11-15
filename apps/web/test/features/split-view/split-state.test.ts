@@ -4,6 +4,7 @@ import {
   emptySplit,
   fitsSplit,
   focusSide,
+  newOnRight,
   openInFocused,
   openToSide,
   parseSplit,
@@ -52,6 +53,18 @@ describe("分屏状态", () => {
     const state = openToSide(openInFocused(emptySplit, "a"), undefined)
 
     expect(state).toMatchObject({ left: "a", right: undefined, split: true, focused: "right" })
+  })
+
+  it("右侧新建会话：已分屏且聚焦右侧时，替换的仍是右侧，不动左侧", () => {
+    const state = openToSide(openInFocused(emptySplit, "a"), "b")
+
+    expect(newOnRight(state)).toMatchObject({ left: "a", right: undefined, focused: "right" })
+    expect(newOnRight(openInFocused(emptySplit, "a"))).toMatchObject({
+      left: "a",
+      right: undefined,
+      split: true,
+      focused: "right",
+    })
   })
 
   it("比例限制在两侧都能放下的范围内", () => {
