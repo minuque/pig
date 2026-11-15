@@ -94,7 +94,9 @@ const pi = useGatewayClient()
 const cwd = useLocalWorkspaces()
 const route = useRoute()
 const router = useRouter()
+/** 聚焦侧的会话；出错页不是工作台页，给 null 让分屏保持原样。 */
 const routeSessionId = computed(() => {
+  if (route.name === "error") return null
   const raw = route.params.sessionId
   return typeof raw === "string" && raw.length > 0 ? raw : undefined
 })

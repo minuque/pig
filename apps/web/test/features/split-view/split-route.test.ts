@@ -9,9 +9,9 @@ import {
   type SplitState,
 } from "@features/split-view/lib/split-state.js"
 
-function setup(initial: SplitState, initialRoute: string | undefined) {
+function setup(initial: SplitState, initialRoute: string | undefined | null) {
   const state = shallowRef(initial)
-  const route = shallowRef(initialRoute)
+  const route = shallowRef<string | undefined | null>(initialRoute)
   const pushed: (string | undefined)[] = []
   const scope = effectScope()
 
@@ -59,5 +59,18 @@ describe("路由只表示聚焦那一侧", () => {
 
     expect(route.value).toBe("b")
     expect(state.value).toMatchObject({ left: "a", right: "b", split: true })
+  })
+
+  it("启动失败进出错误页：不清掉上次的分屏，恢复后回到聚焦的会话", async () => {
+    const { route, state, pushed } = setup(openToSide(openInFocused(emptySplit, "a"), "b"), "b")
+
+    route.value = null
+    await nextTick()
+    expect(state.value).toMatchObject({ left: "a", right: "b", focused: "right" })
+
+    route.value = undefined
+    await nextTick()
+    expect(state.value).toMatchObject({ left: "a", right: "b", focused: "right" })
+    expect(pushed.at(-1)).toBe("b")
   })
 })

@@ -38,7 +38,7 @@ export type { PanelKind } from "@features/split-view/lib/panel-stack.js"
 const STORAGE_KEY = "pig.split"
 
 function createSplitView(
-  route: Readonly<Ref<string | undefined>>,
+  route: Readonly<Ref<string | undefined | null>>,
   go: (id: string | undefined) => void,
 ) {
   const state = shallowRef<SplitState>(parseSplit(readPref(STORAGE_KEY)))
