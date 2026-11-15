@@ -22,21 +22,30 @@
     <div class="scope-projects">
       <DropdownMenuCheckboxItem
         v-if="!needle"
+        class="scope-item"
         :model-value="scopeFilter.size === 0"
         @select.prevent="emit('update:scopeFilter', new Set())"
       >
-        <FolderIcon class="size-icon-xs" />
+        <span class="scope-icon">
+          <FolderIcon class="size-icon-2xs" />
+          <span v-if="scopeFilter.size === 0" class="check-badge"><CheckIcon /></span>
+        </span>
+
         <span class="scope-name">{{ t("session.allProjects") }}</span>
       </DropdownMenuCheckboxItem>
 
       <DropdownMenuCheckboxItem
         v-for="group in matched"
         :key="group.canonicalPath"
-        class="scope-row"
+        class="scope-item scope-row"
         :model-value="scopeFilter.has(group.canonicalPath)"
         @select.prevent="toggleProject(group.canonicalPath)"
       >
-        <ProjectIcon :path="group.canonicalPath" class="size-icon-xs" />
+        <span class="scope-icon">
+          <ProjectIcon :path="group.canonicalPath" class="size-icon-2xs" />
+          <span v-if="scopeFilter.has(group.canonicalPath)" class="check-badge"><CheckIcon /></span>
+        </span>
+
         <span class="scope-name">{{ workspaceName(group.canonicalPath) }}</span>
 
         <span class="scope-actions" @pointerdown.stop @pointerup.stop>
@@ -51,7 +60,7 @@
             :aria-label="t('session.projectIcon')"
             @click.stop.prevent="emit('settings', group.canonicalPath)"
           >
-            <SettingsIcon class="size-icon-xs" />
+            <SettingsIcon />
           </IconButton>
 
           <IconButton
@@ -66,8 +75,8 @@
             :aria-label="pinLabel(group.canonicalPath)"
             @click.stop.prevent="togglePinned(group.canonicalPath)"
           >
-            <PinFilledIcon v-if="isPinned(group.canonicalPath)" class="size-icon-xs" />
-            <PinIcon v-else class="size-icon-xs" />
+            <PinFilledIcon v-if="isPinned(group.canonicalPath)" />
+            <PinIcon v-else />
           </IconButton>
         </span>
       </DropdownMenuCheckboxItem>
@@ -87,6 +96,7 @@ import {
 } from "@components/ui/dropdown-menu/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import {
+  CheckIcon,
   FolderIcon,
   PinFilledIcon,
   PinIcon,
@@ -184,6 +194,37 @@ function toggleProject(canonicalPath: string): void {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* 选中态对齐 t3code：图标右下角打勾，行本身不铺选中底 */
+.scope-item[data-state="checked"]:not([data-highlighted]) {
+  background-color: transparent;
+}
+
+.scope-icon {
+  position: relative;
+  display: flex;
+  flex: none;
+}
+
+.check-badge {
+  position: absolute;
+  inset-block-end: calc(var(--space-xxs) * -1);
+  inset-inline-end: calc(var(--space-xxs) * -1);
+  display: grid;
+  place-items: center;
+  inline-size: var(--size-icon-xs);
+  block-size: var(--size-icon-xs);
+  border-radius: var(--radius-pill);
+  background-color: var(--primary);
+  box-shadow: 0 0 0 calc(var(--border-width) * 2) var(--popover);
+  color: var(--primary-foreground);
+}
+
+.check-badge .lucide {
+  inline-size: calc(var(--size-icon-xs) - var(--space-xxs));
+  block-size: calc(var(--size-icon-xs) - var(--space-xxs));
+  stroke-width: calc(var(--line-icon-width) * 2);
 }
 
 .scope-actions {
