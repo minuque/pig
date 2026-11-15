@@ -27,10 +27,10 @@ const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<ContextMen
 <style scoped>
 /* 选中态用 accent 淡底标出，不在左侧留白放勾：项本身已有前置图标，双标记会挤 */
 .rt-ContextMenuRadioItem[data-state="checked"] {
-  background-color: var(--accent-a3);
+  background-color: var(--btn-hover);
 }
 
 .rt-ContextMenuRadioItem[data-state="checked"][data-highlighted] {
-  background-color: var(--accent-a4);
+  background-color: var(--btn-selected);
 }
 </style>
