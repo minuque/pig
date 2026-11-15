@@ -61,6 +61,11 @@ export function provideSplitView(...args: Parameters<typeof createSplitView>) {
   return split
 }
 
+/** 不在壳层里（如设计页）时拿不到分屏，返回 undefined。 */
+export function trySplitView(): SplitViewContext | undefined {
+  return inject(key, undefined)
+}
+
 export function useSplitView(): SplitViewContext {
   const split = inject(key)
 

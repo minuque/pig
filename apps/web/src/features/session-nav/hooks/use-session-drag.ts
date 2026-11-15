@@ -7,6 +7,7 @@ import {
 } from "@features/session-nav/hooks/use-pointer-drag.js"
 import {
   dropSessions,
+  markSessionDragging,
   markSessionDropTarget,
   sessionDropTargetAt,
 } from "@features/session-nav/lib/context-drag.js"
@@ -163,6 +164,7 @@ export function useSessionDrag(options: {
 
     if (away !== outside.value) {
       outside.value = away
+      markSessionDragging(away)
       force = true
     }
 
@@ -336,6 +338,7 @@ export function useSessionDrag(options: {
 
     cancelAnimationFrame(raf)
     markSessionDropTarget(null)
+    markSessionDragging(false)
 
     if (!d) return
     const tops = new Map(items().map((el) => [el.dataset.dragKey!, el.getBoundingClientRect().top]))

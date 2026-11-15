@@ -13,7 +13,10 @@
         <component
           :is="placeholder ? 'div' : RouterLink"
           class="session-card"
-          :class="[variant, { active, 'is-placeholder': placeholder, renaming }]"
+          :class="[
+            variant,
+            { active: active || splitShown, 'is-placeholder': placeholder, renaming },
+          ]"
           :to="placeholder ? undefined : { name: 'session', params: { sessionId: session.id } }"
           draggable="false"
           @click="onCardClick"
@@ -163,6 +166,15 @@
       </ContextMenuTrigger>
 
       <ContextMenuContent v-if="!placeholder" class="select-none">
+        <template v-if="split">
+          <ContextMenuItem @select="split.openToSide(session.id)">
+            <Columns2Icon />
+            {{ split.split.value ? t("split.openToOther") : t("split.openToSide") }}
+          </ContextMenuItem>
+
+          <ContextMenuSeparator />
+        </template>
+
         <ContextMenuItem @select="startRename">
           <PenIcon />
           {{ t("session.rename") }}
@@ -229,9 +241,11 @@ import { formatRelativeTime, workspaceName } from "@features/session-nav/lib/for
 import { formatElapsed } from "@utils/time.js"
 import type { DropVerb } from "@features/session-nav/lib/drag-plan.js"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
+import { trySplitView } from "@features/split-view/index.js"
 import {
   CircleCheckIcon,
   CheckIcon,
+  Columns2Icon,
   CircleDashedIcon,
   XIcon,
   PenIcon,
@@ -285,6 +299,13 @@ const emit = defineEmits<{
   dragStart: [event: PointerEvent]
   sweepStart: [event: PointerEvent]
 }>()
+const split = trySplitView()
+/** 分屏时两侧开着的会话都高亮。 */
+const splitShown = computed(
+  () =>
+    Boolean(split?.split.value) &&
+    (split!.state.value.left === props.session.id || split!.state.value.right === props.session.id),
+)
 const { t } = useI18n()
 const menuOpen = ref(false)
 const deleteOpen = shallowRef(false)
@@ -397,6 +418,13 @@ function onCardClick(event: MouseEvent) {
   }
 
   emit("navigate")
+
+  // Alt+点击：在另一侧打开
+  if (split && event.altKey && event.button === 0) {
+    event.preventDefault()
+    split.openToSide(props.session.id)
+    return
+  }
 
   if (isModifiedSessionClick(event)) return
   event.preventDefault()

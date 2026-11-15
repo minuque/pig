@@ -30,6 +30,22 @@
         ></div>
 
         <WorkbenchPane v-if="split.split.value" v-show="rightShown" side="right" :session="right" />
+
+        <!-- 会话拖出侧栏时显形：上半截按左右落到对应一侧，下半截仍是输入卡的引用落点 -->
+        <div class="split-drop" aria-hidden="true">
+          <div
+            v-for="zone in dropZones"
+            :key="zone"
+            class="split-drop-zone"
+            v-bind="sessionDropTargetAttrs"
+            @pig-session-drop="onSessionDrop(zone, $event)"
+          >
+            <span class="split-drop-label">
+              <Columns2Icon class="split-drop-icon" />
+              {{ t("split.dropHere") }}
+            </span>
+          </div>
+        </div>
       </div>
     </AppLayout>
 
@@ -56,6 +72,9 @@ import AlertToaster from "@components/layout/AlertToaster.vue"
 import { useLocalWorkspaces } from "@client/local-cwd.js"
 import { useGatewayClient } from "@client/gateway-connection.js"
 
+import { Columns2Icon } from "@components/icons/index.js"
+import { useI18n } from "@i18n/index.js"
+import { sessionDropTargetAttrs, type DroppedSession } from "@features/session-nav/index.js"
 import { provideSharedBuckets } from "@features/composer/hooks/use-session-buckets.js"
 import ExtensionUi from "@features/extension-ui/index.vue"
 import { provideExtensionUi } from "@features/extension-ui/index.js"
@@ -69,6 +88,7 @@ import { focusedSession, provideSplitView, type Side } from "@features/split-vie
 import { prefetchHighlighter } from "@features/transcript-view/index.js"
 import WorkbenchPane from "@/shell/WorkbenchPane.vue"
 
+const { t } = useI18n()
 const pi = useGatewayClient()
 const cwd = useLocalWorkspaces()
 const route = useRoute()
@@ -127,6 +147,18 @@ function startResize(event: PointerEvent) {
   })
 }
 
+const dropZones: Side[] = ["left", "right"]
+
+/** 拖到某一侧：那一侧是聚焦侧就在原地打开，否则在另一侧打开。 */
+function onSessionDrop(zone: Side, event: Event) {
+  const id = (event as CustomEvent<readonly DroppedSession[]>).detail[0]?.id
+
+  if (!id) return
+
+  if (zone === split.focused.value) split.openInFocused(id)
+  else split.openToSide(id)
+}
+
 function initialize() {
   return Promise.all([left.initialize(), right.initialize()])
 }
@@ -159,6 +191,59 @@ function handleSidebarNavigate(canonicalPath: string, closeMobilePanels: () => v
 
 .split-area.is-split > .split-left {
   flex: 0 0 var(--split-left);
+}
+
+.split-drop {
+  position: absolute;
+  inset: 0 0 50%;
+  z-index: var(--z-resizer);
+  display: none;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  padding-block-start: var(--header-height);
+}
+
+.split-area.is-split > .split-drop {
+  grid-template-columns: calc(var(--split-left) - var(--space-sm)) 1fr;
+}
+
+html[data-session-dragging] .split-drop {
+  display: grid;
+}
+
+.split-drop-zone {
+  display: grid;
+  place-items: center;
+  border: var(--border-width) dashed transparent;
+  border-radius: var(--radius-card);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.split-drop-zone[data-session-drop-over] {
+  border-color: var(--primary);
+  background: var(--surface);
+}
+
+.split-drop-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--contrast-foreground-faint);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  pointer-events: none;
+}
+
+.split-drop-zone[data-session-drop-over] .split-drop-label {
+  color: var(--primary);
+}
+
+.split-drop-icon {
+  width: var(--size-icon);
+  height: var(--size-icon);
 }
 
 .split-area.is-resizing {
