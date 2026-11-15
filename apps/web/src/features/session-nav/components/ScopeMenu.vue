@@ -188,7 +188,7 @@ function toggleProject(canonicalPath: string): void {
   display: flex;
   flex-direction: column;
   gap: var(--menu-item-gap);
-  max-block-size: calc(var(--size-nav-rail) * 9);
+  max-block-size: calc((var(--size-menu-item) + var(--menu-item-gap)) * 9);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
