@@ -1,5 +1,5 @@
-// 图标注册表：Lucide（ISC），实心态用同一图标填 currentColor
-import { Pin, Star, type LucideProps } from "@lucide/vue"
+// 图标注册表：Lucide（ISC），星标实心态用同一图标填 currentColor
+import { Star, type LucideProps } from "@lucide/vue"
 import { h, type FunctionalComponent } from "vue"
 
 export { default as RunningPigGlyph } from "@components/icons/RunningPigGlyph.vue"
@@ -50,6 +50,7 @@ export {
   PaperclipIcon,
   PenIcon,
   PinIcon,
+  PinOffIcon,
   PlusIcon,
   RotateCcwClockIcon,
   RotateCcwIcon,
@@ -71,5 +72,4 @@ const filled =
   (icon: FunctionalComponent<LucideProps>): FunctionalComponent<LucideProps> =>
   (_, { attrs }) =>
     h(icon, { ...attrs, fill: "currentColor" })
-export const PinFilledIcon = filled(Pin)
 export const StarFilledIcon = filled(Star)

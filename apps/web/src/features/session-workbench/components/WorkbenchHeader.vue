@@ -69,7 +69,7 @@
 
             <DropdownMenuContent align="end" class="select-none">
               <DropdownMenuItem @select="onTogglePinned">
-                <PinFilledIcon v-if="isPinned" />
+                <PinOffIcon v-if="isPinned" />
                 <PinIcon v-else />
                 {{ isPinned ? t("session.unpin") : t("session.pin") }}
               </DropdownMenuItem>
@@ -144,7 +144,7 @@ import {
   PanelRightOpenIcon,
   PenIcon,
   PinIcon,
-  PinFilledIcon,
+  PinOffIcon,
   TrashIcon,
 } from "@components/icons/index.js"
 

@@ -25,7 +25,7 @@
           <template v-if="variant === 'card'">
             <span class="meta-line">
               <span class="project-icon" aria-hidden="true">
-                <PinFilledIcon class="size-icon-2xs" v-if="pinned" />
+                <PinIcon class="size-icon-2xs" v-if="pinned" />
 
                 <ProjectIcon
                   v-else-if="projectName"
@@ -169,7 +169,7 @@
         </ContextMenuItem>
 
         <ContextMenuItem @select="emit('togglePinned', session.id)">
-          <PinFilledIcon v-if="pinned" />
+          <PinOffIcon v-if="pinned" />
           <PinIcon v-else />
           {{ pinned ? t("session.unpin") : t("session.pin") }}
         </ContextMenuItem>
@@ -236,7 +236,7 @@ import {
   XIcon,
   PenIcon,
   PinIcon,
-  PinFilledIcon,
+  PinOffIcon,
   RotateCcwIcon,
   TrashIcon,
   Undo2Icon,

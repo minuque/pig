@@ -75,8 +75,7 @@
             :aria-label="pinLabel(group.canonicalPath)"
             @click.stop.prevent="togglePinned(group.canonicalPath)"
           >
-            <PinFilledIcon v-if="isPinned(group.canonicalPath)" />
-            <PinIcon v-else />
+            <PinIcon />
           </IconButton>
         </span>
       </DropdownMenuCheckboxItem>
@@ -98,7 +97,6 @@ import { IconButton } from "@components/ui/button/index.js"
 import {
   CheckIcon,
   FolderIcon,
-  PinFilledIcon,
   PinIcon,
   SearchIcon,
   SettingsIcon,
