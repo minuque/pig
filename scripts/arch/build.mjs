@@ -7,6 +7,7 @@ import { dirname, join, resolve } from "node:path"
 import { scanApi } from "./api.mjs"
 import { loadFlows, validateFlows } from "./flows.mjs"
 import { scanGraph } from "./graph.mjs"
+import { layersOf } from "./layers.mjs"
 
 const root = resolve(import.meta.dirname, "../..")
 const out = join(root, "docs/architecture/dist/index.html")
@@ -33,6 +34,7 @@ if (errors.length) {
 }
 
 const api = scanApi(root)
+const graph = scanGraph(root)
 const radix = pkgDir("@radix-ui/themes")
 const css = [
   join(radix, "tokens/base.css"),
@@ -43,7 +45,8 @@ const css = [
   .map(read)
   .join("\n")
 const data = {
-  graph: scanGraph(root),
+  graph,
+  layers: layersOf(graph),
   api,
   flows,
   runtime: [

@@ -99,6 +99,81 @@
         --pele-line: var(--foreground-faint);
       }
 
+      .matrix {
+        overflow: auto;
+        max-height: 72vh;
+      }
+
+      .matrix table {
+        width: auto;
+        font-family: var(--font-mono);
+        font-size: var(--text-meta);
+      }
+
+      .matrix th {
+        position: sticky;
+        background: var(--surface);
+        font-weight: 400;
+        white-space: nowrap;
+      }
+
+      .matrix th.col {
+        top: 0;
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        text-align: left;
+      }
+
+      .matrix th.row {
+        left: 0;
+      }
+
+      .matrix td {
+        min-width: 2.2em;
+        padding: 0;
+        border: 1px solid var(--border);
+        text-align: center;
+        vertical-align: middle;
+      }
+
+      .matrix td[data-self] {
+        background: var(--btn-hover);
+      }
+
+      .matrix td[data-cycle] {
+        background: var(--danger-bg);
+        color: var(--danger);
+      }
+
+      .matrix td[data-selected] {
+        box-shadow: inset var(--focus-ring);
+      }
+
+      .matrix button {
+        width: 100%;
+        padding: var(--space-xxs);
+        border: 0;
+        background: none;
+        color: inherit;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .matrix button:hover {
+        background: var(--btn-hover);
+      }
+
+      h3 {
+        margin: var(--space-sm) 0 var(--space-xxs);
+        color: var(--foreground-secondary);
+        font-size: var(--text-body);
+        font-weight: 500;
+      }
+
+      summary {
+        cursor: pointer;
+      }
+
       .crumbs {
         display: flex;
         flex-wrap: wrap;
@@ -229,50 +304,14 @@
 
       const dirPkg = new Map(files.map((f) => [f.dir, f.pkg]))
       const pkgOf = (focus) => (dirPkg.has(focus) ? dirPkg.get(focus) : focus)
-
-      /** 文件按焦点归到节点：焦点内展开一级，同包的折成目录，别的包折成包。 */
-      function keyFor(file, focus) {
-        if (!focus || file.pkg !== pkgOf(focus)) return file.pkg
-        return file.dir === focus ? file.id : file.dir
-      }
-
-      function isInside(key, focus) {
-        if (!focus) return true
-        if (!dirPkg.has(focus)) return dirPkg.get(key) === focus
-        return byId.get(key)?.dir === focus
-      }
-
-      function graphSource(focus) {
-        const nodes = new Map()
-        const counts = new Map()
-        const id = (key) => {
-          if (!nodes.has(key)) nodes.set(key, `n${nodes.size}`)
-          return nodes.get(key)
-        }
-
-        for (const f of files) if (isInside(keyFor(f, focus), focus)) id(keyFor(f, focus))
-
-        for (const e of edges) {
-          const from = keyFor(byId.get(e.from), focus)
-          const to = keyFor(byId.get(e.to), focus)
-          if (from === to || !(isInside(from, focus) || isInside(to, focus))) continue
-          const pair = `${id(from)} --> ${id(to)}`
-          counts.set(pair, (counts.get(pair) ?? 0) + 1)
-        }
-
-        const lines = ["flowchart TB"]
-
-        for (const [key, n] of nodes) {
-          const inside = isInside(key, focus)
-          lines.push(`  ${n}["${label(inside ? tail(key, focus).replace(/^src\//, "") : key)}"]`)
-          lines.push(`  click ${n} href "#dep/${key}"`)
-          if (!inside) lines.push(`  class ${n} outside`)
-        }
-
-        for (const pair of counts.keys()) lines.push(`  ${pair}`)
-
-        lines.push("  classDef outside stroke-dasharray: 4 3")
-        return lines.join("\n")
+      const short = (key, focus) => tail(key, focus).replace(/^src\//, "")
+      const importers = new Map()
+      const imports = new Map()
+      for (const e of edges) {
+        if (!importers.has(e.to)) importers.set(e.to, [])
+        if (!imports.has(e.from)) imports.set(e.from, [])
+        importers.get(e.to).push(e.from)
+        imports.get(e.from).push(e.to)
       }
 
       function crumbs(path) {
@@ -286,35 +325,109 @@
         return `<div class="crumbs">${parts.join("")}</div>`
       }
 
-      function fileList(list, title) {
-        const items = list.map((id) => `<li>${depLink(id)}</li>`).join("")
-        return `<div><h2>${title}（${list.length}）</h2><ol>${items || "<li>无</li>"}</ol></div>`
+      /** 文件按目录折叠，目录按文件数从多到少。 */
+      function grouped(ids) {
+        const groups = Map.groupBy(ids, (id) => byId.get(id).dir)
+        if (!groups.size) return `<p class="hint">无</p>`
+        return [...groups]
+          .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))
+          .map(([dir, list]) => {
+            const items = list
+              .sort()
+              .map((id) => `<li>${depLink(id, tail(id, dir))}</li>`)
+              .join("")
+            return `<details><summary><span class="mono">${esc(`${dirPkg.get(dir)}/${short(dir, dirPkg.get(dir))}`)}</span> <span class="hint">${list.length}</span></summary><ol>${items}</ol></details>`
+          })
+          .join("")
+      }
+
+      /** 矩阵：行引用列，格子是 import 条数；越往后越底层。 */
+      function renderMatrix(focus) {
+        const { order, cycles } = DATA.layers[focus]
+        const keyOf = (f) => (focus ? f.dir : f.pkg)
+        const cycleOf = new Map(cycles.flatMap((c, i) => c.map((k) => [k, i])))
+        const pairs = new Map()
+        for (const e of edges) {
+          const [a, b] = [byId.get(e.from), byId.get(e.to)]
+          if (focus && (a.pkg !== focus || b.pkg !== focus)) continue
+          const key = `${keyOf(a)}\n${keyOf(b)}`
+          if (keyOf(a) !== keyOf(b)) pairs.set(key, [...(pairs.get(key) ?? []), e])
+        }
+        const name = (k) => depLink(k, short(k, focus))
+        const head = order.map((k) => `<th class="col">${name(k)}</th>`).join("")
+        const rows = order
+          .map((row) => {
+            const cells = order.map((col) => {
+              if (row === col) return `<td data-self></td>`
+              const list = pairs.get(`${row}\n${col}`)
+              if (!list) return `<td></td>`
+              const cycle = cycleOf.has(row) && cycleOf.get(row) === cycleOf.get(col)
+              const title = `${short(row, focus)} → ${short(col, focus)}`
+              return `<td${cycle ? " data-cycle" : ""}><button data-pair="${esc(`${row}\n${col}`)}" title="${esc(title)}">${list.length}</button></td>`
+            })
+            return `<tr><th class="row">${name(row)}</th>${cells.join("")}</tr>`
+          })
+          .join("")
+        const cycleNote = cycles.length
+          ? `<p class="error">循环引用：${cycles.map((c) => c.map((k) => esc(short(k, focus))).join(" ⇄ ")).join("；")}</p>`
+          : ""
+        const el = card(
+          `${crumbs(focus)}<p class="hint">行引用列，数字是 import 条数。越往右下越底层，红格是循环引用。点数字看具体文件，点名字下钻。</p>${cycleNote}<div class="matrix"><table><thead><tr><th></th>${head}</tr></thead><tbody>${rows}</tbody></table></div>`,
+        )
+        const detail = card(`<p class="hint">点矩阵里的数字，这里列出对应的文件。</p>`)
+        el.addEventListener("click", (event) => {
+          const button = event.target.closest("button[data-pair]")
+          if (!button) return
+          el.querySelector("[data-selected]")?.removeAttribute("data-selected")
+          button.parentElement.setAttribute("data-selected", "")
+          const [from, to] = button.dataset.pair.split("\n")
+          const list = pairs.get(button.dataset.pair)
+          const items = list.map((e) => `<li>${depLink(e.from)} → ${depLink(e.to, tail(e.to, to))}</li>`).join("")
+          detail.innerHTML = `<h2>${esc(short(from, focus))} → ${esc(short(to, focus))}（${list.length}）</h2><ol>${items}</ol>`
+        })
+      }
+
+      function renderDir(dir) {
+        const rows = files
+          .filter((f) => f.dir === dir)
+          .map((f) => [f.id, importers.get(f.id)?.length ?? 0, imports.get(f.id)?.length ?? 0])
+          .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+          .map(([id, into, out]) => `<tr><td>${depLink(id, tail(id, dir))}</td><td>${into}</td><td>${out}</td></tr>`)
+          .join("")
+        card(
+          `${crumbs(dir)}<table><thead><tr><th>文件</th><th>被引用</th><th>引用</th></tr></thead><tbody>${rows}</tbody></table>`,
+        )
+      }
+
+      /** 反向逐层展开：第 1 层是直接引用方，之后是间接受影响的文件。 */
+      function impactLayers(path) {
+        const seen = new Set([path])
+        const layers = []
+        let front = [path]
+        while (front.length) {
+          front = [...new Set(front.flatMap((id) => importers.get(id) ?? []))].filter((id) => !seen.has(id))
+          for (const id of front) seen.add(id)
+          if (front.length) layers.push(front)
+        }
+        return layers
+      }
+
+      function renderFile(path) {
+        const layers = impactLayers(path)
+        const total = layers.reduce((n, l) => n + l.length, 0)
+        const impact = layers.map((l, i) => `<h3>${i ? `第 ${i + 1} 层` : "直接引用"}（${l.length}）</h3>${grouped(l)}`).join("")
+        const out = imports.get(path) ?? []
+        card(
+          `${crumbs(path)}<div class="cols"><div><h2>谁引用它（共波及 ${total}）</h2>${impact || '<p class="hint">无</p>'}</div><div><h2>它引用谁（${out.length}）</h2>${grouped(out)}</div></div>`,
+        )
       }
 
       function renderDeps(path) {
-        const file = byId.get(path)
-
-        if (file) {
-          const into = edges.filter((e) => e.to === path).map((e) => e.from)
-          const out = edges.filter((e) => e.from === path).map((e) => e.to)
-          const nodes = [path, ...into, ...out]
-          const n = (id) => `n${nodes.indexOf(id)}`
-          const lines = ["flowchart LR", `  ${n(path)}["${label(tail(path, file.pkg))}"]`]
-          for (const id of new Set([...into, ...out]))
-            lines.push(`  ${n(id)}["${label(id)}"]`, `  click ${n(id)} href "#dep/${id}"`)
-          for (const id of into) lines.push(`  ${n(id)} --> ${n(path)}`)
-          for (const id of out) lines.push(`  ${n(path)} --> ${n(id)}`)
-          const el = card(`${crumbs(path)}<p class="hint">点相邻文件跳过去；滚轮缩放，拖动平移。</p>`)
-          diagram(el, lines.join("\n"))
-          card(`<div class="cols">${fileList(into, "谁引用它")}${fileList(out, "它引用谁")}</div>`)
-          return
-        }
-
-        const focus = path || undefined
-        const el = card(
-          `${crumbs(path)}<p class="hint">点节点下钻；虚线框是焦点外的模块。滚轮缩放，拖动平移。</p>`,
-        )
-        diagram(el, graphSource(focus))
+        if (byId.has(path)) return renderFile(path)
+        if (dirPkg.has(path)) return renderDir(path)
+        const { order } = DATA.layers[path]
+        if (path && order.length < 2) return renderDir(order[0])
+        renderMatrix(path)
       }
 
       function renderOverview() {
