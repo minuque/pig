@@ -161,4 +161,41 @@ describe("两侧共用会话后台池", () => {
     ])
     scope.stop()
   })
+
+  it("关闭左侧、右侧会话挪到左边：先接手的一侧拿到原连接与状态", async () => {
+    const scope = effectScope()
+    const pi = fakePi()
+    const { left, right } = scope.run(() => {
+      const hub = createSessionHub(pi as never)
+      return {
+        left: useForegroundSession(
+          pi as never,
+          computed(() => "a"),
+          hub,
+        ),
+        right: useForegroundSession(
+          pi as never,
+          computed(() => "b"),
+          hub,
+        ),
+      }
+    })!
+
+    left.showHistory("a")
+    right.showHistory("b")
+    await Promise.all([left.ensureRemote("a"), right.ensureRemote("b")])
+    const b = opened.find((session) => session.id === "b")!
+    b.emit(running(5))
+    await new Promise((resolve) => setTimeout(resolve, 20))
+
+    // 两侧的 watcher 按创建顺序跑：左侧先换到 b，右侧随后清空
+    left.showHistory("b")
+    right.leaveForeground()
+
+    expect(left.remote.value).toBe(b)
+    expect(left.state.value?.snapshot?.revision).toBe(5)
+    expect(right.remote.value).toBeUndefined()
+    expect(opened).toHaveLength(2)
+    scope.stop()
+  })
 })

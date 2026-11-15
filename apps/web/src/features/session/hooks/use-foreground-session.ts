@@ -44,7 +44,8 @@ export function useForegroundSession(
     },
     revision: (id) => void refreshContextUsage(id),
   }
-  const unregister = hub.registerForeground(() => remote.value)
+  const entry = { remote: () => remote.value, handOver }
+  const unregister = hub.registerForeground(entry)
 
   /** 占用估算只给前台：切走或换会话就作废在飞的请求。 */
   function clearContextUsage() {
@@ -65,8 +66,16 @@ export function useForegroundSession(
     }
   }
 
-  /** 后台池命中就把该会话挂回前台，复用同一条连接。 */
+  /** 另一侧要显示这个会话：连接不管是否在跑都转进池里，由那一侧取走。 */
+  function handOver() {
+    if (activeSub) live.moveToBackground(activeSub)
+    activeSub = undefined
+    clearForeground()
+  }
+
+  /** 后台池命中就把该会话挂回前台，复用同一条连接；在另一侧前台上就先让那一侧交出来。 */
   function promote(id: string) {
+    hub.claim(id, entry)
     const sub = live.promoteBackground(id, owner)
 
     if (!sub) return false
