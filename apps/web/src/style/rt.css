@@ -74,15 +74,10 @@
   background-color: var(--btn-hover);
 }
 
-/* 菜单与下拉选项之间留外间距：rt 原生行与行贴着排 */
-.rt-BaseMenuViewport,
-.rt-SelectViewport {
-  gap: var(--menu-item-gap);
-}
-
-.rt-SelectViewport {
-  display: flex;
-  flex-direction: column;
+/* 只在相邻选项之间留缝：分割线、分组标签自带上下间距，不再叠加 */
+.rt-BaseMenuItem + .rt-BaseMenuItem,
+.rt-SelectItem + .rt-SelectItem {
+  margin-block-start: var(--menu-item-gap);
 }
 
 /* 图标按钮定档：s=24、m=28（`--size-nav-rail`）。
