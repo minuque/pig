@@ -1,25 +1,34 @@
-/** 给依赖矩阵排层：循环折成一组，组按"引用方在前、被引用方在后"排，同层按名字。 */
-function order(nodes, links) {
+/** 按手写分层归类模块，找出循环引用和下层引用上层。 */
+import { join } from "node:path"
+import { pathToFileURL } from "node:url"
+
+export const LAYERS_FILE = "docs/architecture/layers.ts"
+
+export async function loadLayers(root) {
+  const { layers } = await import(pathToFileURL(join(root, LAYERS_FILE)).href)
+  return layers
+}
+
+/** 互相能到达的模块（强连通分量里不止一个的）。 */
+function cyclesOf(nodes, links) {
   const out = new Map(nodes.map((n) => [n, new Set()]))
-
-  for (const [a, b] of links) out.get(a).add(b)
-
-  // Tarjan 求强连通分量
   const index = new Map()
   const low = new Map()
   const stack = []
-  const comp = new Map()
-  const comps = []
+  const done = new Set()
+  const cycles = []
+
+  for (const [a, b] of links) out.get(a).add(b)
+
   const visit = (v) => {
     index.set(v, index.size)
     low.set(v, index.get(v))
     stack.push(v)
 
     for (const w of out.get(v)) {
-      if (!index.has(w)) {
-        visit(w)
-        low.set(v, Math.min(low.get(v), low.get(w)))
-      } else if (!comp.has(w)) low.set(v, Math.min(low.get(v), index.get(w)))
+      if (!index.has(w)) visit(w)
+
+      if (!done.has(w)) low.set(v, Math.min(low.get(v), low.get(w)))
     }
 
     if (low.get(v) !== index.get(v)) return
@@ -28,65 +37,63 @@ function order(nodes, links) {
 
     do {
       w = stack.pop()
-      comp.set(w, comps.length)
+      done.add(w)
       members.push(w)
     } while (w !== v)
 
-    comps.push(members.sort())
+    if (members.length > 1) cycles.push(members.sort())
   }
 
   for (const n of nodes) if (!index.has(n)) visit(n)
-
-  // 分量的高度：到最底层的最长路径
-  const height = new Map()
-  const heightOf = (c) => {
-    if (!height.has(c)) {
-      let h = 0
-
-      for (const v of comps[c])
-        for (const w of out.get(v))
-          if (comp.get(w) !== c) h = Math.max(h, heightOf(comp.get(w)) + 1)
-      height.set(c, h)
-    }
-
-    return height.get(c)
-  }
-  const sorted = comps
-    .map((_, c) => c)
-    .sort((x, y) => heightOf(y) - heightOf(x) || comps[x][0].localeCompare(comps[y][0]))
-  return {
-    order: sorted.flatMap((c) => comps[c]),
-    cycles: comps.filter((c) => c.length > 1),
-  }
+  return cycles.sort((x, y) => x[0].localeCompare(y[0]))
 }
 
-/** 每个焦点一份排层："" 是包之间，包目录是该包内的分组之间。 */
-export function layersOf({ files, edges }) {
+/** 每个焦点（"" 是包之间，其余是包目录）一份视图：分层、循环、违规；配置和代码对不上时给 errors。 */
+export function analyzeLayers({ files, edges }, config) {
   const byId = new Map(files.map((f) => [f.id, f]))
   const pkgs = [...new Set(files.map((f) => f.pkg))]
-  const layers = {}
-  const links = (keyOf, keep) =>
-    edges
-      .map((e) => [byId.get(e.from), byId.get(e.to)])
-      .filter(([a, b]) => keep(a) && keep(b) && keyOf(a) !== keyOf(b))
-      .map(([a, b]) => [keyOf(a), keyOf(b)])
+  const views = {}
+  const errors = []
+  const foci = [["", (f) => f.pkg, () => true, (d) => d]]
 
-  layers[""] = order(
-    pkgs,
-    links(
-      (f) => f.pkg,
-      () => true,
-    ),
-  )
+  for (const pkg of pkgs)
+    foci.push([
+      pkg,
+      (f) => f.dir,
+      (f) => f.pkg === pkg,
+      (d) => (d ? `${pkg}/src/${d}` : `${pkg}/src`),
+    ])
 
-  for (const pkg of pkgs) {
-    const keep = (f) => f.pkg === pkg
-    const dirs = [...new Set(files.filter(keep).map((f) => f.dir))]
-    layers[pkg] = order(
-      dirs,
-      links((f) => f.dir, keep),
-    )
+  for (const [focus, keyOf, keep, toKey] of foci) {
+    const nodes = [...new Set(files.filter(keep).map(keyOf))]
+
+    if (nodes.length < 2) continue
+    const where = focus || "包之间"
+    const bands = (config[focus] ?? []).map((l) => ({ ...l, keys: l.dirs.map(toKey) }))
+    const layerOf = new Map(bands.flatMap((b, i) => b.keys.map((k) => [k, i])))
+
+    for (const k of nodes) if (!layerOf.has(k)) errors.push(`${where}: ${k} 没有归层`)
+
+    for (const k of layerOf.keys())
+      if (!nodes.includes(k)) errors.push(`${where}: ${k} 不是现有模块`)
+
+    const counts = new Map()
+
+    for (const e of edges) {
+      const [a, b] = [byId.get(e.from), byId.get(e.to)]
+
+      if (!keep(a) || !keep(b) || keyOf(a) === keyOf(b)) continue
+      const pair = `${keyOf(a)}\n${keyOf(b)}`
+      counts.set(pair, (counts.get(pair) ?? 0) + 1)
+    }
+
+    const links = [...counts.keys()].map((p) => p.split("\n"))
+    const violations = links
+      .filter(([a, b]) => layerOf.get(a) > layerOf.get(b))
+      .map(([from, to]) => ({ from, to, count: counts.get(`${from}\n${to}`) }))
+
+    views[focus] = { bands, cycles: cyclesOf(nodes, links), violations }
   }
 
-  return layers
+  return { views, errors }
 }

@@ -7,7 +7,7 @@ import { dirname, join, resolve } from "node:path"
 import { scanApi } from "./api.mjs"
 import { loadFlows, validateFlows } from "./flows.mjs"
 import { scanGraph } from "./graph.mjs"
-import { layersOf } from "./layers.mjs"
+import { analyzeLayers, loadLayers } from "./layers.mjs"
 
 const root = resolve(import.meta.dirname, "../..")
 const out = join(root, "docs/architecture/dist/index.html")
@@ -35,6 +35,15 @@ if (errors.length) {
 
 const api = scanApi(root)
 const graph = scanGraph(root)
+const layers = analyzeLayers(graph, await loadLayers(root))
+
+if (layers.errors.length) {
+  console.error(
+    `arch: 分层配置和代码对不上，改 docs/architecture/layers.ts\n${layers.errors.join("\n")}`,
+  )
+  process.exit(1)
+}
+
 const radix = pkgDir("@radix-ui/themes")
 const css = [
   join(radix, "tokens/base.css"),
@@ -46,7 +55,7 @@ const css = [
   .join("\n")
 const data = {
   graph,
-  layers: layersOf(graph),
+  layers: layers.views,
   api,
   flows,
   runtime: [

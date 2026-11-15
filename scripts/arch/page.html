@@ -99,68 +99,110 @@
         --pele-line: var(--foreground-faint);
       }
 
-      .matrix {
-        overflow: auto;
-        max-height: 72vh;
+      .bands {
+        display: grid;
+        gap: var(--space-xs);
       }
 
-      .matrix table {
-        width: auto;
-        font-family: var(--font-mono);
-        font-size: var(--text-meta);
-      }
-
-      .matrix th {
-        position: sticky;
-        background: var(--surface);
-        font-weight: 400;
-        white-space: nowrap;
-      }
-
-      .matrix th.col {
-        top: 0;
-        writing-mode: vertical-rl;
-        transform: rotate(180deg);
-        text-align: left;
-      }
-
-      .matrix th.row {
-        left: 0;
-      }
-
-      .matrix td {
-        min-width: 2.2em;
-        padding: 0;
+      .band {
+        display: grid;
+        grid-template-columns: 96px minmax(0, 1fr);
+        gap: var(--space-sm);
+        padding: var(--space-sm);
         border: 1px solid var(--border);
-        text-align: center;
-        vertical-align: middle;
+        border-radius: var(--radius-card);
       }
 
-      .matrix td[data-self] {
+      .band-name {
+        color: var(--foreground-secondary);
+        font-weight: 500;
+      }
+
+      .band-name small {
+        display: block;
+        color: var(--foreground-faint);
+        font-size: var(--text-meta);
+        font-weight: 400;
+      }
+
+      .tiles {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-xs);
+        align-content: start;
+      }
+
+      .tile {
+        padding: var(--space-xxs) var(--space-sm);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-control);
+        background: var(--background);
+        color: var(--foreground-secondary);
+        text-decoration: none;
+      }
+
+      .tile:hover {
         background: var(--btn-hover);
       }
 
-      .matrix td[data-cycle] {
+      .tile i {
+        margin-left: var(--space-xs);
+        font-style: normal;
+      }
+
+      [data-state="me"] {
+        border-color: var(--accent-9);
+        background: var(--accent-9);
+        color: var(--accent-contrast);
+      }
+
+      [data-state="up"] {
+        border-color: var(--amber-7);
+        background: var(--amber-3);
+        color: var(--amber-11);
+      }
+
+      [data-state="down"] {
+        border-color: var(--green-7);
+        background: var(--green-3);
+        color: var(--green-11);
+      }
+
+      [data-state="bad"] {
+        border-color: var(--red-7);
         background: var(--danger-bg);
         color: var(--danger);
       }
 
-      .matrix td[data-selected] {
-        box-shadow: inset var(--focus-ring);
+      .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-md);
+        margin: var(--space-sm) 0;
+        color: var(--foreground-secondary);
+        font-size: var(--text-meta);
       }
 
-      .matrix button {
-        width: 100%;
-        padding: var(--space-xxs);
-        border: 0;
-        background: none;
-        color: inherit;
-        font: inherit;
-        cursor: pointer;
+      .swatch {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        margin-right: var(--space-xxs);
+        border-radius: var(--radius-control);
+        vertical-align: -1px;
       }
 
-      .matrix button:hover {
-        background: var(--btn-hover);
+      .callout {
+        margin-top: var(--space-xs);
+        padding: var(--space-sm) var(--space-md);
+        border-radius: var(--radius-card);
+        background: var(--accent-a3);
+        color: var(--accent-12);
+      }
+
+      .callout[data-tone="danger"] {
+        background: var(--danger-bg);
+        color: var(--danger);
       }
 
       h3 {
@@ -341,62 +383,103 @@
           .join("")
       }
 
-      /** 矩阵：行引用列，格子是 import 条数；越往后越底层。 */
-      function renderMatrix(focus) {
-        const { order, cycles } = DATA.layers[focus]
+      /** 某个焦点下模块之间的引用：键 "a\nb"，值是具体的文件对。 */
+      function pairsOf(focus) {
         const keyOf = (f) => (focus ? f.dir : f.pkg)
-        const cycleOf = new Map(cycles.flatMap((c, i) => c.map((k) => [k, i])))
         const pairs = new Map()
         for (const e of edges) {
           const [a, b] = [byId.get(e.from), byId.get(e.to)]
           if (focus && (a.pkg !== focus || b.pkg !== focus)) continue
+          if (keyOf(a) === keyOf(b)) continue
           const key = `${keyOf(a)}\n${keyOf(b)}`
-          if (keyOf(a) !== keyOf(b)) pairs.set(key, [...(pairs.get(key) ?? []), e])
+          pairs.set(key, [...(pairs.get(key) ?? []), e])
         }
-        const name = (k) => depLink(k, short(k, focus))
-        const head = order.map((k) => `<th class="col">${name(k)}</th>`).join("")
-        const rows = order
-          .map((row) => {
-            const cells = order.map((col) => {
-              if (row === col) return `<td data-self></td>`
-              const list = pairs.get(`${row}\n${col}`)
-              if (!list) return `<td></td>`
-              const cycle = cycleOf.has(row) && cycleOf.get(row) === cycleOf.get(col)
-              const title = `${short(row, focus)} → ${short(col, focus)}`
-              return `<td${cycle ? " data-cycle" : ""}><button data-pair="${esc(`${row}\n${col}`)}" title="${esc(title)}">${list.length}</button></td>`
-            })
-            return `<tr><th class="row">${name(row)}</th>${cells.join("")}</tr>`
-          })
-          .join("")
-        const cycleNote = cycles.length
-          ? `<p class="error">循环引用：${cycles.map((c) => c.map((k) => esc(short(k, focus))).join(" ⇄ ")).join("；")}</p>`
-          : ""
-        const el = card(
-          `${crumbs(focus)}<p class="hint">行引用列，数字是 import 条数。越往右下越底层，红格是循环引用。点数字看具体文件，点名字下钻。</p>${cycleNote}<div class="matrix"><table><thead><tr><th></th>${head}</tr></thead><tbody>${rows}</tbody></table></div>`,
-        )
-        const detail = card(`<p class="hint">点矩阵里的数字，这里列出对应的文件。</p>`)
-        el.addEventListener("click", (event) => {
-          const button = event.target.closest("button[data-pair]")
-          if (!button) return
-          el.querySelector("[data-selected]")?.removeAttribute("data-selected")
-          button.parentElement.setAttribute("data-selected", "")
-          const [from, to] = button.dataset.pair.split("\n")
-          const list = pairs.get(button.dataset.pair)
-          const items = list.map((e) => `<li>${depLink(e.from)} → ${depLink(e.to, tail(e.to, to))}</li>`).join("")
-          detail.innerHTML = `<h2>${esc(short(from, focus))} → ${esc(short(to, focus))}（${list.length}）</h2><ol>${items}</ol>`
-        })
+        return pairs
       }
 
-      function renderDir(dir) {
-        const rows = files
-          .filter((f) => f.dir === dir)
+      const swatch = (state, text) => `<span><span class="swatch" data-state="${state}"></span>${text}</span>`
+      const callout = (tone, html) => `<div class="callout" data-tone="${tone}">${html}</div>`
+
+      /** 分层地图：不画线，选中一个模块后，用它的和它用的分别上色。 */
+      function renderMap(focus, sel) {
+        const { bands, cycles, violations } = DATA.layers[focus]
+        const pairs = pairsOf(focus)
+        const users = new Map()
+        const uses = new Map()
+        for (const [key, list] of pairs) {
+          const [a, b] = key.split("\n")
+          if (b === sel) users.set(a, list)
+          if (a === sel) uses.set(b, list)
+        }
+        const bad = new Set([...cycles.flat(), ...violations.flatMap((v) => [v.from, v.to])])
+        const name = (k) => esc(short(k, focus))
+        const tile = (k) => {
+          const state = k === sel ? "me" : users.has(k) ? "up" : uses.has(k) ? "down" : bad.has(k) ? "bad" : ""
+          const count = users.has(k) ? `用它 ${users.get(k).length}` : uses.has(k) ? `被用 ${uses.get(k).length}` : ""
+          return `<a class="tile mono" href="#dep/${esc(k)}" data-state="${state}">${name(k)}${count ? `<i>${count}</i>` : ""}</a>`
+        }
+        const rows = bands
+          .map(
+            (b) =>
+              `<div class="band"><div class="band-name">${esc(b.name)}<small>${esc(b.note)}</small></div><div class="tiles">${b.keys.map(tile).join("")}</div></div>`,
+          )
+          .join("")
+        const legend = sel
+          ? [swatch("me", "选中"), swatch("up", "用它的"), swatch("down", "它用的"), swatch("bad", "有问题")]
+          : bad.size
+            ? [swatch("bad", "循环引用或下层引用上层")]
+            : []
+
+        let info = focus ? "点任意一块，看它被谁用、用了谁。" : "点一个包，看包内模块怎么分层。"
+        if (sel) {
+          const layerOf = new Map(bands.flatMap((b, i) => b.keys.map((k) => [k, i])))
+          const below = [...users.keys()].filter((k) => layerOf.get(k) > layerOf.get(sel)).length
+          const top = [...uses].sort((a, b) => b[1].length - a[1].length).slice(0, 2)
+          const size = files.filter((f) => (focus ? f.dir : f.pkg) === sel).length
+          info =
+            `<b class="mono">${name(sel)}</b>：${size} 个文件。<b>${users.size} 个模块用它</b>` +
+            (below ? `，其中 ${below} 个在下层，违反分层。` : "，都在上层或同层，正常。") +
+            `<b>它用 ${uses.size} 个模块</b>` +
+            (top.length ? `，主要是 ${top.map(([k, l]) => `<span class="mono">${name(k)}</span>（${l.length} 处）`).join("、")}。` : "。") +
+            "具体文件见下方。"
+        }
+        const problems = [
+          cycles.length &&
+            `<b>${cycles.length} 处循环引用</b>：${cycles.map((c) => `<span class="mono">${c.map(name).join(" ⇄ ")}</span>`).join("；")}`,
+          violations.length &&
+            `<b>${violations.length} 处下层引用上层</b>：${violations.map((v) => `<span class="mono">${name(v.from)} → ${name(v.to)}</span>（${v.count} 处）`).join("；")}`,
+        ].filter(Boolean)
+
+        card(
+          `${crumbs(sel ?? focus)}<div class="bands">${rows}</div>${legend.length ? `<div class="legend">${legend.join("")}</div>` : ""}${callout("info", info)}${problems.length ? callout("danger", problems.join("<br />")) : ""}`,
+        )
+        if (sel) renderModule(sel, users, uses, focus)
+      }
+
+      /** 选中模块的文件表，以及它和上下游之间具体的文件引用。 */
+      function renderModule(dir, users = new Map(), uses = new Map(), focus) {
+        const own = files.filter((f) => f.dir === dir)
+        const rows = own
           .map((f) => [f.id, importers.get(f.id)?.length ?? 0, imports.get(f.id)?.length ?? 0])
           .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
           .map(([id, into, out]) => `<tr><td>${depLink(id, tail(id, dir))}</td><td>${into}</td><td>${out}</td></tr>`)
           .join("")
+        const table = `<table><thead><tr><th>文件</th><th>被引用</th><th>引用</th></tr></thead><tbody>${rows}</tbody></table>`
+        if (!focus) return card(`${crumbs(dir)}${table}`)
+        const links = (map) =>
+          [...map]
+            .sort((a, b) => b[1].length - a[1].length)
+            .map(
+              ([k, list]) =>
+                `<details><summary><span class="mono">${esc(short(k, focus))}</span> <span class="hint">${list.length}</span></summary><ol>${list
+                  .map((e) => `<li>${depLink(e.from, tail(e.from, focus))} → ${depLink(e.to, tail(e.to, focus))}</li>`)
+                  .join("")}</ol></details>`,
+            )
+            .join("") || '<p class="hint">无</p>'
         card(
-          `${crumbs(dir)}<table><thead><tr><th>文件</th><th>被引用</th><th>引用</th></tr></thead><tbody>${rows}</tbody></table>`,
+          `<div class="cols"><div><h2>谁用它（${users.size}）</h2>${links(users)}</div><div><h2>它用谁（${uses.size}）</h2>${links(uses)}</div></div>`,
         )
+        card(`<h2>文件（${own.length}）</h2>${table}`)
       }
 
       /** 反向逐层展开：第 1 层是直接引用方，之后是间接受影响的文件。 */
@@ -424,10 +507,10 @@
 
       function renderDeps(path) {
         if (byId.has(path)) return renderFile(path)
-        if (dirPkg.has(path)) return renderDir(path)
-        const { order } = DATA.layers[path]
-        if (path && order.length < 2) return renderDir(order[0])
-        renderMatrix(path)
+        const pkg = pkgOf(path)
+        if (!DATA.layers[pkg ?? ""]) return renderModule(dirPkg.has(path) ? path : files.find((f) => f.pkg === pkg).dir)
+        if (dirPkg.has(path)) return renderMap(pkg, path)
+        renderMap(path)
       }
 
       function renderOverview() {
