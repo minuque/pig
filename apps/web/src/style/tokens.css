@@ -431,14 +431,7 @@ html[data-ui-size="l"] {
   --text-title: 17px;
 }
 
-/* 代码字号档：默认 M 是 13px 等宽；行高不动，文件面板的虚拟列表按固定行高定位。 */
-html[data-code-size="s"] {
-  --text-code: 12px;
-}
-
-html[data-code-size="l"] {
-  --text-code: 14px;
-}
+/* 代码字号由外观设置直接写 --text-code 内联值，取值见 use-appearance-prefs.ts 的 CODE_SIZES */
 
 /* 对话宽度档：舒适为默认，宽档加宽，满宽铺满列。 */
 html[data-chat-width="wide"] {

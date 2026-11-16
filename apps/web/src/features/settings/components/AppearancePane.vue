@@ -66,21 +66,17 @@
             <p class="desc">{{ t("settings.uiSizeHint") }}</p>
           </div>
 
-          <SegmentedControl
-            :model-value="uiSize"
-            size="s"
-            :aria-label="t('settings.uiSize')"
-            @update:model-value="onUiSize"
-          >
-            <SegmentedControlItem
-              v-for="option in tiers"
-              :key="option.id"
-              :value="option.id"
-              :aria-label="option.label"
-            >
-              {{ option.mark }}
-            </SegmentedControlItem>
-          </SegmentedControl>
+          <Select :model-value="uiSize" @update:model-value="onUiSize">
+            <SelectTrigger class="setting-select" :aria-label="t('settings.uiSize')">
+              {{ uiSizeLabel }}
+            </SelectTrigger>
+
+            <SelectContent>
+              <SelectItem v-for="option in tiers" :key="option.id" :value="option.id">
+                {{ option.label }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div id="setting-code-font" class="row">
@@ -121,14 +117,14 @@
             <p class="desc">{{ t("settings.codeSizeHint") }}</p>
           </div>
 
-          <Select :model-value="codeSize" @update:model-value="onCodeSize">
+          <Select :model-value="String(codeSize)" @update:model-value="onCodeSize">
             <SelectTrigger class="setting-select" :aria-label="t('settings.codeSize')">
               {{ codeSizeLabel }}
             </SelectTrigger>
 
             <SelectContent>
-              <SelectItem v-for="option in tiers" :key="option.id" :value="option.id">
-                {{ option.label }}
+              <SelectItem v-for="size in codeSizes" :key="size" :value="String(size)">
+                {{ size }}px
               </SelectItem>
             </SelectContent>
           </Select>
@@ -161,6 +157,7 @@
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import {
+  CODE_SIZES,
   useAppearancePrefs,
   useGeneralPrefs,
   type ChatWidth,
@@ -169,7 +166,6 @@ import {
 } from "@features/settings/index.js"
 import { useLocalFonts } from "@features/settings/hooks/use-local-fonts.js"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@components/ui/select/index.js"
-import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
 import { Card } from "@components/ui/card/index.js"
 import SchemeCards from "./SchemeCards.vue"
 
@@ -204,7 +200,7 @@ function onUiSize(value: string) {
 }
 
 function onCodeSize(value: string) {
-  setCodeSize(value as SizeTier)
+  setCodeSize(Number(value))
 }
 
 function quote(family: string): string {
@@ -239,12 +235,13 @@ const widths = computed<{ id: ChatWidth; label: string }[]>(() => [
   { id: "wide", label: t("settings.chatWidthWide") },
   { id: "full", label: t("settings.chatWidthFull") },
 ])
-/* 分段控件只放字母，完整名称留给无障碍标签与代码字号的下拉框 */
-const tiers = computed<{ id: SizeTier; mark: string; label: string }[]>(() => [
-  { id: "s", mark: "S", label: t("settings.sizeS") },
-  { id: "m", mark: "M", label: t("settings.sizeM") },
-  { id: "l", mark: "L", label: t("settings.sizeL") },
+/* 列表文案随语言切换，必须走 computed */
+const tiers = computed<{ id: SizeTier; label: string }[]>(() => [
+  { id: "s", label: t("settings.sizeS") },
+  { id: "m", label: t("settings.sizeM") },
+  { id: "l", label: t("settings.sizeL") },
 ])
+const codeSizes = CODE_SIZES
 /* 触发器文案自己算：SelectValue 缓存的选中项文字不会跟着切语言更新 */
 const welcomeLabel = computed(
   () => fields.value.find((option) => option.id === welcomeField.value)?.label ?? "",
@@ -252,9 +249,10 @@ const welcomeLabel = computed(
 const widthLabel = computed(
   () => widths.value.find((option) => option.id === chatWidth.value)?.label ?? "",
 )
-const codeSizeLabel = computed(
-  () => tiers.value.find((option) => option.id === codeSize.value)?.label ?? "",
+const uiSizeLabel = computed(
+  () => tiers.value.find((option) => option.id === uiSize.value)?.label ?? "",
 )
+const codeSizeLabel = computed(() => `${codeSize.value}px`)
 </script>
 
 <style scoped src="./pane.css"></style>
