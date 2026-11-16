@@ -1,5 +1,19 @@
 import { describe, expect, it } from "vitest"
-import { orderPinnedFirst, parseProjectPrefs } from "@features/session-nav/lib/project-prefs.js"
+import {
+  PROJECT_ICON_COLORS,
+  orderPinnedFirst,
+  parseProjectPrefs,
+  projectIconColorOf,
+} from "@features/session-nav/lib/project-prefs.js"
+
+describe("projectIconColorOf", () => {
+  it("同名项目稳定取同一色，且颜色来自色板", () => {
+    const color = projectIconColorOf("/work/pig")
+
+    expect(projectIconColorOf("/elsewhere/pig")).toBe(color)
+    expect(PROJECT_ICON_COLORS).toContain(color)
+  })
+})
 
 describe("orderPinnedFirst", () => {
   it("置顶项目按置顶顺序排前，其余保持原序", () => {

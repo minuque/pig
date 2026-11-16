@@ -1,4 +1,5 @@
 import { PROJECT_ICONS } from "@components/icons/project-icons.js"
+import { workspaceName } from "@features/session-nav/lib/format.js"
 
 /** 复用 app.css 已引入的 rt 色板；gray 跟随 slate。 */
 export const PROJECT_ICON_COLORS = [
@@ -47,6 +48,18 @@ export function parseProjectPrefs(raw: unknown): ProjectPrefs {
         ? Object.fromEntries(Object.entries(icons).filter(([, choice]) => isIconChoice(choice)))
         : {},
   }
+}
+
+/** 没配图标时按项目名散列挑色：名字不变颜色不变。 */
+export function projectIconColorOf(path: string): ProjectIconColor {
+  const seed = workspaceName(path).normalize("NFKC").trim().toLocaleLowerCase("en-US") || "project"
+  let index = 0
+
+  for (const glyph of seed) {
+    index = (index * 31 + (glyph.codePointAt(0) ?? 0)) % PROJECT_ICON_COLORS.length
+  }
+
+  return PROJECT_ICON_COLORS[index]!
 }
 
 /** 置顶项目按置顶顺序排前，其余保持原序。 */
