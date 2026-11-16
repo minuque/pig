@@ -63,6 +63,7 @@ import { Button, IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { PlusIcon, CheckIcon, CopyIcon, MinusIcon } from "@components/icons/index.js"
 import PreviewDialog from "@features/preview/index.vue"
+import { inkFilledLabels } from "@features/transcript-view/lib/mermaid-ink.js"
 
 const props = defineProps<{
   svg: string
@@ -158,6 +159,8 @@ watch(
   [viewport, stage],
   ([box, el], [oldBox, oldEl]) => {
     teardown(oldBox ?? null, oldEl ?? null)
+
+    if (el) inkFilledLabels(el)
 
     if (box && el) setup(box, el)
   },

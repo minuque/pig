@@ -42,6 +42,7 @@ import {
   settledSource,
   storeDiagram,
 } from "@features/transcript-view/lib/mermaid-runtime.js"
+import { inkFilledLabels } from "@features/transcript-view/lib/mermaid-ink.js"
 
 const props = defineProps<{ source: string; live?: boolean }>()
 const { t } = useI18n()
@@ -64,6 +65,7 @@ async function draw(source: string, live: boolean) {
 
   if (hit && host.value) {
     host.value.innerHTML = hit.svg
+    inkFilledLabels(host.value)
     pasted.value = hit
     drawn.value = true
     return
@@ -89,6 +91,8 @@ async function draw(source: string, live: boolean) {
       autoDirection: false,
       onRender: () => {
         drawn.value = true
+
+        if (host.value) inkFilledLabels(host.value)
         // 回调挂在首次 mount 上，流式结束后的重绘也走这里：读当前源码与状态
         const current = mounted.value
 

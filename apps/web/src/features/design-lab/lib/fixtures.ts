@@ -39,6 +39,24 @@ flowchart LR
   rt --> card[Card]
   rt --> table[Table]
 \`\`\`
+
+\`\`\`mermaid
+stateDiagram-v2
+  classDef inbox fill:#dbeafe,stroke:#93c5fd
+  classDef archived fill:#ffe4e6,stroke:#e11d48
+  classDef working fill:#fff7ed,stroke:#f97316
+  state "收件箱" as inbox
+  state "已归档" as archived
+  state "工作中" as working
+  [*] --> inbox
+  inbox --> working: 你发一句话，会话开跑
+  working --> inbox: 会话跑完
+  inbox --> archived: 你归档
+  archived --> inbox: 你取消归档
+  class inbox inbox
+  class archived archived
+  class working working
+\`\`\`
 `
 
 function call(
