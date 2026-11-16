@@ -10,7 +10,7 @@ test("项目筛选支持多选，全部项目恢复全量", async ({ page, multi
 
   await expect(cards).toHaveCount(5)
 
-  const head = page.locator(".nav-head").getByRole("button", { name: "全部项目" })
+  const head = page.locator(".nav-head").getByRole("button", { name: "按项目筛选会话" })
 
   await head.click()
 
