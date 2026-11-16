@@ -17,6 +17,8 @@ const props = withDefaults(defineProps<{ class?: HTMLAttributes["class"] }>(), {
   display: flex;
   flex-direction: column-reverse;
   gap: var(--space-xs);
+  /* 与面板内边距同档：按钮和上方说明之间留出同样的呼吸距离 */
+  margin-block-start: var(--dialog-content-padding);
 }
 
 @media (min-width: 640px) {
