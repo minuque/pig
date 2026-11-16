@@ -42,7 +42,7 @@
       <Button type="button" size="s" variant="ghost" color="gray" @click="copy(source)">
         <CheckIcon v-if="copied" class="size-icon" />
         <CopyIcon v-else class="size-icon" />
-        {{ copied ? t("common.copied") : t("transcript.diagramCopySource") }}
+        {{ t("transcript.diagramCopySource") }}
       </Button>
     </template>
 
