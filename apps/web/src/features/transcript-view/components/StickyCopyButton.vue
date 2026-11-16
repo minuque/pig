@@ -20,15 +20,16 @@ defineProps<{ text: string }>()
   height: 0;
 }
 
-/* 默认按滚动区上内边距 xs、右内边距 sm + 22px 对齐；内边距不同的父级改 top */
+/* 默认按滚动区上内边距 xs、右内边距 sm + 22px 对齐；内边距不同的父级改 top。
+   实底与按钮同大同圆角，颜色取所在卡片的底色（透明卡片露出页面底色） */
 .copy-backdrop {
   position: absolute;
   top: calc(var(--space-xxs) - var(--space-xs));
-  inset-inline-end: calc(-1 * var(--space-sm) - 22px);
+  inset-inline-end: calc(var(--space-xxs) - var(--space-sm) - 22px);
   display: flex;
-  padding-inline-end: var(--space-xxs);
   border-radius: var(--radius-control);
-  background: var(--background);
+  background:
+    linear-gradient(var(--card-background-color), var(--card-background-color)), var(--background);
   white-space: normal;
 }
 
