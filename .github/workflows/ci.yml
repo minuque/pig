@@ -33,3 +33,24 @@ jobs:
 
       # 与本地 pnpm check 同一套步骤
       - run: pnpm check
+
+  # pre-push 只跑改动映射到的用例，全量旅程在这里兜底
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm exec playwright install --with-deps chromium
+
+      - run: pnpm test:e2e

@@ -10,7 +10,7 @@ import { reportResults, splitCommandArgs } from "./runner.mjs"
 const root = resolve(import.meta.dirname, "../..")
 const touched = process.argv.includes("--touched")
 const fix = process.argv.includes("--fix")
-/** --e2e：强制跑映射到的 e2e；--no-e2e：即使改了 UI 也不跑（赶时间时用）。 */
+/** --e2e：强制跑映射到的 e2e，波及全部旅程时跑全量（pre-push 用）；--no-e2e：即使改了 UI 也不跑。 */
 const withE2e = process.argv.includes("--e2e")
 const noE2e = process.argv.includes("--no-e2e")
 /** --since <ref>：把该 ref 到 HEAD 的提交一起当脏文件（pre-push 用）。 */
@@ -135,9 +135,12 @@ async function checkTouched(scope, files, label = "check:touched") {
     const ran = await runPnpm(["check"], root)
     process.stdout.write(ran.out)
     process.exitCode = ran.code
+
+    if (ran.code === 0 && withE2e && !noE2e) await runFullE2e(label)
     return
   }
 
+  const fullE2e = withE2e && !noE2e && scope.e2eAll
   /** @type {{ name: string, args: string[] }[]} */
   const steps = []
 
@@ -186,7 +189,7 @@ async function checkTouched(scope, files, label = "check:touched") {
     steps.push({ name: `test:${id}`, args: ["--filter", id, "test"] })
   }
 
-  if (scope.specs.length) {
+  if (!fullE2e && scope.specs.length) {
     if ((withE2e || scope.ui) && !noE2e)
       steps.push(
         ...fileSteps(
@@ -198,7 +201,7 @@ async function checkTouched(scope, files, label = "check:touched") {
     else console.log(`${label}: 建议补跑 e2e → pnpm test:e2e ${scope.specs.join(" ")}`)
   }
 
-  if (steps.length === 0) {
+  if (steps.length === 0 && !fullE2e) {
     console.log(`${label}: ${files.length} 个文件无需脚本/测试/lint`)
     return
   }
@@ -213,6 +216,15 @@ async function checkTouched(scope, files, label = "check:touched") {
   )
 
   reportResults("check:touched", results)
+
+  if (fullE2e && !process.exitCode) await runFullE2e(label)
+}
+
+/** 全量 e2e 吃满 CPU：等其他步骤跑完再单独跑，免得互相拖慢、放大偶发失败。 */
+async function runFullE2e(label) {
+  console.log(`${label}: 改动波及全部旅程，跑全量 e2e`)
+  const ran = await runPnpm(["test:e2e"], root)
+  reportResults(`${label} e2e`, [{ name: "e2e:全量", ...ran }])
 }
 
 if (fix && !touched) {

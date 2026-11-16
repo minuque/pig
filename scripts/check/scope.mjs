@@ -61,6 +61,9 @@ const E2E_BY_AREA = [
 const WEB_FALLBACK_SPECS = [NEW_SESSION]
 const ROOT_TOOLING =
   /^(eslint\.config\.|stylelint\.config\.|scripts\/check\/lint-ignores\.mjs$|package\.json$|pnpm-workspace\.yaml$|pnpm-lock\.yaml$|tsconfig\.base\.json$|\.prettierrc|\.prettierignore$|prettier\.config)/
+/** 改了就可能波及所有旅程：e2e 自身、各包源码、web 构建配置。 */
+const E2E_ALL =
+  /^(e2e\/|packages\/|apps\/web\/(vite\.config\.|index\.html$|package\.json$|public\/))/
 const LINTABLE = /\.(?:[cm]?[jt]sx?|vue)$/
 const STYLELINTABLE = /\.(?:css|vue)$/
 const PRETTIER = /\.(?:[cm]?[jt]sx?|vue|jsonc?|css|html|md|ya?ml)$/
@@ -113,6 +116,7 @@ export function classifyTouched(files) {
   const e2e = normalized.some((file) => file.startsWith("e2e/"))
   const scripts = normalized.some((file) => file.startsWith("scripts/"))
   const rootTooling = normalized.some((file) => ROOT_TOOLING.test(file))
+  const e2eAll = rootTooling || normalized.some((file) => E2E_ALL.test(file))
   const prettierFiles = normalized.filter((file) => PRETTIER.test(file))
   const lintFiles = normalized.filter((file) => LINTABLE.test(file))
   const stylelintFiles = normalized.filter((file) => STYLELINTABLE.test(file))
@@ -125,6 +129,7 @@ export function classifyTouched(files) {
     packages,
     e2e,
     specs: e2eSpecs(normalized, packages, e2e),
+    e2eAll,
     scripts,
     ui,
     rootTooling,

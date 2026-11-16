@@ -19,7 +19,7 @@ export default defineConfig({
   // 文件间并行，文件内仍串行；实测 32 条从 38.0s 降到 19.1s
   workers: 4,
   retries: 0,
-  // 本地没有 CI 变量，只有 pre-push 跑 e2e；test.only 溜进去就没人发现
+  // 本地没有 CI 变量也要拦：test.only 溜进 pre-push 或 CI 就只跑了一条
   forbidOnly: true,
   globalSetup: resolve(root, "e2e/global-setup.ts"),
   reporter: [

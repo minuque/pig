@@ -83,6 +83,20 @@ describe("classifyTouched", () => {
     assert.deepEqual(classifyTouched(["docs/directory-structure.md"]).specs, [])
   })
 
+  it("波及所有旅程的改动要全量 e2e，只动某块界面的按映射跑", () => {
+    for (const file of [
+      "e2e/support/fixtures.ts",
+      "packages/gateway/src/server/host.ts",
+      "packages/protocol/src/index.ts",
+      "apps/web/vite.config.ts",
+      "package.json",
+    ])
+      assert.equal(classifyTouched([file]).e2eAll, true, file)
+
+    for (const file of ["apps/web/src/features/composer/index.vue", "docs/directory-structure.md"])
+      assert.equal(classifyTouched([file]).e2eAll, false, file)
+  })
+
   it("UI 改动（模板与样式）标记为 ui，纯数据不算", () => {
     assert.equal(classifyTouched(["apps/web/src/App.vue"]).ui, true)
     assert.equal(classifyTouched(["apps/web/src/style/app.css"]).ui, true)
