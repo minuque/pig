@@ -20,7 +20,7 @@
                 :title="item"
                 @select="workspaceId = item"
               >
-                <FolderIcon :size="12" />
+                <ProjectIcon class="size-icon-xs" :path="item" />
                 <span class="hero-option">{{ workspaceName(item) }}</span>
               </DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
@@ -28,12 +28,12 @@
             <DropdownMenuSeparator v-if="workspaces.length" />
 
             <DropdownMenuItem :disabled="adding" @select="emit('add')">
-              <AddFolderIcon :size="12" />
+              <FolderPlusIcon class="size-icon-xs" />
               {{ t("hero.addDir") }}
             </DropdownMenuItem>
 
             <DropdownMenuItem @select="emit('addRemote')">
-              <AddFolderIcon :size="12" />
+              <FolderPlusIcon class="size-icon-xs" />
               {{ t("hero.addRemote") }}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -60,7 +60,8 @@ import {
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
 import { Link } from "@components/ui/link/index.js"
-import { AddFolderIcon, FolderIcon } from "@components/icons/index.js"
+import { FolderPlusIcon } from "@components/icons/index.js"
+import ProjectIcon from "@features/session-nav/components/ProjectIcon.vue"
 
 withDefaults(
   defineProps<{

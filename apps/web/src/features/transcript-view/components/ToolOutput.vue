@@ -1,8 +1,8 @@
 <template>
   <CodeCard v-if="code" class="tool-output is-code" :class="{ 'is-soft-wrap': softWrap }">
-    <CopyButton v-if="copyText" :text="copyText" />
-
     <div class="code-scroll">
+      <StickyCopyButton v-if="copyText" :text="copyText" />
+
       <div class="code-lines" :style="{ '--line-number-width': `${lineNumberWidth}ch` }">
         <div v-for="(line, index) in shownLines" :key="index" class="code-line">
           <span v-if="showLineNumbers" class="line-number">{{ startLine + index }}</span>
@@ -21,8 +21,9 @@
     <template v-if="text">
       <!-- 卡片只画边框，滚动交给里面的 pre：卡片自己滚动时 rt 的边框伪元素会跟着滚走 -->
       <CodeCard class="tool-output-card">
-        <CopyButton v-if="copyText" :text="copyText" />
-        <pre class="tool-output-pre">{{ shownText }}</pre>
+        <pre
+          class="tool-output-pre"
+        ><StickyCopyButton v-if="copyText" :text="copyText" />{{ shownText }}</pre>
       </CodeCard>
 
       <button v-if="hiddenLines" type="button" class="show-all" @click="expanded = true">
@@ -45,7 +46,7 @@
 import { computed, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
 import CodeCard from "@features/transcript-view/components/CodeCard.vue"
-import CopyButton from "@features/transcript-view/components/CopyButton.vue"
+import StickyCopyButton from "@features/transcript-view/components/StickyCopyButton.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import { type CodeTokens, vTokenLine } from "@features/transcript-view/lib/code-highlight.js"
 import type { TranscriptImage as ToolImage } from "@features/transcript-view/type.js"
@@ -132,6 +133,11 @@ const copyText = computed(() => (props.code ? props.lines.join("\n") : props.tex
   overflow: auto;
 }
 
+/* pre 的上内边距是 sm，复制按钮跟着上移 */
+.tool-output-pre :deep(.copy-backdrop) {
+  top: calc(var(--space-xxs) - var(--space-sm));
+}
+
 .images {
   display: flex;
   flex-direction: column;
@@ -187,7 +193,7 @@ code {
   border: 0;
   box-shadow: var(--divider-top);
   background: transparent;
-  color: var(--contrast-foreground);
+  color: var(--contrast-foreground-secondary);
   font: inherit;
   font-size: var(--text-meta);
   text-align: center;

@@ -13,7 +13,10 @@
         <component
           :is="placeholder ? 'div' : RouterLink"
           class="session-card"
-          :class="[variant, { active, 'is-placeholder': placeholder, renaming }]"
+          :class="[
+            variant,
+            { active: active || splitShown, 'is-placeholder': placeholder, renaming },
+          ]"
           :to="placeholder ? undefined : { name: 'session', params: { sessionId: session.id } }"
           draggable="false"
           @click="onCardClick"
@@ -25,11 +28,14 @@
           <template v-if="variant === 'card'">
             <span class="meta-line">
               <span class="project-icon" aria-hidden="true">
-                <PinBoldIcon v-if="pinned" :size="16" />
+                <PinIcon class="size-icon-2xs" v-if="pinned" />
 
-                <Badge v-else-if="projectName" class="project-mono" variant="soft" color="gray">
-                  {{ projectMonogram(projectName) }}
-                </Badge>
+                <ProjectIcon
+                  v-else-if="projectName"
+                  class="project-mono"
+                  :path="session.cwd"
+                  fallback="monogram"
+                />
               </span>
 
               <span class="project-name">{{ projectName }}</span>
@@ -37,7 +43,7 @@
               <span v-if="!renaming" class="state-slot">
                 <span class="state-mark" aria-hidden="true">
                   <span v-if="startedAt !== undefined" class="working-status">
-                    <CircleDashedIcon :size="16" class="working-icon" />
+                    <CircleDashedIcon class="size-icon-2xs working-icon" />
                     <span>{{ t("session.sectionWorking") }}</span>
                     <span class="working-elapsed">{{ elapsed }}</span>
                   </span>
@@ -59,7 +65,7 @@
                   @click.prevent.stop="onRowAction"
                   @pointerdown.stop="onActionPointerDown"
                 >
-                  <UndoLeftRoundIcon v-if="settled" class="size-icon" />
+                  <Undo2Icon v-if="settled" class="size-icon" />
                   <CheckIcon v-else class="size-icon" />
 
                   <span class="row-action-label">
@@ -99,9 +105,12 @@
 
           <template v-else>
             <span class="project-icon" aria-hidden="true">
-              <Badge v-if="projectName" class="project-mono" variant="soft" color="gray">
-                {{ projectMonogram(projectName) }}
-              </Badge>
+              <ProjectIcon
+                v-if="projectName"
+                class="project-mono"
+                :path="session.cwd"
+                fallback="monogram"
+              />
             </span>
 
             <input
@@ -148,7 +157,7 @@
                 @click.prevent.stop="onRowAction"
                 @pointerdown.stop="onActionPointerDown"
               >
-                <UndoLeftRoundIcon v-if="settled" class="size-icon" />
+                <Undo2Icon v-if="settled" class="size-icon" />
                 <CheckIcon v-else class="size-icon" />
               </button>
             </span>
@@ -157,13 +166,22 @@
       </ContextMenuTrigger>
 
       <ContextMenuContent v-if="!placeholder" class="select-none">
+        <template v-if="split">
+          <ContextMenuItem @select="split.openToSide(session.id)">
+            <Columns2Icon />
+            {{ split.split.value ? t("split.openToOther") : t("split.openToSide") }}
+          </ContextMenuItem>
+
+          <ContextMenuSeparator />
+        </template>
+
         <ContextMenuItem @select="startRename">
           <PenIcon />
           {{ t("session.rename") }}
         </ContextMenuItem>
 
         <ContextMenuItem @select="emit('togglePinned', session.id)">
-          <PinBoldIcon v-if="pinned" />
+          <PinOffIcon v-if="pinned" />
           <PinIcon v-else />
           {{ pinned ? t("session.unpin") : t("session.pin") }}
         </ContextMenuItem>
@@ -172,14 +190,14 @@
 
         <template v-if="settled">
           <ContextMenuItem @select="emit('unsettle', session.id)">
-            <RestartIcon />
+            <RotateCcwIcon />
             {{ t("session.unsettle") }}
           </ContextMenuItem>
         </template>
 
         <template v-else>
           <ContextMenuItem @select="emit('settle', session.id)">
-            <CheckCircleIcon />
+            <CircleCheckIcon />
             {{ t("session.settle") }}
           </ContextMenuItem>
         </template>
@@ -187,7 +205,7 @@
         <ContextMenuSeparator />
 
         <ContextMenuItem variant="destructive" @select="deleteOpen = true">
-          <TrashBinMinimalisticIcon />
+          <TrashIcon />
           {{ t("session.deleteTitle") }}
         </ContextMenuItem>
       </ContextMenuContent>
@@ -218,26 +236,24 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import SessionStateIcon from "@features/session-nav/components/SessionStateIcon.vue"
 import { sessionGlyph } from "@features/session-nav/lib/status-cycle.js"
-import { Badge } from "@components/ui/badge/index.js"
-import {
-  formatRelativeTime,
-  projectMonogram,
-  workspaceName,
-} from "@features/session-nav/lib/format.js"
+import ProjectIcon from "@features/session-nav/components/ProjectIcon.vue"
+import { formatRelativeTime, workspaceName } from "@features/session-nav/lib/format.js"
 import { formatElapsed } from "@utils/time.js"
 import type { DropVerb } from "@features/session-nav/lib/drag-plan.js"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
+import { trySplitView } from "@features/split-view/index.js"
 import {
-  CheckCircleIcon,
+  CircleCheckIcon,
   CheckIcon,
+  Columns2Icon,
   CircleDashedIcon,
-  CloseIcon,
+  XIcon,
   PenIcon,
   PinIcon,
-  PinBoldIcon,
-  RestartIcon,
-  TrashBinMinimalisticIcon,
-  UndoLeftRoundIcon,
+  PinOffIcon,
+  RotateCcwIcon,
+  TrashIcon,
+  Undo2Icon,
 } from "@components/icons/index.js"
 
 const props = withDefaults(
@@ -283,6 +299,13 @@ const emit = defineEmits<{
   dragStart: [event: PointerEvent]
   sweepStart: [event: PointerEvent]
 }>()
+const split = trySplitView()
+/** 分屏时两侧开着的会话都高亮。 */
+const splitShown = computed(
+  () =>
+    Boolean(split?.split.value) &&
+    (split!.state.value.left === props.session.id || split!.state.value.right === props.session.id),
+)
 const { t } = useI18n()
 const menuOpen = ref(false)
 const deleteOpen = shallowRef(false)
@@ -381,7 +404,7 @@ function onActionPointerDown(event: PointerEvent) {
   if (event.button === 0 && !props.placeholder) emit("sweepStart", event)
 }
 
-const verbIcons = { pin: PinIcon, unpin: CloseIcon, settle: CheckIcon, unsettle: UndoLeftRoundIcon }
+const verbIcons = { pin: PinIcon, unpin: XIcon, settle: CheckIcon, unsettle: Undo2Icon }
 const verb = computed(() => {
   const value = props.dragging ? props.dropVerb : null
   return value ? { icon: verbIcons[value], label: t(`session.${value}`) } : null
@@ -395,6 +418,13 @@ function onCardClick(event: MouseEvent) {
   }
 
   emit("navigate")
+
+  // Alt+点击：在另一侧打开
+  if (split && event.altKey && event.button === 0) {
+    event.preventDefault()
+    split.openToSide(props.session.id)
+    return
+  }
 
   if (isModifiedSessionClick(event)) return
   event.preventDefault()

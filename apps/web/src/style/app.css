@@ -63,14 +63,27 @@
 }
 
 /* ------ 图标与表面 ------ */
+/* Lucide 图标基座：零特异性，调用方的 size-* 类和 scoped 样式可覆盖 */
+:where(.lucide) {
+  flex: none;
+  inline-size: var(--size-icon);
+  block-size: var(--size-icon);
+  stroke-width: var(--line-icon-width);
+}
+
 .size-icon {
   inline-size: var(--size-icon);
   block-size: var(--size-icon);
 }
 
-/* Solar 图标对齐基座：默认尺寸与线宽走 token，调用方的 size-* 类可覆盖 */
-.solar {
-  flex: none;
+.size-icon-xs {
+  inline-size: var(--size-icon-xs);
+  block-size: var(--size-icon-xs);
+}
+
+.size-icon-2xs {
+  inline-size: var(--size-icon-2xs);
+  block-size: var(--size-icon-2xs);
 }
 
 /* 浮层统一底：实色，不透明 */

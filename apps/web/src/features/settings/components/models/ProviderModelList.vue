@@ -33,7 +33,7 @@
           :aria-label="t('settings.models.expandModel')"
           @click="toggle(model.id)"
         >
-          <AltArrowRightIcon class="chevron" :data-open="expanded === model.id ? '' : undefined" />
+          <ChevronRightIcon class="chevron" :data-open="expanded === model.id ? '' : undefined" />
         </button>
       </div>
 
@@ -53,7 +53,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 
-import { AltArrowRightIcon } from "@components/icons/index.js"
+import { ChevronRightIcon } from "@components/icons/index.js"
 import { Switch } from "@components/ui/switch/index.js"
 import VendorMark from "@features/composer/components/VendorMark.vue"
 import ModelParamsForm from "@features/settings/components/models/ModelParamsForm.vue"

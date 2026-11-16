@@ -61,5 +61,10 @@ async function copy() {
   z-index: 1;
   top: var(--space-xxs);
   inset-inline-end: var(--space-xxs);
+  color: var(--contrast-foreground-secondary);
+}
+
+.copy-button:hover {
+  color: var(--contrast-foreground);
 }
 </style>

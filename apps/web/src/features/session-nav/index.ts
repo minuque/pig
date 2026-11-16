@@ -2,7 +2,7 @@ import { computed, inject, provide, shallowRef, watch, type InjectionKey } from 
 import { useRouter } from "vue-router"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
-import type { SessionContext } from "@features/session/index.js"
+import type { FocusedSession } from "@features/split-view/index.js"
 import { useSessionCards } from "@features/session-nav/hooks/use-session-cards.js"
 import { useSessionMarkers } from "@features/session-nav/hooks/use-session-markers.js"
 import { useSessionOpen } from "@features/session-nav/hooks/use-session-open.js"
@@ -30,7 +30,7 @@ export const navKey: InjectionKey<NavContext> = Symbol("nav")
 function createNav(
   pi: ReturnType<typeof useGatewayClient>,
   cwd: ReturnType<typeof useLocalWorkspaces>,
-  session: SessionContext,
+  session: FocusedSession,
 ) {
   const router = useRouter()
   const {
@@ -44,11 +44,14 @@ function createNav(
   const activeSessionRunning = computed(() => session.projection.value?.running ?? false)
   const nav = useWorkspaceNav(pi.sessions, cwd, navError, {
     sessionId: session.sessionId,
-    running: activeSessionRunning,
-    router,
+    shownIds: session.shownIds,
+    isRunning: (id) =>
+      (session.sessionId.value === id && activeSessionRunning.value) ||
+      session.backgroundRunningIds.value.has(id),
+    leave: session.leave,
     refreshSessions: pi.refreshSessions,
   })
-  const markers = useSessionMarkers(nav.listedSessions, session.sessionId)
+  const markers = useSessionMarkers(nav.listedSessions, session.shownIds)
   const highlightedSessionId = computed(
     () => baseHighlightedSessionId.value ?? nav.draftSessionId.value,
   )
@@ -153,8 +156,6 @@ function createNav(
     collapseGroup: nav.collapseGroup,
     sectionsFor: (include?: Parameters<typeof nav.sectionsFor>[2]) =>
       nav.sectionsFor(markers.pinnedOrder, placementOf, include),
-    sort: nav.sort,
-    setSort: nav.setSort,
     moreBySection: nav.moreBySection,
     runningSince,
     settledIds: markers.settledIds,
@@ -189,7 +190,7 @@ function createNav(
 export function provideNav(
   pi: ReturnType<typeof useGatewayClient>,
   cwd: ReturnType<typeof useLocalWorkspaces>,
-  session: SessionContext,
+  session: FocusedSession,
 ) {
   const nav = createNav(pi, cwd, session)
   provide(navKey, nav)

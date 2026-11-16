@@ -71,11 +71,14 @@ test("长耗时命令失败：任务显示失败，时间线出现失败通知",
 }) => {
   await runCommand(page, backgroundTaskGateway, "/bg-fail")
 
+  // 命令马上失败：等它结束再进面板，摘要卡只剩「已结束」入口，不会自动展开哪一条
+  await expect(page.locator(".task-notice").first()).toContainText("后台命令失败", {
+    timeout: 30_000,
+  })
   const pane = await openTasks(page)
   const task = pane.locator(".rail-task", { hasText: BG_FAIL_TITLE })
-  await expect(task).toHaveAttribute("data-status", "failed", { timeout: 30_000 })
+  await expect(task).toHaveAttribute("data-status", "failed")
   await expect(task).toContainText("失败")
-  await expect(page.locator(".task-notice").first()).toContainText("后台命令失败")
 
   await task.locator(".rail-task-title").click()
   await expect(task.locator(".rail-task-output pre")).toContainText("boom")

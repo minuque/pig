@@ -3,7 +3,11 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, describe, expect, it } from "vitest"
 
-import { canonicalizePath, WindowsDirectoryPort, type DirectoryExecFile } from "../src/directory.js"
+import {
+  canonicalizePath,
+  WindowsDirectoryPort,
+  type DirectoryExecFile,
+} from "../src/system/directory.js"
 
 describe("canonicalizePath", () => {
   it("把盘符改成小写、反斜杠改成斜杠，并去掉末尾斜杠", () => {

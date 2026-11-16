@@ -2,6 +2,7 @@
 export const SESSION_DROP_EVENT = "pig-session-drop"
 const TARGET_ATTR = "data-session-drop"
 const OVER_ATTR = "data-session-drop-over"
+const DRAGGING_ATTR = "data-session-dragging"
 
 export interface DroppedSession {
   id: string
@@ -28,4 +29,9 @@ export function markSessionDropTarget(target: HTMLElement | null): void {
 
 export function dropSessions(target: HTMLElement, sessions: readonly DroppedSession[]): void {
   target.dispatchEvent(new CustomEvent(SESSION_DROP_EVENT, { detail: sessions }))
+}
+
+/** 会话拖出列表期间在根元素上挂标记，只在拖动时出现的落点（如分屏）靠它显形。 */
+export function markSessionDragging(on: boolean): void {
+  document.documentElement.toggleAttribute(DRAGGING_ATTR, on)
 }

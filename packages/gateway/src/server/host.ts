@@ -2,7 +2,11 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { closeEnvironments } from "@pig/environment"
 import { BrowserSession, browserSecretFile } from "../auth/browser-session.js"
 import { PiHostService, type PiHostServiceOptions } from "../pi/service.js"
-import { ManualDirectoryPort, WindowsDirectoryPort, type DirectoryPort } from "../directory.js"
+import {
+  ManualDirectoryPort,
+  WindowsDirectoryPort,
+  type DirectoryPort,
+} from "../system/directory.js"
 import { handlePreviewRequest } from "./file-preview.js"
 import { handlePlatformRequest, type EnvironmentSources } from "./platform.js"
 import { installProviderHttp } from "./provider-http.js"
@@ -200,9 +204,14 @@ export class Gateway {
     await this.protocol.close()
     await this.hostService.dispose()
     await closeEnvironments()
-    await new Promise<void>((resolveStop, reject) =>
+
+    const closed = new Promise<void>((resolveStop, reject) =>
       this.server.close((error) => (error ? reject(error) : resolveStop())),
     )
+
+    // 停止期间新连上、还没发完请求的客户端不会自己断，server.close 会一直等它
+    this.server.closeAllConnections()
+    await closed
   }
 }
 

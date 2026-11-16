@@ -1,5 +1,13 @@
-import { computed, ref, shallowRef, toValue, watch, type MaybeRefOrGetter, type Ref } from "vue"
-import type { Router } from "vue-router"
+import {
+  computed,
+  nextTick,
+  ref,
+  shallowRef,
+  toValue,
+  watch,
+  type MaybeRefOrGetter,
+  type Ref,
+} from "vue"
 import type { SessionMetadata } from "@/types/common-type.js"
 import { errorMessage, PlatformRequestError } from "@client/http.js"
 import { t } from "@i18n/index.js"
@@ -15,17 +23,12 @@ import {
   listSessionsForSidebar,
   sidebarSections,
 } from "@features/session-nav/lib/session-list.js"
-import type { SidebarPlacement, SidebarSection, SidebarSort } from "@features/session-nav/type.js"
+import type { SidebarPlacement, SidebarSection } from "@features/session-nav/type.js"
 import { readPref, writePref } from "@utils/storage.js"
 
 type LocalWorkspaces = ReturnType<typeof useLocalWorkspaces>
 
 const DELETE_RETRY_MS = 400
-const SORT_KEY = "pig.sidebarSort"
-
-function loadSort(): SidebarSort {
-  return readPref(SORT_KEY) === "created" ? "created" : "updated"
-}
 
 function isBusy(error: unknown): boolean {
   return error instanceof PlatformRequestError && error.code === "BUSY"
@@ -37,8 +40,10 @@ export function useWorkspaceNav(
   error: Ref<string>,
   admin: {
     sessionId: Ref<string | undefined>
-    running: Ref<boolean>
-    router: Router
+    /** 两侧正在显示的会话。 */
+    shownIds: Ref<readonly (string | undefined)[]>
+    isRunning(id: string): boolean
+    leave(id: string): void
     refreshSessions(): Promise<void>
   },
 ) {
@@ -122,13 +127,6 @@ export function useWorkspaceNav(
     moreBySection.value = next
   }
 
-  const sort = shallowRef<SidebarSort>(loadSort())
-
-  function setSort(next: SidebarSort): void {
-    sort.value = next
-    writePref(SORT_KEY, next)
-  }
-
   /** 已展开的架子：三个架子默认收起，改动持久化。 */
   const EXPANDED_KEY = "pig.sidebarShelfExpanded"
   const SECTION_KEYS = new Set(["pinned", "active", "working", "settled"])
@@ -178,7 +176,6 @@ export function useWorkspaceNav(
         sessions,
         pinnedOrder: toValue(pinnedOrder),
         placement,
-        sort: sort.value,
         moreBySection: moreBySection.value,
       })
     })
@@ -243,7 +240,7 @@ export function useWorkspaceNav(
   async function deleteSession(id: string) {
     error.value = ""
 
-    if (admin.sessionId.value === id && admin.running.value) {
+    if (admin.isRunning(id)) {
       error.value = t("session.stopRunningBeforeDelete")
       return
     }
@@ -251,7 +248,12 @@ export function useWorkspaceNav(
     setDeleting(id, true)
 
     try {
-      if (admin.sessionId.value === id) await admin.router.replace("/")
+      // 两侧哪边开着它就先离开，等前台连接放下再删
+      if (admin.shownIds.value.includes(id)) {
+        admin.leave(id)
+        await nextTick()
+      }
+
       await requestDeleteSession(id).catch(async (cause: unknown) => {
         if (!isBusy(cause)) throw cause
         await new Promise((resolve) => setTimeout(resolve, DELETE_RETRY_MS))
@@ -274,8 +276,6 @@ export function useWorkspaceNav(
     moreBySection,
     revealMore,
     collapseGroup,
-    sort,
-    setSort,
     expandedSections,
     toggleSection,
     expandSection,

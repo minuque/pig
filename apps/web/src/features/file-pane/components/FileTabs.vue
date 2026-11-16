@@ -26,7 +26,7 @@
           :aria-label="t('files.closeTab')"
           @click="pane.close(tab.path)"
         >
-          <CloseIcon class="size-icon-xs" />
+          <XIcon class="size-icon-xs" />
         </button>
       </div>
     </TabsList>
@@ -40,7 +40,7 @@
           color="gray"
           :aria-label="t('files.allTabs')"
         >
-          <AltArrowDownIcon class="size-icon" />
+          <ChevronDownIcon class="size-icon" />
         </IconButton>
       </DropdownMenuTrigger>
 
@@ -70,7 +70,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@components/ui/dropdown-menu/index.js"
-import { AltArrowDownIcon, CloseIcon } from "@components/icons/index.js"
+import { ChevronDownIcon, XIcon } from "@components/icons/index.js"
 import { pathBasename } from "@features/transcript-view/lib/tool-summary.js"
 import { useFilePane } from "@features/file-pane/index.js"
 

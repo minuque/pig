@@ -2,6 +2,21 @@ import { expect, test } from "./fixtures.js"
 import { CHILD_MARKER } from "./prebuild-session.js"
 import { startSubagentTurn } from "./subagent-turn.js"
 
+test("摘要面板：窗口变窄时从常驻卡收成头部浮层，变宽再回来", async ({ page, subagentGateway }) => {
+  await page.setViewportSize({ width: 1600, height: 900 })
+  await startSubagentTurn(page, subagentGateway)
+  await expect(page.locator(".rail-toggle-docked")).toBeVisible()
+  await expect(page.locator(".rail-docked")).toBeVisible()
+
+  await page.setViewportSize({ width: 1000, height: 800 })
+  await expect(page.locator(".rail-toggle-popover")).toBeVisible()
+  await expect(page.locator(".rail-docked")).toHaveCount(0)
+
+  await page.setViewportSize({ width: 1600, height: 900 })
+  await expect(page.locator(".rail-toggle-docked")).toBeVisible()
+  await expect(page.locator(".rail-docked")).toBeVisible()
+})
+
 test("subagent 子任务：时间线卡片与摘要面板都列出进展，点开在右侧面板里只读看子会话", async ({
   page,
   subagentGateway,
@@ -42,14 +57,19 @@ test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({
   await expect(titles.first()).toHaveText("环境")
   await expect(titles.last()).toHaveText("后台任务")
 
-  // 摘要面板独占右列：输入框让位，不压在面板下
+  // 头部横跨整个工作区，右侧按钮贴窗口右边
+  const headerBox = (await page.locator(".workbench-header").boundingBox())!
+  const mainBox = (await page.locator(".shell > main").boundingBox())!
+  expect(headerBox.x).toBeCloseTo(mainBox.x, 0)
+  expect(headerBox.x + headerBox.width).toBeCloseTo(mainBox.x + mainBox.width, 0)
+
+  // 摘要卡浮在正文右上角，不占正文的列；输入条在它左侧结束
   const railBox = (await rail.boundingBox())!
   const composerBox = (await page.locator(".composer-stack").boundingBox())!
   expect(composerBox.x + composerBox.width).toBeLessThanOrEqual(railBox.x)
-  // 正文滚动区横跨到最右，滚动条贴边，不夹在正文和面板之间
   const viewportBox = (await page.locator(".transcript-viewport").boundingBox())!
-  const panelBox = (await page.locator(".session-panel").boundingBox())!
-  expect(viewportBox.x + viewportBox.width).toBeCloseTo(panelBox.x + panelBox.width, 0)
+  expect(viewportBox.x + viewportBox.width).toBeGreaterThan(railBox.x)
+  expect(railBox.x + railBox.width).toBeLessThanOrEqual(viewportBox.x + viewportBox.width + 1)
 
   // 上下文展开：按分类列 token 与占比，点分类在右侧面板里看实际进上下文的内容
   const contextCard = rail.locator(".rail-card", { hasText: "上下文" })

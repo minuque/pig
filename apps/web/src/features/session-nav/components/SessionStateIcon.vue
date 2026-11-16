@@ -12,22 +12,22 @@
     </svg>
 
     <template v-else-if="state === 'unread'">
-      <CheckCircleIcon :size="14" class="state-glyph" />
+      <CircleCheckIcon class="state-glyph" />
       <span class="state-label">{{ t("session.done") }}</span>
     </template>
 
     <template v-else-if="state === 'error'">
-      <DangerCircleIcon :size="14" class="state-glyph" />
+      <CircleExclamationPointIcon class="state-glyph" />
       <span class="state-label">{{ t("session.failed") }}</span>
     </template>
 
-    <PenIcon v-else-if="state === 'draft'" :size="14" class="state-glyph" />
+    <PenIcon v-else-if="state === 'draft'" class="state-glyph" />
   </span>
 </template>
 
 <script setup lang="ts">
 import { useI18n } from "@i18n/index.js"
-import { CheckCircleIcon, DangerCircleIcon, PenIcon } from "@components/icons/index.js"
+import { CircleCheckIcon, CircleExclamationPointIcon, PenIcon } from "@components/icons/index.js"
 import type { SidebarStateGlyph } from "@features/session-nav/type.js"
 
 defineProps<{

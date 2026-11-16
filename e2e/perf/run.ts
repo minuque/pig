@@ -5,7 +5,7 @@ import { join, resolve } from "node:path"
 
 import Gateway from "../../packages/gateway/src/index.js"
 import { run } from "../../scripts/run.mjs"
-import type { DirectoryPort } from "../../packages/gateway/src/directory.js"
+import type { DirectoryPort } from "../../packages/gateway/src/system/directory.js"
 import { canonicalizeWorkspacePath } from "../fixtures.js"
 import { createDesktopHarness, createWebHarness, type BenchHarness } from "./harness.js"
 import {

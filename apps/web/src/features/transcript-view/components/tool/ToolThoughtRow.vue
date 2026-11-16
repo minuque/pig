@@ -14,7 +14,7 @@
         {{ label }}
       </span>
 
-      <AltArrowRightIcon class="thought-caret" :class="{ 'is-open': open }" data-icon="inline" />
+      <ChevronRightIcon class="thought-caret" :class="{ 'is-open': open }" data-icon="inline" />
     </button>
 
     <div v-if="open" class="thought-body">
@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { AltArrowRightIcon } from "@components/icons/index.js"
+import { ChevronRightIcon } from "@components/icons/index.js"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import { thoughtStepLabel } from "@features/transcript-view/lib/transcript-row-label.js"
 import type { ThoughtStep } from "@features/transcript-view/type.js"

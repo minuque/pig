@@ -33,7 +33,11 @@ export interface ComposerQueueApi {
  * 轮次结束（running → false）由调用方泵队首；立即发送走 steer。
  */
 export function useComposerQueue(): ComposerQueueApi {
-  const buckets = useSessionBuckets<ShallowRef<QueuedPrompt[]>>(() => shallowRef([]))
+  const buckets = useSessionBuckets<ShallowRef<QueuedPrompt[]>>(
+    () => shallowRef([]),
+    undefined,
+    "queue",
+  )
   const bucket = buckets.current
   const items = computed(() => bucket().value)
 

@@ -1,17 +1,12 @@
-import { computed, getCurrentInstance, onBeforeUnmount, reactive, ref, watch } from "vue"
-import { useRoute, useRouter } from "vue-router"
+import { computed, getCurrentInstance, onBeforeUnmount, ref, watch, type ComputedRef } from "vue"
 import type { ModelRef, ThinkingLevel } from "@/types/common-type.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
 import type { ComposerAttachmentBatch } from "@features/composer/hooks/use-composer-attachments.js"
 import { useSessionComposer } from "@features/composer/index.js"
 import { sameModel, thinkingLevelOf } from "@features/composer/lib/model-preset.js"
-import {
-  createBackgroundSender,
-  dropBatch,
-  stageBatchFor,
-} from "@features/session/hooks/use-background-send.js"
-import { useSessionHistory } from "@features/session/hooks/use-session-history.js"
+import { dropBatch, stageBatchFor } from "@features/session/hooks/use-background-send.js"
+import type { SessionHub } from "@features/session/hooks/use-session-hub.js"
 import { useForegroundSession } from "@features/session/hooks/use-foreground-session.js"
 import {
   emptyClientState,
@@ -24,18 +19,21 @@ import {
 } from "@features/session/lib/session-state.js"
 import type { SessionClientState } from "@features/session/type.js"
 
-/** Route、GatewaySession、历史合并、草稿与提交。不接管卡片，切 Session 不滚动。 */
+export interface SessionLifecycleOptions {
+  hub: SessionHub
+  /** 这一侧显示的会话；由分屏状态给出。 */
+  sessionId: ComputedRef<string | undefined>
+  /** 新建出会话后让这一侧显示它。 */
+  navigate(id: string): void | Promise<unknown>
+}
+
+/** 一侧 workbench 的 GatewaySession、历史合并、草稿与提交。不接管卡片，切 Session 不滚动。 */
 export function useSessionLifecycle(
   pi: ReturnType<typeof useGatewayClient>,
   cwd: ReturnType<typeof useLocalWorkspaces>,
+  options: SessionLifecycleOptions,
 ) {
-  const route = useRoute()
-  const router = useRouter()
-  const sessionId = computed(() => {
-    const raw = route.params.sessionId
-    return typeof raw === "string" && raw.length > 0 ? raw : undefined
-  })
-  const history = useSessionHistory()
+  const { hub, sessionId } = options
   const {
     remote,
     state,
@@ -46,7 +44,9 @@ export function useSessionLifecycle(
     showHistory,
     leaveForeground,
     dispose,
-  } = useForegroundSession(pi, sessionId, history)
+    history,
+    contextUsage: foregroundUsage,
+  } = useForegroundSession(pi, sessionId, hub)
   const { backgroundRunningIds } = live
   const snapshot = computed(() => state.value?.snapshot)
   const liveTranscript = history.liveTranscript
@@ -85,10 +85,6 @@ export function useSessionLifecycle(
     await remote.value?.setThinking(thinkingLevel)
   }
 
-  async function reconnect() {
-    await remote.value?.reconnect()
-  }
-
   let initialized = false
 
   function syncRoute() {
@@ -104,8 +100,6 @@ export function useSessionLifecycle(
   const stopClientSync = watch(
     () => pi.connected.value,
     (connected) => {
-      if (!connected) live.dropBackground()
-
       if (initialized && connected) void syncRoute()
     },
   )
@@ -135,17 +129,12 @@ export function useSessionLifecycle(
     models: pi.models,
     snapshot,
     phase,
-    estimate: live.contextUsage,
+    estimate: foregroundUsage,
     setModel,
     setThinking,
   })
-  const states = reactive(new Map<string, ReturnType<typeof sessionState>>())
+  const { states, backgroundSend } = hub
   const idleState = emptyClientState()
-  const backgroundSend = createBackgroundSender({
-    states,
-    backgroundSubscription: live.backgroundSubscription,
-    transcriptFor: history.transcriptFor,
-  })
   const creatingCwd = ref<string>()
   /** 会话已建、路由未落位的窗口里用它指向新会话状态，transcript 不出现空档 */
   const pendingSessionId = ref<string>()
@@ -200,7 +189,7 @@ export function useSessionLifecycle(
       welcomeHandoff?.(nextId)
 
       if (nextId !== sessionId.value) {
-        await router.push({ name: "session", params: { sessionId: nextId } })
+        await options.navigate(nextId)
       }
 
       return nextId
@@ -333,16 +322,19 @@ export function useSessionLifecycle(
       pi.sessions.value.find((item) => item.id === sessionId.value)?.cwd ??
       (sessionId.value ? undefined : cwd.lastCwd.value),
   )
+  /** 开场页：没有正文也没有在跑；已有会话但历史还没落地时不当作开场页。 */
+  const welcome = computed(() => {
+    if (transcript.value.length > 0 || running.value) return false
 
-  pi.bindAttachedReconnect(async () => {
-    if (remote.value) await reconnect()
-    else await pi.client.value?.reconnect()
+    if (sessionId.value === undefined) return true
+
+    if (sessionPending.value && !creatingCwd.value) return false
+    return true
   })
 
   function teardown() {
     stopRouteSync()
     stopClientSync()
-    pi.bindAttachedReconnect()
     void dispose()
   }
 
@@ -358,6 +350,7 @@ export function useSessionLifecycle(
     connected: pi.connected,
     connectionError: pi.connectionError,
     transcript,
+    welcome,
     loadHistory: history.loadHistory,
     historyFresh: history.isFresh,
     turnTimings: history.turnTimings,

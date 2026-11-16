@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http"
 import type { EnvironmentInfo, FileSearchEntry } from "@pig/protocol"
 import { GatewayError, SessionNotFoundError } from "../pi/runtime-types.js"
-import type { DirectoryPort } from "../directory.js"
+import type { DirectoryPort } from "../system/directory.js"
 import { AttachmentError, sanitizeMimeType, type AttachmentErrorCode } from "../pi/attachments.js"
 import { isContextPreviewKey } from "../pi/context-usage.js"
 import { listEnvironments } from "@pig/environment"

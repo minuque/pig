@@ -1,6 +1,9 @@
 <template>
-  <header class="workbench-header">
-    <Tooltip>
+  <header
+    class="workbench-header"
+    :class="{ 'is-leftmost': leftmost, 'is-rightmost': rightmost, 'is-dimmed': dimmed }"
+  >
+    <Tooltip v-if="leftmost">
       <TooltipTrigger as-child>
         <IconButton
           class="header-toggle"
@@ -12,7 +15,7 @@
           :aria-label="t('nav.openSidebar')"
           @click="setSbState('expanded')"
         >
-          <PanelRightOpenIcon :size="16" />
+          <PanelRightOpenIcon class="size-icon-2xs" />
         </IconButton>
       </TooltipTrigger>
 
@@ -25,7 +28,7 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <span class="crumb-project-label">
-                <FolderIcon class="crumb-icon" :size="14" />
+                <ProjectIcon class="crumb-icon" :path="sessionCwd" />
                 <span class="crumb-text">{{ cwdLabel }}</span>
               </span>
             </TooltipTrigger>
@@ -63,13 +66,13 @@
                 variant="ghost"
                 :aria-label="t('common.more')"
               >
-                <AltArrowDownIcon :size="14" />
+                <ChevronDownIcon />
               </IconButton>
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end" class="select-none">
               <DropdownMenuItem @select="onTogglePinned">
-                <PinBoldIcon v-if="isPinned" />
+                <PinOffIcon v-if="isPinned" />
                 <PinIcon v-else />
                 {{ isPinned ? t("session.unpin") : t("session.pin") }}
               </DropdownMenuItem>
@@ -82,7 +85,7 @@
               <DropdownMenuSeparator />
 
               <DropdownMenuItem variant="destructive" @select="deleteOpen = true">
-                <TrashBinMinimalisticIcon />
+                <TrashIcon />
                 {{ t("session.deleteTitle") }}
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -90,6 +93,9 @@
         </li>
       </ol>
     </nav>
+
+    <!-- 摘要在前、Files 在后：右侧按钮组从摘要开始数 -->
+    <RailToggle v-if="rail" />
 
     <Tooltip v-if="rail && sessionId">
       <TooltipTrigger as-child>
@@ -102,16 +108,52 @@
           :data-active="files.open.value || undefined"
           :aria-pressed="files.open.value"
           :aria-label="t('files.toggle')"
-          @click="files.toggle"
+          @click="toggleFiles"
         >
-          <FoldersIcon :size="16" />
+          <FoldersIcon class="size-icon-2xs" />
         </IconButton>
       </TooltipTrigger>
 
       <TooltipContent>{{ t("files.toggle") }}</TooltipContent>
     </Tooltip>
 
-    <RailToggle v-if="rail" />
+    <!-- 分屏操作贴住头部右端：没有标题的新会话页也一样 -->
+    <span v-if="split.split.value" class="split-actions">
+      <Tooltip v-if="!split.fits.value">
+        <TooltipTrigger as-child>
+          <IconButton
+            type="button"
+            size="m"
+            color="gray"
+            variant="ghost"
+            :aria-label="t('split.switchSide')"
+            @click="split.focusSide(side === 'left' ? 'right' : 'left')"
+          >
+            <ArrowLeftRightIcon class="size-icon-2xs" />
+          </IconButton>
+        </TooltipTrigger>
+
+        <TooltipContent>{{ t("split.switchSide") }}</TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger as-child>
+          <IconButton
+            type="button"
+            size="m"
+            color="gray"
+            variant="ghost"
+            :aria-label="t('split.close')"
+            @click="split.closeSide(side)"
+          >
+            <XIcon class="size-icon-2xs" />
+          </IconButton>
+        </TooltipTrigger>
+
+        <TooltipContent>{{ t("split.close") }}</TooltipContent>
+      </Tooltip>
+    </span>
+
     <SessionItemDelete v-model:open="deleteOpen" :title="title" @confirm="confirmDelete" />
   </header>
 </template>
@@ -129,27 +171,40 @@ import {
 } from "@components/ui/dropdown-menu/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { IconButton } from "@components/ui/button/index.js"
+import ProjectIcon from "@features/session-nav/components/ProjectIcon.vue"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import RailToggle from "@features/session-rail/components/RailToggle.vue"
 import { useFilePane } from "@features/file-pane/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import { workspaceName } from "@features/session-nav/lib/format.js"
 import { sessionTitle, untitledSession, useSession } from "@features/session/index.js"
+import { usePaneSide, usePanelHost, useSplitView } from "@features/split-view/index.js"
 import {
-  AltArrowDownIcon,
-  FolderIcon,
+  ArrowLeftRightIcon,
+  ChevronDownIcon,
   FoldersIcon,
   PanelRightOpenIcon,
   PenIcon,
   PinIcon,
-  PinBoldIcon,
-  TrashBinMinimalisticIcon,
+  PinOffIcon,
+  TrashIcon,
+  XIcon,
 } from "@components/icons/index.js"
 
 /** rail：右侧显示摘要面板开关（开场页不显示）。 */
 defineProps<{ rail?: boolean }>()
 
 const { t } = useI18n()
+const side = usePaneSide()
+const split = useSplitView()
+const panels = usePanelHost()
+const sideBySide = computed(() => split.split.value && split.fits.value)
+/** 窗口最左边的 header：给红绿灯让位、放侧栏入口。 */
+const leftmost = computed(() => side === "left" || !sideBySide.value)
+/** 窗口最右边的 header：给 Windows 窗控让位。 */
+const rightmost = computed(() => side === "right" || !sideBySide.value)
+/** 分屏时没聚焦的一侧，标题退一档。 */
+const dimmed = computed(() => sideBySide.value && split.focused.value !== side)
 const { sbState, setSbState } = useLeftPanelToggle()
 const files = useFilePane()
 const { sessionId, projection, sessionCwd } = useSession()
@@ -232,6 +287,12 @@ function commit(): void {
   titleInput.value?.blur()
 }
 
+/** 文件面板被面板列收起时，点图标把它挪回最下面，而不是关掉。 */
+function toggleFiles(): void {
+  if (panels?.hidden("files")) panels.raise("files")
+  else files.toggle()
+}
+
 function focusTitle(): void {
   titleInput.value?.focus()
 }
@@ -277,11 +338,31 @@ function confirmDelete(): void {
   height: var(--header-height);
   min-height: var(--header-height);
   padding: var(--space-xxs) var(--space-sm);
-  /* Windows 的系统窗控浮在右上角，头部让出这一块 */
-  padding-inline-end: calc(var(--space-sm) + var(--titlebar-controls-inset));
+  /* Windows 的系统窗控浮在整个窗口右上角，只有最右侧的头部让出这一块 */
   /* 与下方正文同底色：头部不另起一层 */
   background: transparent;
   color: var(--contrast-foreground);
+}
+
+.split-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-inline-start: auto;
+}
+
+.workbench-header.is-rightmost {
+  padding-inline-end: calc(var(--space-sm) + var(--titlebar-controls-inset));
+}
+
+.workbench-header.is-dimmed .crumb-title {
+  color: var(--contrast-foreground-secondary);
+}
+
+/* 欢迎页头部浮在背景上，不占高度；拖窗与侧栏入口照常可用 */
+.workbench-header.is-overlay {
+  position: absolute;
+  inset: 0 0 auto;
 }
 
 .header-toggle {
@@ -445,7 +526,7 @@ html[data-pig-desktop-platform]
 }
 
 /* macOS 侧栏收起后红绿灯落在头部左上角，头部让位 */
-html[data-pig-desktop-platform="darwin"] .shell.sb-offcanvas .workbench-header {
+html[data-pig-desktop-platform="darwin"] .shell.sb-offcanvas .workbench-header.is-leftmost {
   padding-inline-start: calc(var(--space-sm) + var(--size-mac-traffic-lights));
 }
 

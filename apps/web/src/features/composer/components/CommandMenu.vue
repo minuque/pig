@@ -25,11 +25,11 @@
         >
           <span class="command-icon" aria-hidden="true">
             <component :is="row.icon" v-if="row.icon" />
-            <WidgetAddIcon v-else-if="row.kind === 'skill'" class="command-glyph" />
-            <DocumentIcon v-else-if="row.kind === 'template'" class="command-glyph" />
-            <CodeSquareIcon v-else-if="row.kind === 'builtin'" class="command-glyph" />
+            <BlocksIcon v-else-if="row.kind === 'skill'" class="command-glyph" />
+            <FileTextIcon v-else-if="row.kind === 'template'" class="command-glyph" />
+            <SquareCodeIcon v-else-if="row.kind === 'builtin'" class="command-glyph" />
             <FolderIcon v-else-if="row.directory" class="command-glyph" />
-            <DocumentIcon v-else class="command-glyph" />
+            <FileTextIcon v-else class="command-glyph" />
           </span>
 
           <span class="command-main">
@@ -48,7 +48,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, watch, type Component } from "vue"
-import { CodeSquareIcon, DocumentIcon, FolderIcon, WidgetAddIcon } from "@components/icons/index.js"
+import { SquareCodeIcon, FileTextIcon, FolderIcon, BlocksIcon } from "@components/icons/index.js"
 
 export type CommandMenuRowKind = "skill" | "template" | "builtin" | "file" | "directory"
 

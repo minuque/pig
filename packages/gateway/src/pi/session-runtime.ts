@@ -19,7 +19,7 @@ import type {
   PromptInput,
   SteerInput,
 } from "./runtime-types.js"
-import { canonicalizePath } from "../directory.js"
+import { canonicalizePath } from "../system/directory.js"
 import { sessionBinding, sessionWorkspace, uploadAttachments } from "./remote-session.js"
 import { ExtensionUiBridge } from "./extension-ui.js"
 import { composePrompt, type AttachmentSink } from "./attachments.js"

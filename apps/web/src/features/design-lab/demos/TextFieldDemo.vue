@@ -19,7 +19,7 @@
     <Variant title="With slots">
       <div style="display: flex; flex-direction: column; gap: 12px; max-width: 320px">
         <TextFieldRoot v-model="search" placeholder="Search">
-          <TextFieldSlot side="left"><MagnifierIcon /></TextFieldSlot>
+          <TextFieldSlot side="left"><SearchIcon /></TextFieldSlot>
         </TextFieldRoot>
 
         <TextFieldRoot v-model="value" placeholder="Amount">
@@ -42,7 +42,7 @@
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
 import { ref } from "vue"
-import { MagnifierIcon } from "@components/icons/index.js"
+import { SearchIcon } from "@components/icons/index.js"
 import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
 
 const value = ref("")

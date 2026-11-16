@@ -52,6 +52,9 @@
   /* 按钮与可点行共用：取 Radix 主题色 alpha 第 3 档做悬停、第 4 档做选中，深浅主题由色板自己切 */
   --btn-hover: var(--accent-a3);
   --btn-selected: var(--accent-a4);
+  /* 菜单选项：行高比侧栏行高一档留足内边距，行与行之间只留一道细缝 */
+  --size-menu-item: 32px;
+  --menu-item-gap: calc(var(--spacing) / 2);
   /* 代码块语言图标的色相，取自 @pierre/vscode-icons 调色板：浅色 600 档，深色 400 档 */
   --language-gray: #6c6c71;
   --language-red: #d52c36;
@@ -189,11 +192,7 @@
   --size-legend-share: 44px;
   /* 摘要面板与子会话只读抽屉 */
   --size-rail: 280px;
-  /* 摘要面板常驻时对话列右侧让出的宽：面板加两侧间距 */
-  --size-rail-reserve: calc(var(--size-rail) + 2 * var(--space-sm));
   --size-rail-row: 26px;
-  --size-pane: 440px;
-  --size-pane-wide: 880px;
   --size-child-drawer: 560px;
   /* Files 面板的标签：照 cc-wrapper 的 basis 192、最窄 104、标签文字最宽 140、高 24 */
   --size-file-tab: 192px;
@@ -213,6 +212,8 @@
   /* 折叠箭头等比正文缩一档 */
   --size-icon-xs: calc(var(--size-icon) - 2px);
   --size-icon-2xs: 16px;
+  /* 启动失败页的主图标 */
+  --size-icon-hero: 32px;
   /* 模型标签旁的上下文占用圆环 */
   --size-context-ring: 15px;
   --size-icon-button: 28px;
@@ -220,10 +221,6 @@
   --size-avatar: 20px;
   /* 24 画布线宽；低于 1.71 时 14px 图标下等效不到 1px，会糊成半调灰 */
   --line-icon-width: 1.75px;
-  /* @solar-icons/vue 的 IconBase 读这两个名字定尺寸与线宽（width/height 是 1em，靠 font-size 撑开）；
-     未定义时回退 24px / 1.5，比设计大一档，不要删。 */
-  --solar-size: var(--size-icon);
-  --solar-stroke-width: var(--line-icon-width);
   /* 侧边栏紧凑图标按钮：图标外 2px */
   --icon-button-pad: 2px;
   /* 屏外回合未排版前的预估高度；排过一次后浏览器记住真实高度 */
@@ -428,4 +425,9 @@ html[data-chat-width="wide"] {
 
 html[data-chat-width="full"] {
   --size-content: 100%;
+}
+
+/* 着色图标：在带 data-accent-color 的元素上取该色板第 11 级，项目图标用 */
+[data-accent-color] {
+  --tint: var(--accent-11);
 }

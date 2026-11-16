@@ -28,10 +28,7 @@
             <span class="kvvalue masked">{{ maskedKey }}</span>
 
             <button v-if="canSwitch" type="button" class="switch-link" @click="toggleMethod">
-              <component
-                :is="method === 'apiKey' ? UserIcon : KeyMinimalisticIcon"
-                class="switch-icon"
-              />
+              <component :is="method === 'apiKey' ? UserIcon : KeyRoundIcon" class="switch-icon" />
               {{
                 method === "apiKey" ? t("settings.models.useOauth") : t("settings.models.useApiKey")
               }}
@@ -76,10 +73,7 @@
             />
 
             <button v-if="canSwitch" type="button" class="switch-link" @click="toggleMethod">
-              <component
-                :is="method === 'apiKey' ? UserIcon : KeyMinimalisticIcon"
-                class="switch-icon"
-              />
+              <component :is="method === 'apiKey' ? UserIcon : KeyRoundIcon" class="switch-icon" />
               {{
                 method === "apiKey" ? t("settings.models.useOauth") : t("settings.models.useApiKey")
               }}
@@ -96,10 +90,7 @@
             <span class="kvvalue">{{ methodLabel }}</span>
 
             <button v-if="canSwitch" type="button" class="switch-link" @click="toggleMethod">
-              <component
-                :is="method === 'apiKey' ? UserIcon : KeyMinimalisticIcon"
-                class="switch-icon"
-              />
+              <component :is="method === 'apiKey' ? UserIcon : KeyRoundIcon" class="switch-icon" />
               {{
                 method === "apiKey" ? t("settings.models.useOauth") : t("settings.models.useApiKey")
               }}
@@ -187,7 +178,7 @@
         </span>
 
         <button type="button" class="refresh-models" :disabled="refreshing" @click="reloadModels">
-          <RestartIcon :class="{ 'is-spinning': refreshing }" />
+          <RotateCcwIcon :class="{ 'is-spinning': refreshing }" />
           {{ t("settings.models.refreshModels") }}
         </button>
       </h3>
@@ -236,9 +227,9 @@ import { Button, IconButton } from "@components/ui/button/index.js"
 import {
   CheckIcon,
   CopyIcon,
-  KeyMinimalisticIcon,
+  KeyRoundIcon,
   PenIcon,
-  RestartIcon,
+  RotateCcwIcon,
   UserIcon,
 } from "@components/icons/index.js"
 import VendorMark from "@features/composer/components/VendorMark.vue"

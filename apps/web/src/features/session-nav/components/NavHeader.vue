@@ -11,7 +11,7 @@
             :aria-label="t('nav.collapseSidebar')"
             @click="emit('toggleSidebar')"
           >
-            <PanelLeftCloseIcon :size="16" />
+            <PanelLeftCloseIcon class="size-icon-2xs" />
           </IconButton>
         </TooltipTrigger>
 
@@ -28,11 +28,11 @@
         color="gray"
         @click="emit('update:searchOpen', true)"
       >
-        <MagnifierIcon :size="16" />
+        <SearchIcon class="size-icon-2xs" />
         <span>{{ t("nav.search") }}</span>
       </Button>
 
-      <DropdownMenu :modal="false">
+      <DropdownMenu v-model:open="scopeOpen" :modal="false">
         <Tooltip>
           <TooltipTrigger as-child>
             <DropdownMenuTrigger as-child>
@@ -41,22 +41,21 @@
                 type="button"
                 size="m"
                 variant="ghost"
-                :aria-label="t('session.allProjects')"
+                :aria-label="t('session.filterByWorkspace')"
               >
-                <Tuning2Icon :size="16" />
+                <ListFilterIcon class="size-icon-2xs" />
               </IconButton>
             </DropdownMenuTrigger>
           </TooltipTrigger>
 
-          <TooltipContent>{{ t("session.allProjects") }}</TooltipContent>
+          <TooltipContent>{{ t("session.filterByWorkspace") }}</TooltipContent>
         </Tooltip>
 
         <ScopeMenu
           :groups="groups"
-          :sort="sort"
           :scope-filter="scopeFilter"
-          @update:sort="emit('update:sort', $event)"
           @update:scope-filter="emit('update:scopeFilter', $event)"
+          @settings="openIconDialog"
         />
       </DropdownMenu>
 
@@ -70,7 +69,7 @@
             :aria-label="t('session.addFolder')"
             @click="emit('addProject')"
           >
-            <AddFolderIcon :size="16" />
+            <FolderPlusIcon class="size-icon-2xs" />
           </IconButton>
         </TooltipTrigger>
 
@@ -87,7 +86,7 @@
             :aria-label="t('session.newSession')"
             @click="emit('create')"
           >
-            <ChatRoundAddIcon :size="16" />
+            <MessageCirclePlusIcon class="size-icon-2xs" />
           </IconButton>
         </TooltipTrigger>
 
@@ -95,10 +94,11 @@
       </Tooltip>
     </div>
 
+    <ProjectIconDialog :path="iconPath" @close="iconPath = undefined" />
+
     <SearchDialog
       :open="searchOpen"
       :sessions="sessions"
-      :sort="sort"
       @update:open="emit('update:searchOpen', $event)"
       @open="emit('open', $event)"
     />
@@ -108,15 +108,17 @@
 <script setup lang="ts">
 import type { SessionMetadata } from "@/types/common-type.js"
 import { useI18n } from "@i18n/index.js"
+import { nextTick, shallowRef } from "vue"
+import ProjectIconDialog from "@features/session-nav/components/ProjectIconDialog.vue"
 import ScopeMenu from "@features/session-nav/components/ScopeMenu.vue"
 import SearchDialog from "@features/session-nav/components/SearchDialog.vue"
-import type { SessionGroup, SidebarSort } from "@features/session-nav/type.js"
+import type { SessionGroup } from "@features/session-nav/type.js"
 import {
-  AddFolderIcon,
-  ChatRoundAddIcon,
-  MagnifierIcon,
+  FolderPlusIcon,
+  MessageCirclePlusIcon,
+  SearchIcon,
   PanelLeftCloseIcon,
-  Tuning2Icon,
+  ListFilterIcon,
 } from "@components/icons/index.js"
 import { Button, IconButton } from "@components/ui/button/index.js"
 import { DropdownMenu, DropdownMenuTrigger } from "@components/ui/dropdown-menu/index.js"
@@ -124,7 +126,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 
 defineProps<{
   groups: readonly SessionGroup[]
-  sort: SidebarSort
   scopeFilter: ReadonlySet<string>
   searchOpen: boolean
   sessions: readonly SessionMetadata[]
@@ -133,7 +134,6 @@ defineProps<{
 const emit = defineEmits<{
   "update:searchOpen": [open: boolean]
   "update:scopeFilter": [scopeFilter: ReadonlySet<string>]
-  "update:sort": [sort: SidebarSort]
   toggleSidebar: []
   addProject: []
   create: [cwd?: string]
@@ -142,6 +142,15 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const isMac = /mac/i.test(navigator.platform || navigator.userAgent)
 const modKey = isMac ? "⌘" : "Ctrl"
+const scopeOpen = shallowRef(false)
+const iconPath = shallowRef<string>()
+
+/** 先收起筛选菜单，再开图标弹框，免得两层焦点互抢。 */
+async function openIconDialog(canonicalPath: string): Promise<void> {
+  scopeOpen.value = false
+  await nextTick()
+  iconPath.value = canonicalPath
+}
 </script>
 
 <style scoped>

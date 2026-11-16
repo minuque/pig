@@ -61,7 +61,7 @@ import { useClipboard } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { Button, IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { AddIcon, CheckIcon, CopyIcon, MinusIcon } from "@components/icons/index.js"
+import { PlusIcon, CheckIcon, CopyIcon, MinusIcon } from "@components/icons/index.js"
 import PreviewDialog from "@features/preview/index.vue"
 
 const props = defineProps<{
@@ -93,7 +93,7 @@ const zooms = computed(() => [
   {
     key: "in",
     label: t("transcript.diagramZoomIn"),
-    icon: AddIcon,
+    icon: PlusIcon,
     run: () => panzoom?.zoomIn(),
   },
 ])

@@ -1,24 +1,21 @@
 <template>
   <div v-if="session.sessionId.value" class="session-rail">
-    <!-- 宽屏：常驻在正文右侧留白里，头部的图标按钮开关它；窄屏改由按钮弹浮层 -->
-    <aside
-      class="rail-docked"
-      :data-open="rail.docked.value || undefined"
-      :aria-label="t('rail.title')"
-    >
+    <!-- 宽屏：浮在正文右上角；头部的图标按钮开关它，窄屏改由按钮弹浮层 -->
+    <aside v-if="rail.dockedShown.value" class="rail-docked" :aria-label="t('rail.title')">
       <RailCards v-bind="cards" @stop="stopTask" />
     </aside>
 
-    <!-- 摘要卡里点开的内容都放进右侧面板 -->
-    <RailPane
-      v-if="rail.pane.value"
-      :pane="rail.pane.value"
-      :sections="sections"
-      :stoppable="cards.stoppable"
-      :session-id="session.sessionId.value"
-      :progress="childProgress"
-      @stop="stopTask"
-    />
+    <!-- 摘要卡里点开的内容进这一侧的面板列 -->
+    <Teleport v-if="rail.pane.value && paneSlot" :to="paneSlot">
+      <RailPane
+        :pane="rail.pane.value"
+        :sections="sections"
+        :stoppable="cards.stoppable"
+        :session-id="session.sessionId.value"
+        :progress="childProgress"
+        @stop="stopTask"
+      />
+    </Teleport>
   </div>
 </template>
 
@@ -29,6 +26,7 @@ import RailCards from "@features/session-rail/components/RailCards.vue"
 import RailPane from "@features/session-rail/components/RailPane.vue"
 import { useRailCards } from "@features/session-rail/hooks/use-rail-cards.js"
 import { useSessionRail } from "@features/session-rail/index.js"
+import { usePanelHost } from "@features/split-view/index.js"
 
 const { t } = useI18n()
 const rail = useSessionRail()!
@@ -44,8 +42,16 @@ const childProgress = computed(() => {
     ? `${task.status}:${task.steps.length}:${task.steps.at(-1) ?? ""}`
     : ""
 })
+const host = usePanelHost()
+const paneSlot = computed(() => host?.slots.get("tasks"))
 
 watch(session.sessionId, rail.enterSession, { immediate: true })
+
+watch(
+  () => Boolean(session.sessionId.value && rail.pane.value),
+  (open) => (open ? host?.open("tasks") : host?.close("tasks")),
+  { immediate: true },
+)
 </script>
 
 <style scoped>
@@ -53,14 +59,12 @@ watch(session.sessionId, rail.enterSession, { immediate: true })
   display: contents;
 }
 
-/* 会话面板的右列，叠在横跨两列的对话列上方：高度随内容，最高到列底，超出自己滚；
-   右侧留的间距里是对话列的滚动条 */
+/* 浮在正文右上角：高度随内容，最高到列底，超出自己滚 */
 .rail-docked {
-  position: relative;
-  z-index: 1;
-  grid-area: 2 / 2;
-  align-self: start;
-  display: none;
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
+  z-index: 2;
   inline-size: var(--size-rail);
   max-block-size: calc(100% - var(--space-xs) - var(--space-sm));
   margin-block: var(--space-xs) var(--space-sm);
@@ -73,25 +77,5 @@ watch(session.sessionId, rail.enterSession, { immediate: true })
 /* 拖着卡片往下时，卡片会越过面板的内容高度：拖拽期间不裁剪 */
 .rail-docked:has(.is-drag-live) {
   overflow: visible;
-}
-
-/* 放得下最小正文宽（640）加面板与间距才常驻（照 t3code：640 + 280 + 12 + 32 + 48）；
-   右侧面板开着时门槛再加上它的宽度与外边距（440 + 12，宽档 880 + 12） */
-@container session-panel (min-width: 1012px) {
-  .session-rail:not(:has(.rail-pane)) .rail-docked[data-open] {
-    display: block;
-  }
-}
-
-@container session-panel (min-width: 1464px) {
-  .session-rail:not(:has(.rail-pane[data-wide])) .rail-docked[data-open] {
-    display: block;
-  }
-}
-
-@container session-panel (min-width: 1904px) {
-  .rail-docked[data-open] {
-    display: block;
-  }
 }
 </style>

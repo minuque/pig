@@ -180,3 +180,6 @@ nul
 
 .vitest/
 
+
+# 架构看板生成物（pnpm arch）
+docs/architecture/dist/

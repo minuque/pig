@@ -1,4 +1,4 @@
-import { computed, shallowRef } from "vue"
+import { computed, shallowReactive, shallowRef } from "vue"
 import type { TranscriptItem } from "@/types/common-type.js"
 import { notifyAction } from "@components/layout/notify.js"
 import { errorMessage } from "@client/http.js"
@@ -10,23 +10,29 @@ import {
 } from "@features/session/lib/session-state.js"
 import { createSessionHistoryCache } from "@features/session/lib/session-history-cache.js"
 
-/** HTTP 历史按 Session 留最近几份；切走不清掉，切回立刻能画。 */
-export function useSessionHistory() {
+export type HistoryStore = ReturnType<typeof createHistoryStore>
+
+/** HTTP 历史按 Session 留最近几份；切走不清掉，切回立刻能画。两侧 workbench 共用一份。 */
+export function createHistoryStore() {
   const cache = createSessionHistoryCache()
-  const activeId = shallowRef<string>()
   const version = shallowRef(0)
   const requestById = new Map<string, number>()
   const inflight = new Map<string, Promise<void>>()
+  /** 每侧正在显示的会话；拉历史失败只对显示中的会话提示。 */
+  const shown = shallowReactive(new Map<symbol, string>())
 
   function bump() {
     version.value += 1
   }
 
-  function setActive(id: string | undefined) {
-    activeId.value = id
-
-    if (id) cache.touch(id)
+  function show(owner: symbol, id: string | undefined) {
+    if (id) {
+      shown.set(owner, id)
+      cache.touch(id)
+    } else shown.delete(owner)
   }
+
+  const isShown = (id: string) => [...shown.values()].includes(id)
 
   function overlayLive(id: string, live: readonly TranscriptItem[]) {
     if (live.length === 0) return
@@ -66,7 +72,7 @@ export function useSessionHistory() {
         bump()
       } catch (error) {
         // 失败不标 ready：不把已有会话画成欢迎页，下次打开会重拉
-        if (requestById.get(id) === request && activeId.value === id) {
+        if (requestById.get(id) === request && isShown(id)) {
           notifyAction(t("session.historyFailed", { message: errorMessage(error) }))
         }
       }
@@ -86,6 +92,30 @@ export function useSessionHistory() {
     return page ? mergeLiveTranscript(page.items, page.heldLive) : []
   }
 
+  return {
+    version,
+    show,
+    overlayLive,
+    releaseLive,
+    transcriptFor,
+    isFresh: (id: string) => cache.isFresh(id),
+    isReady: (id: string) => cache.isReady(id),
+    timingsFor: (id: string) => cache.peek(id)?.timings ?? [],
+    loadHistory,
+  }
+}
+
+/** 一侧 workbench 看历史的窗口：当前显示哪个会话，以及它的转录与就绪状态。 */
+export function useHistoryView(store: HistoryStore) {
+  const owner = Symbol("history-view")
+  const activeId = shallowRef<string>()
+  const { version, transcriptFor } = store
+
+  function setActive(id: string | undefined) {
+    activeId.value = id
+    store.show(owner, id)
+  }
+
   const liveTranscript = computed(() => {
     const id = activeId.value
     return id ? transcriptFor(id) : []
@@ -94,15 +124,15 @@ export function useSessionHistory() {
     const id = activeId.value
     void version.value
 
-    if (!id || !cache.isReady(id)) return undefined
+    if (!id || !store.isReady(id)) return undefined
     return id
   })
   const turnTimings = computed(() => {
     const id = activeId.value
     void version.value
 
-    if (!id || !cache.isReady(id)) return []
-    return cache.peek(id)?.timings ?? []
+    if (!id || !store.isReady(id)) return []
+    return store.timingsFor(id)
   })
   return {
     activeId,
@@ -110,10 +140,10 @@ export function useSessionHistory() {
     historyReadyId,
     turnTimings,
     setActive,
-    overlayLive,
-    releaseLive,
+    overlayLive: store.overlayLive,
+    releaseLive: store.releaseLive,
     transcriptFor,
-    isFresh: (id: string) => cache.isFresh(id),
-    loadHistory,
+    isFresh: store.isFresh,
+    loadHistory: store.loadHistory,
   }
 }

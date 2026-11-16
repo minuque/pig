@@ -13,7 +13,7 @@
           :aria-label="previewLabel"
           @click.stop="openPreview"
         >
-          <MaximizeSquareIcon class="size-icon" />
+          <Maximize2Icon class="size-icon" />
         </IconButton>
       </TooltipTrigger>
 
@@ -37,7 +37,7 @@ import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { TableRoot } from "@components/ui/table/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { MaximizeSquareIcon } from "@components/icons/index.js"
+import { Maximize2Icon } from "@components/icons/index.js"
 import PreviewDialog from "@features/preview/index.vue"
 import { headingBefore } from "@features/transcript-view/lib/nearest-heading.js"
 
@@ -84,11 +84,17 @@ function openPreview() {
   max-width: none;
 }
 
-/* 放大按钮压在表头右上角，表头末格给它让位 */
+/* 放大按钮压在表头右上角，表头末格给它让位；叠在表格之上，不被单元格文字盖住 */
 .md-table-zoom {
   position: absolute;
+  z-index: 1;
   top: var(--space-xxs);
   inset-inline-end: var(--space-xxs);
+  color: var(--contrast-foreground-secondary);
+}
+
+.md-table-zoom:hover {
+  color: var(--contrast-foreground);
 }
 
 .md-table-root:not(.is-preview) :deep(.rt-TableColumnHeaderCell:last-child) {

@@ -2,7 +2,7 @@
   <section class="provider-list">
     <div class="list-tools">
       <label class="provider-search">
-        <MagnifierIcon class="search-icon" />
+        <SearchIcon class="search-icon" />
 
         <input
           v-model="query"
@@ -21,7 +21,7 @@
             :aria-label="t('settings.models.addProvider')"
             @click="emit('add')"
           >
-            <AddIcon />
+            <PlusIcon />
           </Button>
         </TooltipTrigger>
 
@@ -70,7 +70,7 @@
             {{ t("settings.models.modelCount", { count: provider.models.length }) }}
           </span>
 
-          <AltArrowRightIcon class="provider-chevron" />
+          <ChevronRightIcon class="provider-chevron" />
         </button>
       </Card>
     </div>
@@ -85,7 +85,7 @@
 import { computed, ref } from "vue"
 
 import { useI18n } from "@i18n/index.js"
-import { AddIcon, AltArrowRightIcon, MagnifierIcon } from "@components/icons/index.js"
+import { PlusIcon, ChevronRightIcon, SearchIcon } from "@components/icons/index.js"
 import { Button } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import VendorMark from "@features/composer/components/VendorMark.vue"

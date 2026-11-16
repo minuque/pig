@@ -12,7 +12,7 @@
             class="banner-alert"
             @close="dismissNotice(item.id)"
           >
-            <template v-if="item.level === 'error'" #icon><DangerCircleIcon /></template>
+            <template v-if="item.level === 'error'" #icon><CircleExclamationPointIcon /></template>
             <template v-if="item.level === 'error'" #title>{{ t("common.error") }}</template>
             <template #default>{{ item.message }}</template>
           </Callout>
@@ -28,7 +28,7 @@ import { useI18n } from "@i18n/index.js"
 import { Callout, type CalloutColor } from "@components/ui/callout/index.js"
 import ThemeRoot from "@components/ui/rt/ThemeRoot.vue"
 import { dismissNotice, noticeQueue, type NoticeLevel } from "@components/layout/notify.js"
-import { DangerCircleIcon } from "@components/icons/index.js"
+import { CircleExclamationPointIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 const LEVEL_COLOR: Record<NoticeLevel, CalloutColor> = {

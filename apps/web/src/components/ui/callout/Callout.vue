@@ -38,7 +38,7 @@
       :aria-label="t('common.close')"
       @click="emit('close')"
     >
-      <CloseIcon class="size-icon" />
+      <XIcon class="size-icon" />
     </button>
   </Primitive>
 </template>
@@ -49,7 +49,7 @@ import type { HTMLAttributes } from "vue"
 import { computed } from "vue"
 import { Primitive } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
-import { CloseIcon } from "@components/icons/index.js"
+import { XIcon } from "@components/icons/index.js"
 import { RT_SIZE, type Size } from "@components/ui/rt/size.js"
 import { type CalloutColor, type CalloutVariant } from "./index.js"
 

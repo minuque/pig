@@ -66,7 +66,6 @@ describe("sidebarSections", () => {
   const now = new Date(2026, 5, 10, 12, 0, 0).getTime()
   const idle = () => ({ running: false, settled: false })
   const base = {
-    sort: "updated" as const,
     moreBySection: {},
     placement: idle,
   }
@@ -157,22 +156,6 @@ describe("sidebarSections", () => {
     })
 
     expect(more[0]?.sessions).toHaveLength(35)
-  })
-
-  it("按创建时间排序", () => {
-    const sections = sidebarSections({
-      ...base,
-      sort: "created",
-      sessions: [
-        { id: "newer-created", createdAt: now - 100, updatedAt: now - 1000, cwd: "/a" },
-        { id: "newer-updated", createdAt: now - 2000, updatedAt: now - 100, cwd: "/a" },
-      ],
-    })
-
-    expect(sections[0]?.sessions.map((session) => session.id)).toEqual([
-      "newer-created",
-      "newer-updated",
-    ])
   })
 })
 

@@ -13,7 +13,7 @@ import {
   type RemoteBinding,
 } from "@pig/environment"
 
-import { canonicalizePath } from "../directory.js"
+import { canonicalizePath } from "../system/directory.js"
 import type { StagedAttachment } from "./attachments.js"
 
 export { BINDING_ENTRY, parseRemoteKey, prepareRemoteCwd }

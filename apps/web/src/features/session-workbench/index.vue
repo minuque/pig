@@ -11,13 +11,12 @@
   >
     <div class="drop-guide" aria-hidden="true">
       <span class="drop-guide-label">
-        <DocumentAddIcon class="drop-guide-icon" />
+        <FilePlusIcon class="drop-guide-icon" />
         {{ t("composer.dropGuide") }}
       </span>
     </div>
 
-    <WorkbenchHeader :class="{ 'is-overlay': showHero }" :rail="!showHero" />
-    <SessionRail v-if="!showHero" />
+    <SessionRail v-if="!welcome" />
     <RemoteWorkspaceDialog v-model:open="remoteOpen" :add="addRemoteWorkspace" />
 
     <div class="conversation-column">
@@ -25,12 +24,12 @@
 
       <template v-else>
         <Transition name="welcome-field" appear>
-          <WelcomeField v-if="showHero && welcomeField !== 'off'" />
+          <WelcomeField v-if="welcome && welcomeField !== 'off'" />
         </Transition>
 
         <div class="session-stage">
           <Transition name="dock-hero" appear>
-            <div v-if="showHero" key="hero" class="idle-hero">
+            <div v-if="welcome" key="hero" class="idle-hero">
               <WorkbenchHero
                 v-model:workspace-id="heroWorkspaceId"
                 title-id="workbench-hero-title"
@@ -45,7 +44,7 @@
           </Transition>
 
           <TranscriptView
-            v-if="!showHero"
+            v-if="!welcome"
             ref="transcriptView"
             :session-id="sessionId ?? ''"
             :transcript="transcript"
@@ -60,7 +59,7 @@
         <div
           ref="composerBar"
           class="composer-bar"
-          :class="{ 'is-hero': showHero, 'settle-in': settleIn }"
+          :class="{ 'is-hero': welcome, 'settle-in': settleIn }"
         >
           <div class="composer-stack">
             <div class="session-floating-controls" :class="{ shown: showScrollToLatest }">
@@ -89,7 +88,7 @@
               :aborting="aborting"
               :session-id="sessionId"
               :cwd="composerCwd"
-              :usage="showHero ? undefined : contextUsage"
+              :usage="welcome ? undefined : contextUsage"
               :send-disabled="sendDisabled"
               :queue="composerQueue"
               @send="onSend"
@@ -122,7 +121,6 @@ import { sessionDropTargetAttrs, useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session/index.js"
 import { useAppearancePrefs } from "@features/settings/index.js"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
-import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
 import WelcomeField from "@features/session-workbench/components/WelcomeField.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { useComposerDock } from "@features/session-workbench/hooks/use-composer-dock.js"
@@ -130,9 +128,10 @@ import { useSessionDrop } from "@features/session-workbench/hooks/use-session-dr
 import { useTurnFinish } from "@features/session-workbench/hooks/use-turn-finish.js"
 import TranscriptView from "@features/transcript-view/index.vue"
 import SessionRail from "@features/session-rail/index.vue"
+import { useSessionRail } from "@features/session-rail/index.js"
 import RemoteWorkspaceDialog from "@features/remote-workspace/index.vue"
 import { prefetchTranscriptView } from "@features/transcript-view/index.js"
-import { ArrowDownIcon, DocumentAddIcon, LoaderIcon } from "@components/icons/index.js"
+import { ArrowDownIcon, FilePlusIcon, LoaderIcon } from "@components/icons/index.js"
 
 onMounted(() => {
   if (typeof requestIdleCallback === "function")
@@ -161,7 +160,6 @@ const {
   phase,
   submitting,
   turnPending,
-  sessionPending,
   connectionError,
   connected,
   catalog,
@@ -177,6 +175,7 @@ const {
   setWelcomeHandoff,
   transcriptFor,
   contextUsage,
+  welcome,
 } = useSession()
 const { groups, lastCwd, addingWorkspace, addWorkspace, addRemoteWorkspace } = useNav()
 const remoteOpen = ref(false)
@@ -190,14 +189,14 @@ const pageError = computed(() => {
 
   return route.name === "error" ? {} : null
 })
-const showHero = computed(() => {
-  if (transcript.value.length > 0 || running.value) return false
+/** 会话面板宽度写回 rail 状态：摘要在常驻与浮层之间切换靠它。 */
+const rail = useSessionRail()
+const panel = useTemplateRef<HTMLElement>("panel")
 
-  if (sessionId.value === undefined) return true
-
-  if (sessionPending.value && !creating.value) return false
-  return true
+useResizeObserver(panel, ([entry]) => {
+  if (entry) rail?.setWidth(entry.contentRect.width)
 })
+
 const welcomeWorkspaceId = shallowRef<string>()
 const heroWorkspaceId = computed({
   get: () => (sessionId.value ? sessionCwd.value : welcomeWorkspaceId.value),
@@ -241,9 +240,9 @@ type TranscriptViewRef = InstanceType<typeof TranscriptView>
 const transcriptView = useTemplateRef<TranscriptViewRef>("transcriptView")
 const composerBar = useTemplateRef("composerBar")
 /** 首屏挂载时输入条随 Hero 一起落位；之后的切换走停靠滑动。 */
-const settleIn = showHero.value
+const settleIn = welcome.value
 
-useComposerDock(composerBar, showHero)
+useComposerDock(composerBar, welcome)
 
 const RESERVE_DEBOUNCE_MS = 120
 let reserveTimer = 0
@@ -263,7 +262,7 @@ function publishComposerReserve(entries: readonly ResizeObserverEntry[]) {
   window.clearTimeout(reserveTimer)
 
   // 动画逐帧回写会让转录列每帧重排，合到尾沿写一次；首屏没有转录，Hero 直接跟着输入卡长高
-  if (prev && !showHero.value) {
+  if (prev && !welcome.value) {
     reserveTimer = window.setTimeout(() => {
       reserveTimer = 0
       column.style.setProperty("--composer-reserve", next)
@@ -287,7 +286,7 @@ function scrollToLatest(behavior: "auto" | "smooth" = "auto") {
 const sound = useSound()
 const composerAttachments = useComposerAttachments()
 
-useSessionDrop(useTemplateRef("panel"), composerAttachments.addFiles)
+useSessionDrop(panel, composerAttachments.addFiles)
 
 const composerQueue = useComposerQueue()
 
@@ -435,19 +434,14 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 </script>
 
 <style scoped>
-/* 三列：头部横跨，下方对话列在左、摘要面板独占中列，右侧面板（打开时）在最右；空列宽 0。
-   摘要面板按会话面板宽度决定常驻还是收成按钮 */
+/* 正文一列；摘要卡浮在右上角，右侧面板在 workbench 的面板列里 */
 .session-panel {
   position: relative;
-  container: session-panel / inline-size;
+  container-type: inline-size;
   flex: 1;
   min-height: 0;
   display: grid;
-  grid-template: auto minmax(0, 1fr) / minmax(0, 1fr) auto auto;
-}
-
-.session-panel > .workbench-header {
-  grid-column: 1 / -1;
+  grid-template: "conversation" minmax(0, 1fr) / minmax(0, 1fr);
 }
 
 .drop-guide {
@@ -484,9 +478,9 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   height: var(--size-icon);
 }
 
-/* 横跨两列：滚动条贴窗口右边；摘要面板常驻时，正文、输入条与浮动按钮让出右侧 */
+/* 正文列：右侧面板占的列不跨进来，滚动条跟着正文列 */
 .conversation-column {
-  grid-area: 2 / 1 / 3 / 3;
+  grid-area: conversation;
   position: relative;
   min-width: 0;
   min-height: 0;
@@ -495,7 +489,6 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   flex-direction: column;
   /* 测量前占位，挂上后由输入条边框盒覆盖 */
   --composer-reserve: 7rem;
-  --rail-reserve: 0px;
   /* 首屏输入条底边离列底的距离：标题加输入条整组的中线落在列高 45% 处 */
   --hero-dock: calc(55% - var(--composer-reserve) / 2 - 2rem);
 }
@@ -524,28 +517,9 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 }
 
 /* 与常驻摘要面板同一组门槛（见 session-rail） */
-@container session-panel (min-width: 1012px) {
-  .session-panel:has(.rail-docked[data-open]):not(:has(.rail-pane)) .conversation-column {
-    --rail-reserve: var(--size-rail-reserve);
-  }
-}
-
-@container session-panel (min-width: 1464px) {
-  .session-panel:has(.rail-docked[data-open]):not(:has(.rail-pane[data-wide]))
-    .conversation-column {
-    --rail-reserve: var(--size-rail-reserve);
-  }
-}
-
-@container session-panel (min-width: 1904px) {
-  .session-panel:has(.rail-docked[data-open]) .conversation-column {
-    --rail-reserve: var(--size-rail-reserve);
-  }
-}
-
 .composer-bar {
   position: absolute;
-  inset-inline: 0 var(--rail-reserve);
+  inset-inline: 0;
   bottom: 0;
   z-index: 2;
   padding-bottom: calc(var(--space-sm) + env(safe-area-inset-bottom, 0px));
@@ -554,12 +528,6 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 
 .composer-bar.is-hero {
   bottom: var(--hero-dock);
-}
-
-/* 欢迎页头部浮在背景上，不占高度，字符背景铺满整列；拖窗与侧栏入口照常可用 */
-.workbench-header.is-overlay {
-  position: absolute;
-  inset: 0 0 auto;
 }
 
 /* 输入条下方的渐隐直接淡出正文本身，不再叠一层底色，输入卡圆角和投影不受遮挡；
@@ -577,8 +545,12 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 
 .composer-stack {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: min(calc(var(--size-content) + var(--space-sm)), calc(100% - 2 * var(--space-md)));
+  /* 整组最高到头部下沿：队列再长也从这里让位，不压住头部与窗控 */
+  max-block-size: calc(100dvh - var(--header-height) - 2 * var(--space-sm));
   margin-inline: auto;
   background: transparent;
   pointer-events: auto;

@@ -19,7 +19,7 @@
             >
               <span class="rail-title">{{ title }}</span>
 
-              <AltArrowRightIcon
+              <ChevronRightIcon
                 class="rail-caret motion-turn"
                 :class="{ 'is-on': open }"
                 aria-hidden="true"
@@ -59,7 +59,7 @@
 import { useId } from "vue"
 import { CollapsibleContent, CollapsibleRoot } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
-import { AltArrowRightIcon, GripVerticalIcon } from "@components/icons/index.js"
+import { ChevronRightIcon, GripVerticalIcon } from "@components/icons/index.js"
 import {
   ContextMenu,
   ContextMenuContent,

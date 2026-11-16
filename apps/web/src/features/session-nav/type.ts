@@ -28,9 +28,6 @@ export interface SidebarRowFoot {
   state?: SidebarSessionState | undefined
 }
 
-/** 侧栏排序，持久化在 localStorage。 */
-export type SidebarSort = "updated" | "created"
-
 /** 侧栏固定分段。 */
 export type SidebarSectionKind = "pinned" | "active" | "working" | "settled"
 

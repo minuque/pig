@@ -15,7 +15,7 @@
         :aria-label="t('settings.models.removeModel')"
         @click="emit('remove')"
       >
-        <TrashBinMinimalisticIcon />
+        <TrashIcon />
       </IconButton>
 
       <IconButton
@@ -26,7 +26,7 @@
         :aria-label="t('settings.models.expandModel')"
         @click="open = !open"
       >
-        <AltArrowRightIcon class="chevron" :class="{ open }" />
+        <ChevronRightIcon class="chevron" :class="{ open }" />
       </IconButton>
     </div>
 
@@ -71,7 +71,7 @@
 <script setup lang="ts">
 import { ref } from "vue"
 
-import { AltArrowRightIcon, TrashBinMinimalisticIcon } from "@components/icons/index.js"
+import { ChevronRightIcon, TrashIcon } from "@components/icons/index.js"
 import { Switch } from "@components/ui/switch/index.js"
 import { TextFieldRoot } from "@components/ui/text-field/index.js"
 import VendorMark from "@features/composer/components/VendorMark.vue"

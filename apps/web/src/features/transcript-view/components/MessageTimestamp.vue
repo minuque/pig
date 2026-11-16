@@ -125,6 +125,14 @@ async function copy() {
   user-select: none;
 }
 
+.stamp-copy {
+  color: var(--contrast-foreground-secondary);
+}
+
+.stamp-copy:hover {
+  color: var(--contrast-foreground);
+}
+
 .stamp[data-status="copied"] .stamp-copy {
   color: var(--success);
 }

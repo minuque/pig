@@ -43,7 +43,7 @@
           <Card size="s" class="list-card">
             <button v-for="row in PROVIDERS" :key="row" type="button" class="list-row">
               {{ row }}
-              <AltArrowRightIcon class="size-icon" />
+              <ChevronRightIcon class="size-icon" />
             </button>
           </Card>
 
@@ -101,7 +101,7 @@ import {
   TableRoot,
   TableRow,
 } from "@components/ui/table/index.js"
-import { AltArrowRightIcon } from "@components/icons/index.js"
+import { ChevronRightIcon } from "@components/icons/index.js"
 import CodeCard from "@features/transcript-view/components/CodeCard.vue"
 
 const VARIANTS = ["surface", "classic", "ghost"] as const

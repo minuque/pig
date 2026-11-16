@@ -6,7 +6,7 @@
       <div class="settings-shell" @keydown="onShellKeydown">
         <nav class="settings-nav" :aria-label="t('settings.title')">
           <div class="settings-search">
-            <MagnifierIcon class="size-icon search-icon" />
+            <SearchIcon class="size-icon search-icon" />
 
             <input
               ref="searchInput"
@@ -26,7 +26,7 @@
               :aria-label="t('settings.clearSearch')"
               @click="clearSearch(true)"
             >
-              <CloseIcon class="size-icon" />
+              <XIcon class="size-icon" />
             </button>
 
             <Kbd v-else class="search-kbd" size="s">/</Kbd>
@@ -88,7 +88,7 @@
             </nav>
 
             <DialogClose class="settings-close" :aria-label="t('common.close')">
-              <CloseIcon class="size-icon" />
+              <XIcon class="size-icon" />
             </DialogClose>
           </header>
 
@@ -112,11 +112,11 @@ import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import {
   BellIcon,
-  CloseIcon,
+  XIcon,
   CloudIcon,
-  MagnifierIcon,
+  SearchIcon,
   PaletteIcon,
-  Tuning2OutlineIcon,
+  SlidersHorizontalIcon,
 } from "@components/icons/index.js"
 import { Kbd } from "@components/ui/kbd/index.js"
 import AppearancePane from "./AppearancePane.vue"
@@ -146,11 +146,11 @@ const trail = ref<SettingsCrumb[]>([])
 
 provide(SETTINGS_TRAIL, trail)
 
-const tabs = computed<{ id: Pane; label: string; icon: typeof Tuning2OutlineIcon }[]>(() => [
+const tabs = computed<{ id: Pane; label: string; icon: typeof SlidersHorizontalIcon }[]>(() => [
   {
     id: "general",
     label: t("settings.general"),
-    icon: Tuning2OutlineIcon,
+    icon: SlidersHorizontalIcon,
   },
   { id: "appearance", label: t("settings.appearance"), icon: PaletteIcon },
   { id: "models", label: t("settings.models.title"), icon: CloudIcon },

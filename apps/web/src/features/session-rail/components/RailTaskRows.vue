@@ -7,7 +7,7 @@
         :aria-label="t('rail.openTask', { name: task.description })"
         @click="emit('open', task.id)"
       >
-        <component :is="task.kind === 'agent' ? StarsMinimalisticIcon : CodeSquareIcon" />
+        <component :is="task.kind === 'agent' ? SparklesIcon : SquareCodeIcon" />
 
         <span class="task-row-name" :class="{ shimmer: task.status === 'running' }">
           {{ task.description }}
@@ -26,7 +26,7 @@
         :disabled="stopping.has(task.id)"
         @click="stop(task.id)"
       >
-        <StopIcon class="size-icon" />
+        <SquareIcon class="size-icon" />
       </IconButton>
     </div>
 
@@ -36,7 +36,7 @@
       class="task-row-open"
       @click="emit('open', undefined)"
     >
-      <StarsMinimalisticIcon />
+      <SparklesIcon />
       <span class="task-row-name">{{ t("rail.moreTasks", { count: moreCount }) }}</span>
     </button>
 
@@ -46,7 +46,7 @@
       class="task-row-open"
       @click="emit('open', undefined)"
     >
-      <CheckCircleIcon />
+      <CircleCheckIcon />
 
       <span class="task-row-name">
         {{ t("rail.finishedCount", { count: sections.finished.length }) }}
@@ -61,10 +61,10 @@ import { useNow } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import {
-  CheckCircleIcon,
-  CodeSquareIcon,
-  StarsMinimalisticIcon,
-  StopIcon,
+  CircleCheckIcon,
+  SquareCodeIcon,
+  SparklesIcon,
+  SquareIcon,
 } from "@components/icons/index.js"
 import { taskElapsed, type TaskSections } from "@features/session-rail/lib/task-list.js"
 
