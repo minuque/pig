@@ -171,7 +171,7 @@ function nudge(id: RailSectionId, step: number) {
 .rail-cards {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-xs);
+  gap: var(--space-sm);
 }
 
 .rail-kv {

@@ -50,7 +50,7 @@
           </div>
         </div>
 
-        <slot />
+        <div class="transcript-aside"><slot /></div>
       </div>
     </div>
 
@@ -428,14 +428,27 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   z-index: 3;
 }
 
+/* 网格列：正文的百分比内边距只按自己那一列算，不把右侧摘要列算进去 */
 .transcript-frame {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+/* 摘要列贴顶不动，最高到可见区底 */
+.transcript-aside {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 2;
+  grid-column: 2;
   display: flex;
-  align-items: flex-start;
+  flex-direction: column;
+  max-block-size: 100cqh;
 }
 
 .transcript {
   box-sizing: border-box;
-  flex: 1;
+  grid-column: 1;
   width: 100%;
   min-width: 0;
   padding-top: var(--transcript-pad-block);

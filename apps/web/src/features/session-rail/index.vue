@@ -59,16 +59,11 @@ watch(
   display: contents;
 }
 
-/* 正文右侧独占一列：在对话滚动区里贴顶不动，最高到可见区底，卡片多了自己滚 */
+/* 正文右侧独占一列：卡片多了自己滚；左右留 1px 给卡片外环，右边距交给滚动条槽 */
 .rail-docked {
-  position: sticky;
-  inset-block-start: 0;
-  z-index: 2;
-  flex-shrink: 0;
-  inline-size: calc(var(--size-rail) + var(--space-sm));
-  margin-inline-start: auto;
-  max-block-size: 100cqh;
-  padding: var(--space-xs) var(--space-sm) var(--space-sm) 0;
+  inline-size: var(--size-rail);
+  min-block-size: 0;
+  padding: var(--space-xs) var(--border-width) var(--space-sm);
   overflow-y: auto;
   scrollbar-width: none;
 }

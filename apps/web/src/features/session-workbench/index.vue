@@ -532,7 +532,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 }
 
 .composer-bar.beside-rail {
-  inset-inline-end: calc(var(--size-rail) + var(--space-sm));
+  inset-inline-end: var(--size-rail);
 }
 
 .composer-bar.is-hero {
