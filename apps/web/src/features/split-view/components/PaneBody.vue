@@ -83,25 +83,17 @@ useResizeObserver(root, ([entry]) => {
   min-width: 0;
 }
 
-/* 面板列贴满头部之下、窗口右侧，不留外边距 */
+/* 面板卡片贴满头部之下、窗口右侧，不留外边距 */
 .pane-body-column {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-/* 对话与面板之间一条 1px 分割线，两侧各留几像素的拖拽区 */
+/* 拖拽区就是对话与面板卡片之间的空隙 */
 .pane-body-handle {
-  position: relative;
-  inline-size: var(--border-width);
-  background: var(--border-soft);
+  inline-size: var(--space-sm);
   cursor: col-resize;
-}
-
-.pane-body-handle::after {
-  content: "";
-  position: absolute;
-  inset: 0 calc(-1 * var(--space-xxs));
 }
 
 .pane-body-handle:focus-visible {

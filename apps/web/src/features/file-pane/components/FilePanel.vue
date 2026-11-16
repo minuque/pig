@@ -154,7 +154,7 @@ const actions = computed(() => [
 </script>
 
 <style scoped>
-/* 与右侧面板同一外观：表面底，贴满面板列，分割线由面板列画 */
+/* 与右侧面板同一外观：表面底、卡片圆角、1px 柔描边；描边画在盒内，不被分栏裁掉 */
 .file-panel {
   display: flex;
   flex: 1;
@@ -162,6 +162,8 @@ const actions = computed(() => [
   min-block-size: 0;
   overflow: hidden;
   background: var(--surface);
+  border: var(--border-width) solid var(--border-soft);
+  border-radius: var(--radius-card);
 }
 
 .file-panel-head {
