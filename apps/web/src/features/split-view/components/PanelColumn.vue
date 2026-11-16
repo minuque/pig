@@ -7,7 +7,9 @@
       class="panel-column-group"
     >
       <template v-for="(kind, index) in host.visible.value" :key="kind">
-        <SplitterResizeHandle v-if="index > 0" class="panel-column-handle" />
+        <SplitterResizeHandle v-if="index > 0" as-child class="panel-column-handle">
+          <ResizeHandle />
+        </SplitterResizeHandle>
 
         <SplitterPanel
           :order="index + 1"
@@ -26,6 +28,7 @@
 import { computed, useTemplateRef } from "vue"
 import { useResizeObserver } from "@vueuse/core"
 import { SplitterGroup, SplitterPanel, SplitterResizeHandle } from "reka-ui"
+import { ResizeHandle } from "@components/ui/resize-handle/index.js"
 import { PANEL_MIN_HEIGHT } from "@features/split-view/lib/panel-stack.js"
 import type { PanelHost, PanelKind } from "@features/split-view/index.js"
 
@@ -80,10 +83,5 @@ function mount(kind: PanelKind, el: unknown) {
 /* 拖拽区就是上下两张面板卡片之间的空隙 */
 .panel-column-handle {
   block-size: var(--space-sm);
-  cursor: row-resize;
-}
-
-.panel-column-handle:focus-visible {
-  outline: var(--focus-ring);
 }
 </style>

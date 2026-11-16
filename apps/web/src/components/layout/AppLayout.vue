@@ -10,15 +10,17 @@
       <slot name="sidebar" :on-navigate="closeMobilePanels" />
     </aside>
 
-    <div
+    <ResizeHandle
       v-if="sbState === 'expanded'"
       class="resizer"
       tabindex="0"
+      data-orientation="horizontal"
+      :data-state="resizing ? 'drag' : undefined"
       @pointerdown="startResize($event)"
       @keydown.left.prevent="resizeBy(-16)"
       @keydown.right.prevent="resizeBy(16)"
       @dblclick="resetWidth"
-    ></div>
+    />
 
     <main>
       <slot />
@@ -30,6 +32,7 @@
 import { computed, provide } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { leftPanelKey, useLeftPanel } from "@components/layout/hooks/use-left-panel.js"
+import { ResizeHandle } from "@components/ui/resize-handle/index.js"
 
 defineSlots<{
   default(): unknown
@@ -113,55 +116,11 @@ function resetWidth() {
     visibility 0s;
 }
 
-/* 把手不占位：贴着侧栏边界浮着，命中区左右各外扩一档 */
+/* 把手不占位：贴着侧栏边界浮着；外观由 ResizeHandle 画 */
 .resizer {
-  position: relative;
   z-index: var(--z-resizer);
-  flex: none;
   align-self: stretch;
   width: 0;
-  cursor: col-resize;
-  touch-action: none;
-  background: transparent;
-}
-
-/* 命中区比视觉边界宽一档，落在两侧内容上 */
-.resizer::before {
-  content: "";
-  position: absolute;
-  inset-block: 0;
-  inset-inline: calc(-1 * var(--space-xxs));
-}
-
-.resizer:hover {
-  cursor: ew-resize;
-}
-
-.resizer::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  inset-inline-start: 50%;
-  width: 3px;
-  height: 40px;
-  border-radius: var(--radius-pill);
-  background: var(--scrollbar-color);
-  opacity: 0;
-  translate: -50% -50%;
-  transition:
-    opacity var(--duration-fast) var(--ease-out),
-    background-color var(--duration-fast) var(--ease-out);
-}
-
-/* 只在悬停/键盘聚焦时露形，拖动时换成强调色 */
-.resizer:hover::after,
-.resizer:focus-visible::after {
-  opacity: 1;
-}
-
-.shell.is-resizing .resizer::after {
-  opacity: 1;
-  background: var(--contrast-foreground-secondary);
 }
 
 html[data-pig-desktop-platform="darwin"] .resizer {
@@ -197,9 +156,7 @@ main {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sidebar,
-  .resizer,
-  .resizer::after {
+  .sidebar {
     transition: none;
   }
 }
@@ -248,9 +205,7 @@ main {
 
 @media (prefers-reduced-motion: reduce) {
   /* 置于末尾，覆盖上方 media 块内的 transition */
-  .sidebar,
-  .resizer,
-  .resizer::after {
+  .sidebar {
     transition: none;
     animation: none;
   }

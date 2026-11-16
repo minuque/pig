@@ -75,7 +75,9 @@
           <FileSearch><FileTree /></FileSearch>
         </SplitterPanel>
 
-        <SplitterResizeHandle class="file-panel-handle" />
+        <SplitterResizeHandle as-child class="file-panel-handle">
+          <ResizeHandle />
+        </SplitterResizeHandle>
 
         <SplitterPanel :min-size="VIEWER_MIN" size-unit="px" class="file-panel-col">
           <FileViewer v-if="active" :key="active" :path="active" />
@@ -95,6 +97,7 @@ import { SplitterGroup, SplitterPanel, SplitterResizeHandle } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Card } from "@components/ui/card/index.js"
+import { ResizeHandle } from "@components/ui/resize-handle/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import {
   ArrowLeftIcon,
@@ -192,22 +195,10 @@ const actions = computed(() => [
   min-inline-size: 0;
 }
 
-/* 树与查看器之间：1px 分割线，两侧各留几像素的拖拽区 */
+/* 树与查看器之间：1px 分割线，把手外观由 ResizeHandle 画 */
 .file-panel-handle {
-  position: relative;
-  inline-size: 1px;
+  inline-size: var(--border-width);
   background: var(--border-soft);
-  cursor: col-resize;
-}
-
-.file-panel-handle::after {
-  content: "";
-  position: absolute;
-  inset: 0 calc(-1 * var(--space-xxs));
-}
-
-.file-panel-handle:focus-visible {
-  outline: var(--focus-ring);
 }
 
 .file-panel-empty {

@@ -217,6 +217,9 @@
   /* 模型标签旁的上下文占用圆环 */
   --size-context-ring: 15px;
   --size-icon-button: 28px;
+  /* 分栏拖拽把手的胶囊：长 40、粗 3 */
+  --size-resize-grip: 40px;
+  --size-resize-grip-thickness: 3px;
   /* 侧栏左下角的头像 */
   --size-avatar: 20px;
   /* 24 画布线宽；低于 1.71 时 14px 图标下等效不到 1px，会糊成半调灰 */

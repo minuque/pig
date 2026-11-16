@@ -6,7 +6,9 @@
       </SplitterPanel>
 
       <template v-if="docked">
-        <SplitterResizeHandle class="pane-body-handle" />
+        <SplitterResizeHandle as-child class="pane-body-handle">
+          <ResizeHandle />
+        </SplitterResizeHandle>
 
         <SplitterPanel
           :order="2"
@@ -31,6 +33,7 @@
 import { computed, shallowRef, useTemplateRef, watch, watchEffect } from "vue"
 import { useResizeObserver } from "@vueuse/core"
 import { SplitterGroup, SplitterPanel, SplitterResizeHandle } from "reka-ui"
+import { ResizeHandle } from "@components/ui/resize-handle/index.js"
 import PanelColumn from "@features/split-view/components/PanelColumn.vue"
 import { SPLIT_CHAT_MIN } from "@features/split-view/lib/split-state.js"
 import type { PanelHost } from "@features/split-view/index.js"
@@ -95,11 +98,6 @@ useResizeObserver(root, ([entry]) => {
 /* 拖拽区就是对话与面板卡片之间的空隙 */
 .pane-body-handle {
   inline-size: var(--space-sm);
-  cursor: col-resize;
-}
-
-.pane-body-handle:focus-visible {
-  outline: var(--focus-ring);
 }
 
 .pane-body-cover {
