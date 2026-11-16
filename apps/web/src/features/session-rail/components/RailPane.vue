@@ -1,5 +1,5 @@
 <template>
-  <aside class="rail-pane" :aria-label="title">
+  <Card as="aside" class="rail-pane" :aria-label="title">
     <header class="rail-pane-head">
       <h2 class="rail-pane-title">
         <span class="rail-pane-name">{{ title }}</span>
@@ -44,13 +44,14 @@
         @title="(next) => (contextTitle = next)"
       />
     </div>
-  </aside>
+  </Card>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
+import { Card } from "@components/ui/card/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { XIcon, TrashIcon } from "@components/icons/index.js"
 import RailChild from "@features/session-rail/components/RailChild.vue"
@@ -108,16 +109,14 @@ function clearFinished() {
 
 <style scoped>
 /* 会话面板的第三列：头部之下、贴右边，宽度两档；正文自己滚，头部不动 */
-/* 面板列里的一张卡片：宽高都随所在的挂载点 */
+/* 面板列里的一张 Card：宽高都随所在的挂载点，去掉卡片内边距、铺表面底 */
 .rail-pane {
   display: flex;
   flex: 1;
   flex-direction: column;
   min-block-size: 0;
-  overflow: hidden;
+  padding: 0;
   background: var(--surface);
-  border: var(--border-width) solid var(--border-soft);
-  border-radius: var(--radius-card);
 }
 
 .rail-pane-head {

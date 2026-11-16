@@ -1,5 +1,5 @@
 <template>
-  <section class="file-panel" :aria-label="t('files.title')">
+  <Card as="section" class="file-panel" :aria-label="t('files.title')">
     <header class="file-panel-head">
       <Tooltip v-if="narrowCover">
         <TooltipTrigger as-child>
@@ -86,7 +86,7 @@
       <FileViewer v-else-if="active" :key="active" :path="active" />
       <p v-else class="file-panel-empty">{{ t("files.empty") }}</p>
     </div>
-  </section>
+  </Card>
 </template>
 
 <script setup lang="ts">
@@ -94,6 +94,7 @@ import { computed } from "vue"
 import { SplitterGroup, SplitterPanel, SplitterResizeHandle } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
+import { Card } from "@components/ui/card/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import {
   ArrowLeftIcon,
@@ -154,16 +155,14 @@ const actions = computed(() => [
 </script>
 
 <style scoped>
-/* 与右侧面板同一外观：表面底、卡片圆角、1px 柔描边；描边画在盒内，不被分栏裁掉 */
+/* 卡片外观来自 Card；面板自己排版，去掉卡片内边距、铺表面底 */
 .file-panel {
   display: flex;
   flex: 1;
   flex-direction: column;
   min-block-size: 0;
-  overflow: hidden;
+  padding: 0;
   background: var(--surface);
-  border: var(--border-width) solid var(--border-soft);
-  border-radius: var(--radius-card);
 }
 
 .file-panel-head {

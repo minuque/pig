@@ -83,13 +83,13 @@ useResizeObserver(root, ([entry]) => {
   min-width: 0;
 }
 
-/* 面板卡片贴满头部之下、窗口右侧，不留外边距 */
+/* 面板卡片在头部之下；左侧空隙由拖拽区给 */
 .pane-body-column {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  /* 底边与输入条对齐 */
-  padding-block-end: calc(var(--space-sm) + env(safe-area-inset-bottom, 0px));
+  /* 右边距与左侧拖拽空隙一致，底边与输入条对齐 */
+  padding: 0 var(--space-sm) calc(var(--space-sm) + env(safe-area-inset-bottom, 0px)) 0;
 }
 
 /* 拖拽区就是对话与面板卡片之间的空隙 */
@@ -108,6 +108,8 @@ useResizeObserver(root, ([entry]) => {
   z-index: 3;
   display: flex;
   flex-direction: column;
+  /* 盖住对话时左右各留同样的边距，底边与输入条对齐 */
+  padding: 0 var(--space-sm) calc(var(--space-sm) + env(safe-area-inset-bottom, 0px));
   background: var(--background);
 }
 </style>
