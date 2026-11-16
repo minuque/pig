@@ -1,4 +1,4 @@
-import { expect, seedWorkspace, test } from "./fixtures.js"
+import { expect, seedWorkspace, test } from "../support/fixtures.js"
 
 async function openWorkspace(
   page: import("@playwright/test").Page,

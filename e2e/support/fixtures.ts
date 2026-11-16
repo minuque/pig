@@ -5,8 +5,8 @@ import { tmpdir } from "node:os"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
-import Gateway from "../packages/gateway/src/index.js"
-import type { DirectoryPort } from "../packages/gateway/src/system/directory.js"
+import Gateway from "../../packages/gateway/src/index.js"
+import type { DirectoryPort } from "../../packages/gateway/src/system/directory.js"
 import { createFakeRuntime, type FakeProviderSpec } from "./fake-model-runtime.js"
 import { BUILTIN_PROVIDERS } from "./fake-provider-registry.js"
 import { writeBackgroundTaskExtension } from "./background-task-agent.js"
@@ -17,7 +17,7 @@ import {
   prebuildChildSession,
 } from "./prebuild-session.js"
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..")
 const webRoot = join(root, "apps/web/dist")
 
 /** 与 web canonicalizeWorkspacePath 对齐，供 localStorage 种子。 */
@@ -121,8 +121,8 @@ async function startGateway(options: ConstructorParameters<typeof Gateway>[0]) {
 async function withGateway(
   seed: (sessionDir: string, workspaceDir: string) => void,
   use: (gateway: E2eGateway) => Promise<void>,
-  /** 给出时用临时 agentDir，隔离本机 ~/.pi 的模型与扩展。 */
-  prepareAgent?: (agentDir: string) => Promise<void>,
+  /** 准备临时 agentDir；默认只放一个离线模型。始终隔离本机 ~/.pi，CI 上也有模型可选。 */
+  prepareAgent: (agentDir: string) => Promise<void> = writeOfflineModel,
   /** 额外的 Gateway 选项，按临时目录生成。 */
   extra?: (temp: string) => Promise<ConstructorParameters<typeof Gateway>[0]>,
 ) {
@@ -133,12 +133,10 @@ async function withGateway(
   await mkdir(sessionDir)
   await writeFile(join(workspaceDir, ".keep"), "")
   seed(sessionDir, workspaceDir)
-  const agentDir = prepareAgent ? join(temp, "agent") : undefined
+  const agentDir = join(temp, "agent")
 
-  if (agentDir && prepareAgent) {
-    await mkdir(agentDir)
-    await prepareAgent(agentDir)
-  }
+  await mkdir(agentDir)
+  await prepareAgent(agentDir)
 
   const workspaceId = canonicalizeWorkspacePath(workspaceDir)
   const platformPort: DirectoryPort = {
@@ -155,7 +153,7 @@ async function withGateway(
     cwd: workspaceDir,
     platformPort,
     port: 0,
-    ...(agentDir ? { agentDir } : {}),
+    agentDir,
     ...(extra ? await extra(temp) : {}),
   })
 
@@ -365,10 +363,10 @@ export const test = base.extend<TestFixtures>({
   ],
   complexGateway: [
     async ({}, use) => {
-      await withGateway((sessionDir, workspaceDir) => {
-        const built = prebuildComplexSession(sessionDir, workspaceDir)
-        console.log(`预构建会话 ${built.id}${built.forked ? "（fork 本机历史）" : "（合成样本）"}`)
-      }, use)
+      await withGateway(
+        (sessionDir, workspaceDir) => void prebuildComplexSession(sessionDir, workspaceDir),
+        use,
+      )
     },
     { scope: "test" },
   ],
@@ -437,8 +435,8 @@ export const test = base.extend<TestFixtures>({
 export const EXTENSION_TITLE = "扩展想确认一件事"
 export const EXTENSION_YES = "扩展收到：是"
 
-/** 一个离线可选的本地模型，加一个 /ask 命令：confirm 之后把答案用 notify 报出来。 */
-async function prepareExtensionAgent(agentDir: string) {
+/** 一个离线可选的本地模型：Prompt 由 sim-turn 拦下，不会真的请求它。 */
+async function writeOfflineModel(agentDir: string) {
   await writeFile(
     join(agentDir, "models.json"),
     JSON.stringify({
@@ -453,6 +451,11 @@ async function prepareExtensionAgent(agentDir: string) {
       },
     }),
   )
+}
+
+/** 离线模型加一个 /ask 命令：confirm 之后把答案用 notify 报出来。 */
+async function prepareExtensionAgent(agentDir: string) {
+  await writeOfflineModel(agentDir)
   await mkdir(join(agentDir, "extensions"))
   await writeFile(
     join(agentDir, "extensions", "ask.ts"),

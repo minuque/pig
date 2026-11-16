@@ -1,7 +1,7 @@
 import { expect, type Page } from "@playwright/test"
 import type { TranscriptProgress } from "@pig/protocol"
 
-import { installTurnBridge, streamingAssistant } from "../sim-turn.js"
+import { installTurnBridge, streamingAssistant } from "../support/sim-turn.js"
 import {
   armClickStamps,
   armStamps,

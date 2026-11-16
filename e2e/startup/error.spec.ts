@@ -1,4 +1,4 @@
-import { expect, seedWorkspace, test } from "./fixtures.js"
+import { expect, seedWorkspace, test } from "../support/fixtures.js"
 
 test("网关连不上时进错误页，重试按钮在", async ({ page, gateway }) => {
   await page.emulateMedia({ reducedMotion: "reduce" })

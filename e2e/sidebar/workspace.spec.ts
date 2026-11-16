@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures.js"
+import { expect, test } from "../support/fixtures.js"
 
 test("选目录走真实链路，落到本地偏好", async ({ page, navGateway }) => {
   // 不 seed localStorage，走真实的 select-directory 链路

@@ -1,5 +1,5 @@
-import { expect, seedWorkspace, test } from "./fixtures.js"
-import { COMPLEX_SESSION_NAME } from "./prebuild-session.js"
+import { expect, seedWorkspace, test } from "../support/fixtures.js"
+import { COMPLEX_SESSION_NAME } from "../support/prebuild-session.js"
 
 test("缩略图：回合刻度、上下回合按钮与键盘导航", async ({ page, complexGateway }) => {
   test.setTimeout(120_000)

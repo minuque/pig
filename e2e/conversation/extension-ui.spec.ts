@@ -1,4 +1,4 @@
-import { EXTENSION_TITLE, EXTENSION_YES, expect, seedWorkspace, test } from "./fixtures.js"
+import { EXTENSION_TITLE, EXTENSION_YES, expect, seedWorkspace, test } from "../support/fixtures.js"
 
 test("扩展弹出确认框：在界面上点确定，扩展拿到结果并提示", async ({ page, extensionGateway }) => {
   await page.emulateMedia({ reducedMotion: "reduce" })

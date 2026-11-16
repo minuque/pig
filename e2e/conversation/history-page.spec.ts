@@ -1,6 +1,6 @@
 import type { TranscriptItem } from "@pig/protocol"
-import { expect, seedWorkspace, test } from "./fixtures.js"
-import { COMPLEX_SESSION_ID, COMPLEX_SESSION_NAME } from "./prebuild-session.js"
+import { expect, seedWorkspace, test } from "../support/fixtures.js"
+import { COMPLEX_SESSION_ID, COMPLEX_SESSION_NAME } from "../support/prebuild-session.js"
 
 const TURNS = 8
 const PREVIEW = "输出开头"
