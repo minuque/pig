@@ -7,7 +7,7 @@ export const PACKAGES = [
 ]
 /** gateway 被 desktop 直接引用，改前者要连带检查后者的类型。 */
 const PACKAGE_DEPENDENTS = { "@pig/gateway": ["@pig/desktop"] }
-/** 路径前缀 → 该跑的 e2e；未命中的 web 改动回落到关键旅程。 */
+/** 路径前缀 → 该跑的 e2e；未命中的 web 改动回落到新建会话旅程。 */
 const E2E_BY_AREA = [
   {
     prefix: "apps/web/src/features/composer/",
@@ -24,21 +24,11 @@ const E2E_BY_AREA = [
   },
   {
     prefix: "apps/web/src/features/session-workbench/",
-    specs: [
-      "e2e/critical-journey.spec.ts",
-      "e2e/one-turn.spec.ts",
-      "e2e/new-session.spec.ts",
-      "e2e/workspace.spec.ts",
-    ],
+    specs: ["e2e/one-turn.spec.ts", "e2e/new-session.spec.ts", "e2e/workspace.spec.ts"],
   },
   {
     prefix: "apps/web/src/features/session/",
-    specs: [
-      "e2e/critical-journey.spec.ts",
-      "e2e/one-turn.spec.ts",
-      "e2e/new-session.spec.ts",
-      "e2e/workspace.spec.ts",
-    ],
+    specs: ["e2e/one-turn.spec.ts", "e2e/new-session.spec.ts", "e2e/workspace.spec.ts"],
   },
   {
     prefix: "apps/web/src/features/session-nav/",
@@ -59,15 +49,15 @@ const E2E_BY_AREA = [
   },
   {
     prefix: "apps/web/src/features/startup/",
-    specs: ["e2e/critical-journey.spec.ts", "e2e/error.spec.ts"],
+    specs: ["e2e/new-session.spec.ts", "e2e/error.spec.ts"],
   },
-  { prefix: "apps/web/src/components/layout/", specs: ["e2e/critical-journey.spec.ts"] },
-  // 样式、主题、共享 UI 影响所有页面，跑关键旅程兜底
-  { prefix: "apps/web/src/style/", specs: ["e2e/critical-journey.spec.ts"] },
+  { prefix: "apps/web/src/components/layout/", specs: ["e2e/new-session.spec.ts"] },
+  // 样式、主题、共享 UI 影响所有页面，跑新建会话旅程兜底
+  { prefix: "apps/web/src/style/", specs: ["e2e/new-session.spec.ts"] },
   { prefix: "apps/web/src/features/theme/", specs: ["e2e/theme.spec.ts"] },
-  { prefix: "apps/web/src/components/ui/", specs: ["e2e/critical-journey.spec.ts"] },
+  { prefix: "apps/web/src/components/ui/", specs: ["e2e/new-session.spec.ts"] },
 ]
-const WEB_FALLBACK_SPECS = ["e2e/critical-journey.spec.ts"]
+const WEB_FALLBACK_SPECS = ["e2e/new-session.spec.ts"]
 const ROOT_TOOLING =
   /^(eslint\.config\.|stylelint\.config\.|scripts\/check\/lint-ignores\.mjs$|package\.json$|pnpm-workspace\.yaml$|pnpm-lock\.yaml$|tsconfig\.base\.json$|\.prettierrc|\.prettierignore$|prettier\.config)/
 const LINTABLE = /\.(?:[cm]?[jt]sx?|vue)$/

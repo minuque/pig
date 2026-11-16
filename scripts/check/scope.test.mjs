@@ -53,13 +53,13 @@ describe("classifyTouched", () => {
     assert.deepEqual(classifyTouched(["apps/web/src/App.vue"]).packages, ["@pig/web"])
   })
 
-  it("按改动区域挑 e2e，未命中的 web 改动回落到关键旅程", () => {
+  it("按改动区域挑 e2e，未命中的 web 改动回落到新建会话旅程", () => {
     assert.deepEqual(classifyTouched(["apps/web/src/features/composer/index.vue"]).specs, [
       "e2e/composer-attachments.spec.ts",
       "e2e/composer-queue.spec.ts",
     ])
     assert.deepEqual(classifyTouched(["apps/web/src/style/app.css"]).specs, [
-      "e2e/critical-journey.spec.ts",
+      "e2e/new-session.spec.ts",
     ])
     assert.deepEqual(classifyTouched(["apps/web/src/features/session-nav/index.vue"]).specs, [
       "e2e/session-nav.spec.ts",
@@ -71,12 +71,10 @@ describe("classifyTouched", () => {
       "e2e/theme.spec.ts",
     ])
     assert.deepEqual(classifyTouched(["apps/web/src/features/startup/index.ts"]).specs, [
-      "e2e/critical-journey.spec.ts",
+      "e2e/new-session.spec.ts",
       "e2e/error.spec.ts",
     ])
-    assert.deepEqual(classifyTouched(["apps/web/src/App.vue"]).specs, [
-      "e2e/critical-journey.spec.ts",
-    ])
+    assert.deepEqual(classifyTouched(["apps/web/src/App.vue"]).specs, ["e2e/new-session.spec.ts"])
     // e2e 自身改动不按范围判断，交给全量
     assert.deepEqual(classifyTouched(["e2e/fixtures.ts"]).specs, [])
     // 纯文档改动不挑 e2e

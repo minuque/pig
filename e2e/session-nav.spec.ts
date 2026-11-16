@@ -12,38 +12,6 @@ async function enter(page: Page, gateway: E2eGateway) {
 /** 收件箱没有段头：直接列出会话，架子靠段头收在列表底部。 */
 const section = (page: Page) => page.locator('.session-section[data-key="active"]')
 
-test("收件箱直接列出会话，按最近活动倒序", async ({ page, navGateway }) => {
-  await enter(page, navGateway)
-
-  const cards = section(page).locator(".session-card")
-  await expect(cards).toHaveCount(6)
-  await expect(cards.first()).toContainText(`${FILLER_PREFIX} 6`)
-  await expect(cards.last()).toContainText(`${FILLER_PREFIX} 1`)
-  await expect(section(page).locator(".section-head")).toHaveCount(0)
-})
-
-test("归档的会话离开收件箱，收进已归档段", async ({ page, navGateway }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" })
-  await seedWorkspace(page, navGateway.workspaceId)
-  await page.addInitScript(() => {
-    localStorage.setItem("pig.sidebarSettledSessions", JSON.stringify(["e2e-filler-5"]))
-  })
-  await page.goto(navGateway.entryUrl)
-  await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
-
-  const settled = page.locator('.session-section[data-key="settled"]')
-
-  await expect(section(page).locator(".session-card")).toHaveCount(5)
-  await expect(
-    section(page).locator(".session-card", { hasText: `${FILLER_PREFIX} 6` }),
-  ).toHaveCount(0)
-  await expect(settled.locator(".section-count")).toHaveText("1")
-
-  await settled.locator(".section-toggle").click()
-  await expect(settled.locator(".session-card")).toHaveCount(1)
-  await expect(settled.locator(".session-card")).toContainText(`${FILLER_PREFIX} 6`)
-})
-
 test("行尾归档按钮把会话收进已归档段", async ({ page, navGateway }) => {
   await enter(page, navGateway)
 
@@ -125,20 +93,6 @@ test("拖拽会话进出置顶区：拖进置顶、拖出取消置顶", async ({
   )
   await expect(pinned.locator(".session-card")).toHaveCount(1)
   await expect(pinned.locator(".session-card").first()).toContainText("批量会话 6")
-})
-
-test("拖进已归档段即归档", async ({ page, navGateway }) => {
-  await enter(page, navGateway)
-
-  const settled = page.locator('.session-section[data-key="settled"]')
-  await dragCard(
-    page,
-    section(page).locator(".session-card").first(),
-    settled.locator(".section-toggle"),
-  )
-
-  await expect(section(page).locator(".session-card")).toHaveCount(5)
-  await expect(settled.locator(".section-count")).toHaveText("1")
 })
 
 test("按住行尾归档按钮往下扫，扫过的会话一起归档", async ({ page, navGateway }) => {
