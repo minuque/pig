@@ -73,10 +73,24 @@
   background-color: var(--btn-hover);
 }
 
-/* 只在相邻选项之间留缝：分割线、分组标签自带上下间距，不再叠加 */
-.rt-BaseMenuItem + .rt-BaseMenuItem,
-.rt-SelectItem + .rt-SelectItem {
+/* 行距只有一条：视口里相邻的任意两行之间留一道 --menu-item-gap。 */
+.rt-BaseMenuViewport > * + *,
+.rt-SelectViewport > * + * {
   margin-block-start: var(--menu-item-gap);
+}
+
+/* 分割线上下取弹窗内边距，与内边距到首行的距离对齐；挨着分割线的一侧不再加缝，免得叠成两倍 */
+.rt-BaseMenuViewport > .rt-BaseMenuSeparator {
+  margin-block: var(--base-menu-content-padding);
+}
+
+.rt-SelectViewport > .rt-SelectSeparator {
+  margin-block: var(--select-content-padding);
+}
+
+.rt-BaseMenuViewport > .rt-BaseMenuSeparator + *,
+.rt-SelectViewport > .rt-SelectSeparator + * {
+  margin-block-start: 0;
 }
 
 /* 图标按钮定档：s=24、m=28（`--size-nav-rail`）。
