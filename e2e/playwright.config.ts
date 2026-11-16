@@ -18,7 +18,8 @@ export default defineConfig({
   fullyParallel: false,
   // 文件间并行，文件内仍串行；实测 32 条从 38.0s 降到 19.1s
   workers: 4,
-  retries: 0,
+  // CI 上重试两次：偶发失败不挡合并，报告里标成 flaky 再单独修；本地不重试，失败立刻看到
+  retries: process.env.CI ? 2 : 0,
   // 本地没有 CI 变量也要拦：test.only 溜进 pre-push 或 CI 就只跑了一条
   forbidOnly: true,
   globalSetup: resolve(root, "e2e/global-setup.ts"),
