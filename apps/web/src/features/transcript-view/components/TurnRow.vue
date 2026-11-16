@@ -144,8 +144,7 @@ const turnError = computed(() => {
 }
 
 .row:hover :deep(.stamp),
-.row:focus-within :deep(.stamp),
-.row :deep(.stamp[data-status]) {
+.row:focus-within :deep(.stamp) {
   opacity: 1;
   pointer-events: auto;
 }

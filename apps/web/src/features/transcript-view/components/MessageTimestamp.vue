@@ -3,29 +3,11 @@
     v-if="valid"
     class="stamp"
     :data-pinned="pinned || undefined"
-    :data-status="status === 'idle' ? undefined : status"
     :data-copy-before="copyBefore || undefined"
     role="toolbar"
     :aria-label="t('transcript.messageActions')"
   >
-    <Tooltip v-if="text">
-      <TooltipTrigger as-child>
-        <IconButton
-          type="button"
-          variant="ghost"
-          color="gray"
-          size="s"
-          class="stamp-copy"
-          :aria-label="copyLabel"
-          @click="copy"
-        >
-          <CheckIcon v-if="status === 'copied'" class="size-icon" />
-          <CopyIcon v-else class="size-icon" />
-        </IconButton>
-      </TooltipTrigger>
-
-      <TooltipContent>{{ copyLabel }}</TooltipContent>
-    </Tooltip>
+    <CopyButton v-if="text" :text="text" />
 
     <Tooltip>
       <TooltipTrigger as-child>
@@ -38,12 +20,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef } from "vue"
-import { useNow, useTimeoutFn } from "@vueuse/core"
+import { computed } from "vue"
+import { useNow } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
-import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { CheckIcon, CopyIcon } from "@components/icons/index.js"
+import CopyButton from "@features/transcript-view/components/CopyButton.vue"
 import { formatRelative } from "@utils/time.js"
 
 const props = withDefaults(
@@ -78,28 +59,6 @@ const full = computed(() =>
       }).format(date.value)
     : "",
 )
-const status = shallowRef<"idle" | "copied" | "error">("idle")
-const copyLabel = computed(() =>
-  status.value === "copied"
-    ? t("common.copied")
-    : status.value === "error"
-      ? t("common.copyFailed")
-      : t("common.copyMessage"),
-)
-const { start, stop } = useTimeoutFn(() => (status.value = "idle"), 1500, { immediate: false })
-
-async function copy() {
-  if (!props.text) return
-  stop()
-
-  try {
-    await navigator.clipboard.writeText(props.text)
-    status.value = "copied"
-    start()
-  } catch {
-    status.value = "error"
-  }
-}
 </script>
 
 <style scoped>
@@ -125,19 +84,8 @@ async function copy() {
   user-select: none;
 }
 
-.stamp-copy {
-  color: var(--contrast-foreground-secondary);
-}
-
-.stamp-copy:hover {
-  color: var(--contrast-foreground);
-}
-
-.stamp[data-status="copied"] .stamp-copy {
-  color: var(--success);
-}
-
-.stamp[data-status="error"] .stamp-copy {
-  color: var(--danger);
+/* 复用的复制按钮默认钉在卡片角上，这里回到时间条里随流排 */
+.stamp :deep(.copy-button) {
+  position: static;
 }
 </style>
