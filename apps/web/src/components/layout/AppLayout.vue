@@ -129,7 +129,7 @@ html[data-pig-desktop-platform="darwin"] .resizer {
 }
 
 .shell.is-resizing {
-  cursor: col-resize;
+  cursor: ew-resize;
   user-select: none;
 }
 

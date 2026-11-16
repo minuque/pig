@@ -8,12 +8,12 @@
 .resize-handle {
   position: relative;
   flex: none;
-  cursor: col-resize;
+  cursor: ew-resize;
   touch-action: none;
 }
 
 .resize-handle[data-orientation="vertical"] {
-  cursor: row-resize;
+  cursor: ns-resize;
 }
 
 /* 命中区比视觉边界宽一档，落在两侧内容上 */

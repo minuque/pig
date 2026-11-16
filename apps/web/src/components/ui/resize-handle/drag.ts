@@ -11,7 +11,7 @@ export function dragResize(
   const startX = event.clientX
   let pendingX = startX
   let frame = 0
-  document.body.style.cursor = "col-resize"
+  document.body.style.cursor = "ew-resize"
   document.body.style.userSelect = "none"
 
   const move = (next: PointerEvent) => {

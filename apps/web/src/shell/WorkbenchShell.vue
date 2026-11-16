@@ -274,7 +274,7 @@ html[data-session-dragging] .split-drop {
 }
 
 .split-area.is-resizing {
-  cursor: col-resize;
+  cursor: ew-resize;
   user-select: none;
 }
 
@@ -289,7 +289,7 @@ html[data-session-dragging] .split-drop {
   flex: none;
   width: 0;
   margin-block-start: var(--header-height);
-  cursor: col-resize;
+  cursor: ew-resize;
   touch-action: none;
 }
 
