@@ -63,17 +63,6 @@
             <DropdownMenuItem>Item</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
-        <DropdownMenu :modal="false">
-          <DropdownMenuTrigger as-child>
-            <Button variant="soft" size="l">Large</Button>
-          </DropdownMenuTrigger>
-
-          <DropdownMenuContent size="l">
-            <DropdownMenuItem>Item</DropdownMenuItem>
-            <DropdownMenuItem>Item</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
     </Variant>
   </Story>

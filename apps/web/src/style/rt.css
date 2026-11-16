@@ -57,8 +57,7 @@
 
 /* 任何尺寸档都左右等宽：rt 的 :has 规则会为勾把左内边距抬高一档，这里压回去 */
 .rt-BaseMenuContent.rt-r-size-1,
-.rt-BaseMenuContent.rt-r-size-2,
-.rt-BaseMenuContent.rt-r-size-3 {
+.rt-BaseMenuContent.rt-r-size-2 {
   --base-menu-item-padding-left: var(--base-menu-item-padding-right);
 }
 

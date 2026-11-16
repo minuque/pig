@@ -24,8 +24,12 @@ import { computed, toRef, type ComputedRef, type HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { DropdownMenuContent, DropdownMenuPortal, useForwardPropsEmits } from "reka-ui"
 import { ThemeRoot } from "@components/ui/rt/index.js"
-import { sizeClass as rtSizeClass, type Size } from "@components/ui/rt/size.js"
-import { provideMenuContent, type MenuVariant } from "@components/ui/rt/menu-context.js"
+import { sizeClass as rtSizeClass } from "@components/ui/rt/size.js"
+import {
+  provideMenuContent,
+  type MenuSize,
+  type MenuVariant,
+} from "@components/ui/rt/menu-context.js"
 import { usePopperAnchor } from "./popper-anchor.js"
 
 defineOptions({
@@ -38,8 +42,8 @@ const props = withDefaults(
       class?: HTMLAttributes["class"]
       /** 大面板自管内边距，不套菜单视口壳 */
       bare?: boolean
-      /** Radix Themes 的菜单尺寸：s 紧凑、m 默认、l 宽松 */
-      size?: Size
+      /** Radix Themes 的菜单尺寸：s 紧凑、m 默认 */
+      size?: MenuSize
       variant?: MenuVariant
       color?: string
       highContrast?: boolean

@@ -51,16 +51,6 @@
             <ContextMenuItem>Item</ContextMenuItem>
           </ContextMenuContent>
         </ContextMenu>
-
-        <ContextMenu>
-          <ContextMenuTrigger as-child>
-            <div style="padding: 24px; border: 1px dashed var(--gray-a7)">Large menu</div>
-          </ContextMenuTrigger>
-
-          <ContextMenuContent size="l">
-            <ContextMenuItem>Item</ContextMenuItem>
-          </ContextMenuContent>
-        </ContextMenu>
       </div>
     </Variant>
   </Story>

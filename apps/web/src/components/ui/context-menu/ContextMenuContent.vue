@@ -31,8 +31,12 @@ import { reactiveOmit } from "@vueuse/core"
 import { ContextMenuPortal, injectContextMenuRootContext, useForwardPropsEmits } from "reka-ui"
 import { MenuContent } from "reka-ui/internal"
 import { ThemeRoot } from "@components/ui/rt/index.js"
-import { sizeClass as rtSizeClass, type Size } from "@components/ui/rt/size.js"
-import { provideMenuContent, type MenuVariant } from "@components/ui/rt/menu-context.js"
+import { sizeClass as rtSizeClass } from "@components/ui/rt/size.js"
+import {
+  provideMenuContent,
+  type MenuSize,
+  type MenuVariant,
+} from "@components/ui/rt/menu-context.js"
 
 defineOptions({
   inheritAttrs: false,
@@ -42,7 +46,7 @@ const props = withDefaults(
   defineProps<
     ContextMenuContentProps & {
       class?: HTMLAttributes["class"]
-      size?: Size
+      size?: MenuSize
       variant?: MenuVariant
       color?: string
       highContrast?: boolean
