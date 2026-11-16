@@ -69,6 +69,15 @@ function resolveSource(): string | undefined {
   return existsSync(path) ? path : undefined
 }
 
+/** 没有本机历史可 fork 时补一轮长回答：缩略图要两轮以上，回合跳转要正文能滚动。 */
+function appendEarlierTurn(manager: SessionManager, timestamp: number) {
+  const lines = Array.from({ length: 80 }, (_, i) => `第 ${i + 1} 段：较早一轮的回答。`)
+  manager.appendMessage({ role: "user", content: "较早的一轮", timestamp })
+  manager.appendMessage(
+    assistantMessage([{ type: "text", text: lines.join("\n\n") }], timestamp + 1_000),
+  )
+}
+
 function appendMarkerTurn(manager: SessionManager, timestamp: number) {
   const toolId = "e2e-tool-1"
   manager.appendMessage({
@@ -147,6 +156,8 @@ export function prebuildComplexSession(
     : SessionManager.create(cwd, sessionDir, { id: COMPLEX_SESSION_ID })
 
   manager.appendSessionInfo(COMPLEX_SESSION_NAME)
+
+  if (!source) appendEarlierTurn(manager, Date.now() - 60_000)
   appendMarkerTurn(manager, Date.now())
   const file = manager.getSessionFile()
 
