@@ -1,5 +1,5 @@
-import { BG_AGENT_TITLE, BG_FAIL_TITLE, BG_TASK_TITLE } from "./background-task-agent.js"
-import { expect, seedWorkspace, test, type E2eGateway } from "./fixtures.js"
+import { BG_AGENT_TITLE, BG_FAIL_TITLE, BG_TASK_TITLE } from "../support/background-task-agent.js"
+import { expect, seedWorkspace, test, type E2eGateway } from "../support/fixtures.js"
 import type { Page } from "@playwright/test"
 
 async function runCommand(page: Page, gateway: E2eGateway, command: string) {

@@ -1,6 +1,6 @@
-import { expect, test } from "./fixtures.js"
-import { CHILD_MARKER } from "./prebuild-session.js"
-import { startSubagentTurn } from "./subagent-turn.js"
+import { expect, test } from "../support/fixtures.js"
+import { CHILD_MARKER } from "../support/prebuild-session.js"
+import { startSubagentTurn } from "../support/subagent-turn.js"
 
 test("摘要面板：窗口变窄时从常驻卡收成头部浮层，变宽再回来", async ({ page, subagentGateway }) => {
   await page.setViewportSize({ width: 1600, height: 900 })

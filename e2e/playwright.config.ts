@@ -6,7 +6,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 
 export default defineConfig({
   testDir: dirname(fileURLToPath(import.meta.url)),
-  testMatch: "*.spec.ts",
+  testMatch: "**/*.spec.ts",
   // 桌面壳冒烟有独立配置和 webServer，不在主配置里跑
   testIgnore: ["electron/**"],
   timeout: 90_000,
@@ -18,8 +18,9 @@ export default defineConfig({
   fullyParallel: false,
   // 文件间并行，文件内仍串行；实测 32 条从 38.0s 降到 19.1s
   workers: 4,
-  retries: 0,
-  // 本地没有 CI 变量，只有 pre-push 跑 e2e；test.only 溜进去就没人发现
+  // CI 上重试两次：偶发失败不挡合并，报告里标成 flaky 再单独修；本地不重试，失败立刻看到
+  retries: process.env.CI ? 2 : 0,
+  // 本地没有 CI 变量也要拦：test.only 溜进 pre-push 或 CI 就只跑了一条
   forbidOnly: true,
   globalSetup: resolve(root, "e2e/global-setup.ts"),
   reporter: [

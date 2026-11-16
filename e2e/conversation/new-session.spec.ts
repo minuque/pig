@@ -1,5 +1,5 @@
-import { expect, seedWorkspace, test } from "./fixtures.js"
-import { installTurnBridge } from "./sim-turn.js"
+import { expect, seedWorkspace, test } from "../support/fixtures.js"
+import { installTurnBridge } from "../support/sim-turn.js"
 
 test("首页发首条 Prompt 建出会话，侧栏立刻多一张卡", async ({ page, gateway }) => {
   await page.emulateMedia({ reducedMotion: "reduce" })
@@ -29,31 +29,10 @@ test("首页发首条 Prompt 建出会话，侧栏立刻多一张卡", async ({ 
   await expect(page.locator(".session-card")).toHaveCount(1)
 })
 
-test("会话在跑时点新建会话，侧栏仍显示工作中，切回还在跑", async ({ page, gateway }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" })
-  await seedWorkspace(page, gateway.workspaceId)
-  const bridge = await installTurnBridge(page)
-
-  await page.goto(gateway.entryUrl)
-  await expect(page.locator(".startup-gate")).not.toHaveAttribute("inert", { timeout: 30_000 })
-  await expect(page.locator(".selector-name")).not.toHaveText("—")
-  await page.getByRole("textbox", { name: "Prompt" }).fill("并行的第一个会话")
-  await page.locator("button.send").click()
-  const sessionId = await bridge.waitForPrompt()
-  await expect(page).toHaveURL(new RegExp(`/sessions/${sessionId}$`), { timeout: 30_000 })
-  await expect(page.locator('[data-testid="turn-status"]')).toBeVisible()
-
-  await page.locator(".nav-head").getByRole("button", { name: "新建会话", exact: true }).click()
-  await expect(page).not.toHaveURL(/\/sessions\//)
-  const card = page.locator('.session-section[data-key="working"] .session-card')
-  await expect(card.locator(".working-status")).toBeVisible()
-
-  await card.click()
-  await expect(page).toHaveURL(new RegExp(`/sessions/${sessionId}$`))
-  await expect(page.locator('[data-testid="turn-status"]')).toBeVisible()
-})
-
-test("一个会话还在跑，回新建页照常建会话发出，不被排进队列", async ({ page, gateway }) => {
+test("一个会话还在跑：回新建页侧栏仍显示工作中，新会话照常发出不排队，切回还在跑", async ({
+  page,
+  gateway,
+}) => {
   await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   const bridge = await installTurnBridge(page, { holdPromptReply: true })
@@ -67,14 +46,22 @@ test("一个会话还在跑，回新建页照常建会话发出，不被排进�
   await page.locator("button.send").click()
   const first = await bridge.waitForPrompt()
   await expect(page).toHaveURL(new RegExp(`/sessions/${first}$`), { timeout: 30_000 })
+  await expect(page.locator('[data-testid="turn-status"]')).toBeVisible()
 
   await page.locator(".nav-head").getByRole("button", { name: "新建会话", exact: true }).click()
   await expect(page).not.toHaveURL(/\/sessions\//)
+  const working = page.locator('.session-section[data-key="working"] .session-card')
+  await expect(working.locator(".working-status")).toBeVisible()
+
   await prompt.fill("第二个会话")
   await prompt.press("Enter")
 
   await expect.poll(() => bridge.prompted.length).toBe(2)
   await expect(page).toHaveURL(new RegExp(`/sessions/${bridge.prompted[1]}$`))
   await expect(page.locator(".queue-panel")).toHaveCount(0)
-  await expect(page.locator('.session-section[data-key="working"] .session-card')).toHaveCount(2)
+  await expect(working).toHaveCount(2)
+
+  await working.and(page.locator(`[href$="/sessions/${first}"]`)).click()
+  await expect(page).toHaveURL(new RegExp(`/sessions/${first}$`))
+  await expect(page.locator('[data-testid="turn-status"]')).toBeVisible()
 })

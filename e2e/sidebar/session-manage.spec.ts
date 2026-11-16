@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test"
-import { expect, seedWorkspace, test, type E2eGateway } from "./fixtures.js"
-import { FILLER_PREFIX } from "./prebuild-session.js"
+import { expect, seedWorkspace, test, type E2eGateway } from "../support/fixtures.js"
+import { FILLER_PREFIX } from "../support/prebuild-session.js"
 
 async function enter(page: Page, gateway: E2eGateway) {
   await page.emulateMedia({ reducedMotion: "reduce" })

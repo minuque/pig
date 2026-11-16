@@ -1,5 +1,5 @@
-import { expect, test } from "./fixtures.js"
-import { REMOTE_HOST, remotePathOf } from "./remote-fixture.js"
+import { expect, test } from "../support/fixtures.js"
+import { REMOTE_HOST, remotePathOf } from "../support/remote-fixture.js"
 
 test("远程目录：选主机与目录，@ 搜到远端文件，会话按「主机 / 目录」显示", async ({
   page,
