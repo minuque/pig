@@ -363,10 +363,10 @@ export const test = base.extend<TestFixtures>({
   ],
   complexGateway: [
     async ({}, use) => {
-      await withGateway((sessionDir, workspaceDir) => {
-        const built = prebuildComplexSession(sessionDir, workspaceDir)
-        console.log(`预构建会话 ${built.id}${built.forked ? "（fork 本机历史）" : "（合成样本）"}`)
-      }, use)
+      await withGateway(
+        (sessionDir, workspaceDir) => void prebuildComplexSession(sessionDir, workspaceDir),
+        use,
+      )
     },
     { scope: "test" },
   ],

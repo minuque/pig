@@ -1,6 +1,3 @@
-import { existsSync } from "node:fs"
-import { homedir } from "node:os"
-import { join } from "node:path"
 import { SessionManager } from "@earendil-works/pi-coding-agent"
 
 export const COMPLEX_SESSION_ID = "e2e-complex"
@@ -10,11 +7,6 @@ export const TABLE_MARKER = "e2e-table"
 export const FORMULA_MARKER = "e2e-formula"
 export const MERMAID_MARKER = "e2e-mermaid"
 export const TOOL_MARKER = "e2e-tool"
-/** 本机扫描后推荐：pig、135 条、表+Mermaid+工具、无密钥。PIG_FIXTURE_SESSION 可覆盖。 */
-export const DEFAULT_FIXTURE_SESSION = join(
-  homedir(),
-  ".pi/agent/sessions/--G--AICode-pig--/2026-09-05T12-54-39-867Z_01a071a2-a5fa-7748-a64c-7ad5fe843205.jsonl",
-)
 
 type AppendMessage = Parameters<SessionManager["appendMessage"]>[0]
 
@@ -63,19 +55,82 @@ function assistantMessage(
   }
 }
 
-function resolveSource(): string | undefined {
-  const override = process.env.PIG_FIXTURE_SESSION?.trim()
-  const path = override && override.length > 0 ? override : DEFAULT_FIXTURE_SESSION
-  return existsSync(path) ? path : undefined
+const TOOL_KINDS = [
+  { name: "read", args: (n: number) => ({ path: `src/module-${n}.ts` }) },
+  { name: "bash", args: (n: number) => ({ command: `pnpm test --filter pkg-${n}` }) },
+  { name: "ffgrep", args: (n: number) => ({ pattern: `symbol${n}`, path: "src" }) },
+  {
+    name: "edit",
+    args: (n: number) => ({ path: `src/module-${n}.ts`, oldText: "a", newText: "b" }),
+  },
+  { name: "fffind", args: (n: number) => ({ pattern: `*-${n}.ts` }) },
+  { name: "write", args: (n: number) => ({ path: `notes/step-${n}.md`, content: "# 记录" }) },
+] as const
+const HISTORY_TURNS = 12
+const ROUNDS_PER_TURN = 3
+
+function syntheticReply(turn: number): string {
+  const paragraphs = Array.from(
+    { length: 6 },
+    (_, i) => `第 ${turn} 轮第 ${i + 1} 段：分析与结论。`,
+  )
+
+  if (turn % 3 === 0)
+    paragraphs.push(
+      `| 文件 | 改动 |\n| --- | --- |\n| module-${turn}.ts | 重命名 |\n| index.ts | 导出 |`,
+    )
+
+  if (turn % 4 === 0) paragraphs.push("```ts\nexport const answer = 42\n```")
+
+  if (turn === 6)
+    paragraphs.push("```mermaid\nflowchart LR\n  A[请求] --> B[处理] --> C[结果]\n```")
+  return paragraphs.join("\n\n")
 }
 
-/** 没有本机历史可 fork 时补一轮长回答：缩略图要两轮以上，回合跳转要正文能滚动。 */
-function appendEarlierTurn(manager: SessionManager, timestamp: number) {
-  const lines = Array.from({ length: 80 }, (_, i) => `第 ${i + 1} 段：较早一轮的回答。`)
-  manager.appendMessage({ role: "user", content: "较早的一轮", timestamp })
-  manager.appendMessage(
-    assistantMessage([{ type: "text", text: lines.join("\n\n") }], timestamp + 1_000),
-  )
+/** 合成的多轮历史：结构仿真实会话（思考、多种工具、表格、代码、Mermaid、一条长输出），内容是编的，各环境一致。 */
+function appendSyntheticHistory(manager: SessionManager, start: number) {
+  let time = start
+  let call = 0
+
+  for (let turn = 1; turn <= HISTORY_TURNS; turn += 1) {
+    manager.appendMessage({
+      role: "user",
+      content: `第 ${turn} 个任务：整理模块 ${turn}`,
+      timestamp: time++,
+    })
+
+    for (let round = 0; round < ROUNDS_PER_TURN; round += 1) {
+      const tool = TOOL_KINDS[call % TOOL_KINDS.length]!
+      const id = `e2e-history-${call}`
+      const long = call === 10
+      call += 1
+      manager.appendMessage(
+        assistantMessage(
+          [
+            {
+              type: "thinking",
+              thinking: `第 ${turn} 轮第 ${round + 1} 步：先看 ${tool.name} 的结果。`,
+            },
+            { type: "toolCall", id, name: tool.name, arguments: tool.args(call) },
+          ],
+          time++,
+          "toolUse",
+        ),
+      )
+      manager.appendMessage({
+        role: "toolResult",
+        toolCallId: id,
+        toolName: tool.name,
+        content: [
+          { type: "text", text: long ? "长输出一行\n".repeat(3000) : `${tool.name} 完成 #${call}` },
+        ],
+        isError: false,
+        timestamp: time++,
+      })
+    }
+
+    manager.appendMessage(assistantMessage([{ type: "text", text: syntheticReply(turn) }], time++))
+  }
 }
 
 function appendMarkerTurn(manager: SessionManager, timestamp: number) {
@@ -141,28 +196,20 @@ export function prebuildFillerSessions(
   return made
 }
 
-/** 把本机历史 fork 进测试 sessionDir；没有源文件时只写标记回合。用完由调用方删目录。 */
+/** 合成多轮历史，再写标记回合。用完由调用方删目录。 */
 export function prebuildComplexSession(
   sessionDir: string,
   cwd: string,
-): {
-  id: string
-  name: string
-  forked: boolean
-} {
-  const source = resolveSource()
-  const manager = source
-    ? SessionManager.forkFrom(source, cwd, sessionDir, { id: COMPLEX_SESSION_ID })
-    : SessionManager.create(cwd, sessionDir, { id: COMPLEX_SESSION_ID })
+): { id: string; name: string } {
+  const manager = SessionManager.create(cwd, sessionDir, { id: COMPLEX_SESSION_ID })
 
   manager.appendSessionInfo(COMPLEX_SESSION_NAME)
-
-  if (!source) appendEarlierTurn(manager, Date.now() - 60_000)
+  appendSyntheticHistory(manager, Date.now() - 3_600_000)
   appendMarkerTurn(manager, Date.now())
   const file = manager.getSessionFile()
 
   if (!file) throw new Error("预构建未写出会话文件")
-  return { id: COMPLEX_SESSION_ID, name: COMPLEX_SESSION_NAME, forked: Boolean(source) }
+  return { id: COMPLEX_SESSION_ID, name: COMPLEX_SESSION_NAME }
 }
 
 export const CHILD_SESSION_ID = "e2e-child"
