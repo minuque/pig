@@ -241,6 +241,8 @@
 
   /* 边框 / 遮罩 / 层级 */
   --border-width: 1px;
+  /* 引用块左竖线：markdown 引用与轮次错误行共用 */
+  --border-width-quote: 2px;
   --scrim: rgba(0, 0, 0, 0.4);
   --z-resizer: 1;
   --z-menu: 5;
