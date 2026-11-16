@@ -33,6 +33,8 @@ export async function seedWorkspaces(page: Page, workspaceIds: readonly string[]
       localStorage.setItem("pig.localWorkspaces", JSON.stringify(ids))
       localStorage.setItem("pig.lastCwd", ids[0] ?? "")
       localStorage.setItem("npg-theme", "light")
+      // 用例按文件面板收起起步；默认打开另看宽度
+      localStorage.setItem("pig.files.open", "off")
     },
     { ids: workspaceIds },
   )

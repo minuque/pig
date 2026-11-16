@@ -1,6 +1,7 @@
 <template>
   <div class="file-search">
     <TextFieldRoot
+      ref="field"
       v-model="query"
       class="file-search-field"
       size="s"
@@ -69,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef, watch } from "vue"
+import { computed, shallowRef, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { searchWorkspaceContents, searchWorkspaceFiles } from "@client/platform.js"
 import { Spinner } from "@components/ui/spinner/index.js"
@@ -92,6 +93,9 @@ const reasons = shallowRef<SearchTruncation[]>([])
 const notice = computed(() => searchLimitNotice(reasons.value, matches.value.length))
 const searching = shallowRef(false)
 const parent = (path: string) => path.split("/").slice(0, -1).join("/")
+const field = useTemplateRef<{ focus: () => void }>("field")
+
+watch(pane.searchRequest, () => field.value?.focus())
 
 watch([trimmed, () => pane.cwd.value], ([text, cwd], _, onCleanup) => {
   const controller = new AbortController()

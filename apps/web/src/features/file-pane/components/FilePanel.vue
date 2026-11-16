@@ -1,7 +1,7 @@
 <template>
   <section class="file-panel" :aria-label="t('files.title')">
     <header class="file-panel-head">
-      <Tooltip v-if="covering">
+      <Tooltip v-if="narrowCover">
         <TooltipTrigger as-child>
           <IconButton
             type="button"
@@ -39,30 +39,30 @@
 
       <FileTabs class="file-panel-tabs" />
 
-      <Tooltip v-if="!covering">
+      <!-- 右上角控制照 cc-wrapper：搜索、展开、关闭 -->
+      <Tooltip v-for="action in actions" :key="action.key">
         <TooltipTrigger as-child>
           <IconButton
             type="button"
             size="s"
             variant="ghost"
             color="gray"
-            :aria-label="t('common.close')"
-            @click="pane.setOpen(false)"
+            :aria-label="action.label"
+            :aria-pressed="action.pressed"
+            @click="action.run"
           >
-            <XIcon class="size-icon" />
+            <component :is="action.icon" class="size-icon" />
           </IconButton>
         </TooltipTrigger>
 
-        <TooltipContent>{{ t("common.close") }}</TooltipContent>
+        <TooltipContent>{{ action.label }}</TooltipContent>
       </Tooltip>
     </header>
 
     <div class="file-panel-body">
-      <!-- 没打开文件时树占满；打开后树在左、查看器在右，中间可拖 -->
-      <FileSearch v-if="pane.treeShown.value && !active"><FileTree /></FileSearch>
-
+      <!-- 树在左、查看器在右，中间可拖；没打开文件时右侧留空占位 -->
       <SplitterGroup
-        v-else-if="pane.treeShown.value && active"
+        v-if="pane.treeShown.value"
         direction="horizontal"
         auto-save-id="pig.files.tree"
       >
@@ -78,7 +78,8 @@
         <SplitterResizeHandle class="file-panel-handle" />
 
         <SplitterPanel :min-size="VIEWER_MIN" size-unit="px" class="file-panel-col">
-          <FileViewer :key="active" :path="active" />
+          <FileViewer v-if="active" :key="active" :path="active" />
+          <p v-else class="file-panel-empty">{{ t("files.empty") }}</p>
         </SplitterPanel>
       </SplitterGroup>
 
@@ -96,31 +97,64 @@ import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import {
   ArrowLeftIcon,
-  XIcon,
+  Maximize2Icon,
+  Minimize2Icon,
   PanelLeftCloseIcon,
   PanelRightOpenIcon,
+  SearchIcon,
+  XIcon,
 } from "@components/icons/index.js"
 import FileTabs from "@features/file-pane/components/FileTabs.vue"
 import FileSearch from "@features/file-pane/components/FileSearch.vue"
 import FileTree from "@features/file-pane/components/FileTree.vue"
 import FileViewer from "@features/file-pane/components/FileViewer.vue"
 import { useFilePane } from "@features/file-pane/index.js"
+import { usePanelHost } from "@features/split-view/index.js"
 
 /** 树列宽照 cc-wrapper：默认 240，最窄 160；查看器至少留 200。 */
 const TREE_DEFAULT = 240
 const TREE_MIN = 160
 const VIEWER_MIN = 200
-
-/** covering：窄屏盖住对话，头部给返回按钮代替关闭。 */
-defineProps<{ covering?: boolean }>()
-
+/** covering：面板列盖住对话（窄屏或点了展开）。 */
+const props = defineProps<{ covering?: boolean }>()
 const { t } = useI18n()
 const pane = useFilePane()
+const host = usePanelHost()
 const active = computed(() => pane.tabs.value.active)
+const expanded = computed(() => host?.expanded.value ?? false)
+/** 窄屏放不下才盖住：头部给返回按钮，不给展开与关闭。 */
+const narrowCover = computed(() => props.covering && !expanded.value)
+const actions = computed(() => [
+  {
+    key: "search",
+    label: t("files.search"),
+    icon: SearchIcon,
+    pressed: undefined,
+    run: () => void pane.focusSearch(),
+  },
+  ...(narrowCover.value || !host
+    ? []
+    : [
+        {
+          key: "expand",
+          label: expanded.value ? t("common.collapse") : t("common.expand"),
+          icon: expanded.value ? Minimize2Icon : Maximize2Icon,
+          pressed: expanded.value,
+          run: () => (host.expanded.value = !host.expanded.value),
+        },
+        {
+          key: "close",
+          label: t("common.close"),
+          icon: XIcon,
+          pressed: undefined,
+          run: () => pane.setOpen(false),
+        },
+      ]),
+])
 </script>
 
 <style scoped>
-/* 与右侧面板同一外观：表面底、卡片圆角、1px 柔描边 */
+/* 与右侧面板同一外观：表面底、卡片圆角、1px 柔描边；描边画在盒内，不被分栏的溢出裁掉 */
 .file-panel {
   display: flex;
   flex: 1;
@@ -128,8 +162,8 @@ const active = computed(() => pane.tabs.value.active)
   min-block-size: 0;
   overflow: hidden;
   background: var(--surface);
+  border: var(--border-width) solid var(--border-soft);
   border-radius: var(--radius-card);
-  box-shadow: 0 0 0 1px var(--border-soft);
 }
 
 .file-panel-head {

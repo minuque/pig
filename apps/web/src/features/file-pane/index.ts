@@ -1,5 +1,5 @@
-import { computed, inject, provide, shallowRef, watch, type InjectionKey } from "vue"
-import { readFlag, readPref, writeFlag, writePref } from "@utils/storage.js"
+import { computed, inject, nextTick, provide, shallowRef, watch, type InjectionKey } from "vue"
+import { readFlag, readPref, writeFlag } from "@utils/storage.js"
 import type { SessionContext } from "@features/session/index.js"
 import { openFileKey } from "@features/transcript-view/index.js"
 import { finishedWrites, workspacePath } from "@features/file-pane/lib/paths.js"
@@ -39,7 +39,11 @@ const isStringArray = (value: unknown): value is string[] =>
 type SessionSource = Pick<SessionContext, "sessionId" | "sessionCwd" | "transcript">
 
 function useFilePaneState(session: SessionSource) {
-  const open = shallowRef(readPref(OPEN_KEY) === "on")
+  const savedPref = readPref(OPEN_KEY)
+  /** 用户开关过就照记住的来；没开关过时放得下才默认打开。 */
+  const saved = shallowRef(savedPref === undefined ? undefined : savedPref !== "off")
+  const fits = shallowRef(true)
+  const open = computed(() => saved.value ?? fits.value)
   const tabs = shallowRef<TabsState>(emptyTabs())
   const request = shallowRef<FileRequest>()
   /** 被 agent 改过的文件：计数变了查看器就重读。 */
@@ -47,6 +51,8 @@ function useFilePaneState(session: SessionSource) {
   /** agent 每写完一个文件加一：树与改动标记据此刷新。 */
   const changes = shallowRef(0)
   const treeShown = shallowRef(readFlag(TREE_KEY))
+  /** 点一次头部的搜索按钮加一：搜索框据此聚焦。 */
+  const searchRequest = shallowRef(0)
   /** 树里展开的目录，按会话记住。 */
   const expanded = shallowRef<string[]>([])
   const cwd = computed(() => session.sessionCwd.value)
@@ -70,8 +76,8 @@ function useFilePaneState(session: SessionSource) {
   }
 
   function setOpen(next: boolean) {
-    open.value = next
-    writePref(OPEN_KEY, next ? "on" : "off")
+    saved.value = next
+    writeFlag(OPEN_KEY, next)
   }
 
   function openFile(path: string, options: OpenOptions = {}) {
@@ -120,6 +126,7 @@ function useFilePaneState(session: SessionSource) {
     cwd,
     openFile,
     setOpen,
+    setFits: (next: boolean) => (fits.value = next),
     toggle: () => setOpen(!open.value),
     activate: (path: string) => update(openTab(tabs.value, path, false)),
     pin: (path: string) => update(pinTab(tabs.value, path)),
@@ -129,6 +136,17 @@ function useFilePaneState(session: SessionSource) {
     toggleTree() {
       treeShown.value = !treeShown.value
       writeFlag(TREE_KEY, treeShown.value)
+    },
+    searchRequest,
+    /** 搜索框在文件树顶上：树收着就先展开，等它挂上再聚焦。 */
+    async focusSearch() {
+      if (!treeShown.value) {
+        treeShown.value = true
+        writeFlag(TREE_KEY, true)
+        await nextTick()
+      }
+
+      searchRequest.value += 1
     },
     expanded,
     setExpanded(next: string[]) {

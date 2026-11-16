@@ -20,7 +20,7 @@
       </template>
     </SplitterGroup>
 
-    <!-- 放不下对话最小宽度时整列盖住对话 -->
+    <!-- 放不下对话最小宽度、或用户点了展开时，整列盖住对话 -->
     <div v-if="covering" class="pane-body-cover">
       <PanelColumn :host="host" />
     </div>
@@ -28,7 +28,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef, useTemplateRef, watchEffect } from "vue"
+import { computed, shallowRef, useTemplateRef, watch, watchEffect } from "vue"
 import { useResizeObserver } from "@vueuse/core"
 import { SplitterGroup, SplitterPanel, SplitterResizeHandle } from "reka-ui"
 import PanelColumn from "@features/split-view/components/PanelColumn.vue"
@@ -45,11 +45,17 @@ const width = shallowRef(Number.POSITIVE_INFINITY)
 const chatMin = computed(() => (props.split ? SPLIT_CHAT_MIN : CHAT_MIN))
 const shown = computed(() => props.host.order.value.length > 0)
 const narrow = computed(() => width.value < chatMin.value + PANE_MIN)
-const docked = computed(() => shown.value && !narrow.value)
-const covering = computed(() => shown.value && narrow.value)
+const docked = computed(() => shown.value && !narrow.value && !props.host.expanded.value)
+const covering = computed(() => shown.value && (narrow.value || props.host.expanded.value))
 
 watchEffect(() => {
   props.host.covering.value = covering.value
+  props.host.narrow.value = narrow.value
+})
+
+// 面板全关了，下次打开回到并排
+watch(shown, (open) => {
+  if (!open) props.host.expanded.value = false
 })
 
 useResizeObserver(root, ([entry]) => {

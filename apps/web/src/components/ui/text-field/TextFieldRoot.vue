@@ -62,6 +62,8 @@ const extracted = computed(() =>
 )
 const inputRef = ref<HTMLInputElement>()
 
+defineExpose({ focus: () => inputRef.value?.focus() })
+
 function onInput(event: Event) {
   emit("update:modelValue", (event.target as HTMLInputElement).value)
 }

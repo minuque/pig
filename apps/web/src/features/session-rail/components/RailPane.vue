@@ -116,8 +116,8 @@ function clearFinished() {
   min-block-size: 0;
   overflow: hidden;
   background: var(--surface);
+  border: var(--border-width) solid var(--border-soft);
   border-radius: var(--radius-card);
-  box-shadow: 0 0 0 1px var(--border-soft);
 }
 
 .rail-pane-head {

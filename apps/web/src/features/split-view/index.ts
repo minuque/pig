@@ -153,11 +153,17 @@ function createPanelHost() {
   const slots = shallowReactive(new Map<PanelKind, HTMLElement>())
   /** 面板列宽度不够时整列盖住对话。 */
   const covering = shallowRef(false)
+  /** 这一侧放不下对话加面板列的最小宽度。 */
+  const narrow = shallowRef(false)
+  /** 用户点了展开：面板列铺满这一侧，盖住对话。 */
+  const expanded = shallowRef(false)
   const visible = computed(() => visiblePanels(order.value, height.value))
   return {
     order,
     visible,
     covering,
+    narrow,
+    expanded,
     slots,
     setHeight: (value: number) => {
       height.value = value

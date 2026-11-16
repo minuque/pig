@@ -8,7 +8,9 @@
     :sending="sending"
     :stopping="stopping"
     :timings="timings"
-  />
+  >
+    <slot />
+  </TranscriptBody>
 </template>
 
 <script setup lang="ts">

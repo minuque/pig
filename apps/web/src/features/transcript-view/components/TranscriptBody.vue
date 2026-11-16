@@ -20,32 +20,37 @@
     >
       <div class="transcript-edge-top edge-veil-top" aria-hidden="true"></div>
 
-      <div v-if="rows.length || running" ref="column" class="transcript">
-        <div ref="list" class="transcript-list">
-          <div class="timeline-rows">
-            <template v-for="(turn, turnIndex) in turns" :key="turn.id">
-              <TurnRow
-                :turn="turn"
-                :class="{ 'turn-runway': turn.id === runwayId }"
-                :session-id="sessionId"
-                :running="running"
-                :is-expand="isExpand"
-                :expanded-tools="expandedTools"
-                :eager="turnIndex >= turns.length - EAGER_TURNS || shownTurns.has(turn.id)"
-                :latest="turnIndex === turns.length - 1"
-                @toggle-expand="onToggleExpand"
-                @toggle-tool="onToggleTool"
-                @shown="shownTurns.add($event)"
-              >
-                <!-- 指示器挂在本轮里：跑道留白落在它之后，贴底时指示器跟着用户消息留在顶部 -->
-                <TranscriptStatus v-if="turnIndex === turns.length - 1" v-bind="statusProps" />
-              </TurnRow>
-            </template>
-          </div>
+      <!-- 正文与右侧摘要列并排：摘要在滚动区内，滚动条落在它右边 -->
+      <div class="transcript-frame">
+        <div v-if="rows.length || running" ref="column" class="transcript">
+          <div ref="list" class="transcript-list">
+            <div class="timeline-rows">
+              <template v-for="(turn, turnIndex) in turns" :key="turn.id">
+                <TurnRow
+                  :turn="turn"
+                  :class="{ 'turn-runway': turn.id === runwayId }"
+                  :session-id="sessionId"
+                  :running="running"
+                  :is-expand="isExpand"
+                  :expanded-tools="expandedTools"
+                  :eager="turnIndex >= turns.length - EAGER_TURNS || shownTurns.has(turn.id)"
+                  :latest="turnIndex === turns.length - 1"
+                  @toggle-expand="onToggleExpand"
+                  @toggle-tool="onToggleTool"
+                  @shown="shownTurns.add($event)"
+                >
+                  <!-- 指示器挂在本轮里：跑道留白落在它之后，贴底时指示器跟着用户消息留在顶部 -->
+                  <TranscriptStatus v-if="turnIndex === turns.length - 1" v-bind="statusProps" />
+                </TurnRow>
+              </template>
+            </div>
 
-          <!-- 还没有轮时（发送中）指示器没有归属的轮，单独挂一份 -->
-          <TranscriptStatus v-if="turns.length === 0" v-bind="statusProps" />
+            <!-- 还没有轮时（发送中）指示器没有归属的轮，单独挂一份 -->
+            <TranscriptStatus v-if="turns.length === 0" v-bind="statusProps" />
+          </div>
         </div>
+
+        <slot />
       </div>
     </div>
 
@@ -423,8 +428,14 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   z-index: 3;
 }
 
+.transcript-frame {
+  display: flex;
+  align-items: flex-start;
+}
+
 .transcript {
   box-sizing: border-box;
+  flex: 1;
   width: 100%;
   min-width: 0;
   padding-top: var(--transcript-pad-block);

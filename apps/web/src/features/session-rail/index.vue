@@ -1,6 +1,6 @@
 <template>
   <div v-if="session.sessionId.value" class="session-rail">
-    <!-- 宽屏：浮在正文右上角；头部的图标按钮开关它，窄屏改由按钮弹浮层 -->
+    <!-- 宽屏：在对话滚动区里独占右侧一列；头部的图标按钮开关它，窄屏改由按钮弹浮层 -->
     <aside v-if="rail.dockedShown.value" class="rail-docked" :aria-label="t('rail.title')">
       <RailCards v-bind="cards" @stop="stopTask" />
     </aside>
@@ -59,17 +59,16 @@ watch(
   display: contents;
 }
 
-/* 浮在正文右上角：高度随内容，最高到列底，超出自己滚 */
+/* 正文右侧独占一列：在对话滚动区里贴顶不动，最高到可见区底，卡片多了自己滚 */
 .rail-docked {
-  position: absolute;
+  position: sticky;
   inset-block-start: 0;
-  inset-inline-end: 0;
   z-index: 2;
-  inline-size: var(--size-rail);
-  max-block-size: calc(100% - var(--space-xs) - var(--space-sm));
-  margin-block: var(--space-xs) var(--space-sm);
-  margin-inline-end: var(--space-sm);
-  padding: 1px;
+  flex-shrink: 0;
+  inline-size: calc(var(--size-rail) + var(--space-sm));
+  margin-inline-start: auto;
+  max-block-size: 100cqh;
+  padding: var(--space-xs) var(--space-sm) var(--space-sm) 0;
   overflow-y: auto;
   scrollbar-width: none;
 }

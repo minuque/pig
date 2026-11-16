@@ -16,7 +16,6 @@
       </span>
     </div>
 
-    <SessionRail v-if="!welcome" />
     <RemoteWorkspaceDialog v-model:open="remoteOpen" :add="addRemoteWorkspace" />
 
     <div class="conversation-column">
@@ -53,13 +52,15 @@
             :sending="submitting"
             :stopping="aborting"
             :timings="turnTimings"
-          />
+          >
+            <SessionRail />
+          </TranscriptView>
         </div>
 
         <div
           ref="composerBar"
           class="composer-bar"
-          :class="{ 'is-hero': welcome, 'settle-in': settleIn }"
+          :class="{ 'is-hero': welcome, 'settle-in': settleIn, 'beside-rail': railDocked }"
         >
           <div class="composer-stack">
             <div class="session-floating-controls" :class="{ shown: showScrollToLatest }">
@@ -191,6 +192,10 @@ const pageError = computed(() => {
 })
 /** 会话面板宽度写回 rail 状态：摘要在常驻与浮层之间切换靠它。 */
 const rail = useSessionRail()
+/** 摘要列占着正文右侧：输入条只在正文那一段居中。 */
+const railDocked = computed(
+  () => !welcome.value && Boolean(sessionId.value) && rail?.dockedShown.value,
+)
 const panel = useTemplateRef<HTMLElement>("panel")
 
 useResizeObserver(panel, ([entry]) => {
@@ -524,6 +529,10 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   z-index: 2;
   padding-bottom: calc(var(--space-sm) + env(safe-area-inset-bottom, 0px));
   pointer-events: none;
+}
+
+.composer-bar.beside-rail {
+  inset-inline-end: calc(var(--size-rail) + var(--space-sm));
 }
 
 .composer-bar.is-hero {
