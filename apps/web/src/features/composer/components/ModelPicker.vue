@@ -359,8 +359,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   flex-shrink: 1;
   margin: 0;
   gap: var(--space-xs);
-  font-size: var(--text-meta);
-  font-weight: var(--font-weight-medium);
+  font-size: var(--text-body);
 }
 
 .selector.rt-Button[data-state="open"] {
