@@ -11,7 +11,7 @@
             :aria-label="t('nav.collapseSidebar')"
             @click="emit('toggleSidebar')"
           >
-            <PanelLeftCloseIcon class="size-icon-2xs" />
+            <PanelLeftIcon class="size-icon-2xs" />
           </IconButton>
         </TooltipTrigger>
 
@@ -117,7 +117,7 @@ import {
   FolderPlusIcon,
   MessageCirclePlusIcon,
   SearchIcon,
-  PanelLeftCloseIcon,
+  PanelLeftIcon,
   ListFilterIcon,
 } from "@components/icons/index.js"
 import { Button, IconButton } from "@components/ui/button/index.js"

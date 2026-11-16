@@ -46,7 +46,7 @@ export {
   MinusIcon,
   MoonIcon,
   PaletteIcon,
-  PanelLeftCloseIcon,
+  PanelLeftIcon,
   PanelRightIcon,
   PanelRightOpenIcon,
   PaperclipIcon,

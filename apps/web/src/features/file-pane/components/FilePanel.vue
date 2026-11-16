@@ -29,7 +29,7 @@
             :aria-pressed="pane.treeShown.value"
             @click="pane.toggleTree"
           >
-            <PanelLeftCloseIcon v-if="pane.treeShown.value" class="size-icon" />
+            <PanelLeftIcon v-if="pane.treeShown.value" class="size-icon" />
             <PanelRightOpenIcon v-else class="size-icon" />
           </IconButton>
         </TooltipTrigger>
@@ -103,7 +103,7 @@ import {
   ArrowLeftIcon,
   Maximize2Icon,
   Minimize2Icon,
-  PanelLeftCloseIcon,
+  PanelLeftIcon,
   PanelRightOpenIcon,
   SearchIcon,
   XIcon,
