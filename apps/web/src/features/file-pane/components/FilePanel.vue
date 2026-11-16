@@ -59,31 +59,30 @@
       </Tooltip>
     </header>
 
-    <div class="file-panel-body">
-      <!-- 树在左、查看器在右，中间可拖；没打开文件时右侧留空占位 -->
-      <SplitterGroup
-        v-if="pane.treeShown.value"
-        direction="horizontal"
-        auto-save-id="pig.files.tree"
-      >
-        <SplitterPanel
-          :default-size="TREE_DEFAULT"
-          :min-size="TREE_MIN"
-          size-unit="px"
-          class="file-panel-col"
-        >
+    <div ref="body" class="file-panel-body">
+      <!-- 树在左定宽、查看器在右占满，中间可拖；面板变宽变窄只动查看器；没打开文件时右侧留空占位 -->
+      <div v-if="pane.treeShown.value" class="file-panel-split">
+        <div class="file-panel-col" :style="{ inlineSize: `${treeWidth}px` }">
           <FileSearch><FileTree /></FileSearch>
-        </SplitterPanel>
+        </div>
 
-        <SplitterResizeHandle as-child class="file-panel-handle">
-          <ResizeHandle />
-        </SplitterResizeHandle>
+        <ResizeHandle
+          class="file-panel-handle"
+          role="separator"
+          aria-orientation="vertical"
+          tabindex="0"
+          data-orientation="horizontal"
+          :data-state="dragging ? 'drag' : undefined"
+          @pointerdown="startDrag"
+          @keydown.left.prevent="setTree(treeWidth - 16, true)"
+          @keydown.right.prevent="setTree(treeWidth + 16, true)"
+        />
 
-        <SplitterPanel :min-size="VIEWER_MIN" size-unit="px" class="file-panel-col">
+        <div class="file-panel-col file-panel-viewer">
           <FileViewer v-if="active" :key="active" :path="active" />
           <p v-else class="file-panel-empty">{{ t("files.empty") }}</p>
-        </SplitterPanel>
-      </SplitterGroup>
+        </div>
+      </div>
 
       <FileViewer v-else-if="active" :key="active" :path="active" />
       <p v-else class="file-panel-empty">{{ t("files.empty") }}</p>
@@ -92,12 +91,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
-import { SplitterGroup, SplitterPanel, SplitterResizeHandle } from "reka-ui"
+import { computed, shallowRef, useTemplateRef } from "vue"
+import { useResizeObserver } from "@vueuse/core"
+import { readPref, writePref } from "@utils/storage.js"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Card } from "@components/ui/card/index.js"
-import { ResizeHandle } from "@components/ui/resize-handle/index.js"
+import { ResizeHandle, dragResize } from "@components/ui/resize-handle/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import {
   ArrowLeftIcon,
@@ -128,6 +128,36 @@ const active = computed(() => pane.tabs.value.active)
 const expanded = computed(() => host?.expanded.value ?? false)
 /** 窄屏放不下才盖住：头部给返回按钮，不给展开与关闭。 */
 const narrowCover = computed(() => props.covering && !expanded.value)
+const TREE_WIDTH_KEY = "pig.files.treeWidth"
+const savedTree = Number(readPref(TREE_WIDTH_KEY))
+/** 用户拖出来的树宽；面板宽度变化不改它，放不下时才临时收窄。 */
+const treePref = shallowRef(Number.isFinite(savedTree) && savedTree > 0 ? savedTree : TREE_DEFAULT)
+const bodyWidth = shallowRef(Number.POSITIVE_INFINITY)
+const treeMax = computed(() => Math.max(TREE_MIN, bodyWidth.value - VIEWER_MIN))
+const treeWidth = computed(() => Math.min(Math.max(treePref.value, TREE_MIN), treeMax.value))
+const dragging = shallowRef(false)
+
+useResizeObserver(useTemplateRef("body"), ([entry]) => {
+  if (entry) bodyWidth.value = entry.contentRect.width
+})
+
+function setTree(next: number, save = false) {
+  treePref.value = Math.min(Math.max(next, TREE_MIN), treeMax.value)
+
+  if (save) writePref(TREE_WIDTH_KEY, String(Math.round(treePref.value)))
+}
+
+function startDrag(event: PointerEvent) {
+  const start = treeWidth.value
+  dragging.value = dragResize(event, {
+    move: (delta) => setTree(start + delta),
+    end: (delta) => {
+      setTree(start + delta, true)
+      dragging.value = false
+    },
+  })
+}
+
 const actions = computed(() => [
   {
     key: "search",
@@ -189,10 +219,21 @@ const actions = computed(() => [
   min-block-size: 0;
 }
 
+.file-panel-split {
+  display: flex;
+  flex: 1;
+  min-block-size: 0;
+}
+
 .file-panel-col {
   display: flex;
+  flex: none;
   flex-direction: column;
   min-inline-size: 0;
+}
+
+.file-panel-viewer {
+  flex: 1;
 }
 
 /* 树与查看器之间：1px 分割线，把手外观由 ResizeHandle 画 */

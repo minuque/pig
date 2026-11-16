@@ -9,6 +9,7 @@ import {
   type Ref,
 } from "vue"
 import { readPref, writePref } from "@utils/storage.js"
+import { dragResize } from "@components/ui/resize-handle/index.js"
 
 export type SidebarState = "expanded" | "offcanvas"
 
@@ -109,47 +110,15 @@ export function useLeftPanel() {
   }
 
   function startResize(event: PointerEvent) {
-    const handle = event.currentTarget
-
-    if (!(handle instanceof HTMLElement)) return
-    event.preventDefault()
-    handle.setPointerCapture(event.pointerId)
-    const startX = event.clientX
     const startWidth = leftWidth.value
-    resizing.value = true
-    document.body.style.cursor = "col-resize"
-    document.body.style.userSelect = "none"
-
-    // pointermove 用 rAF 合帧：每帧至多计算一次宽度，pointerup 后补一次最终位置
-    let frame = 0
-    let pendingX = startX
-    const move = (next: PointerEvent) => {
-      pendingX = next.clientX
-
-      if (frame) return
-      frame = requestAnimationFrame(() => {
-        frame = 0
-        setPanelWidth(startWidth + (pendingX - startX))
-      })
-    }
-    const stop = () => {
-      handle.removeEventListener("pointermove", move)
-      handle.removeEventListener("pointerup", stop)
-      handle.removeEventListener("pointercancel", stop)
-
-      if (frame) cancelAnimationFrame(frame)
-      setPanelWidth(startWidth + (pendingX - startX))
-      persistWidth(leftWidth.value)
-      resizing.value = false
-      document.body.style.removeProperty("cursor")
-      document.body.style.removeProperty("user-select")
-
-      if (handle.hasPointerCapture(event.pointerId)) handle.releasePointerCapture(event.pointerId)
-    }
-
-    handle.addEventListener("pointermove", move)
-    handle.addEventListener("pointerup", stop)
-    handle.addEventListener("pointercancel", stop)
+    resizing.value = dragResize(event, {
+      move: (delta) => setPanelWidth(startWidth + delta),
+      end: (delta) => {
+        setPanelWidth(startWidth + delta)
+        persistWidth(leftWidth.value)
+        resizing.value = false
+      },
+    })
   }
 
   function toggle() {
