@@ -83,18 +83,25 @@ useResizeObserver(root, ([entry]) => {
   min-width: 0;
 }
 
-/* 卡片在头部下沿之内：右上角那一行是头部与窗控的 */
+/* 面板列贴满头部之下、窗口右侧，不留外边距 */
 .pane-body-column {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  padding: var(--space-sm) var(--space-sm) var(--space-sm) 0;
 }
 
-/* 拖拽区就是对话与面板之间的空隙 */
+/* 对话与面板之间一条 1px 分割线，两侧各留几像素的拖拽区 */
 .pane-body-handle {
-  inline-size: var(--space-sm);
+  position: relative;
+  inline-size: var(--border-width);
+  background: var(--border-soft);
   cursor: col-resize;
+}
+
+.pane-body-handle::after {
+  content: "";
+  position: absolute;
+  inset: 0 calc(-1 * var(--space-xxs));
 }
 
 .pane-body-handle:focus-visible {
@@ -107,7 +114,6 @@ useResizeObserver(root, ([entry]) => {
   z-index: 3;
   display: flex;
   flex-direction: column;
-  padding: var(--space-sm);
   background: var(--background);
 }
 </style>

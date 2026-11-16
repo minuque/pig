@@ -14,7 +14,7 @@
           :aria-label="t('rail.toggle')"
           @click="rail.toggleDocked"
         >
-          <ListTodoIcon class="size-icon-2xs" />
+          <NotepadTextIcon class="size-icon-2xs" />
           <span v-if="runningCount > 0" class="rail-toggle-dot" />
         </IconButton>
       </TooltipTrigger>
@@ -37,7 +37,7 @@
               :data-active="popoverOpen || undefined"
               :aria-label="t('rail.toggle')"
             >
-              <ListTodoIcon class="size-icon-2xs" />
+              <NotepadTextIcon class="size-icon-2xs" />
               <span v-if="runningCount > 0" class="rail-toggle-dot" />
             </IconButton>
           </TooltipTrigger>
@@ -57,7 +57,7 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch, type ComponentPublicInstance } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { ListTodoIcon } from "@components/icons/index.js"
+import { NotepadTextIcon } from "@components/icons/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"

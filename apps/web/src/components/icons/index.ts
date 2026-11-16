@@ -33,7 +33,7 @@ export {
   FolderPlusIcon,
   FoldersIcon,
   ListFilterIcon,
-  ListTodoIcon,
+  NotepadTextIcon,
   GlobeIcon,
   GripVerticalIcon,
   KeyRoundIcon,

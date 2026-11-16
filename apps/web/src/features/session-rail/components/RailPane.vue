@@ -108,7 +108,7 @@ function clearFinished() {
 
 <style scoped>
 /* 会话面板的第三列：头部之下、贴右边，宽度两档；正文自己滚，头部不动 */
-/* 面板列里的一张卡片：宽高都随所在的挂载点 */
+/* 面板列里的一块面板：宽高都随所在的挂载点 */
 .rail-pane {
   display: flex;
   flex: 1;
@@ -116,8 +116,6 @@ function clearFinished() {
   min-block-size: 0;
   overflow: hidden;
   background: var(--surface);
-  border: var(--border-width) solid var(--border-soft);
-  border-radius: var(--radius-card);
 }
 
 .rail-pane-head {
@@ -126,6 +124,7 @@ function clearFinished() {
   align-items: center;
   gap: var(--space-xs);
   padding: var(--space-sm) var(--space-sm) var(--space-sm) var(--space-md);
+  border-block-end: var(--border-width) solid var(--border-soft);
 }
 
 .rail-pane-title {

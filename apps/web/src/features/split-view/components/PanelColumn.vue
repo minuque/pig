@@ -77,10 +77,18 @@ function mount(kind: PanelKind, el: unknown) {
   flex: 1;
 }
 
-/* 拖拽区就是上下两个面板之间的空隙 */
+/* 上下两个面板之间一条 1px 分割线，上下各留几像素的拖拽区 */
 .panel-column-handle {
-  block-size: var(--space-sm);
+  position: relative;
+  block-size: var(--border-width);
+  background: var(--border-soft);
   cursor: row-resize;
+}
+
+.panel-column-handle::after {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * var(--space-xxs)) 0;
 }
 
 .panel-column-handle:focus-visible {
