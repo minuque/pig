@@ -418,6 +418,28 @@ html[data-pig-desktop-platform="win32"] {
   --inverse-foreground: #101012;
 }
 
+/* 界面字号档：默认 M；S/L 缩放辅助、正文、标题三档，页面大标题不动。 */
+html[data-ui-size="s"] {
+  --text-meta: 11px;
+  --text-body: 13px;
+  --text-title: 15px;
+}
+
+html[data-ui-size="l"] {
+  --text-meta: 13px;
+  --text-body: 15px;
+  --text-title: 17px;
+}
+
+/* 代码字号档：默认 M 是 13px 等宽；行高不动，文件面板的虚拟列表按固定行高定位。 */
+html[data-code-size="s"] {
+  --text-code: 12px;
+}
+
+html[data-code-size="l"] {
+  --text-code: 14px;
+}
+
 /* 对话宽度档：舒适为默认，宽档加宽，满宽铺满列。 */
 html[data-chat-width="wide"] {
   --size-content: 920px;

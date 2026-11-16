@@ -4,4 +4,4 @@ export type { ChatWidth, UiLocale } from "@features/settings/hooks/use-general-p
 
 export { useAppearancePrefs } from "@features/settings/hooks/use-appearance-prefs.js"
 
-export type { WelcomeField } from "@features/settings/hooks/use-appearance-prefs.js"
+export type { WelcomeField, SizeTier } from "@features/settings/hooks/use-appearance-prefs.js"

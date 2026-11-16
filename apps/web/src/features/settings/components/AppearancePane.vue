@@ -60,6 +60,29 @@
           </Select>
         </div>
 
+        <div id="setting-ui-size" class="row">
+          <div class="copy">
+            <h3 class="label">{{ t("settings.uiSize") }}</h3>
+            <p class="desc">{{ t("settings.uiSizeHint") }}</p>
+          </div>
+
+          <SegmentedControl
+            :model-value="uiSize"
+            size="s"
+            :aria-label="t('settings.uiSize')"
+            @update:model-value="onUiSize"
+          >
+            <SegmentedControlItem
+              v-for="option in tiers"
+              :key="option.id"
+              :value="option.id"
+              :aria-label="option.label"
+            >
+              {{ option.mark }}
+            </SegmentedControlItem>
+          </SegmentedControl>
+        </div>
+
         <div id="setting-code-font" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.codeFont") }}</h3>
@@ -87,6 +110,25 @@
                 :style="{ fontFamily: quote(family) }"
               >
                 {{ family }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div id="setting-code-size" class="row">
+          <div class="copy">
+            <h3 class="label">{{ t("settings.codeSize") }}</h3>
+            <p class="desc">{{ t("settings.codeSizeHint") }}</p>
+          </div>
+
+          <Select :model-value="codeSize" @update:model-value="onCodeSize">
+            <SelectTrigger class="setting-select" :aria-label="t('settings.codeSize')">
+              {{ codeSizeLabel }}
+            </SelectTrigger>
+
+            <SelectContent>
+              <SelectItem v-for="option in tiers" :key="option.id" :value="option.id">
+                {{ option.label }}
               </SelectItem>
             </SelectContent>
           </Select>
@@ -122,10 +164,12 @@ import {
   useAppearancePrefs,
   useGeneralPrefs,
   type ChatWidth,
+  type SizeTier,
   type WelcomeField,
 } from "@features/settings/index.js"
 import { useLocalFonts } from "@features/settings/hooks/use-local-fonts.js"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@components/ui/select/index.js"
+import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
 import { Card } from "@components/ui/card/index.js"
 import SchemeCards from "./SchemeCards.vue"
 
@@ -133,8 +177,18 @@ import SchemeCards from "./SchemeCards.vue"
 const DEFAULT = "__default__"
 const { t } = useI18n()
 const { chatWidth, setChatWidth } = useGeneralPrefs()
-const { welcomeField, uiFont, codeFont, setWelcomeField, setUiFont, setCodeFont } =
-  useAppearancePrefs()
+const {
+  welcomeField,
+  uiFont,
+  codeFont,
+  uiSize,
+  codeSize,
+  setWelcomeField,
+  setUiFont,
+  setCodeFont,
+  setUiSize,
+  setCodeSize,
+} = useAppearancePrefs()
 const { families, mono, load } = useLocalFonts()
 
 function onUiFont(value: string) {
@@ -143,6 +197,14 @@ function onUiFont(value: string) {
 
 function onCodeFont(value: string) {
   setCodeFont(value === DEFAULT ? "" : value)
+}
+
+function onUiSize(value: string) {
+  setUiSize(value as SizeTier)
+}
+
+function onCodeSize(value: string) {
+  setCodeSize(value as SizeTier)
 }
 
 function quote(family: string): string {
@@ -177,12 +239,21 @@ const widths = computed<{ id: ChatWidth; label: string }[]>(() => [
   { id: "wide", label: t("settings.chatWidthWide") },
   { id: "full", label: t("settings.chatWidthFull") },
 ])
+/* 分段控件只放字母，完整名称留给无障碍标签与代码字号的下拉框 */
+const tiers = computed<{ id: SizeTier; mark: string; label: string }[]>(() => [
+  { id: "s", mark: "S", label: t("settings.sizeS") },
+  { id: "m", mark: "M", label: t("settings.sizeM") },
+  { id: "l", mark: "L", label: t("settings.sizeL") },
+])
 /* 触发器文案自己算：SelectValue 缓存的选中项文字不会跟着切语言更新 */
 const welcomeLabel = computed(
   () => fields.value.find((option) => option.id === welcomeField.value)?.label ?? "",
 )
 const widthLabel = computed(
   () => widths.value.find((option) => option.id === chatWidth.value)?.label ?? "",
+)
+const codeSizeLabel = computed(
+  () => tiers.value.find((option) => option.id === codeSize.value)?.label ?? "",
 )
 </script>
 
