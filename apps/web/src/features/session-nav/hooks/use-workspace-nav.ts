@@ -1,5 +1,13 @@
-import { computed, ref, shallowRef, toValue, watch, type MaybeRefOrGetter, type Ref } from "vue"
-import type { Router } from "vue-router"
+import {
+  computed,
+  nextTick,
+  ref,
+  shallowRef,
+  toValue,
+  watch,
+  type MaybeRefOrGetter,
+  type Ref,
+} from "vue"
 import type { SessionMetadata } from "@/types/common-type.js"
 import { errorMessage, PlatformRequestError } from "@client/http.js"
 import { t } from "@i18n/index.js"
@@ -32,8 +40,10 @@ export function useWorkspaceNav(
   error: Ref<string>,
   admin: {
     sessionId: Ref<string | undefined>
-    running: Ref<boolean>
-    router: Router
+    /** 两侧正在显示的会话。 */
+    shownIds: Ref<readonly (string | undefined)[]>
+    isRunning(id: string): boolean
+    leave(id: string): void
     refreshSessions(): Promise<void>
   },
 ) {
@@ -230,7 +240,7 @@ export function useWorkspaceNav(
   async function deleteSession(id: string) {
     error.value = ""
 
-    if (admin.sessionId.value === id && admin.running.value) {
+    if (admin.isRunning(id)) {
       error.value = t("session.stopRunningBeforeDelete")
       return
     }
@@ -238,7 +248,12 @@ export function useWorkspaceNav(
     setDeleting(id, true)
 
     try {
-      if (admin.sessionId.value === id) await admin.router.replace("/")
+      // 两侧哪边开着它就先离开，等前台连接放下再删
+      if (admin.shownIds.value.includes(id)) {
+        admin.leave(id)
+        await nextTick()
+      }
+
       await requestDeleteSession(id).catch(async (cause: unknown) => {
         if (!isBusy(cause)) throw cause
         await new Promise((resolve) => setTimeout(resolve, DELETE_RETRY_MS))

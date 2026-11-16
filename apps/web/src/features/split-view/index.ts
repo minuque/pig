@@ -21,6 +21,7 @@ import {
   closeSide,
   fitsSplit,
   focusSide,
+  leaveSession,
   newOnRight,
   openInFocused,
   openToSide,
@@ -67,6 +68,7 @@ function createSplitView(
     focusSide: (side: Side) => update((s) => focusSide(s, side)),
     closeSide: (side: Side) => update((s) => closeSide(s, side)),
     newOnRight: () => update(newOnRight),
+    leaveSession: (id: string) => update((s) => leaveSession(s, id)),
     setRatio: (ratio: number) => update((s) => setRatio(s, ratio, width.value)),
     /** 这一侧建出新会话：显示它并聚焦这一侧。 */
     showIn: (side: Side, id: string) => update((s) => ({ ...s, [side]: id, focused: side })),
@@ -97,7 +99,11 @@ export function useSplitView(): SplitViewContext {
 
 /** 聚焦那一侧的会话视图：给 sidebar、扩展弹窗这些全局只认一个会话的地方用。
  * 在跑与在显示两件事要算上另一侧：另一侧的前台会话不在后台池里。 */
-export function focusedSession(read: () => SessionContext, readOther: () => SessionContext) {
+export function focusedSession(
+  read: () => SessionContext,
+  readOther: () => SessionContext,
+  leave: (id: string) => void,
+) {
   const otherId = () => {
     const other = readOther()
     return other === read() ? undefined : other.sessionId.value
@@ -121,6 +127,8 @@ export function focusedSession(read: () => SessionContext, readOther: () => Sess
       return new Set([...ids, id])
     }),
     shownIds: computed(() => [read().sessionId.value, otherId()]),
+    /** 哪一侧显示着这个会话，就让那一侧回到新会话页。 */
+    leave,
     loadHistory: (id: string, options?: { force?: boolean }) => read().loadHistory(id, options),
   }
 }

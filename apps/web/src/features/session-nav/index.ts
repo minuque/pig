@@ -44,8 +44,11 @@ function createNav(
   const activeSessionRunning = computed(() => session.projection.value?.running ?? false)
   const nav = useWorkspaceNav(pi.sessions, cwd, navError, {
     sessionId: session.sessionId,
-    running: activeSessionRunning,
-    router,
+    shownIds: session.shownIds,
+    isRunning: (id) =>
+      (session.sessionId.value === id && activeSessionRunning.value) ||
+      session.backgroundRunningIds.value.has(id),
+    leave: session.leave,
     refreshSessions: pi.refreshSessions,
   })
   const markers = useSessionMarkers(nav.listedSessions, session.shownIds)

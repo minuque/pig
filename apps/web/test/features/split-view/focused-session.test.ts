@@ -20,6 +20,7 @@ describe("给侧栏的聚焦侧视图", () => {
     const view = focusedSession(
       () => right as never,
       () => left as never,
+      () => undefined,
     )
 
     expect([...view.backgroundRunningIds.value].sort()).toEqual(["a", "z"])

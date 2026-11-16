@@ -121,6 +121,7 @@ const focused = focusedSession(
     split.split.value
       ? onSide(split.focused.value === "left" ? "right" : "left")
       : onSide(split.focused.value),
+  split.leaveSession,
 )
 const { settingsOpen, settingsPane, openSettings, closeSettings } = useSettingsDialog()
 

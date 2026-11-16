@@ -30,11 +30,12 @@ function localWorkspaces(paths: string[]) {
   }
 }
 
-function admin(sessionId?: string, running = false) {
+function admin(sessionId?: string, running = false, otherId?: string) {
   return {
     sessionId: ref<string | undefined>(sessionId),
-    running: ref<boolean>(running),
-    router: { replace: vi.fn() } as never,
+    shownIds: ref([sessionId, otherId]),
+    isRunning: (id: string) => running && id === sessionId,
+    leave: vi.fn(),
     refreshSessions: vi.fn(async () => undefined),
   }
 }
@@ -112,7 +113,7 @@ describe("useWorkspaceNav", () => {
     expect(navError.value).not.toBe("")
   })
 
-  it("删除当前会话时先回首页再发删除请求", async () => {
+  it("删除另一侧开着的会话时，先让那一侧离开再发删除请求", async () => {
     const sessions = ref<SessionMetadata[]>([{ id: "s1", createdAt: 1, cwd: "/a" }])
     const calls: string[] = []
     platformRequestMock.mockImplementation(async (path: string) => {
@@ -123,17 +124,16 @@ describe("useWorkspaceNav", () => {
 
       return { cards: [] }
     })
-    const adm = admin("s1")
-    adm.router = {
-      replace: vi.fn(() => {
-        calls.push("replace")
-      }),
-    } as never
+    const adm = admin("s0", false, "s1")
+    adm.leave = vi.fn(() => {
+      calls.push("leave")
+    })
     const nav = useWorkspaceNav(sessions, localWorkspaces(["/a"]), ref(""), adm)
 
     await nav.deleteSession("s1")
 
-    expect(calls).toEqual(["replace", "delete"])
+    expect(adm.leave).toHaveBeenCalledWith("s1")
+    expect(calls).toEqual(["leave", "delete"])
   })
 
   it("运行中的当前会话拒绝删除", async () => {

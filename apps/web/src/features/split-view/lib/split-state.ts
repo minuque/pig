@@ -57,6 +57,12 @@ export function openToSide(state: SplitState, id: string | undefined): SplitStat
   return { ...state, [target]: id, focused: target }
 }
 
+/** 让显示该会话的一侧离开它，回到新会话页；聚焦不变。 */
+export function leaveSession(state: SplitState, id: string): SplitState {
+  const side = sideShowing(state, id)
+  return side ? { ...state, [side]: undefined } : state
+}
+
 /** 在右侧新建会话：右侧换成新会话页并聚焦，左侧不动。 */
 export function newOnRight(state: SplitState): SplitState {
   return { ...state, split: true, right: undefined, focused: "right" }
