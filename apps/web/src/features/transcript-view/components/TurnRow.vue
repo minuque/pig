@@ -24,7 +24,6 @@
         :item="row"
         :session-id="sessionId"
         :streaming="running && row.streaming"
-        :pinned="latest"
       />
 
       <ToolRun
@@ -63,8 +62,6 @@ const props = defineProps<{
   expandedTools: Map<string, boolean>
   /** false 时先占位，滚到附近再挂载内容；挂过一次就一直保留。 */
   eager: boolean
-  /** 最后一轮：它的助手正文底栏常驻显示。 */
-  latest?: boolean
 }>()
 const emit = defineEmits<{
   toggleExpand: [id: string, open: boolean]
