@@ -31,15 +31,15 @@ const label = computed(() => {
 </script>
 
 <style scoped>
-/* 照 markdown 引用块排：左竖线加缩进；出错时竖线与标题染危险色，中止保持灰 */
+/* 照 markdown 引用块排：左竖线加缩进；竖线与标题按状态染色，出错用危险色、中止用警示色 */
 .turn-error {
   padding-inline-start: var(--space-xs);
-  color: var(--contrast-foreground-faint);
-  border-inline-start: var(--border-width-quote) solid var(--border-soft);
+  color: var(--warning);
+  border-inline-start: var(--border-width-quote) solid currentcolor;
 }
 
 .turn-error[data-error] {
-  border-inline-start-color: var(--danger);
+  color: var(--danger);
 }
 
 .turn-error-head {
@@ -49,10 +49,6 @@ const label = computed(() => {
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-meta--line-height);
-}
-
-.turn-error[data-error] .turn-error-head {
-  color: var(--danger);
 }
 
 .turn-error-message {
