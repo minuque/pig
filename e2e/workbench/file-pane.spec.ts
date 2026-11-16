@@ -1,9 +1,13 @@
 import { mkdir, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 
-import { checkpoint } from "./checkpoint.js"
-import { expect, seedWorkspace, test } from "./fixtures.js"
-import { COMPLEX_MARKER, COMPLEX_SESSION_ID, COMPLEX_SESSION_NAME } from "./prebuild-session.js"
+import { checkpoint } from "../support/checkpoint.js"
+import { expect, seedWorkspace, test } from "../support/fixtures.js"
+import {
+  COMPLEX_MARKER,
+  COMPLEX_SESSION_ID,
+  COMPLEX_SESSION_NAME,
+} from "../support/prebuild-session.js"
 
 const SOURCE = "export const fromWorkspace = 42\n"
 

@@ -1,4 +1,4 @@
-import { expect, seedWorkspace, test } from "./fixtures.js"
+import { expect, seedWorkspace, test } from "../support/fixtures.js"
 
 test("新增自定义供应商，Composer 目录立即跟上，刷新后仍在，编辑后删除", async ({
   page,

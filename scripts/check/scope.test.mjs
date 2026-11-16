@@ -39,7 +39,7 @@ describe("classifyTouched", () => {
   })
 
   it("e2e 目录改动单独标记，不映射到包", () => {
-    const scope = classifyTouched(["e2e/checkpoint.ts"])
+    const scope = classifyTouched(["e2e/support/checkpoint.ts"])
     assert.equal(scope.e2e, true)
     assert.equal(scope.scripts, false)
     assert.deepEqual(scope.packages, [])
@@ -55,28 +55,30 @@ describe("classifyTouched", () => {
 
   it("按改动区域挑 e2e，未命中的 web 改动回落到新建会话旅程", () => {
     assert.deepEqual(classifyTouched(["apps/web/src/features/composer/index.vue"]).specs, [
-      "e2e/composer-attachments.spec.ts",
-      "e2e/composer-queue.spec.ts",
+      "e2e/composer/",
     ])
     assert.deepEqual(classifyTouched(["apps/web/src/style/app.css"]).specs, [
-      "e2e/new-session.spec.ts",
+      "e2e/conversation/new-session.spec.ts",
     ])
     assert.deepEqual(classifyTouched(["apps/web/src/features/session-nav/index.vue"]).specs, [
-      "e2e/session-nav.spec.ts",
-      "e2e/session-manage.spec.ts",
-      "e2e/session-switch.spec.ts",
-      "e2e/workspace.spec.ts",
+      "e2e/sidebar/",
+    ])
+    assert.deepEqual(classifyTouched(["apps/web/src/shell/WorkbenchShell.vue"]).specs, [
+      "e2e/workbench/split-view.spec.ts",
+      "e2e/conversation/new-session.spec.ts",
     ])
     assert.deepEqual(classifyTouched(["apps/web/src/features/theme/lib/palette.ts"]).specs, [
-      "e2e/theme.spec.ts",
+      "e2e/conversation/new-session.spec.ts",
     ])
     assert.deepEqual(classifyTouched(["apps/web/src/features/startup/index.ts"]).specs, [
-      "e2e/new-session.spec.ts",
-      "e2e/error.spec.ts",
+      "e2e/conversation/new-session.spec.ts",
+      "e2e/startup/",
     ])
-    assert.deepEqual(classifyTouched(["apps/web/src/App.vue"]).specs, ["e2e/new-session.spec.ts"])
+    assert.deepEqual(classifyTouched(["apps/web/src/App.vue"]).specs, [
+      "e2e/conversation/new-session.spec.ts",
+    ])
     // e2e 自身改动不按范围判断，交给全量
-    assert.deepEqual(classifyTouched(["e2e/fixtures.ts"]).specs, [])
+    assert.deepEqual(classifyTouched(["e2e/support/fixtures.ts"]).specs, [])
     // 纯文档改动不挑 e2e
     assert.deepEqual(classifyTouched(["docs/directory-structure.md"]).specs, [])
   })

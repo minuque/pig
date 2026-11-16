@@ -6,7 +6,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 
 export default defineConfig({
   testDir: dirname(fileURLToPath(import.meta.url)),
-  testMatch: "*.spec.ts",
+  testMatch: "**/*.spec.ts",
   // 桌面壳冒烟有独立配置和 webServer，不在主配置里跑
   testIgnore: ["electron/**"],
   timeout: 90_000,

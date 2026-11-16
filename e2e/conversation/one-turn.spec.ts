@@ -1,18 +1,18 @@
-import { checkpoint } from "./checkpoint.js"
-import { expect, seedWorkspace, test } from "./fixtures.js"
+import { checkpoint } from "../support/checkpoint.js"
+import { expect, seedWorkspace, test } from "../support/fixtures.js"
 import {
   COMPLEX_MARKER,
   COMPLEX_SESSION_ID,
   COMPLEX_SESSION_NAME,
   TABLE_MARKER,
-} from "./prebuild-session.js"
+} from "../support/prebuild-session.js"
 import {
   STOP_TURN,
   TURN_PROMPT,
   TURN_TOKEN,
   installTurnBridge,
   streamingAssistant,
-} from "./sim-turn.js"
+} from "../support/sim-turn.js"
 
 test("一轮工作：复杂历史上发送、流式、中止", async ({ page, complexGateway }) => {
   test.setTimeout(120_000)

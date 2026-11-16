@@ -1,4 +1,4 @@
-import { expect, seedWorkspace, test } from "./fixtures.js"
+import { expect, seedWorkspace, test } from "../support/fixtures.js"
 
 test("模型行带图标与开放开关，关闭后不进 Composer 目录", async ({ page, modelsGateway }) => {
   await page.emulateMedia({ reducedMotion: "reduce" })

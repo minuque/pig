@@ -1,4 +1,4 @@
-import { expect, seedWorkspace, test } from "./fixtures.js"
+import { expect, seedWorkspace, test } from "../support/fixtures.js"
 
 test("填 Key 保存并连接，登出后回到未连接", async ({ page, modelsGateway }) => {
   await page.emulateMedia({ reducedMotion: "reduce" })

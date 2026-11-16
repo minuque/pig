@@ -1,6 +1,6 @@
-import { dragOntoPanel as drag, expect, seedWorkspace, test } from "./fixtures.js"
-import { COMPLEX_SESSION_ID, COMPLEX_SESSION_NAME } from "./prebuild-session.js"
-import { installTurnBridge } from "./sim-turn.js"
+import { dragOntoPanel as drag, expect, seedWorkspace, test } from "../support/fixtures.js"
+import { COMPLEX_SESSION_ID, COMPLEX_SESSION_NAME } from "../support/prebuild-session.js"
+import { installTurnBridge } from "../support/sim-turn.js"
 
 test("输入卡附件：拖入出现 chips，移除后消失", async ({ page, gateway }) => {
   await page.emulateMedia({ reducedMotion: "reduce" })

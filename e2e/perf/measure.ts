@@ -2,7 +2,7 @@ import type { Browser, BrowserContext, Page } from "@playwright/test"
 import { mkdir } from "node:fs/promises"
 import { dirname } from "node:path"
 
-import { seedWorkspace } from "../fixtures.js"
+import { seedWorkspace } from "../support/fixtures.js"
 import { armClickStamps, clickStamps, installPageWaitFor, waitInPage } from "./in-page.js"
 import {
   SHORT_SESSION_NAME,

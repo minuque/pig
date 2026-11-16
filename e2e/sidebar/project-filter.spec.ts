@@ -1,4 +1,4 @@
-import { expect, seedWorkspaces, test } from "./fixtures.js"
+import { expect, seedWorkspaces, test } from "../support/fixtures.js"
 
 test("项目筛选支持多选，全部项目恢复全量", async ({ page, multiGateway }) => {
   await page.emulateMedia({ reducedMotion: "reduce" })

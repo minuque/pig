@@ -1,5 +1,5 @@
-import { expect, seedWorkspace, test } from "./fixtures.js"
-import { installTurnBridge } from "./sim-turn.js"
+import { expect, seedWorkspace, test } from "../support/fixtures.js"
+import { installTurnBridge } from "../support/sim-turn.js"
 
 test("首页发首条 Prompt 建出会话，侧栏立刻多一张卡", async ({ page, gateway }) => {
   await page.emulateMedia({ reducedMotion: "reduce" })

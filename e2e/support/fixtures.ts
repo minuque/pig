@@ -5,8 +5,8 @@ import { tmpdir } from "node:os"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
-import Gateway from "../packages/gateway/src/index.js"
-import type { DirectoryPort } from "../packages/gateway/src/system/directory.js"
+import Gateway from "../../packages/gateway/src/index.js"
+import type { DirectoryPort } from "../../packages/gateway/src/system/directory.js"
 import { createFakeRuntime, type FakeProviderSpec } from "./fake-model-runtime.js"
 import { BUILTIN_PROVIDERS } from "./fake-provider-registry.js"
 import { writeBackgroundTaskExtension } from "./background-task-agent.js"
@@ -17,7 +17,7 @@ import {
   prebuildChildSession,
 } from "./prebuild-session.js"
 
-const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..")
 const webRoot = join(root, "apps/web/dist")
 
 /** 与 web canonicalizeWorkspacePath 对齐，供 localStorage 种子。 */

@@ -7,57 +7,58 @@ export const PACKAGES = [
 ]
 /** gateway 被 desktop 直接引用，改前者要连带检查后者的类型。 */
 const PACKAGE_DEPENDENTS = { "@pig/gateway": ["@pig/desktop"] }
-/** 路径前缀 → 该跑的 e2e；未命中的 web 改动回落到新建会话旅程。 */
+/** 路径前缀 → 该跑的 e2e（文件或整个目录）；未命中的 web 改动回落到新建会话旅程。 */
+const NEW_SESSION = "e2e/conversation/new-session.spec.ts"
+const SPLIT_VIEW = "e2e/workbench/split-view.spec.ts"
 const E2E_BY_AREA = [
-  {
-    prefix: "apps/web/src/features/composer/",
-    specs: ["e2e/composer-attachments.spec.ts", "e2e/composer-queue.spec.ts"],
-  },
+  { prefix: "apps/web/src/features/composer/", specs: ["e2e/composer/"] },
   {
     prefix: "apps/web/src/features/transcript-view/",
     specs: [
-      "e2e/one-turn.spec.ts",
-      "e2e/turn-progress.spec.ts",
-      "e2e/history-page.spec.ts",
-      "e2e/transcript-minimap.spec.ts",
+      "e2e/conversation/one-turn.spec.ts",
+      "e2e/conversation/turn-progress.spec.ts",
+      "e2e/conversation/history-page.spec.ts",
+      "e2e/conversation/transcript-minimap.spec.ts",
     ],
   },
   {
     prefix: "apps/web/src/features/session-workbench/",
-    specs: ["e2e/one-turn.spec.ts", "e2e/new-session.spec.ts", "e2e/workspace.spec.ts"],
+    specs: ["e2e/conversation/one-turn.spec.ts", NEW_SESSION, "e2e/sidebar/workspace.spec.ts"],
   },
   {
     prefix: "apps/web/src/features/session/",
-    specs: ["e2e/one-turn.spec.ts", "e2e/new-session.spec.ts", "e2e/workspace.spec.ts"],
-  },
-  {
-    prefix: "apps/web/src/features/session-nav/",
     specs: [
-      "e2e/session-nav.spec.ts",
-      "e2e/session-manage.spec.ts",
-      "e2e/session-switch.spec.ts",
-      "e2e/workspace.spec.ts",
+      "e2e/conversation/one-turn.spec.ts",
+      NEW_SESSION,
+      "e2e/sidebar/workspace.spec.ts",
+      SPLIT_VIEW,
     ],
+  },
+  { prefix: "apps/web/src/features/session-nav/", specs: ["e2e/sidebar/"] },
+  {
+    prefix: "apps/web/src/features/remote-workspace/",
+    specs: ["e2e/sidebar/remote-workspace.spec.ts"],
   },
   {
     prefix: "apps/web/src/features/session-rail/",
-    specs: ["e2e/subagent-rail.spec.ts", "e2e/background-task.spec.ts"],
+    specs: ["e2e/workbench/subagent-rail.spec.ts", "e2e/workbench/background-task.spec.ts"],
   },
+  { prefix: "apps/web/src/features/file-pane/", specs: ["e2e/workbench/file-pane.spec.ts"] },
+  { prefix: "apps/web/src/features/split-view/", specs: [SPLIT_VIEW, NEW_SESSION] },
+  { prefix: "apps/web/src/shell/", specs: [SPLIT_VIEW, NEW_SESSION] },
   {
-    prefix: "apps/web/src/features/settings/",
-    specs: ["e2e/models-connect.spec.ts", "e2e/models-list.spec.ts"],
+    prefix: "apps/web/src/features/extension-ui/",
+    specs: ["e2e/conversation/extension-ui.spec.ts"],
   },
-  {
-    prefix: "apps/web/src/features/startup/",
-    specs: ["e2e/new-session.spec.ts", "e2e/error.spec.ts"],
-  },
-  { prefix: "apps/web/src/components/layout/", specs: ["e2e/new-session.spec.ts"] },
-  // 样式、主题、共享 UI 影响所有页面，跑新建会话旅程兜底
-  { prefix: "apps/web/src/style/", specs: ["e2e/new-session.spec.ts"] },
-  { prefix: "apps/web/src/features/theme/", specs: ["e2e/theme.spec.ts"] },
-  { prefix: "apps/web/src/components/ui/", specs: ["e2e/new-session.spec.ts"] },
+  { prefix: "apps/web/src/features/settings/", specs: ["e2e/settings/"] },
+  { prefix: "apps/web/src/features/startup/", specs: [NEW_SESSION, "e2e/startup/"] },
+  // 布局、样式、主题、共享 UI 影响所有页面，跑新建会话旅程兜底
+  { prefix: "apps/web/src/components/layout/", specs: [NEW_SESSION] },
+  { prefix: "apps/web/src/style/", specs: [NEW_SESSION] },
+  { prefix: "apps/web/src/features/theme/", specs: [NEW_SESSION] },
+  { prefix: "apps/web/src/components/ui/", specs: [NEW_SESSION] },
 ]
-const WEB_FALLBACK_SPECS = ["e2e/new-session.spec.ts"]
+const WEB_FALLBACK_SPECS = [NEW_SESSION]
 const ROOT_TOOLING =
   /^(eslint\.config\.|stylelint\.config\.|scripts\/check\/lint-ignores\.mjs$|package\.json$|pnpm-workspace\.yaml$|pnpm-lock\.yaml$|tsconfig\.base\.json$|\.prettierrc|\.prettierignore$|prettier\.config)/
 const LINTABLE = /\.(?:[cm]?[jt]sx?|vue)$/

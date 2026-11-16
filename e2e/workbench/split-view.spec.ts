@@ -1,5 +1,5 @@
-import { expect, seedWorkspace, test } from "./fixtures.js"
-import { STOP_TURN, installTurnBridge } from "./sim-turn.js"
+import { expect, seedWorkspace, test } from "../support/fixtures.js"
+import { STOP_TURN, installTurnBridge } from "../support/sim-turn.js"
 
 test("分屏：在右侧打开会话，两侧各自发送，关闭右侧", async ({ page, navGateway }) => {
   test.setTimeout(120_000)

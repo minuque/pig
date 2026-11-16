@@ -4,9 +4,9 @@ import type {
   TranscriptItem,
   TranscriptProgress,
 } from "@pig/protocol"
-import { expect, seedWorkspace, test } from "./fixtures.js"
-import { COMPLEX_SESSION_ID, COMPLEX_SESSION_NAME } from "./prebuild-session.js"
-import { installTurnBridge } from "./sim-turn.js"
+import { expect, seedWorkspace, test } from "../support/fixtures.js"
+import { COMPLEX_SESSION_ID, COMPLEX_SESSION_NAME } from "../support/prebuild-session.js"
+import { installTurnBridge } from "../support/sim-turn.js"
 
 const PROMPT = "回归验证轮次"
 const TEXT_A = "先读文件"

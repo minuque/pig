@@ -1,4 +1,4 @@
-import { expect, seedWorkspace, test } from "./fixtures.js"
+import { expect, seedWorkspace, test } from "../support/fixtures.js"
 
 test("模型参数保存后重开仍在，恢复默认回到模型默认", async ({ page, modelsGateway }) => {
   await page.emulateMedia({ reducedMotion: "reduce" })
