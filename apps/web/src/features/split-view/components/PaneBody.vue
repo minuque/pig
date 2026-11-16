@@ -88,6 +88,8 @@ useResizeObserver(root, ([entry]) => {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  /* 底边与输入条对齐 */
+  padding-block-end: calc(var(--space-sm) + env(safe-area-inset-bottom, 0px));
 }
 
 /* 拖拽区就是对话与面板卡片之间的空隙 */
