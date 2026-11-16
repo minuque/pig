@@ -44,6 +44,7 @@ const props = withDefaults(
       bare?: boolean
       /** Radix Themes 的菜单尺寸：s 紧凑、m 默认 */
       size?: MenuSize
+      /** 默认与 ContextMenu 一致走 soft：悬停与选中都取 --btn-hover，不走 accent 实底 */
       variant?: MenuVariant
       color?: string
       highContrast?: boolean
@@ -56,7 +57,7 @@ const props = withDefaults(
     collisionPadding: 10,
     bare: false,
     size: "m",
-    variant: "solid",
+    variant: "soft",
     highContrast: false,
   },
 )

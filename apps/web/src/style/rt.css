@@ -73,6 +73,11 @@
   background-color: var(--btn-hover);
 }
 
+/* 破坏性项悬停取同一档的红色：底不同色相，文字仍走 danger */
+.rt-BaseMenuContent :where(.rt-BaseMenuItem[data-variant="destructive"][data-highlighted]) {
+  background-color: var(--red-a3);
+}
+
 /* 行距只有一条：视口里相邻的任意两行之间留一道 --menu-item-gap。 */
 .rt-BaseMenuViewport > * + *,
 .rt-SelectViewport > * + * {

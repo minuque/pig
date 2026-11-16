@@ -2,7 +2,7 @@
   <DropdownMenuItem
     data-slot="dropdown-menu-item"
     :data-inset="inset ? '' : undefined"
-    :data-variant="variant === 'destructive' ? undefined : variant"
+    :data-variant="variant"
     v-bind="forwardedProps"
     :data-accent-color="variant === 'destructive' ? 'red' : props.color"
     class="rt-BaseMenuItem rt-DropdownMenuItem"
