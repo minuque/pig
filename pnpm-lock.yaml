@@ -279,8 +279,8 @@ importers:
         specifier: 0.8.1
         version: 0.8.1(shiki@4.4.3)
       pele:
-        specifier: 1.6.0
-        version: 1.6.0
+        specifier: 1.13.0
+        version: 1.13.0
       reka-ui:
         specifier: 2.10.5
         version: 2.10.5(vue@3.5.42(typescript@6.0.3))
@@ -4874,8 +4874,8 @@ packages:
     resolution: {integrity: sha512-eRWB5LBz7PpDu4PUlwT0PhnQfTQJlDDdPa35urV4Osrm0t0AqQFGn+UIkU3klZvwJ8KPO3VbBFsXquA6p6kqZw==}
     engines: {node: '>=12', npm: '>=6'}
 
-  pele@1.6.0:
-    resolution: {integrity: sha512-VfAiVItsOGlGhvnBfphdT28VCG7mXMZxQNOwAGsCtxI2ztbUsT39MraEOYjsapLxVETkdUZscm0DdotYDQMLdw==}
+  pele@1.13.0:
+    resolution: {integrity: sha512-Ie8UKY9x00MsuR3jO6AzUwzK2Z6MIV3Tf4EDdITiuk8Uaz8K7g0R082WqsqNaSU8DdgkrRvZThzhit83mi/uiw==}
     engines: {node: '>=20'}
 
   perfect-debounce@2.1.0:
@@ -11100,7 +11100,7 @@ snapshots:
 
   pe-library@0.4.1: {}
 
-  pele@1.6.0: {}
+  pele@1.13.0: {}
 
   perfect-debounce@2.1.0: {}
 
