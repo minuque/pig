@@ -131,7 +131,7 @@ watch(
   padding: 2px;
   border-radius: var(--radius-control);
   color: var(--contrast-foreground-secondary);
-  font-size: var(--text-body);
+  font-size: var(--text-meta);
   user-select: none;
 }
 
