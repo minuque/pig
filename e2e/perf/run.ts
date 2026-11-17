@@ -308,7 +308,15 @@ async function main() {
     // 桌面模式没有重拉样本，留空
     const pick = (stat: (values: number[]) => number) =>
       Object.fromEntries(
-        METRICS.map(({ key }) => [key, samples[key].length ? stat(samples[key]) : null]),
+        METRICS.map(({ key }) => {
+          const values = samples[key]
+
+          try {
+            return [key, values.length ? stat(values) : null]
+          } catch (error) {
+            throw new Error(`${key} 样本 ${JSON.stringify(values)}`, { cause: error })
+          }
+        }),
       )
     const metrics = pick(median)
     const p90s = pick(p90)

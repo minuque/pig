@@ -84,9 +84,16 @@ async function transcript(started: Started) {
   return fetchTranscript(started, LONG_SESSION_NAME)
 }
 
-/** 一条连接（同一个窗口）建 N 个会话，同时发 prompt，等全部回合结束。 */
-async function parallelTurns(started: Started, script: FauxScript, count: number, heap = false) {
-  const client = await connectGateway(started.port, started.authorization)
+type Client = Awaited<ReturnType<typeof connectGateway>>
+
+/** 一条连接（同一个窗口）建 N 个会话，同时发 prompt，等全部回合结束；传入的连接不关，会话留着。 */
+async function parallelTurns(
+  started: Started,
+  script: FauxScript,
+  count: number,
+  { heap = false, held }: { heap?: boolean; held?: Client } = {},
+) {
+  const client = held ?? (await connectGateway(started.port, started.authorization))
 
   try {
     if (heap) collect()
@@ -137,11 +144,11 @@ async function parallelTurns(started: Started, script: FauxScript, count: number
       heapPerSession: (process.memoryUsage().heapUsed - heapBefore) / count,
     }
   } finally {
-    client.close()
+    if (!held) client.close()
   }
 }
 
-/** 一轮：新起一个网关，先冷读长会话，预热一回合，再依次跑 N=1、2、4、8。 */
+/** 一轮：新起一个网关，先冷读长会话，预热一回合、量 8 会话的堆，再依次跑 N=1、2、4、8。 */
 export async function measureGatewayRound(
   temp: string,
 ): Promise<Partial<Record<GatewayKey, number>>> {
@@ -154,16 +161,20 @@ export async function measureGatewayRound(
     result.gwTranscriptMs = read.ms
     result.gwTranscriptBytes = read.bytes
     // 预热：首个回合含模块与资源加载器的冷启动
-    await parallelTurns(started, script, 1)
+    const held = await connectGateway(started.port, started.authorization)
+    await parallelTurns(started, script, 1, { held })
+    // 量堆要在任何连接关掉之前：关掉的连接里的会话异步释放，会把差值拉成负数
+    result.gwHeapPerSession = (
+      await parallelTurns(started, script, HEAP_COUNT, { heap: true, held })
+    ).heapPerSession
+    held.close()
 
     for (const count of GATEWAY_COUNTS) {
-      const run = await parallelTurns(started, script, count, count === HEAP_COUNT)
+      const run = await parallelTurns(started, script, count)
       result[`gwLoopP99_${count}`] = run.loopP99
       result[`gwLoopBusy_${count}`] = run.busy
       result[`gwFirstProgress_${count}`] = run.firstProgress
       result[`gwProgressGapP99_${count}`] = run.gapP99
-
-      if (count === HEAP_COUNT) result.gwHeapPerSession = run.heapPerSession
     }
 
     return result
