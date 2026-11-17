@@ -245,6 +245,42 @@ export function appendExternalReply(file: string) {
   )
 }
 
+export const APPEND_SESSION_ID = "e2e-append"
+export const APPEND_SESSION_NAME = "外部追加会话"
+export const APPEND_EXTERNAL_PROMPT = "e2e TUI 里的提问"
+export const APPEND_EXTERNAL_REPLY = "e2e TUI 里的回答"
+
+/** 一个回合已结束、模型指向替身的会话：pig 挂上后能真的跑回合。返回会话文件路径。 */
+export function prebuildAppendSession(
+  sessionDir: string,
+  cwd: string,
+  model: { provider: string; id: string },
+) {
+  const manager = SessionManager.create(cwd, sessionDir, { id: APPEND_SESSION_ID })
+  const timestamp = Date.now() - 60_000
+
+  manager.appendSessionInfo(APPEND_SESSION_NAME)
+  manager.appendModelChange(model.provider, model.id)
+  manager.appendMessage({ role: "user", content: "e2e 先前的提问", timestamp })
+  manager.appendMessage(
+    assistantMessage([{ type: "text", text: "e2e 先前的回答" }], timestamp + 1_000),
+  )
+  const file = manager.getSessionFile()
+
+  if (!file) throw new Error("预构建未写出会话文件")
+  return file
+}
+
+/** 另开一个 SessionManager 追加一整轮：这就是 TUI。返回 TUI 那条回答的条目 id。 */
+export function appendExternalTurn(file: string) {
+  const manager = SessionManager.open(file)
+
+  manager.appendMessage({ role: "user", content: APPEND_EXTERNAL_PROMPT, timestamp: Date.now() })
+  return manager.appendMessage(
+    assistantMessage([{ type: "text", text: APPEND_EXTERNAL_REPLY }], Date.now()),
+  )
+}
+
 export const CHILD_SESSION_ID = "e2e-child"
 export const CHILD_MARKER = "子任务里读到了协议层"
 

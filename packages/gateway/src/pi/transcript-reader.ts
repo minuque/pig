@@ -5,7 +5,9 @@ import { lightTranscript } from "./transcript-page.js"
 import type { PiHostSession } from "./session-runtime.js"
 
 interface TranscriptSource {
-  live(sessionId: string): Pick<PiHostSession, "historyTranscript"> | undefined
+  live(
+    sessionId: string,
+  ): Pick<PiHostSession, "historyTranscript" | "getPhase" | "releaseIfAppended"> | undefined
   findPath(sessionId: string): Promise<string | undefined>
 }
 
@@ -21,7 +23,8 @@ export class TranscriptReader {
   async page(sessionId: string, cursor: TranscriptCursor = {}): Promise<SessionTranscriptPage> {
     const live = this.source.live(sessionId)
 
-    if (live) {
+    // 空闲的活会话先核对文件：被别处追加过就释放运行时，改读盘
+    if (live && !(live.getPhase() === "idle" && (await live.releaseIfAppended()))) {
       const full = live.historyTranscript()
       return withItems(full.items, cursor.after, {
         timings: full.timings,

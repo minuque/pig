@@ -84,6 +84,12 @@ packages/gateway/src/
 
 gateway 在进程内跑 pi SDK。内置扩展经 `additionalExtensionPaths` 加载；gateway 不给扩展开私有接口。用户在 pi 里装的扩展（`settings.json` 的 `packages`、`~/.pi/agent/extensions`、项目 `.pi/extensions`）默认不加载，写进 `~/.pig/extensions.json` 的 `enabled` 才放行：包按 `packages` 里的来源字符串，目录下的扩展按文件或目录路径。skills、prompt 模板、AGENTS.md 照常共用。
 
+SDK 跟版：
+
+- 仓库锁 `@earendil-works/pi-coding-agent` 的精确版本。本机 pi 可以比它新。
+- 兼容的底线是会话格式：两边的 `CURRENT_SESSION_VERSION` 一致。本机 pi 升级后，比一次两边的 `dist/core/session-manager.js` 与这个常量。
+- 升级 SDK 先读 changelog，评估后再改锁版本。
+
 ## 远程 workspace
 
 agent 留在本机，工具经 SSH 转发到远端。

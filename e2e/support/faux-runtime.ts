@@ -61,6 +61,29 @@ export function writeFauxNotes(workspaceDir: string) {
   )
 }
 
+/** 替身第 n 次回答的正文；e2e 用它认出哪一轮跑完了。 */
+export const fauxReply = (n: number) => `e2e 替身第 ${n} 次回答`
+
+/** e2e 用：替身供应商不流速、直接回一句，回合真的经过网关与 pi。 */
+export async function createReplyRuntime(agentDir: string): Promise<ModelRuntime> {
+  const faux = fauxProvider({
+    api: "faux",
+    provider: FAUX_MODEL.provider,
+    models: [{ id: FAUX_MODEL.id, name: "E2e Faux" }],
+  })
+  const reply: FauxResponseFactory = (_context, _options, state) =>
+    fauxAssistantMessage(fauxText(fauxReply(state.callCount)))
+  const runtime = await ModelRuntime.create({
+    allowModelNetwork: false,
+    authPath: join(agentDir, "auth.json"),
+    modelsPath: join(agentDir, "models.json"),
+  })
+
+  faux.setResponses(Array.from({ length: 4 }, () => reply))
+  runtime.registerNativeProvider(faux.provider)
+  return runtime
+}
+
 /** 与网关缺省 runtime 同参：读 PI_CODING_AGENT_DIR 下的 models.json，不联网。 */
 export function createBenchRuntime(): Promise<ModelRuntime> {
   return ModelRuntime.create({ allowModelNetwork: false })

@@ -27,6 +27,7 @@ export const zh = {
     takeoverTitle: "接管这个会话？",
     takeoverBody: "另一边如果还在运行，两边会各写各的，会话会分叉。",
     takeoverConfirm: "接管",
+    changedElsewhere: "会话在别处有更新，已刷新",
     newSession: "新建会话",
     pin: "置顶",
     unpin: "取消置顶",
@@ -449,6 +450,7 @@ export const en: Messages = {
     takeoverBody:
       "If the other side is still running, both sides will write on their own and the session will fork.",
     takeoverConfirm: "Take over",
+    changedElsewhere: "This session was updated elsewhere and has been refreshed",
     newSession: "New session",
     pin: "Pin",
     unpin: "Unpin",

@@ -12,6 +12,11 @@ export function isSessionLocked(error: unknown) {
   return error instanceof GatewayRequestError && error.code === "session_locked"
 }
 
+/** 命令被网关以 session_changed_elsewhere 拒绝：会话文件被别处追加，运行时已释放。 */
+export function isChangedElsewhere(error: unknown) {
+  return error instanceof GatewayRequestError && error.code === "session_changed_elsewhere"
+}
+
 export function isDisconnectedError(error: unknown) {
   if (!error || typeof error !== "object") return false
 

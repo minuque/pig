@@ -3,6 +3,9 @@ import type { ModelRef, ThinkingLevel } from "@/types/common-type.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
 import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
+import { notify } from "@components/layout/notify.js"
+import { t } from "@i18n/index.js"
+import { isChangedElsewhere } from "@features/session/hooks/abortable-open.js"
 import { dropBatch, stageBatchFor } from "@features/session/hooks/use-background-send.js"
 import type { SessionHub } from "@features/session/hooks/use-session-hub.js"
 import { useForegroundSession } from "@features/session/hooks/use-foreground-session.js"
@@ -47,6 +50,7 @@ export function useSessionLifecycle(
     history,
     externalTurn,
     takeover,
+    dropChanged,
     contextUsage: foregroundUsage,
   } = useForegroundSession(pi, sessionId, hub)
   const { backgroundRunningIds } = live
@@ -277,6 +281,13 @@ export function useSessionLifecycle(
       const index = thread.sends.findIndex((item) => item.item.id === send.item.id)
 
       if (index >= 0) thread.sends.splice(index, 1)
+
+      // 会话在别处有更新：网关已释放运行时，放掉连接重拉历史；草稿已还原，再点发送会重新挂上
+      if (isChangedElsewhere(error) && sessionId.value) {
+        dropChanged(sessionId.value)
+        notify(t("session.changedElsewhere"), "info")
+      }
+
       throw error
     } finally {
       if (epoch === thread.epoch) thread.submitting = false

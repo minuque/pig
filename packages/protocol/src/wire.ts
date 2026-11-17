@@ -81,6 +81,8 @@ export type ProtocolErrorCode =
   | "version"
   | "busy"
   | "session_locked"
+  /** 会话文件在 pig 持有期间被别处追加：运行时已释放，重拉历史后再发。 */
+  | "session_changed_elsewhere"
   | "not_found"
   | "invalid_request"
   | "not_implemented"

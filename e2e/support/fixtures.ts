@@ -128,7 +128,7 @@ async function startGateway(options: ConstructorParameters<typeof Gateway>[0]) {
   return { gateway, port }
 }
 
-async function withGateway(
+export async function withGateway(
   seed: (sessionDir: string, workspaceDir: string) => void,
   use: (gateway: E2eGateway) => Promise<void>,
   /** 准备临时 agentDir；默认只放一个离线模型。始终隔离本机 ~/.pi，CI 上也有模型可选。 */

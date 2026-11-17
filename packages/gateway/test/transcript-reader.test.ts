@@ -22,7 +22,11 @@ afterEach(async () => {
 describe("历史接口：after 对得上只回尾巴", () => {
   const items = [user("u1", "一"), user("u2", "二"), user("u3", "三")]
   const reader = new TranscriptReader({
-    live: () => ({ historyTranscript: () => ({ items, timings: [] }) }),
+    live: () => ({
+      historyTranscript: () => ({ items, timings: [] }),
+      getPhase: () => "idle",
+      releaseIfAppended: async () => false,
+    }),
     findPath: async () => undefined,
   })
 

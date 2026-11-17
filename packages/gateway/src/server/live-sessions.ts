@@ -26,7 +26,8 @@ interface LiveSession {
   connections: Set<ClientConnection>
   unsubscribe: () => void
   operationCount: number
-  terminal: boolean
+  /** 运行时报过的终止错误；挂着的连接之后的命令都收到它。 */
+  terminal: GatewayError | undefined
   disposing?: Promise<void>
 }
 
@@ -197,7 +198,9 @@ export class LiveSessions {
       )
     const live = this.live.get(sessionId)
 
-    if (!live || live.terminal || live.disposing)
+    if (live?.terminal) throw live.terminal
+
+    if (!live || live.disposing)
       throw new GatewayError("not_found", `Session is not live: ${sessionId}`)
     return live
   }
@@ -271,7 +274,7 @@ export class LiveSessions {
       connections: new Set(),
       unsubscribe: () => {},
       operationCount: 0,
-      terminal: false,
+      terminal: undefined,
     }
 
     live.unsubscribe = runtime.subscribe((event) => this.handleEvent(live, event))
@@ -281,7 +284,7 @@ export class LiveSessions {
 
   private handleEvent(live: LiveSession, event: SessionRuntimeEvent) {
     if (event.type === "error") {
-      live.terminal = true
+      live.terminal = event.error
       this.options.reportError(event.error)
       this.scheduleDispose(live)
       return

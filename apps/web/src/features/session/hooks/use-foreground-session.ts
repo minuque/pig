@@ -136,6 +136,16 @@ export function useForegroundSession(
     if (previous) void discard(previous)
   }
 
+  /** 网关那边的运行时已不可用：放掉连接并强制重拉历史，下次发送重新挂上。 */
+  function dropRemote(current: GatewaySession) {
+    const id = current.id
+
+    detach()
+    void discard(current)
+
+    if (id) void history.loadHistory(id, { force: true })
+  }
+
   /** 重连后重新挂上；被 session_locked 拒绝就放掉连接，回到只读并重拉历史。 */
   async function reattach() {
     const current = remote.value
@@ -146,12 +156,7 @@ export function useForegroundSession(
       await current.reattach()
     } catch (error) {
       if (!isSessionLocked(error)) throw error
-      const id = current.id
-
-      detach()
-      void discard(current)
-
-      if (id) void history.loadHistory(id, { force: true })
+      dropRemote(current)
     }
   }
 
@@ -219,6 +224,13 @@ export function useForegroundSession(
         }
       }
     })
+  }
+
+  /** 命令被拒为 session_changed_elsewhere：网关已释放运行时，这一侧放掉连接。 */
+  function dropChanged(id: string) {
+    const current = remote.value
+
+    if (current?.id === id) dropRemote(current)
   }
 
   /** 别处在跑回合：缓存页带标记且这一侧没挂这个会话。 */
@@ -303,6 +315,7 @@ export function useForegroundSession(
     contextUsage: contextUsageEstimate,
     externalTurn,
     takeover,
+    dropChanged,
     release,
     ensureRemote,
     createRemoteSession,

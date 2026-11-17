@@ -20,6 +20,7 @@ import type {
 } from "./runtime-types.js"
 import { sessionBinding, sessionWorkspace, uploadAttachments } from "./remote-session.js"
 import { ExtensionUiBridge } from "./extension-ui.js"
+import { ExternalAppendCheck } from "./external-append.js"
 import { composePrompt, type AttachmentSink } from "./attachments.js"
 import { estimateContextUsage } from "./context-usage.js"
 import { firstUserMessageText, sessionListName } from "./session-label.js"
@@ -54,6 +55,13 @@ function sameStream(a: StreamingProgress, b: StreamingProgress): boolean {
   return a.type === "item_updated" && b.type === "item_updated" && a.item.id === b.item.id
 }
 
+function changedElsewhere(sessionId: string): GatewayError {
+  return new GatewayError(
+    "session_changed_elsewhere",
+    `Session ${sessionId} was appended elsewhere; reload history and send again`,
+  )
+}
+
 /**
  * 一个已获取的 AgentSession 的会话运行时。
  *
@@ -75,6 +83,7 @@ export class PiHostSession implements SessionRuntime {
   private pendingUpdateTimer: ReturnType<typeof setTimeout> | undefined
   private tasks: Task[] = []
   private readonly unsubscribeTasks: (() => void) | undefined
+  private readonly appendCheck: ExternalAppendCheck
 
   constructor(
     private readonly session: AgentSession,
@@ -82,6 +91,7 @@ export class PiHostSession implements SessionRuntime {
     private readonly attachments?: AttachmentSink,
     private readonly events?: EventBus,
   ) {
+    this.appendCheck = new ExternalAppendCheck(session.sessionManager)
     this.unsubscribeSession = session.subscribe((event) => this.handleEvent(event))
     this.unsubscribeTasks = events?.on(TASKS_CHANNEL, (data) => {
       const event = data as TasksEvent
@@ -179,6 +189,7 @@ export class PiHostSession implements SessionRuntime {
   async prompt(input: PromptInput): Promise<void> {
     await this.exclusive(async () => {
       if (!this.session.isIdle) throw new SessionBusyError("A prompt is already running")
+      await this.rejectIfAppended()
       // 先取暂存附件：busy 已提前拒绝，取走后 prompt 失败要放回，避免附件静默丢失
       const staged = this.attachments?.take(this.session.sessionId) ?? []
 
@@ -208,6 +219,7 @@ export class PiHostSession implements SessionRuntime {
     // steer 是 turn 阶段的合法操作（向运行中的 prompt 追加指令），不与 prompt 互斥；
     // 只拒绝 idle 时的无意义 steer。AgentSession.steer 仅入队，并发安全。
     if (this.session.isIdle) throw new SessionBusyError("There is no active prompt to steer")
+    await this.rejectIfAppended()
     await this.session.steer(input.text)
   }
 
@@ -264,6 +276,19 @@ export class PiHostSession implements SessionRuntime {
 
   extensionDialogs() {
     return this.ui.dialogs()
+  }
+
+  /** 会话文件被别处追加过就释放运行时，之后历史读盘；返回是否已释放。 */
+  async releaseIfAppended(): Promise<boolean> {
+    if (this.disposed || !(await this.appendCheck.appended())) return false
+    // 协议层借 error 事件把会话标成终止：挂着的连接下一条命令收到同一个错误码
+    this.emit({ type: "error", error: changedElsewhere(this.session.sessionId) })
+    await this.dispose()
+    return true
+  }
+
+  private async rejectIfAppended(): Promise<void> {
+    if (await this.releaseIfAppended()) throw changedElsewhere(this.session.sessionId)
   }
 
   async dispose(): Promise<void> {
