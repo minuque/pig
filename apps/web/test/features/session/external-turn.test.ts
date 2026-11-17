@@ -33,8 +33,8 @@ const page = (externalTurn: boolean, version = "v1") => ({
   externalTurn,
   version,
 })
-const transcript = vi.fn(async (_id: string, known?: string): Promise<unknown> => {
-  return known === "v1" ? { unchanged: true } : page(true)
+const transcript = vi.fn(async (_id: string, cursor?: { known?: string }): Promise<unknown> => {
+  return cursor?.known === "v1" ? { unchanged: true } : page(true)
 })
 
 vi.mock("@client/platform.js", () => ({
@@ -97,7 +97,7 @@ describe("历史页：文件没变不重发", () => {
     expect(store.isFresh("a")).toBe(true)
     expect(store.version.value).toBe(staleBefore)
     expect(before).toBeLessThan(staleBefore)
-    expect(transcript).toHaveBeenLastCalledWith("a", "v1")
+    expect(transcript).toHaveBeenLastCalledWith("a", { known: "v1" })
     expect(store.externalTurnFor("a")).toBe(true)
   })
 })

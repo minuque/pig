@@ -64,8 +64,12 @@ export function createHistoryStore() {
       requestById.set(id, request)
 
       try {
-        const known = cache.peek(id)?.ready ? cache.peek(id)?.version : undefined
-        const result = known ? await sessionTranscript(id, known) : await sessionTranscript(id)
+        const cached = cache.peek(id)
+        const known = cached?.ready ? cached.version : undefined
+        const disk = cached?.disk ?? []
+        const last = disk.at(-1)
+        const after = last ? `${disk.length}:${last.id}` : undefined
+        const result = await sessionTranscript(id, { known, after })
 
         if (requestById.get(id) !== request) return
 
@@ -74,10 +78,13 @@ export function createHistoryStore() {
           return
         }
 
-        const { items, timings, hasMore, version: fileVersion, externalTurn } = result
+        const { timings, hasMore, version: fileVersion, externalTurn } = result
+        // 尾巴接回请求时的基准，得到的就是网关此刻的全文
+        const items = "append" in result ? [...disk, ...result.append] : result.items
         const absorbed = absorbLatestTranscriptPage(cache.peek(id), { items, timings, hasMore })
         cache.write(id, {
           ...absorbed,
+          disk: items,
           version: fileVersion,
           externalTurn,
           ready: true,

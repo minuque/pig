@@ -366,11 +366,9 @@ async function handleTranscript(res: ServerResponse, url: URL, deps: PlatformReq
   }
 
   try {
-    send(
-      res,
-      200,
-      await hostService.sessionTranscript(sessionId, url.searchParams.get("known") ?? undefined),
-    )
+    const known = url.searchParams.get("known") ?? undefined
+    const after = url.searchParams.get("after") ?? undefined
+    send(res, 200, await hostService.sessionTranscript(sessionId, { known, after }))
   } catch (error) {
     sendSessionWriteError(error, res, send, "transcript")
   }

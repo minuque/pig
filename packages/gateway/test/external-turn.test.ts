@@ -70,7 +70,7 @@ describe("别处正在跑回合：历史接口", () => {
     const { path, transcript } = await start()
     const first = await transcript()
 
-    if ("unchanged" in first) throw new Error("expected a full page")
+    if (!("items" in first)) throw new Error("expected a full page")
     expect(first.externalTurn).toBe(true)
     expect(first.version).toBeTruthy()
     expect(await transcript(first.version)).toEqual({ unchanged: true })
@@ -89,7 +89,7 @@ describe("别处正在跑回合：历史接口", () => {
 
     const next = await transcript(first.version)
 
-    if ("unchanged" in next) throw new Error("expected a full page")
+    if (!("items" in next)) throw new Error("expected a full page")
     expect(next.version).not.toBe(first.version)
     expect(next.items.map((item) => item.role)).toEqual(["user", "assistant"])
     expect(next.externalTurn).toBe(false)

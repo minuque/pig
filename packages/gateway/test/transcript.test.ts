@@ -131,6 +131,48 @@ describe("TranscriptProjection", () => {
   })
 })
 
+describe("同一分支上投影只在末尾追加", () => {
+  it("每次落盘后的投影都以上一次投影为前缀，含工具与任务条目", () => {
+    const manager = SessionManager.inMemory("/tmp")
+    const task = (status: string) => ({
+      id: "t1",
+      kind: "agent",
+      description: "扫一遍",
+      status,
+    })
+    const steps = [
+      () => manager.appendMessage({ role: "user", content: "开始", timestamp: 1000 }),
+      () =>
+        manager.appendMessage(
+          assistantMessage({
+            stopReason: "toolUse",
+            content: [{ type: "toolCall", id: "call-1", name: "bash", arguments: { cmd: "ls" } }],
+          }),
+        ),
+      () => manager.appendMessage(toolResultMessage()),
+      () => manager.appendCustomMessageEntry("task", "已开始", true, task("running")),
+      () => manager.appendMessage(assistantMessage({ stopReason: "stop" })),
+      () => manager.appendCustomMessageEntry("task", "已完成", true, task("completed")),
+      () => manager.appendMessage({ role: "user", content: "再来", timestamp: 3000 }),
+    ]
+    const live = new TranscriptProjection()
+    const snapshots: string[][] = []
+
+    for (const step of steps) {
+      step()
+      snapshots.push(live.transcript(manager.getBranch()).map((item) => JSON.stringify(item)))
+    }
+
+    const roles = live.transcript(manager.getBranch()).map((item) => item.role)
+    expect(roles).toEqual(["user", "assistant", "tool", "task", "assistant", "task", "user"])
+    snapshots.forEach((current, index) => {
+      expect(current.slice(0, snapshots[index - 1]?.length ?? 0)).toEqual(
+        snapshots[index - 1] ?? [],
+      )
+    })
+  })
+})
+
 describe("流式输出只发新增文字", () => {
   const update = (partial: TestMessage, assistantMessageEvent: Record<string, unknown>) =>
     ({ type: "message_update", message: partial, assistantMessageEvent }) as AgentSessionEvent

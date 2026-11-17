@@ -15,7 +15,6 @@ import type {
   ModelMetadata,
   SessionCard,
   SessionMetadata,
-  SessionTranscriptPage,
   TranscriptItem,
 } from "@pig/protocol"
 import { GatewayError, SessionBusyError, SessionNotFoundError } from "./runtime-types.js"
@@ -383,9 +382,9 @@ export class PiHostService implements SessionService {
     return this.activeSessions.get(sessionId)?.contextUsage(previewKey)
   }
 
-  /** 历史 Transcript：一次给全部条目的轻量形态；磁盘会话带文件版本，known 未变则不重发。 */
-  sessionTranscript(sessionId: string, known?: string): Promise<SessionTranscriptPage> {
-    return this.transcripts.page(sessionId, known)
+  /** 历史 Transcript 的轻量形态：known 未变则不重发，after 对得上只给尾巴。 */
+  sessionTranscript(...args: Parameters<TranscriptReader["page"]>) {
+    return this.transcripts.page(...args)
   }
 
   /** 单条完整条目：轻量历史里被截断的工具输出展开时取。 */

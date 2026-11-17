@@ -244,38 +244,44 @@ function isTurnTiming(value: unknown): value is TurnTiming {
   )
 }
 
-type FullTranscriptPage = Exclude<SessionTranscriptPage, { unchanged: true }>
+type FullTranscriptPage = Extract<SessionTranscriptPage, { items: unknown }>
 
-/** 会话全部历史的轻量形态：大块工具输出被截断，展开时用 transcriptItem 取回。带 known 时文件没变会得到 unchanged。 */
+/** 会话全部历史的轻量形态：大块工具输出被截断，展开时用 transcriptItem 取回。known 未变得到 unchanged；after 对得上得到 append。 */
 export async function sessionTranscript(sessionId: string): Promise<FullTranscriptPage>
 export async function sessionTranscript(
   sessionId: string,
-  known: string,
+  cursor: { known?: string | undefined; after?: string | undefined },
 ): Promise<SessionTranscriptPage>
 export async function sessionTranscript(
   sessionId: string,
-  known?: string,
+  { known, after }: { known?: string | undefined; after?: string | undefined } = {},
 ): Promise<SessionTranscriptPage> {
-  const query = new URLSearchParams({ sessionId, ...(known ? { known } : {}) })
+  const query = new URLSearchParams({
+    sessionId,
+    ...(known ? { known } : {}),
+    ...(after ? { after } : {}),
+  })
   const result = await platformRequest<
     | { unchanged: true }
-    | {
-        items: TranscriptItem[]
+    | ({ items?: unknown; append?: unknown } & {
         timings?: unknown[]
         hasMore?: boolean
         version?: string
         externalTurn?: boolean
-      }
+      })
   >(`/api/v1/platform/transcript?${query.toString()}`)
 
   if ("unchanged" in result) return { unchanged: true }
-  return {
-    items: Array.isArray(result.items) ? result.items : [],
+
+  const meta = {
     timings: Array.isArray(result.timings) ? result.timings.filter(isTurnTiming) : [],
     hasMore: Boolean(result.hasMore),
     ...(result.version ? { version: result.version } : {}),
     externalTurn: Boolean(result.externalTurn),
   }
+
+  if (Array.isArray(result.append)) return { append: result.append as TranscriptItem[], ...meta }
+  return { items: Array.isArray(result.items) ? (result.items as TranscriptItem[]) : [], ...meta }
 }
 
 /** 单条完整条目；找不到时返回 undefined。 */
