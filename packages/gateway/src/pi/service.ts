@@ -53,6 +53,8 @@ export interface PiHostServiceOptions {
   attachmentRootDir?: string
   /** Pi 配置目录（auth.json / models.json / settings.json）；缺省 ~/.pi/agent。 */
   agentDir?: string
+  /** 用户扩展放行清单；缺省 ~/.pig/extensions.json。 */
+  extensionsFile?: string
   /** 远程会话的本地占位目录根；缺省 ~/.pig/remote。 */
   remoteRoot?: string
   /** 测试注入：ModelRuntime 工厂。 */
@@ -428,7 +430,7 @@ export class PiHostService implements SessionService {
     const pending = this.slot(key)
     const slot = await pending
 
-    if (slot.taken) return createResourceLoader(key, this.options.agentDir, this.events)
+    if (slot.taken) return createResourceLoader(key, this.options, this.events)
     slot.taken = true
 
     if (this.resourceSlots.get(key) === pending) this.resourceSlots.delete(key)
@@ -448,7 +450,7 @@ export class PiHostService implements SessionService {
       if (!oldest.done) this.resourceSlots.delete(oldest.value)
     }
 
-    const pending = createResourceLoader(cwd, this.options.agentDir, this.events).then(
+    const pending = createResourceLoader(cwd, this.options, this.events).then(
       (loader) => ({ loader, taken: false }),
       (error: unknown) => {
         this.resourceSlots.delete(cwd)

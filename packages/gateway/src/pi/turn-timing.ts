@@ -1,9 +1,7 @@
-import type { SessionEntry, SessionManager } from "@earendil-works/pi-coding-agent"
+import type { SessionEntry } from "@earendil-works/pi-coding-agent"
 import type { TurnTiming } from "@pig/protocol"
 
 const CUSTOM_TYPE = "pig.turn-timing"
-
-type Outcome = "complete" | "error" | "aborted"
 
 function parseTiming(data: unknown): TurnTiming | undefined {
   if (
@@ -50,64 +48,4 @@ export function readTurnTimings(entries: readonly SessionEntry[]): TurnTiming[] 
   }
 
   return [...timings.values()]
-}
-
-export class TurnTimingRecorder {
-  private current:
-    { startedAt: number; userId?: string; userTimestamp?: number; outcome: Outcome } | undefined
-
-  constructor(private readonly manager: SessionManager) {}
-
-  start() {
-    this.current = { startedAt: Date.now(), outcome: "complete" }
-  }
-
-  user(timestamp: number) {
-    if (!this.current || this.current.userTimestamp !== undefined) return
-    this.current.userTimestamp = timestamp
-  }
-
-  outcome(outcome: Outcome) {
-    if (this.current && this.current.outcome !== "aborted") this.current.outcome = outcome
-  }
-
-  persistStart() {
-    const current = this.current
-
-    if (!current || current.userId || current.userTimestamp === undefined) return
-
-    const user = this.manager
-      .getBranch()
-      .reverse()
-      .find(
-        (entry) =>
-          entry.type === "message" &&
-          entry.message.role === "user" &&
-          entry.message.timestamp === current.userTimestamp,
-      )
-
-    if (!user) return
-
-    current.userId = user.id
-    this.manager.appendCustomEntry(CUSTOM_TYPE, {
-      userId: user.id,
-      startedAt: current.startedAt,
-      outcome: "running",
-    } satisfies TurnTiming)
-  }
-
-  finish() {
-    this.persistStart()
-    const current = this.current
-    this.current = undefined
-
-    if (!current?.userId) return
-
-    this.manager.appendCustomEntry(CUSTOM_TYPE, {
-      userId: current.userId,
-      startedAt: current.startedAt,
-      endedAt: Math.max(current.startedAt, Date.now()),
-      outcome: current.outcome,
-    } satisfies TurnTiming)
-  }
 }

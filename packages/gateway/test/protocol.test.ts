@@ -36,6 +36,13 @@ afterEach(async () => {
   root = undefined
 })
 
+/** 用户扩展默认不加载：放行 agentDir 里装的替身扩展。 */
+async function allowAgentExtensions(dir: string, agentDir: string) {
+  const file = join(dir, "extensions.json")
+  await writeFile(file, JSON.stringify({ enabled: [join(agentDir, "extensions")] }))
+  return file
+}
+
 /** 一条已握手的连接：按 id 等响应，按谓词等事件。 */
 async function connect(port: number) {
   const socket = new WebSocket(`ws://127.0.0.1:${port}/api/v1/pi`, {
@@ -160,6 +167,7 @@ describe("扩展弹框：在客户端作答，扩展拿到结果", () => {
       sessionDir: join(root, "sessions"),
       cwd,
       agentDir,
+      extensionsFile: await allowAgentExtensions(root, agentDir),
     })
     const client = await connect(await gateway.start())
     const created = await client.request({ command: "create_session", cwd })
@@ -225,7 +233,12 @@ describe("后台任务：扩展经事件总线上报，客户端能看到、能�
     )
     const cwd = join(root, "work")
     await mkdir(cwd)
-    gateway = new Gateway({ sessionDir: join(root, "sessions"), cwd, agentDir })
+    gateway = new Gateway({
+      sessionDir: join(root, "sessions"),
+      cwd,
+      agentDir,
+      extensionsFile: await allowAgentExtensions(root, agentDir),
+    })
     const port = await gateway.start()
     const client = await connect(port)
     const created = await client.request({ command: "create_session", cwd })

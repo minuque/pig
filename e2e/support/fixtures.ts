@@ -147,6 +147,9 @@ async function withGateway(
 
   await mkdir(agentDir)
   await prepareAgent(agentDir)
+  // 用户扩展默认不加载：放行临时 agentDir 里装的替身扩展
+  const extensionsFile = join(temp, "extensions.json")
+  await writeFile(extensionsFile, JSON.stringify({ enabled: [join(agentDir, "extensions")] }))
 
   const workspaceId = canonicalizeWorkspacePath(workspaceDir)
   const platformPort: DirectoryPort = {
@@ -164,6 +167,7 @@ async function withGateway(
     platformPort,
     port: 0,
     agentDir,
+    extensionsFile,
     ...(extra ? await extra(temp) : {}),
   })
 

@@ -8,7 +8,7 @@ pnpm workspace：
 - `apps/desktop/` — Electron main / preload
 - `packages/gateway/` — Thin Host：平台接入与本地安全
 - `packages/protocol/` — gateway 与 web 之间的 WebSocket 消息与 HTTP 数据形状，只有类型
-- `packages/extensions/` — pig 内置的 pi 包（subagent、tasks、remote-workspace），只用公开 Extension API，pi TUI 里也能装
+- `packages/extensions/` — pig 内置的 pi 扩展（turn-timing、file-mentions、subagent、tasks、remote-workspace），只用公开 Extension API，只由 gateway 加载，不注册到 pi TUI
 - `packages/environment/` — 工具运行的环境：本机或 SSH 主机；执行命令、读写文件、搜索、环境列表
 
 架构看板：`pnpm arch` 扫描源码生成 `docs/architecture/dist/index.html`（不提交），含总览、依赖分层地图、数据流与接口表。生成器在 `scripts/arch/`。数据流手写在 `docs/architecture/flows.ts`，每步的 `ref` 指向真实代码，`pnpm check` 校验它们仍然存在。依赖的分层手写在 `docs/architecture/layers.ts`，新增模块没归层时 `pnpm arch` 报错。
@@ -82,7 +82,7 @@ packages/gateway/src/
 
 `test/` 跟 `src/` 同层。
 
-gateway 在进程内跑 pi SDK。内置扩展经 `additionalExtensionPaths` 加载，和用户装的扩展走同一条路；gateway 不给扩展开私有接口。
+gateway 在进程内跑 pi SDK。内置扩展经 `additionalExtensionPaths` 加载；gateway 不给扩展开私有接口。用户在 pi 里装的扩展（`settings.json` 的 `packages`、`~/.pi/agent/extensions`、项目 `.pi/extensions`）默认不加载，写进 `~/.pig/extensions.json` 的 `enabled` 才放行：包按 `packages` 里的来源字符串，目录下的扩展按文件或目录路径。skills、prompt 模板、AGENTS.md 照常共用。
 
 ## 远程 workspace
 
