@@ -113,10 +113,9 @@ import { useRoute } from "vue-router"
 import { warmWorkspace } from "@client/platform.js"
 import { Button } from "@components/ui/button/index.js"
 import Composer from "@features/composer/index.vue"
-import {
-  useComposerAttachments,
-  type ComposerAttachmentBatch,
-} from "@features/composer/hooks/use-composer-attachments.js"
+import { useComposerPreset } from "@features/composer/index.js"
+import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
+import { useComposerAttachments } from "@features/composer/hooks/use-composer-attachments.js"
 import { useComposerQueue, type QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useI18n } from "@i18n/index.js"
@@ -166,8 +165,6 @@ const {
   turnPending,
   connectionError,
   connected,
-  catalog,
-  preset,
   prompt,
   aborting,
   sessionCwd,
@@ -182,6 +179,7 @@ const {
   welcome,
   externalTurn,
 } = useSession()
+const { catalog, preset } = useComposerPreset()
 const { groups, lastCwd, addingWorkspace, addWorkspace, addRemoteWorkspace } = useNav()
 const remoteOpen = ref(false)
 const { welcomeField } = useAppearancePrefs()

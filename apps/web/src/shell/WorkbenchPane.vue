@@ -20,6 +20,7 @@
 </template>
 
 <script setup lang="ts">
+import { provideComposerPreset, type ComposerPresetContext } from "@features/composer/index.js"
 import FilePane from "@features/file-pane/index.vue"
 import { provideFilePane } from "@features/file-pane/index.js"
 import { provideSession, type SessionContext } from "@features/session/index.js"
@@ -34,7 +35,11 @@ import {
   type Side,
 } from "@features/split-view/index.js"
 
-const props = defineProps<{ side: Side; session: SessionContext }>()
+const props = defineProps<{
+  side: Side
+  session: SessionContext
+  preset: ComposerPresetContext
+}>()
 const split = useSplitView()
 
 providePaneSide(props.side)
@@ -42,6 +47,8 @@ providePaneSide(props.side)
 const host = providePanelHost()
 
 provideSession(props.session)
+
+provideComposerPreset(props.preset)
 
 provideSessionRail()
 

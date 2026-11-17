@@ -20,9 +20,8 @@ import {
   isUserItem,
   isVisibleTranscriptItem,
   transcriptImages,
-  transcriptText,
-  userMessageText,
 } from "@features/transcript-view/lib/transcript-format.js"
+import { transcriptText, userMessageText } from "@features/session/lib/transcript-text.js"
 import { toolGroupKey } from "@features/transcript-view/lib/tool-summary.js"
 
 export function isToolRow(row: TimelineRow): row is ToolRow {

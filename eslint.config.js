@@ -55,6 +55,25 @@ export default defineConfig(
   },
 
   {
+    name: "pig/session-state-layer",
+    files: ["apps/web/src/features/session/**"],
+    // 会话状态是底层：别的 feature 引它，它不引别的 feature
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              regex: "^@features/(?!session/)",
+              message: "features/session 是状态层，不引用别的 feature。",
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  {
     name: "pig/vue-parser",
     files: ["**/*.vue"],
     languageOptions: {

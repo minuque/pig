@@ -1,12 +1,8 @@
 import { nextTick, ref, watch, type Ref } from "vue"
 import type { SessionPhase, ThinkingLevel } from "@/types/common-type.js"
 import type { ComposerModel, ComposerPreset, ComposerVendor } from "@features/composer/type.js"
-import {
-  defaultPresetFrom,
-  resolveModelInfo,
-  sameModel,
-  thinkingLevelOf,
-} from "@features/composer/lib/model-preset.js"
+import { defaultPresetFrom, resolveModelInfo } from "@features/composer/lib/model-preset.js"
+import { sameModel, thinkingLevelOf } from "@features/session/lib/model-ref.js"
 
 interface ComposerSnapshot {
   model: ComposerModel

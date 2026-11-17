@@ -1,8 +1,6 @@
 import type { InjectionKey } from "vue"
 
-export { transcriptText } from "@features/transcript-view/lib/transcript-format.js"
-
-export { userMessageText } from "@features/transcript-view/lib/transcript-format.js"
+export { transcriptText, userMessageText } from "@features/session/lib/transcript-text.js"
 
 export { prefetchHighlighter } from "@features/transcript-view/lib/code-highlight.js"
 

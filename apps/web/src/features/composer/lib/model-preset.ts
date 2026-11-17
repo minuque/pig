@@ -1,4 +1,4 @@
-import type { ModelMetadata, ThinkingLevel } from "@/types/common-type.js"
+import type { ModelMetadata } from "@/types/common-type.js"
 import type {
   ComposerModel,
   ComposerModelInfo,
@@ -58,10 +58,6 @@ export function resolveModelInfo(catalog: ComposerVendor[], ref: ComposerModel |
   return { vendor, model, levels: model?.thinkingLevels ?? [] }
 }
 
-export function sameModel(a: ComposerModel | undefined, b: ComposerModel | undefined): boolean {
-  return a?.provider === b?.provider && a?.id === b?.id
-}
-
 /** 官方 ModelMetadata → 供应商目录；保留服务端顺序。 */
 export function catalogFromModels(models: readonly ModelMetadata[]): ComposerVendor[] {
   const vendors = new Map<string, ComposerVendor>()
@@ -98,13 +94,4 @@ export function defaultPresetFrom(catalog: readonly ComposerVendor[]): ComposerP
   }
 
   return undefined
-}
-
-/** 字符串 thinkingLevel → 官方 ThinkingLevel；未知值回退 "off"。 */
-export function thinkingLevelOf(level: string): ThinkingLevel {
-  return (["off", "minimal", "low", "medium", "high", "xhigh", "max"] as const).includes(
-    level as ThinkingLevel,
-  )
-    ? (level as ThinkingLevel)
-    : "off"
 }

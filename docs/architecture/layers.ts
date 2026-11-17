@@ -32,7 +32,6 @@ export const layers: Record<string, Layer[]> = {
       name: "功能",
       note: "业务逻辑",
       dirs: [
-        "features/session",
         "features/split-view",
         "features/composer",
         "features/transcript-view",
@@ -44,6 +43,7 @@ export const layers: Record<string, Layer[]> = {
         "features/click-sound",
       ],
     },
+    { name: "状态", note: "会话状态，不引用别的功能", dirs: ["features/session"] },
     { name: "组件", note: "通用 UI", dirs: ["components/layout", "components/ui", "components/icons"] },
     { name: "底座", note: "谁都能用", dirs: ["client", "types", "i18n", "utils"] },
   ],

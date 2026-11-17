@@ -1,6 +1,6 @@
 import type { TranscriptItem } from "@/types/common-type.js"
 import { bindAttachments, discardAttachments, stageAttachment } from "@client/platform.js"
-import type { ComposerAttachmentBatch } from "@features/composer/hooks/use-composer-attachments.js"
+import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
 import type { LiveSubscription } from "@features/session/hooks/use-live-subscriptions.js"
 import { optimisticUserMessage, sessionState } from "@features/session/lib/session-state.js"
 import type { SessionClientState } from "@features/session/type.js"

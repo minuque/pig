@@ -8,7 +8,7 @@ import type {
 import type { TurnTiming } from "@/types/common-type.js"
 import { t } from "@i18n/index.js"
 import { untitledSession } from "@features/session/lib/session-title.js"
-import { userMessageText } from "@features/transcript-view/index.js"
+import { userMessageText } from "@features/session/lib/transcript-text.js"
 import type {
   OptimisticUserMessage,
   SessionClientState,
