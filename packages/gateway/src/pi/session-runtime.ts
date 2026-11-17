@@ -280,7 +280,7 @@ export class PiHostSession implements SessionRuntime {
 
   /** 会话文件被别处追加过就释放运行时，之后历史读盘；返回是否已释放。 */
   async releaseIfAppended(): Promise<boolean> {
-    if (this.disposed || !(await this.appendCheck.appended())) return false
+    if (this.disposed || !this.appendCheck.appended()) return false
     // 协议层借 error 事件把会话标成终止：挂着的连接下一条命令收到同一个错误码
     this.emit({ type: "error", error: changedElsewhere(this.session.sessionId) })
     await this.dispose()

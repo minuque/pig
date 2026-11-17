@@ -1,5 +1,5 @@
 import type { ResolvedResource } from "@earendil-works/pi-coding-agent"
-import { readFile } from "node:fs/promises"
+import { readFileSync } from "node:fs"
 import { homedir } from "node:os"
 import { resolve, sep } from "node:path"
 
@@ -7,12 +7,12 @@ export const defaultExtensionsFile = () => resolve(homedir(), ".pig", "extension
 /** 同一份坏文件只在日志里报一次。 */
 const reported = new Set<string>()
 
-/** 读放行清单：文件缺失或格式不对一律当空，格式不对报一次。 */
-export async function readExtensionAllowlist(file = defaultExtensionsFile()): Promise<string[]> {
+/** 读放行清单：同步读，建 loader 时不让出事件循环；缺失或格式不对一律当空，格式不对报一次。 */
+export function readExtensionAllowlist(file = defaultExtensionsFile()): string[] {
   let text: string
 
   try {
-    text = await readFile(file, "utf-8")
+    text = readFileSync(file, "utf-8")
   } catch {
     return []
   }

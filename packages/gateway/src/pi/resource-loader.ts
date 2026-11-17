@@ -32,6 +32,7 @@ export async function createResourceLoader(
 ): Promise<DefaultResourceLoader> {
   const agentDir = options.agentDir ?? getAgentDir()
   const settingsManager = SettingsManager.create(cwd, agentDir)
+  const allowlist = readExtensionAllowlist(options.extensionsFile)
   const loader = new DefaultResourceLoader({
     cwd,
     agentDir,
@@ -44,7 +45,10 @@ export async function createResourceLoader(
       ...["turn-timing", "file-mentions", "subagent", "remote-workspace", "tasks"].map((name) =>
         join(BUILTIN_PACKAGE, "src", name, "index.ts"),
       ),
-      ...(await allowedExtensionPaths(cwd, agentDir, settingsManager, options.extensionsFile)),
+      // 清单为空时不 await：多让出一拍，后台预热的 reload 会压到刚发来的 prompt 后面
+      ...(allowlist.length
+        ? await allowedExtensionPaths(cwd, agentDir, settingsManager, allowlist)
+        : []),
     ],
     // CLI 内置的这三个扩展 SDK 不会自带；照 CLI 加上，启用与否仍由用户的 pi 设置决定
     extensionFactories: [
@@ -63,12 +67,8 @@ async function allowedExtensionPaths(
   cwd: string,
   agentDir: string,
   settingsManager: SettingsManager,
-  extensionsFile: string | undefined,
+  allowlist: string[],
 ): Promise<string[]> {
-  const allowlist = await readExtensionAllowlist(extensionsFile)
-
-  if (allowlist.length === 0) return []
-
   const { extensions } = await new DefaultPackageManager({
     cwd,
     agentDir,
