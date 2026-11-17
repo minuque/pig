@@ -79,5 +79,5 @@ export interface SessionService {
   listSessions(): Promise<SessionMetadata[]>
   listModels(): Promise<ModelMetadata[]>
   createSession(options: CreateSessionOptions): Promise<SessionRuntime>
-  openSession(sessionId: string): Promise<SessionRuntime>
+  openSession(sessionId: string, options?: { takeover?: boolean }): Promise<SessionRuntime>
 }

@@ -45,6 +45,8 @@ export function useSessionLifecycle(
     leaveForeground,
     dispose,
     history,
+    externalTurn,
+    takeover,
     contextUsage: foregroundUsage,
   } = useForegroundSession(pi, sessionId, hub)
   const { backgroundRunningIds } = live
@@ -371,6 +373,8 @@ export function useSessionLifecycle(
     setBackgroundIdleHandler,
     setWelcomeHandoff,
     transcriptFor: history.transcriptFor,
+    externalTurn,
+    takeover,
     abortSession,
     initialize,
     remote,

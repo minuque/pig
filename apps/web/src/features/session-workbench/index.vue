@@ -80,6 +80,8 @@
               </span>
             </div>
 
+            <ExternalTurnNotice />
+
             <Composer
               v-model:prompt="prompt"
               v-model:preset="preset"
@@ -121,6 +123,7 @@ import { useI18n } from "@i18n/index.js"
 import { sessionDropTargetAttrs, useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session/index.js"
 import { useAppearancePrefs } from "@features/settings/index.js"
+import ExternalTurnNotice from "@features/session-workbench/components/ExternalTurnNotice.vue"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
 import WelcomeField from "@features/session-workbench/components/WelcomeField.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
@@ -177,6 +180,7 @@ const {
   transcriptFor,
   contextUsage,
   welcome,
+  externalTurn,
 } = useSession()
 const { groups, lastCwd, addingWorkspace, addWorkspace, addRemoteWorkspace } = useNav()
 const remoteOpen = ref(false)
@@ -211,7 +215,11 @@ const heroWorkspaceId = computed({
 })
 const composerCwd = computed(() => (sessionId.value ? sessionCwd.value : welcomeWorkspaceId.value))
 const sendDisabled = computed(
-  () => !composerCwd.value || preset.value === undefined || Boolean(creating.value),
+  () =>
+    !composerCwd.value ||
+    preset.value === undefined ||
+    Boolean(creating.value) ||
+    externalTurn.value,
 )
 
 // 侧栏点目录会写 lastCwd，Hero 跟随；workspaces 变化只兜底失效项，保住 Hero 手选

@@ -212,6 +212,39 @@ export function prebuildComplexSession(
   return { id: COMPLEX_SESSION_ID, name: COMPLEX_SESSION_NAME }
 }
 
+export const EXTERNAL_SESSION_ID = "e2e-external"
+export const EXTERNAL_SESSION_NAME = "外部回合会话"
+export const EXTERNAL_PENDING_PROMPT = "e2e 别处正在跑的提问"
+export const EXTERNAL_REPLY = "e2e 别处写入的回答"
+
+/** 一个完整回合后再多一条用户消息：像 TUI 正跑到一半。返回会话文件路径。 */
+export function prebuildExternalTurnSession(sessionDir: string, cwd: string): string {
+  const manager = SessionManager.create(cwd, sessionDir, { id: EXTERNAL_SESSION_ID })
+  const timestamp = Date.now() - 60_000
+
+  manager.appendSessionInfo(EXTERNAL_SESSION_NAME)
+  manager.appendMessage({ role: "user", content: "e2e 先前的提问", timestamp })
+  manager.appendMessage(
+    assistantMessage([{ type: "text", text: "e2e 先前的回答" }], timestamp + 1_000),
+  )
+  manager.appendMessage({
+    role: "user",
+    content: EXTERNAL_PENDING_PROMPT,
+    timestamp: timestamp + 2_000,
+  })
+  const file = manager.getSessionFile()
+
+  if (!file) throw new Error("预构建未写出会话文件")
+  return file
+}
+
+/** 另开一个 SessionManager 追加一条收尾的助手消息：这就是外部写入方。 */
+export function appendExternalReply(file: string) {
+  SessionManager.open(file).appendMessage(
+    assistantMessage([{ type: "text", text: EXTERNAL_REPLY }], Date.now()),
+  )
+}
+
 export const CHILD_SESSION_ID = "e2e-child"
 export const CHILD_MARKER = "子任务里读到了协议层"
 

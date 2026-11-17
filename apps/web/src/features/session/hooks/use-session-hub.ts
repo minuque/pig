@@ -13,6 +13,7 @@ export type SessionHub = ReturnType<typeof createSessionHub>
 export interface ForegroundEntry {
   remote(): GatewaySession | undefined
   handOver(): void
+  reattach(): Promise<void>
 }
 
 /** 两侧 workbench 共用的会话底座：历史缓存、后台池、在飞的 open、每会话的客户端状态。 */
@@ -34,7 +35,18 @@ export function createSessionHub(
   pi.bindAttachedReconnect(async () => {
     await pi.client.value?.reconnect()
 
-    for (const entry of foregrounds) await entry.remote()?.reattach()
+    let failure: unknown
+
+    // 逐侧重挂：一侧失败不挡另一侧
+    for (const entry of foregrounds) {
+      try {
+        await entry.reattach()
+      } catch (error) {
+        failure ??= error
+      }
+    }
+
+    if (failure) throw failure
   })
 
   const stopClientSync = watch(

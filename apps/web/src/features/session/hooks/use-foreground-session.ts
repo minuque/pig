@@ -1,4 +1,5 @@
-import { shallowRef, type ComputedRef } from "vue"
+import { computed, shallowRef, watch, type ComputedRef } from "vue"
+import { useIntervalFn } from "@vueuse/core"
 import { GatewaySession } from "@client/gateway-session.js"
 import type {
   ContextUsageEstimate,
@@ -10,7 +11,11 @@ import type { useGatewayClient } from "@client/gateway-connection.js"
 import { contextUsage } from "@client/platform.js"
 import { useHistoryView } from "@features/session/hooks/use-session-history.js"
 import type { SessionHub } from "@features/session/hooks/use-session-hub.js"
-import { isDisconnectedError, isOpenAborted } from "@features/session/hooks/abortable-open.js"
+import {
+  isDisconnectedError,
+  isOpenAborted,
+  isSessionLocked,
+} from "@features/session/hooks/abortable-open.js"
 import {
   hasRunningTasks,
   type ForegroundOwner,
@@ -22,6 +27,8 @@ interface CreateSessionInput {
   model?: ModelRef
   thinkingLevel?: ThinkingLevel
 }
+
+const FOLLOW_INTERVAL_MS = 2000
 
 /** 一侧 workbench 的前台连接：挂上、摘下、切换、转入共用后台池、释放。每侧同一时刻只有一条。 */
 export function useForegroundSession(
@@ -44,7 +51,7 @@ export function useForegroundSession(
     },
     revision: (id) => void refreshContextUsage(id),
   }
-  const entry = { remote: () => remote.value, handOver }
+  const entry = { remote: () => remote.value, handOver, reattach }
   const unregister = hub.registerForeground(entry)
 
   /** 占用估算只给前台：切走或换会话就作废在飞的请求。 */
@@ -129,6 +136,25 @@ export function useForegroundSession(
     if (previous) void discard(previous)
   }
 
+  /** 重连后重新挂上；被 session_locked 拒绝就放掉连接，回到只读并重拉历史。 */
+  async function reattach() {
+    const current = remote.value
+
+    if (!current) return
+
+    try {
+      await current.reattach()
+    } catch (error) {
+      if (!isSessionLocked(error)) throw error
+      const id = current.id
+
+      detach()
+      void discard(current)
+
+      if (id) void history.loadHistory(id, { force: true })
+    }
+  }
+
   function enqueueReplace<T>(run: () => Promise<T>): Promise<T> {
     const next = replaceChain.then(run, run)
     replaceChain = next.then(
@@ -149,7 +175,7 @@ export function useForegroundSession(
     promote(id)
   }
 
-  function ensureRemote(id: string) {
+  function ensureRemote(id: string, options?: { takeover?: boolean }) {
     if (remote.value?.id === id) return Promise.resolve()
     return enqueueReplace(async () => {
       if (history.activeId.value !== id || remote.value?.id === id || !pi.client.value) return
@@ -161,7 +187,7 @@ export function useForegroundSession(
         const current = pi.client.value
 
         if (!current || history.activeId.value !== id) return
-        const raced = raceRemoteOpen(id, () => GatewaySession.open(current, id))
+        const raced = raceRemoteOpen(id, () => GatewaySession.open(current, id, options))
         abortInflightOpen = raced.abort
 
         try {
@@ -177,6 +203,11 @@ export function useForegroundSession(
         } catch (error) {
           if (history.activeId.value !== id || isOpenAborted(error)) return
 
+          if (isSessionLocked(error)) {
+            void history.loadHistory(id, { force: true })
+            throw error
+          }
+
           if (!isDisconnectedError(error)) throw error
 
           if (attempt === 0 && pi.connected.value) continue
@@ -189,6 +220,38 @@ export function useForegroundSession(
       }
     })
   }
+
+  /** 别处在跑回合：缓存页带标记且这一侧没挂这个会话。 */
+  const externalTurn = computed(
+    () => history.externalTurn.value && remote.value?.id !== history.activeId.value,
+  )
+
+  async function takeover() {
+    const id = history.activeId.value
+
+    if (id) await ensureRemote(id, { takeover: true })
+  }
+
+  /** 显示中且没挂连接（前台与后台池都没有）：每 2 秒强制重拉，等外部回合落盘。 */
+  const follow = useIntervalFn(
+    () => {
+      const id = history.activeId.value
+
+      if (id && remote.value?.id !== id && !live.backgroundSubscription(id))
+        void history.refreshHistory(id)
+    },
+    FOLLOW_INTERVAL_MS,
+    { immediate: false },
+  )
+
+  watch(
+    [history.activeId, remote, pi.connected],
+    ([id, attached, connected]) => {
+      if (id && connected && attached?.id !== id) follow.resume()
+      else follow.pause()
+    },
+    { immediate: true },
+  )
 
   async function createRemoteSession(nextCwd: string, options?: Omit<CreateSessionInput, "cwd">) {
     const routeSessionAtStart = sessionId.value
@@ -216,6 +279,7 @@ export function useForegroundSession(
 
   /** 这一侧卸下：运行中的会话照旧转入共用后台池，池本身由 hub 收尾。 */
   async function dispose() {
+    follow.pause()
     unregister()
     history.setActive(undefined)
     abortInflightOpen?.()
@@ -237,6 +301,8 @@ export function useForegroundSession(
     live,
     history,
     contextUsage: contextUsageEstimate,
+    externalTurn,
+    takeover,
     release,
     ensureRemote,
     createRemoteSession,

@@ -64,11 +64,25 @@ export function createHistoryStore() {
       requestById.set(id, request)
 
       try {
-        const { items, timings, hasMore } = await sessionTranscript(id)
+        const known = cache.peek(id)?.ready ? cache.peek(id)?.version : undefined
+        const result = known ? await sessionTranscript(id, known) : await sessionTranscript(id)
 
         if (requestById.get(id) !== request) return
+
+        if ("unchanged" in result) {
+          cache.write(id, { stale: false })
+          return
+        }
+
+        const { items, timings, hasMore, version: fileVersion, externalTurn } = result
         const absorbed = absorbLatestTranscriptPage(cache.peek(id), { items, timings, hasMore })
-        cache.write(id, { ...absorbed, ready: true, stale: false })
+        cache.write(id, {
+          ...absorbed,
+          version: fileVersion,
+          externalTurn,
+          ready: true,
+          stale: false,
+        })
         bump()
       } catch (error) {
         // 失败不标 ready：不把已有会话画成欢迎页，下次打开会重拉
@@ -83,6 +97,11 @@ export function createHistoryStore() {
       if (inflight.get(id) === run) inflight.delete(id)
     })
     return run
+  }
+
+  /** 轮询用：已有请求在飞就等它落地，不另发。 */
+  function refreshHistory(id: string) {
+    return inflight.get(id) ?? loadHistory(id, { force: true })
   }
 
   /** 指定会话当前的合并转录（磁盘 + live 覆盖）；前台投影与后台泵队共用。 */
@@ -100,8 +119,13 @@ export function createHistoryStore() {
     transcriptFor,
     isFresh: (id: string) => cache.isFresh(id),
     isReady: (id: string) => cache.isReady(id),
+    externalTurnFor: (id: string) => {
+      void version.value
+      return cache.peek(id)?.externalTurn ?? false
+    },
     timingsFor: (id: string) => cache.peek(id)?.timings ?? [],
     loadHistory,
+    refreshHistory,
   }
 }
 
@@ -134,16 +158,22 @@ export function useHistoryView(store: HistoryStore) {
     if (!id || !store.isReady(id)) return []
     return store.timingsFor(id)
   })
+  const externalTurn = computed(() => {
+    const id = activeId.value
+    return id ? store.externalTurnFor(id) : false
+  })
   return {
     activeId,
     liveTranscript,
     historyReadyId,
     turnTimings,
+    externalTurn,
     setActive,
     overlayLive: store.overlayLive,
     releaseLive: store.releaseLive,
     transcriptFor,
     isFresh: store.isFresh,
     loadHistory: store.loadHistory,
+    refreshHistory: store.refreshHistory,
   }
 }

@@ -55,7 +55,7 @@ export type Command =
       model?: ModelRef
       thinkingLevel?: ThinkingLevel
     }
-  | { command: "attach_session"; sessionId: string }
+  | { command: "attach_session"; sessionId: string; takeover?: boolean }
   | { command: "detach_session"; sessionId: string }
   | { command: "prompt"; sessionId: string; message: string }
   | { command: "steer"; sessionId: string; message: string }

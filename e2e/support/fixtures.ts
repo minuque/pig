@@ -15,6 +15,7 @@ import {
   prebuildComplexSession,
   prebuildFillerSessions,
   prebuildChildSession,
+  prebuildExternalTurnSession,
 } from "./prebuild-session.js"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..")
@@ -84,8 +85,15 @@ export interface MultiE2eGateway extends E2eGateway {
   readonly secondWorkspaceId: string
 }
 
+/** 会话文件路径：测试进程借它扮演外部写入方。 */
+export interface ExternalTurnGateway extends E2eGateway {
+  readonly sessionFile: string
+}
+
 type TestFixtures = {
   gateway: E2eGateway
+  /** 一个末尾是用户消息的会话，像别处的 TUI 正跑到一半。 */
+  externalTurnGateway: ExternalTurnGateway
   complexGateway: E2eGateway
   /** 只装 6 个批量会话，用来验侧栏分组与分页。 */
   navGateway: E2eGateway
@@ -360,6 +368,19 @@ export const test = base.extend<TestFixtures>({
   gateway: [
     async ({}, use) => {
       await withGateway(() => undefined, use)
+    },
+    { scope: "test" },
+  ],
+  externalTurnGateway: [
+    async ({}, use) => {
+      let sessionFile = ""
+
+      await withGateway(
+        (sessionDir, workspaceDir) => {
+          sessionFile = prebuildExternalTurnSession(sessionDir, workspaceDir)
+        },
+        (gateway) => use({ ...gateway, sessionFile }),
+      )
     },
     { scope: "test" },
   ],

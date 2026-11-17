@@ -29,6 +29,7 @@ const E2E_BY_AREA = [
     prefix: "apps/web/src/features/session/",
     specs: [
       "e2e/conversation/one-turn.spec.ts",
+      "e2e/conversation/external-turn.spec.ts",
       NEW_SESSION,
       "e2e/sidebar/workspace.spec.ts",
       SPLIT_VIEW,

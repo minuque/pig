@@ -9,13 +9,25 @@ export type SessionHistoryPage = {
   items: TranscriptItem[]
   timings: TurnTiming[]
   hasMore: boolean
+  /** 磁盘文件版本；活会话没有。 */
+  version?: string | undefined
+  /** 别处正在跑回合。 */
+  externalTurn: boolean
   heldLive: TranscriptItem[]
   ready: boolean
   stale: boolean
 }
 
 export function emptyHistoryPage(): SessionHistoryPage {
-  return { items: [], timings: [], hasMore: false, heldLive: [], ready: false, stale: false }
+  return {
+    items: [],
+    timings: [],
+    hasMore: false,
+    externalTurn: false,
+    heldLive: [],
+    ready: false,
+    stale: false,
+  }
 }
 
 export function createSessionHistoryCache(max = SESSION_VIEW_CACHE) {

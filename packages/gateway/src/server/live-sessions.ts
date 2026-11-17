@@ -74,7 +74,9 @@ export class LiveSessions {
 
       case "attach_session": {
         const session = await this.attachTo(connection, command.sessionId, () =>
-          this.options.service.openSession(command.sessionId),
+          this.options.service.openSession(command.sessionId, {
+            ...(command.takeover ? { takeover: true } : {}),
+          }),
         )
         return { command: "attach_session", session }
       }
