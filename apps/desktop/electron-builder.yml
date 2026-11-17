@@ -6,6 +6,8 @@ copyright: Copyright (c) 2026 HappyXqw
 artifactName: Pig-${version}-x64-Setup.${ext}
 forceCodeSigning: false
 asar: true
+# 应用没有自动更新：不生成 latest.yml；否则按 git 远端推断 GitHub 发布配置，推断失败时打包报错
+publish: null
 icon: ../web/public/logo.png
 
 extraMetadata:
