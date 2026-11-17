@@ -57,7 +57,7 @@ const METRICS = [
     { key: `gwFirstProgress_${n}` as const, label: `首帧推送（${n} 会话）`, group: GW },
     { key: `gwProgressGapP99_${n}` as const, label: `推送间隔 p99（${n} 会话）`, group: GW },
   ]),
-  { key: "gwRssPerSession", label: "每会话内存", group: GW, unit: "bytes" },
+  { key: "gwHeapPerSession", label: "每会话 JS 堆", group: GW, unit: "bytes" },
   { key: "gwTranscriptMs", label: "长会话全文历史", group: GW },
   { key: "gwTranscriptBytes", label: "长会话全文历史大小", group: GW, unit: "bytes" },
   // 仅 --web：桌面端网关在 Electron 里，注入不了替身供应商
@@ -298,7 +298,7 @@ async function main() {
     if (refetch) await measureRefetchRounds(harness, refetch, args.runs, samples)
 
     const config = {
-      version: 21,
+      version: 22,
       runs: args.runs,
       runtime: harness.runtime,
       browser: harness.runtimeLabel,

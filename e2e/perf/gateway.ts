@@ -33,15 +33,15 @@ export type GatewayKey =
   | `gwLoopBusy_${Count}`
   | `gwFirstProgress_${Count}`
   | `gwProgressGapP99_${Count}`
-  | "gwRssPerSession"
+  | "gwHeapPerSession"
   | "gwTranscriptMs"
   | "gwTranscriptBytes"
 
-const RSS_COUNT = 8
+const HEAP_COUNT = 8
 
 setFlagsFromString("--expose-gc")
 
-/** 量 RSS 前先回收：前几批会话已释放，不让它们的垃圾算进这一批。 */
+/** 量堆前先回收：前几批会话已释放，不让它们的垃圾算进这一批；RSS 在 Windows 上会被系统回收成负数。 */
 const collect = runInNewContext("gc") as () => void
 
 type Started = Awaited<ReturnType<typeof startFauxGateway>>
@@ -85,12 +85,12 @@ async function transcript(started: Started) {
 }
 
 /** 一条连接（同一个窗口）建 N 个会话，同时发 prompt，等全部回合结束。 */
-async function parallelTurns(started: Started, script: FauxScript, count: number, rss = false) {
+async function parallelTurns(started: Started, script: FauxScript, count: number, heap = false) {
   const client = await connectGateway(started.port, started.authorization)
 
   try {
-    if (rss) collect()
-    const rssBefore = process.memoryUsage.rss()
+    if (heap) collect()
+    const heapBefore = process.memoryUsage().heapUsed
     const ids = await Promise.all(
       Array.from({ length: count }, async () => {
         const reply = await client.request({
@@ -128,13 +128,13 @@ async function parallelTurns(started: Started, script: FauxScript, count: number
     )
     const firsts = [...arrivals.values()].map((times) => (times[0] ?? Infinity) - sentAt)
 
-    if (rss) collect()
+    if (heap) collect()
     return {
       loopP99: loop.percentile(99) / 1e6,
       busy,
       firstProgress: Math.max(...firsts),
       gapP99: quantile(gaps, 0.99),
-      rssPerSession: (process.memoryUsage.rss() - rssBefore) / count,
+      heapPerSession: (process.memoryUsage().heapUsed - heapBefore) / count,
     }
   } finally {
     client.close()
@@ -157,13 +157,13 @@ export async function measureGatewayRound(
     await parallelTurns(started, script, 1)
 
     for (const count of GATEWAY_COUNTS) {
-      const run = await parallelTurns(started, script, count, count === RSS_COUNT)
+      const run = await parallelTurns(started, script, count, count === HEAP_COUNT)
       result[`gwLoopP99_${count}`] = run.loopP99
       result[`gwLoopBusy_${count}`] = run.busy
       result[`gwFirstProgress_${count}`] = run.firstProgress
       result[`gwProgressGapP99_${count}`] = run.gapP99
 
-      if (count === RSS_COUNT) result.gwRssPerSession = run.rssPerSession
+      if (count === HEAP_COUNT) result.gwHeapPerSession = run.heapPerSession
     }
 
     return result
