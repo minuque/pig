@@ -1,8 +1,17 @@
 import { access } from "node:fs/promises"
-import { resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 import type { ChildProcess } from "node:child_process"
-import { app, dialog, ipcMain, Menu, screen, session, type BrowserWindow } from "electron"
+import {
+  app,
+  dialog,
+  ipcMain,
+  Menu,
+  screen,
+  session,
+  utilityProcess,
+  type BrowserWindow,
+  type OpenDialogOptions,
+} from "electron"
 
 import { handlePigProtocol, registerPigScheme } from "./protocol.js"
 import {
@@ -14,7 +23,7 @@ import {
   viteDevOrigin,
 } from "./urls.js"
 import { killVite, spawnVite, waitForHttp } from "./vite-child.js"
-import { createElectronDirectoryPort, type DirectoryPort } from "./directory-port.js"
+import { connectGateway, type GatewayProcess } from "./gateway-process.js"
 import { createMainWindow } from "./window.js"
 import { loadWithRetry } from "./load-retry.js"
 import { parseThemeColor } from "./theme-color.js"
@@ -37,21 +46,10 @@ if (cdpPort) {
   app.commandLine.appendSwitch("remote-allow-origins", "*")
 }
 
-type GatewayInstance = {
-  start(): Promise<number>
-  stop(): Promise<void>
-  launchToken: string
-}
-
-type GatewayModule = {
-  default: new (options: {
-    platformPort: DirectoryPort
-    webRoot?: string
-    sessionDir?: string
-    cwd?: string
-  }) => GatewayInstance
-  canonicalizePath: (path: string) => string
-}
+const DIALOG_OPTIONS = {
+  title: "选择工作目录",
+  properties: ["openDirectory", "createDirectory"],
+} as const satisfies OpenDialogOptions
 
 function trustLoopback(token: string): void {
   session.defaultSession.webRequest.onBeforeSendHeaders(
@@ -67,26 +65,41 @@ function trustLoopback(token: string): void {
   )
 }
 
-function envDir(name: "PIG_SESSION_DIR" | "PIG_CWD"): string | undefined {
-  const value = process.env[name]
-  return value ? resolve(value) : undefined
-}
-
-let gateway: GatewayInstance | undefined
+let gateway: GatewayProcess | undefined
 let vite: ChildProcess | undefined
 let mainWindow: BrowserWindow | undefined
 let stopping = false
 
-async function loadGatewayModule(isPackaged: boolean): Promise<GatewayModule> {
-  if (isPackaged) {
-    // 非字面量，避免 tsc emit 把 gateway 源码拉进 rootDir
-    const spec = "@pig/gateway"
-    return (await import(spec)) as GatewayModule
-  }
+async function pickDirectory(): Promise<string | undefined> {
+  const result = mainWindow
+    ? await dialog.showOpenDialog(mainWindow, DIALOG_OPTIONS)
+    : await dialog.showOpenDialog(DIALOG_OPTIONS)
+  return result.canceled ? undefined : result.filePaths[0]
+}
 
-  // exports 指向 dist，开发时可能没有
-  const url = new URL("../../../../packages/gateway/src/index.js", import.meta.url).href
-  return (await import(url)) as GatewayModule
+/** gateway 跑在 utilityProcess：扩展卡住或崩溃不拖垮窗口。开发态经 .mjs 入口注册 tsx。 */
+function startGateway(isPackaged: boolean, webRoot: string | undefined): Promise<GatewayProcess> {
+  const entry = new URL(
+    isPackaged ? "./gateway-child.js" : "../../gateway-child.mjs",
+    import.meta.url,
+  )
+  const args = [...(webRoot ? ["--web-root", webRoot] : []), ...(isPackaged ? ["--packaged"] : [])]
+  // 主进程 stdout 是管道时，默认的 inherit 收不到子进程输出；扩展报错靠 console.error 露出来
+  const child = utilityProcess.fork(fileURLToPath(entry), args, {
+    serviceName: "pig-gateway",
+    stdio: "pipe",
+  })
+
+  child.stdout?.pipe(process.stdout)
+  child.stderr?.pipe(process.stderr)
+  return connectGateway(child, {
+    pickDirectory,
+    onUnexpectedExit(code) {
+      gateway = undefined
+      dialog.showErrorBox("网关已退出", `后台网关进程意外退出（退出码 ${code}），应用将关闭。`)
+      void shutdown()
+    },
+  })
 }
 
 async function shutdown(): Promise<void> {
@@ -140,7 +153,6 @@ void app.whenReady().then(async () => {
   try {
     const isDev = isDesktopDev()
     const isPackaged = app.isPackaged
-    const gatewayMod = await loadGatewayModule(isPackaged)
     const webRoot = resolveWebRoot(isDev, isPackaged, import.meta.url, process.resourcesPath)
     const preloadPath = fileURLToPath(new URL("../preload/index.js", import.meta.url))
 
@@ -159,21 +171,8 @@ void app.whenReady().then(async () => {
       }
     }
 
-    const sessionDir = envDir("PIG_SESSION_DIR")
-    const cwd = envDir("PIG_CWD")
-    gateway = new gatewayMod.default({
-      platformPort: createElectronDirectoryPort(
-        () => mainWindow,
-        (parent, options) =>
-          parent ? dialog.showOpenDialog(parent, options) : dialog.showOpenDialog(options),
-        gatewayMod.canonicalizePath,
-      ),
-      ...(webRoot ? { webRoot } : {}),
-      ...(sessionDir ? { sessionDir } : {}),
-      ...(cwd ? { cwd } : {}),
-    })
-    const port = await gateway.start()
-    const httpOrigin = gatewayOrigin(port)
+    gateway = await startGateway(isPackaged, webRoot)
+    const httpOrigin = gatewayOrigin(gateway.port)
     const launchToken = gateway.launchToken
     trustLoopback(launchToken)
 
