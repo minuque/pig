@@ -61,20 +61,25 @@ export default function turnTiming(pi: ExtensionAPI) {
             : "complete"
   })
 
-  pi.on("agent_settled", (event, ctx) => {
+  const settle = (ctx: ExtensionContext, outcome: (current: Turn) => Outcome) => {
     inputAt = undefined
     persistStart(ctx)
     const current = turn
     turn = undefined
 
     if (!current?.userId) return
-    // 没等到助手消息就结束，是 prompt 在模型应答前抛了错
-    const outcome = event.aborted ? "aborted" : (current.outcome ?? "error")
     pi.appendEntry(TIMING_ENTRY, {
       userId: current.userId,
       startedAt: current.startedAt,
       endedAt: Math.max(current.startedAt, Date.now()),
-      outcome,
+      outcome: outcome(current),
     } satisfies TurnTiming)
-  })
+  }
+
+  // 没等到助手消息就结束，是 prompt 在模型应答前抛了错
+  pi.on("agent_settled", (event, ctx) =>
+    settle(ctx, (current) => (event.aborted ? "aborted" : (current.outcome ?? "error"))),
+  )
+  // 回合中途关会话：dispose 会中止回合并让 ctx 失效，之后的 agent_settled 写不进去
+  pi.on("session_shutdown", (_event, ctx) => settle(ctx, () => "aborted"))
 }

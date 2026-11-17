@@ -58,7 +58,7 @@ export const layers: Record<string, Layer[]> = {
     { name: "底座", note: "登录态与系统对接", dirs: ["auth", "system"] },
   ],
   "packages/extensions": [
-    { name: "扩展", note: "对外能力", dirs: ["subagent"] },
+    { name: "扩展", note: "对外能力", dirs: ["subagent", "turn-timing", "file-mentions"] },
     { name: "底座", note: "被其他扩展复用", dirs: ["tasks", "remote-workspace"] },
   ],
 }

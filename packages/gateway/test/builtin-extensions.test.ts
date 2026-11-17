@@ -153,6 +153,66 @@ it("模型报错记 error，中止记 aborted", async () => {
   ])
 })
 
+it("回合进行中关掉网关：计时落一条 aborted 终态，不停在 running", async () => {
+  const runtime = await ModelRuntime.create({ allowModelNetwork: false })
+  runtime.registerNativeProvider(faux.provider)
+
+  const other = new Gateway({
+    sessionDir,
+    cwd: workspace,
+    port: 0,
+    createRuntime: async () => runtime,
+  })
+  const port = await other.start()
+  const ws = new WebSocket(`ws://127.0.0.1:${port}/api/v1/pi`, {
+    headers: { authorization: other.authorizationHeader() },
+  })
+  const replies = new Map<string, (message: Response) => void>()
+  ws.on("message", (data) => {
+    const message = JSON.parse(String(data)) as ServerMessage
+
+    if (message.type === "response") replies.get(message.id)?.(message)
+  })
+  await new Promise((resolve) => ws.once("open", resolve))
+  await new Promise<void>((resolve) => {
+    ws.once("message", () => resolve())
+    ws.send(JSON.stringify({ type: "hello", version: 1 }))
+  })
+
+  const send = (id: string, command: Command) =>
+    new Promise<Response>((resolve) => {
+      replies.set(id, resolve)
+      ws.send(JSON.stringify({ type: "request", id, command }))
+    })
+  let called = () => {}
+  const waiting = new Promise<void>((resolve) => (called = resolve))
+  faux.setResponses([
+    async (_context, options) => {
+      called()
+      await new Promise((resolve) => options?.signal?.addEventListener("abort", resolve))
+      return fauxAssistantMessage("迟到")
+    },
+  ])
+
+  const created = await send("c", {
+    command: "create_session",
+    cwd: workspace,
+    model: { provider: "faux", id: "faux-1" },
+  })
+
+  if (!created.ok || !("session" in created.result)) throw new Error("建会话失败")
+  const sessionId = created.result.session.id
+  void send("p", { command: "prompt", sessionId, message: "关窗" })
+  await waiting
+  ws.close()
+  await other.stop()
+
+  expect((await persisted(sessionId)).timings.map((timing) => timing.outcome)).toEqual([
+    "running",
+    "aborted",
+  ])
+})
+
 it("prompt 与运行中 steer 里的 @file，模型收到 <file> 块", async () => {
   const seen: string[][] = []
   let called = () => {}
