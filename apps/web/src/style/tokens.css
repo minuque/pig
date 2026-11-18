@@ -234,7 +234,7 @@
   --effort-fill-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.16);
   --effort-thumb: linear-gradient(180deg, #ffffff, #f5f5f5);
   --effort-thumb-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
-  /* Files 面板的标签：照 cc-wrapper 的 basis 192、最窄 104、标签文字最宽 140、高 24 */
+  /* Files 面板的标签：basis 192、最窄 104、标签文字最宽 140、高 24 */
   --file-tab-width: 192px;
   --file-tab-min: 104px;
   --file-tab-label: 140px;

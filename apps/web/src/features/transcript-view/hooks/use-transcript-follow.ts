@@ -287,7 +287,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     settle()
   }
 
-  /** 回底滑动（同 zeron）：每帧重读底部再用弹簧逼近，途中挂载的回合长高也不会在终点补跳。 */
+  /** 回底滑动：每帧重读底部再用弹簧逼近，途中挂载的回合长高也不会在终点补跳。 */
   function glideToBottom() {
     stopNavigate()
     stopSettle()

@@ -1,4 +1,4 @@
-/* 助手正文排版（对齐 cc-wrapper）。每个根块包在 display:contents 的 .comark-content 里。 */
+/* 助手正文排版。每个根块包在 display:contents 的 .comark-content 里。 */
 
 /* ------ 字体与块间距 ------ */
 .prose {

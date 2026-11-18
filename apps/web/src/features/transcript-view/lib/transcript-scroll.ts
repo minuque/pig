@@ -23,7 +23,7 @@ export const GLIDE_MAX_VIEWPORTS = 2.5
 export const GLIDE_MAX_CATCHUP_FRAMES = 8
 
 /**
- * 回底弹簧（与 zeron 的 StickSpring 同参）：每帧重读目标，按速度逼近，
+ * 回底弹簧：每帧重读目标，按速度逼近，
  * 目标在途中变高时用增长估计前馈追上；不越过目标，0.5px 内落定。
  */
 export function createGlideSpring() {

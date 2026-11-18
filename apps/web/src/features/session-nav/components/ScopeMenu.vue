@@ -196,7 +196,7 @@ function toggleProject(canonicalPath: string): void {
   white-space: nowrap;
 }
 
-/* 选中态对齐 t3code：图标右下角打勾，行本身不铺选中底 */
+/* 选中态：图标右下角打勾，行本身不铺选中底 */
 .scope-item[data-state="checked"]:not([data-highlighted]) {
   background-color: transparent;
 }
@@ -238,7 +238,7 @@ function toggleProject(canonicalPath: string): void {
   padding-inline-start: var(--space-xs);
 }
 
-/* t3code 式行尾操作：悬停或键盘高亮时出现；已置顶的图钉常显 */
+/* 行尾操作：悬停或键盘高亮时出现；已置顶的图钉常显 */
 .row-action:not([data-pinned]) {
   visibility: hidden;
 }

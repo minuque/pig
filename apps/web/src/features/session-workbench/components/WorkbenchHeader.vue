@@ -481,7 +481,7 @@ function confirmDelete(): void {
   box-shadow: inset 0 0 0 1px var(--accent-solid);
 }
 
-/* 操作入口：悬停或聚焦标题时出现，与 t3code 的标题下拉箭头一致 */
+/* 操作入口：悬停或聚焦标题时出现 */
 .crumb-more {
   flex: none;
   opacity: 0;

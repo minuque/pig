@@ -18,7 +18,7 @@
               {{ shownVerb }}
             </span>
 
-            <!-- 文件名点开 Files 面板，不展开行；照 cc-wrapper 的 ToolPath -->
+            <!-- 文件名点开 Files 面板，不展开行 -->
             <span
               v-if="target.text"
               class="tool-row-target"

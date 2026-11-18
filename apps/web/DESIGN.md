@@ -150,13 +150,13 @@ spacing:
 
 ## 圆角
 
-| token               | 值   | 给谁                                  |
-| ------------------- | ---- | ------------------------------------- |
-| `--radius-control`  | 6    | 按钮、输入框、标签、菜单项、侧栏行    |
-| `--radius-card`     | 8    | 卡片、面板、代码块、图片、下拉、浮层  |
-| `--radius-dialog`   | 12   | 对话框、设置里的分行卡片（照 t3code） |
-| `--composer-radius` | 32   | 输入卡                                |
-| `--radius-pill`     | 9999 | 胶囊、圆形按钮                        |
+| token               | 值   | 给谁                                 |
+| ------------------- | ---- | ------------------------------------ |
+| `--radius-control`  | 6    | 按钮、输入框、标签、菜单项、侧栏行   |
+| `--radius-card`     | 8    | 卡片、面板、代码块、图片、下拉、浮层 |
+| `--radius-dialog`   | 12   | 对话框、设置里的分行卡片             |
+| `--composer-radius` | 32   | 输入卡                               |
+| `--radius-pill`     | 9999 | 胶囊、圆形按钮                       |
 
 - rt 的 `--radius-1..6` 在 `rt.css` 接到这三档。
 - 嵌套写 `calc(外层 - 内边距)`；结果太小时用 `max()` 兜到 `--radius-control` 的一半。rt 菜单：外 8、内边距 4、项取 `--radius-control` 6，比同心值 4 大 2px。
@@ -172,7 +172,7 @@ spacing:
 - 浮层与对话框阴影全用 rt 原值（自带 1px 外环）：`.radix-themes` 内 `--shadow-popover` 指向 rt `--shadow-5`，`--shadow-dialog` 指向 `--shadow-6`。
 - 浮层底色是实色 `--bg-raised`（`.surface-float`），不透明，不模糊。
 - 卡片用 1px `--border` 描边、不铺底；描边与底色差只用一种。
-- 分行卡片一律用 `CardList` + `CardRow`（`@components/ui/card`），不自写行线与内边距：照 t3code，12 圆角，行左右 16、上下 12，行线贴边；`interactive` 加悬停底；`bleed` 不带左右内边距，内容自己读 `--card-padding`。对话里的工具卡片留 8 圆角，与代码卡一致。
+- 分行卡片一律用 `CardList` + `CardRow`（`@components/ui/card`），不自写行线与内边距：12 圆角，行左右 16、上下 12，行线贴边；`interactive` 加悬停底；`bleed` 不带左右内边距，内容自己读 `--card-padding`。对话里的工具卡片留 8 圆角，与代码卡一致。
 - 焦点环：`--focus-ring` = 2px 实色第 11 级；危险态 `--focus-ring-danger`。
 
 ## 间距与尺寸

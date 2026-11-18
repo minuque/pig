@@ -550,7 +550,7 @@ function confirmDelete() {
   color: var(--fg-faint);
 }
 
-/* t3code 式项目缩写：soft 徽标收成 16px 方块 */
+/* 项目缩写：soft 徽标收成 16px 方块 */
 .project-mono[data-accent-color] {
   justify-content: center;
   width: 16px;
@@ -702,7 +702,7 @@ function confirmDelete() {
   pointer-events: auto;
 }
 
-/* 文字动作对齐 t3code：只在悬停时提亮，不铺底 */
+/* 文字动作：只在悬停时提亮，不铺底 */
 .row-action:hover,
 .row-action:focus-visible {
   color: var(--fg);

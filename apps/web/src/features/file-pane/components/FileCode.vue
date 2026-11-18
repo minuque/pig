@@ -32,7 +32,7 @@ import {
 } from "@features/transcript-view/lib/code-highlight.js"
 import { fileLanguage } from "@features/transcript-view/lib/tool-summary.js"
 
-/** 照 cc-wrapper 的 HIGHLIGHT_LIMITS：超过就按纯文本显示，不分词。 */
+/** 高亮上限：超过就按纯文本显示，不分词。 */
 const MAX_CODE_UNITS = 100_000
 const MAX_LINES = 2_000
 const MAX_LINE_UNITS = 1_000

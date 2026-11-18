@@ -42,7 +42,7 @@ const gliding = ref(false)
 let glide: Animation | null = null
 let settleTimer: ReturnType<typeof setTimeout> | undefined
 
-/** 换字时宽度从旧值滑到新值，避免尾部元素跟着瞬间跳位；对齐 cc-wrapper 的 MorphSlots。 */
+/** 换字时宽度从旧值滑到新值，避免尾部元素跟着瞬间跳位。 */
 watch([() => props.text, () => Boolean(props.live)], async ([text, live]) => {
   const node = stack.value
   const from = node?.getBoundingClientRect().width ?? 0

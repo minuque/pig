@@ -39,7 +39,7 @@
 
       <FileTabs class="file-panel-tabs" />
 
-      <!-- 右上角控制照 cc-wrapper：搜索、展开、关闭 -->
+      <!-- 右上角控制：搜索、展开、关闭 -->
       <Tooltip v-for="action in actions" :key="action.key">
         <TooltipTrigger as-child>
           <IconButton
@@ -115,7 +115,7 @@ import FileViewer from "@features/file-pane/components/FileViewer.vue"
 import { useFilePane } from "@features/file-pane/index.js"
 import { usePanelHost } from "@features/split-view/index.js"
 
-/** 树列宽照 cc-wrapper：默认 240，最窄 160；查看器至少留 200。 */
+/** 树列宽：默认 240，最窄 160；查看器至少留 200。 */
 const TREE_DEFAULT = 240
 const TREE_MIN = 160
 const VIEWER_MIN = 200

@@ -162,7 +162,7 @@
   pointer-events: none;
 }
 
-/* 分行卡片（CardList / CardRow），照 t3code：12 圆角，行线贴边，行左右读卡片的 --card-padding。
+/* 分行卡片（CardList / CardRow）：12 圆角，行线贴边，行左右读卡片的 --card-padding。
    内容让出外环一个线宽，行线与悬停底不叠到半透明外环上加深 */
 .card-list {
   --card-border-radius: var(--radius-dialog);

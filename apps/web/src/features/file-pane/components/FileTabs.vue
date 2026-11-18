@@ -118,7 +118,7 @@ watch(
   scrollbar-width: none;
 }
 
-/* 照 cc-wrapper：标签 basis 192，最窄 104，选中时字色转主色、底色用选中态 */
+/* 标签 basis 192，最窄 104，选中时字色转主色、底色用选中态 */
 .file-tab {
   position: relative;
   display: flex;

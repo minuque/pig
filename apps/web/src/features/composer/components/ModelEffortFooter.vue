@@ -286,7 +286,7 @@ function onKeyDown(event: KeyboardEvent) {
   padding: var(--space-xs);
 }
 
-/* 以下照参考实现，整体缩到 2/3：下方轨道，上方留给拖动时长出的标签凸台 */
+/* 以下整体缩到 2/3：下方轨道，上方留给拖动时长出的标签凸台 */
 .root {
   position: relative;
   width: 100%;

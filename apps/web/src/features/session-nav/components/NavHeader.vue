@@ -190,7 +190,7 @@ html[data-pig-desktop-platform="win32"] .nav-titlebar {
   app-region: drag;
 }
 
-/* t3code 式工具行：搜索占满左侧，视图与命令图标靠右 */
+/* 工具行：搜索占满左侧，视图与命令图标靠右 */
 .nav-toolbar {
   display: flex;
   align-items: center;

@@ -215,7 +215,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
   text-overflow: ellipsis;
 }
 
-/* 照 cc-wrapper 的 .sfs-limit：结果末尾一行弱色小字 */
+/* 搜索截断提示：结果末尾一行弱色小字 */
 .file-search-limit {
   margin: 0;
   padding: var(--space-xs);
