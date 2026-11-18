@@ -11,9 +11,19 @@
           <span class="lab-sep">/</span>
           <span class="lab-here">{{ text(current.item.title) }}</span>
         </template>
+
+        <template v-else-if="isGuide">
+          <span class="lab-sep">/</span>
+          <span class="lab-here">DESIGN.md</span>
+        </template>
       </nav>
 
       <div class="lab-switches">
+        <Button :as="RouterLink" to="/design/guide" variant="soft" color="gray" size="s">
+          <FileTextIcon class="size-icon-xs" />
+          DESIGN.md
+        </Button>
+
         <SegmentedControl :model-value="locale" size="s" @update:model-value="pickLocale">
           <SegmentedControlItem value="zh-CN">中</SegmentedControlItem>
           <SegmentedControlItem value="en">EN</SegmentedControlItem>
@@ -52,6 +62,7 @@
         </nav>
       </template>
 
+      <DesignGuide v-else-if="isGuide" />
       <DesignHome v-else />
     </main>
   </div>
@@ -60,10 +71,12 @@
 <script setup lang="ts">
 import { computed, onMounted, watch } from "vue"
 import { RouterLink, useRoute } from "vue-router"
-import { ChevronLeftIcon, ChevronRightIcon } from "@components/icons/index.js"
+import { ChevronLeftIcon, ChevronRightIcon, FileTextIcon } from "@components/icons/index.js"
+import { Button } from "@components/ui/button/index.js"
 import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
 import { useColorScheme } from "@features/theme/index.js"
 import { useGeneralPrefs } from "@features/settings/index.js"
+import DesignGuide from "@features/design-lab/components/DesignGuide.vue"
 import DesignHome from "@features/design-lab/components/DesignHome.vue"
 import { NAV, type Label } from "@features/design-lab/lib/nav.js"
 
@@ -71,10 +84,12 @@ const PAGES = NAV.flatMap((group) => group.items.map((item) => ({ group, item })
 const route = useRoute()
 const { isDark, setScheme } = useColorScheme()
 const { locale, setLocale } = useGeneralPrefs()
+const path = computed(() => [route.params.page ?? []].flat().join("/"))
+// 设计规范文档不进翻页顺序，单独一页
+const isGuide = computed(() => path.value === "guide")
 // 地址段对上某页就显示该页，对不上回总览
 const current = computed(() => {
-  const path = [route.params.page ?? []].flat().join("/")
-  const index = PAGES.findIndex((page) => page.item.path === path)
+  const index = PAGES.findIndex((page) => page.item.path === path.value)
 
   if (index < 0) return null
   return { ...PAGES[index]!, prev: PAGES[index - 1]?.item, next: PAGES[index + 1]?.item }
