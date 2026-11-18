@@ -162,6 +162,11 @@
   pointer-events: none;
 }
 
+/* rt 的表格行字色写死 --gray-12，接回项目正文色 */
+.rt-TableRow {
+  color: var(--fg);
+}
+
 /* 表头铺面板底，正文单元格透明 */
 .rt-TableRoot:where(.rt-variant-surface) :where(.rt-TableHeader) {
   --table-row-background-color: var(--bg-surface);

@@ -51,10 +51,10 @@
 
   /* --- 前景 --- */
   --fg-on-accent: var(--accent-contrast);
-  /* 文字三级固定色：与表面同一冷色相；正文对主区约 9.8:1，弱级只给非必要信息 */
+  /* 文字三级固定色：与表面同一冷色相；三级在主区、侧栏、卡片上都不低于 4.5:1 */
   --fg: #3c3c42;
-  --fg-secondary: #626369;
-  --fg-faint: #74747a;
+  --fg-secondary: #57575e;
+  --fg-faint: #6b6b72;
   --fg-inverse: #ffffff;
 
   /* --- 边与分割 --- */
@@ -355,7 +355,7 @@ html[data-pig-desktop-platform="win32"] {
   --bg-inverse-hover: #ffffff;
 
   /* --- 前景 --- */
-  --fg: #c6c6ce;
+  --fg: #d3d3db;
   --fg-secondary: #9d9ea5;
   --fg-faint: #85858c;
   --fg-on-accent: var(--accent-contrast);

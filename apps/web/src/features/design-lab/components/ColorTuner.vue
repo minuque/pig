@@ -148,8 +148,8 @@ const THEMES: Theme[] = ["light", "dark"]
 const ROWS = ["把折叠阈值调到 12 行", "token 收成三层", "发布 GitHub Release"]
 const GROUNDS = ["主区", "侧栏", "卡片"]
 const LABELS = { fg: "正文", secondary: "次要", faint: "弱" }
-// 低于这个值标红：正文与次要按 AA 4.5，弱级按 DESIGN.md 的 3
-const MIN = { fg: 4.5, secondary: 4.5, faint: 3 }
+// 低于 AA 4.5 标红：弱级也承载会话标题、空状态等必要文字
+const MIN = { fg: 4.5, secondary: 4.5, faint: 4.5 }
 // rt 的灰阶 alpha 在 .radix-themes 上就算好了，预览块换了明暗要在自己身上重算一次
 const RT_VARS = {
   "--border": "var(--gray-a4)",
