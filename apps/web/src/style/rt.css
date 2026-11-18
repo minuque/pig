@@ -271,3 +271,17 @@
 .rt-Link[data-accent-color].rt-high-contrast {
   color: var(--accent-12);
 }
+
+/* 菜单、下拉、选择框、浮卡与气泡卡共用弹窗的毛玻璃底；双类压过 rt 的单类面板色与阴影 */
+.rt-PopperContent:is(
+  .rt-BaseMenuContent,
+  .rt-SelectContent,
+  .rt-PopoverContent,
+  .rt-HoverCardContent
+) {
+  background-color: var(--glass-bg);
+  box-shadow:
+    0 0 0 var(--border-width) var(--glass-border),
+    var(--glass-menu-shadow);
+  backdrop-filter: var(--glass-filter);
+}

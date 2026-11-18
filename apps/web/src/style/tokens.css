@@ -225,6 +225,8 @@
   --glass-border: rgba(0, 0, 0, 0.1);
   --glass-shadow: 0 24px 64px -24px rgba(0, 0, 0, 0.65);
   --glass-radius: 16px;
+  /* 菜单、下拉、浮卡等贴着触发器的小浮层：同一块毛玻璃，阴影短一档 */
+  --glass-menu-shadow: 0 16px 40px -18px rgba(0, 0, 0, 0.55);
   --glass-backdrop: color-mix(in srgb, var(--bg) 60%, transparent);
   --glass-backdrop-filter: blur(4px);
   --glass-footer-bg: color-mix(in srgb, var(--fg) 2.5%, transparent);
@@ -403,6 +405,7 @@ html[data-pig-desktop-platform="win32"] {
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-shadow: inset 0 1px rgba(255, 255, 255, 0.04), 0 24px 72px -20px rgba(0, 0, 0, 0.9);
   --glass-backdrop: color-mix(in srgb, var(--bg) 64%, transparent);
+  --glass-menu-shadow: 0 18px 44px -18px rgba(0, 0, 0, 0.8);
   --effort-shell: rgba(255, 255, 255, 0.07);
   --effort-shell-2: rgba(255, 255, 255, 0.1);
   --effort-line: rgba(255, 255, 255, 0.08);
