@@ -1,10 +1,22 @@
 import { mkdtemp, readFile, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { afterEach, beforeEach, describe, expect, it } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import type { Environment, ExecOptions } from "@pig/environment"
 import type { BashTask, Task } from "@pig/protocol"
 import { createTasksExtension } from "../src/tasks/index.ts"
+
+/** 给了就把日志写入流指向这里（一个目录），模拟日志写不进去。 */
+let brokenLogPath: string | undefined
+
+vi.mock("node:fs", async (importOriginal) => {
+  const fs = await importOriginal<typeof import("node:fs")>()
+  return {
+    ...fs,
+    createWriteStream: (path: string, options?: unknown) =>
+      fs.createWriteStream(brokenLogPath ?? path, options as never),
+  }
+})
 
 type Handler = (...args: never[]) => unknown
 
@@ -23,6 +35,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
+  brokenLogPath = undefined
   await rm(logDir, { recursive: true, force: true })
 })
 
@@ -217,6 +230,19 @@ describe("后台任务：启动、结束、停止", () => {
     expect(log).not.toContain("third")
     expect(log).toContain("not saved")
     expect(task).toMatchObject({ status: "running", output: "0123456789\nabcdefghij\nthird\n" })
+  })
+
+  it("日志写不进去时任务照常跑完，宿主进程不崩", async () => {
+    brokenLogPath = logDir
+    const { call, runs, latest, settle } = setup()
+    await call("bg_task_start", { command: "echo hi", description: "日志坏了" })
+
+    runs[0]!.options.onData(Buffer.from("hi\n"))
+    await settle()
+    runs[0]!.exit(0)
+    await settle()
+
+    expect(latest()[0]).toMatchObject({ status: "completed", output: "hi\n" })
   })
 
   it("读输出：本地会话带日志路径，远程会话不带", async () => {

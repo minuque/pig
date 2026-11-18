@@ -22,6 +22,11 @@ function createLog(path: string, maxBytes: number) {
   mkdirSync(dirname(path), { recursive: true })
   let stream: WriteStream | undefined = createWriteStream(path)
   let written = 0
+
+  // 目录不可写或磁盘满：不再写日志，任务照常跑；不监听会让宿主进程崩溃
+  stream.on("error", () => {
+    stream = undefined
+  })
   return {
     write(chunk: Buffer) {
       if (!stream) return
