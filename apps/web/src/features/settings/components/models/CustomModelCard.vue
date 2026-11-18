@@ -1,5 +1,5 @@
 <template>
-  <Card size="s" class="model-card">
+  <Card size="l" class="model-card">
     <div class="card-head">
       <button type="button" class="card-toggle" @click="open = !open">
         <VendorMark class="model-icon" :vendor="providerId" :name="providerName" :size="16" />
@@ -98,8 +98,8 @@ const open = ref(!model.value.id)
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  padding-inline: var(--space-md);
-  min-height: 44px;
+  padding-inline: var(--card-padding);
+  min-height: 52px;
 }
 
 .card-toggle {
@@ -149,7 +149,7 @@ const open = ref(!model.value.id)
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  padding: 2px var(--space-md) var(--space-md);
+  padding: 2px var(--card-padding) var(--card-padding);
 }
 
 .field-grid {

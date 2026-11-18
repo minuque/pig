@@ -1,5 +1,5 @@
 <template>
-  <Card size="s" class="model-list">
+  <Card size="l" class="model-list">
     <p v-if="error" class="list-error">{{ error }}</p>
 
     <div v-for="model in provider.models" :key="model.id" class="model-card">
@@ -103,8 +103,8 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  height: 44px;
-  padding-inline: var(--space-md);
+  height: 52px;
+  padding-inline: var(--card-padding);
 }
 
 .model-toggle {

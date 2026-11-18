@@ -1,5 +1,5 @@
 <template>
-  <Card size="s" class="login-panel">
+  <Card size="l" class="login-panel">
     <div class="login-status" :data-state="state.phase">
       <LoaderIcon v-if="state.phase === 'running'" class="is-spinning" />
       <CircleExclamationPointIcon v-else-if="state.phase === 'error'" />
@@ -143,7 +143,7 @@ async function copy(text: string) {
 
 <style scoped>
 .login-panel {
-  padding: var(--space-sm) var(--space-md);
+  padding-block: var(--space-md);
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);

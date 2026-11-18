@@ -3,7 +3,7 @@
     <section class="group">
       <h2 class="group-title">{{ t("settings.interface") }}</h2>
 
-      <Card size="s" class="card">
+      <Card size="l" class="card">
         <div id="setting-user-name" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.userName") }}</h3>

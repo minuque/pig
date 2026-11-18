@@ -21,7 +21,7 @@
     <section class="detail-sec">
       <h3 class="sec-title">{{ t("settings.models.connection") }}</h3>
 
-      <Card size="s" class="kvgroup">
+      <Card size="l" class="kvgroup">
         <div class="kvrow">
           <template v-if="showStoredKey">
             <span class="kvlabel">{{ t("settings.models.apiKey") }}</span>

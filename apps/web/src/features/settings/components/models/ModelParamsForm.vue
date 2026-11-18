@@ -202,7 +202,7 @@ async function restore() {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-md) var(--space-lg);
+  padding: var(--space-md) var(--card-padding) var(--card-padding);
 }
 
 .field {

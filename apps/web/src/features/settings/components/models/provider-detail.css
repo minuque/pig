@@ -80,14 +80,14 @@
 }
 
 .kvgroup {
-  padding: 2px var(--space-sm);
+  padding-block: var(--space-2xs);
 }
 
 .kvrow {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  min-height: 38px;
+  min-height: 46px;
 }
 
 .kvlabel {

@@ -42,7 +42,7 @@
     <div v-for="group in groups" :key="group.id" class="provider-group">
       <h3 class="provider-group-title">{{ t(`settings.models.group.${group.id}`) }}</h3>
 
-      <Card size="s" class="provider-card">
+      <Card size="l" class="provider-card">
         <button
           v-for="provider in group.providers"
           :key="provider.id"
@@ -169,7 +169,7 @@ function sourceKind(provider: ProviderView) {
 
 .provider-group-title {
   margin: 0 0 var(--space-xs);
-  padding-inline: var(--space-md);
+  padding-inline: var(--space-lg);
   color: var(--fg);
   font-size: var(--text-title);
   font-weight: var(--font-weight-semibold);
@@ -181,8 +181,8 @@ function sourceKind(provider: ProviderView) {
   align-items: center;
   gap: var(--space-sm);
   width: 100%;
-  height: 52px;
-  padding-inline: var(--space-md);
+  height: 60px;
+  padding-inline: var(--card-padding);
   color: var(--fg);
   text-align: start;
   transition: background-color var(--duration-fast) var(--ease-out);
