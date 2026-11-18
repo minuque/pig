@@ -173,3 +173,149 @@ pig 的设计系统参考 t3code、Radix UI 和 Claude Desktop 一点点磨出�
 1. 强调色：保持 indigo，主按钮也不反色。
 2. 输入卡：保留胶囊形与柔投影，作为唯一例外。
 3. `interface-review`：不装；验收改为截图对比加 `better-*` 规则自审。
+
+## 附录：语义层定稿（1a）
+
+依据 `better-colors/token-naming.md`：一个概念只用一个词，角色名不带用途地点，`primary` 不再表示品牌色。
+
+- **前景用 `fg`**：`--text-*` 已是字号命名空间，前景色若也叫 text 会和字号混。
+- **边用 `border`**：不用 line。分割线是单独角色，用 `--separator-top`。
+- **品牌色叫 `accent`**：用 `--accent-solid` 和 `--accent-solid-hover`，不和 Radix 的 `--accent-1..12` 重名。
+- **状态色**：每个状态有 `-text` 和 `-subtle` 两个 token。
+- **原色阶**：`--ink*` 是文字的三档 hex 输入，对比度层用它推出 `--fg*`。表面 hex 直接写在语义层。
+
+| 组 | 语义 token |
+|---|---|
+| 表面 | `--bg` `--bg-sunken`（侧栏） `--bg-surface`（卡片、输入卡） `--bg-raised`（弹层） `--bg-inverse` `--bg-inverse-hover` `--scrim` |
+| 前景 | `--fg` `--fg-secondary` `--fg-faint` `--fg-inverse` `--fg-on-accent` |
+| 边 | `--border` `--border-subtle` `--border-width` `--separator-top` |
+| 交互 | `--bg-hover` `--bg-selected` `--bg-muted` `--bg-emphasis` `--accent-solid` `--accent-solid-hover` `--link` `--focus-ring` `--focus-ring-danger` `--opacity-disabled` |
+| 状态 | `--{success,info,warning,danger}-{text,subtle}` |
+| 字 | `--text-{meta,body,title,heading}` 与 `--line-height`/字距、`--text-code` `--text-code-line`、`--font-sans` `--font-mono`、`--font-weight-{normal,medium,semibold,bold}` |
+| 间距 | `--spacing` 与 `--space-{2xs,xs,sm,md,lg,xl,2xl}` |
+| 圆角 | `--radius-{control,card,dialog,pill}` |
+| 阴影 | `--shadow-popover` `--shadow-dialog` |
+| 动效 | `--duration-{fast,normal,slow}` `--ease-{out,in-out,spring}` |
+| 图标 | `--icon-{sm,md,lg,xl}`（12/14/16/32） `--icon-stroke` |
+| 控件高 | `--control-{sm,md,lg}`（28/32/40） |
+| 布局 | `--content-width` `--header-height` `--titlebar-inset` `--titlebar-controls-inset` |
+| 层级 | `--z-{resizer,menu,drawer,modal,drag}` |
+
+组件层用组件前缀命名，比如 `--composer-*`、`--file-tab-*`、`--settings-*`、`--model-picker-*`、`--menu-*`、`--dialog-*`、`--effort-*`、`--mascot-*`、`--language-*`、`--chart-*`、`--transcript-*`。
+
+### 并档（画面会变）
+
+- `--ease-hover`、`--ease-icon` 并入 `--ease-out`。
+- `--size-rail-row` 是 26，并入 `--control-sm`（28）。
+- 电池格、图例色块是 10，并入 `--space-sm`（12）。
+- 用量条高与电量最窄宽是 6，并入 `--space-xs`（8）。
+- 电池内边距是 2，并入 `--space-2xs`（4）。
+- 上下文环是 15，并入 `--icon-lg`（16）。
+
+### 旧名 → 新名
+
+| 旧 | 新 |
+|---|---|
+| `--contrast-foreground-secondary` | `--fg-secondary` |
+| `--contrast-foreground-faint` | `--fg-faint` |
+| `--contrast-foreground` | `--fg` |
+| `--foreground-secondary` | `--ink-secondary` |
+| `--foreground-faint` | `--ink-faint` |
+| `--foreground` | `--ink` |
+| `--inverse-background-hover` | `--bg-inverse-hover` |
+| `--inverse-background` | `--bg-inverse` |
+| `--inverse-foreground` | `--fg-inverse` |
+| `--background` | `--bg` |
+| `--sidebar` | `--bg-sunken` |
+| `--surface` | `--bg-surface` |
+| `--popover` | `--bg-raised` |
+| `--primary-active` | `--accent-solid-hover` |
+| `--primary-foreground` | `--fg-on-accent` |
+| `--primary` | `--accent-solid` |
+| `--btn-hover` | `--bg-hover` |
+| `--btn-selected` | `--bg-selected` |
+| `--fill-quiet` | `--bg-muted` |
+| `--fill-strong` | `--bg-emphasis` |
+| `--border-soft` | `--border-subtle` |
+| `--divider-top` | `--separator-top` |
+| `--success-bg` | `--success-subtle` |
+| `--info-bg` | `--info-subtle` |
+| `--warning-bg` | `--warning-subtle` |
+| `--danger-bg` | `--danger-subtle` |
+| `--success` | `--success-text` |
+| `--info` | `--info-text` |
+| `--warning` | `--warning-text` |
+| `--danger` | `--danger-text` |
+| `--state-working` | `--info-text` |
+| `--inline-code-background` | `--code-inline-bg` |
+| `--background-soft` | `--bg` |
+| `--space-xxs` | `--space-2xs` |
+| `--space-xxl` | `--space-2xl` |
+| `--space-dialog-compact` | `--dialog-padding-compact` |
+| `--space-dialog` | `--dialog-padding` |
+| `--ease-hover` | `--ease-out` |
+| `--ease-icon` | `--ease-out` |
+| `--ease-menu` | `--menu-ease` |
+| `--duration-menu-out` | `--menu-duration-out` |
+| `--duration-dock-in` | `--composer-dock-in` |
+| `--duration-dock-out` | `--composer-dock-out` |
+| `--duration-settle` | `--welcome-settle-duration` |
+| `--duration-reveal` | `--welcome-reveal-duration` |
+| `--duration-pig-peek` | `--mascot-peek-duration` |
+| `--duration-theme` | `--theme-switch-duration` |
+| `--duration-shimmer` | `--shimmer-duration` |
+| `--text-monogram` | `--monogram-size` |
+| `--border-width-quote` | `--quote-border-width` |
+| `--radius-composer` | `--composer-radius` |
+| `--shadow-composer` | `--composer-shadow` |
+| `--corner-shape-composer` | `--composer-corner-shape` |
+| `--size-icon-xs` | `--icon-sm` |
+| `--size-icon-2xs` | `--icon-lg` |
+| `--size-icon-hero` | `--icon-xl` |
+| `--size-icon-button` | `--control-sm` |
+| `--size-icon` | `--icon-md` |
+| `--line-icon-width` | `--icon-stroke` |
+| `--size-control` | `--control-lg` |
+| `--size-nav-rail` | `--control-sm` |
+| `--size-rail-row` | `--control-sm` |
+| `--size-menu-item` | `--control-md` |
+| `--size-composer-control` | `--control-md` |
+| `--size-content` | `--content-width` |
+| `--size-avatar` | `--user-avatar-size` |
+| `--size-file-tab-height` | `--file-tab-height` |
+| `--size-file-tab-close` | `--file-tab-close` |
+| `--size-file-tab-label` | `--file-tab-label` |
+| `--size-file-tab-min` | `--file-tab-min` |
+| `--size-file-tab` | `--file-tab-width` |
+| `--size-model-picker-list` | `--model-picker-list-height` |
+| `--size-model-picker` | `--model-picker-width` |
+| `--size-composer-field-max` | `--composer-field-max` |
+| `--size-mac-traffic-lights` | `--traffic-lights-width` |
+| `--size-drawer` | `--drawer-width` |
+| `--size-rail` | `--rail-width` |
+| `--size-task-output-max` | `--task-output-max` |
+| `--size-battery-block` | `--space-sm` |
+| `--size-battery-pad` | `--space-2xs` |
+| `--size-battery-fill-min` | `--space-xs` |
+| `--size-meter-block` | `--space-xs` |
+| `--size-legend-swatch` | `--space-sm` |
+| `--size-legend-share` | `--legend-share` |
+| `--size-dialog-s` | `--dialog-width-sm` |
+| `--size-settings-body` | `--settings-body-width` |
+| `--size-settings-dialog-width` | `--settings-dialog-width` |
+| `--size-settings-dialog-height-min` | `--settings-dialog-height-min` |
+| `--size-settings-dialog-height` | `--settings-dialog-height` |
+| `--size-settings-dialog-nav-narrow` | `--settings-nav-width-narrow` |
+| `--size-settings-dialog-nav` | `--settings-nav-width` |
+| `--size-context-ring` | `--icon-lg` |
+| `--size-resize-grip-thickness` | `--resize-grip-thickness` |
+| `--size-resize-grip` | `--resize-grip-length` |
+| `--size-turn-estimate` | `--turn-estimate` |
+
+### 数量
+
+这一步只改名、分层、并档，删掉的有限，预计从 213 降到约 190，达不到 spec 写的约 120。原因是：
+- 组件专属值占了大头：尺寸、内容配色、动效时长。
+- AGENTS.md 规定 SFC 不能声明 `--*`，也不能写裸值，所以这些值只能留在 `tokens.css` 的组件分区。
+
+要再往下降，只能靠第 2 步让组件改用语义档，这一步会改变画面。
