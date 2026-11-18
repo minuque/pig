@@ -69,4 +69,4 @@ export type {
 
 export type { AgentTask, Task, TaskDetails, TaskStatus } from "./task.js"
 
-export type { BashTask, TaskStopEvent, TasksEvent } from "./task.js"
+export type { BashTask, TaskChannels, TaskStopEvent, TasksEvent } from "./task.js"

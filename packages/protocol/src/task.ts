@@ -54,3 +54,9 @@ export interface TaskStopEvent {
   sessionId: string
   taskId: string
 }
+
+/** 后台任务的事件总线频道名 → 载荷；扩展与宿主的频道常量都要对上这里。 */
+export interface TaskChannels {
+  "pig:tasks": TasksEvent
+  "pig:tasks:stop": TaskStopEvent
+}

@@ -1,4 +1,5 @@
 import { defaultTaskLogRoot } from "@pig/environment/source"
+import type { TaskChannels } from "@pig/protocol"
 
 /** 后台任务的规格都在这里；以后做设置入口只换这个对象的来源。 */
 export const taskConfig = {
@@ -15,7 +16,7 @@ export const taskConfig = {
 export type TaskConfig = typeof taskConfig
 
 /** 事件总线频道：扩展发任务列表，宿主发停止请求。 */
-export const TASKS_CHANNEL = "pig:tasks"
-export const TASK_STOP_CHANNEL = "pig:tasks:stop"
+export const TASKS_CHANNEL = "pig:tasks" satisfies keyof TaskChannels
+export const TASK_STOP_CHANNEL = "pig:tasks:stop" satisfies keyof TaskChannels
 /** 任务结束通知的自定义消息类型。 */
 export const TASK_MESSAGE = "pig.task"

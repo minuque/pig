@@ -6,6 +6,7 @@ import type {
   SessionPhase,
   SessionSnapshot,
   Task,
+  TaskChannels,
   TaskStopEvent,
   TasksEvent,
   ThinkingLevel,
@@ -40,9 +41,9 @@ const SNAPSHOT_SKIP_EVENTS = new Set([
   "tool_execution_update",
   "bash_execution_update",
 ])
-/** 后台任务的总线频道；与 @pig/extensions 的 tasks 扩展约定一致。 */
-const TASKS_CHANNEL = "pig:tasks"
-const TASK_STOP_CHANNEL = "pig:tasks:stop"
+/** 后台任务的总线频道；名字由 @pig/protocol 的 TaskChannels 约定。 */
+const TASKS_CHANNEL = "pig:tasks" satisfies keyof TaskChannels
+const TASK_STOP_CHANNEL = "pig:tasks:stop" satisfies keyof TaskChannels
 /** 流式合流窗口：同块的连续增量拼成一条，同条目的连续整条更新只留最后一帧。 */
 const PROGRESS_COALESCE_MS = 16
 
