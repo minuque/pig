@@ -111,6 +111,8 @@ useResizeObserver(body, measure)
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-card);
   background: var(--bg-surface);
+  /* 和卡片同一道 1px 外环：气泡底色与主区只差半档，单靠底色分不出边界 */
+  box-shadow: 0 0 0 var(--border-width) var(--border);
   color: var(--fg);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
