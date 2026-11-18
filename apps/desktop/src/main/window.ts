@@ -1,7 +1,7 @@
 import { BrowserWindow, nativeTheme, shell, type Input } from "electron"
 
 import { installExternalLinks } from "./external-links.js"
-import { gatewayOriginArg, isDesktopBench } from "./urls.js"
+import { gatewayOriginArg, isDesktopBench, isNoFocusWindow } from "./urls.js"
 import { stripNativeMenu, windowChromeFor } from "./window-chrome.js"
 import {
   DEFAULT_WINDOW_SIZE,
@@ -62,7 +62,8 @@ export function createMainWindow(
 
   if (frame.isMaximized && !bench) window.maximize()
 
-  window.show()
+  if (isNoFocusWindow()) window.showInactive()
+  else window.show()
   return window
 }
 

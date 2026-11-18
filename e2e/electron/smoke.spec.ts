@@ -23,6 +23,8 @@ test("桌面壳启动：preload、网关与渲染进程都就位", async () => {
     env: {
       ...process.env,
       PIG_CDP: "0",
+      // 测试窗口不抢焦点，跑测试时不打断手头的工作
+      PIG_NO_FOCUS: "1",
       PIG_VITE_PORT: String(VITE_PORT),
       PIG_SESSION_DIR: sessionDir,
       PIG_CWD: sessionDir,
@@ -46,6 +48,9 @@ test("桌面壳启动：preload、网关与渲染进程都就位", async () => {
     ).toBe("function")
     // 渲染进程真的把界面画出来了，不只是空白外壳
     await expect(page.locator("#app")).not.toBeEmpty()
+    expect(
+      await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.isFocused()),
+    ).toBe(false)
   } finally {
     await app.close()
     await rm(sessionDir, { recursive: true, force: true })

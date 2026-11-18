@@ -121,6 +121,7 @@ export async function createDesktopHarness(options: {
         cwd: desktopRoot,
         env: processEnv({
           PIG_BENCH: "1",
+          PIG_NO_FOCUS: "1",
           PIG_CDP: "off",
           PIG_SESSION_DIR: options.sessionDir,
           PIG_CWD: options.workspaceDir,

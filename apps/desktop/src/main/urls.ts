@@ -185,3 +185,8 @@ export function pigCorsHeaders(headers: Headers): Headers {
   next.set("Cross-Origin-Resource-Policy", "cross-origin")
   return next
 }
+
+/** 测试与基准起的窗口不抢焦点：`PIG_NO_FOCUS=1`。 */
+export function isNoFocusWindow(env: NodeJS.ProcessEnv = process.env): boolean {
+  return env.PIG_NO_FOCUS === "1"
+}
