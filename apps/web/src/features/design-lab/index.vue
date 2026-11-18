@@ -174,7 +174,7 @@ onMounted(() => document.getElementById("startup-splash")?.remove())
   gap: var(--space-xl);
   width: min(100%, 1120px);
   margin-inline: auto;
-  padding: var(--space-xl) var(--space-lg) var(--space-xxl);
+  padding: var(--space-xl) var(--space-lg) var(--space-2xl);
 }
 
 .lab-title {
@@ -195,7 +195,7 @@ onMounted(() => document.getElementById("startup-splash")?.remove())
 .lab-step {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   color: var(--fg-secondary);
   text-decoration: none;
 }

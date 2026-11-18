@@ -202,8 +202,8 @@ const actions = computed(() => [
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: var(--space-xxs);
-  padding: var(--space-xxs) var(--space-xs);
+  gap: var(--space-2xs);
+  padding: var(--space-2xs) var(--space-xs);
   border-block-end: var(--border-width) solid var(--border-subtle);
 }
 

@@ -127,17 +127,17 @@ watch(
   max-height: 280px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: var(--space-xxs);
+  padding: var(--space-2xs);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-card);
-  corner-shape: var(--corner-shape-composer);
+  corner-shape: var(--composer-corner-shape);
   box-shadow: var(--shadow-popover);
   scrollbar-width: none;
 }
 
 .command-label {
   margin: 0;
-  padding: var(--space-xxs) var(--space-xs) var(--space-xxs);
+  padding: var(--space-2xs) var(--space-xs) var(--space-2xs);
   color: var(--fg-faint);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-semibold);
@@ -147,9 +147,9 @@ watch(
 }
 
 .command-group + .command-group {
-  margin-top: var(--space-xxs);
+  margin-top: var(--space-2xs);
   border-top: var(--border-width) solid var(--border-subtle);
-  padding-top: var(--space-xxs);
+  padding-top: var(--space-2xs);
 }
 
 .command-row {
@@ -158,15 +158,15 @@ watch(
   gap: var(--space-xs);
   width: 100%;
   min-width: 0;
-  padding: var(--space-xxs) var(--space-xs);
-  border-radius: calc(var(--radius-card) - var(--space-xxs));
-  corner-shape: var(--corner-shape-composer);
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: calc(var(--radius-card) - var(--space-2xs));
+  corner-shape: var(--composer-corner-shape);
   color: var(--fg);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
   cursor: pointer;
   user-select: none;
-  transition: background var(--duration-fast) var(--ease-hover);
+  transition: background var(--duration-fast) var(--ease-out);
 }
 
 .command-row:hover,

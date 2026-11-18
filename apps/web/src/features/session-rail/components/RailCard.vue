@@ -111,10 +111,10 @@ const bodyId = useId()
   display: flex;
   flex: 1;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-inline-size: 0;
   min-block-size: var(--size-rail-row);
-  padding-inline: var(--space-xxs);
+  padding-inline: var(--space-2xs);
   color: var(--fg);
   font: inherit;
   font-size: var(--text-meta);
@@ -147,7 +147,7 @@ const bodyId = useId()
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-inline-size: 0;
   margin-inline-start: auto;
   overflow: hidden;
@@ -209,6 +209,6 @@ const bodyId = useId()
 }
 
 .rail-body {
-  padding: var(--space-xxs) var(--space-xxs) 0;
+  padding: var(--space-2xs) var(--space-2xs) 0;
 }
 </style>

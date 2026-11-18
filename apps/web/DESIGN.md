@@ -135,7 +135,7 @@ spacing:
 
 - 字重只用 400、500、600。
 - 界面字号档 S/M/L 缩放辅助、正文、标题三档，页面大标题不动；代码字号直接选 px（10–16，默认 13），只改 `--text-code`，`--text-code-line` 固定不动，文件面板按它算行位置。
-- `--text-monogram` 是图形尺寸，不算字号。
+- `--monogram-size` 是图形尺寸，不算字号。
 - 对话区 Markdown 排版对齐 cc-wrapper，不受四档约束。
 
 ## 圆角
@@ -145,7 +145,7 @@ spacing:
 | `--radius-control`  | 6    | 按钮、输入框、标签、菜单项、侧栏行   |
 | `--radius-card`     | 10   | 卡片、面板、代码块、图片、下拉、浮层 |
 | `--radius-dialog`   | 14   | 对话框                               |
-| `--radius-composer` | 32   | 输入卡                               |
+| `--composer-radius` | 32   | 输入卡                               |
 | `--radius-pill`     | 9999 | 胶囊、圆形按钮                       |
 
 - rt 的 `--radius-1..6` 在 `rt.css` 接到这三档。
@@ -157,7 +157,7 @@ spacing:
 | ------------------- | -------------------------------------------------------------------------- |
 | `--shadow-popover`  | 下拉、菜单、提示、悬停卡、拖拽中的行、滚动到底按钮                         |
 | `--shadow-dialog`   | 对话框、抽屉、图片预览                                                     |
-| `--shadow-composer` | 输入卡：1px 内环描边加内侧淡阴影（`--composer-inset`），浅色再加底部柔投影 |
+| `--composer-shadow` | 输入卡：1px 内环描边加内侧淡阴影（`--composer-inset`），浅色再加底部柔投影 |
 
 - 浮层与对话框阴影全用 rt 原值（自带 1px 外环）：`.radix-themes` 内 `--shadow-popover` 指向 rt `--shadow-5`，`--shadow-dialog` 指向 `--shadow-6`。
 - 浮层底色是实色 `--bg-raised`（`.surface-float`），不透明，不模糊。
@@ -166,7 +166,7 @@ spacing:
 
 ## 间距与尺寸
 
-- 间距基数 4px：`--space-xxs/xs/sm/md/lg/xl/xxl` = 4/8/12/16/24/28/32。
+- 间距基数 4px：`--space-2xs/xs/sm/md/lg/xl/xxl` = 4/8/12/16/24/28/32。
 - 控件 40px（`--size-control`），图标按钮 28px，侧栏行 28px，图标 14px。
 - 头部高 `--header-height` 44px；macOS 标题条 `--titlebar-inset` 44px，其余平台 0。
 

@@ -337,7 +337,7 @@ function confirmDelete(): void {
   width: 100%;
   height: var(--header-height);
   min-height: var(--header-height);
-  padding: var(--space-xxs) var(--space-sm);
+  padding: var(--space-2xs) var(--space-sm);
   /* Windows 的系统窗控浮在整个窗口右上角，只有最右侧的头部让出这一块 */
   /* 与下方正文同底色：头部不另起一层 */
   background: transparent;
@@ -412,7 +412,7 @@ function confirmDelete(): void {
 .crumb-project-label {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   max-width: 10em;
   min-width: 0;
 }
@@ -438,7 +438,7 @@ function confirmDelete(): void {
   display: flex;
   flex: 1;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-width: 0;
 }
 

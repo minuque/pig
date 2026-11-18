@@ -48,7 +48,7 @@ function measure(event: Event) {
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: var(--space-xxl);
+  gap: var(--space-2xl);
   height: var(--size-icon);
   padding-inline-end: calc(var(--size-icon) + var(--space-md));
 }

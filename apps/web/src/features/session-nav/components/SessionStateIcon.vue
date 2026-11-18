@@ -42,7 +42,7 @@ const { t } = useI18n()
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-inline-size: 14px;
   min-block-size: 14px;
 }

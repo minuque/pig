@@ -155,7 +155,7 @@ watch(
 .file-tree {
   flex: 1;
   min-block-size: 0;
-  padding: var(--space-xxs) var(--space-xs) var(--space-sm);
+  padding: var(--space-2xs) var(--space-xs) var(--space-sm);
   overflow: auto;
 }
 
@@ -164,7 +164,7 @@ watch(
   inset-inline-end: 0;
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   block-size: var(--size-rail-row);
   padding-inline: calc(var(--space-xs) + var(--tree-level) * var(--space-md)) var(--space-xs);
   border-radius: var(--radius-control);
@@ -228,7 +228,7 @@ watch(
 
 /* 文件没有展开箭头：让出箭头的宽，与同级目录的图标对齐 */
 .file-tree-row .file-tree-icon.is-file {
-  margin-inline-start: calc(var(--size-icon-xs) + var(--space-xxs));
+  margin-inline-start: calc(var(--size-icon-xs) + var(--space-2xs));
 }
 
 .file-tree-name {

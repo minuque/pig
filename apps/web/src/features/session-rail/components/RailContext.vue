@@ -120,7 +120,7 @@ const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && 
   gap: var(--space-xs);
   inline-size: 100%;
   min-block-size: var(--size-icon);
-  padding: 0 var(--space-xxs);
+  padding: 0 var(--space-2xs);
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;

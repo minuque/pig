@@ -21,11 +21,11 @@
   content: "";
   position: absolute;
   inset-block: 0;
-  inset-inline: calc(-1 * var(--space-xxs));
+  inset-inline: calc(-1 * var(--space-2xs));
 }
 
 .resize-handle[data-orientation="vertical"]::before {
-  inset-block: calc(-1 * var(--space-xxs));
+  inset-block: calc(-1 * var(--space-2xs));
   inset-inline: 0;
 }
 

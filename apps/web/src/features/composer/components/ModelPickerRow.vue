@@ -51,11 +51,11 @@ const { t } = useI18n()
   display: grid;
   grid-template-columns: minmax(0, 1fr) 20px;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   height: 28px;
-  padding-inline-end: var(--space-xxs);
+  padding-inline-end: var(--space-2xs);
   border-radius: var(--radius-control);
-  transition: background-color var(--duration-fast) var(--ease-hover);
+  transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 .model-row:hover,
@@ -108,8 +108,8 @@ const { t } = useI18n()
   opacity: 0.6;
   cursor: pointer;
   transition:
-    color var(--duration-fast) var(--ease-hover),
-    opacity var(--duration-fast) var(--ease-hover);
+    color var(--duration-fast) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
 }
 
 .fav:hover {

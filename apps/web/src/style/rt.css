@@ -9,12 +9,12 @@
 /* 间距与圆角接到本项目的刻度：rt 的 space 1-6、radius 1-6 全部由 token 派生，
    改 --space-* 或 --radius 整片跟随。space 7-9（40/48/64）项目里没有对应档，留 rt 原值。 */
 .radix-themes {
-  --space-1: var(--space-xxs);
+  --space-1: var(--space-2xs);
   --space-2: var(--space-xs);
   --space-3: var(--space-sm);
   --space-4: var(--space-md);
   --space-5: var(--space-lg);
-  --space-6: var(--space-xxl);
+  --space-6: var(--space-2xl);
 
   /* rt 的 6 档圆角收到项目三档：1-3 给控件，4 给卡片与浮层，5-6 给对话框 */
   --radius-1: calc(var(--radius-control) / 2);
@@ -199,14 +199,14 @@
   max-inline-size: var(--dialog-max-width, 600px);
 }
 
-/* 对话框内边距按圆角推算（见 tokens.css 的 --space-dialog），替换 rt 的 12/16/24/48 四档；
+/* 对话框内边距按圆角推算（见 tokens.css 的 --dialog-padding），替换 rt 的 12/16/24/48 四档；
    与 rt 同为 0-1-0、写在其后，调用方 scoped 类仍可覆盖 */
 .rt-BaseDialogContent:where(.rt-r-size-1, .rt-r-size-2) {
-  --dialog-content-padding: var(--space-dialog-compact);
+  --dialog-content-padding: var(--dialog-padding-compact);
 }
 
 .rt-BaseDialogContent:where(.rt-r-size-3, .rt-r-size-4) {
-  --dialog-content-padding: var(--space-dialog);
+  --dialog-content-padding: var(--dialog-padding);
 }
 
 /* 模态框内容区统一取主区底色，不用 rt 的面板色 */

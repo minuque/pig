@@ -118,7 +118,7 @@ const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
   display: flex;
   flex: none;
   flex-direction: column;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   width: 28%;
   padding: var(--space-xs);
   background: var(--theme-wire-light-raised);
@@ -127,7 +127,7 @@ const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
 .wire-side::before,
 .wire-side::after {
   content: "";
-  height: var(--space-xxs);
+  height: var(--space-2xs);
   border-radius: var(--radius-pill);
   background: var(--border);
 }
@@ -141,12 +141,12 @@ const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
   min-width: 0;
   flex: 1;
   flex-direction: column;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   padding: var(--space-xs);
 }
 
 .wire-line {
-  height: var(--space-xxs);
+  height: var(--space-2xs);
   border-radius: var(--radius-pill);
   background: var(--border);
 }
@@ -161,7 +161,7 @@ const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
   justify-content: flex-end;
   margin-top: auto;
   height: var(--space-md);
-  padding-inline: var(--space-xxs);
+  padding-inline: var(--space-2xs);
   border-radius: var(--radius-pill);
   background: var(--theme-wire-light-raised);
 }

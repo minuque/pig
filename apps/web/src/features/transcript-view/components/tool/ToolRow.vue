@@ -186,7 +186,7 @@ const thumb = computed(() => {
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-width: 0;
 }
 
@@ -194,7 +194,7 @@ const thumb = computed(() => {
   display: flex;
   flex: 1 1 auto;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-width: 0;
   padding: 0;
   border: 0;
@@ -229,7 +229,7 @@ const thumb = computed(() => {
 .tool-row-line {
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-width: 0;
 }
 
@@ -274,7 +274,7 @@ const thumb = computed(() => {
   display: flex;
   flex: none;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   pointer-events: none;
 }
 
@@ -325,20 +325,20 @@ const thumb = computed(() => {
 .tool-row-counts {
   display: flex;
   flex: none;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
 }
 
 .tool-row-counts .added {
-  padding: 0 var(--space-xxs);
+  padding: 0 var(--space-2xs);
   border-radius: calc(var(--radius-control) / 2);
   background: var(--success-subtle);
   color: var(--success-text);
 }
 
 .tool-row-counts .removed {
-  padding: 0 var(--space-xxs);
+  padding: 0 var(--space-2xs);
   border-radius: calc(var(--radius-control) / 2);
   background: var(--danger-subtle);
   color: var(--danger-text);
@@ -373,7 +373,7 @@ const thumb = computed(() => {
 <style>
 /* tooltip 内容经 portal 到 body，scoped 打不中 */
 .tool-thumb-tip {
-  padding: var(--space-xxs);
+  padding: var(--space-2xs);
 }
 
 .tool-thumb-tip p {

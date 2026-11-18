@@ -81,7 +81,7 @@ function fontSample(name: string): string {
 .overview {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xxl);
+  gap: var(--space-2xl);
 }
 
 .group {
@@ -118,7 +118,7 @@ function fontSample(name: string): string {
 .token {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-width: 0;
   padding: var(--space-sm);
   border-radius: var(--radius-card);
@@ -129,7 +129,7 @@ function fontSample(name: string): string {
   display: flex;
   align-items: center;
   min-height: 40px;
-  margin-block-end: var(--space-xxs);
+  margin-block-end: var(--space-2xs);
   overflow: hidden;
   white-space: nowrap;
 }

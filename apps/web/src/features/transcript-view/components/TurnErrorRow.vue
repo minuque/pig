@@ -35,7 +35,7 @@ const label = computed(() => {
 .turn-error {
   padding-inline-start: var(--space-xs);
   color: var(--warning-text);
-  border-inline-start: var(--border-width-quote) solid currentcolor;
+  border-inline-start: var(--quote-border-width) solid currentcolor;
 }
 
 .turn-error[data-error] {
@@ -45,14 +45,14 @@ const label = computed(() => {
 .turn-error-head {
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-meta--line-height);
 }
 
 .turn-error-message {
-  margin-block-start: var(--space-xxs);
+  margin-block-start: var(--space-2xs);
   color: var(--fg-secondary);
   font-family: var(--font-mono);
   font-size: var(--text-meta);

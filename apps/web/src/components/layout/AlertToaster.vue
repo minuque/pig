@@ -47,7 +47,7 @@ const LEVEL_COLOR: Record<NoticeLevel, CalloutColor> = {
   z-index: var(--z-modal);
   display: flex;
   flex-direction: column;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   padding: var(--space-xs) var(--space-md);
   pointer-events: none;
 }

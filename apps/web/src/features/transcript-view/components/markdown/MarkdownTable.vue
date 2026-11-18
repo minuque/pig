@@ -88,8 +88,8 @@ function openPreview() {
 .md-table-zoom {
   position: absolute;
   z-index: 1;
-  top: var(--space-xxs);
-  inset-inline-end: var(--space-xxs);
+  top: var(--space-2xs);
+  inset-inline-end: var(--space-2xs);
   color: var(--fg-secondary);
 }
 

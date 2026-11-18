@@ -161,7 +161,7 @@ async function openIconDialog(canonicalPath: string): Promise<void> {
   gap: var(--space-xs);
   min-width: 0;
   /* 上边不内缩：首行与工作台头部内元素落在同一条横线上 */
-  padding-block: 0 var(--space-xxs);
+  padding-block: 0 var(--space-2xs);
 }
 
 /* 首行与工作台头部同高：两栏首行共用一条横向基线 */
@@ -194,7 +194,7 @@ html[data-pig-desktop-platform="win32"] .nav-titlebar {
 .nav-toolbar {
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   padding-inline: var(--nav-inline);
 }
 
@@ -213,7 +213,7 @@ html[data-pig-desktop-platform="win32"] .nav-titlebar {
 /* 工具行图标常态弱一档，悬停、聚焦或菜单打开时回到正文色 */
 .nav-tool[data-slot] {
   color: var(--fg-faint);
-  transition: color var(--duration-fast) var(--ease-hover);
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 .nav-tool[data-slot]:hover,

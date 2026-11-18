@@ -44,7 +44,7 @@
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
 }
 
 .label {

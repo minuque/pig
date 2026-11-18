@@ -583,7 +583,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   overflow: visible;
   pointer-events: none;
   opacity: 0;
-  translate: 0 var(--space-xxs);
+  translate: 0 var(--space-2xs);
   transition:
     opacity var(--duration-fast) var(--ease-out),
     translate var(--duration-normal) var(--ease-spring);

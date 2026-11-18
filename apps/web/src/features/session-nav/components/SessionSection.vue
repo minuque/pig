@@ -262,8 +262,8 @@ function itemBind(session: SidebarSession) {
   line-height: var(--text-body--line-height);
   cursor: default;
   transition:
-    background-color var(--duration-fast) var(--ease-hover),
-    color var(--duration-fast) var(--ease-hover);
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
 }
 
 .more-button:hover {

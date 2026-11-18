@@ -116,7 +116,7 @@ const copyText = computed(() => (props.code ? props.lines.join("\n") : props.tex
 }
 
 .tool-output-card {
-  margin-top: var(--space-xxs);
+  margin-top: var(--space-2xs);
 }
 
 .tool-output-pre {
@@ -135,7 +135,7 @@ const copyText = computed(() => (props.code ? props.lines.join("\n") : props.tex
 
 /* pre 的上内边距是 sm，复制按钮跟着上移 */
 .tool-output-pre :deep(.copy-backdrop) {
-  top: calc(var(--space-xxs) - var(--space-sm));
+  top: calc(var(--space-2xs) - var(--space-sm));
 }
 
 .images {

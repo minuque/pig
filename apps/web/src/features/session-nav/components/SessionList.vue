@@ -301,7 +301,7 @@ onUpdated(() => {
   scrollbar-width: thin;
   scrollbar-gutter: stable;
   scrollbar-color: transparent transparent;
-  padding-block-start: var(--space-xxs);
+  padding-block-start: var(--space-2xs);
 }
 
 .session-window:hover,
@@ -379,7 +379,7 @@ onUpdated(() => {
 .drag-label-inner {
   position: absolute;
   inset-inline: var(--space-xs);
-  top: var(--space-xxs);
+  top: var(--space-2xs);
   display: flex;
   align-items: center;
   gap: var(--space-xs);
@@ -444,7 +444,7 @@ onUpdated(() => {
   left: 0;
   display: inline-flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   max-width: 240px;
   height: 28px;
   padding-inline: var(--space-xs);

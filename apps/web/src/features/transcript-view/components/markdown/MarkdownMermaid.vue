@@ -138,7 +138,7 @@ onBeforeUnmount(() => mounted.value?.destroy())
   inset-inline-end: 0;
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   opacity: 0;
 }
 

@@ -82,8 +82,8 @@ watch(
 .code-header {
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
-  padding: var(--space-xxs) var(--space-xxs) var(--space-xxs) var(--space-sm);
+  gap: var(--space-2xs);
+  padding: var(--space-2xs) var(--space-2xs) var(--space-2xs) var(--space-sm);
 }
 
 .code-header :deep(.copy-button) {

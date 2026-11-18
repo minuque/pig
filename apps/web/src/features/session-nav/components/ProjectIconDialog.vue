@@ -92,7 +92,7 @@ function reset(): void {
 
 .project-icon-dialog .icon-colors {
   display: flex;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   margin-block: var(--space-md) var(--space-sm);
 }
 
@@ -107,7 +107,7 @@ function reset(): void {
   display: grid;
   grid-template-columns: repeat(10, var(--size-icon-button));
   justify-content: space-between;
-  row-gap: var(--space-xxs);
+  row-gap: var(--space-2xs);
 }
 
 .project-icon-dialog .icon-actions {

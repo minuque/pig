@@ -369,7 +369,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 .selector-labels {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-width: 0;
 }
 
@@ -492,7 +492,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   flex: 0 1 auto;
   min-height: 80px;
   max-height: min(var(--size-model-picker-list), 40vh);
-  padding: var(--space-xxs);
+  padding: var(--space-2xs);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;

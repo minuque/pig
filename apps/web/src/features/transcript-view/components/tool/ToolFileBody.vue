@@ -171,7 +171,7 @@ watch(
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  padding: var(--space-xxs) var(--space-xxs) var(--space-xxs) var(--space-sm);
+  padding: var(--space-2xs) var(--space-2xs) var(--space-2xs) var(--space-sm);
 }
 
 .edit-path {

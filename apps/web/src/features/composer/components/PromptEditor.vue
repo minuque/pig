@@ -357,7 +357,7 @@ defineExpose({ focus })
 
 /* @// 面板浮在输入卡上方，不占布局；菜单自身圆角与描边在组件内。 */
 .command-menu-float {
-  margin-bottom: var(--space-xxs);
+  margin-bottom: var(--space-2xs);
 }
 
 /* 两行卡片：上面输入区，下面按钮行 */
@@ -366,13 +366,13 @@ defineExpose({ focus })
   flex-direction: column;
   overflow: hidden;
   /* 描边与 rt 卡片同法：内阴影画 1px 环，不用 border，非整数缩放下圆角不发毛 */
-  border-radius: var(--radius-composer);
+  border-radius: var(--composer-radius);
   background: var(--bg-surface);
   box-shadow:
     inset 0 0 0 var(--border-width) var(--border),
     var(--composer-inset),
-    var(--shadow-composer);
-  corner-shape: var(--corner-shape-composer);
+    var(--composer-shadow);
+  corner-shape: var(--composer-corner-shape);
 }
 
 .body {
@@ -401,7 +401,7 @@ defineExpose({ focus })
 .cluster {
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   flex: none;
   min-width: 0;
 }
@@ -410,7 +410,7 @@ defineExpose({ focus })
   flex: 1 1 auto;
   justify-content: flex-end;
   /* 模型按钮悬停底色和发送按钮之间留出 12px */
-  margin-inline-end: var(--space-xxs);
+  margin-inline-end: var(--space-2xs);
 }
 
 .cluster.right {
@@ -453,7 +453,7 @@ defineExpose({ focus })
   gap: 3px;
   max-width: 100%;
   margin-inline: 1px;
-  padding: 1px var(--space-xxs);
+  padding: 1px var(--space-2xs);
   border-radius: calc(var(--radius-control) / 2);
   background: var(--info-subtle);
   color: var(--info-text);

@@ -152,7 +152,7 @@ function toggleProject(canonicalPath: string): void {
   align-items: center;
   gap: var(--space-xs);
   min-block-size: var(--size-composer-control);
-  margin-block-end: var(--space-xxs);
+  margin-block-end: var(--space-2xs);
   padding-inline: var(--space-xs);
   border-block-end: var(--border-width) solid var(--border-subtle);
 }
@@ -214,8 +214,8 @@ function toggleProject(canonicalPath: string): void {
 
 .check-badge {
   position: absolute;
-  inset-block-end: calc(var(--space-xxs) * -1);
-  inset-inline-end: calc(var(--space-xxs) * -1);
+  inset-block-end: calc(var(--space-2xs) * -1);
+  inset-inline-end: calc(var(--space-2xs) * -1);
   display: grid;
   place-items: center;
   inline-size: var(--size-icon-xs);
@@ -227,8 +227,8 @@ function toggleProject(canonicalPath: string): void {
 }
 
 .check-badge .lucide {
-  inline-size: calc(var(--size-icon-xs) - var(--space-xxs));
-  block-size: calc(var(--size-icon-xs) - var(--space-xxs));
+  inline-size: calc(var(--size-icon-xs) - var(--space-2xs));
+  block-size: calc(var(--size-icon-xs) - var(--space-2xs));
   stroke-width: calc(var(--line-icon-width) * 2);
 }
 

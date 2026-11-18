@@ -94,7 +94,7 @@ function toggleLocale() {
   display: flex;
   flex: none;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   padding: var(--space-xs) var(--nav-inline, var(--space-xs));
 }
 
@@ -105,7 +105,7 @@ function toggleLocale() {
   gap: var(--space-xs);
   min-width: 0;
   margin: 0;
-  padding-inline: var(--space-xxs) var(--space-xs);
+  padding-inline: var(--space-2xs) var(--space-xs);
   color: var(--fg-faint);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
@@ -137,7 +137,7 @@ function toggleLocale() {
 
 .footer-profile:hover .footer-pig,
 .footer-profile:focus-visible .footer-pig {
-  animation: brand-peek var(--duration-pig-peek) both;
+  animation: brand-peek var(--mascot-peek-duration) both;
 }
 
 /* 当前值贴右、弱一档，像快捷键列 */

@@ -88,7 +88,7 @@
   /* ------ 引用与分隔线 ------ */
   blockquote {
     padding-inline-start: 8px;
-    border-inline-start: var(--border-width-quote) solid var(--border-subtle);
+    border-inline-start: var(--quote-border-width) solid var(--border-subtle);
     color: var(--fg-faint);
   }
 

@@ -111,7 +111,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-self: flex-start;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   max-width: 100%;
   min-width: 0;
   padding: 0;
@@ -134,7 +134,7 @@ onBeforeUnmount(() => {
 .tool-run-counts {
   display: flex;
   flex: none;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
 }
@@ -146,14 +146,14 @@ onBeforeUnmount(() => {
 }
 
 .added {
-  padding: 0 var(--space-xxs);
+  padding: 0 var(--space-2xs);
   border-radius: calc(var(--radius-control) / 2);
   background: var(--success-subtle);
   color: var(--success-text);
 }
 
 .removed {
-  padding: 0 var(--space-xxs);
+  padding: 0 var(--space-2xs);
   border-radius: calc(var(--radius-control) / 2);
   background: var(--danger-subtle);
   color: var(--danger-text);

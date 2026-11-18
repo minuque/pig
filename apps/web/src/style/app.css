@@ -137,6 +137,6 @@ p {
 /* 触屏上把菜单行高抬到可点击尺寸 */
 @media (pointer: coarse) {
   :is([data-slot="dropdown-menu-item"], [data-slot="context-menu-item"]) {
-    min-height: calc(var(--size-control) + var(--space-xxs));
+    min-height: calc(var(--size-control) + var(--space-2xs));
   }
 }

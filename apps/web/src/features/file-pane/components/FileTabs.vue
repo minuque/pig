@@ -104,7 +104,7 @@ watch(
 .file-tabs {
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-inline-size: 0;
 }
 
@@ -112,7 +112,7 @@ watch(
   display: flex;
   flex: 1;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-inline-size: 0;
   overflow-x: auto;
   scrollbar-width: none;
@@ -124,7 +124,7 @@ watch(
   display: flex;
   flex: 0 1 var(--size-file-tab);
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-inline-size: var(--size-file-tab-min);
   max-inline-size: max-content;
   block-size: var(--size-file-tab-height);
@@ -154,7 +154,7 @@ watch(
   align-items: center;
   min-inline-size: 0;
   block-size: 100%;
-  padding: 0 0 0 var(--space-xxs);
+  padding: 0 0 0 var(--space-2xs);
   border: 0;
   background: none;
   color: inherit;

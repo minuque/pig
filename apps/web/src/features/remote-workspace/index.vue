@@ -121,7 +121,7 @@ async function submit() {
 
 .remote-dialog .remote-field {
   display: grid;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   font-size: var(--text-meta);
   color: var(--fg-secondary);
 }

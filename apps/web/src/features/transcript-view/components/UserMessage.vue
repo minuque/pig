@@ -133,7 +133,7 @@ useResizeObserver(body, measure)
 }
 
 .toggle {
-  margin: var(--space-xxs) 0 0;
+  margin: var(--space-2xs) 0 0;
   padding: 0;
   border: 0;
   background: none;

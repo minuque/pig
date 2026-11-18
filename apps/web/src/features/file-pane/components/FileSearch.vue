@@ -143,7 +143,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
 
 .file-search-field {
   flex-shrink: 0;
-  margin: var(--space-xs) var(--space-xs) var(--space-xxs);
+  margin: var(--space-xs) var(--space-xs) var(--space-2xs);
 }
 
 .file-search-results {
@@ -159,7 +159,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
 
 .file-search-heading {
   margin: 0;
-  padding: var(--space-xxs) var(--space-xs);
+  padding: var(--space-2xs) var(--space-xs);
   color: var(--fg-faint);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
@@ -170,7 +170,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
   align-items: baseline;
   gap: var(--space-xs);
   inline-size: 100%;
-  padding: var(--space-xxs) var(--space-xs);
+  padding: var(--space-2xs) var(--space-xs);
   border: 0;
   border-radius: var(--radius-control);
   background: none;

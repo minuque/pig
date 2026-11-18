@@ -93,7 +93,7 @@ function stop(id: string) {
 .task-row {
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-inline-size: 0;
 }
 
@@ -105,7 +105,7 @@ function stop(id: string) {
   gap: var(--space-xs);
   min-inline-size: 0;
   min-block-size: var(--size-rail-row);
-  padding-inline: var(--space-xxs);
+  padding-inline: var(--space-2xs);
   color: var(--fg);
   font: inherit;
   font-size: var(--text-meta);

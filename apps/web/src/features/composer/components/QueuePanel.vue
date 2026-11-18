@@ -136,7 +136,7 @@ onBeforeUnmount(() => reorder.detach())
 .row-actions {
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   flex: none;
 }
 

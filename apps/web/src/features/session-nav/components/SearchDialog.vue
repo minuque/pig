@@ -250,7 +250,7 @@ function activate(index: number) {
   font-size: var(--text-meta);
   text-align: start;
   cursor: default;
-  transition: background-color var(--duration-fast) var(--ease-hover);
+  transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 .search-row.active {

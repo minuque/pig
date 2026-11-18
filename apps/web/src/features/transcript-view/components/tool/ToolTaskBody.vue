@@ -34,7 +34,7 @@ function open(task: Task) {
 <style scoped>
 .task-list {
   display: grid;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -46,7 +46,7 @@ function open(task: Task) {
   align-items: center;
   gap: var(--space-xs);
   inline-size: 100%;
-  padding: var(--space-xxs) var(--space-xs);
+  padding: var(--space-2xs) var(--space-xs);
   color: inherit;
   text-align: start;
   background: none;

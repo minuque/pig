@@ -32,7 +32,7 @@ export function useComposerDock(
 function dockMotion(el: Element, dock: "in" | "out"): { duration: number; easing: string } {
   const style = getComputedStyle(el)
   return {
-    duration: Number.parseFloat(style.getPropertyValue(`--duration-dock-${dock}`)) || 0,
+    duration: Number.parseFloat(style.getPropertyValue(`--composer-dock-${dock}`)) || 0,
     easing: style.getPropertyValue("--ease-out").trim() || "ease-out",
   }
 }

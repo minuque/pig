@@ -381,7 +381,7 @@ watch(active, async () => {
   display: flex;
   flex: none;
   flex-direction: column;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   width: var(--size-settings-dialog-nav);
   padding: var(--space-sm) var(--space-xs);
   border-inline-end: var(--border-width) solid var(--border-subtle);
@@ -547,7 +547,7 @@ watch(active, async () => {
   flex: none;
   gap: var(--space-xs);
   height: 3rem;
-  padding-inline: calc(var(--space-md) + var(--space-xxs)) var(--space-xs);
+  padding-inline: calc(var(--space-md) + var(--space-2xs)) var(--space-xs);
   border-block-end: var(--border-width) solid var(--border-subtle);
 }
 
@@ -605,7 +605,7 @@ watch(active, async () => {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: var(--space-lg) var(--space-lg) calc(var(--space-xxl) + var(--space-md));
+  padding: var(--space-lg) var(--space-lg) calc(var(--space-2xl) + var(--space-md));
 }
 
 .settings-dialog .settings-body {
@@ -622,7 +622,7 @@ watch(active, async () => {
   .settings-dialog .settings-nav {
     align-items: center;
     width: var(--size-settings-dialog-nav-narrow);
-    padding-inline: var(--space-xxs);
+    padding-inline: var(--space-2xs);
   }
 
   .settings-dialog .nav-label {

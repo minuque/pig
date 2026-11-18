@@ -105,7 +105,7 @@ const SIZES = ["--size-icon-xs", "--size-icon", "--size-icon-hero"]
 }
 
 .lift {
-  inline-size: var(--space-xxl);
+  inline-size: var(--space-2xl);
   block-size: var(--space-xl);
   border-radius: var(--radius-control);
   background: var(--bg-raised);
@@ -118,7 +118,7 @@ const SIZES = ["--size-icon-xs", "--size-icon", "--size-icon-hero"]
 }
 
 .curve {
-  inline-size: calc(var(--space-xxl) * 2);
+  inline-size: calc(var(--space-2xl) * 2);
   fill: none;
   stroke: currentColor;
   stroke-width: var(--line-icon-width);
@@ -143,7 +143,7 @@ const SIZES = ["--size-icon-xs", "--size-icon", "--size-icon-hero"]
 .stack {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   inline-size: 40%;
 }
 

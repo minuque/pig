@@ -48,7 +48,7 @@ const label = computed(() => thoughtStepLabel(props.step))
 .tool-row-trigger {
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-width: 0;
   padding: 0;
   border: 0;

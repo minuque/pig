@@ -492,7 +492,7 @@ function confirmDelete() {
   inset-inline-end: 0;
   display: inline-flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   height: 20px;
   padding-inline: var(--space-xs);
   border-radius: calc(var(--radius-control) / 2);
@@ -514,12 +514,12 @@ function confirmDelete() {
   color: inherit;
   text-decoration: none;
   cursor: default;
-  transition: background-color var(--duration-fast) var(--ease-hover);
+  transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 .session-card.card {
   flex-direction: column;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-height: 60px;
   padding: var(--space-xs) 10px;
 }
@@ -557,7 +557,7 @@ function confirmDelete() {
   height: 16px;
   padding: 0;
   border-radius: calc(var(--radius-control) / 2);
-  font-size: var(--text-monogram);
+  font-size: var(--monogram-size);
   font-weight: var(--font-weight-bold);
   line-height: 1;
   letter-spacing: 0;
@@ -566,7 +566,7 @@ function confirmDelete() {
 .meta-line {
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-width: 0;
   height: 20px;
 }
@@ -599,7 +599,7 @@ function confirmDelete() {
   line-height: 20px;
   text-overflow: ellipsis;
   white-space: nowrap;
-  transition: color var(--duration-fast) var(--ease-hover);
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 /* 悬停、当前会话、菜单打开时回到一级文本色 */
@@ -644,7 +644,7 @@ function confirmDelete() {
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   color: var(--info-text);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
@@ -672,7 +672,7 @@ function confirmDelete() {
   top: 50%;
   display: inline-flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   padding-block: var(--icon-button-pad);
   padding-inline: var(--space-xs);
   border: 0;
@@ -687,7 +687,7 @@ function confirmDelete() {
   pointer-events: none;
   transition:
     opacity var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-hover);
+    color var(--duration-fast) var(--ease-out);
 }
 
 .session-card.slim .row-action {
@@ -746,7 +746,7 @@ function confirmDelete() {
   flex: 1;
   height: 21px;
   margin-block: -2px;
-  padding: 0 var(--space-xxs);
+  padding: 0 var(--space-2xs);
   border: 0;
   border-radius: calc(var(--radius-control) / 2);
   outline: none;

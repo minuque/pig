@@ -313,7 +313,7 @@ html[data-session-dragging] .split-drop {
   content: "";
   position: absolute;
   inset-block: 0;
-  inset-inline: calc(-1 * var(--space-xxs));
+  inset-inline: calc(-1 * var(--space-2xs));
 }
 
 .split-resizer::after {

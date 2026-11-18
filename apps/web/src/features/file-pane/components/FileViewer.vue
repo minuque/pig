@@ -207,7 +207,7 @@ watch(
 
 .file-viewer-crumb + .file-viewer-crumb::before {
   content: "/";
-  padding-inline: var(--space-xxs);
+  padding-inline: var(--space-2xs);
 }
 
 .file-viewer-crumb:last-child {
