@@ -1,5 +1,6 @@
 import { defineAsyncComponent, h, type Component } from "vue"
 import CardTuner from "@features/design-lab/components/CardTuner.vue"
+import ColorTuner from "@features/design-lab/components/ColorTuner.vue"
 import TokenCategory from "@features/design-lab/components/TokenCategory.vue"
 import { CATEGORIES } from "@features/design-lab/lib/tokens.js"
 
@@ -87,7 +88,10 @@ export const NAV: NavGroup[] = [
   {
     id: "tuners",
     title: { zh: "调节", en: "Tuners" },
-    items: [{ path: "card-tuner", title: { zh: "卡片", en: "Card" }, view: CardTuner }],
+    items: [
+      { path: "color-tuner", title: { zh: "颜色", en: "Color" }, view: ColorTuner },
+      { path: "card-tuner", title: { zh: "卡片", en: "Card" }, view: CardTuner },
+    ],
   },
   ...demoGroups(),
 ]
