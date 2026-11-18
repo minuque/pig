@@ -182,7 +182,7 @@ pig 的设计系统参考 t3code、Radix UI 和 Claude Desktop 一点点磨出�
 - **边用 `border`**：不用 line。分割线是单独角色，用 `--separator-top`。
 - **品牌色叫 `accent`**：用 `--accent-solid` 和 `--accent-solid-hover`，不和 Radix 的 `--accent-1..12` 重名。
 - **状态色**：每个状态有 `-text` 和 `-subtle` 两个 token。
-- **原色阶**：`--ink*` 是文字的三档 hex 输入，对比度层用它推出 `--fg*`。表面 hex 直接写在语义层。
+- **原色阶**：表面与文字的 hex 都直接写在语义层。定稿时的 `--ink*` 输入与对比度推量层已在 `3c27aa6f` 去掉，下表 `--foreground*` → `--ink*` 三行只作历史记录。
 
 | 组 | 语义 token |
 |---|---|
@@ -322,10 +322,14 @@ pig 的设计系统参考 t3code、Radix UI 和 Claude Desktop 一点点磨出�
 
 ## 方向选定（2a 结果）
 
-用户在 `artboard/design-directions` 选了 **A 石墨**（2026-11-18）。
+用户在 `artboard/design-directions` 选了 **A 石墨**（2026-11-18），之后在 `/design` 颜色调节页调成「石墨 · 柔和」（OKLCH 色相 285°，表面色度 0.005，文字取两倍）。下面是最终值。
 - **表面：** 三层各差约半档。
-  - 浅色：`--bg #f5f5f6`、`--bg-sunken #f1f1f3`、`--bg-surface #fbfbfc`、`--bg-raised #ffffff`。
-  - 深色：`--bg #111113`、`--bg-sunken #0e0e10`、`--bg-surface #161618`、`--bg-raised #1b1b1e`。
+  - 浅色：`--bg #f2f2f6`、`--bg-sunken #eeeef2`、`--bg-surface #f6f6fa`、`--bg-raised #fbfbff`。
+  - 深色：`--bg #131316`、`--bg-sunken #101012`、`--bg-surface #17171a`、`--bg-raised #1e1e20`。
+- **文字：** 三级固定色，在主区、侧栏、卡片上都不低于 4.5:1。弱级也承载会话标题、分组标题、空状态与占位符，所以不按 3:1 放宽。
+  - 浅色：`--fg #3c3c42`、`--fg-secondary #57575e`、`--fg-faint #6b6b72`（侧栏最低 4.57）。
+  - 深色：`--fg #d3d3db`、`--fg-secondary #9d9ea5`、`--fg-faint #85858c`（浮层最低 4.54）。
+- **表格：** rt 的表格行字色写死 `--gray-12`，在 `rt.css` 接回 `--fg`。
 - **描边：** `--border` 取 gray-a4，`--border-subtle` 取 gray-a3。
 - **密度：** 正文行高从 1.43 改为 1.5；对话内条目间距 `--transcript-item-gap` 从 16 改为 20。
 - **圆角：** 6 / 8 / 12。输入卡保留胶囊形。
