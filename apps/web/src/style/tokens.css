@@ -38,12 +38,12 @@
   /* --- 表面 --- */
   --white: #ffffff;
   /* 表面统一中性灰：侧栏低一档，主区一层，卡片与输入卡一层，浮层再抬一档 */
-  --bg: #f5f5f6;
+  --bg: #f2f2f6;
   /* 所有侧栏共用：主侧栏、抽屉、设置弹窗导航；与主区同一中性灰，低一档 */
-  --bg-sunken: #f1f1f3;
+  --bg-sunken: #eeeef2;
   /* 抬起的表面：卡片、输入卡、用户气泡、工具输入与思考内容共用 */
-  --bg-surface: #fbfbfc;
-  --bg-raised: #ffffff;
+  --bg-surface: #f6f6fa;
+  --bg-raised: #fbfbff;
   --scrim: rgba(0, 0, 0, 0.4);
   /* 反色主按钮 */
   --bg-inverse: #292929;
@@ -51,10 +51,10 @@
 
   /* --- 前景 --- */
   --fg-on-accent: var(--accent-contrast);
-  /* 文字三级固定色：与表面同一冷色相；正文对主区约 11.7:1，弱级只给非必要信息 */
-  --fg: #323237;
-  --fg-secondary: #5d5d62;
-  --fg-faint: #6f6f75;
+  /* 文字三级固定色：与表面同一冷色相；正文对主区约 9.8:1，弱级只给非必要信息 */
+  --fg: #3c3c42;
+  --fg-secondary: #626369;
+  --fg-faint: #74747a;
   --fg-inverse: #ffffff;
 
   /* --- 边与分割 --- */
@@ -299,10 +299,10 @@
   /* 任务输出卡片的最高高度 */
   --task-output-max: 200px;
   /* 主题预览线框：固定画浅色与深色两套界面，不跟当前主题走 */
-  --theme-wire-light: #f5f5f6;
-  --theme-wire-light-raised: #fbfbfc;
-  --theme-wire-dark: #111113;
-  --theme-wire-dark-raised: #161618;
+  --theme-wire-light: #f2f2f6;
+  --theme-wire-light-raised: #f6f6fa;
+  --theme-wire-dark: #131316;
+  --theme-wire-dark-raised: #17171a;
   --theme-switch-duration: 600ms;
   /** macOS 侧栏收起时红绿灯占位：红绿灯簇与间距 60px */
   --traffic-lights-width: 68px;
@@ -346,20 +346,20 @@ html[data-pig-desktop-platform="win32"] {
   /* ====== 语义层：全站共用，组件只读这一层与下面的组件层 ====== */
 
   /* --- 表面 --- */
-  --bg: #111113;
-  --bg-sunken: #0e0e10;
-  --bg-surface: #161618;
-  --bg-raised: #1b1b1e;
+  --bg: #131316;
+  --bg-sunken: #101012;
+  --bg-surface: #17171a;
+  --bg-raised: #1e1e20;
   --scrim: rgba(0, 0, 0, 0.55);
   --bg-inverse: #e8e8e8;
   --bg-inverse-hover: #ffffff;
 
   /* --- 前景 --- */
-  --fg: #d0d0d6;
-  --fg-secondary: #a4a4a9;
-  --fg-faint: #88888e;
+  --fg: #c6c6ce;
+  --fg-secondary: #9d9ea5;
+  --fg-faint: #85858c;
   --fg-on-accent: var(--accent-contrast);
-  --fg-inverse: #111113;
+  --fg-inverse: #131316;
 
   /* --- 交互 --- */
   --accent-solid: var(--accent-9);

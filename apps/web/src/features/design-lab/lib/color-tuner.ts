@@ -17,12 +17,12 @@ export type Scheme = Record<
   string
 >
 
-/** 起点：文字与 tokens.css 一致，表面是当前石墨底色在 OKLCH 里的近似（色相 285°，极低色度）。 */
+/** 起点：tokens.css 当前取值（石墨 · 柔和：色相 285°，色度 0.005）。 */
 export const DEFAULTS: Params = {
   hue: 285,
-  chroma: 0.004,
-  light: { bg: 0.972, step: 0.014, raised: 1, fg: 0.32, secondary: 0.48, faint: 0.545 },
-  dark: { bg: 0.172, step: 0.017, raised: 0.215, fg: 0.86, secondary: 0.72, faint: 0.63 },
+  chroma: 0.005,
+  light: { bg: 0.962, step: 0.012, raised: 0.99, fg: 0.36, secondary: 0.5, faint: 0.56 },
+  dark: { bg: 0.19, step: 0.016, raised: 0.235, fg: 0.83, secondary: 0.7, faint: 0.62 },
 }
 
 /** 侧栏比主区低一个层差，卡片高一个层差；文字色度取表面的两倍，冷色相读得出来但不发蓝。 */

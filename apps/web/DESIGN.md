@@ -8,19 +8,19 @@ colors:
   primary-on: "#FFFFFF"
   link-light: "#3A5BC7"
   link-dark: "#9EB1FF"
-  window-light: "#F5F5F6"
-  sidebar-light: "#F1F1F3"
-  overlay-light: "#FFFFFF"
-  window-dark: "#111113"
-  sidebar-dark: "#0E0E10"
-  card-dark: "#161618"
-  overlay-dark: "#1B1B1E"
-  ink-light: "#292929"
-  ink-secondary-light: "#505050"
-  ink-faint-light: "#6E6E6E"
-  ink-dark: "#E8E8E8"
-  ink-secondary-dark: "#A1A1A1"
-  ink-faint-dark: "#888888"
+  window-light: "#F2F2F6"
+  sidebar-light: "#EEEEF2"
+  overlay-light: "#FBFBFF"
+  window-dark: "#131316"
+  sidebar-dark: "#101012"
+  card-dark: "#17171A"
+  overlay-dark: "#1E1E20"
+  ink-light: "#3C3C42"
+  ink-secondary-light: "#626369"
+  ink-faint-light: "#74747A"
+  ink-dark: "#C6C6CE"
+  ink-secondary-dark: "#9D9EA5"
+  ink-faint-dark: "#85858C"
 typography:
   heading:
     fontFamily: "-apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
@@ -107,19 +107,19 @@ spacing:
 
 | 层                             | 浅色                                 | 深色                      | token                         |
 | ------------------------------ | ------------------------------------ | ------------------------- | ----------------------------- |
-| 窗口、主区                     | `#F5F5F6`                            | `#111113`                 | `--bg`                        |
-| 侧栏（主侧栏、抽屉、设置导航） | `#F1F1F3`（比主区深半档）            | `#0E0E10`（比主区深半档） | `--bg-sunken`                 |
-| 卡片、输入卡、气泡、工具输入   | `#FBFBFC`                            | `#161618`                 | `--bg-surface`                |
-| 浮层                           | `#FFFFFF`                            | `#1B1B1E`                 | `--bg-raised`                 |
+| 窗口、主区                     | `#F2F2F6`                            | `#131316`                 | `--bg`                        |
+| 侧栏（主侧栏、抽屉、设置导航） | `#EEEEF2`（比主区深半档）            | `#101012`（比主区深半档） | `--bg-sunken`                 |
+| 卡片、输入卡、气泡、工具输入   | `#F6F6FA`                            | `#17171A`                 | `--bg-surface`                |
+| 浮层                           | `#FBFBFF`                            | `#1E1E20`                 | `--bg-raised`                 |
 | 按钮与行悬停 / 选中            | 主题色 `--accent-a3` / `--accent-a4` | 同左，色板自动切深色      | `--bg-hover`、`--bg-selected` |
 
 文字只有三级，固定色，与表面同一冷色相（OKLCH 色相约 285°）：
 
-| 级  | 浅色      | 深色      | 对主区      | 用途              |
-| --- | --------- | --------- | ----------- | ----------------- |
-| 主  | `#323237` | `#D0D0D6` | 11.7 / 12.4 | 正文、标题        |
-| 次  | `#5D5D62` | `#A4A4A9` | 6.0 / 7.7   | 次要信息          |
-| 弱  | `#6F6F75` | `#88888E` | 4.6 / 5.4   | 非必要信息，≥ 3:1 |
+| 级  | 浅色      | 深色      | 对主区     | 用途              |
+| --- | --------- | --------- | ---------- | ----------------- |
+| 主  | `#3C3C42` | `#C6C6CE` | 9.8 / 10.9 | 正文、标题        |
+| 次  | `#626369` | `#9D9EA5` | 5.4 / 6.9  | 次要信息          |
+| 弱  | `#74747A` | `#85858C` | 4.2 / 5.1  | 非必要信息，≥ 3:1 |
 
 描边只有 `--border`（gray-a4）与 `--border-subtle`（gray-a3）。分割线只用 1px `--border-subtle`。
 
