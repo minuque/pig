@@ -47,10 +47,9 @@
       <span class="layer" />
     </div>
 
-    <template v-else>
-      <span class="box is-material" />
-      <span class="box is-material" :style="{ opacity: 'var(--opacity-disabled)' }" />
-    </template>
+    <span v-else class="composer">
+      <span class="composer-send" />
+    </span>
   </div>
 </template>
 
@@ -133,11 +132,22 @@ const SIZES = ["--icon-sm", "--icon-md", "--icon-xl"]
   box-shadow: inset 0 0 0 var(--border-width) var(--border);
 }
 
-.box.is-material {
-  inline-size: var(--space-xl);
-  block-size: var(--space-xl);
+.composer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  inline-size: 50%;
+  block-size: var(--control-lg);
+  padding-inline: var(--space-xs);
+  border-radius: var(--composer-radius);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border);
+}
+
+.composer-send {
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
+  border-radius: var(--radius-pill);
   background: var(--accent-solid);
-  box-shadow: none;
 }
 
 .stack {

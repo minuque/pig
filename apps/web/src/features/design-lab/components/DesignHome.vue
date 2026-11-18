@@ -52,7 +52,7 @@ import { Card } from "@components/ui/card/index.js"
 import { useGeneralPrefs } from "@features/settings/index.js"
 import TokenPreview from "@features/design-lab/components/TokenPreview.vue"
 import { NAV, type Label } from "@features/design-lab/lib/nav.js"
-import { CATEGORIES, groupOf, useTokens } from "@features/design-lab/lib/tokens.js"
+import { CATEGORIES, useTokens } from "@features/design-lab/lib/tokens.js"
 
 const { locale } = useGeneralPrefs()
 const tokens = useTokens()
@@ -60,10 +60,7 @@ const tokens = useTokens()
 const sections = NAV.filter((group) => group.id !== "tokens")
 const counts = computed(() =>
   Object.fromEntries(
-    CATEGORIES.map((category) => [
-      category.id,
-      tokens.value.filter((token) => category.groups.includes(groupOf(token))).length,
-    ]),
+    CATEGORIES.map((category) => [category.id, tokens.value.filter(category.match).length]),
   ),
 )
 

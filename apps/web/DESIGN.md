@@ -24,7 +24,7 @@ colors:
 typography:
   heading:
     fontFamily: "anthropic-sans, -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
-    fontSize: "20px"
+    fontSize: "24px"
     fontWeight: 600
     lineHeight: 1.3
     letterSpacing: "-0.2px"
@@ -54,13 +54,13 @@ rounded:
   dialog: "14px"
   pill: "9999px"
 spacing:
-  xxs: "4px"
+  2xs: "4px"
   xs: "8px"
   sm: "12px"
   md: "16px"
   lg: "24px"
   xl: "28px"
-  xxl: "32px"
+  2xl: "32px"
 ---
 
 # Design System: pig 工作台
@@ -70,6 +70,16 @@ spacing:
 克制、安静、舒服，表面与文字取 Linear 的冷灰基调。主题色 Radix indigo，中性色 Radix slate。
 
 优先级：解决问题 > 易于使用 > 好看美观。界面靠布局和控件本身说话，不靠说明文字和装饰。
+
+## Token 分层
+
+`style/tokens.css` 分三层，组件只读语义层和组件层：
+
+1. **原色阶**：Radix slate、indigo 与状态色板由 rt 提供；文件里只有文字三档 hex 输入 `--ink*`，对比度层用它推出 `--fg*`。
+2. **语义层**：全站共用，按「表面、前景、边与分割、交互、状态、字、间距、圆角、阴影、动效、图标与控件高、布局、层级」分组。命名一个概念一个词：前景 `fg`、底 `bg`、边 `border`、品牌色 `accent`、状态 `-text` / `-subtle`。
+3. **组件层**：只给单个组件或一类内容用，名字以组件开头（`--composer-*`、`--file-tab-*`、`--settings-*`、`--language-*`、`--mascot-*`）。能用语义档就不进这一层。
+
+`/design` 页直接读这些分区注释分组，新增 token 时写进对应小标题下。
 
 ## 七条规则
 
@@ -115,7 +125,7 @@ spacing:
 
 ### 状态色
 
-文字色（`--success-text`、`--info-text`、`--warning-text`、`--danger-text`）配同色相浅底（`--*-bg`）。成功取 Radix green 第 11 级与第 3 级 alpha，信息文字取 accent 第 11 级；警告、危险与信息底用项目自定色值，深浅各一套。不用实色填充，不加光晕。状态色只在真有状态时出现。
+文字色（`--success-text`、`--info-text`、`--warning-text`、`--danger-text`）配同色相浅底（`--*-subtle`）。成功取 Radix green 第 11 级与第 3 级 alpha，信息文字取 accent 第 11 级；警告、危险与信息底用项目自定色值，深浅各一套。不用实色填充，不加光晕。状态色只在真有状态时出现。
 
 ### 例外
 
@@ -166,8 +176,9 @@ spacing:
 
 ## 间距与尺寸
 
-- 间距基数 4px：`--space-2xs/xs/sm/md/lg/xl/xxl` = 4/8/12/16/24/28/32。
-- 控件 40px（`--control-lg`），图标按钮 28px，侧栏行 28px，图标 14px。
+- 间距基数 4px：`--space-2xs/xs/sm/md/lg/xl/2xl` = 4/8/12/16/24/28/32。
+- 控件高三档：`--control-sm/md/lg` = 28/32/40（图标按钮与侧栏行 28，菜单项与输入卡控件 32，输入框 40）。
+- 图标四档：`--icon-sm/md/lg/xl` = 12/14/16/32，线宽 `--icon-stroke`。
 - 头部高 `--header-height` 44px；macOS 标题条 `--titlebar-inset` 44px，其余平台 0。
 
 ## 动画

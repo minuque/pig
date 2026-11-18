@@ -2,20 +2,20 @@
   <div class="overview">
     <section v-for="group in groups" :key="group.id" class="group">
       <h2 class="group-title">
-        {{ text(group.title) }}
+        {{ text(groupTitle(group.id)) }}
         <span class="group-count">{{ group.tokens.length }}</span>
       </h2>
 
-      <div class="grid" :data-kind="group.kind">
+      <div class="grid">
         <div v-for="token in group.tokens" :key="token.name" class="token" :title="token.value">
           <div
-            v-if="VISUAL.has(group.kind)"
+            v-if="kindOf(token) !== 'none'"
             class="sample"
-            :data-kind="group.kind"
-            :style="sampleStyle(group.kind, token.name)"
+            :data-kind="kindOf(token)"
+            :style="sampleStyle(token)"
           >
-            <template v-if="group.id === 'text'">界面 Aa 123</template>
-            <template v-else-if="group.id === 'font'">{{ fontSample(token.name) }}</template>
+            <template v-if="kindOf(token) === 'text'">界面 Aa 123</template>
+            <template v-else-if="kindOf(token) === 'font'">{{ fontSample(token.name) }}</template>
           </div>
 
           <div class="token-name">{{ token.name }}</div>
@@ -31,45 +31,42 @@ import { computed } from "vue"
 import { useGeneralPrefs } from "@features/settings/index.js"
 import type { Label } from "@features/design-lab/lib/nav.js"
 import {
-  GROUP_TITLES,
-  groupOf,
+  groupTitle,
+  kindOf,
   useTokens,
   type Category,
-  type GroupId,
+  type Kind,
+  type Token,
 } from "@features/design-lab/lib/tokens.js"
 
 const props = defineProps<{ category: Category }>()
-// 有可视样例的分组；其余只列名字和值
-const VISUAL = new Set<GroupId>(["color", "text", "font", "space", "radius", "shadow", "size"])
 const { locale } = useGeneralPrefs()
 const tokens = useTokens()
-const groups = computed(() =>
-  props.category.groups
-    .map((id) => ({
-      id,
-      title: GROUP_TITLES[id],
-      kind: id.startsWith("color") ? ("color" as const) : id,
-      tokens: tokens.value.filter((token) => groupOf(token) === id),
-    }))
-    .filter((group) => group.tokens.length > 0),
-)
+// 按 tokens.css 里的出现顺序分组
+const groups = computed(() => {
+  const byGroup = new Map<string, Token[]>()
+
+  for (const token of tokens.value.filter(props.category.match))
+    byGroup.set(token.group, [...(byGroup.get(token.group) ?? []), token])
+  return [...byGroup].map(([id, list]) => ({ id, tokens: list }))
+})
 
 function text(label: Label): string {
   return locale.value === "en" ? label.en : label.zh
 }
 
-function sampleStyle(group: GroupId, name: string): Record<string, string> {
-  const ref = `var(${name})`
-  const styles: Partial<Record<GroupId, Record<string, string>>> = {
+function sampleStyle(token: Token): Record<string, string> {
+  const ref = `var(${token.name})`
+  const styles: Partial<Record<Kind, Record<string, string>>> = {
     color: { background: ref },
     text: { fontSize: ref },
-    font: name.includes("weight") ? { fontWeight: ref } : { fontFamily: ref },
+    font: token.name.includes("weight") ? { fontWeight: ref } : { fontFamily: ref },
     space: { width: ref },
     radius: { borderRadius: ref },
     shadow: { boxShadow: ref },
     size: { width: `min(${ref}, 100%)` },
   }
-  return styles[group] ?? {}
+  return styles[kindOf(token)] ?? {}
 }
 
 function fontSample(name: string): string {
@@ -109,10 +106,6 @@ function fontSample(name: string): string {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: var(--space-sm);
-}
-
-.grid:is([data-kind="text"], [data-kind="font"], [data-kind="space"], [data-kind="size"]) {
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
 }
 
 .token {
