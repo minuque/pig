@@ -1,28 +1,29 @@
 <template>
   <section class="provider-list">
     <div class="list-tools">
-      <label class="provider-search">
-        <SearchIcon class="search-icon" />
-
-        <input
-          v-model="query"
-          type="text"
-          :placeholder="t('settings.models.searchProviders')"
-          :aria-label="t('settings.models.searchProviders')"
-        />
-      </label>
+      <TextFieldRoot
+        v-model="query"
+        class="provider-search"
+        size="m"
+        :placeholder="t('settings.models.searchProviders')"
+        :aria-label="t('settings.models.searchProviders')"
+      >
+        <TextFieldSlot side="left">
+          <SearchIcon class="size-icon" />
+        </TextFieldSlot>
+      </TextFieldRoot>
 
       <Tooltip>
         <TooltipTrigger as-child>
-          <Button
-            class="add-provider"
-            size="s"
+          <IconButton
+            type="button"
+            size="m"
             variant="surface"
             :aria-label="t('settings.models.addProvider')"
             @click="emit('add')"
           >
-            <PlusIcon />
-          </Button>
+            <PlusIcon class="size-icon" />
+          </IconButton>
         </TooltipTrigger>
 
         <TooltipContent>{{ t("settings.models.addProvider") }}</TooltipContent>
@@ -88,7 +89,8 @@ import { computed, ref } from "vue"
 
 import { useI18n } from "@i18n/index.js"
 import { PlusIcon, ChevronRightIcon, SearchIcon } from "@components/icons/index.js"
-import { Button } from "@components/ui/button/index.js"
+import { IconButton } from "@components/ui/button/index.js"
+import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import VendorMark from "@features/composer/components/VendorMark.vue"
 import { groupProviders, providerSourceText } from "@features/settings/lib/provider-view.js"
@@ -123,42 +125,9 @@ function sourceKind(provider: ProviderView) {
   margin-block-end: var(--space-md);
 }
 
-.add-provider {
-  flex: none;
-  inline-size: 24px;
-  block-size: 24px;
-  padding: 0;
-}
-
 .provider-search {
-  display: flex;
   min-width: 0;
   flex: 1;
-  align-items: center;
-  gap: var(--space-xs);
-  height: 34px;
-  padding-inline: var(--space-sm);
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-control);
-  background: var(--bg-surface);
-  color: var(--fg-faint);
-}
-
-.search-icon {
-  flex: none;
-}
-
-.provider-search input {
-  width: 100%;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--fg);
-  font-size: var(--text-meta);
-}
-
-.provider-search input::placeholder {
-  color: var(--fg-faint);
 }
 
 .provider-group + .provider-group {
@@ -260,9 +229,5 @@ function sourceKind(provider: ProviderView) {
   .provider-row {
     transition: none;
   }
-}
-
-:deep(.rt-BaseButton.rt-r-size-1) {
-  font-size: var(--text-body);
 }
 </style>
