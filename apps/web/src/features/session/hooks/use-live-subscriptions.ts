@@ -32,9 +32,13 @@ export type BackgroundIdleResult = "sent" | "done"
 /** 工具条目挂上客户端记的开始时刻；只是本地附加字段，不走协议校验。 */
 type TimedToolItem = TranscriptItem & { startedAt: number }
 
-/** 会话里还有后台任务在跑：这样的连接切走时不放掉。 */
+/** 会话里还有后台任务在跑或排队：这样的连接切走时不放掉。 */
 export function hasRunningTasks(sub: LiveSubscription): boolean {
-  return sub.lastState?.snapshot?.tasks.some((task) => task.status === "running") ?? false
+  return (
+    sub.lastState?.snapshot?.tasks.some(
+      (task) => task.status === "running" || task.status === "queued",
+    ) ?? false
+  )
 }
 
 /** running 占位自带开始时刻；完成条目没这个字段，按 toolCallId 从订阅里回填。 */

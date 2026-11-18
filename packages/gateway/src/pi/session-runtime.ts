@@ -109,8 +109,9 @@ export class PiHostSession implements SessionRuntime {
     this.events?.emit(TASK_STOP_CHANNEL, event)
   }
 
+  /** 排队中的也算：与登记表一致，占名额、可停止。 */
   hasRunningTasks(): boolean {
-    return this.tasks.some((task) => task.status === "running")
+    return this.tasks.some((task) => task.status === "running" || task.status === "queued")
   }
 
   contextUsage(previewKey?: ContextPreviewKey) {
