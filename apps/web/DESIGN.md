@@ -23,28 +23,28 @@ colors:
   ink-faint-dark: "#888888"
 typography:
   heading:
-    fontFamily: "anthropic-sans, -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
+    fontFamily: "-apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
     fontSize: "24px"
     fontWeight: 600
     lineHeight: 1.3
     letterSpacing: "-0.2px"
   title:
-    fontFamily: "anthropic-sans, -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
+    fontFamily: "-apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
     fontSize: "16px"
     fontWeight: 500
     lineHeight: 1.4
   body:
-    fontFamily: "anthropic-sans, -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
+    fontFamily: "-apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
     fontSize: "14px"
     fontWeight: 400
     lineHeight: 1.5
   meta:
-    fontFamily: "anthropic-sans, -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
+    fontFamily: "-apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
     fontSize: "12px"
     fontWeight: 400
     lineHeight: 1.4
   code:
-    fontFamily: "anthropic-mono, ui-monospace, SF Mono, Menlo, Consolas, PingFang SC, Microsoft YaHei, monospace"
+    fontFamily: "ui-monospace, SF Mono, Menlo, Consolas, PingFang SC, Microsoft YaHei, monospace"
     fontSize: "13px"
     fontWeight: 400
     lineHeight: "24.5px"

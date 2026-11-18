@@ -28,7 +28,7 @@
   --shadow-popover: var(--shadow-5);
   --shadow-dialog: var(--shadow-6);
 
-  /* rt 把字体、根字号与字色定在自己身上，接回项目基线：随包字体、正文档、对比度层。
+  /* rt 把字体、根字号与字色定在自己身上，接回项目基线：项目字体栈、正文档、对比度层。
      不接这三项，包在根上的 ThemeRoot 会让整站退回系统字体与 16px。 */
   --default-font-family: var(--font-sans);
   --default-font-size: var(--text-body);

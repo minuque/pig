@@ -27,41 +27,6 @@
   scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
-/* ------ Anthropic 可变字体（cc-wrapper 拆包）；先声明再让 token 引用 ------ */
-@font-face {
-  font-family: "anthropic-sans";
-  src: url("../assets/fonts/anthropic-sans.woff2") format("woff2");
-  font-weight: 300 800;
-  font-style: normal;
-  font-display: swap;
-  font-feature-settings: "dlig" 0;
-}
-
-@font-face {
-  font-family: "anthropic-sans";
-  src: url("../assets/fonts/anthropic-sans-italic.woff2") format("woff2");
-  font-weight: 300 800;
-  font-style: italic;
-  font-display: swap;
-  font-feature-settings: "dlig" 0;
-}
-
-@font-face {
-  font-family: "anthropic-mono";
-  src: url("../assets/fonts/anthropic-mono.woff2") format("woff2");
-  font-weight: 300 800;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "anthropic-mono";
-  src: url("../assets/fonts/anthropic-mono-italic.woff2") format("woff2");
-  font-weight: 300 800;
-  font-style: italic;
-  font-display: swap;
-}
-
 /* ------ 图标与表面 ------ */
 /* Lucide 图标基座：零特异性，调用方的 size-* 类和 scoped 样式可覆盖 */
 :where(.lucide) {
