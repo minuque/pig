@@ -2,24 +2,24 @@
 name: pig 工作台
 description: 本机 Pi agent 的多会话并行工作台界面
 colors:
-  primary: "#3E63DD"
-  primary-hover-light: "#3358D4"
-  primary-hover-dark: "#5472E4"
+  primary: "#5B5BD6"
+  primary-hover-light: "#5151CD"
+  primary-hover-dark: "#6E6ADE"
   primary-on: "#FFFFFF"
-  link-light: "#3A5BC7"
-  link-dark: "#9EB1FF"
+  link-light: "#5753C6"
+  link-dark: "#B1A9FF"
   window-light: "#F2F2F6"
   sidebar-light: "#EEEEF2"
   overlay-light: "#FBFBFF"
-  window-dark: "#131316"
-  sidebar-dark: "#101012"
+  window-dark: "#101012"
+  sidebar-dark: "#0A0A0B"
   card-dark: "#17171A"
   overlay-dark: "#1E1E20"
   ink-light: "#3C3C42"
   ink-secondary-light: "#57575E"
   ink-faint-light: "#6B6B72"
-  ink-dark: "#D3D3DB"
-  ink-secondary-dark: "#9D9EA5"
+  ink-dark: "#E8EAED"
+  ink-secondary-dark: "#9DA4AE"
   ink-faint-dark: "#85858C"
 typography:
   heading:
@@ -67,7 +67,7 @@ spacing:
 
 ## 基调
 
-克制、安静、舒服，表面与文字取 Linear 的冷灰基调。主题色 Radix indigo，中性色 Radix slate。
+克制、安静、舒服，表面与文字取 Linear 的冷灰基调。主题色 Radix iris，中性色 Radix slate。
 
 优先级：解决问题 > 易于使用 > 好看美观。界面靠布局和控件本身说话，不靠说明文字和装饰。
 
@@ -75,7 +75,7 @@ spacing:
 
 `style/tokens.css` 分三层，组件只读语义层和组件层：
 
-1. **原色阶**：Radix slate、indigo 与状态色板由 rt 提供，`tokens.css` 不另写。
+1. **原色阶**：Radix slate、iris 与状态色板由 rt 提供，`tokens.css` 不另写。
 2. **语义层**：全站共用，按「表面、前景、边与分割、交互、状态、字、间距、圆角、阴影、动效、图标与控件高、布局、层级」分组。命名一个概念一个词：前景 `fg`、底 `bg`、边 `border`、品牌色 `accent`、状态 `-text` / `-subtle`。
 3. **组件层**：只给单个组件或一类内容用，名字以组件开头（`--composer-*`、`--file-tab-*`、`--settings-*`、`--language-*`、`--mascot-*`）。能用语义档就不进这一层。
 
@@ -95,7 +95,7 @@ spacing:
 
 ### 强调色
 
-强调色用 Radix 的 `indigo`。`index.html` 与 `ThemeRoot` 的 `data-accent-color="indigo"` 把它映射到 `--accent-*`。
+强调色用 Radix 的 `iris`。`index.html` 与 `ThemeRoot` 的 `data-accent-color="iris"` 把它映射到 `--accent-*`。
 
 - `--accent-solid`：第 9 级。实心主按钮的底，文字用 `--fg-on-accent`（白）。
 - `--link`、`--info-text`、焦点环：第 11 级。深色下文字类用法必须用第 11 级。
@@ -107,19 +107,19 @@ spacing:
 
 | 层                             | 浅色                                 | 深色                      | token                         |
 | ------------------------------ | ------------------------------------ | ------------------------- | ----------------------------- |
-| 窗口、主区                     | `#F2F2F6`                            | `#131316`                 | `--bg`                        |
-| 侧栏（主侧栏、抽屉、设置导航） | `#EEEEF2`（比主区深半档）            | `#101012`（比主区深半档） | `--bg-sunken`                 |
+| 窗口、主区                     | `#F2F2F6`                            | `#101012`                 | `--bg`                        |
+| 侧栏（主侧栏、抽屉、设置导航） | `#EEEEF2`（比主区深半档）            | `#0A0A0B`（比主区暗一截） | `--bg-sunken`                 |
 | 卡片、输入卡、气泡、工具输入   | `#F6F6FA`                            | `#17171A`                 | `--bg-surface`                |
 | 浮层                           | `#FBFBFF`                            | `#1E1E20`                 | `--bg-raised`                 |
-| 按钮与行悬停 / 选中            | 主题色 `--accent-a3` / `--accent-a4` | 同左，色板自动切深色      | `--bg-hover`、`--bg-selected` |
+| 按钮与行悬停 / 选中            | 主题色 `--accent-a3` / `--accent-a4` | `--accent-a3` / `#1A2143` | `--bg-hover`、`--bg-selected` |
 
-文字只有三级，固定色，与表面同一冷色相（OKLCH 色相约 285°）：
+文字只有三级，固定色。浅色与表面同一冷色相（OKLCH 色相约 285°），深色主文字与次要文字偏冷蓝（约 258°）：
 
 | 级  | 浅色      | 深色      | 对主区     | 用途                                                       |
 | --- | --------- | --------- | ---------- | ---------------------------------------------------------- |
-| 主  | `#3C3C42` | `#D3D3DB` | 9.8 / 12.5 | 正文、标题                                                 |
-| 次  | `#57575E` | `#9D9EA5` | 6.4 / 6.9  | 次要信息                                                   |
-| 弱  | `#6B6B72` | `#85858C` | 4.7 / 5.1  | 时间、占位、空状态等弱提示，在主区、侧栏、卡片上都 ≥ 4.5:1 |
+| 主  | `#3C3C42` | `#E8EAED` | 9.8 / 15.8 | 正文、标题                                                 |
+| 次  | `#57575E` | `#9DA4AE` | 6.4 / 7.6  | 次要信息                                                   |
+| 弱  | `#6B6B72` | `#85858C` | 4.7 / 5.2  | 时间、占位、空状态等弱提示，在主区、侧栏、卡片上都 ≥ 4.5:1 |
 
 描边只有 `--border`（gray-a4）与 `--border-subtle`（gray-a3）。分割线只用 1px `--border-subtle`。
 

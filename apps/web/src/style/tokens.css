@@ -31,7 +31,7 @@
 :root {
   color-scheme: light;
 
-  /* ====== 原色阶：Radix slate / indigo / 状态色板由 rt 提供，这里不另写 ====== */
+  /* ====== 原色阶：Radix slate / iris / 状态色板由 rt 提供，这里不另写 ====== */
 
   /* ====== 语义层：全站共用，组件只读这一层与下面的组件层 ====== */
 
@@ -301,7 +301,7 @@
   /* 主题预览线框：固定画浅色与深色两套界面，不跟当前主题走 */
   --theme-wire-light: #f2f2f6;
   --theme-wire-light-raised: #f6f6fa;
-  --theme-wire-dark: #131316;
+  --theme-wire-dark: #101012;
   --theme-wire-dark-raised: #17171a;
   --theme-switch-duration: 600ms;
   /** macOS 侧栏收起时红绿灯占位：红绿灯簇与间距 60px */
@@ -346,8 +346,9 @@ html[data-pig-desktop-platform="win32"] {
   /* ====== 语义层：全站共用，组件只读这一层与下面的组件层 ====== */
 
   /* --- 表面 --- */
-  --bg: #131316;
-  --bg-sunken: #101012;
+  /* 侧栏比主区暗一截，层次靠底色就分得开 */
+  --bg: #101012;
+  --bg-sunken: #0a0a0b;
   --bg-surface: #17171a;
   --bg-raised: #1e1e20;
   --scrim: rgba(0, 0, 0, 0.55);
@@ -355,8 +356,9 @@ html[data-pig-desktop-platform="win32"] {
   --bg-inverse-hover: #ffffff;
 
   /* --- 前景 --- */
-  --fg: #d3d3db;
-  --fg-secondary: #9d9ea5;
+  /* 主文字与次要文字带一点冷蓝 */
+  --fg: #e8eaed;
+  --fg-secondary: #9da4ae;
   --fg-faint: #85858c;
   --fg-on-accent: var(--accent-contrast);
   --fg-inverse: #131316;
@@ -365,6 +367,8 @@ html[data-pig-desktop-platform="win32"] {
   --accent-solid: var(--accent-9);
   --accent-solid-hover: var(--accent-10);
   --link: var(--accent-11);
+  /* 深色选中用不透明的深蓝底，在侧栏与主区上是同一个颜色 */
+  --bg-selected: #1a2143;
 
   /* --- 状态 --- */
   --warning-text: #e8a33d;

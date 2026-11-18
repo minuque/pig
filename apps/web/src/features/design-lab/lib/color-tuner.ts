@@ -17,12 +17,12 @@ export type Scheme = Record<
   string
 >
 
-/** 起点：tokens.css 当前取值（石墨 · 柔和：色相 285°，色度 0.005）。 */
+/** 起点：tokens.css 当前取值（色相 285°，色度 0.005）；深色文字实际偏冷蓝，这里按表面色相近似。 */
 export const DEFAULTS: Params = {
   hue: 285,
   chroma: 0.005,
   light: { bg: 0.962, step: 0.012, raised: 0.99, fg: 0.36, secondary: 0.46, faint: 0.53 },
-  dark: { bg: 0.19, step: 0.016, raised: 0.235, fg: 0.87, secondary: 0.7, faint: 0.62 },
+  dark: { bg: 0.174, step: 0.03, raised: 0.236, fg: 0.936, secondary: 0.716, faint: 0.62 },
 }
 
 /** 侧栏比主区低一个层差，卡片高一个层差；文字色度取表面的两倍，冷色相读得出来但不发蓝。 */
