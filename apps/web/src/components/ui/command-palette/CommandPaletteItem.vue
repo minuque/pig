@@ -5,7 +5,14 @@
     :disabled="disabled"
     @select="emit('select')"
   >
-    <slot />
+    <span v-if="$slots.icon" class="icon"><slot name="icon" /></span>
+
+    <span class="main">
+      <span class="title"><slot /></span>
+      <span v-if="$slots.description" class="description"><slot name="description" /></span>
+    </span>
+
+    <slot name="trailing" />
   </ListboxItem>
 </template>
 
@@ -21,31 +28,56 @@ const emit = defineEmits<{ select: [] }>()
 <style scoped>
 [data-slot="command-palette-item"] {
   display: flex;
-  flex: none;
+  min-height: 28px;
   align-items: center;
-  gap: var(--space-sm);
-  min-width: 0;
+  gap: var(--space-xs);
   padding: calc(var(--spacing) * 1.5) var(--space-xs);
-  border-radius: var(--radius-card);
+  border-radius: calc(var(--radius-control) - 2px);
   color: var(--fg);
   font-size: var(--text-body);
-  line-height: var(--text-body--line-height);
   cursor: pointer;
-  transition: background-color var(--duration-fast) var(--ease-out);
+  user-select: none;
 }
 
 [data-slot="command-palette-item"][data-highlighted] {
-  background: var(--bg-emphasis);
+  background: var(--bg-selected);
 }
 
 [data-slot="command-palette-item"][data-disabled] {
   cursor: default;
-  opacity: 0.5;
+  opacity: 0.64;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  [data-slot="command-palette-item"] {
-    transition: none;
-  }
+/* 图标与首行文字对齐，两行时不居中到整行 */
+.icon {
+  display: flex;
+  height: 20px;
+  flex: none;
+  align-items: center;
+  align-self: flex-start;
+  color: var(--fg-secondary);
+}
+
+.main {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+.title,
+.description {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.title {
+  line-height: 20px;
+}
+
+.description {
+  color: var(--fg-faint);
+  font-size: var(--text-meta);
 }
 </style>

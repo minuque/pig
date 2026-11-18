@@ -5,7 +5,7 @@
 <style scoped>
 [data-slot="command-palette-empty"] {
   margin: 0;
-  padding: var(--space-2xl);
+  padding-block: calc(var(--spacing) * 10);
   color: var(--fg-secondary);
   font-size: var(--text-body);
   text-align: center;

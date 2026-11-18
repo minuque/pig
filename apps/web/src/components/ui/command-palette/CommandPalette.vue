@@ -1,22 +1,63 @@
 <template>
-  <Dialog :open="open" @update:open="emit('update:open', $event)">
-    <DialogContent class="command-palette" align="start" :show-close-button="false">
-      <DialogTitle class="sr-only">{{ title }}</DialogTitle>
+  <DialogRoot :open="open" @update:open="emit('update:open', $event)">
+    <DialogPortal>
+      <ThemeRoot>
+        <DialogOverlay class="glass-backdrop" />
 
-      <ListboxRoot ref="listbox" data-slot="command-palette" highlight-on-hover>
-        <slot />
-      </ListboxRoot>
-    </DialogContent>
-  </Dialog>
+        <div class="viewport">
+          <DialogContent
+            data-slot="command-palette"
+            class="glass-panel"
+            :aria-describedby="undefined"
+          >
+            <DialogTitle class="sr-only">{{ title }}</DialogTitle>
+
+            <ListboxRoot ref="listbox" class="body" highlight-on-hover>
+              <slot />
+            </ListboxRoot>
+
+            <footer class="footer">
+              <span class="hint">
+                <Kbd size="s"><ArrowUpIcon /></Kbd>
+                <Kbd size="s"><ArrowDownIcon /></Kbd>
+                {{ t("common.navigate") }}
+              </span>
+
+              <span class="hint">
+                <Kbd size="s">Enter</Kbd>
+                {{ t("common.select") }}
+              </span>
+
+              <span class="hint">
+                <Kbd size="s">Esc</Kbd>
+                {{ t("common.close") }}
+              </span>
+            </footer>
+          </DialogContent>
+        </div>
+      </ThemeRoot>
+    </DialogPortal>
+  </DialogRoot>
 </template>
 
 <script setup lang="ts">
 import { nextTick, useTemplateRef, watch } from "vue"
-import { ListboxRoot } from "reka-ui"
-import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
+import {
+  DialogContent,
+  DialogOverlay,
+  DialogPortal,
+  DialogRoot,
+  DialogTitle,
+  ListboxRoot,
+} from "reka-ui"
+import { useI18n } from "@i18n/index.js"
+import { ThemeRoot } from "@components/ui/rt/index.js"
+import { Kbd } from "@components/ui/kbd/index.js"
+import { ArrowDownIcon, ArrowUpIcon } from "@components/icons/index.js"
 
 const props = defineProps<{ open: boolean; title: string }>()
 const emit = defineEmits<{ "update:open": [open: boolean] }>()
+const { t } = useI18n()
 const listbox = useTemplateRef<{ highlightFirstItem: () => void }>("listbox")
 
 // 打开时先高亮第一项，回车直接选中
@@ -26,25 +67,71 @@ watch(
 )
 </script>
 
-<!-- 面板经 Portal 挂到 body，父级 scoped 打不中，只能不加 scoped；位置只能改 margin，rt 靠 margin:auto 对中 -->
-<style>
-.rt-DialogContent.command-palette {
+<style scoped>
+/* 面板贴在视口上方 10vh，不随结果数量上下跳 */
+.viewport {
+  position: fixed;
+  inset: 0;
   display: flex;
   flex-direction: column;
-  width: min(672px, calc(100vw - var(--space-lg) * 2));
-  max-width: none;
-  max-height: min(70dvh, 640px);
-  padding: 0;
-  margin-block: 10dvh auto;
-  overflow: hidden;
+  align-items: center;
+  padding: max(10vh, var(--space-md)) var(--space-md) 10vh;
+  pointer-events: none;
 }
-</style>
 
-<style scoped>
 [data-slot="command-palette"] {
+  display: flex;
+  width: 100%;
+  max-width: 36rem;
+  max-height: 26.25rem;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+.body {
   display: flex;
   min-height: 0;
   flex: 1;
   flex-direction: column;
+}
+
+.footer {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2xs) var(--space-sm);
+  padding: calc(var(--spacing) * 2.5) var(--space-md);
+  border-block-start: var(--border-width) solid var(--glass-footer-border);
+  background: var(--glass-footer-bg);
+  color: var(--fg-secondary);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
+}
+
+.hint {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+}
+
+.hint [data-slot="kbd"] {
+  min-width: 20px;
+  height: 20px;
+  padding-inline: var(--space-2xs);
+  border-radius: calc(var(--radius-control) - 2px);
+  background: var(--glass-kbd-bg);
+  box-shadow: none;
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: var(--text-meta);
+  font-weight: var(--font-weight-medium);
+}
+
+.hint [data-slot="kbd"] svg {
+  width: var(--icon-sm);
+  height: var(--icon-sm);
 }
 </style>

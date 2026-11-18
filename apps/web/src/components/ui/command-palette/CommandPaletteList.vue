@@ -10,15 +10,17 @@ import { ListboxContent } from "reka-ui"
 
 <style scoped>
 [data-slot="command-palette-list"] {
-  display: flex;
+  max-height: min(28rem, 70vh);
   min-height: 0;
   flex: 1;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--space-xs);
   overflow-y: auto;
-  scroll-padding-block: var(--space-xs);
+  overscroll-behavior: contain;
   scrollbar-color: var(--scrollbar-thumb) transparent;
   scrollbar-width: thin;
+}
+
+[data-slot="command-palette-list"]:not(:empty) {
+  padding: var(--space-xs);
+  scroll-padding-block: var(--space-xs);
 }
 </style>

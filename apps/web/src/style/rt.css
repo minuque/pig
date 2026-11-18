@@ -231,8 +231,7 @@
 }
 
 /* 弹层默认宽度跟 rt 的 600px 一致；调用方的 scoped 类特异性更高，仍能按需改宽度。 */
-.rt-DialogContent,
-.rt-AlertDialogContent {
+.rt-DialogContent {
   max-inline-size: var(--dialog-max-width, 600px);
 }
 
@@ -253,8 +252,7 @@
 
 /* 标题下边距：rt 的 Dialog.Title 用 mb="3" 的 margin 工具类实现，
    我们没引 utilities.css（250 KB 只为几个间距），同档写死在这里。 */
-.rt-DialogTitle,
-.rt-AlertDialogTitle {
+.rt-DialogTitle {
   margin-block-end: var(--space-3);
 }
 

@@ -219,6 +219,17 @@
      大号 12 → 12，小号随卡片圆角 8 → 8；改圆角时内边距跟着走 */
   --dialog-padding: round(up, var(--radius-dialog), var(--spacing));
   --dialog-padding-compact: round(up, var(--radius-card), var(--spacing));
+  /* 毛玻璃弹层（警告框、命令面板）：半透明底加模糊，背后的遮罩也带轻模糊 */
+  --glass-bg: color-mix(in srgb, var(--bg) 80%, transparent);
+  --glass-filter: blur(12px) saturate(1.14);
+  --glass-border: rgba(0, 0, 0, 0.1);
+  --glass-shadow: 0 24px 64px -24px rgba(0, 0, 0, 0.65);
+  --glass-radius: 16px;
+  --glass-backdrop: color-mix(in srgb, var(--bg) 60%, transparent);
+  --glass-backdrop-filter: blur(4px);
+  --glass-footer-bg: color-mix(in srgb, var(--fg) 2.5%, transparent);
+  --glass-footer-border: color-mix(in srgb, var(--fg) 7%, transparent);
+  --glass-kbd-bg: color-mix(in srgb, var(--fg) 8%, transparent);
   --drawer-width: 360px;
   /* 滚动边缘渐隐：类只选带宽，颜色由 mask 决定 */
   --edge-fade-band: 24px;
@@ -388,6 +399,10 @@ html[data-pig-desktop-platform="win32"] {
   /* 写成透明零阴影而不是 none：它和内环拼在同一个 box-shadow 列表里，none 会让整条失效 */
   --composer-shadow: 0 0 transparent;
   --composer-inset: inset 0 1px 0 rgba(255, 255, 255, 0.03), inset 0 1px 3px rgba(0, 0, 0, 0.2);
+  --glass-filter: blur(16px) saturate(1.08);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: inset 0 1px rgba(255, 255, 255, 0.04), 0 24px 72px -20px rgba(0, 0, 0, 0.9);
+  --glass-backdrop: color-mix(in srgb, var(--bg) 64%, transparent);
   --effort-shell: rgba(255, 255, 255, 0.07);
   --effort-shell-2: rgba(255, 255, 255, 0.1);
   --effort-line: rgba(255, 255, 255, 0.08);

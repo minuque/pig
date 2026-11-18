@@ -9,13 +9,15 @@
         v-for="row in rows"
         :key="row.id"
         :value="row.id"
-        class="row"
         @select="activate(row.id)"
       >
-        <SquareCodeIcon class="size-icon row-icon" />
-        <span class="row-title">{{ row.title }}</span>
-        <span class="row-time">{{ row.time }}</span>
-        <ArrowDownLeftIcon class="size-icon row-go" aria-hidden="true" />
+        <template #icon><SquareCodeIcon class="size-icon" /></template>
+        {{ row.title }}
+        <template v-if="row.project" #description>{{ row.project }}</template>
+
+        <template #trailing>
+          <span class="row-time">{{ row.time }}</span>
+        </template>
       </CommandPaletteItem>
     </CommandPaletteList>
   </CommandPalette>
@@ -29,7 +31,7 @@ import {
   filterSessionsForSearch,
   sortSessionsForSidebar,
 } from "@features/session-nav/lib/session-list.js"
-import { formatRelativeTime } from "@features/session-nav/lib/format.js"
+import { formatRelativeTime, workspaceName } from "@features/session-nav/lib/format.js"
 import {
   CommandPalette,
   CommandPaletteEmpty,
@@ -37,7 +39,7 @@ import {
   CommandPaletteItem,
   CommandPaletteList,
 } from "@components/ui/command-palette/index.js"
-import { ArrowDownLeftIcon, SquareCodeIcon } from "@components/icons/index.js"
+import { SquareCodeIcon } from "@components/icons/index.js"
 
 const props = defineProps<{
   open: boolean
@@ -56,6 +58,7 @@ const rows = computed(() => {
     .map((session) => ({
       id: session.id,
       title: session.sessionName?.trim() || t("session.untitled"),
+      project: session.cwd ? workspaceName(session.cwd) : undefined,
       time: formatRelativeTime(session.updatedAt ?? session.createdAt),
     }))
 })
@@ -74,33 +77,12 @@ function activate(id: string) {
 </script>
 
 <style scoped>
-.row-icon {
-  flex: none;
-  color: var(--fg-secondary);
-}
-
-.row-title {
-  min-width: 0;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .row-time {
+  min-width: 3rem;
   flex: none;
   color: var(--fg-faint);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
-}
-
-.row-go,
-.row[data-highlighted] .row-time {
-  display: none;
-}
-
-.row[data-highlighted] .row-go {
-  display: block;
-  flex: none;
+  text-align: end;
 }
 </style>

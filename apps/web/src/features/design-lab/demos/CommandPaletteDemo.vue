@@ -7,6 +7,7 @@
         <CommandPaletteInput v-model="query" placeholder="Type a command" />
 
         <CommandPaletteList>
+          <CommandPaletteGroupLabel v-if="matches.length">Actions</CommandPaletteGroupLabel>
           <CommandPaletteEmpty v-if="!matches.length">No results found</CommandPaletteEmpty>
 
           <CommandPaletteItem
@@ -15,6 +16,7 @@
             :value="item"
             @select="open = false"
           >
+            <template #icon><SquareCodeIcon class="size-icon" /></template>
             {{ item }}
           </CommandPaletteItem>
         </CommandPaletteList>
@@ -28,9 +30,11 @@ import { computed, ref } from "vue"
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
 import { Button } from "@components/ui/button/index.js"
+import { SquareCodeIcon } from "@components/icons/index.js"
 import {
   CommandPalette,
   CommandPaletteEmpty,
+  CommandPaletteGroupLabel,
   CommandPaletteInput,
   CommandPaletteItem,
   CommandPaletteList,

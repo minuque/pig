@@ -1,5 +1,5 @@
 <template>
-  <div data-slot="alert-dialog-header" class="aa-header" :class="props.class">
+  <div data-slot="alert-dialog-header" :class="props.class">
     <slot />
   </div>
 </template>
@@ -13,16 +13,11 @@ const props = withDefaults(defineProps<{ class?: HTMLAttributes["class"] }>(), {
 </script>
 
 <style scoped>
-.aa-header {
+[data-slot="alert-dialog-header"] {
   display: flex;
+  min-height: 0;
   flex-direction: column;
   gap: var(--space-xs);
-  text-align: center;
-}
-
-@media (min-width: 640px) {
-  .aa-header {
-    text-align: start;
-  }
+  padding: var(--space-lg);
 }
 </style>

@@ -274,39 +274,64 @@
 }
 
 /* ------ 对话框（reka data-slot 直挂 transition；Teleport 后 scoped 打不中） ------ */
-:is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
+:is(
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="command-palette"]
+) {
   transform-origin: center;
-  translate: 0 2px;
+  scale: 0.98;
   opacity: 0;
   transition:
-    translate var(--duration-normal) var(--menu-ease),
-    opacity var(--duration-normal) var(--menu-ease);
+    scale var(--duration-normal) var(--ease-in-out),
+    opacity var(--duration-normal) var(--ease-in-out);
 }
 
-:is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="open"] {
-  translate: 0 0;
+:is(
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="command-palette"]
+)[data-state="open"] {
+  scale: 1;
   opacity: 1;
 }
 
 @starting-style {
-  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="open"] {
-    translate: 0 2px;
+  :is(
+    [data-slot="dialog-content"],
+    [data-slot="alert-dialog-content"],
+    [data-slot="command-palette"]
+  )[data-state="open"] {
+    scale: 0.98;
     opacity: 0;
   }
 }
 
-/* 对话框的进出靠 translate/opacity 独立属性，pop-reveal-out 只动 transform，
+/* 对话框的进出靠 scale/opacity 独立属性，pop-reveal-out 只动 transform，
    打在对话框上是空转。这里给关闭态单独一条关键帧。 */
-:is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="closed"] {
+:is(
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="command-palette"]
+)[data-state="closed"] {
   transition: none;
   animation: dialog-out var(--duration-normal) var(--ease-out) forwards;
 }
 
 @keyframes dialog-out {
   to {
-    translate: 0 2px;
+    scale: 0.98;
     opacity: 0;
   }
+}
+
+/* 毛玻璃遮罩随弹层淡入淡出 */
+.glass-backdrop[data-state="open"] {
+  animation: overlay-in var(--duration-normal) var(--ease-in-out);
+}
+
+.glass-backdrop[data-state="closed"] {
+  animation: overlay-out var(--duration-normal) var(--ease-in-out) forwards;
 }
 
 /* ------ 面板与列表过渡 ------ */

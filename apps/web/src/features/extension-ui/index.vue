@@ -13,7 +13,7 @@
         </AlertDialogDescription>
       </AlertDialogHeader>
 
-      <div v-if="pending.request.method === 'select'" class="extension-options">
+      <div v-if="pending.request.method === 'select'" class="extension-options extension-body">
         <Button
           v-for="option in pending.request.options"
           :key="option"
@@ -27,6 +27,7 @@
 
       <TextFieldRoot
         v-else-if="pending.request.method === 'input'"
+        class="extension-body"
         v-model="text"
         :placeholder="pending.request.placeholder"
         autofocus
@@ -35,7 +36,7 @@
 
       <div
         v-else-if="pending.request.method === 'editor'"
-        class="rt-TextAreaRoot rt-variant-surface"
+        class="rt-TextAreaRoot rt-variant-surface extension-body"
       >
         <textarea v-model="text" class="rt-reset rt-TextAreaInput extension-editor" autofocus />
       </div>
@@ -99,6 +100,11 @@ function cancel() {
 </script>
 
 <style scoped>
+/* 面板不留内边距，标题区与按钮区各带自己的边距，中间内容对齐它们 */
+.extension-body {
+  margin: 0 var(--space-lg) var(--space-lg);
+}
+
 .extension-options {
   display: flex;
   flex-direction: column;

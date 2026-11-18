@@ -386,11 +386,20 @@
   border-radius: var(--radius-pill);
 }
 
-.btn-destructive {
-  background-color: var(--danger-subtle);
-  color: var(--danger-text);
+/* 毛玻璃弹层：警告框与命令面板共用。弹层经 Portal 挂到 body，scoped 打不中，写在这里 */
+.glass-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--glass-backdrop);
+  backdrop-filter: var(--glass-backdrop-filter);
 }
 
-.btn-destructive:hover {
-  background-color: var(--red-a4);
+.glass-panel {
+  border: var(--border-width) solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-filter);
+  color: var(--fg);
+  outline: none;
 }
