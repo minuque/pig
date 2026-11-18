@@ -4,6 +4,7 @@ import {
   getAgentDir,
   ModelRuntime,
   SessionManager,
+  SettingsManager,
   type AgentSessionEvent,
 } from "@earendil-works/pi-coding-agent"
 import { BINDING_ENTRY, type RemoteBinding } from "@pig/environment/source"
@@ -62,21 +63,40 @@ function stepOf(event: Extract<AgentSessionEvent, { type: "tool_execution_start"
   return `${event.toolName} ${brief(target)}`
 }
 
-/**
- * 在同一进程里开子会话：不加载用户扩展（避免子任务再派子任务），系统提示追加 agent 定义。
- * 父会话在远程时只带上 remote-workspace，让子任务的工具也走同一环境。
- */
-export const startChild: StartChild = async (run) => {
+/** 与网关 resource-loader 同一规则：设置里的 packages 对 pi 藏起，不加载也不替用户安装。 */
+function settingsWithoutPackages(cwd: string, agentDir: string): SettingsManager {
+  const settings = SettingsManager.create(cwd, agentDir)
+  const global = settings.getGlobalSettings.bind(settings)
+  const project = settings.getProjectSettings.bind(settings)
+  settings.getGlobalSettings = () => ({ ...global(), packages: [] })
+  settings.getProjectSettings = () => ({ ...project(), packages: [] })
+  return settings
+}
+
+/** 子会话的资源：不加载用户扩展（避免子任务再派子任务），系统提示追加 agent 定义。 */
+export async function childResourceLoader(
+  run: Pick<ChildRun, "cwd" | "remote" | "agent">,
+): Promise<DefaultResourceLoader> {
+  const agentDir = getAgentDir()
   const loader = new DefaultResourceLoader({
     cwd: run.cwd,
-    agentDir: getAgentDir(),
+    agentDir,
+    settingsManager: settingsWithoutPackages(run.cwd, agentDir),
     noExtensions: true,
     ...(run.remote ? { extensionFactories: [remoteWorkspace] } : {}),
     ...(run.agent.systemPrompt ? { appendSystemPrompt: [run.agent.systemPrompt] } : {}),
   })
 
   await loader.reload()
+  return loader
+}
 
+/**
+ * 在同一进程里开子会话：不加载用户扩展（避免子任务再派子任务），系统提示追加 agent 定义。
+ * 父会话在远程时只带上 remote-workspace，让子任务的工具也走同一环境。
+ */
+export const startChild: StartChild = async (run) => {
+  const loader = await childResourceLoader(run)
   const sessionManager = SessionManager.create(
     run.cwd,
     run.sessionDir,

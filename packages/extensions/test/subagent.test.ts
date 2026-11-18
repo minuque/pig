@@ -1,10 +1,11 @@
+import { existsSync } from "node:fs"
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 import { createSubagentTool, type SubagentDetails } from "../src/subagent/index.ts"
 import type { Task } from "@pig/protocol"
-import type { ChildRun, StartChild } from "../src/subagent/run.ts"
+import { childResourceLoader, type ChildRun, type StartChild } from "../src/subagent/run.ts"
 import { dropRegistry, registryFor } from "../src/tasks/registry.ts"
 
 let root: string
@@ -266,5 +267,39 @@ describe("subagent：后台派出", () => {
     expect(result.content[0]!.text).toMatch(/chain/i)
     expect(result.details.tasks).toEqual([])
     expect(registryFor("parent").list()).toEqual([])
+  })
+})
+
+describe("subagent：子会话也不替用户装包", () => {
+  it("本机与仓库设置里列的包都不去安装，仓库 skills 照常", async () => {
+    const cwd = join(root, "work")
+    const installMarker = join(root, "install-marker")
+    const fakeNpm = join(root, "fake-npm.mjs")
+    await mkdir(join(cwd, ".pi", "skills", "repo-skill"), { recursive: true })
+    await writeFile(
+      join(cwd, ".pi", "skills", "repo-skill", "SKILL.md"),
+      "---\nname: repo-skill\ndescription: repo skill\n---\nbody\n",
+    )
+    await writeFile(
+      fakeNpm,
+      `import { writeFileSync } from "node:fs"
+const args = process.argv.slice(2)
+if (args.includes("install")) writeFileSync(${JSON.stringify(installMarker)}, args.join(" "))
+else if (args.includes("root")) console.log(${JSON.stringify(join(root, "npm-global"))})
+`,
+    )
+    const npmCommand = [process.execPath, fakeNpm]
+    await writeFile(
+      join(root, "settings.json"),
+      JSON.stringify({ npmCommand, packages: ["npm:pig-missing-global"] }),
+    )
+    await writeFile(
+      join(cwd, ".pi", "settings.json"),
+      JSON.stringify({ npmCommand, packages: ["npm:pig-missing-project"] }),
+    )
+    const loader = await childResourceLoader({ cwd, agent: { systemPrompt: "" } } as never)
+
+    expect(existsSync(installMarker)).toBe(false)
+    expect(loader.getSkills().skills.map((skill) => skill.name)).toContain("repo-skill")
   })
 })
