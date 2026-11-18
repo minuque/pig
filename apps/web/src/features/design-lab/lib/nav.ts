@@ -1,9 +1,13 @@
-import { defineAsyncComponent, type Component } from "vue"
+import { defineAsyncComponent, h, type Component } from "vue"
+import CardTuner from "@features/design-lab/components/CardTuner.vue"
+import TokenCategory from "@features/design-lab/components/TokenCategory.vue"
+import { CATEGORIES } from "@features/design-lab/lib/tokens.js"
 
 /** 导航文案随界面语种切换；组件名两种语言相同。 */
 export type Label = { zh: string; en: string }
 
-export type NavItem = { id: string; title: Label; view: Component }
+/** path 是 /design/ 之后的地址段，也是页面的唯一标识。 */
+export type NavItem = { path: string; title: Label; view: Component }
 
 export type NavGroup = { id: string; title: Label; items: NavItem[] }
 
@@ -65,10 +69,30 @@ const loaders = new Map(
 
 function demo(name: string, title = same(name)): NavItem[] {
   const load = loaders.get(name)
-  return load ? [{ id: name, title, view: defineAsyncComponent(load) }] : []
+  const path = name.replace(/(?<=[a-z])(?=[A-Z])/g, "-").toLowerCase()
+  return load ? [{ path, title, view: defineAsyncComponent(load) }] : []
 }
 
-export function demoGroups(): NavGroup[] {
+/** 全部页面按总览顺序排好；上一页、下一页也按这个顺序走。 */
+export const NAV: NavGroup[] = [
+  {
+    id: "tokens",
+    title: { zh: "设计变量", en: "Tokens" },
+    items: CATEGORIES.map((category) => ({
+      path: `tokens/${category.id}`,
+      title: category.title,
+      view: () => h(TokenCategory, { category }),
+    })),
+  },
+  {
+    id: "tuners",
+    title: { zh: "调节", en: "Tuners" },
+    items: [{ path: "card-tuner", title: { zh: "卡片", en: "Card" }, view: CardTuner }],
+  },
+  ...demoGroups(),
+]
+
+function demoGroups(): NavGroup[] {
   const listed = new Set(
     LAYOUT.flatMap((group) => group.items.map((item) => (Array.isArray(item) ? item[0] : item))),
   )

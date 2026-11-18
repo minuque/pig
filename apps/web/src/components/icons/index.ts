@@ -16,6 +16,7 @@ export {
   BlocksIcon,
   CheckIcon,
   ChevronDownIcon,
+  ChevronLeftIcon,
   ChevronRightIcon,
   ChevronUpIcon,
   CircleCheckIcon,
