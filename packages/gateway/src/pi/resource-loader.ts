@@ -55,11 +55,13 @@ export async function createResourceLoader(
   return loader
 }
 
-/** 仓库的 .pi/settings.json 不读，本机设置藏起 packages：pi 看不到包，就不加载也不替用户安装。 */
+/** 本机与仓库设置都对 pi 藏起 packages：pi 看不到包，就不加载也不替用户安装；仓库的 skills、提示模板、MCP 照常。 */
 function settingsWithoutPackages(cwd: string, agentDir: string): SettingsManager {
-  const settings = SettingsManager.create(cwd, agentDir, { projectTrusted: false })
+  const settings = SettingsManager.create(cwd, agentDir)
   const global = settings.getGlobalSettings.bind(settings)
-  // 只有 pi 的包增删会拿这份去回写，pig 不调用它们
+  const project = settings.getProjectSettings.bind(settings)
+  // 只有 pi 的包增删会拿这两份去回写，pig 不调用它们
   settings.getGlobalSettings = () => ({ ...global(), packages: [] })
+  settings.getProjectSettings = () => ({ ...project(), packages: [] })
   return settings
 }

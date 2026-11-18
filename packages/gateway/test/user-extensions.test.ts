@@ -28,12 +28,12 @@ afterEach(async () => {
 })
 
 describe("用户扩展一律不加载", () => {
-  it("目录里的扩展不执行，内置扩展与 skills 照常", async () => {
+  it("本机与仓库目录里的扩展都不执行，内置扩展与 skills 照常", async () => {
     const marker = join(root, "marker")
-    await writeFile(
-      join(agentDir, "extensions", "probe.ts"),
-      `import { writeFileSync } from "node:fs"\nexport default function () { writeFileSync(${JSON.stringify(marker)}, "loaded") }\n`,
-    )
+    const probe = `import { writeFileSync } from "node:fs"\nexport default function () { writeFileSync(${JSON.stringify(marker)}, "loaded") }\n`
+    await mkdir(join(cwd, ".pi", "extensions"), { recursive: true })
+    await writeFile(join(agentDir, "extensions", "probe.ts"), probe)
+    await writeFile(join(cwd, ".pi", "extensions", "repo-probe.ts"), probe)
     const loader = await createResourceLoader(cwd, { agentDir })
 
     expect(existsSync(marker)).toBe(false)
@@ -41,6 +41,20 @@ describe("用户扩展一律不加载", () => {
       "subagent",
     )
     expect(loader.getSkills().skills.map((skill) => skill.name)).toContain("probe-skill")
+  })
+
+  it("仓库里直接放的 skills 与提示模板照常加载", async () => {
+    await mkdir(join(cwd, ".pi", "skills", "repo-skill"), { recursive: true })
+    await mkdir(join(cwd, ".pi", "prompts"), { recursive: true })
+    await writeFile(
+      join(cwd, ".pi", "skills", "repo-skill", "SKILL.md"),
+      "---\nname: repo-skill\ndescription: repo skill\n---\nbody\n",
+    )
+    await writeFile(join(cwd, ".pi", "prompts", "repo-prompt.md"), "repo prompt\n")
+    const loader = await createResourceLoader(cwd, { agentDir })
+
+    expect(loader.getSkills().skills.map((skill) => skill.name)).toContain("repo-skill")
+    expect(loader.getPrompts().prompts.map((prompt) => prompt.name)).toContain("repo-prompt")
   })
 
   it("本机与仓库设置里列的包都不去安装", async () => {
