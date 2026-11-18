@@ -111,7 +111,7 @@ spacing:
 | 次  | `#505050` | `#A1A1A1` | 次要信息          |
 | 弱  | `#6E6E6E` | `#888888` | 非必要信息，≥ 3:1 |
 
-描边只有 `--border`（gray-a6）与 `--border-soft`（gray-a5）。分割线只用 1px `--border-soft`。
+描边只有 `--border`（gray-a4）与 `--border-soft`（gray-a3）。分割线只用 1px `--border-soft`。
 
 ### 状态色
 
