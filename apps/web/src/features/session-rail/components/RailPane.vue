@@ -30,6 +30,7 @@
         v-if="pane.kind === 'tasks'"
         :sections="sections"
         :stoppable="stoppable"
+        :stopping="stopping"
         :focus="pane.focus"
         @open="rail.openChild"
         @stop="emit('stop', $event)"
@@ -64,6 +65,7 @@ const props = defineProps<{
   pane: RailPane
   sections: TaskSections
   stoppable: ReadonlySet<string>
+  stopping: ReadonlySet<string>
   sessionId: string | undefined
   /** 面板里那个子任务的进展指纹。 */
   progress: string

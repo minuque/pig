@@ -74,6 +74,7 @@
         <RailTaskRows
           :sections="sections"
           :stoppable="stoppable"
+          :stopping="stopping"
           @open="(focus) => rail.openPane({ kind: 'tasks', focus })"
           @stop="emit('stop', $event)"
         />
@@ -113,6 +114,7 @@ const props = defineProps<{
   tasks: readonly Task[]
   sections: TaskSections
   stoppable: ReadonlySet<string>
+  stopping: ReadonlySet<string>
   statuses: ReadonlyMap<string, string> | undefined
 }>()
 const emit = defineEmits<{ stop: [taskId: string] }>()

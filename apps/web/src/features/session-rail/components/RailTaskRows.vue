@@ -24,7 +24,7 @@
         color="gray"
         :aria-label="t('rail.stopTask')"
         :disabled="stopping.has(task.id)"
-        @click="stop(task.id)"
+        @click="emit('stop', task.id)"
       >
         <SquareIcon class="size-icon" />
       </IconButton>
@@ -56,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { computed } from "vue"
 import { useNow } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
@@ -70,18 +70,16 @@ import { taskElapsed, type TaskSections } from "@features/session-rail/lib/task-
 
 /** 卡片里最多列这么多条进行中的任务，其余进面板看。 */
 const LIMIT = 4
-const props = defineProps<{ sections: TaskSections; stoppable: ReadonlySet<string> }>()
+const props = defineProps<{
+  sections: TaskSections
+  stoppable: ReadonlySet<string>
+  stopping: ReadonlySet<string>
+}>()
 const emit = defineEmits<{ open: [taskId: string | undefined]; stop: [taskId: string] }>()
 const { t } = useI18n()
 const now = useNow({ interval: 1000 })
-const stopping = ref(new Set<string>())
 const shownRunning = computed(() => props.sections.running.slice(0, LIMIT))
 const moreCount = computed(() => props.sections.running.length - shownRunning.value.length)
-
-function stop(id: string) {
-  stopping.value = new Set(stopping.value).add(id)
-  emit("stop", id)
-}
 </script>
 
 <style scoped>

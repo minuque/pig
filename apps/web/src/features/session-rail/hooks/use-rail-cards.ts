@@ -4,6 +4,7 @@ import { useSession } from "@features/session/index.js"
 import { latestToolTasks } from "@features/transcript-view/index.js"
 import { useSessionRail } from "@features/session-rail/index.js"
 import { mergeTasks, taskSections } from "@features/session-rail/lib/task-list.js"
+import { useTaskStopping } from "@features/session-rail/hooks/use-task-stopping.js"
 
 /** 摘要卡片的数据：常驻面板与窄屏浮层共用。 */
 export function useRailCards() {
@@ -32,6 +33,7 @@ export function useRailCards() {
           .map((task) => task.id),
       ),
   )
+  const { stopping, stopTask } = useTaskStopping((taskId) => session.stopTask(taskId))
   const cards = computed(() => {
     const model = session.projection.value?.model
     const id = session.sessionId.value
@@ -43,9 +45,9 @@ export function useRailCards() {
       tasks: tasks.value,
       sections: sections.value,
       stoppable: stoppable.value,
+      stopping: stopping.value,
       statuses: id ? ui.statuses.value.get(id) : undefined,
     }
   })
-  const stopTask = (taskId: string) => void session.stopTask(taskId)
   return { session, tasks, sections, runningCount, cards, stopTask }
 }

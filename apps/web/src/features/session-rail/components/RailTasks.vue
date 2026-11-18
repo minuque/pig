@@ -33,7 +33,7 @@
                 color="gray"
                 :aria-label="t('rail.stopTask')"
                 :disabled="stopping.has(task.id)"
-                @click="stop(task.id)"
+                @click="emit('stop', task.id)"
               >
                 <SquareIcon class="size-icon" />
               </IconButton>
@@ -108,6 +108,7 @@ import type { Task } from "@/types/common-type.js"
 const props = defineProps<{
   sections: TaskSections
   stoppable: ReadonlySet<string>
+  stopping: ReadonlySet<string>
   /** 从摘要卡点进来的那条任务：滚到它，命令任务顺带展开输出。 */
   focus?: string | undefined
 }>()
@@ -115,7 +116,6 @@ const emit = defineEmits<{ open: [child: OpenChild]; stop: [taskId: string] }>()
 const { t } = useI18n()
 const now = useNow({ interval: 1000 })
 const openIds = ref(new Set<string>())
-const stopping = ref(new Set<string>())
 const root = useTemplateRef("root")
 const shown = computed(() =>
   [
@@ -147,11 +147,6 @@ watch(
   },
   { immediate: true },
 )
-
-function stop(id: string) {
-  stopping.value = new Set(stopping.value).add(id)
-  emit("stop", id)
-}
 
 /** 离底部这么近算「在看最新」，新输出到来时跟到底部。 */
 const FOLLOW_SLACK_PX = 16

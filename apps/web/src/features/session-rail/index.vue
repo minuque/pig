@@ -11,6 +11,7 @@
         :pane="rail.pane.value"
         :sections="sections"
         :stoppable="cards.stoppable"
+        :stopping="cards.stopping"
         :session-id="session.sessionId.value"
         :progress="childProgress"
         @stop="stopTask"
