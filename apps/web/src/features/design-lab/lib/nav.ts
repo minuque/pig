@@ -25,16 +25,7 @@ const LAYOUT: { id: string; title: Label; items: (string | [string, Label])[] }[
   {
     id: "forms",
     title: { zh: "表单", en: "Forms" },
-    items: [
-      "TextField",
-      "Select",
-      "Switch",
-      "Slider",
-      "SegmentedControl",
-      "RadioGroup",
-      "Radio",
-      "RadioCards",
-    ],
+    items: ["TextField", "Select", "Switch", "Slider", "RadioGroup", "Radio", "RadioCards"],
   },
   {
     id: "feedback",

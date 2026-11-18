@@ -24,19 +24,22 @@
           DESIGN.md
         </Button>
 
-        <SegmentedControl :model-value="locale" size="s" @update:model-value="pickLocale">
-          <SegmentedControlItem value="zh-CN">中</SegmentedControlItem>
-          <SegmentedControlItem value="en">EN</SegmentedControlItem>
-        </SegmentedControl>
+        <TabsRoot :model-value="locale" @update:model-value="(v) => pickLocale(String(v))">
+          <TabsList variant="segmented" size="s">
+            <TabsTrigger value="zh-CN">中</TabsTrigger>
+            <TabsTrigger value="en">EN</TabsTrigger>
+          </TabsList>
+        </TabsRoot>
 
-        <SegmentedControl
+        <TabsRoot
           :model-value="isDark ? 'dark' : 'light'"
-          size="s"
-          @update:model-value="pickScheme"
+          @update:model-value="(v) => pickScheme(String(v))"
         >
-          <SegmentedControlItem value="light">Light</SegmentedControlItem>
-          <SegmentedControlItem value="dark">Dark</SegmentedControlItem>
-        </SegmentedControl>
+          <TabsList variant="segmented" size="s">
+            <TabsTrigger value="light">Light</TabsTrigger>
+            <TabsTrigger value="dark">Dark</TabsTrigger>
+          </TabsList>
+        </TabsRoot>
       </div>
     </header>
 
@@ -73,7 +76,7 @@ import { computed, onMounted, watch } from "vue"
 import { RouterLink, useRoute } from "vue-router"
 import { ChevronLeftIcon, ChevronRightIcon, FileTextIcon } from "@components/icons/index.js"
 import { Button } from "@components/ui/button/index.js"
-import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
+import { TabsList, TabsRoot, TabsTrigger } from "@components/ui/tabs/index.js"
 import { useColorScheme } from "@features/theme/index.js"
 import { useGeneralPrefs } from "@features/settings/index.js"
 import DesignGuide from "@features/design-lab/components/DesignGuide.vue"

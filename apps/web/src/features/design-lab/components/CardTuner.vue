@@ -35,21 +35,25 @@
       <div class="tuner-field">
         <span class="tuner-label">外环颜色 --border</span>
 
-        <SegmentedControl v-model="value.border" size="s">
-          <SegmentedControlItem v-for="step in STEPS" :key="step" :value="step">
-            {{ step }}
-          </SegmentedControlItem>
-        </SegmentedControl>
+        <TabsRoot v-model="value.border">
+          <TabsList variant="segmented" size="s">
+            <TabsTrigger v-for="step in STEPS" :key="step" :value="step">
+              {{ step }}
+            </TabsTrigger>
+          </TabsList>
+        </TabsRoot>
       </div>
 
       <div class="tuner-field">
         <span class="tuner-label">行间分隔 --border-subtle</span>
 
-        <SegmentedControl v-model="value.divider" size="s">
-          <SegmentedControlItem v-for="step in STEPS" :key="step" :value="step">
-            {{ step }}
-          </SegmentedControlItem>
-        </SegmentedControl>
+        <TabsRoot v-model="value.divider">
+          <TabsList variant="segmented" size="s">
+            <TabsTrigger v-for="step in STEPS" :key="step" :value="step">
+              {{ step }}
+            </TabsTrigger>
+          </TabsList>
+        </TabsRoot>
       </div>
 
       <div class="tuner-field">
@@ -64,11 +68,13 @@
       <div class="tuner-field">
         <span class="tuner-label">底色 --card-surface</span>
 
-        <SegmentedControl v-model="value.surface" size="s">
-          <SegmentedControlItem v-for="(_, key) in SURFACES" :key="key" :value="key">
-            {{ key }}
-          </SegmentedControlItem>
-        </SegmentedControl>
+        <TabsRoot v-model="value.surface">
+          <TabsList variant="segmented" size="s">
+            <TabsTrigger v-for="(_, key) in SURFACES" :key="key" :value="key">
+              {{ key }}
+            </TabsTrigger>
+          </TabsList>
+        </TabsRoot>
       </div>
 
       <div class="tuner-output">
@@ -92,7 +98,7 @@ import { useClipboard } from "@vueuse/core"
 import { Button } from "@components/ui/button/index.js"
 import { Callout } from "@components/ui/callout/index.js"
 import { CardList, CardRow } from "@components/ui/card/index.js"
-import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
+import { TabsList, TabsRoot, TabsTrigger } from "@components/ui/tabs/index.js"
 import { Slider } from "@components/ui/slider/index.js"
 import { Switch } from "@components/ui/switch/index.js"
 import { CircleExclamationPointIcon } from "@components/icons/index.js"

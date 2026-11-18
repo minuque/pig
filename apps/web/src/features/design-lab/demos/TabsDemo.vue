@@ -13,6 +13,17 @@
         <TabsContent value="settings" style="padding-top: 12px">Settings content</TabsContent>
       </TabsRoot>
     </Variant>
+
+    <Variant v-for="size in SIZES" :key="`segmented-${size}`" :title="`Segmented ${size}`">
+      <TabsRoot default-value="day">
+        <TabsList variant="segmented" :size="size">
+          <TabsTrigger value="day">Day</TabsTrigger>
+          <TabsTrigger value="week">Week</TabsTrigger>
+          <TabsTrigger value="month">Month</TabsTrigger>
+          <TabsTrigger value="year" disabled>Year</TabsTrigger>
+        </TabsList>
+      </TabsRoot>
+    </Variant>
   </Story>
 </template>
 

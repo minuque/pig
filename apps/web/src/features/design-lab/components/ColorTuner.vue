@@ -65,10 +65,15 @@
 
     <section class="tuner-panel">
       <div class="tuner-head">
-        <SegmentedControl v-model="editing" size="s">
-          <SegmentedControlItem value="light">浅色</SegmentedControlItem>
-          <SegmentedControlItem value="dark">深色</SegmentedControlItem>
-        </SegmentedControl>
+        <TabsRoot
+          :model-value="editing"
+          @update:model-value="(v) => (editing = v === 'dark' ? 'dark' : 'light')"
+        >
+          <TabsList variant="segmented" size="s">
+            <TabsTrigger value="light">浅色</TabsTrigger>
+            <TabsTrigger value="dark">深色</TabsTrigger>
+          </TabsList>
+        </TabsRoot>
 
         <Button size="s" variant="ghost" color="gray" @click="reset">恢复当前值</Button>
       </div>
@@ -128,7 +133,7 @@
 import { computed, reactive, ref } from "vue"
 import { useClipboard } from "@vueuse/core"
 import { Button } from "@components/ui/button/index.js"
-import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
+import { TabsList, TabsRoot, TabsTrigger } from "@components/ui/tabs/index.js"
 import { Slider } from "@components/ui/slider/index.js"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
 import { USER_SHORT } from "@features/design-lab/lib/fixtures.js"

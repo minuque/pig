@@ -16,7 +16,7 @@ test("模型参数保存后重开仍在，恢复默认回到模型默认", async
   await row.click()
   await expect(maxTokens).toHaveValue("32000")
 
-  const high = page.getByRole("button", { name: "high", exact: true })
+  const high = page.getByRole("tab", { name: "high", exact: true })
 
   await maxTokens.fill("8192")
   await high.click()
@@ -25,7 +25,7 @@ test("模型参数保存后重开仍在，恢复默认回到模型默认", async
   await row.click()
   await row.click()
   await expect(maxTokens).toHaveValue("8192")
-  await expect(high).toHaveAttribute("aria-pressed", "true")
+  await expect(high).toHaveAttribute("aria-selected", "true")
 
   await page.getByRole("button", { name: "恢复默认" }).click()
   await expect(maxTokens).toHaveValue("32000")
