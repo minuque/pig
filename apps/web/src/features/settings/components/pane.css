@@ -14,7 +14,7 @@
 
 .group-title {
   margin: 0;
-  padding-inline: var(--space-md);
+  padding-inline: var(--space-lg);
   color: var(--fg);
   font-size: var(--text-title);
   font-weight: var(--font-weight-semibold);
@@ -22,7 +22,7 @@
 }
 
 .card {
-  padding: 0 var(--space-md);
+  padding: 0 var(--space-lg);
   display: flex;
   flex-direction: column;
 }
@@ -32,8 +32,8 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-md);
-  min-height: calc(var(--control-lg) + var(--space-lg));
-  padding-block: var(--space-sm);
+  min-height: calc(var(--control-lg) + var(--space-2xl));
+  padding-block: var(--space-md);
 }
 
 .row + .row {
