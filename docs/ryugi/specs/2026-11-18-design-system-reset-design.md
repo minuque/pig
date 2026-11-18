@@ -319,3 +319,14 @@ pig 的设计系统参考 t3code、Radix UI 和 Claude Desktop 一点点磨出�
 - AGENTS.md 规定 SFC 不能声明 `--*`，也不能写裸值，所以这些值只能留在 `tokens.css` 的组件分区。
 
 要再往下降，只能靠第 2 步让组件改用语义档，这一步会改变画面。
+
+## 方向选定（2a 结果）
+
+用户在 `artboard/design-directions` 选了 **A 石墨**（2026-11-18）。
+- **表面：** 三层各差约半档。
+  - 浅色：`--bg #f5f5f6`、`--bg-sunken #f1f1f3`、`--bg-surface #fbfbfc`、`--bg-raised #ffffff`。
+  - 深色：`--bg #111113`、`--bg-sunken #0e0e10`、`--bg-surface #161618`、`--bg-raised #1b1b1e`。
+- **描边：** `--border` 取 gray-a4，`--border-subtle` 取 gray-a3。
+- **密度：** 正文行高从 1.43 改为 1.5；对话内条目间距 `--transcript-item-gap` 从 16 改为 20。
+- **圆角：** 6 / 8 / 12。输入卡保留胶囊形。
+- **主按钮：** 仍是 indigo。方向图就是按 indigo 画的，页面上那道「主按钮颜色」问题用户还没提交。

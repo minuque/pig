@@ -45,12 +45,12 @@
   /* --- 表面 --- */
   --white: #ffffff;
   /* 表面统一中性灰：侧栏低一档，主区一层，卡片与输入卡一层，浮层再抬一档 */
-  --bg: #f4f4f4;
+  --bg: #f5f5f6;
   /* 所有侧栏共用：主侧栏、抽屉、设置弹窗导航；与主区同一中性灰，低一档 */
-  --bg-sunken: #f0f0f0;
+  --bg-sunken: #f1f1f3;
   /* 抬起的表面：卡片、输入卡、用户气泡、工具输入与思考内容共用 */
-  --bg-surface: #ffffff;
-  --bg-raised: #fcfcfc;
+  --bg-surface: #fbfbfc;
+  --bg-raised: #ffffff;
   --scrim: rgba(0, 0, 0, 0.4);
   /* 反色主按钮 */
   --bg-inverse: #292929;
@@ -125,7 +125,7 @@
   --text-meta: 12px;
   --text-meta--line-height: 1.4;
   --text-body: 14px;
-  --text-body--line-height: 1.43;
+  --text-body--line-height: 1.5;
   --text-title: 16px;
   --text-title--line-height: 1.4;
   --text-heading: 24px;
@@ -151,8 +151,8 @@
   /* --- 圆角 --- */
   /* 圆角三档加全圆角；嵌套元素写 calc(外层圆角 - 内边距)，同心更好看 */
   --radius-control: 6px;
-  --radius-card: 10px;
-  --radius-dialog: 14px;
+  --radius-card: 8px;
+  --radius-dialog: 12px;
   /* 项目自用的全圆角，别改回 --radius-full：rt 拿那个名字当胶囊开关，medium 档是 0 */
   --radius-pill: 9999px;
 
@@ -234,7 +234,7 @@
   --composer-radius: 32px;
   --dialog-width-sm: 420px;
   /* 对话框内边距：不小于外圆角（内容不撞圆角），向上对齐 4px 网格（再大显空）。
-     大号 14 → 16，小号随卡片圆角 10 → 12；改圆角时内边距跟着走 */
+     大号 12 → 12，小号随卡片圆角 8 → 8；改圆角时内边距跟着走 */
   --dialog-padding: round(up, var(--radius-dialog), var(--spacing));
   --dialog-padding-compact: round(up, var(--radius-card), var(--spacing));
   --drawer-width: 360px;
@@ -319,10 +319,10 @@
   /* 任务输出卡片的最高高度 */
   --task-output-max: 200px;
   /* 主题预览线框：固定画浅色与深色两套界面，不跟当前主题走 */
-  --theme-wire-light: #f4f4f4;
-  --theme-wire-light-raised: #ffffff;
-  --theme-wire-dark: #101012;
-  --theme-wire-dark-raised: #17171a;
+  --theme-wire-light: #f5f5f6;
+  --theme-wire-light-raised: #fbfbfc;
+  --theme-wire-dark: #111113;
+  --theme-wire-dark-raised: #161618;
   --theme-switch-duration: 600ms;
   /** macOS 侧栏收起时红绿灯占位：红绿灯簇与间距 60px */
   --traffic-lights-width: 68px;
@@ -331,7 +331,7 @@
   --transcript-gutter-narrow: 20px;
   --transcript-pad-block: 48px;
   --transcript-turn-gap: 24px;
-  --transcript-item-gap: 16px;
+  --transcript-item-gap: 20px;
   --transcript-row-pad: 10px;
   --transcript-tool-max: 400px;
   /* 屏外回合未排版前的预估高度；排过一次后浏览器记住真实高度 */
@@ -374,17 +374,17 @@ html[data-pig-desktop-platform="win32"] {
   /* ====== 语义层：全站共用，组件只读这一层与下面的组件层 ====== */
 
   /* --- 表面 --- */
-  --bg: #101012;
+  --bg: #111113;
   --bg-sunken: #0e0e10;
-  --bg-surface: #17171a;
-  --bg-raised: #1c1c1f;
+  --bg-surface: #161618;
+  --bg-raised: #1b1b1e;
   --scrim: rgba(0, 0, 0, 0.55);
   --bg-inverse: #e8e8e8;
   --bg-inverse-hover: #ffffff;
 
   /* --- 前景 --- */
   --fg-on-accent: var(--accent-contrast);
-  --fg-inverse: #101012;
+  --fg-inverse: #111113;
 
   /* --- 交互 --- */
   --accent-solid: var(--accent-9);

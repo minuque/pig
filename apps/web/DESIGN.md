@@ -8,13 +8,13 @@ colors:
   primary-on: "#FFFFFF"
   link-light: "#3A5BC7"
   link-dark: "#9EB1FF"
-  window-light: "#F4F4F4"
-  sidebar-light: "#F0F0F0"
-  overlay-light: "#FCFCFC"
-  window-dark: "#101012"
+  window-light: "#F5F5F6"
+  sidebar-light: "#F1F1F3"
+  overlay-light: "#FFFFFF"
+  window-dark: "#111113"
   sidebar-dark: "#0E0E10"
-  card-dark: "#17171A"
-  overlay-dark: "#1C1C1F"
+  card-dark: "#161618"
+  overlay-dark: "#1B1B1E"
   ink-light: "#292929"
   ink-secondary-light: "#505050"
   ink-faint-light: "#6E6E6E"
@@ -37,7 +37,7 @@ typography:
     fontFamily: "anthropic-sans, -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
     fontSize: "14px"
     fontWeight: 400
-    lineHeight: 1.43
+    lineHeight: 1.5
   meta:
     fontFamily: "anthropic-sans, -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
     fontSize: "12px"
@@ -50,8 +50,8 @@ typography:
     lineHeight: "24.5px"
 rounded:
   control: "6px"
-  card: "10px"
-  dialog: "14px"
+  card: "8px"
+  dialog: "12px"
   pill: "9999px"
 spacing:
   2xs: "4px"
@@ -107,10 +107,10 @@ spacing:
 
 | 层                             | 浅色                                 | 深色                      | token                         |
 | ------------------------------ | ------------------------------------ | ------------------------- | ----------------------------- |
-| 窗口、主区                     | `#F4F4F4`                            | `#101012`                 | `--bg`                        |
-| 侧栏（主侧栏、抽屉、设置导航） | `#F0F0F0`（比主区深一档）            | `#0E0E10`（比主区深一档） | `--bg-sunken`                 |
-| 卡片、输入卡、气泡、工具输入   | `#FFFFFF`                            | `#17171A`                 | `--bg-surface`                |
-| 浮层                           | `#FCFCFC`                            | `#1C1C1F`                 | `--bg-raised`                 |
+| 窗口、主区                     | `#F5F5F6`                            | `#111113`                 | `--bg`                        |
+| 侧栏（主侧栏、抽屉、设置导航） | `#F1F1F3`（比主区深半档）            | `#0E0E10`（比主区深半档） | `--bg-sunken`                 |
+| 卡片、输入卡、气泡、工具输入   | `#FBFBFC`                            | `#161618`                 | `--bg-surface`                |
+| 浮层                           | `#FFFFFF`                            | `#1B1B1E`                 | `--bg-raised`                 |
 | 按钮与行悬停 / 选中            | 主题色 `--accent-a3` / `--accent-a4` | 同左，色板自动切深色      | `--bg-hover`、`--bg-selected` |
 
 文字只有三级，都走 `--fg*` 派生层：
@@ -153,13 +153,13 @@ spacing:
 | token               | 值   | 给谁                                 |
 | ------------------- | ---- | ------------------------------------ |
 | `--radius-control`  | 6    | 按钮、输入框、标签、菜单项、侧栏行   |
-| `--radius-card`     | 10   | 卡片、面板、代码块、图片、下拉、浮层 |
-| `--radius-dialog`   | 14   | 对话框                               |
+| `--radius-card`     | 8    | 卡片、面板、代码块、图片、下拉、浮层 |
+| `--radius-dialog`   | 12   | 对话框                               |
 | `--composer-radius` | 32   | 输入卡                               |
 | `--radius-pill`     | 9999 | 胶囊、圆形按钮                       |
 
 - rt 的 `--radius-1..6` 在 `rt.css` 接到这三档。
-- 嵌套写 `calc(外层 - 内边距)`；结果太小时用 `max()` 兜到 `--radius-control` 的一半。rt 菜单本身同心：外 10、内边距 4、项 6。
+- 嵌套写 `calc(外层 - 内边距)`；结果太小时用 `max()` 兜到 `--radius-control` 的一半。rt 菜单：外 8、内边距 4、项取 `--radius-control` 6，比同心值 4 大 2px。
 
 ## 阴影与层级
 
