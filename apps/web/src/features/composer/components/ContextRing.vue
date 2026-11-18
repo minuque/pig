@@ -37,7 +37,7 @@ const severity = computed(() => contextSeverity(props.usage.percent))
   inline-size: var(--icon-lg);
   block-size: var(--icon-lg);
   rotate: -90deg;
-  color: var(--accent-solid);
+  color: var(--info-solid);
 }
 
 .context-ring[data-severity="warning"] {

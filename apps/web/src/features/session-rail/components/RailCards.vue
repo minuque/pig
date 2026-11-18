@@ -207,7 +207,7 @@ function nudge(id: RailSectionId, step: number) {
 
 .rail-battery i {
   min-inline-size: var(--battery-fill-min);
-  background: var(--accent-solid);
+  background: var(--info-solid);
   border-radius: var(--radius-pill);
 }
 

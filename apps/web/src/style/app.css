@@ -12,6 +12,7 @@
 /* 上下文分类图表用：与上面几套一起拉开色相 */
 @import "@radix-ui/themes/tokens/colors/violet.css";
 @import "@radix-ui/themes/tokens/colors/cyan.css";
+@import "@radix-ui/themes/tokens/colors/pink.css";
 @import "@radix-ui/themes/tokens/colors/amber.css";
 @import "./tokens.css";
 @import "./rt.css";

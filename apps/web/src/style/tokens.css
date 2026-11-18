@@ -81,11 +81,13 @@
   /* --- 状态 --- */
   /* 状态：文字色配同色相浅底，不用实色填充；成功沿用 Radix green */
   --success-text: var(--green-11);
-  --info-text: var(--accent-11);
+  /* 信息即「进行中」：运行状态、进度条与用量环用 cyan，和强调色分开 */
+  --info-text: #0b6f88;
+  --info-solid: #0a7f9c;
   --warning-text: #8f5f13;
   --danger-text: #ae2e38;
   --success-subtle: var(--green-a3);
-  --info-subtle: #edeff9;
+  --info-subtle: var(--cyan-a3);
   --warning-subtle: #f7efdd;
   --danger-subtle: #faeaeb;
 
@@ -190,10 +192,10 @@
   --battery-block: 10px;
   --battery-pad: 2px;
   --battery-fill-min: 6px;
-  /* 上下文分类色：相邻分类色相拉开；不用 red，它在项目里表示危险 */
+  /* 上下文分类色：相邻分类色相拉开；不用 red（危险）与 cyan（进行中） */
   --chart-system: var(--indigo-9);
   --chart-memory: var(--violet-9);
-  --chart-skills: var(--cyan-9);
+  --chart-skills: var(--pink-9);
   --chart-tools: var(--amber-9);
   --chart-results: var(--green-9);
   --chart-conversation: var(--orange-9);
@@ -371,9 +373,10 @@ html[data-pig-desktop-platform="win32"] {
   --bg-selected: #1a2143;
 
   /* --- 状态 --- */
+  --info-text: var(--cyan-11);
+  --info-solid: var(--cyan-9);
   --warning-text: #e8a33d;
   --danger-text: #ff7d88;
-  --info-subtle: #1a2143;
   --warning-subtle: #251b0d;
   --danger-subtle: #281518;
 

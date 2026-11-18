@@ -98,7 +98,8 @@ spacing:
 强调色用 Radix 的 `iris`。`index.html` 与 `ThemeRoot` 的 `data-accent-color="iris"` 把它映射到 `--accent-*`。
 
 - `--accent-solid`：第 9 级。实心主按钮的底，文字用 `--fg-on-accent`（白）。
-- `--link`、`--info-text`、焦点环：第 11 级。深色下文字类用法必须用第 11 级。
+- `--link`、焦点环：第 11 级。深色下文字类用法必须用第 11 级。
+- 「进行中」不用强调色：运行状态、转圈、上下文进度条与用量环走 `--info-*`（cyan），悬停与选中仍是 iris。
 - 一页只出现一个 solid 主按钮，其余用 soft 或 ghost。
 
 ### 中性色
@@ -125,7 +126,7 @@ spacing:
 
 ### 状态色
 
-文字色（`--success-text`、`--info-text`、`--warning-text`、`--danger-text`）配同色相浅底（`--*-subtle`）。成功取 Radix green 第 11 级与第 3 级 alpha，信息文字取 accent 第 11 级；警告、危险与信息底用项目自定色值，深浅各一套。不用实色填充，不加光晕。状态色只在真有状态时出现。
+文字色（`--success-text`、`--info-text`、`--warning-text`、`--danger-text`）配同色相浅底（`--*-subtle`）。成功取 Radix green 第 11 级与第 3 级 alpha；信息取 cyan：深色文字 cyan-11、填充 cyan-9，浅色文字 `#0B6F88`（侧栏 5.0:1）、填充 `#0A7F9C`（4.0:1），底为 cyan 第 3 级 alpha；警告、危险用项目自定色值，深浅各一套。进度条与用量环用 `--info-solid` 实色填充。不用实色填充，不加光晕。状态色只在真有状态时出现。
 
 ### 例外
 
