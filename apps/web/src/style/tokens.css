@@ -117,7 +117,8 @@
     -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
   --font-sans: var(--font-sans-default);
   --font-mono-default:
-    ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", "Microsoft YaHei", monospace;
+    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", "Microsoft YaHei",
+    monospace;
   --font-mono: var(--font-mono-default);
   /* 字号四档：辅助、正文、标题、页面大标题；一页最多用其中 4 种，层级靠字重与三级文字色 */
   --text-meta: 12px;

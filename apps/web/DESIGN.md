@@ -44,7 +44,7 @@ typography:
     fontWeight: 400
     lineHeight: 1.4
   code:
-    fontFamily: "ui-monospace, SF Mono, Menlo, Consolas, PingFang SC, Microsoft YaHei, monospace"
+    fontFamily: "JetBrains Mono, ui-monospace, SF Mono, Menlo, Consolas, PingFang SC, Microsoft YaHei, monospace"
     fontSize: "13px"
     fontWeight: 400
     lineHeight: "24.5px"
