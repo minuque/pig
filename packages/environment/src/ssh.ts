@@ -31,10 +31,10 @@ const WRAPPER = [
   'rm -f "$3"',
   'exit "$code"',
 ].join("\n")
-export const remoteCommand = (cwd: string, command: string, pidFile: string) =>
+const remoteCommand = (cwd: string, command: string, pidFile: string) =>
   `sh -c ${quote(WRAPPER)} sh ${quote(cwd)} ${quote(command)} ${quote(pidFile)}`
 /** 按组号杀整组：没分配 pty 时服务端常忽略 signal 请求，关通道也杀不掉子进程。 */
-export const remoteKill = (pidFile: string) =>
+const remoteKill = (pidFile: string) =>
   `sh -c ${quote('kill -9 -"$(cat "$1")" 2>/dev/null; rm -f "$1"')} sh ${quote(pidFile)}`
 const call = <T>(run: (done: (error: Error | null | undefined, value: T) => void) => void) =>
   new Promise<T>((resolve, reject) =>
