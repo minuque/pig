@@ -58,7 +58,7 @@
                 </span>
 
                 <button
-                  v-if="!placeholder"
+                  v-if="!placeholder && startedAt === undefined"
                   class="row-action press-scale"
                   type="button"
                   :aria-label="settled ? t('session.unsettle') : t('session.settle')"
@@ -541,6 +541,11 @@ function confirmDelete() {
   background: var(--bg-selected);
 }
 
+/* 还没发首条消息的新会话：警示浅底，悬停与选中都不换底 */
+.session-item .session-card.is-placeholder {
+  background: var(--warning-subtle);
+}
+
 .project-icon {
   display: grid;
   flex: none;
@@ -660,9 +665,10 @@ function confirmDelete() {
   font-variant-numeric: tabular-nums;
 }
 
-.session-item:hover .state-mark,
-.session-item:focus-within .state-mark,
-.session-item.is-menu-open .state-mark {
+/* 行尾动作出现时让位；没有动作的行（新会话、工作中）状态照常显示 */
+.session-item:hover .state-slot:has(.row-action) .state-mark,
+.session-item:focus-within .state-slot:has(.row-action) .state-mark,
+.session-item.is-menu-open .state-slot:has(.row-action) .state-mark {
   opacity: 0;
 }
 
