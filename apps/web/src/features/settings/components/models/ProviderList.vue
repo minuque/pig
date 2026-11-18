@@ -1,6 +1,6 @@
 <template>
   <section class="provider-list">
-    <div class="list-tools">
+    <Card size="m" class="list-tools">
       <TextFieldRoot
         v-model="query"
         class="provider-search"
@@ -13,22 +13,11 @@
         </TextFieldSlot>
       </TextFieldRoot>
 
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <IconButton
-            type="button"
-            size="m"
-            variant="surface"
-            :aria-label="t('settings.models.addProvider')"
-            @click="emit('add')"
-          >
-            <PlusIcon class="size-icon" />
-          </IconButton>
-        </TooltipTrigger>
-
-        <TooltipContent>{{ t("settings.models.addProvider") }}</TooltipContent>
-      </Tooltip>
-    </div>
+      <Button type="button" size="m" variant="surface" @click="emit('add')">
+        <PlusIcon class="size-icon" />
+        {{ t("settings.models.addProvider") }}
+      </Button>
+    </Card>
 
     <p v-if="loading && !providers.length" class="list-state">{{ t("settings.models.loading") }}</p>
 
@@ -89,13 +78,12 @@ import { computed, ref } from "vue"
 
 import { useI18n } from "@i18n/index.js"
 import { PlusIcon, ChevronRightIcon, SearchIcon } from "@components/icons/index.js"
-import { IconButton } from "@components/ui/button/index.js"
+import { Button } from "@components/ui/button/index.js"
 import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import VendorMark from "@features/composer/components/VendorMark.vue"
 import { groupProviders, providerSourceText } from "@features/settings/lib/provider-view.js"
 import type { ProviderView } from "@/types/common-type.js"
-import { CardList, CardRow } from "@components/ui/card/index.js"
+import { Card, CardList, CardRow } from "@components/ui/card/index.js"
 
 const props = defineProps<{
   providers: ProviderView[]
