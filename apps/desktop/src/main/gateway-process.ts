@@ -29,13 +29,16 @@ export function connectGateway(
   return new Promise((resolve, reject) => {
     child.on("message", (message) => {
       if (message.type === "select-directory") {
-        void pickDirectory().then((path) => {
-          child.postMessage({
-            type: "directory-selected",
-            id: message.id,
-            ...(path ? { path } : {}),
+        // 对话框出错按取消回复，否则子进程那边一直等
+        void pickDirectory()
+          .catch(() => undefined)
+          .then((path) => {
+            child.postMessage({
+              type: "directory-selected",
+              id: message.id,
+              ...(path ? { path } : {}),
+            })
           })
-        })
       } else if (message.type === "ready" && state === "starting") {
         state = "running"
         resolve({
