@@ -3,7 +3,7 @@
     :as="as"
     :as-child="asChild"
     class="card-row"
-    :data-bleed="bleed || interactive || undefined"
+    :data-bleed="bleed || undefined"
     :data-interactive="interactive || undefined"
   >
     <slot />
@@ -17,9 +17,9 @@ import { Primitive } from "reka-ui"
 withDefaults(
   defineProps<
     PrimitiveProps & {
-      /** 行贴到卡片两侧、不带左右内边距，行里的内容自己读 --card-padding；行线随之贴边 */
+      /** 行不带左右内边距，行里的内容自己读 --card-padding */
       bleed?: boolean
-      /** 可点的整行：贴边，左右内边距取 --card-padding，带悬停底 */
+      /** 可点的整行：带悬停底 */
       interactive?: boolean
     }
   >(),

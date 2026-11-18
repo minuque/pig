@@ -1,5 +1,5 @@
 <template>
-  <Card size="l" class="card-list">
+  <Card size="m" class="card-list">
     <slot />
   </Card>
 </template>

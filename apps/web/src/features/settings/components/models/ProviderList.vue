@@ -167,7 +167,7 @@ function sourceKind(provider: ProviderView) {
 
 .provider-group-title {
   margin: 0 0 var(--space-xs);
-  padding-inline: var(--space-lg);
+  padding-inline: var(--space-md);
   color: var(--fg);
   font-size: var(--text-title);
   font-weight: var(--font-weight-semibold);
