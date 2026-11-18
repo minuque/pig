@@ -108,8 +108,12 @@ type TestFixtures = {
   remoteGateway: E2eGateway
 }
 
-/** 起 Gateway 并躲开 Chromium 禁用端口。 */
-async function startGateway(options: ConstructorParameters<typeof Gateway>[0]) {
+/** 起 Gateway 并躲开 Chromium 禁用端口；子代理等读 PI_CODING_AGENT_DIR 的地方也指向临时 agentDir。 */
+async function startGateway(
+  options: ConstructorParameters<typeof Gateway>[0] & { agentDir: string },
+) {
+  const previousAgentDir = process.env.PI_CODING_AGENT_DIR
+  process.env.PI_CODING_AGENT_DIR = options.agentDir
   let gateway = new Gateway(options)
   let port = await gateway.start()
 
@@ -120,7 +124,16 @@ async function startGateway(options: ConstructorParameters<typeof Gateway>[0]) {
     port = await gateway.start()
   }
 
-  return { gateway, port }
+  const stop = async () => {
+    try {
+      await gateway.stop()
+    } finally {
+      if (previousAgentDir === undefined) delete process.env.PI_CODING_AGENT_DIR
+      else process.env.PI_CODING_AGENT_DIR = previousAgentDir
+    }
+  }
+
+  return { gateway, port, stop }
 }
 
 export async function withGateway(
@@ -152,7 +165,7 @@ export async function withGateway(
       return path
     },
   }
-  const { gateway, port } = await startGateway({
+  const { gateway, port, stop } = await startGateway({
     webRoot,
     sessionDir,
     cwd: workspaceDir,
@@ -170,7 +183,7 @@ export async function withGateway(
       workspaceId,
     })
   } finally {
-    await gateway.stop()
+    await stop()
     await rm(temp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
   }
 }
@@ -187,6 +200,9 @@ async function withTwoWorkspaces(use: (gateway: MultiE2eGateway) => Promise<void
   await writeFile(join(secondDir, ".keep"), "")
   prebuildFillerSessions(sessionDir, firstDir, 3)
   prebuildFillerSessions(sessionDir, secondDir, 2, "e2e-other")
+  const agentDir = join(temp, "agent")
+  await mkdir(agentDir)
+  await writeOfflineModel(agentDir)
 
   const platformPort: DirectoryPort = {
     async selectDirectory() {
@@ -196,12 +212,13 @@ async function withTwoWorkspaces(use: (gateway: MultiE2eGateway) => Promise<void
       return path
     },
   }
-  const { gateway, port } = await startGateway({
+  const { gateway, port, stop } = await startGateway({
     webRoot,
     sessionDir,
     cwd: firstDir,
     platformPort,
     port: 0,
+    agentDir,
   })
 
   try {
@@ -213,7 +230,7 @@ async function withTwoWorkspaces(use: (gateway: MultiE2eGateway) => Promise<void
       secondWorkspaceId: canonicalizeWorkspacePath(secondDir),
     })
   } finally {
-    await gateway.stop()
+    await stop()
     await rm(temp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
   }
 }
@@ -336,7 +353,7 @@ async function withModelsGateway(
       return path
     },
   }
-  const { gateway, port } = await startGateway({
+  const { gateway, port, stop } = await startGateway({
     webRoot,
     sessionDir,
     cwd: workspaceDir,
@@ -354,7 +371,7 @@ async function withModelsGateway(
       workspaceId: canonicalizeWorkspacePath(workspaceDir),
     })
   } finally {
-    await gateway.stop()
+    await stop()
     await rm(temp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 })
   }
 }
