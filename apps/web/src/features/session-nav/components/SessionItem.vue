@@ -27,16 +27,27 @@
         >
           <template v-if="variant === 'card'">
             <span class="meta-line">
-              <span class="project-icon" aria-hidden="true">
-                <PinIcon class="size-icon-2xs" v-if="pinned" />
-
-                <ProjectIcon
-                  v-else-if="projectName"
-                  class="project-mono"
-                  :path="session.cwd"
-                  fallback="monogram"
-                />
+              <span v-if="projectName" class="project-icon" aria-hidden="true">
+                <ProjectIcon class="project-mono" :path="session.cwd" fallback="monogram" />
               </span>
+
+              <Tooltip v-if="pinned">
+                <TooltipTrigger as-child>
+                  <button
+                    type="button"
+                    class="pin-toggle"
+                    :aria-label="t('session.unpin')"
+                    :disabled="placeholder || dragging"
+                    @click.prevent.stop="emit('togglePinned', session.id)"
+                    @pointerdown.stop
+                  >
+                    <PinIcon class="pin-on" />
+                    <PinOffIcon class="pin-off" />
+                  </button>
+                </TooltipTrigger>
+
+                <TooltipContent>{{ t("session.unpin") }}</TooltipContent>
+              </Tooltip>
 
               <span class="project-name">{{ projectName }}</span>
 
@@ -544,6 +555,47 @@ function confirmDelete() {
 /* 还没发首条消息的新会话：警示浅底，悬停与选中都不换底 */
 .session-item .session-card.is-placeholder {
   background: var(--warning-subtle);
+}
+
+/* 置顶标记即取消置顶按钮：平时图钉，悬停或键盘聚焦换成取消图标并提亮 */
+.pin-toggle {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: calc(var(--radius-control) / 2);
+  background: transparent;
+  color: var(--fg-faint);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.pin-toggle :deep(svg) {
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
+}
+
+.pin-toggle .pin-off,
+.pin-toggle:is(:hover, :focus-visible):not(:disabled) .pin-on {
+  display: none;
+}
+
+.pin-toggle:is(:hover, :focus-visible):not(:disabled) .pin-off {
+  display: block;
+}
+
+.pin-toggle:is(:hover, :focus-visible):not(:disabled) {
+  color: var(--fg);
+}
+
+.pin-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.pin-toggle:disabled {
+  cursor: default;
 }
 
 .project-icon {
