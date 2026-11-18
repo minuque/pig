@@ -1,0 +1,70 @@
+import { existsSync } from "node:fs"
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
+import { afterEach, beforeEach, describe, expect, it } from "vitest"
+
+import { createResourceLoader } from "../src/pi/resource-loader.js"
+
+let root: string
+let agentDir: string
+let cwd: string
+
+beforeEach(async () => {
+  root = await mkdtemp(join(tmpdir(), "pig-user-ext-"))
+  agentDir = join(root, "agent")
+  cwd = join(root, "work")
+  await mkdir(join(agentDir, "extensions"), { recursive: true })
+  await mkdir(join(agentDir, "skills", "probe-skill"), { recursive: true })
+  await mkdir(join(cwd, ".pi"), { recursive: true })
+  await writeFile(
+    join(agentDir, "skills", "probe-skill", "SKILL.md"),
+    "---\nname: probe-skill\ndescription: probe skill\n---\nbody\n",
+  )
+})
+
+afterEach(async () => {
+  await rm(root, { recursive: true, force: true, maxRetries: 5 })
+})
+
+describe("用户扩展一律不加载", () => {
+  it("目录里的扩展不执行，内置扩展与 skills 照常", async () => {
+    const marker = join(root, "marker")
+    await writeFile(
+      join(agentDir, "extensions", "probe.ts"),
+      `import { writeFileSync } from "node:fs"\nexport default function () { writeFileSync(${JSON.stringify(marker)}, "loaded") }\n`,
+    )
+    const loader = await createResourceLoader(cwd, { agentDir })
+
+    expect(existsSync(marker)).toBe(false)
+    expect(loader.getExtensions().extensions.flatMap((e) => [...e.tools.keys()])).toContain(
+      "subagent",
+    )
+    expect(loader.getSkills().skills.map((skill) => skill.name)).toContain("probe-skill")
+  })
+
+  it("本机与仓库设置里列的包都不去安装", async () => {
+    const installMarker = join(root, "install-marker")
+    const fakeNpm = join(root, "fake-npm.mjs")
+    await writeFile(
+      fakeNpm,
+      `import { writeFileSync } from "node:fs"
+const args = process.argv.slice(2)
+if (args.includes("install")) writeFileSync(${JSON.stringify(installMarker)}, args.join(" "))
+else if (args.includes("root")) console.log(${JSON.stringify(join(root, "npm-global"))})
+`,
+    )
+    const npmCommand = [process.execPath, fakeNpm]
+    await writeFile(
+      join(agentDir, "settings.json"),
+      JSON.stringify({ npmCommand, packages: ["npm:pig-missing-global"] }),
+    )
+    await writeFile(
+      join(cwd, ".pi", "settings.json"),
+      JSON.stringify({ npmCommand, packages: ["npm:pig-missing-project"] }),
+    )
+    await createResourceLoader(cwd, { agentDir })
+
+    expect(existsSync(installMarker)).toBe(false)
+  })
+})

@@ -52,8 +52,6 @@ export interface PiHostServiceOptions {
   attachmentRootDir?: string
   /** Pi 配置目录（auth.json / models.json / settings.json）；缺省 ~/.pi/agent。 */
   agentDir?: string
-  /** 用户扩展放行清单；缺省 ~/.pig/extensions.json。 */
-  extensionsFile?: string
   /** 远程会话的本地占位目录根；缺省 ~/.pig/remote。 */
   remoteRoot?: string
   /** 测试注入：ModelRuntime 工厂。 */

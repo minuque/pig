@@ -30,8 +30,6 @@ export interface GatewayOptions {
   browserSecretFile?: string
   /** Pi 配置目录（auth.json / models.json / settings.json）；缺省 ~/.pi/agent。 */
   agentDir?: string
-  /** 用户扩展放行清单；缺省 ~/.pig/extensions.json，测试与基准可指向临时文件。 */
-  extensionsFile?: string
   /** 环境列表的来源（ssh config 与 pig 保存的环境），测试可指向临时文件。 */
   environments?: EnvironmentSources
   /** 远程会话的本地占位目录根；缺省 ~/.pig/remote。 */
@@ -68,7 +66,6 @@ export class Gateway {
       ...(options.cwd ? { cwd: options.cwd } : {}),
       ...(options.attachmentRootDir ? { attachmentRootDir: options.attachmentRootDir } : {}),
       ...(options.agentDir ? { agentDir: options.agentDir } : {}),
-      ...(options.extensionsFile ? { extensionsFile: options.extensionsFile } : {}),
       ...(options.remoteRoot ? { remoteRoot: options.remoteRoot } : {}),
       ...(options.createRuntime ? { createRuntime: options.createRuntime } : {}),
     })

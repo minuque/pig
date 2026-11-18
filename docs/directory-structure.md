@@ -82,7 +82,7 @@ packages/gateway/src/
 
 `test/` 跟 `src/` 同层。
 
-gateway 在进程内跑 pi SDK。内置扩展经 `additionalExtensionPaths` 加载；gateway 不给扩展开私有接口。用户在 pi 里装的扩展（`settings.json` 的 `packages`、`~/.pi/agent/extensions`、项目 `.pi/extensions`）默认不加载，写进 `~/.pig/extensions.json` 的 `enabled` 才放行：包按 `packages` 里的来源字符串，目录下的扩展按文件或目录路径。skills、prompt 模板、AGENTS.md 照常共用。
+gateway 在进程内跑 pi SDK。内置扩展经 `additionalExtensionPaths` 加载；gateway 不给扩展开私有接口。用户在 pi 里装的扩展（`settings.json` 的 `packages`、`~/.pi/agent/extensions`、项目 `.pi/extensions`）一律不加载，以后由设置页统一管理。pig 不读仓库的 `.pi/settings.json`，也不替用户安装任何包。目录里直接放的 skills、prompt 模板与 AGENTS.md 照常共用；包里带的不加载。
 
 SDK 跟版：
 

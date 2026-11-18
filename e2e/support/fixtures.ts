@@ -9,7 +9,6 @@ import Gateway from "../../packages/gateway/src/index.js"
 import type { DirectoryPort } from "../../packages/gateway/src/system/directory.js"
 import { createFakeRuntime, type FakeProviderSpec } from "./fake-model-runtime.js"
 import { BUILTIN_PROVIDERS } from "./fake-provider-registry.js"
-import { writeBackgroundTaskExtension } from "./background-task-agent.js"
 import { prepareRemote } from "./remote-fixture.js"
 import {
   prebuildComplexSession,
@@ -103,10 +102,6 @@ type TestFixtures = {
   modelsGateway: E2eGateway
   /** 没有任何可用模型，用来验 Composer 空态。 */
   emptyModelsGateway: E2eGateway
-  /** 临时 agentDir 里装一个会弹框的扩展，用来验扩展 UI。 */
-  extensionGateway: E2eGateway
-  /** 真实会话加 /bg 与 /bg-fail 命令：不经模型，直接让内置 tasks 扩展起后台命令。 */
-  backgroundTaskGateway: E2eGateway
   /** 一个普通会话加一个 subagent 子会话，用来验摘要面板与子会话抽屉。 */
   subagentGateway: E2eGateway
   /** 登记一台替身 SSH 主机（底下是本机目录），用来验远程 workspace。 */
@@ -147,9 +142,6 @@ export async function withGateway(
 
   await mkdir(agentDir)
   await prepareAgent(agentDir)
-  // 用户扩展默认不加载：放行临时 agentDir 里装的替身扩展
-  const extensionsFile = join(temp, "extensions.json")
-  await writeFile(extensionsFile, JSON.stringify({ enabled: [join(agentDir, "extensions")] }))
 
   const workspaceId = canonicalizeWorkspacePath(workspaceDir)
   const platformPort: DirectoryPort = {
@@ -167,7 +159,6 @@ export async function withGateway(
     platformPort,
     port: 0,
     agentDir,
-    extensionsFile,
     ...(extra ? await extra(temp) : {}),
   })
 
@@ -423,18 +414,6 @@ export const test = base.extend<TestFixtures>({
     },
     { scope: "test" },
   ],
-  extensionGateway: [
-    async ({}, use) => {
-      await withGateway(() => undefined, use, prepareExtensionAgent)
-    },
-    { scope: "test" },
-  ],
-  backgroundTaskGateway: [
-    async ({}, use) => {
-      await withGateway(() => undefined, use, prepareBackgroundTaskAgent)
-    },
-    { scope: "test" },
-  ],
   subagentGateway: [
     async ({}, use) => {
       await withGateway((sessionDir, workspaceDir) => {
@@ -452,15 +431,13 @@ export const test = base.extend<TestFixtures>({
           writeFileSync(join(workspaceDir, "src", "remote-only.ts"), "")
         },
         use,
-        prepareExtensionAgent,
+        writeOfflineModel,
         prepareRemote,
       )
     },
     { scope: "test" },
   ],
 })
-export const EXTENSION_TITLE = "扩展想确认一件事"
-export const EXTENSION_YES = "扩展收到：是"
 
 /** 一个离线可选的本地模型：Prompt 由 sim-turn 拦下，不会真的请求它。 */
 async function writeOfflineModel(agentDir: string) {
@@ -478,30 +455,6 @@ async function writeOfflineModel(agentDir: string) {
       },
     }),
   )
-}
-
-/** 离线模型加一个 /ask 命令：confirm 之后把答案用 notify 报出来。 */
-async function prepareExtensionAgent(agentDir: string) {
-  await writeOfflineModel(agentDir)
-  await mkdir(join(agentDir, "extensions"))
-  await writeFile(
-    join(agentDir, "extensions", "ask.ts"),
-    `export default function (pi) {
-      pi.registerCommand("ask", {
-        description: "ask",
-        handler: async (_args, ctx) => {
-          const ok = await ctx.ui.confirm("${EXTENSION_TITLE}", "要不要继续")
-          ctx.ui.notify(ok ? "${EXTENSION_YES}" : "否", "info")
-        },
-      })
-    }`,
-  )
-}
-
-/** /bg 一类的测试命令：不经模型，直接让内置 tasks 扩展登记后台任务。 */
-async function prepareBackgroundTaskAgent(agentDir: string) {
-  await prepareExtensionAgent(agentDir)
-  await writeBackgroundTaskExtension(agentDir, root)
 }
 
 export { expect }
