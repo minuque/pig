@@ -106,6 +106,6 @@ function cancel() {
 }
 
 .extension-editor {
-  min-block-size: var(--size-composer-field-max);
+  min-block-size: var(--composer-field-max);
 }
 </style>

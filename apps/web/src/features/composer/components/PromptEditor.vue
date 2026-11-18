@@ -422,7 +422,7 @@ defineExpose({ focus })
   width: 100%;
   /* 至少两行高，超过上限内部滚动 */
   min-height: 2lh;
-  max-height: var(--size-composer-field-max);
+  max-height: var(--composer-field-max);
   margin: 0;
   padding: 0;
   border: 0;

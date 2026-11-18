@@ -252,7 +252,7 @@
 
 /* 高度取控件档；py-0 用于压掉基础件的默认内边距 */
 .h-control {
-  block-size: var(--size-control);
+  block-size: var(--control-lg);
 }
 
 .py-0 {

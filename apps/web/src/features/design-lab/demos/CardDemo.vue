@@ -159,7 +159,7 @@ const PROVIDERS = ["Anthropic", "DeepSeek", "OpenAI"]
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: calc(var(--size-control) + var(--space-md));
+  min-height: calc(var(--control-lg) + var(--space-md));
 }
 
 .row + .row,

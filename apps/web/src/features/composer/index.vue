@@ -338,9 +338,9 @@ function onAbortHotkey(event: KeyboardEvent) {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: var(--size-composer-control);
-  height: var(--size-composer-control);
-  min-width: var(--size-composer-control);
+  width: var(--control-md);
+  height: var(--control-md);
+  min-width: var(--control-md);
   min-height: 0;
   padding: 0;
   border: 0;
@@ -368,9 +368,9 @@ function onAbortHotkey(event: KeyboardEvent) {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: var(--size-composer-control);
-  height: var(--size-composer-control);
-  min-width: var(--size-composer-control);
+  width: var(--control-md);
+  height: var(--control-md);
+  min-width: var(--control-md);
   min-height: 0;
   padding: 0;
   border: 0;
@@ -448,7 +448,7 @@ function onAbortHotkey(event: KeyboardEvent) {
 
 /* 回形针比正文图标大一档 */
 .attach-icon {
-  inline-size: var(--size-icon-2xs);
-  block-size: var(--size-icon-2xs);
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
 }
 </style>

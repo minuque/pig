@@ -34,8 +34,8 @@ const severity = computed(() => contextSeverity(props.usage.percent))
 <style scoped>
 .context-ring {
   flex: none;
-  inline-size: var(--size-context-ring);
-  block-size: var(--size-context-ring);
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
   rotate: -90deg;
   color: var(--accent-solid);
 }

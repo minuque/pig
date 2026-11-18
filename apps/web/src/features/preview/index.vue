@@ -49,8 +49,8 @@ function measure(event: Event) {
   flex-shrink: 0;
   align-items: center;
   gap: var(--space-2xl);
-  height: var(--size-icon);
-  padding-inline-end: calc(var(--size-icon) + var(--space-md));
+  height: var(--icon-md);
+  padding-inline-end: calc(var(--icon-md) + var(--space-md));
 }
 
 .preview-title {
@@ -92,7 +92,7 @@ function measure(event: Event) {
   width: auto;
   max-width: 100%;
   height: auto;
-  max-height: calc(90vh - 2 * var(--dialog-content-padding) - var(--size-icon) - var(--space-md));
+  max-height: calc(90vh - 2 * var(--dialog-content-padding) - var(--icon-md) - var(--space-md));
   margin-inline: auto;
   border-radius: var(--radius-card);
   outline: var(--border-width) solid var(--border-subtle);

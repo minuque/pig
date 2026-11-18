@@ -70,8 +70,8 @@ const label = computed(() => thoughtStepLabel(props.step))
 .thought-caret {
   flex: none;
   margin-inline-start: auto;
-  width: var(--size-icon-xs);
-  height: var(--size-icon-xs);
+  width: var(--icon-sm);
+  height: var(--icon-sm);
   transition: transform var(--duration-fast) var(--ease-out);
 }
 

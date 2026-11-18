@@ -194,7 +194,7 @@ async function copy() {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
-  max-width: var(--size-content);
+  max-width: var(--content-width);
 }
 
 .demo-settings {
@@ -207,7 +207,7 @@ async function copy() {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: calc(var(--size-control) + var(--space-lg));
+  min-height: calc(var(--control-lg) + var(--space-lg));
 }
 
 .demo-row + .demo-row {

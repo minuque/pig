@@ -47,13 +47,13 @@ function retry() {
   flex-direction: column;
   align-items: center;
   gap: var(--space-xs);
-  max-width: calc(var(--size-content) + var(--space-sm));
+  max-width: calc(var(--content-width) + var(--space-sm));
   text-align: center;
 }
 
 .error-icon {
-  inline-size: var(--size-icon-hero);
-  block-size: var(--size-icon-hero);
+  inline-size: var(--icon-xl);
+  block-size: var(--icon-xl);
   color: var(--fg-faint);
 }
 

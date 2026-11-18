@@ -66,24 +66,24 @@
 /* Lucide 图标基座：零特异性，调用方的 size-* 类和 scoped 样式可覆盖 */
 :where(.lucide) {
   flex: none;
-  inline-size: var(--size-icon);
-  block-size: var(--size-icon);
-  stroke-width: var(--line-icon-width);
+  inline-size: var(--icon-md);
+  block-size: var(--icon-md);
+  stroke-width: var(--icon-stroke);
 }
 
 .size-icon {
-  inline-size: var(--size-icon);
-  block-size: var(--size-icon);
+  inline-size: var(--icon-md);
+  block-size: var(--icon-md);
 }
 
 .size-icon-xs {
-  inline-size: var(--size-icon-xs);
-  block-size: var(--size-icon-xs);
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
 }
 
 .size-icon-2xs {
-  inline-size: var(--size-icon-2xs);
-  block-size: var(--size-icon-2xs);
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
 }
 
 /* 浮层统一底：实色，不透明 */
@@ -137,6 +137,6 @@ p {
 /* 触屏上把菜单行高抬到可点击尺寸 */
 @media (pointer: coarse) {
   :is([data-slot="dropdown-menu-item"], [data-slot="context-menu-item"]) {
-    min-height: calc(var(--size-control) + var(--space-2xs));
+    min-height: calc(var(--control-lg) + var(--space-2xs));
   }
 }

@@ -262,8 +262,8 @@ const thumb = computed(() => {
   flex: none;
   color: var(--fg-faint);
   pointer-events: none;
-  width: var(--size-icon-xs);
-  height: var(--size-icon-xs);
+  width: var(--icon-sm);
+  height: var(--icon-sm);
   transition: transform var(--duration-fast) var(--ease-out);
 }
 

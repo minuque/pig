@@ -454,8 +454,8 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   /* 底部留白：正文留白 + 输入条占位 */
   padding-bottom: calc(var(--transcript-pad-block) + var(--composer-reserve, 0px));
   /* 在正文列里居中；右侧面板占自己的列，不再叠进正文宽 */
-  padding-inline-start: max(var(--transcript-gutter), calc((100% - var(--size-content)) / 2));
-  padding-inline-end: max(var(--transcript-gutter), calc((100% - var(--size-content)) / 2));
+  padding-inline-start: max(var(--transcript-gutter), calc((100% - var(--content-width)) / 2));
+  padding-inline-end: max(var(--transcript-gutter), calc((100% - var(--content-width)) / 2));
   /* 横向裁在列内，避免视口 overflow-x 裁掉竖条；内边距留给满宽卡片边框 */
   overflow-x: clip;
 }

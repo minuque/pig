@@ -95,7 +95,7 @@ const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && 
 .ctx-meter {
   display: flex;
   gap: 1px;
-  block-size: var(--size-meter-block);
+  block-size: var(--space-xs);
   overflow: hidden;
   background: var(--bg-emphasis);
   border-radius: var(--radius-pill);
@@ -119,7 +119,7 @@ const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && 
   align-items: center;
   gap: var(--space-xs);
   inline-size: 100%;
-  min-block-size: var(--size-icon);
+  min-block-size: var(--icon-md);
   padding: 0 var(--space-2xs);
   border: 0;
   border-radius: var(--radius-control);
@@ -141,8 +141,8 @@ button.ctx-row:hover {
 
 .ctx-swatch {
   flex: none;
-  inline-size: var(--size-legend-swatch);
-  block-size: var(--size-legend-swatch);
+  inline-size: var(--space-sm);
+  block-size: var(--space-sm);
   border-radius: calc(var(--radius-control) / 3);
 }
 
@@ -161,7 +161,7 @@ button.ctx-row:hover {
 
 .ctx-share {
   flex: none;
-  min-inline-size: var(--size-legend-share);
+  min-inline-size: var(--legend-share);
   /* 占比是这一行的主数据，用一级文本色 */
   color: var(--fg);
   font-variant-numeric: tabular-nums;

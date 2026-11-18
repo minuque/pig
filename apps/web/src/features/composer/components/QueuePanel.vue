@@ -117,8 +117,8 @@ onBeforeUnmount(() => reorder.detach())
 
 .row-grip {
   flex: none;
-  width: var(--size-icon);
-  height: var(--size-icon);
+  width: var(--icon-md);
+  height: var(--icon-md);
   color: var(--fg);
   opacity: 0.5;
   cursor: grab;
@@ -144,8 +144,8 @@ onBeforeUnmount(() => reorder.detach())
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--size-icon-button);
-  height: var(--size-icon-button);
+  width: var(--control-sm);
+  height: var(--control-sm);
   padding: 0;
   border: 0;
   border-radius: var(--radius-control);
@@ -175,7 +175,7 @@ onBeforeUnmount(() => reorder.detach())
   align-items: center;
   justify-content: center;
   width: 72px;
-  height: var(--size-icon-button);
+  height: var(--control-sm);
   padding: 0;
   border: 0;
   border-radius: var(--radius-control);

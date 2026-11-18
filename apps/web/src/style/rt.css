@@ -45,12 +45,12 @@
   --card-surface: transparent;
 }
 
-/* 菜单尺寸：弹层用 rt 的 m 档字号，行高取 --size-menu-item，内边距收到 s 档。
+/* 菜单尺寸：弹层用 rt 的 m 档字号，行高取 --control-md，内边距收到 s 档。
    项目不再用左侧留白放勾，左右内边距取同值，否则 rt 的 :has 会为勾多留一档。
    :where() 不抬特异性，靠写在 import 之后覆盖 rt 同名规则。 */
 .rt-BaseMenuContent:where(.rt-r-size-2) {
   --base-menu-content-padding: var(--space-1);
-  --base-menu-item-height: var(--size-menu-item);
+  --base-menu-item-height: var(--control-md);
   --base-menu-item-padding-left: var(--space-2);
   --base-menu-item-padding-right: var(--space-2);
 }
@@ -98,7 +98,7 @@
   margin-block-start: 0;
 }
 
-/* 图标按钮定档：s=24、m=28（`--size-nav-rail`）。
+/* 图标按钮定档：s=24、m=28（`--control-sm`）。
    rt 原生：m 是 32px、圆角 max(--radius-1)=3px、ghost 尺寸靠 content-box 自撑、悬停是 accent-a3。
    这里统一成固定方框 + `--radius-control` + 前景色 + `--bg-hover`，接管房里所有 28px 图标按钮。 */
 .rt-IconButton {
@@ -109,7 +109,7 @@
 }
 
 .rt-IconButton:where(.rt-r-size-2) {
-  --base-button-height: var(--size-nav-rail);
+  --base-button-height: var(--control-sm);
 }
 
 .rt-IconButton:where(.rt-variant-ghost) {

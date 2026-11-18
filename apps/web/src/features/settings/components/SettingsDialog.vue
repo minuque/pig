@@ -362,9 +362,9 @@ watch(active, async () => {
 /* 内容经 Portal 挂到 body，scoped 打不中，选择器统一挂在 .settings-dialog 前缀下。 */
 .settings-dialog {
   display: flex;
-  width: min(88vw, var(--size-settings-dialog-width));
-  max-width: min(88vw, var(--size-settings-dialog-width));
-  height: clamp(var(--size-settings-dialog-height-min), 85vh, var(--size-settings-dialog-height));
+  width: min(88vw, var(--settings-dialog-width));
+  max-width: min(88vw, var(--settings-dialog-width));
+  height: clamp(var(--settings-dialog-height-min), 85vh, var(--settings-dialog-height));
   padding: 0;
   gap: 0;
   border-radius: var(--radius-dialog);
@@ -382,7 +382,7 @@ watch(active, async () => {
   flex: none;
   flex-direction: column;
   gap: var(--space-2xs);
-  width: var(--size-settings-dialog-nav);
+  width: var(--settings-nav-width);
   padding: var(--space-sm) var(--space-xs);
   border-inline-end: var(--border-width) solid var(--border-subtle);
   background: var(--bg-sunken);
@@ -585,8 +585,8 @@ watch(active, async () => {
   display: grid;
   flex: none;
   place-items: center;
-  width: var(--size-icon-button);
-  height: var(--size-icon-button);
+  width: var(--control-sm);
+  height: var(--control-sm);
   border-radius: var(--radius-control);
   color: var(--fg-faint);
   cursor: pointer;
@@ -610,7 +610,7 @@ watch(active, async () => {
 
 .settings-dialog .settings-body {
   width: 100%;
-  max-width: var(--size-settings-body);
+  max-width: var(--settings-body-width);
   margin-inline: auto;
 }
 
@@ -621,7 +621,7 @@ watch(active, async () => {
 
   .settings-dialog .settings-nav {
     align-items: center;
-    width: var(--size-settings-dialog-nav-narrow);
+    width: var(--settings-nav-width-narrow);
     padding-inline: var(--space-2xs);
   }
 

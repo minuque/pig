@@ -104,7 +104,7 @@ function stop(id: string) {
   align-items: center;
   gap: var(--space-xs);
   min-inline-size: 0;
-  min-block-size: var(--size-rail-row);
+  min-block-size: var(--control-sm);
   padding-inline: var(--space-2xs);
   color: var(--fg);
   font: inherit;
@@ -127,8 +127,8 @@ function stop(id: string) {
 
 .task-row-open > svg {
   flex-shrink: 0;
-  inline-size: var(--size-icon);
-  block-size: var(--size-icon);
+  inline-size: var(--icon-md);
+  block-size: var(--icon-md);
   color: var(--fg-faint);
 }
 

@@ -64,7 +64,7 @@ type TreeNode = DirectoryEntry & { path: string }
 
 const { t } = useI18n()
 const pane = useFilePane()
-/** 与 tokens.css 的 --size-rail-row 一致：虚拟列表按它算每行的位置。 */
+/** 与 tokens.css 的 --control-sm 一致：虚拟列表按它算每行的位置。 */
 const ROW_HEIGHT = 26
 const root = useTemplateRef<{ $el: HTMLElement }>("root")
 /** 已读过的目录：键是工作区相对路径，根是 ""。 */
@@ -165,7 +165,7 @@ watch(
   display: flex;
   align-items: center;
   gap: var(--space-2xs);
-  block-size: var(--size-rail-row);
+  block-size: var(--control-sm);
   padding-inline: calc(var(--space-xs) + var(--tree-level) * var(--space-md)) var(--space-xs);
   border-radius: var(--radius-control);
   color: var(--fg-secondary);
@@ -210,8 +210,8 @@ watch(
 
 .file-tree-caret {
   flex: none;
-  inline-size: var(--size-icon-xs);
-  block-size: var(--size-icon-xs);
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
   color: var(--fg-faint);
   transition: transform var(--duration-fast) var(--ease-out);
 }
@@ -222,13 +222,13 @@ watch(
 
 .file-tree-row .file-tree-icon {
   flex: none;
-  inline-size: var(--size-icon);
-  block-size: var(--size-icon);
+  inline-size: var(--icon-md);
+  block-size: var(--icon-md);
 }
 
 /* 文件没有展开箭头：让出箭头的宽，与同级目录的图标对齐 */
 .file-tree-row .file-tree-icon.is-file {
-  margin-inline-start: calc(var(--size-icon-xs) + var(--space-2xs));
+  margin-inline-start: calc(var(--icon-sm) + var(--space-2xs));
 }
 
 .file-tree-name {

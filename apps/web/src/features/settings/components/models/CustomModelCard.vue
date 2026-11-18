@@ -168,7 +168,7 @@ const open = ref(!model.value.id)
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  min-height: var(--size-control);
+  min-height: var(--control-lg);
 }
 
 .field-label {

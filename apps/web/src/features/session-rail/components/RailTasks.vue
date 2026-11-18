@@ -305,7 +305,7 @@ button.rail-task-title:hover .rail-task-name {
 }
 
 .rail-task-command {
-  max-block-size: var(--size-task-output-max);
+  max-block-size: var(--task-output-max);
   overflow: auto;
   color: var(--fg-secondary);
   white-space: pre-wrap;
@@ -313,7 +313,7 @@ button.rail-task-title:hover .rail-task-name {
 }
 
 .rail-task-output pre {
-  max-block-size: var(--size-task-output-max);
+  max-block-size: var(--task-output-max);
   margin: 0;
   padding: var(--space-xs);
   overflow: auto;

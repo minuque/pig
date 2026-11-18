@@ -176,8 +176,8 @@ function activate(index: number) {
   display: grid;
   flex: none;
   place-items: center;
-  width: var(--size-icon-2xs);
-  height: var(--size-icon-2xs);
+  width: var(--icon-lg);
+  height: var(--icon-lg);
   color: var(--fg);
 }
 
@@ -262,8 +262,8 @@ function activate(index: number) {
   display: grid;
   flex: none;
   place-items: center;
-  width: var(--size-icon-2xs);
-  height: var(--size-icon-2xs);
+  width: var(--icon-lg);
+  height: var(--icon-lg);
   color: var(--fg);
 }
 
@@ -291,8 +291,8 @@ function activate(index: number) {
   display: grid;
   flex: none;
   place-items: center;
-  width: var(--size-icon);
-  height: var(--size-icon);
+  width: var(--icon-md);
+  height: var(--icon-md);
   margin-inline-start: auto;
   color: var(--fg);
 }

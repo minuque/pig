@@ -32,7 +32,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-md);
-  min-height: calc(var(--size-control) + var(--space-lg));
+  min-height: calc(var(--control-lg) + var(--space-lg));
   padding-block: var(--space-sm);
 }
 

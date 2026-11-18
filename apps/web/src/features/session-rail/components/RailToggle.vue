@@ -124,7 +124,7 @@ const label = computed(() => {
 <style>
 /* 浮层经 Portal 挂到 body，scoped 打不中 */
 .rail-popover.rt-PopoverContent {
-  inline-size: var(--size-rail);
+  inline-size: var(--rail-width);
   padding: var(--space-xs);
 }
 </style>

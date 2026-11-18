@@ -179,7 +179,7 @@ function nudge(id: RailSectionId, step: number) {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-xs);
-  min-block-size: var(--size-rail-row);
+  min-block-size: var(--control-sm);
   font-size: var(--text-meta);
   color: var(--fg-secondary);
   white-space: nowrap;
@@ -199,14 +199,14 @@ function nudge(id: RailSectionId, step: number) {
   display: flex;
   flex-shrink: 0;
   inline-size: var(--space-lg);
-  block-size: var(--size-battery-block);
-  padding: var(--size-battery-pad);
+  block-size: var(--space-sm);
+  padding: var(--space-2xs);
   background: var(--bg-emphasis);
   border-radius: var(--radius-pill);
 }
 
 .rail-battery i {
-  min-inline-size: var(--size-battery-fill-min);
+  min-inline-size: var(--space-xs);
   background: var(--accent-solid);
   border-radius: var(--radius-pill);
 }

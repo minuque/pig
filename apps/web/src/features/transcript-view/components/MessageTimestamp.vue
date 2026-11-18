@@ -68,7 +68,7 @@ const full = computed(() =>
   align-items: center;
   gap: var(--space-2xs);
   width: fit-content;
-  min-height: var(--size-icon-button);
+  min-height: var(--control-sm);
   color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);

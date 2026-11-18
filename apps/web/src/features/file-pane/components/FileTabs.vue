@@ -122,12 +122,12 @@ watch(
 .file-tab {
   position: relative;
   display: flex;
-  flex: 0 1 var(--size-file-tab);
+  flex: 0 1 var(--file-tab-width);
   align-items: center;
   gap: var(--space-2xs);
-  min-inline-size: var(--size-file-tab-min);
+  min-inline-size: var(--file-tab-min);
   max-inline-size: max-content;
-  block-size: var(--size-file-tab-height);
+  block-size: var(--file-tab-height);
   padding: 2px;
   border-radius: var(--radius-control);
   color: var(--fg-secondary);
@@ -171,7 +171,7 @@ watch(
 
 .file-tab-label {
   overflow: hidden;
-  max-inline-size: var(--size-file-tab-label);
+  max-inline-size: var(--file-tab-label);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -186,8 +186,8 @@ watch(
   display: grid;
   flex-shrink: 0;
   place-items: center;
-  inline-size: var(--size-file-tab-close);
-  block-size: var(--size-file-tab-close);
+  inline-size: var(--file-tab-close);
+  block-size: var(--file-tab-close);
   padding: 0;
   border: 0;
   border-radius: calc(var(--radius-control) - 2px);

@@ -94,8 +94,8 @@ const icon = computed(() => ICONS.get(props.language.toLowerCase()) ?? { svg: co
 .language-icon {
   display: inline-flex;
   flex: none;
-  width: var(--size-icon-2xs);
-  height: var(--size-icon-2xs);
+  width: var(--icon-lg);
+  height: var(--icon-lg);
 }
 
 .language-icon :deep(svg) {

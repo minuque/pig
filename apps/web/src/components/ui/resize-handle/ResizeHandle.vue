@@ -34,8 +34,8 @@
   position: absolute;
   top: 50%;
   inset-inline-start: 50%;
-  inline-size: var(--size-resize-grip-thickness);
-  block-size: var(--size-resize-grip);
+  inline-size: var(--resize-grip-thickness);
+  block-size: var(--resize-grip-length);
   border-radius: var(--radius-pill);
   background: var(--scrollbar-color);
   opacity: 0;
@@ -46,8 +46,8 @@
 }
 
 .resize-handle[data-orientation="vertical"]::after {
-  inline-size: var(--size-resize-grip);
-  block-size: var(--size-resize-grip-thickness);
+  inline-size: var(--resize-grip-length);
+  block-size: var(--resize-grip-thickness);
 }
 
 .resize-handle:hover::after,

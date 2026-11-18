@@ -285,8 +285,8 @@ html[data-session-dragging] .split-drop {
 }
 
 .split-drop-icon {
-  width: var(--size-icon);
-  height: var(--size-icon);
+  width: var(--icon-md);
+  height: var(--icon-md);
 }
 
 .split-area.is-resizing {

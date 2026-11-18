@@ -110,7 +110,7 @@ async function submit() {
 <style>
 /* 内容经 Portal 挂到 body，scoped 打不中，选择器统一挂在 .remote-dialog 前缀下。 */
 .remote-dialog.rt-DialogContent {
-  max-inline-size: var(--size-dialog-s);
+  max-inline-size: var(--dialog-width-sm);
 }
 
 .remote-dialog .remote-form {

@@ -151,7 +151,7 @@ function toggleProject(canonicalPath: string): void {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  min-block-size: var(--size-composer-control);
+  min-block-size: var(--control-md);
   margin-block-end: var(--space-2xs);
   padding-inline: var(--space-xs);
   border-block-end: var(--border-width) solid var(--border-subtle);
@@ -185,7 +185,7 @@ function toggleProject(canonicalPath: string): void {
 .scope-projects {
   display: flex;
   flex-direction: column;
-  max-block-size: calc((var(--size-menu-item) + var(--menu-item-gap)) * 9);
+  max-block-size: calc((var(--control-md) + var(--menu-item-gap)) * 9);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -218,8 +218,8 @@ function toggleProject(canonicalPath: string): void {
   inset-inline-end: calc(var(--space-2xs) * -1);
   display: grid;
   place-items: center;
-  inline-size: var(--size-icon-xs);
-  block-size: var(--size-icon-xs);
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
   border-radius: var(--radius-pill);
   background-color: var(--accent-solid);
   box-shadow: 0 0 0 calc(var(--border-width) * 2) var(--bg-raised);
@@ -227,9 +227,9 @@ function toggleProject(canonicalPath: string): void {
 }
 
 .check-badge .lucide {
-  inline-size: calc(var(--size-icon-xs) - var(--space-2xs));
-  block-size: calc(var(--size-icon-xs) - var(--space-2xs));
-  stroke-width: calc(var(--line-icon-width) * 2);
+  inline-size: calc(var(--icon-sm) - var(--space-2xs));
+  block-size: calc(var(--icon-sm) - var(--space-2xs));
+  stroke-width: calc(var(--icon-stroke) * 2);
 }
 
 .scope-actions {

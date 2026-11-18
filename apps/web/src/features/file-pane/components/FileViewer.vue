@@ -191,7 +191,7 @@ watch(
   flex-shrink: 0;
   align-items: center;
   gap: var(--space-xs);
-  min-block-size: var(--size-icon-button);
+  min-block-size: var(--control-sm);
   padding: 0 var(--space-xs) 0 var(--space-md);
 }
 

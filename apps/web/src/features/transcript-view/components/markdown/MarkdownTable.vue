@@ -98,7 +98,7 @@ function openPreview() {
 }
 
 .md-table-root:not(.is-preview) :deep(.rt-TableColumnHeaderCell:last-child) {
-  padding-inline-end: var(--size-icon-button);
+  padding-inline-end: var(--control-sm);
 }
 </style>
 
@@ -106,9 +106,9 @@ function openPreview() {
 /* 面板经 Portal 挂到 body，scoped 打不中。宽度与设置弹窗同档；
    高度跟表格内容走，最高到设置弹窗的高度，再高就在正文里滚动 */
 .md-table-dialog.rt-DialogContent {
-  width: min(88vw, var(--size-settings-dialog-width));
-  max-width: min(88vw, var(--size-settings-dialog-width));
+  width: min(88vw, var(--settings-dialog-width));
+  max-width: min(88vw, var(--settings-dialog-width));
   height: auto;
-  max-height: min(85vh, var(--size-settings-dialog-height));
+  max-height: min(85vh, var(--settings-dialog-height));
 }
 </style>

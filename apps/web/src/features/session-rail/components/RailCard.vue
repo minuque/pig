@@ -113,7 +113,7 @@ const bodyId = useId()
   align-items: center;
   gap: var(--space-2xs);
   min-inline-size: 0;
-  min-block-size: var(--size-rail-row);
+  min-block-size: var(--control-sm);
   padding-inline: var(--space-2xs);
   color: var(--fg);
   font: inherit;
@@ -138,8 +138,8 @@ const bodyId = useId()
 
 .rail-caret {
   flex-shrink: 0;
-  inline-size: var(--size-icon-xs);
-  block-size: var(--size-icon-xs);
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
   color: var(--fg-faint);
 }
 
@@ -170,8 +170,8 @@ const bodyId = useId()
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  inline-size: var(--size-rail-row);
-  block-size: var(--size-rail-row);
+  inline-size: var(--control-sm);
+  block-size: var(--control-sm);
   color: var(--fg-faint);
   border-radius: var(--radius-control);
   cursor: grab;
@@ -204,8 +204,8 @@ const bodyId = useId()
 }
 
 .rail-grip :deep(svg) {
-  inline-size: var(--size-icon);
-  block-size: var(--size-icon);
+  inline-size: var(--icon-md);
+  block-size: var(--icon-md);
 }
 
 .rail-body {

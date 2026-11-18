@@ -61,7 +61,7 @@ watch(
 
 /* 正文右侧独占一列：卡片多了自己滚；左右留 1px 给卡片外环，右边距交给滚动条槽 */
 .rail-docked {
-  inline-size: var(--size-rail);
+  inline-size: var(--rail-width);
   min-block-size: 0;
   padding: var(--space-xs) var(--border-width) var(--space-sm);
   overflow-y: auto;

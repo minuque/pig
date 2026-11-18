@@ -134,12 +134,12 @@ const textSizeClass = computed(() => `rt-r-size-${props.size === "l" ? "3" : "2"
 
 .callout[data-size="s"] .callout-icon :deep(svg),
 .callout[data-size="m"] .callout-icon :deep(svg) {
-  inline-size: var(--size-icon);
-  block-size: var(--size-icon);
+  inline-size: var(--icon-md);
+  block-size: var(--icon-md);
 }
 
 .callout[data-size="l"] .callout-icon :deep(svg) {
-  inline-size: var(--size-icon-2xs);
-  block-size: var(--size-icon-2xs);
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
 }
 </style>

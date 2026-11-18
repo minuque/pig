@@ -181,7 +181,7 @@ async function openIconDialog(canonicalPath: string): Promise<void> {
 
 /* macOS 的红绿灯压在首行左上，收起按钮让出整簇宽度 */
 html[data-pig-desktop-platform="darwin"] .nav-titlebar {
-  padding-inline-start: calc(var(--size-mac-traffic-lights) + var(--space-xs));
+  padding-inline-start: calc(var(--traffic-lights-width) + var(--space-xs));
 }
 
 /* Windows 藏起标题条，首行落进系统标题条这一行，可拖窗 */

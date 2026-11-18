@@ -68,7 +68,7 @@ const HUES = [
 ]
 const RADII = ["--radius-control", "--radius-card", "--radius-dialog"]
 const SPACES = ["--space-xs", "--space-sm", "--space-md", "--space-lg"]
-const SIZES = ["--size-icon-xs", "--size-icon", "--size-icon-hero"]
+const SIZES = ["--icon-sm", "--icon-md", "--icon-xl"]
 </script>
 
 <style scoped>
@@ -82,8 +82,8 @@ const SIZES = ["--size-icon-xs", "--size-icon", "--size-icon-hero"]
 }
 
 .dot {
-  inline-size: var(--size-icon);
-  block-size: var(--size-icon);
+  inline-size: var(--icon-md);
+  block-size: var(--icon-md);
   border-radius: var(--radius-pill);
 }
 
@@ -121,7 +121,7 @@ const SIZES = ["--size-icon-xs", "--size-icon", "--size-icon-hero"]
   inline-size: calc(var(--space-2xl) * 2);
   fill: none;
   stroke: currentColor;
-  stroke-width: var(--line-icon-width);
+  stroke-width: var(--icon-stroke);
 }
 
 .curve-axis {

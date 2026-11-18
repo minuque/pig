@@ -485,8 +485,8 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 }
 
 .drop-guide-icon {
-  width: var(--size-icon);
-  height: var(--size-icon);
+  width: var(--icon-md);
+  height: var(--icon-md);
 }
 
 /* 正文列：右侧面板占的列不跨进来，滚动条跟着正文列 */
@@ -538,7 +538,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 }
 
 .composer-bar.beside-rail {
-  inset-inline-end: var(--size-rail);
+  inset-inline-end: var(--rail-width);
 }
 
 .composer-bar.is-hero {
@@ -563,7 +563,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: min(calc(var(--size-content) + var(--space-sm)), calc(100% - 2 * var(--space-md)));
+  max-width: min(calc(var(--content-width) + var(--space-sm)), calc(100% - 2 * var(--space-md)));
   /* 整组最高到头部下沿：队列再长也从这里让位，不压住头部与窗控 */
   max-block-size: calc(100dvh - var(--header-height) - 2 * var(--space-sm));
   margin-inline: auto;

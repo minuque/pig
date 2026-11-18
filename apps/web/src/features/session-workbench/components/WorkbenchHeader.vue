@@ -443,7 +443,7 @@ function confirmDelete(): void {
 }
 
 .crumb-title {
-  height: var(--size-nav-rail);
+  height: var(--control-sm);
   margin: 0;
   padding: 0;
   overflow: hidden;
@@ -527,12 +527,12 @@ html[data-pig-desktop-platform]
 
 /* macOS 侧栏收起后红绿灯落在头部左上角，头部让位 */
 html[data-pig-desktop-platform="darwin"] .shell.sb-offcanvas .workbench-header.is-leftmost {
-  padding-inline-start: calc(var(--space-sm) + var(--size-mac-traffic-lights));
+  padding-inline-start: calc(var(--space-sm) + var(--traffic-lights-width));
 }
 
 @media (max-width: 520px) {
   .workbench-header > .header-toggle:not(.is-stowed) {
-    width: calc(var(--size-nav-rail) + var(--space-xs));
+    width: calc(var(--control-sm) + var(--space-xs));
   }
 }
 

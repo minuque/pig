@@ -161,8 +161,8 @@ onBeforeUnmount(() => {
 
 .tool-run-caret {
   flex: none;
-  width: var(--size-icon-xs);
-  height: var(--size-icon-xs);
+  width: var(--icon-sm);
+  height: var(--icon-sm);
   transition: transform var(--duration-fast) var(--ease-out);
 }
 

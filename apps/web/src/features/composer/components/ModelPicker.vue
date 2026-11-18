@@ -387,7 +387,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 /* 固定宽度：不随模型名和厂商数伸缩。菜单根节点经 Portal 挂到 body，scoped 属性打不到，用 :global */
 :global(.picker-menu) {
-  --picker-w: min(var(--size-model-picker), calc(100vw - var(--space-lg)));
+  --picker-w: min(var(--model-picker-width), calc(100vw - var(--space-lg)));
   inline-size: var(--picker-w);
   min-inline-size: var(--picker-w);
   max-inline-size: var(--picker-w);
@@ -463,7 +463,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   flex: none;
   align-items: center;
   gap: var(--space-xs);
-  min-height: var(--size-composer-control);
+  min-height: var(--control-md);
   padding-inline: 10px;
   border-bottom: var(--border-width) solid var(--border-subtle);
 }
@@ -491,7 +491,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 .groups {
   flex: 0 1 auto;
   min-height: 80px;
-  max-height: min(var(--size-model-picker-list), 40vh);
+  max-height: min(var(--model-picker-list-height), 40vh);
   padding: var(--space-2xs);
   overflow-y: auto;
   overscroll-behavior: contain;

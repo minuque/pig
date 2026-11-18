@@ -167,7 +167,7 @@ spacing:
 ## 间距与尺寸
 
 - 间距基数 4px：`--space-2xs/xs/sm/md/lg/xl/xxl` = 4/8/12/16/24/28/32。
-- 控件 40px（`--size-control`），图标按钮 28px，侧栏行 28px，图标 14px。
+- 控件 40px（`--control-lg`），图标按钮 28px，侧栏行 28px，图标 14px。
 - 头部高 `--header-height` 44px；macOS 标题条 `--titlebar-inset` 44px，其余平台 0。
 
 ## 动画

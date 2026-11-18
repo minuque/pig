@@ -145,8 +145,8 @@
 
 @media (pointer: coarse) {
   .icon-toggle {
-    width: var(--size-control);
-    min-height: var(--size-control);
+    width: var(--control-lg);
+    min-height: var(--control-lg);
   }
 }
 
