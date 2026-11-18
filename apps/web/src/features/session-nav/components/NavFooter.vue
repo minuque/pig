@@ -106,7 +106,7 @@ function toggleLocale() {
   min-width: 0;
   margin: 0;
   padding-inline: var(--space-xxs) var(--space-xs);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
 }
@@ -114,7 +114,7 @@ function toggleLocale() {
 /* 名字是次级信息：常态弱一档，悬停或菜单打开时回到正文色 */
 .footer-profile[data-accent-color]:hover,
 .footer-profile[data-accent-color][data-state="open"] {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 /* 蓝底方块里的小猪：悬停或键盘聚焦时缩下去再探头 */
@@ -144,7 +144,7 @@ function toggleLocale() {
 .profile-value {
   margin-inline-start: auto;
   padding-inline-start: var(--space-md);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .footer-name {

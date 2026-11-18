@@ -138,8 +138,8 @@ function sourceKind(provider: ProviderView) {
   padding-inline: var(--space-sm);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-control);
-  background: var(--surface);
-  color: var(--contrast-foreground-faint);
+  background: var(--bg-surface);
+  color: var(--fg-faint);
 }
 
 .search-icon {
@@ -151,12 +151,12 @@ function sourceKind(provider: ProviderView) {
   border: 0;
   outline: 0;
   background: transparent;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-meta);
 }
 
 .provider-search input::placeholder {
-  color: var(--foreground-faint);
+  color: var(--fg-faint);
 }
 
 .provider-card {
@@ -170,7 +170,7 @@ function sourceKind(provider: ProviderView) {
 .provider-group-title {
   margin: 0 0 var(--space-xs);
   padding-inline: var(--space-md);
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-title);
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-title--line-height);
@@ -183,17 +183,17 @@ function sourceKind(provider: ProviderView) {
   width: 100%;
   height: 52px;
   padding-inline: var(--space-md);
-  color: var(--contrast-foreground);
+  color: var(--fg);
   text-align: start;
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 .provider-row + .provider-row {
-  box-shadow: var(--divider-top);
+  box-shadow: var(--separator-top);
 }
 
 .provider-row:hover {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 .provider-mark {
@@ -226,30 +226,30 @@ function sourceKind(provider: ProviderView) {
   align-items: center;
   height: 16px;
   padding-inline: 5px;
-  border: var(--border-width) solid var(--border-soft);
+  border: var(--border-width) solid var(--border-subtle);
   border-radius: var(--radius-control);
-  background: var(--fill-quiet);
-  color: var(--contrast-foreground-faint);
+  background: var(--bg-muted);
+  color: var(--fg-faint);
   font-size: 9px;
   font-weight: var(--font-weight-medium);
 }
 
 .provider-id {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }
 
 .provider-count {
   flex: none;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   white-space: nowrap;
 }
 
 .provider-chevron {
   flex: none;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .list-state {
@@ -259,7 +259,7 @@ function sourceKind(provider: ProviderView) {
   gap: var(--space-sm);
   margin: 0;
   padding-block: var(--space-xl);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 

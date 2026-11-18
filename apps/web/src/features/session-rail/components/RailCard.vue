@@ -80,9 +80,9 @@ const bodyId = useId()
   flex-direction: column;
   min-inline-size: 0;
   padding: var(--space-xs);
-  background: var(--surface);
+  background: var(--bg-surface);
   border-radius: var(--radius-card);
-  box-shadow: 0 0 0 1px var(--border-soft);
+  box-shadow: 0 0 0 1px var(--border-subtle);
 }
 
 /* 拖着走的卡片浮起来；位移由 useDragReorder 驱动 */
@@ -115,7 +115,7 @@ const bodyId = useId()
   min-inline-size: 0;
   min-block-size: var(--size-rail-row);
   padding-inline: var(--space-xxs);
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font: inherit;
   font-size: var(--text-meta);
   font-weight: 500;
@@ -140,7 +140,7 @@ const bodyId = useId()
   flex-shrink: 0;
   inline-size: var(--size-icon-xs);
   block-size: var(--size-icon-xs);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .rail-summary {
@@ -151,7 +151,7 @@ const bodyId = useId()
   min-inline-size: 0;
   margin-inline-start: auto;
   overflow: hidden;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-weight: 400;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -172,7 +172,7 @@ const bodyId = useId()
   justify-content: center;
   inline-size: var(--size-rail-row);
   block-size: var(--size-rail-row);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   border-radius: var(--radius-control);
   cursor: grab;
   touch-action: none;
@@ -195,8 +195,8 @@ const bodyId = useId()
 }
 
 .rail-grip:hover {
-  color: var(--contrast-foreground);
-  background: var(--btn-hover);
+  color: var(--fg);
+  background: var(--bg-hover);
 }
 
 .rail-grip:active {

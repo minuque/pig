@@ -32,15 +32,15 @@
      不接这三项，包在根上的 ThemeRoot 会让整站退回系统字体与 16px。 */
   --default-font-family: var(--font-sans);
   --default-font-size: var(--text-body);
-  color: var(--contrast-foreground);
+  color: var(--fg);
 
   /* 描边直接取 radix 的 alpha 灰阶：亮暗与 gray 家族都由色板切。
      必须写在这里：--gray-* 只在 .radix-themes 作用域内映射。 */
   --border: var(--gray-a4);
-  --border-soft: var(--gray-a3);
+  --border-subtle: var(--gray-a3);
   /* 卡片内的行间分隔：和卡片外环、rt 表格行线同一画法，用内阴影而不是 border，
      非整数缩放下不被取整成一条实线 */
-  --divider-top: inset 0 var(--border-width) 0 var(--border-soft);
+  --separator-top: inset 0 var(--border-width) 0 var(--border-subtle);
   /* 卡片与 surface 表格的底色，默认不铺底 */
   --card-surface: transparent;
 }
@@ -67,10 +67,10 @@
   line-height: var(--text-body--line-height);
 }
 
-/* soft 菜单与下拉的悬停底与按钮、侧栏行统一走 --btn-hover */
+/* soft 菜单与下拉的悬停底与按钮、侧栏行统一走 --bg-hover */
 .rt-BaseMenuContent:where(.rt-variant-soft) :where(.rt-BaseMenuItem[data-highlighted]),
 .rt-SelectContent:where(.rt-variant-soft) :where(.rt-SelectItem[data-highlighted]) {
-  background-color: var(--btn-hover);
+  background-color: var(--bg-hover);
 }
 
 /* 破坏性项悬停取同一档的红色：底不同色相，文字仍走 danger */
@@ -100,7 +100,7 @@
 
 /* 图标按钮定档：s=24、m=28（`--size-nav-rail`）。
    rt 原生：m 是 32px、圆角 max(--radius-1)=3px、ghost 尺寸靠 content-box 自撑、悬停是 accent-a3。
-   这里统一成固定方框 + `--radius-control` + 前景色 + `--btn-hover`，接管房里所有 28px 图标按钮。 */
+   这里统一成固定方框 + `--radius-control` + 前景色 + `--bg-hover`，接管房里所有 28px 图标按钮。 */
 .rt-IconButton {
   border-radius: var(--radius-control);
   transition:
@@ -118,17 +118,17 @@
   block-size: var(--base-button-height);
   padding: 0;
   margin: 0;
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .rt-IconButton:where(.rt-variant-ghost):where(:hover) {
-  background-color: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background-color: var(--bg-hover);
+  color: var(--fg);
 }
 
 /* ghost 文字按钮悬停同一底色，与图标按钮、侧栏行一致 */
 .rt-Button:where(.rt-variant-ghost):where(:hover) {
-  background-color: var(--btn-hover);
+  background-color: var(--bg-hover);
 }
 
 /* 类卡片外观的唯一来源：Card 与 surface 表格共用 --border 细环、--radius-card 圆角，外壳不铺底。
@@ -164,7 +164,7 @@
 
 /* 表头铺面板底，正文单元格透明 */
 .rt-TableRoot:where(.rt-variant-surface) :where(.rt-TableHeader) {
-  --table-row-background-color: var(--surface);
+  --table-row-background-color: var(--bg-surface);
 }
 
 /* Reka 与 rt 对浮层用的 CSS 变量前缀不同：rt 的组件 CSS 读 --radix-*，
@@ -211,7 +211,7 @@
 
 /* 模态框内容区统一取主区底色，不用 rt 的面板色 */
 .rt-BaseDialogContent {
-  background-color: var(--background);
+  background-color: var(--bg);
 }
 
 /* 标题下边距：rt 的 Dialog.Title 用 mb="3" 的 margin 工具类实现，

@@ -42,7 +42,7 @@ const elapsed = computed(() => {
   margin: 0;
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .task-notice-icon {
@@ -53,11 +53,11 @@ const elapsed = computed(() => {
 
 .task-notice-label {
   flex: none;
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 .task-notice[data-status="failed"] :is(.task-notice-icon, .task-notice-label) {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .task-notice-text {

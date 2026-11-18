@@ -412,7 +412,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 /* 顶部渐隐层压住普通行，工具行由 .row-tools 的 z-index 抬到它上面 */
 .transcript-edge-top {
   /* 与正文同底：main 的底色 */
-  background: linear-gradient(to bottom, var(--background), transparent);
+  background: linear-gradient(to bottom, var(--bg), transparent);
 }
 
 /* 最后一轮至少撑满可见区：贴底时这轮的用户消息落在顶部渐隐带下方，指示器跟在消息后。

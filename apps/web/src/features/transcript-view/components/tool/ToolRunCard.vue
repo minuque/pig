@@ -63,6 +63,6 @@ const entries = computed<RunEntry[]>(() =>
 }
 
 .tool-run-card > :deep(.tool-row + .tool-row) {
-  box-shadow: var(--divider-top);
+  box-shadow: var(--separator-top);
 }
 </style>

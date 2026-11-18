@@ -496,8 +496,8 @@ function confirmDelete() {
   height: 20px;
   padding-inline: var(--space-xs);
   border-radius: calc(var(--radius-control) / 2);
-  background: var(--info-bg);
-  color: var(--primary);
+  background: var(--info-subtle);
+  color: var(--accent-solid);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
   line-height: 1;
@@ -533,12 +533,12 @@ function confirmDelete() {
 }
 
 .session-item:hover .session-card {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 .session-card[data-state="open"],
 .session-card.active {
-  background: var(--btn-selected);
+  background: var(--bg-selected);
 }
 
 .project-icon {
@@ -547,7 +547,7 @@ function confirmDelete() {
   place-items: center;
   width: 16px;
   height: 16px;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 /* t3code 式项目缩写：soft 徽标收成 16px 方块 */
@@ -575,7 +575,7 @@ function confirmDelete() {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   text-overflow: ellipsis;
@@ -593,7 +593,7 @@ function confirmDelete() {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   line-height: 20px;
@@ -606,7 +606,7 @@ function confirmDelete() {
 .session-item:hover .title,
 .session-card[data-state="open"] .title,
 .session-card.active .title {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .session-card.slim .title {
@@ -632,7 +632,7 @@ function confirmDelete() {
 }
 
 .time-label {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
   line-height: var(--text-meta--line-height);
@@ -645,7 +645,7 @@ function confirmDelete() {
   flex: none;
   align-items: center;
   gap: var(--space-xxs);
-  color: var(--info);
+  color: var(--info-text);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-meta--line-height);
@@ -678,7 +678,7 @@ function confirmDelete() {
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   white-space: nowrap;
@@ -705,25 +705,25 @@ function confirmDelete() {
 /* 文字动作对齐 t3code：只在悬停时提亮，不铺底 */
 .row-action:hover,
 .row-action:focus-visible {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 /* 放在悬停规则之后：浮层与扫过态压过悬停与聚焦 */
 /* 拖起的浮层：实底加投影，不缩放 */
 .session-item.is-dragging .session-card {
-  background: var(--popover);
-  color: var(--contrast-foreground);
+  background: var(--bg-raised);
+  color: var(--fg);
   box-shadow: var(--shadow-popover);
   cursor: grabbing;
 }
 
 .session-item.is-dragging .title {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 /* 被扫过的行：铺选中底，行尾动作常亮 */
 .session-item.is-swept .session-card {
-  background: var(--btn-selected);
+  background: var(--bg-selected);
 }
 
 .session-item.is-swept .state-mark {
@@ -731,7 +731,7 @@ function confirmDelete() {
 }
 
 .session-item.is-swept .row-action {
-  color: var(--contrast-foreground);
+  color: var(--fg);
   opacity: 1;
 }
 
@@ -750,11 +750,11 @@ function confirmDelete() {
   border: 0;
   border-radius: calc(var(--radius-control) / 2);
   outline: none;
-  background: var(--fill-quiet);
-  color: var(--contrast-foreground);
+  background: var(--bg-muted);
+  color: var(--fg);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
-  box-shadow: inset 0 0 0 1px var(--primary);
+  box-shadow: inset 0 0 0 1px var(--accent-solid);
 }
 
 :global(.title-tooltip) {

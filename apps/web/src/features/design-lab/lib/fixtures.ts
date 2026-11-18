@@ -16,7 +16,7 @@ export const PROSE = `## 改动摘要
 
 把卡片外观收进 \`style/rt.css\`，**所有类卡片组件**共用一组变量：
 
-- 外环用 \`--border\`，行间分隔用 \`--divider-top\`
+- 外环用 \`--border\`，行间分隔用 \`--separator-top\`
 - 圆角统一为 \`--radius-card\`
 - [x] 设置页已切换
 - [ ] DESIGN.md 待同步
@@ -30,7 +30,7 @@ export const card = { ring: "--border", radius: "--radius-card" }
 | 变量 | 用途 | 默认值 |
 | --- | --- | --- |
 | \`--border\` | 卡片外环 | gray-a6 |
-| \`--border-soft\` | 行间分隔 | gray-a5 |
+| \`--border-subtle\` | 行间分隔 | gray-a5 |
 | \`--card-surface\` | 卡片底色 | transparent |
 
 \`\`\`mermaid

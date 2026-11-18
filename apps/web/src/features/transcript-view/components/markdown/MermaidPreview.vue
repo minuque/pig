@@ -181,7 +181,7 @@ onBeforeUnmount(() => teardown(viewport.value, stage.value))
 
 .preview-scale {
   min-width: 4ch;
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
   text-align: center;

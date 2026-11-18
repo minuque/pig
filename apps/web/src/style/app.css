@@ -88,13 +88,13 @@
 
 /* 浮层统一底：实色，不透明 */
 .surface-float {
-  background-color: var(--popover);
+  background-color: var(--bg-raised);
 }
 
 /* ------ 基础 reset 与字号档 ------ */
 body {
-  background: var(--background);
-  color: var(--contrast-foreground);
+  background: var(--bg);
+  color: var(--fg);
   font-family: var(--font-sans);
 }
 

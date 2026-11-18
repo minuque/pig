@@ -328,7 +328,7 @@ function onAbortHotkey(event: KeyboardEvent) {
 
 .attach-error {
   margin: 0;
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }
@@ -346,7 +346,7 @@ function onAbortHotkey(event: KeyboardEvent) {
   border: 0;
   border-radius: var(--radius-pill);
   background: transparent;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease-out),
@@ -354,8 +354,8 @@ function onAbortHotkey(event: KeyboardEvent) {
 }
 
 .attach:not(:disabled):hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 .attach:disabled {
@@ -381,19 +381,19 @@ function onAbortHotkey(event: KeyboardEvent) {
     color var(--duration-fast) var(--ease-out),
     opacity var(--duration-fast) var(--ease-out),
     opacity var(--duration-fast) var(--ease-out);
-  background: var(--primary);
-  color: var(--primary-foreground);
+  background: var(--accent-solid);
+  color: var(--fg-on-accent);
 }
 
 .send:not(:disabled):hover {
-  background: var(--primary-active);
+  background: var(--accent-solid-hover);
 }
 
 /* 停止态：实心墨色圆 + 内部圆角方块，hover 只降不透明度 */
 .send--abort,
 .send--abort:not(:disabled):hover {
-  background: var(--inverse-background);
-  color: var(--inverse-foreground);
+  background: var(--bg-inverse);
+  color: var(--fg-inverse);
   box-shadow: none;
 }
 
@@ -437,12 +437,12 @@ function onAbortHotkey(event: KeyboardEvent) {
 }
 
 .send:focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--accent-solid);
   outline-offset: 2px;
 }
 
 .attach:focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--accent-solid);
   outline-offset: 2px;
 }
 

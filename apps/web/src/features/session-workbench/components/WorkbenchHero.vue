@@ -105,7 +105,7 @@ const suffix = computed(() => t(workspaceId.value ? "hero.askSuffix" : "hero.pic
   gap: 0.3em;
   max-width: 100%;
   margin: 0;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-heading);
   font-weight: var(--font-weight-normal);
   line-height: var(--text-heading--line-height);

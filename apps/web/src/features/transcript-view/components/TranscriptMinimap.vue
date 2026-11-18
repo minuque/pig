@@ -293,11 +293,11 @@ function onPreviewOpenChange(open: boolean) {
 
 /* 视口里的回合加深，正在看的那条最深 */
 .minimap-strip.strip-in-view {
-  background: var(--contrast-foreground-faint);
+  background: var(--fg-faint);
 }
 
 .minimap-strip.strip-active {
-  background: var(--contrast-foreground);
+  background: var(--fg);
 }
 
 /* 上一个 / 下一个回合：圆角方块贴着导轨两端，悬停导轨时露出 */
@@ -313,7 +313,7 @@ function onPreviewOpenChange(open: boolean) {
   border: 0;
   border-radius: calc(var(--radius-control) / 2);
   background: transparent;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   cursor: pointer;
   translate: -50% 0;
   opacity: 0;
@@ -329,8 +329,8 @@ function onPreviewOpenChange(open: boolean) {
 }
 
 .minimap-nav:hover:not(:disabled) {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 .minimap-nav:disabled {
@@ -350,7 +350,7 @@ function onPreviewOpenChange(open: boolean) {
 .preview-user {
   display: block;
   overflow: hidden;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-body);
   font-weight: var(--font-weight-normal);
   line-height: 20px;
@@ -363,7 +363,7 @@ function onPreviewOpenChange(open: boolean) {
   max-height: 3.75rem;
   margin-top: var(--space-xxs);
   overflow: hidden;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: 20px;
   line-clamp: 3;

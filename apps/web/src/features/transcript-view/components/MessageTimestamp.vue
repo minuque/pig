@@ -69,7 +69,7 @@ const full = computed(() =>
   gap: var(--space-xxs);
   width: fit-content;
   min-height: var(--size-icon-button);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }

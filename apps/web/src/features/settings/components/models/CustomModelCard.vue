@@ -117,7 +117,7 @@ const open = ref(!model.value.id)
 
 .model-name {
   overflow: hidden;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   text-overflow: ellipsis;
@@ -125,16 +125,16 @@ const open = ref(!model.value.id)
 }
 
 .model-meta {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
 .icon-button {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .icon-button:hover {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .chevron {
@@ -172,7 +172,7 @@ const open = ref(!model.value.id)
 }
 
 .field-label {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 

@@ -195,7 +195,7 @@ const tokensLabel = computed(() => {
   box-sizing: border-box;
   width: 100%;
   padding-block-start: var(--space-md);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }

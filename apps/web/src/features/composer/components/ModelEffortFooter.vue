@@ -390,7 +390,7 @@ function onKeyDown(event: KeyboardEvent) {
 }
 
 .track:focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--accent-solid);
   outline-offset: 3px;
 }
 </style>

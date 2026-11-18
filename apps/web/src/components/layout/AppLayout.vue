@@ -83,7 +83,7 @@ function resetWidth() {
   height: 100vh;
   display: flex;
   overflow: hidden;
-  background: var(--background);
+  background: var(--bg);
 }
 
 .sidebar {
@@ -94,8 +94,8 @@ function resetWidth() {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--sidebar);
-  border-inline-end: var(--border-width) solid var(--border-soft);
+  background: var(--bg-sunken);
+  border-inline-end: var(--border-width) solid var(--border-subtle);
   contain: layout style;
   visibility: hidden;
   width: 0;
@@ -152,7 +152,7 @@ main {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--background);
+  background: var(--bg);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -189,7 +189,7 @@ main {
     transition:
       transform var(--duration-normal) var(--ease-out),
       visibility 0s linear var(--duration-normal);
-    background: var(--sidebar);
+    background: var(--bg-sunken);
     border-inline-end: 0;
     box-shadow: var(--shadow-dialog);
   }

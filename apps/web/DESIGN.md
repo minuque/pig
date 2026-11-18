@@ -87,23 +87,23 @@ spacing:
 
 强调色用 Radix 的 `indigo`。`index.html` 与 `ThemeRoot` 的 `data-accent-color="indigo"` 把它映射到 `--accent-*`。
 
-- `--primary`：第 9 级。实心主按钮的底，文字用 `--primary-foreground`（白）。
-- `--link`、`--info`、焦点环：第 11 级。深色下文字类用法必须用第 11 级。
+- `--accent-solid`：第 9 级。实心主按钮的底，文字用 `--fg-on-accent`（白）。
+- `--link`、`--info-text`、焦点环：第 11 级。深色下文字类用法必须用第 11 级。
 - 一页只出现一个 solid 主按钮，其余用 soft 或 ghost。
 
 ### 中性色
 
 中性色用 Radix 的 `slate`（`data-gray-color="slate"`），描边与 rt 基础件的灰阶跟着它走；表面与文字是下表的固定值，取自 Linear 基调。
 
-| 层                             | 浅色                                 | 深色                      | token                           |
-| ------------------------------ | ------------------------------------ | ------------------------- | ------------------------------- |
-| 窗口、主区                     | `#F4F4F4`                            | `#101012`                 | `--background`                  |
-| 侧栏（主侧栏、抽屉、设置导航） | `#F0F0F0`（比主区深一档）            | `#0E0E10`（比主区深一档） | `--sidebar`                     |
-| 卡片、输入卡、气泡、工具输入   | `#FFFFFF`                            | `#17171A`                 | `--surface`                     |
-| 浮层                           | `#FCFCFC`                            | `#1C1C1F`                 | `--popover`                     |
-| 按钮与行悬停 / 选中            | 主题色 `--accent-a3` / `--accent-a4` | 同左，色板自动切深色      | `--btn-hover`、`--btn-selected` |
+| 层                             | 浅色                                 | 深色                      | token                         |
+| ------------------------------ | ------------------------------------ | ------------------------- | ----------------------------- |
+| 窗口、主区                     | `#F4F4F4`                            | `#101012`                 | `--bg`                        |
+| 侧栏（主侧栏、抽屉、设置导航） | `#F0F0F0`（比主区深一档）            | `#0E0E10`（比主区深一档） | `--bg-sunken`                 |
+| 卡片、输入卡、气泡、工具输入   | `#FFFFFF`                            | `#17171A`                 | `--bg-surface`                |
+| 浮层                           | `#FCFCFC`                            | `#1C1C1F`                 | `--bg-raised`                 |
+| 按钮与行悬停 / 选中            | 主题色 `--accent-a3` / `--accent-a4` | 同左，色板自动切深色      | `--bg-hover`、`--bg-selected` |
 
-文字只有三级，都走 `--contrast-foreground*` 派生层：
+文字只有三级，都走 `--fg*` 派生层：
 
 | 级  | 浅色      | 深色      | 用途              |
 | --- | --------- | --------- | ----------------- |
@@ -111,11 +111,11 @@ spacing:
 | 次  | `#505050` | `#A1A1A1` | 次要信息          |
 | 弱  | `#6E6E6E` | `#888888` | 非必要信息，≥ 3:1 |
 
-描边只有 `--border`（gray-a4）与 `--border-soft`（gray-a3）。分割线只用 1px `--border-soft`。
+描边只有 `--border`（gray-a4）与 `--border-subtle`（gray-a3）。分割线只用 1px `--border-subtle`。
 
 ### 状态色
 
-文字色（`--success`、`--info`、`--warning`、`--danger`）配同色相浅底（`--*-bg`）。成功取 Radix green 第 11 级与第 3 级 alpha，信息文字取 accent 第 11 级；警告、危险与信息底用项目自定色值，深浅各一套。不用实色填充，不加光晕。状态色只在真有状态时出现。
+文字色（`--success-text`、`--info-text`、`--warning-text`、`--danger-text`）配同色相浅底（`--*-bg`）。成功取 Radix green 第 11 级与第 3 级 alpha，信息文字取 accent 第 11 级；警告、危险与信息底用项目自定色值，深浅各一套。不用实色填充，不加光晕。状态色只在真有状态时出现。
 
 ### 例外
 
@@ -160,7 +160,7 @@ spacing:
 | `--shadow-composer` | 输入卡：1px 内环描边加内侧淡阴影（`--composer-inset`），浅色再加底部柔投影 |
 
 - 浮层与对话框阴影全用 rt 原值（自带 1px 外环）：`.radix-themes` 内 `--shadow-popover` 指向 rt `--shadow-5`，`--shadow-dialog` 指向 `--shadow-6`。
-- 浮层底色是实色 `--popover`（`.surface-float`），不透明，不模糊。
+- 浮层底色是实色 `--bg-raised`（`.surface-float`），不透明，不模糊。
 - 卡片用 1px `--border` 描边、不铺底；描边与底色差只用一种。
 - 焦点环：`--focus-ring` = 2px 实色第 11 级；危险态 `--focus-ring-danger`。
 

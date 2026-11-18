@@ -121,8 +121,8 @@ onMounted(() => document.getElementById("startup-splash")?.remove())
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: var(--background);
-  color: var(--contrast-foreground);
+  background: var(--bg);
+  color: var(--fg);
 }
 
 .lab-bar {
@@ -135,8 +135,8 @@ onMounted(() => document.getElementById("startup-splash")?.remove())
   gap: var(--space-lg);
   block-size: var(--header-height);
   padding-inline: var(--space-lg);
-  background: var(--background);
-  box-shadow: inset 0 calc(var(--border-width) * -1) 0 var(--border-soft);
+  background: var(--bg);
+  box-shadow: inset 0 calc(var(--border-width) * -1) 0 var(--border-subtle);
 }
 
 .lab-crumbs {
@@ -145,22 +145,22 @@ onMounted(() => document.getElementById("startup-splash")?.remove())
   gap: var(--space-xs);
   min-width: 0;
   overflow: hidden;
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   white-space: nowrap;
 }
 
 .lab-home {
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-weight: var(--font-weight-semibold);
   text-decoration: none;
 }
 
 .lab-sep {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .lab-here {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .lab-switches {
@@ -189,19 +189,19 @@ onMounted(() => document.getElementById("startup-splash")?.remove())
   display: flex;
   justify-content: space-between;
   padding-block-start: var(--space-lg);
-  box-shadow: var(--divider-top);
+  box-shadow: var(--separator-top);
 }
 
 .lab-step {
   display: inline-flex;
   align-items: center;
   gap: var(--space-xxs);
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   text-decoration: none;
 }
 
 .lab-step:hover {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .lab-step.is-next {

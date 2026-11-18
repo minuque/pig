@@ -169,7 +169,7 @@ function activate(index: number) {
   min-width: 0;
   height: 52px;
   padding-inline: var(--space-md);
-  border-bottom: var(--border-width) solid var(--border-soft);
+  border-bottom: var(--border-width) solid var(--border-subtle);
 }
 
 .search-lead {
@@ -178,7 +178,7 @@ function activate(index: number) {
   place-items: center;
   width: var(--size-icon-2xs);
   height: var(--size-icon-2xs);
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .search-input {
@@ -188,12 +188,12 @@ function activate(index: number) {
   border: 0;
   outline: 0;
   background: transparent;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-body);
 }
 
 .search-input::placeholder {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .search-close {
@@ -205,12 +205,12 @@ function activate(index: number) {
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .search-close:hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 .search-results {
@@ -229,7 +229,7 @@ function activate(index: number) {
 
 .search-empty {
   padding: var(--space-md);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   text-align: center;
 }
@@ -246,7 +246,7 @@ function activate(index: number) {
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-meta);
   text-align: start;
   cursor: default;
@@ -254,8 +254,8 @@ function activate(index: number) {
 }
 
 .search-row.active {
-  background: var(--btn-selected);
-  color: var(--contrast-foreground);
+  background: var(--bg-selected);
+  color: var(--fg);
 }
 
 .row-icon {
@@ -264,11 +264,11 @@ function activate(index: number) {
   place-items: center;
   width: var(--size-icon-2xs);
   height: var(--size-icon-2xs);
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .search-row.active .row-icon {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .row-title {
@@ -282,7 +282,7 @@ function activate(index: number) {
 .row-time {
   flex: none;
   margin-inline-start: auto;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
 }
@@ -294,6 +294,6 @@ function activate(index: number) {
   width: var(--size-icon);
   height: var(--size-icon);
   margin-inline-start: auto;
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 </style>

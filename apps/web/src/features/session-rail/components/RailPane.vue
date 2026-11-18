@@ -116,7 +116,7 @@ function clearFinished() {
   flex-direction: column;
   min-block-size: 0;
   padding: 0;
-  background: var(--surface);
+  background: var(--bg-surface);
 }
 
 .rail-pane-head {
@@ -125,7 +125,7 @@ function clearFinished() {
   align-items: center;
   gap: var(--space-xs);
   padding: var(--space-sm) var(--space-sm) var(--space-sm) var(--space-md);
-  border-block-end: var(--border-width) solid var(--border-soft);
+  border-block-end: var(--border-width) solid var(--border-subtle);
 }
 
 .rail-pane-title {
@@ -148,7 +148,7 @@ function clearFinished() {
 
 .rail-pane-meta {
   flex-shrink: 0;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
 }

@@ -181,14 +181,14 @@ function nudge(id: RailSectionId, step: number) {
   gap: var(--space-xs);
   min-block-size: var(--size-rail-row);
   font-size: var(--text-meta);
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   white-space: nowrap;
 }
 
 .rail-value {
   min-width: 0;
   overflow: hidden;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-family: var(--font-mono);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -201,27 +201,27 @@ function nudge(id: RailSectionId, step: number) {
   inline-size: var(--space-lg);
   block-size: var(--size-battery-block);
   padding: var(--size-battery-pad);
-  background: var(--fill-strong);
+  background: var(--bg-emphasis);
   border-radius: var(--radius-pill);
 }
 
 .rail-battery i {
   min-inline-size: var(--size-battery-fill-min);
-  background: var(--primary);
+  background: var(--accent-solid);
   border-radius: var(--radius-pill);
 }
 
 .rail-battery[data-severity="warning"] i {
-  background: var(--warning);
+  background: var(--warning-text);
 }
 
 .rail-battery[data-severity="critical"] i {
-  background: var(--danger);
+  background: var(--danger-text);
 }
 
 .rail-status {
   font-family: var(--font-mono);
   font-size: var(--text-meta);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 </style>

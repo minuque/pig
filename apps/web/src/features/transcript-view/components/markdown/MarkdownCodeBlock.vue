@@ -76,7 +76,7 @@ watch(
 <style scoped>
 /* 代码块底色用 surface，从正文里托出来 */
 .code-block {
-  --card-background-color: var(--surface);
+  --card-background-color: var(--bg-surface);
 }
 
 .code-header {
@@ -99,7 +99,7 @@ watch(
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   line-height: 1.4;
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .fence-name {

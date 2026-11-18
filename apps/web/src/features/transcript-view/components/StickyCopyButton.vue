@@ -29,7 +29,7 @@ defineProps<{ text: string }>()
   display: flex;
   border-radius: var(--radius-control);
   background:
-    linear-gradient(var(--card-background-color), var(--card-background-color)), var(--background);
+    linear-gradient(var(--card-background-color), var(--card-background-color)), var(--bg);
   white-space: normal;
 }
 

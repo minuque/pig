@@ -212,7 +212,7 @@ async function restore() {
 }
 
 .field-label {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }
@@ -226,7 +226,7 @@ async function restore() {
 }
 
 .field-input[data-invalid] {
-  border-color: var(--danger);
+  border-color: var(--danger-text);
 }
 
 .grid {
@@ -243,7 +243,7 @@ async function restore() {
 }
 
 .add-param {
-  color: var(--primary);
+  color: var(--accent-solid);
   font-size: var(--text-meta);
 }
 
@@ -262,11 +262,11 @@ async function restore() {
   place-items: center;
   width: 20px;
   height: 20px;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .remove-param:hover {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .remove-param svg {
@@ -276,7 +276,7 @@ async function restore() {
 
 .error {
   margin: 0;
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: var(--text-meta);
 }
 

@@ -312,44 +312,44 @@
 
 /* ------ 文字 ------ */
 .text-foreground {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .text-foreground-muted {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .text-foreground-faint {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .text-muted-foreground {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .text-primary {
-  color: var(--primary);
+  color: var(--accent-solid);
 }
 
 .text-primary-foreground {
-  color: var(--primary-foreground);
+  color: var(--fg-on-accent);
 }
 
 .text-destructive {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 /* ------ 背景 ------ */
 .bg-card {
-  background-color: var(--surface);
+  background-color: var(--bg-surface);
 }
 
 .bg-background {
-  background-color: var(--background);
+  background-color: var(--bg);
 }
 
 .bg-primary {
-  background-color: var(--primary);
+  background-color: var(--accent-solid);
 }
 
 .bg-transparent {
@@ -387,8 +387,8 @@
 }
 
 .btn-destructive {
-  background-color: var(--danger-bg);
-  color: var(--danger);
+  background-color: var(--danger-subtle);
+  color: var(--danger-text);
 }
 
 .btn-destructive:hover {

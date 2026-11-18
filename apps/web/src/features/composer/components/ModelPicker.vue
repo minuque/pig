@@ -363,7 +363,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .selector.rt-Button[data-state="open"] {
-  background-color: var(--btn-hover);
+  background-color: var(--bg-hover);
 }
 
 .selector-labels {
@@ -382,7 +382,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .selector-effort {
   flex: none;
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 /* 固定宽度：不随模型名和厂商数伸缩。菜单根节点经 Portal 挂到 body，scoped 属性打不到，用 :global */
@@ -407,7 +407,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   flex: none;
   align-items: center;
   padding: 6px;
-  border-bottom: var(--border-width) solid var(--border-soft);
+  border-bottom: var(--border-width) solid var(--border-subtle);
 }
 
 .tabs {
@@ -433,7 +433,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .tab-btn {
   position: relative;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   cursor: pointer;
 }
 
@@ -444,13 +444,13 @@ function onSelectModel(event: Event, provider: string, id: string) {
   bottom: -6px;
   height: 2px;
   border-radius: var(--radius-pill);
-  background: var(--primary);
+  background: var(--accent-solid);
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
 .tab-btn[data-current] {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .tab-btn[data-current]::after {
@@ -465,12 +465,12 @@ function onSelectModel(event: Event, provider: string, id: string) {
   gap: var(--space-xs);
   min-height: var(--size-composer-control);
   padding-inline: 10px;
-  border-bottom: var(--border-width) solid var(--border-soft);
+  border-bottom: var(--border-width) solid var(--border-subtle);
 }
 
 .search-icon {
   flex: none;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .search input {
@@ -479,13 +479,13 @@ function onSelectModel(event: Event, provider: string, id: string) {
   border: 0;
   outline: 0;
   background: transparent;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font: inherit;
   font-size: var(--text-meta);
 }
 
 .search input::placeholder {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .groups {
@@ -501,7 +501,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 .empty {
   padding: var(--space-md) var(--space-xs);
   font-size: var(--text-meta);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   text-align: center;
 }
 
@@ -513,7 +513,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .configure-models {
-  color: var(--primary);
+  color: var(--accent-solid);
   font-size: var(--text-meta);
 }
 

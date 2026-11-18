@@ -138,7 +138,7 @@ watch(
 .command-label {
   margin: 0;
   padding: var(--space-xxs) var(--space-xs) var(--space-xxs);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-meta--line-height);
@@ -148,7 +148,7 @@ watch(
 
 .command-group + .command-group {
   margin-top: var(--space-xxs);
-  border-top: var(--border-width) solid var(--border-soft);
+  border-top: var(--border-width) solid var(--border-subtle);
   padding-top: var(--space-xxs);
 }
 
@@ -161,7 +161,7 @@ watch(
   padding: var(--space-xxs) var(--space-xs);
   border-radius: calc(var(--radius-card) - var(--space-xxs));
   corner-shape: var(--corner-shape-composer);
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
   cursor: pointer;
@@ -171,7 +171,7 @@ watch(
 
 .command-row:hover,
 .command-row[data-active] {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 .command-icon {
@@ -180,7 +180,7 @@ watch(
   flex: none;
   width: 16px;
   height: 16px;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .command-glyph,
@@ -204,7 +204,7 @@ watch(
 
 .command-secondary {
   overflow: hidden;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -214,14 +214,14 @@ watch(
   flex: none;
   margin-inline-start: auto;
   padding-inline-start: var(--space-xs);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
 .command-status {
   margin: 0;
   padding: var(--space-xs) var(--space-sm);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 </style>

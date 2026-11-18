@@ -37,15 +37,15 @@ const severity = computed(() => contextSeverity(props.usage.percent))
   inline-size: var(--size-context-ring);
   block-size: var(--size-context-ring);
   rotate: -90deg;
-  color: var(--primary);
+  color: var(--accent-solid);
 }
 
 .context-ring[data-severity="warning"] {
-  color: var(--warning);
+  color: var(--warning-text);
 }
 
 .context-ring[data-severity="critical"] {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .ring-track,
@@ -55,7 +55,7 @@ const severity = computed(() => contextSeverity(props.usage.percent))
 }
 
 .ring-track {
-  stroke: var(--fill-strong);
+  stroke: var(--bg-emphasis);
 }
 
 .ring-fill {

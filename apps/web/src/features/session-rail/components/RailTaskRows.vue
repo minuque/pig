@@ -106,7 +106,7 @@ function stop(id: string) {
   min-inline-size: 0;
   min-block-size: var(--size-rail-row);
   padding-inline: var(--space-xxs);
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font: inherit;
   font-size: var(--text-meta);
   text-align: start;
@@ -117,7 +117,7 @@ function stop(id: string) {
 }
 
 .task-row-open:hover {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 .task-row-open:focus-visible {
@@ -129,7 +129,7 @@ function stop(id: string) {
   flex-shrink: 0;
   inline-size: var(--size-icon);
   block-size: var(--size-icon);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .task-row-name {
@@ -142,7 +142,7 @@ function stop(id: string) {
 
 .task-row-time {
   flex-shrink: 0;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-variant-numeric: tabular-nums;
 }
 </style>

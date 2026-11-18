@@ -154,12 +154,12 @@ async function copy(text: string) {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
 .login-status[data-state="error"] {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .login-status svg {
@@ -170,7 +170,7 @@ async function copy(text: string) {
 .login-note,
 .hint {
   margin: 0;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: 1.5;
 }
@@ -180,7 +180,7 @@ async function copy(text: string) {
   align-items: center;
   gap: var(--space-xs);
   align-self: flex-start;
-  color: var(--primary);
+  color: var(--accent-solid);
   font-size: var(--text-meta);
 }
 
@@ -198,22 +198,22 @@ async function copy(text: string) {
 .device-code {
   padding: 2px 6px;
   border-radius: var(--radius-control);
-  background: var(--fill-quiet);
-  color: var(--contrast-foreground);
+  background: var(--bg-muted);
+  color: var(--fg);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
 }
 
 .icon-button {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .icon-button:hover {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .device-uri {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
@@ -224,7 +224,7 @@ async function copy(text: string) {
 }
 
 .login-label {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
@@ -232,10 +232,10 @@ async function copy(text: string) {
 .login-form select {
   height: 30px;
   padding-inline: var(--space-sm);
-  border: var(--border-width) solid var(--border-soft);
+  border: var(--border-width) solid var(--border-subtle);
   border-radius: var(--radius-control);
-  background: var(--background);
-  color: var(--contrast-foreground);
+  background: var(--bg);
+  color: var(--fg);
   font-size: var(--text-meta);
 }
 

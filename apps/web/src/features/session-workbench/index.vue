@@ -476,10 +476,10 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   align-items: center;
   gap: var(--space-xs);
   padding: var(--space-sm) var(--space-md);
-  border: var(--border-width) dashed var(--primary);
+  border: var(--border-width) dashed var(--accent-solid);
   border-radius: var(--radius-pill);
-  background: var(--surface);
-  color: var(--primary);
+  background: var(--bg-surface);
+  color: var(--accent-solid);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
 }
@@ -603,7 +603,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   display: flex;
   align-self: flex-start;
   border-radius: var(--radius-pill);
-  background: var(--popover);
+  background: var(--bg-raised);
   translate: 0 calc(-100% - var(--space-sm));
 }
 

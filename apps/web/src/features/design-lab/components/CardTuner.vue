@@ -43,7 +43,7 @@
       </div>
 
       <div class="tuner-field">
-        <span class="tuner-label">行间分隔 --border-soft</span>
+        <span class="tuner-label">行间分隔 --border-subtle</span>
 
         <SegmentedControl v-model="value.divider" size="s">
           <SegmentedControlItem v-for="step in STEPS" :key="step" :value="step">
@@ -105,8 +105,8 @@ const STEPS = ["a3", "a4", "a5", "a6", "a7", "a8"]
 const SURFACES: Record<string, string> = {
   none: "transparent",
   a2: "var(--gray-a2)",
-  card: "var(--surface)",
-  code: "var(--surface)",
+  card: "var(--bg-surface)",
+  code: "var(--bg-surface)",
 }
 const PRESETS: (Values & { name: string })[] = [
   { name: "当前", border: "a6", divider: "a5", radius: 10.4, surface: "none" },
@@ -126,7 +126,7 @@ const SAMPLE = [
   "| 变量 | 用途 |",
   "| --- | --- |",
   "| `--border` | 卡片外环 |",
-  "| `--border-soft` | 行间分隔 |",
+  "| `--border-subtle` | 行间分隔 |",
 ].join("\n")
 const nodes = useMarkdownNodes({
   text: () => SAMPLE,
@@ -141,8 +141,8 @@ const radius = computed({
 const rem = computed(() => `${+(value.radius / 16).toFixed(3)}rem`)
 const previewVars = computed(() => ({
   "--border": `var(--gray-${value.border})`,
-  "--border-soft": `var(--gray-${value.divider})`,
-  "--divider-top": `inset 0 var(--border-width) 0 var(--gray-${value.divider})`,
+  "--border-subtle": `var(--gray-${value.divider})`,
+  "--separator-top": `inset 0 var(--border-width) 0 var(--gray-${value.divider})`,
   "--radius-card": rem.value,
   "--card-surface": SURFACES[value.surface],
 }))
@@ -150,7 +150,7 @@ const output = computed(() =>
   [
     "/* style/rt.css → .radix-themes */",
     `--border: var(--gray-${value.border});`,
-    `--border-soft: var(--gray-${value.divider});`,
+    `--border-subtle: var(--gray-${value.divider});`,
     `--card-surface: ${SURFACES[value.surface]};`,
     "",
     "/* style/tokens.css → :root */",
@@ -211,7 +211,7 @@ async function copy() {
 }
 
 .demo-row + .demo-row {
-  box-shadow: var(--divider-top);
+  box-shadow: var(--separator-top);
 }
 
 .tuner-panel {
@@ -238,7 +238,7 @@ async function copy() {
 .tuner-label {
   display: flex;
   justify-content: space-between;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
@@ -269,7 +269,7 @@ async function copy() {
   margin: 0;
   padding: var(--space-sm);
   border-radius: var(--radius-control);
-  background: var(--surface);
+  background: var(--bg-surface);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   line-height: 1.6;

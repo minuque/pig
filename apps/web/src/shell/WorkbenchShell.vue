@@ -266,22 +266,22 @@ html[data-session-dragging] .split-drop {
 }
 
 .split-drop-zone[data-session-drop-over] {
-  border-color: var(--primary);
-  background: var(--surface);
+  border-color: var(--accent-solid);
+  background: var(--bg-surface);
 }
 
 .split-drop-label {
   display: inline-flex;
   align-items: center;
   gap: var(--space-xs);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
   pointer-events: none;
 }
 
 .split-drop-zone[data-session-drop-over] .split-drop-label {
-  color: var(--primary);
+  color: var(--accent-solid);
 }
 
 .split-drop-icon {
@@ -339,7 +339,7 @@ html[data-session-dragging] .split-drop {
 
 .split-area.is-resizing .split-resizer::after {
   opacity: 1;
-  background: var(--contrast-foreground-secondary);
+  background: var(--fg-secondary);
 }
 
 @media (prefers-reduced-motion: reduce) {

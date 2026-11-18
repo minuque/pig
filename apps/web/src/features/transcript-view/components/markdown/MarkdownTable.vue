@@ -90,11 +90,11 @@ function openPreview() {
   z-index: 1;
   top: var(--space-xxs);
   inset-inline-end: var(--space-xxs);
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 .md-table-zoom:hover {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .md-table-root:not(.is-preview) :deep(.rt-TableColumnHeaderCell:last-child) {

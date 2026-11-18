@@ -61,7 +61,7 @@
 }
 
 .resize-handle[data-state="drag"]::after {
-  background: var(--contrast-foreground-secondary);
+  background: var(--fg-secondary);
 }
 
 @media (prefers-reduced-motion: reduce) {

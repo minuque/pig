@@ -39,19 +39,19 @@
   --contrast-target: #000000;
 
   /* Radix accent：--accent-* 由 rt 基座按 html 的 data-accent-color 映射，
-     这里只保留语义别名，--primary / --link / 选区 / 焦点环都指回它们 */
-  --primary: var(--accent-9);
-  --primary-active: var(--accent-10);
-  --primary-foreground: var(--accent-contrast);
+     这里只保留语义别名，--accent-solid / --link / 选区 / 焦点环都指回它们 */
+  --accent-solid: var(--accent-9);
+  --accent-solid-hover: var(--accent-10);
+  --fg-on-accent: var(--accent-contrast);
   --white: #ffffff;
 
   /* 表面统一中性灰：侧栏低一档，主区一层，卡片与输入卡一层，浮层再抬一档 */
-  --background: #f4f4f4;
+  --bg: #f4f4f4;
   /* 所有侧栏共用：主侧栏、抽屉、设置弹窗导航；与主区同一中性灰，低一档 */
-  --sidebar: #f0f0f0;
+  --bg-sunken: #f0f0f0;
   /* 按钮与可点行共用：取 Radix 主题色 alpha 第 3 档做悬停、第 4 档做选中，深浅主题由色板自己切 */
-  --btn-hover: var(--accent-a3);
-  --btn-selected: var(--accent-a4);
+  --bg-hover: var(--accent-a3);
+  --bg-selected: var(--accent-a4);
   /* 菜单选项：行高比侧栏行高一档留足内边距，行与行之间只留一道细缝 */
   --size-menu-item: 32px;
   --menu-item-gap: calc(var(--spacing) / 2);
@@ -68,38 +68,38 @@
   --language-purple: #a631be;
   --language-pink: #d32a61;
   /* 行内码：正文色压 10% 的底，深浅主题自动跟随 */
-  --inline-code-background: color-mix(in srgb, var(--contrast-foreground) 10%, transparent);
+  --code-inline-bg: color-mix(in srgb, var(--fg) 10%, transparent);
   /* 抬起的表面：卡片、输入卡、用户气泡、工具输入与思考内容共用 */
-  --surface: #ffffff;
-  --popover: #fcfcfc;
+  --bg-surface: #ffffff;
+  --bg-raised: #fcfcfc;
 
   /* 文字三级：主、次、弱；弱级只给非必要信息 */
-  --foreground: #292929;
-  --foreground-secondary: #505050;
-  --foreground-faint: #6e6e6e;
+  --ink: #292929;
+  --ink-secondary: #505050;
+  --ink-faint: #6e6e6e;
 
-  /* 对比度派生色：只在 :root 写一份；.dark 覆盖 --foreground 后自动跟随 */
-  --contrast-foreground: color-mix(
+  /* 对比度派生色：只在 :root 写一份；.dark 覆盖 --ink 后自动跟随 */
+  --fg: color-mix(
     in oklab,
-    var(--foreground) calc(100% - var(--contrast-boost)),
+    var(--ink) calc(100% - var(--contrast-boost)),
     var(--contrast-target) var(--contrast-boost)
   );
-  --contrast-foreground-secondary: color-mix(
+  --fg-secondary: color-mix(
     in oklab,
-    var(--foreground-secondary) calc(100% - var(--contrast-boost)),
+    var(--ink-secondary) calc(100% - var(--contrast-boost)),
     var(--contrast-target) var(--contrast-boost)
   );
-  --contrast-foreground-faint: color-mix(
+  --fg-faint: color-mix(
     in oklab,
-    var(--foreground-faint) calc(100% - var(--contrast-boost)),
+    var(--ink-faint) calc(100% - var(--contrast-boost)),
     var(--contrast-target) var(--contrast-boost)
   );
 
   /* 结构 / 交互 */
   /* 中性填充两档：轻档给徽标、芯片底，重档给进度轨道与卡片内滚动条 */
-  --fill-quiet: color-mix(in srgb, var(--foreground) 5%, transparent);
-  --fill-strong: color-mix(in srgb, var(--foreground) 12%, transparent);
-  --minimap-marker: color-mix(in srgb, var(--foreground-faint) 35%, transparent);
+  --bg-muted: color-mix(in srgb, var(--ink) 5%, transparent);
+  --bg-emphasis: color-mix(in srgb, var(--ink) 12%, transparent);
+  --minimap-marker: color-mix(in srgb, var(--ink-faint) 35%, transparent);
   /* 强度滑条：外壳渐变 + 0.5px 描边，主题色渐变填充，白色胶囊滑块；深色在 .dark 覆盖 */
   --effort-shell: rgba(230, 230, 232, 0.504);
   --effort-shell-2: rgba(232, 232, 233, 0.357);
@@ -137,15 +137,14 @@
   --mascot-shadow: rgba(0, 0, 0, 0.2);
 
   /* 状态：文字色配同色相浅底，不用实色填充；成功沿用 Radix green */
-  --success: var(--green-11);
-  --info: var(--accent-11);
-  --warning: #8f5f13;
-  --danger: #ae2e38;
-  --state-working: var(--info);
-  --success-bg: var(--green-a3);
-  --info-bg: #edeff9;
-  --warning-bg: #f7efdd;
-  --danger-bg: #faeaeb;
+  --success-text: var(--green-11);
+  --info-text: var(--accent-11);
+  --warning-text: #8f5f13;
+  --danger-text: #ae2e38;
+  --success-subtle: var(--green-a3);
+  --info-subtle: #edeff9;
+  --warning-subtle: #f7efdd;
+  --danger-subtle: #faeaeb;
 
   /* 代码：等宽字体观感比同号 sans 大一档，13 号与 14 号正文相当 */
   --text-code: 13px;
@@ -187,7 +186,7 @@
   --chart-results: var(--green-9);
   --chart-conversation: var(--orange-9);
   --chart-other: var(--slate-8);
-  --chart-free: var(--fill-strong);
+  --chart-free: var(--bg-emphasis);
   --size-legend-swatch: 10px;
   --size-legend-share: 44px;
   /* 摘要面板与子会话只读抽屉 */
@@ -267,12 +266,12 @@
   --theme-wire-dark-raised: #17171a;
 
   /* 反色主按钮 */
-  --inverse-background: #292929;
-  --inverse-background-hover: #3c3c3c;
-  --inverse-foreground: #ffffff;
+  --bg-inverse: #292929;
+  --bg-inverse-hover: #3c3c3c;
+  --fg-inverse: #ffffff;
   /* 欢迎页「字符流光」背景：暗处到亮处的两端色，取文字色，浅色主题为黑、深色主题为白 */
-  --welcome-flow-low: var(--foreground-faint);
-  --welcome-flow-high: var(--foreground);
+  --welcome-flow-low: var(--ink-faint);
+  --welcome-flow-high: var(--ink);
 
   /* 动效 */
   --ease-out: cubic-bezier(0.17, 1, 0.32, 1);
@@ -300,7 +299,7 @@
 
   /* 焦点环：2px 实色第 11 级，深浅主题都看得见；配合 .ring-focus 使用 */
   --focus-ring: 0 0 0 2px var(--accent-11);
-  --focus-ring-danger: 0 0 0 2px var(--danger);
+  --focus-ring-danger: 0 0 0 2px var(--danger-text);
   /* 外观设置里换字体时，html 内联把 --font-sans / --font-mono 改成「所选字体, 默认栈」 */
   --font-sans-default:
     "anthropic-sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
@@ -370,12 +369,12 @@ html[data-pig-desktop-platform="win32"] {
   /* 深色下向白推，对比度层才朝正确方向生效 */
   --contrast-target: #ffffff;
 
-  --primary: var(--accent-9);
-  --primary-active: var(--accent-10);
-  --primary-foreground: var(--accent-contrast);
+  --accent-solid: var(--accent-9);
+  --accent-solid-hover: var(--accent-10);
+  --fg-on-accent: var(--accent-contrast);
 
-  --background: #101012;
-  --sidebar: #0e0e10;
+  --bg: #101012;
+  --bg-sunken: #0e0e10;
   --language-gray: #adadb1;
   --language-red: #ff6762;
   --language-orange: #ffa359;
@@ -387,18 +386,18 @@ html[data-pig-desktop-platform="win32"] {
   --language-indigo: #9d6afb;
   --language-purple: #d568ea;
   --language-pink: #ff678d;
-  --surface: #17171a;
-  --popover: #1c1c1f;
+  --bg-surface: #17171a;
+  --bg-raised: #1c1c1f;
 
-  --foreground: #e8e8e8;
-  --foreground-secondary: #a1a1a1;
-  --foreground-faint: #888888;
+  --ink: #e8e8e8;
+  --ink-secondary: #a1a1a1;
+  --ink-faint: #888888;
 
-  --warning: #e8a33d;
-  --danger: #ff7d88;
-  --info-bg: #1a2143;
-  --warning-bg: #251b0d;
-  --danger-bg: #281518;
+  --warning-text: #e8a33d;
+  --danger-text: #ff7d88;
+  --info-subtle: #1a2143;
+  --warning-subtle: #251b0d;
+  --danger-subtle: #281518;
 
   --effort-shell: rgba(255, 255, 255, 0.07);
   --effort-shell-2: rgba(255, 255, 255, 0.1);
@@ -418,9 +417,9 @@ html[data-pig-desktop-platform="win32"] {
   --shadow-composer: 0 0 transparent;
   --composer-inset: inset 0 1px 0 rgba(255, 255, 255, 0.03), inset 0 1px 3px rgba(0, 0, 0, 0.2);
 
-  --inverse-background: #e8e8e8;
-  --inverse-background-hover: #ffffff;
-  --inverse-foreground: #101012;
+  --bg-inverse: #e8e8e8;
+  --bg-inverse-hover: #ffffff;
+  --fg-inverse: #101012;
 }
 
 /* 界面字号档：默认 M；S/L 缩放辅助、正文、标题三档，页面大标题不动。 */

@@ -130,18 +130,18 @@ watch(
   block-size: var(--size-file-tab-height);
   padding: 2px;
   border-radius: var(--radius-control);
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   user-select: none;
 }
 
 .file-tab:hover {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 .file-tab[data-selected] {
-  background: var(--btn-selected);
-  color: var(--contrast-foreground);
+  background: var(--bg-selected);
+  color: var(--fg);
 }
 
 .file-tab:has(:focus-visible) {
@@ -192,15 +192,15 @@ watch(
   border: 0;
   border-radius: calc(var(--radius-control) - 2px);
   background: none;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .file-tab-close:hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 .file-tab[data-selected] .file-tab-close {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 </style>

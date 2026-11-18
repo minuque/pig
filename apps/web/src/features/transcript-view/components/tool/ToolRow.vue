@@ -199,7 +199,7 @@ const thumb = computed(() => {
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font: inherit;
   font-size: var(--text-code);
   line-height: var(--text-meta--line-height);
@@ -218,7 +218,7 @@ const thumb = computed(() => {
 .tool-row-trigger[aria-expanded="true"],
 .tool-row-head:has(.tool-row-trigger:is(:hover, :focus-visible, [aria-expanded="true"]))
   .tool-row-caret {
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 .tool-row-text {
@@ -242,7 +242,7 @@ const thumb = computed(() => {
 }
 
 .tool-row-trigger.is-file .tool-row-target {
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-weight: var(--font-weight-medium);
 }
 
@@ -260,7 +260,7 @@ const thumb = computed(() => {
 
 .tool-row-caret {
   flex: none;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   pointer-events: none;
   width: var(--size-icon-xs);
   height: var(--size-icon-xs);
@@ -280,7 +280,7 @@ const thumb = computed(() => {
 
 .tool-row-time {
   flex: none;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
 }
@@ -300,7 +300,7 @@ const thumb = computed(() => {
   overflow: clip;
   border: 0;
   border-radius: calc(var(--radius-control) / 2);
-  background: var(--background);
+  background: var(--bg);
   box-shadow: inset 0 0 0 var(--border-width) var(--border);
   cursor: zoom-in;
   pointer-events: auto;
@@ -333,27 +333,27 @@ const thumb = computed(() => {
 .tool-row-counts .added {
   padding: 0 var(--space-xxs);
   border-radius: calc(var(--radius-control) / 2);
-  background: var(--success-bg);
-  color: var(--success);
+  background: var(--success-subtle);
+  color: var(--success-text);
 }
 
 .tool-row-counts .removed {
   padding: 0 var(--space-xxs);
   border-radius: calc(var(--radius-control) / 2);
-  background: var(--danger-bg);
-  color: var(--danger);
+  background: var(--danger-subtle);
+  color: var(--danger-text);
 }
 
 .added {
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .removed {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .is-failed .tool-row-verb {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .tool-row-body {

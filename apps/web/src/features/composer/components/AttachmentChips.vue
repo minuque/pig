@@ -130,7 +130,7 @@ const rows = computed(() =>
   height: 56px;
   overflow: visible;
   border-radius: var(--radius-control);
-  background: var(--fill-quiet);
+  background: var(--bg-muted);
 }
 
 .thumb-btn {
@@ -151,7 +151,7 @@ const rows = computed(() =>
   width: 100%;
   height: 100%;
   object-fit: cover;
-  outline: var(--border-width) solid var(--border-soft);
+  outline: var(--border-width) solid var(--border-subtle);
   outline-offset: -1px;
 }
 
@@ -174,7 +174,7 @@ const rows = computed(() =>
   gap: 2px;
   height: 100%;
   padding: var(--space-xs) 3px 0;
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   transition: opacity var(--duration-normal) var(--ease-out);
 }
 
@@ -182,7 +182,7 @@ const rows = computed(() =>
   flex: none;
   width: 24px;
   height: 24px;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .file-name {
@@ -203,7 +203,7 @@ const rows = computed(() =>
 
 .file-ext {
   flex: none;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 /* 进度环与 tile 同位：描边中线压 tile 边缘，不再外扩出第二道框。
@@ -214,7 +214,7 @@ const rows = computed(() =>
   width: 56px;
   height: 56px;
   pointer-events: none;
-  color: var(--primary);
+  color: var(--accent-solid);
 }
 
 .upload-ring path {
@@ -231,7 +231,7 @@ const rows = computed(() =>
   line-height: 12px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
-  color: var(--primary);
+  color: var(--accent-solid);
   pointer-events: none;
 }
 
@@ -239,8 +239,8 @@ const rows = computed(() =>
 .chip:not(.chip--file) .pct {
   padding: 0 3px;
   border-radius: var(--radius-pill);
-  background: var(--inverse-background);
-  color: var(--inverse-foreground);
+  background: var(--bg-inverse);
+  color: var(--fg-inverse);
 }
 
 /* 删除钮与百分比占同一角，做 opacity+blur 交叉切换 */
@@ -257,8 +257,8 @@ const rows = computed(() =>
   padding: 0;
   border: 0;
   border-radius: var(--radius-pill);
-  background: var(--inverse-background);
-  color: var(--inverse-foreground);
+  background: var(--bg-inverse);
+  color: var(--fg-inverse);
   cursor: pointer;
   opacity: 0;
   filter: blur(3px);
@@ -285,7 +285,7 @@ const rows = computed(() =>
 
 .remove:hover,
 .remove:focus-visible {
-  background: var(--inverse-background-hover);
+  background: var(--bg-inverse-hover);
 }
 
 .remove-icon {

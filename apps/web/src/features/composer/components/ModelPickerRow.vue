@@ -60,11 +60,11 @@ const { t } = useI18n()
 
 .model-row:hover,
 .model-row:focus-within {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 .model-row[data-current] {
-  background: var(--btn-selected);
+  background: var(--bg-selected);
 }
 
 .model-item {
@@ -75,7 +75,7 @@ const { t } = useI18n()
   padding-inline: 6px;
   padding-block: 0;
   border-radius: var(--radius-control);
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   cursor: pointer;
@@ -104,7 +104,7 @@ const { t } = useI18n()
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   opacity: 0.6;
   cursor: pointer;
   transition:
@@ -113,8 +113,8 @@ const { t } = useI18n()
 }
 
 .fav:hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
   opacity: 1;
 }
 
@@ -125,7 +125,7 @@ const { t } = useI18n()
 }
 
 .fav:focus-visible {
-  outline: var(--border-width) solid var(--primary);
+  outline: var(--border-width) solid var(--accent-solid);
   outline-offset: -2px;
 }
 </style>

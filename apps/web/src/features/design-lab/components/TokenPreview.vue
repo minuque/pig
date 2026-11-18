@@ -78,7 +78,7 @@ const SIZES = ["--size-icon-xs", "--size-icon", "--size-icon-hero"]
   justify-content: center;
   gap: var(--space-xs);
   block-size: 96px;
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 .dot {
@@ -88,7 +88,7 @@ const SIZES = ["--size-icon-xs", "--size-icon", "--size-icon-hero"]
 }
 
 .type-big {
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-heading);
   font-weight: var(--font-weight-semibold);
 }
@@ -108,7 +108,7 @@ const SIZES = ["--size-icon-xs", "--size-icon", "--size-icon-hero"]
   inline-size: var(--space-xxl);
   block-size: var(--space-xl);
   border-radius: var(--radius-control);
-  background: var(--popover);
+  background: var(--bg-raised);
 }
 
 .step {
@@ -136,7 +136,7 @@ const SIZES = ["--size-icon-xs", "--size-icon", "--size-icon-hero"]
 .box.is-material {
   inline-size: var(--space-xl);
   block-size: var(--space-xl);
-  background: var(--primary);
+  background: var(--accent-solid);
   box-shadow: none;
 }
 
@@ -154,7 +154,7 @@ const SIZES = ["--size-icon-xs", "--size-icon", "--size-icon-hero"]
 }
 
 .layer.is-top {
-  background: var(--contrast-foreground);
+  background: var(--fg);
   box-shadow: none;
 }
 </style>

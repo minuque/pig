@@ -324,8 +324,8 @@ function confirmDelete(): void {
 <style scoped>
 /* 与摘要面板开关同一选中态 */
 .files-toggle[data-active] {
-  color: var(--contrast-foreground);
-  background: var(--btn-selected);
+  color: var(--fg);
+  background: var(--bg-selected);
 }
 
 .workbench-header {
@@ -341,7 +341,7 @@ function confirmDelete(): void {
   /* Windows 的系统窗控浮在整个窗口右上角，只有最右侧的头部让出这一块 */
   /* 与下方正文同底色：头部不另起一层 */
   background: transparent;
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .split-actions {
@@ -356,7 +356,7 @@ function confirmDelete(): void {
 }
 
 .workbench-header.is-dimmed .crumb-title {
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 /* 欢迎页头部浮在背景上，不占高度；拖窗与侧栏入口照常可用 */
@@ -403,7 +403,7 @@ function confirmDelete(): void {
   align-items: center;
   flex-shrink: 1;
   min-width: 0;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body--line-height);
@@ -430,7 +430,7 @@ function confirmDelete(): void {
 
 .crumb-separator {
   flex: none;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-body);
 }
 
@@ -449,7 +449,7 @@ function confirmDelete(): void {
   overflow: hidden;
   border: 0;
   background: transparent;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body--line-height);
@@ -477,8 +477,8 @@ function confirmDelete(): void {
 }
 
 .crumb-input:focus {
-  caret-color: var(--primary);
-  box-shadow: inset 0 0 0 1px var(--primary);
+  caret-color: var(--accent-solid);
+  box-shadow: inset 0 0 0 1px var(--accent-solid);
 }
 
 /* 操作入口：悬停或聚焦标题时出现，与 t3code 的标题下拉箭头一致 */

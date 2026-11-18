@@ -280,7 +280,7 @@ onUpdated(() => {
   height: var(--edge-fade-band);
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
-  background: linear-gradient(to bottom, var(--sidebar), transparent);
+  background: linear-gradient(to bottom, var(--bg-sunken), transparent);
   pointer-events: none;
 }
 
@@ -310,7 +310,7 @@ onUpdated(() => {
 }
 
 .session-edge-bottom {
-  background: linear-gradient(to top, var(--sidebar), transparent);
+  background: linear-gradient(to top, var(--bg-sunken), transparent);
 }
 
 /* 架子贴底：收件箱再长也不挤出视口，展开超过半屏时在区内滚动。 */
@@ -323,7 +323,7 @@ onUpdated(() => {
   max-height: 60%;
   overflow-x: hidden;
   overflow-y: auto;
-  background: var(--sidebar);
+  background: var(--bg-sunken);
   scrollbar-width: thin;
   scrollbar-gutter: stable;
   scrollbar-color: transparent transparent;
@@ -333,7 +333,7 @@ onUpdated(() => {
 .session-shelves :deep(.section-head) {
   position: sticky;
   top: 0;
-  background: var(--sidebar);
+  background: var(--bg-sunken);
 }
 
 /* 没有置顶段时的落点：0 高占位，落点在置顶时撑出虚线框，下面的行让位 */
@@ -350,10 +350,10 @@ onUpdated(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px dashed var(--primary);
+  border: 1px dashed var(--accent-solid);
   border-radius: var(--radius-control);
-  background: var(--info-bg);
-  color: var(--primary);
+  background: var(--info-subtle);
+  color: var(--accent-solid);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   opacity: 0;
@@ -388,7 +388,7 @@ onUpdated(() => {
 
 .drag-label-text {
   flex: none;
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-meta--line-height);
@@ -398,7 +398,7 @@ onUpdated(() => {
 .drag-label-line {
   flex: 1;
   height: var(--border-width);
-  background: var(--border-soft);
+  background: var(--border-subtle);
 }
 
 /* 拖出列表时段名收起，免得压在首行上 */
@@ -407,11 +407,11 @@ onUpdated(() => {
 }
 
 .drag-label.is-target .drag-label-text {
-  color: var(--primary);
+  color: var(--accent-solid);
 }
 
 .drag-label.is-target .drag-label-line {
-  background: var(--primary);
+  background: var(--accent-solid);
 }
 
 /* 拖动中列表不接指针：指针下的行不出悬停态，浮层也不会被当成悬停 */
@@ -449,9 +449,9 @@ onUpdated(() => {
   height: 28px;
   padding-inline: var(--space-xs);
   border-radius: var(--radius-control);
-  background: var(--popover);
+  background: var(--bg-raised);
   box-shadow: var(--shadow-popover);
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }
@@ -465,7 +465,7 @@ onUpdated(() => {
 
 .session-empty {
   padding: var(--space-xs);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 

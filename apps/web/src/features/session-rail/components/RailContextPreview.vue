@@ -53,7 +53,7 @@ watch(
 
 .ctx-preview-text {
   margin: 0;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font: inherit;
   font-size: var(--text-body);
   white-space: pre-wrap;

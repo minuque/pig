@@ -18,7 +18,7 @@ defineProps<{ title: string }>()
 
 .demo-variant-title {
   margin: 0;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
 }
@@ -26,6 +26,6 @@ defineProps<{ title: string }>()
 .demo-variant-body {
   padding: var(--space-md);
   border-radius: var(--radius-card);
-  box-shadow: 0 0 0 var(--border-width) var(--border-soft);
+  box-shadow: 0 0 0 var(--border-width) var(--border-subtle);
 }
 </style>

@@ -195,7 +195,7 @@ const actions = computed(() => [
   flex-direction: column;
   min-block-size: 0;
   padding: 0;
-  background: var(--surface);
+  background: var(--bg-surface);
 }
 
 .file-panel-head {
@@ -204,7 +204,7 @@ const actions = computed(() => [
   align-items: center;
   gap: var(--space-xxs);
   padding: var(--space-xxs) var(--space-xs);
-  border-block-end: var(--border-width) solid var(--border-soft);
+  border-block-end: var(--border-width) solid var(--border-subtle);
 }
 
 .file-panel-tabs {
@@ -239,7 +239,7 @@ const actions = computed(() => [
 /* 树与查看器之间：1px 分割线，把手外观由 ResizeHandle 画 */
 .file-panel-handle {
   inline-size: var(--border-width);
-  background: var(--border-soft);
+  background: var(--border-subtle);
 }
 
 .file-panel-empty {
@@ -247,7 +247,7 @@ const actions = computed(() => [
   flex: 1;
   place-items: center;
   margin: 0;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-body);
 }
 

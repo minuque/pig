@@ -105,8 +105,8 @@ const label = computed(() => {
 
 /* 按下态：面板开着（或浮层开着）时用项目统一的选中底色 */
 .rail-toggle [data-active] {
-  color: var(--contrast-foreground);
-  background: var(--btn-selected);
+  color: var(--fg);
+  background: var(--bg-selected);
 }
 
 /* 有子任务在跑时，图标右上角亮一个点 */
@@ -116,7 +116,7 @@ const label = computed(() => {
   inset-inline-end: var(--space-xxs);
   inline-size: var(--space-xs);
   block-size: var(--space-xs);
-  background: var(--primary);
+  background: var(--accent-solid);
   border-radius: var(--radius-pill);
 }
 </style>

@@ -95,7 +95,7 @@ function text(label: Label): string {
 
 .home-lead {
   margin: 0;
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 .tiles {
@@ -118,7 +118,7 @@ function text(label: Label): string {
   display: flex;
   justify-content: space-between;
   padding-block-start: var(--space-sm);
-  box-shadow: var(--divider-top);
+  box-shadow: var(--separator-top);
 }
 
 .tile-name {
@@ -127,7 +127,7 @@ function text(label: Label): string {
 
 .tile-count,
 .section-title {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .section {
@@ -158,12 +158,12 @@ function text(label: Label): string {
   justify-content: space-between;
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-control);
-  color: var(--contrast-foreground);
+  color: var(--fg);
   text-decoration: none;
 }
 
 .row:hover {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 .row:focus-visible {
@@ -172,6 +172,6 @@ function text(label: Label): string {
 }
 
 .row-icon {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 </style>

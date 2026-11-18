@@ -83,13 +83,13 @@ const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && 
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-xs);
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
 }
 
 .ctx-percent {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .ctx-meter {
@@ -97,7 +97,7 @@ const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && 
   gap: 1px;
   block-size: var(--size-meter-block);
   overflow: hidden;
-  background: var(--fill-strong);
+  background: var(--bg-emphasis);
   border-radius: var(--radius-pill);
 }
 
@@ -124,7 +124,7 @@ const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && 
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font: inherit;
   font-size: var(--text-meta);
   text-align: start;
@@ -135,8 +135,8 @@ button.ctx-row {
 }
 
 button.ctx-row:hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 .ctx-swatch {
@@ -163,7 +163,7 @@ button.ctx-row:hover {
   flex: none;
   min-inline-size: var(--size-legend-share);
   /* 占比是这一行的主数据，用一级文本色 */
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-variant-numeric: tabular-nums;
   text-align: end;
   white-space: nowrap;

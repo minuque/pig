@@ -67,8 +67,8 @@ const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
   padding: var(--space-sm);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-card);
-  background: var(--surface);
-  color: var(--contrast-foreground-faint);
+  background: var(--bg-surface);
+  color: var(--fg-faint);
   transition:
     background-color var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out),
@@ -76,20 +76,20 @@ const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
 }
 
 .scheme-card:hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 .scheme-card[aria-checked="true"] {
-  border-color: var(--primary);
-  color: var(--contrast-foreground);
+  border-color: var(--accent-solid);
+  color: var(--fg);
 }
 
 .scheme-wire {
   display: flex;
   overflow: hidden;
   height: 6.5rem;
-  border: var(--border-width) solid var(--border-soft);
+  border: var(--border-width) solid var(--border-subtle);
   border-radius: max(calc(var(--radius-control) / 2), calc(var(--radius-card) - var(--space-sm)));
   background: var(--theme-wire-light);
 }
@@ -170,7 +170,7 @@ const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
   width: var(--space-sm);
   height: var(--space-sm);
   border-radius: var(--radius-pill);
-  background: var(--primary);
+  background: var(--accent-solid);
 }
 
 .scheme-label {

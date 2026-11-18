@@ -117,7 +117,7 @@ onBeforeUnmount(() => {
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font: inherit;
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
@@ -128,7 +128,7 @@ onBeforeUnmount(() => {
 .tool-run-summary:hover,
 .tool-run-summary:focus-visible,
 .tool-run-summary[aria-expanded="true"] {
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 .tool-run-counts {
@@ -141,22 +141,22 @@ onBeforeUnmount(() => {
 
 .tool-run-time {
   flex: none;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-variant-numeric: tabular-nums;
 }
 
 .added {
   padding: 0 var(--space-xxs);
   border-radius: calc(var(--radius-control) / 2);
-  background: var(--success-bg);
-  color: var(--success);
+  background: var(--success-subtle);
+  color: var(--success-text);
 }
 
 .removed {
   padding: 0 var(--space-xxs);
   border-radius: calc(var(--radius-control) / 2);
-  background: var(--danger-bg);
-  color: var(--danger);
+  background: var(--danger-subtle);
+  color: var(--danger-text);
 }
 
 .tool-run-caret {

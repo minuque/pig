@@ -168,7 +168,7 @@ watch(
   block-size: var(--size-rail-row);
   padding-inline: calc(var(--space-xs) + var(--tree-level) * var(--space-md)) var(--space-xs);
   border-radius: var(--radius-control);
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   font-size: var(--text-body);
   white-space: nowrap;
   cursor: default;
@@ -177,12 +177,12 @@ watch(
 }
 
 .file-tree-row:hover {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 .file-tree-row[data-active] {
-  background: var(--btn-selected);
-  color: var(--contrast-foreground);
+  background: var(--bg-selected);
+  color: var(--fg);
 }
 
 .file-tree-row:focus-visible {
@@ -191,28 +191,28 @@ watch(
 }
 
 .file-tree-row[data-ignored] {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .file-tree-row[data-git="M"],
 .file-tree-row[data-git="R"] {
-  color: var(--warning);
+  color: var(--warning-text);
 }
 
 .file-tree-row[data-git="A"],
 .file-tree-row[data-git="U"] {
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .file-tree-row[data-git="D"] {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .file-tree-caret {
   flex: none;
   inline-size: var(--size-icon-xs);
   block-size: var(--size-icon-xs);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   transition: transform var(--duration-fast) var(--ease-out);
 }
 

@@ -96,7 +96,7 @@ onBeforeUnmount(() => reorder.detach())
   height: 36px;
   padding-inline: var(--space-xs);
   border-radius: var(--radius-control);
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   cursor: default;
@@ -104,13 +104,13 @@ onBeforeUnmount(() => reorder.detach())
 }
 
 .row:hover {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 /* 拖拽跟手：源行保持实体阴影，邻项让位由 useDragReorder 的 transform 预览驱动 */
 .row.is-drag-live {
   z-index: 2;
-  background: var(--surface);
+  background: var(--bg-surface);
   box-shadow: var(--shadow-popover);
   cursor: grabbing;
 }
@@ -119,7 +119,7 @@ onBeforeUnmount(() => reorder.detach())
   flex: none;
   width: var(--size-icon);
   height: var(--size-icon);
-  color: var(--contrast-foreground);
+  color: var(--fg);
   opacity: 0.5;
   cursor: grab;
   touch-action: none;
@@ -150,7 +150,7 @@ onBeforeUnmount(() => reorder.detach())
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   opacity: 0.72;
   cursor: pointer;
   transition:
@@ -160,8 +160,8 @@ onBeforeUnmount(() => reorder.detach())
 }
 
 .action:hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
   opacity: 1;
 }
 
@@ -180,7 +180,7 @@ onBeforeUnmount(() => reorder.detach())
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   cursor: pointer;
@@ -190,8 +190,8 @@ onBeforeUnmount(() => reorder.detach())
 }
 
 .send-now:hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 @media (prefers-reduced-motion: reduce) {

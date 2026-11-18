@@ -36,7 +36,7 @@
             </div>
           </Card>
 
-          <figcaption>设置分组：行间用 --divider-top</figcaption>
+          <figcaption>设置分组：行间用 --separator-top</figcaption>
         </figure>
 
         <figure class="cell">
@@ -130,7 +130,7 @@ const PROVIDERS = ["Anthropic", "DeepSeek", "OpenAI"]
 }
 
 .cell figcaption {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
 }
@@ -145,7 +145,7 @@ const PROVIDERS = ["Anthropic", "DeepSeek", "OpenAI"]
 }
 
 .card-text {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
@@ -164,7 +164,7 @@ const PROVIDERS = ["Anthropic", "DeepSeek", "OpenAI"]
 
 .row + .row,
 .list-row + .list-row {
-  box-shadow: var(--divider-top);
+  box-shadow: var(--separator-top);
 }
 
 .list-card {
@@ -186,7 +186,7 @@ const PROVIDERS = ["Anthropic", "DeepSeek", "OpenAI"]
 }
 
 .list-row:hover {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 .code {

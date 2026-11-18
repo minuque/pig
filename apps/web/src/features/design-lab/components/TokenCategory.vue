@@ -100,7 +100,7 @@ function fontSample(name: string): string {
 }
 
 .group-count {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
 }
@@ -122,7 +122,7 @@ function fontSample(name: string): string {
   min-width: 0;
   padding: var(--space-sm);
   border-radius: var(--radius-card);
-  box-shadow: 0 0 0 var(--border-width) var(--border-soft);
+  box-shadow: 0 0 0 var(--border-width) var(--border-subtle);
 }
 
 .sample {
@@ -136,14 +136,14 @@ function fontSample(name: string): string {
 
 .sample[data-kind="color"] {
   border-radius: var(--radius-control);
-  box-shadow: inset 0 0 0 var(--border-width) var(--border-soft);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-subtle);
 }
 
 .sample:is([data-kind="radius"], [data-kind="shadow"]) {
   width: 56px;
   height: 40px;
   border: var(--border-width) solid var(--border);
-  background: var(--surface);
+  background: var(--bg-surface);
 }
 
 .sample[data-kind="shadow"] {
@@ -154,7 +154,7 @@ function fontSample(name: string): string {
   min-height: 12px;
   height: 12px;
   border-radius: calc(var(--radius-control) / 2);
-  background: var(--primary);
+  background: var(--accent-solid);
 }
 
 .token-name,
@@ -166,12 +166,12 @@ function fontSample(name: string): string {
 }
 
 .token-name {
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-meta);
 }
 
 .token-value {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 </style>

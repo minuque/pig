@@ -53,7 +53,7 @@ const label = computed(() => thoughtStepLabel(props.step))
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font: inherit;
   font-size: var(--text-code);
   line-height: var(--text-meta--line-height);
@@ -64,7 +64,7 @@ const label = computed(() => thoughtStepLabel(props.step))
 .tool-row-trigger:hover,
 .tool-row-trigger:focus-visible,
 .tool-row-trigger[aria-expanded="true"] {
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 .thought-caret {
@@ -88,7 +88,7 @@ const label = computed(() => thoughtStepLabel(props.step))
 
 /* 思考内容与工具输入同底色，和只描边的工具输出区分开 */
 .thought-body :deep(.tool-output-card) {
-  --card-background-color: var(--surface);
+  --card-background-color: var(--bg-surface);
 }
 
 @media (prefers-reduced-motion: reduce) {

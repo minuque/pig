@@ -108,6 +108,6 @@ useResizeObserver(root, ([entry]) => {
   flex-direction: column;
   /* 盖住对话时左右各留同样的边距，底边与输入条对齐 */
   padding: 0 var(--space-sm) calc(var(--space-sm) + env(safe-area-inset-bottom, 0px));
-  background: var(--background);
+  background: var(--bg);
 }
 </style>

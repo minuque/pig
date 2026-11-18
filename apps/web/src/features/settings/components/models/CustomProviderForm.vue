@@ -293,7 +293,7 @@ async function remove() {
 
 .provider-detail-title {
   margin: 0;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-title);
   font-weight: var(--font-weight-semibold);
   line-height: 1.2;
@@ -303,7 +303,7 @@ async function remove() {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
@@ -312,10 +312,10 @@ async function remove() {
   align-items: center;
   height: 18px;
   padding-inline: 6px;
-  border: var(--border-width) solid var(--border-soft);
+  border: var(--border-width) solid var(--border-subtle);
   border-radius: var(--radius-control);
-  background: var(--fill-quiet);
-  color: var(--contrast-foreground-faint);
+  background: var(--bg-muted);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
@@ -328,20 +328,20 @@ async function remove() {
   align-items: baseline;
   gap: var(--space-xs);
   margin: 0 0 var(--space-sm);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-body);
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-body--line-height);
 }
 
 .sec-count {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-weight: var(--font-weight-normal);
 }
 
 .add-model {
   margin-inline-start: auto;
-  color: var(--primary);
+  color: var(--accent-solid);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
 }
@@ -367,13 +367,13 @@ async function remove() {
 }
 
 .field-label {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
 .required {
   margin-inline-start: 2px;
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .field-input {
@@ -381,29 +381,29 @@ async function remove() {
 }
 
 .field-input[data-invalid] {
-  border-color: var(--danger);
+  border-color: var(--danger-text);
 }
 
 .select-input {
   height: 24px;
   padding-inline: var(--space-xs);
-  border: var(--border-width) solid var(--border-soft);
+  border: var(--border-width) solid var(--border-subtle);
   border-radius: var(--radius-control);
-  background: var(--background);
-  color: var(--contrast-foreground);
+  background: var(--bg);
+  color: var(--fg);
   font-size: var(--text-meta);
 }
 
 .hint {
   margin: var(--space-xs) 0 0;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: 1.4;
 }
 
 .error {
   margin: var(--space-xs) 0 0;
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: var(--text-meta);
 }
 

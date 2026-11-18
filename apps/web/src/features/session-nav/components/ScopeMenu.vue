@@ -154,11 +154,11 @@ function toggleProject(canonicalPath: string): void {
   min-block-size: var(--size-composer-control);
   margin-block-end: var(--space-xxs);
   padding-inline: var(--space-xs);
-  border-block-end: var(--border-width) solid var(--border-soft);
+  border-block-end: var(--border-width) solid var(--border-subtle);
 }
 
 .search-icon {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .scope-search input {
@@ -167,17 +167,17 @@ function toggleProject(canonicalPath: string): void {
   border: 0;
   outline: 0;
   background: transparent;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font: inherit;
 }
 
 .scope-search input::placeholder {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .scope-empty {
   padding: var(--space-xs);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
@@ -221,9 +221,9 @@ function toggleProject(canonicalPath: string): void {
   inline-size: var(--size-icon-xs);
   block-size: var(--size-icon-xs);
   border-radius: var(--radius-pill);
-  background-color: var(--primary);
-  box-shadow: 0 0 0 calc(var(--border-width) * 2) var(--popover);
-  color: var(--primary-foreground);
+  background-color: var(--accent-solid);
+  box-shadow: 0 0 0 calc(var(--border-width) * 2) var(--bg-raised);
+  color: var(--fg-on-accent);
 }
 
 .check-badge .lucide {

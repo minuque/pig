@@ -200,7 +200,7 @@ watch(
   flex: 1;
   min-inline-size: 0;
   overflow: hidden;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   white-space: nowrap;
 }
@@ -211,7 +211,7 @@ watch(
 }
 
 .file-viewer-crumb:last-child {
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 .file-viewer-status {
@@ -253,7 +253,7 @@ watch(
   margin: auto;
   object-fit: contain;
   border-radius: var(--radius-card);
-  outline: var(--border-width) solid var(--border-soft);
+  outline: var(--border-width) solid var(--border-subtle);
   outline-offset: -1px;
 }
 </style>

@@ -110,8 +110,8 @@ useResizeObserver(body, measure)
   margin: 0;
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-card);
-  background: var(--surface);
-  color: var(--contrast-foreground);
+  background: var(--bg-surface);
+  color: var(--fg);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
 }
@@ -137,7 +137,7 @@ useResizeObserver(body, measure)
   padding: 0;
   border: 0;
   background: none;
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   font: inherit;
   font-size: var(--text-meta);
   line-height: 1.4;
@@ -145,7 +145,7 @@ useResizeObserver(body, measure)
 }
 
 .toggle:hover {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .images {

@@ -160,7 +160,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
 .file-search-heading {
   margin: 0;
   padding: var(--space-xxs) var(--space-xs);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
 }
@@ -174,7 +174,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
   border: 0;
   border-radius: var(--radius-control);
   background: none;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font: inherit;
   font-size: var(--text-body);
   text-align: start;
@@ -187,7 +187,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
 }
 
 .file-search-row:hover {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 .file-search-row:focus-visible {
@@ -210,7 +210,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
 .file-search-dir {
   min-inline-size: 0;
   overflow: hidden;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   text-overflow: ellipsis;
 }
@@ -219,7 +219,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
 .file-search-limit {
   margin: 0;
   padding: var(--space-xs);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   user-select: none;
 }
@@ -233,7 +233,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
 .file-search-empty {
   margin: 0;
   padding: var(--space-md) var(--space-xs);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-body);
   text-align: center;
 }

@@ -9,7 +9,7 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: var(--surface);
+  background: var(--bg-surface);
   font-family: var(--font-sans);
   -webkit-app-region: no-drag;
   app-region: no-drag;
@@ -131,7 +131,7 @@
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   transition:
     background var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out),
@@ -139,8 +139,8 @@
 }
 
 .icon-toggle:hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 @media (pointer: coarse) {
@@ -468,7 +468,7 @@
 .shimmer {
   position: relative;
   display: inline-block;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .shimmer::before {
@@ -480,7 +480,7 @@
     90deg,
     transparent 0%,
     transparent 41%,
-    var(--foreground) 50%,
+    var(--fg) 50%,
     transparent 59%,
     transparent 100%
   );
@@ -512,7 +512,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 40%, transparent);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-solid) 40%, transparent);
   animation: motion-pulse-ring 2s var(--ease-out) infinite;
   content: "";
 }

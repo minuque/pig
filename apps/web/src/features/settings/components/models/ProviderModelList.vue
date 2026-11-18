@@ -96,7 +96,7 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
 }
 
 .model-card + .model-card {
-  box-shadow: var(--divider-top);
+  box-shadow: var(--separator-top);
 }
 
 .model-row {
@@ -128,18 +128,18 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
 }
 
 .model-name {
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
 }
 
 .model-meta {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
 .model-row:hover {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 .chevron-button {
@@ -149,12 +149,12 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
   width: 22px;
   height: 22px;
   border-radius: var(--radius-control);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .chevron-button:hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 .chevron {
@@ -170,7 +170,7 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
 .list-error {
   margin: 0;
   padding: var(--space-xs) var(--space-sm);
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: var(--text-meta);
 }
 </style>

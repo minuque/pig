@@ -123,18 +123,18 @@ async function submit() {
   display: grid;
   gap: var(--space-xxs);
   font-size: var(--text-meta);
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 .remote-dialog .remote-hint,
 .remote-dialog .remote-error {
   margin: var(--space-sm) 0 0;
   font-size: var(--text-meta);
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 .remote-dialog .remote-error {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .remote-dialog .remote-actions {
