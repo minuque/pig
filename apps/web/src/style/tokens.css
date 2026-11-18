@@ -63,7 +63,7 @@
 
   /* --- 交互 --- */
   /* Radix accent：--accent-* 由 rt 基座按 html 的 data-accent-color 映射，
-     这里只保留语义别名，--accent-solid / --link / 选区 / 焦点环都指回它们 */
+     这里只保留语义别名，--accent-solid / 选区 / 焦点环都指回它们；链接与「进行中」同用 cyan */
   --accent-solid: var(--accent-9);
   --accent-solid-hover: var(--accent-10);
   /* 按钮与可点行共用：取 Radix 主题色 alpha 第 3 档做悬停、第 4 档做选中，深浅主题由色板自己切 */
@@ -72,7 +72,7 @@
   /* 中性填充两档：轻档给徽标、芯片底，重档给进度轨道与卡片内滚动条 */
   --bg-muted: color-mix(in srgb, var(--fg) 5%, transparent);
   --bg-emphasis: color-mix(in srgb, var(--fg) 12%, transparent);
-  --link: var(--accent-11);
+  --link: #0b6f88;
   --opacity-disabled: 0.55;
   /* 焦点环：2px 实色第 11 级，深浅主题都看得见；配合 .ring-focus 使用 */
   --focus-ring: 0 0 0 2px var(--accent-11);
@@ -368,7 +368,7 @@ html[data-pig-desktop-platform="win32"] {
   /* --- 交互 --- */
   --accent-solid: var(--accent-9);
   --accent-solid-hover: var(--accent-10);
-  --link: var(--accent-11);
+  --link: var(--cyan-11);
   /* 深色选中用不透明的深蓝底，在侧栏与主区上是同一个颜色 */
   --bg-selected: #1a2143;
 
