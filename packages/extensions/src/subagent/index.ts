@@ -241,6 +241,11 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
         if (mode === "chain") return withoutTasks("Chain mode cannot run in the background.")
         const registry = registryFor(ctx.sessionManager.getSessionId())
 
+        if (!registry.hasHost())
+          return withoutTasks(
+            "Background mode is unavailable because the tasks extension is not running. Run the subagent without background.",
+          )
+
         if (registry.runningCount() + tasks.length > taskConfig.maxRunning)
           return withoutTasks(
             `Too many background tasks running (limit ${taskConfig.maxRunning}). Stop one with bg_task_stop or wait for one to finish.`,

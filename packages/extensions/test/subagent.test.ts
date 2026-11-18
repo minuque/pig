@@ -239,6 +239,18 @@ describe("subagent：后台派出", () => {
     ])
   })
 
+  it("tasks 扩展没起来（登记表没有宿主）：后台派出直接拒绝，不启动子任务", async () => {
+    let started = 0
+    const { result } = await run({ agent: "scout", task: "看协议", background: true }, async () => {
+      started += 1
+      return { output: "", usage: { input: 0, output: 0, cost: 0 } }
+    })
+
+    expect(started).toBe(0)
+    expect(result.content[0]!.text).toMatch(/background/i)
+    expect(registryFor("parent").list()).toEqual([])
+  })
+
   it("链式不支持后台，直接拒绝，不启动子任务", async () => {
     host()
     let started = 0

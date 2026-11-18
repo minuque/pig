@@ -25,6 +25,11 @@ export class TaskRegistry {
     this.host = host
   }
 
+  /** tasks 扩展起来后才有宿主；没有宿主时结束了也没人通知会话。 */
+  hasHost(): boolean {
+    return this.host !== undefined
+  }
+
   list(): Task[] {
     return [...this.entries.values()].map((entry) => structuredClone(entry.task))
   }
