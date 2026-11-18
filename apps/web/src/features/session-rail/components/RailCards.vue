@@ -199,14 +199,14 @@ function nudge(id: RailSectionId, step: number) {
   display: flex;
   flex-shrink: 0;
   inline-size: var(--space-lg);
-  block-size: var(--space-sm);
-  padding: var(--space-2xs);
+  block-size: var(--battery-block);
+  padding: var(--battery-pad);
   background: var(--bg-emphasis);
   border-radius: var(--radius-pill);
 }
 
 .rail-battery i {
-  min-inline-size: var(--space-xs);
+  min-inline-size: var(--battery-fill-min);
   background: var(--accent-solid);
   border-radius: var(--radius-pill);
 }

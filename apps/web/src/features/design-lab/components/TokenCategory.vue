@@ -6,7 +6,7 @@
         <span class="group-count">{{ group.tokens.length }}</span>
       </h2>
 
-      <div class="grid">
+      <div class="grid" :data-wide="group.tokens.some(isWide) || undefined">
         <div v-for="token in group.tokens" :key="token.name" class="token" :title="token.value">
           <div
             v-if="kindOf(token) !== 'none'"
@@ -50,6 +50,11 @@ const groups = computed(() => {
     byGroup.set(token.group, [...(byGroup.get(token.group) ?? []), token])
   return [...byGroup].map(([id, list]) => ({ id, tokens: list }))
 })
+
+// 字号、字体、间距、尺寸的样例是横条或一行字，给宽列
+function isWide(token: Token): boolean {
+  return ["text", "font", "space", "size"].includes(kindOf(token))
+}
 
 function text(label: Label): string {
   return locale.value === "en" ? label.en : label.zh
@@ -106,6 +111,10 @@ function fontSample(name: string): string {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: var(--space-sm);
+}
+
+.grid[data-wide] {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
 }
 
 .token {

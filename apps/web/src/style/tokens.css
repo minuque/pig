@@ -77,7 +77,7 @@
   --fg-inverse: #ffffff;
 
   /* --- 边与分割 --- */
-  /* 边框 / 遮罩 / 层级 */
+  /* 描边颜色在 rt.css（--gray-* 只在 .radix-themes 里映射）；这里只有线宽 */
   --border-width: 1px;
 
   /* --- 交互 --- */
@@ -88,7 +88,6 @@
   /* 按钮与可点行共用：取 Radix 主题色 alpha 第 3 档做悬停、第 4 档做选中，深浅主题由色板自己切 */
   --bg-hover: var(--accent-a3);
   --bg-selected: var(--accent-a4);
-  /* 结构 / 交互 */
   /* 中性填充两档：轻档给徽标、芯片底，重档给进度轨道与卡片内滚动条 */
   --bg-muted: color-mix(in srgb, var(--ink) 5%, transparent);
   --bg-emphasis: color-mix(in srgb, var(--ink) 12%, transparent);
@@ -163,7 +162,6 @@
   --shadow-dialog: 0 16px 48px rgba(0, 0, 0, 0.18);
 
   /* --- 动效 --- */
-  /* 动效 */
   --ease-out: cubic-bezier(0.17, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.66, 0, 0.34, 1);
   --ease-spring: cubic-bezier(0.22, 1.18, 0.36, 1);
@@ -172,9 +170,9 @@
   --duration-slow: 300ms;
 
   /* --- 图标与控件高 --- */
-  /* 菜单选项：行高比侧栏行高一档留足内边距，行与行之间只留一道细缝 */
+  /* 控件高三档：图标按钮与侧栏行 28，菜单项与输入卡控件 32，输入框 40 */
+  --control-sm: 28px;
   --control-md: 32px;
-  /* 尺寸 */
   --control-lg: 40px;
   /* 线性图标：14px 图标配 13px 正文 */
   --icon-md: 14px;
@@ -183,8 +181,6 @@
   --icon-lg: 16px;
   /* 启动失败页的主图标 */
   --icon-xl: 32px;
-  /* 模型标签旁的上下文占用圆环 */
-  --control-sm: 28px;
   /* 24 画布线宽；低于 1.71 时 14px 图标下等效不到 1px，会糊成半调灰 */
   --icon-stroke: 1.75px;
 
@@ -210,7 +206,10 @@
   --favorite: #fbbf24;
   /* logo 拆层：蓝底图在此，小猪单独一层做探头；主蓝兜底图片未载入 */
   --brand-mark-bg: #5d77d0 url("/logo-bg.png") center / cover;
-  /* 分类用量条与图例：条高 6px、色块 10px、占比列最窄 44px */
+  /* 收起摘要里的电池：10 高的槽，内边距 2，电量最窄 6（槽宽 24 取 --space-lg） */
+  --battery-block: 10px;
+  --battery-pad: 2px;
+  --battery-fill-min: 6px;
   /* 上下文分类色：相邻分类色相拉开；不用 red，它在项目里表示危险 */
   --chart-system: var(--indigo-9);
   --chart-memory: var(--violet-9);
@@ -275,6 +274,7 @@
   --language-indigo: #693acf;
   --language-purple: #a631be;
   --language-pink: #d32a61;
+  /* 上下文图例的占比列最窄宽 */
   --legend-share: 44px;
   /* 吉祥物取 logo 小猪原色，深浅主题共用 */
   --mascot-body: #fde3b4;
@@ -293,8 +293,7 @@
   /* 浮层出入与 hover 统一曲线 */
   --menu-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
   --menu-duration-out: 100ms;
-  --minimap-marker: color-mix(in srgb, var(--ink-faint) 35%, transparent);
-  /* 输入卡控件（回形针、发送、模型 chip、上下文环） */
+  --minimap-marker: color-mix(in srgb, var(--fg-faint) 35%, transparent);
   /* 模型选择面板固定宽 320px，列表最高 200px */
   --model-picker-width: 320px;
   --model-picker-list-height: 200px;
@@ -315,9 +314,9 @@
   --settings-nav-width: 15rem;
   --settings-nav-width-narrow: 2.75rem;
   --shimmer-duration: 3400ms;
-  /* 侧栏行高 */
+  /* 启动画面的 logo */
   --startup-logo-size: 88px;
-  /* 电池式用量条：24×10 的槽，内边距 2px，电量最窄 6px */
+  /* 任务输出卡片的最高高度 */
   --task-output-max: 200px;
   /* 主题预览线框：固定画浅色与深色两套界面，不跟当前主题走 */
   --theme-wire-light: #f4f4f4;
@@ -340,6 +339,7 @@
   /* 侧栏左下角的头像 */
   --user-avatar-size: 20px;
   /* 欢迎页「字符流光」背景：暗处到亮处的两端色，取文字色，浅色主题为黑、深色主题为白 */
+  /* 例外：WebGL 用 canvas 解析这两个色值，只认得原色阶的 hex，不认得 --fg* 的 color-mix */
   --welcome-flow-low: var(--ink-faint);
   --welcome-flow-high: var(--ink);
   /* 首屏整体落位入场 */

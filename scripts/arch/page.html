@@ -16,7 +16,7 @@
       body {
         margin: 0;
         background: var(--bg);
-        color: var(--ink);
+        color: var(--fg);
         font-family: var(--font-sans);
         font-size: var(--text-body);
         line-height: var(--text-body--line-height);
@@ -49,7 +49,7 @@
 
       .meta,
       .hint {
-        color: var(--ink-faint);
+        color: var(--fg-faint);
         font-size: var(--text-meta);
       }
 
@@ -61,7 +61,7 @@
       nav a {
         padding: var(--space-2xs) var(--space-sm);
         border-radius: var(--radius-control);
-        color: var(--ink-secondary);
+        color: var(--fg-secondary);
         text-decoration: none;
       }
 
@@ -71,7 +71,7 @@
 
       nav a[aria-current="page"] {
         background: var(--bg-selected);
-        color: var(--ink);
+        color: var(--fg);
       }
 
       main {
@@ -116,7 +116,7 @@
         border: 1px solid var(--border);
         border-radius: var(--radius-card);
         background: var(--bg-surface);
-        color: var(--ink);
+        color: var(--fg);
         box-shadow: var(--shadow-dialog);
       }
 
@@ -150,13 +150,13 @@
         border: 0;
         border-radius: var(--radius-control);
         background: none;
-        color: var(--ink-secondary);
+        color: var(--fg-secondary);
         cursor: pointer;
       }
 
       .icon-btn:hover {
         background: var(--bg-hover);
-        color: var(--ink);
+        color: var(--fg);
       }
 
       #theme {
@@ -207,12 +207,12 @@
 
       .step-ref {
         margin-top: var(--space-2xs);
-        color: var(--ink-secondary);
+        color: var(--fg-secondary);
       }
 
       /* 依赖图的边是主要信息，深色下不能用边框色 */
       .dark .diagram {
-        --pele-line: var(--ink-faint);
+        --pele-line: var(--fg-faint);
       }
 
       .bands {
@@ -230,13 +230,13 @@
       }
 
       .band-name {
-        color: var(--ink-secondary);
+        color: var(--fg-secondary);
         font-weight: 500;
       }
 
       .band-name small {
         display: block;
-        color: var(--ink-faint);
+        color: var(--fg-faint);
         font-size: var(--text-meta);
         font-weight: 400;
       }
@@ -253,7 +253,7 @@
         border: 1px solid var(--border);
         border-radius: var(--radius-control);
         background: var(--bg);
-        color: var(--ink-secondary);
+        color: var(--fg-secondary);
         text-decoration: none;
       }
 
@@ -295,7 +295,7 @@
         flex-wrap: wrap;
         gap: var(--space-md);
         margin: var(--space-sm) 0;
-        color: var(--ink-secondary);
+        color: var(--fg-secondary);
         font-size: var(--text-meta);
       }
 
@@ -313,14 +313,14 @@
         padding: 0 var(--space-xs);
         border-radius: var(--radius-pill);
         background: var(--bg-hover);
-        color: var(--ink-secondary);
+        color: var(--fg-secondary);
         font-size: var(--text-meta);
         font-weight: 400;
         font-variant-numeric: tabular-nums;
       }
 
       .faint {
-        color: var(--ink-faint);
+        color: var(--fg-faint);
       }
 
       .rel h2 {
@@ -343,7 +343,7 @@
       .rel summary::before {
         content: "›";
         width: 1em;
-        color: var(--ink-faint);
+        color: var(--fg-faint);
       }
 
       .rel details[open] summary::before {
@@ -376,7 +376,7 @@
       }
 
       .files a {
-        color: var(--ink);
+        color: var(--fg);
       }
 
       .pairs li {
@@ -385,12 +385,12 @@
 
       .pairs a,
       .file-table a {
-        color: var(--ink);
+        color: var(--fg);
         text-decoration: none;
       }
 
       .arrow {
-        color: var(--ink-faint);
+        color: var(--fg-faint);
       }
 
       .table-box {
@@ -427,7 +427,7 @@
       }
 
       .file-table .num[data-zero] {
-        color: var(--ink-faint);
+        color: var(--fg-faint);
       }
 
       .callout {
@@ -445,7 +445,7 @@
 
       h3 {
         margin: var(--space-sm) 0 var(--space-2xs);
-        color: var(--ink-secondary);
+        color: var(--fg-secondary);
         font-size: var(--text-body);
         font-weight: 500;
       }
@@ -467,18 +467,18 @@
       }
 
       .crumbs a {
-        color: var(--ink-secondary);
+        color: var(--fg-secondary);
       }
 
       .crumbs > * + *::before {
         content: "/";
         display: inline-block;
         margin-right: var(--space-xs);
-        color: var(--ink-faint);
+        color: var(--fg-faint);
       }
 
       .crumbs [aria-current] {
-        color: var(--ink);
+        color: var(--fg);
         font-weight: 600;
       }
 
@@ -511,7 +511,7 @@
       }
 
       th {
-        color: var(--ink-secondary);
+        color: var(--fg-secondary);
         font-weight: 500;
       }
 
@@ -530,7 +530,7 @@
         padding: 0 var(--space-xs);
         border: 1px solid var(--border);
         border-radius: var(--radius-pill);
-        color: var(--ink-secondary);
+        color: var(--fg-secondary);
         font-size: var(--text-meta);
       }
 

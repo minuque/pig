@@ -65,7 +65,7 @@ type TreeNode = DirectoryEntry & { path: string }
 const { t } = useI18n()
 const pane = useFilePane()
 /** 与 tokens.css 的 --control-sm 一致：虚拟列表按它算每行的位置。 */
-const ROW_HEIGHT = 26
+const ROW_HEIGHT = 28
 const root = useTemplateRef<{ $el: HTMLElement }>("root")
 /** 已读过的目录：键是工作区相对路径，根是 ""。 */
 const listed = shallowRef<Record<string, TreeNode[]>>({})
