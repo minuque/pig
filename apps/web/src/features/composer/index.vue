@@ -379,21 +379,20 @@ function onAbortHotkey(event: KeyboardEvent) {
   transition:
     background var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out),
-    opacity var(--duration-fast) var(--ease-out),
     opacity var(--duration-fast) var(--ease-out);
-  background: var(--accent-solid);
-  color: var(--fg-on-accent);
+  /* 黑白反色圆：浅色主题黑底白字，深色主题白底黑字 */
+  background: var(--bg-inverse);
+  color: var(--fg-inverse);
 }
 
 .send:not(:disabled):hover {
-  background: var(--accent-solid-hover);
+  background: var(--bg-inverse-hover);
 }
 
-/* 停止态：实心墨色圆 + 内部圆角方块，hover 只降不透明度 */
+/* 停止态：同一个反色圆，内部换成圆角方块，hover 只降不透明度 */
 .send--abort,
 .send--abort:not(:disabled):hover {
   background: var(--bg-inverse);
-  color: var(--fg-inverse);
   box-shadow: none;
 }
 

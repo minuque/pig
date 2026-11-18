@@ -68,7 +68,9 @@
                 <Button
                   class="scroll-latest-button"
                   type="button"
-                  variant="soft"
+                  variant="solid"
+                  color="gray"
+                  high-contrast
                   size="s"
                   radius="full"
                   @click="scrollToLatest('smooth')"
@@ -598,23 +600,11 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   pointer-events: auto;
 }
 
-/* soft 按钮底色半透明，垫一层同形实底，悬停时不透出正文；浮在输入卡上方 */
+/* 黑白反色胶囊浮在输入卡上方 */
 .scroll-latest {
   display: flex;
   align-self: flex-start;
-  border-radius: var(--radius-pill);
-  background: var(--bg-raised);
   translate: 0 calc(-100% - var(--space-sm));
-}
-
-/* 外边框沿用原圆形图标钮：盒内一圈 --border 细环 */
-.scroll-latest-button {
-  box-shadow: inset 0 0 0 var(--border-width) var(--border);
-}
-
-/* 不要按下反馈：按住时保持悬停的底色 */
-.scroll-latest-button:active {
-  background-color: var(--accent-a4);
 }
 
 @media (max-width: 900px) {
