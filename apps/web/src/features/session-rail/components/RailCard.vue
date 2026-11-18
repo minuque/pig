@@ -143,14 +143,14 @@ const bodyId = useId()
   color: var(--fg-faint);
 }
 
-/* 收起时的摘要占满标题与把手之间，居中排；放不下时从起点截 */
+/* 收起时的摘要紧跟标题靠左，占满到把手之前；右侧只留把手 */
 .rail-summary {
   display: flex;
   flex: 1;
   align-items: center;
-  justify-content: safe center;
   gap: var(--space-2xs);
   min-inline-size: 0;
+  margin-inline-start: var(--space-xs);
   overflow: hidden;
   color: var(--fg-faint);
   font-weight: 400;
