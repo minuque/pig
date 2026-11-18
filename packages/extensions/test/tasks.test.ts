@@ -232,6 +232,29 @@ describe("后台任务：启动、结束、停止", () => {
     expect(task).toMatchObject({ status: "running", output: "0123456789\nabcdefghij\nthird\n" })
   })
 
+  it("已结束的任务只留最近 20 条，在跑的不受影响", async () => {
+    const { call, runs, latest, settle } = setup()
+    const ids: string[] = []
+
+    for (let index = 0; index < 25; index += 1) {
+      ids.push(
+        /bash:\w+/.exec(
+          await call("bg_task_start", { command: `c${index}`, description: "d" }),
+        )![0],
+      )
+      runs[index]!.exit(0)
+    }
+
+    await call("bg_task_start", { command: "still", description: "在跑" })
+    await settle()
+    const tasks = latest()
+
+    expect(tasks.filter((task) => task.status === "completed").map((task) => task.id)).toEqual(
+      ids.slice(-20),
+    )
+    expect(tasks.find((task) => task.status === "running")).toMatchObject({ command: "still" })
+  })
+
   it("日志写不进去时任务照常跑完，宿主进程不崩", async () => {
     brokenLogPath = logDir
     const { call, runs, latest, settle } = setup()

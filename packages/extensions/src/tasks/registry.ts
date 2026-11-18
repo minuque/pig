@@ -9,6 +9,8 @@ export interface TaskHost {
 type Entry = { task: Task; abort(): void }
 
 const PUBLISH_DELAY_MS = 100
+/** 已结束的任务只留最近这么多条；更早的从登记表删掉，日志文件仍在。 */
+const KEEP_FINISHED = 20
 /** 排队中的任务也算在跑：占名额，可以停止。 */
 const live = (entry: Entry | undefined): entry is Entry =>
   entry?.task.status === "queued" || entry?.task.status === "running"
@@ -57,6 +59,7 @@ export class TaskRegistry {
     Object.assign(entry.task, patch, { completedAt: Date.now() })
     // 先通知：叫醒让会话先忙起来，宿主收到「没有在跑的任务」时才不会销毁会话
     this.host?.notify(structuredClone(entry.task), wake)
+    this.prune()
     this.publishNow()
   }
 
@@ -72,6 +75,12 @@ export class TaskRegistry {
 
   stopAll() {
     for (const id of [...this.entries.keys()]) this.stop(id)
+  }
+
+  private prune() {
+    const finished = [...this.entries].filter(([, entry]) => !live(entry))
+
+    for (const [id] of finished.slice(0, -KEEP_FINISHED)) this.entries.delete(id)
   }
 
   private publishNow() {
