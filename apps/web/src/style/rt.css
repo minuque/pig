@@ -162,6 +162,35 @@
   pointer-events: none;
 }
 
+/* 分行卡片（CardList / CardRow）：行间一条 --separator-top，内边距读卡片的 --card-padding。
+   内容让出外环一个线宽，行线与悬停底不叠到半透明外环上加深 */
+.card-list {
+  display: flex;
+  flex-direction: column;
+  padding: var(--border-width);
+}
+
+.card-row {
+  margin-inline: var(--card-padding);
+}
+
+.card-row[data-bleed] {
+  margin-inline: 0;
+}
+
+.card-row + .card-row {
+  box-shadow: var(--separator-top);
+}
+
+.card-row[data-interactive] {
+  padding-inline: var(--card-padding);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.card-row[data-interactive]:hover {
+  background-color: var(--bg-hover);
+}
+
 /* rt 的表格行字色写死 --gray-12，接回项目正文色 */
 .rt-TableRow {
   color: var(--fg);

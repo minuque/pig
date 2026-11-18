@@ -172,6 +172,7 @@ spacing:
 - 浮层与对话框阴影全用 rt 原值（自带 1px 外环）：`.radix-themes` 内 `--shadow-popover` 指向 rt `--shadow-5`，`--shadow-dialog` 指向 `--shadow-6`。
 - 浮层底色是实色 `--bg-raised`（`.surface-float`），不透明，不模糊。
 - 卡片用 1px `--border` 描边、不铺底；描边与底色差只用一种。
+- 分行卡片一律用 `CardList` + `CardRow`（`@components/ui/card`），不自写行线与内边距：静态行内缩、行线随之内缩；`interactive` 整行可点、贴边带悬停底；`bleed` 贴边、内容自己读 `--card-padding`。
 - 焦点环：`--focus-ring` = 2px 实色第 11 级；危险态 `--focus-ring-danger`。
 
 ## 间距与尺寸

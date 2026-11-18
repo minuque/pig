@@ -21,8 +21,8 @@
     <section class="detail-sec">
       <h3 class="sec-title">{{ t("settings.models.connection") }}</h3>
 
-      <Card size="l" class="kvgroup">
-        <div class="kvrow">
+      <CardList class="kvgroup">
+        <CardRow class="kvrow">
           <template v-if="showStoredKey">
             <span class="kvlabel">{{ t("settings.models.apiKey") }}</span>
             <span class="kvvalue masked">{{ maskedKey }}</span>
@@ -96,8 +96,8 @@
               }}
             </button>
           </template>
-        </div>
-      </Card>
+        </CardRow>
+      </CardList>
 
       <Transition name="panel-reveal">
         <ProviderLoginPanel
@@ -241,7 +241,7 @@ import { copyProviderKey, logoutProvider, testProvider } from "@client/platform.
 import { providerStatusBadge } from "@features/settings/lib/provider-view.js"
 import { useI18n } from "@i18n/index.js"
 import type { ProviderView } from "@/types/common-type.js"
-import { Card } from "@components/ui/card/index.js"
+import { CardList, CardRow } from "@components/ui/card/index.js"
 
 type AuthMethod = "apiKey" | "oauth" | "ambient"
 

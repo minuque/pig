@@ -42,10 +42,12 @@
     <div v-for="group in groups" :key="group.id" class="provider-group">
       <h3 class="provider-group-title">{{ t(`settings.models.group.${group.id}`) }}</h3>
 
-      <Card size="l" class="provider-card">
-        <button
+      <CardList>
+        <CardRow
           v-for="provider in group.providers"
           :key="provider.id"
+          as="button"
+          interactive
           type="button"
           class="provider-row"
           :data-provider="provider.id"
@@ -71,8 +73,8 @@
           </span>
 
           <ChevronRightIcon class="provider-chevron" />
-        </button>
-      </Card>
+        </CardRow>
+      </CardList>
     </div>
 
     <p v-if="!loading && !groups.length" class="list-state">
@@ -91,7 +93,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/
 import VendorMark from "@features/composer/components/VendorMark.vue"
 import { groupProviders, providerSourceText } from "@features/settings/lib/provider-view.js"
 import type { ProviderView } from "@/types/common-type.js"
-import { Card } from "@components/ui/card/index.js"
+import { CardList, CardRow } from "@components/ui/card/index.js"
 
 const props = defineProps<{
   providers: ProviderView[]
@@ -159,11 +161,6 @@ function sourceKind(provider: ProviderView) {
   color: var(--fg-faint);
 }
 
-.provider-card {
-  /* 内容让出外环一个线宽：行线与悬停底不叠到半透明外环上加深 */
-  padding: var(--border-width);
-}
-
 .provider-group + .provider-group {
   margin-block-start: var(--space-lg);
 }
@@ -183,18 +180,8 @@ function sourceKind(provider: ProviderView) {
   gap: var(--space-sm);
   width: 100%;
   height: 60px;
-  padding-inline: var(--card-padding);
   color: var(--fg);
   text-align: start;
-  transition: background-color var(--duration-fast) var(--ease-out);
-}
-
-.provider-row + .provider-row {
-  box-shadow: var(--separator-top);
-}
-
-.provider-row:hover {
-  background: var(--bg-hover);
 }
 
 .provider-mark {

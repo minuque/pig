@@ -1,8 +1,8 @@
 <template>
-  <Card size="l" class="model-list">
+  <CardList>
     <p v-if="error" class="list-error">{{ error }}</p>
 
-    <div v-for="model in provider.models" :key="model.id" class="model-card">
+    <CardRow v-for="model in provider.models" :key="model.id" bleed class="model-card">
       <div class="model-row">
         <button
           type="button"
@@ -46,8 +46,8 @@
           @saved="emit('changed')"
         />
       </Transition>
-    </div>
-  </Card>
+    </CardRow>
+  </CardList>
 </template>
 
 <script setup lang="ts">
@@ -62,7 +62,7 @@ import { setModelEnabled } from "@client/platform.js"
 import { modelMeta } from "@features/settings/lib/provider-view.js"
 import { useI18n } from "@i18n/index.js"
 import type { ProviderModelView, ProviderView } from "@/types/common-type.js"
-import { Card } from "@components/ui/card/index.js"
+import { CardList, CardRow } from "@components/ui/card/index.js"
 
 const props = defineProps<{ provider: ProviderView }>()
 const emit = defineEmits<{ changed: [] }>()
@@ -91,15 +91,6 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
 </script>
 
 <style scoped>
-.model-list {
-  /* 内容让出外环一个线宽：行线与悬停底不叠到半透明外环上加深 */
-  padding: var(--border-width);
-}
-
-.model-card + .model-card {
-  box-shadow: var(--separator-top);
-}
-
 .model-row {
   display: flex;
   align-items: center;

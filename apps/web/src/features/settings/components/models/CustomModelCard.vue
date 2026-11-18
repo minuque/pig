@@ -1,5 +1,5 @@
 <template>
-  <Card size="l" class="model-card">
+  <CardList class="model-card">
     <div class="card-head">
       <button type="button" class="card-toggle" @click="open = !open">
         <VendorMark class="model-icon" :vendor="providerId" :name="providerName" :size="16" />
@@ -65,7 +65,7 @@
         </div>
       </div>
     </div>
-  </Card>
+  </CardList>
 </template>
 
 <script setup lang="ts">
@@ -78,7 +78,7 @@ import VendorMark from "@features/composer/components/VendorMark.vue"
 import { IconButton } from "@components/ui/button/index.js"
 import { useI18n } from "@i18n/index.js"
 import type { CustomModelDraft } from "@features/settings/lib/provider-view.js"
-import { Card } from "@components/ui/card/index.js"
+import { CardList } from "@components/ui/card/index.js"
 
 const model = defineModel<CustomModelDraft>({ required: true })
 
@@ -90,11 +90,6 @@ const open = ref(!model.value.id)
 </script>
 
 <style scoped>
-.model-card {
-  /* 内容让出外环一个线宽：行线与悬停底不叠到半透明外环上加深 */
-  padding: var(--border-width);
-}
-
 .card-head {
   display: flex;
   align-items: center;

@@ -8,8 +8,8 @@
     <section class="group">
       <h2 class="group-title">{{ t("settings.display") }}</h2>
 
-      <Card size="l" class="card">
-        <div id="setting-welcome-field" class="row">
+      <CardList>
+        <CardRow id="setting-welcome-field" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.welcomeField") }}</h3>
             <p class="desc">{{ t("settings.welcomeFieldHint") }}</p>
@@ -26,9 +26,9 @@
               </SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </CardRow>
 
-        <div id="setting-ui-font" class="row">
+        <CardRow id="setting-ui-font" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.uiFont") }}</h3>
             <p class="desc">{{ t("settings.uiFontHint") }}</p>
@@ -58,9 +58,9 @@
               </SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </CardRow>
 
-        <div id="setting-ui-size" class="row">
+        <CardRow id="setting-ui-size" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.uiSize") }}</h3>
             <p class="desc">{{ t("settings.uiSizeHint") }}</p>
@@ -77,9 +77,9 @@
               </SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </CardRow>
 
-        <div id="setting-code-font" class="row">
+        <CardRow id="setting-code-font" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.codeFont") }}</h3>
             <p class="desc">{{ t("settings.codeFontHint") }}</p>
@@ -109,9 +109,9 @@
               </SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </CardRow>
 
-        <div id="setting-code-size" class="row">
+        <CardRow id="setting-code-size" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.codeSize") }}</h3>
             <p class="desc">{{ t("settings.codeSizeHint") }}</p>
@@ -128,9 +128,9 @@
               </SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </CardRow>
 
-        <div id="setting-chat-width" class="row">
+        <CardRow id="setting-chat-width" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.chatWidth") }}</h3>
             <p class="desc">{{ t("settings.chatWidthHint") }}</p>
@@ -147,8 +147,8 @@
               </SelectItem>
             </SelectContent>
           </Select>
-        </div>
-      </Card>
+        </CardRow>
+      </CardList>
     </section>
   </section>
 </template>
@@ -166,7 +166,7 @@ import {
 } from "@features/settings/index.js"
 import { useLocalFonts } from "@features/settings/hooks/use-local-fonts.js"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@components/ui/select/index.js"
-import { Card } from "@components/ui/card/index.js"
+import { CardList, CardRow } from "@components/ui/card/index.js"
 import SchemeCards from "./SchemeCards.vue"
 
 /** Select 的值不能是空串，默认字体用占位值。 */

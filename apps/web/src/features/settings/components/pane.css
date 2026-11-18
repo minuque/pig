@@ -21,12 +21,6 @@
   line-height: var(--text-title--line-height);
 }
 
-.card {
-  padding-block: 0;
-  display: flex;
-  flex-direction: column;
-}
-
 .row {
   display: flex;
   align-items: center;
@@ -34,10 +28,6 @@
   gap: var(--space-md);
   min-height: calc(var(--control-lg) + var(--space-2xl));
   padding-block: var(--space-md);
-}
-
-.row + .row {
-  box-shadow: var(--separator-top);
 }
 
 .copy {

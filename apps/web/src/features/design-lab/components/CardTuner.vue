@@ -2,12 +2,12 @@
   <div class="tuner">
     <!-- 预览区：变量只写在这个子树上，用的是真实组件 -->
     <section class="tuner-preview" :style="previewVars">
-      <Card size="s" class="demo-settings">
-        <div v-for="row in SETTINGS_ROWS" :key="row" class="demo-row">
+      <CardList>
+        <CardRow v-for="row in SETTINGS_ROWS" :key="row" class="demo-row">
           <span>{{ row }}</span>
           <Switch :model-value="true" size="s" />
-        </div>
-      </Card>
+        </CardRow>
+      </CardList>
 
       <MarkdownContent :nodes="nodes" />
 
@@ -91,7 +91,7 @@ import { computed, reactive, ref } from "vue"
 import { useClipboard } from "@vueuse/core"
 import { Button } from "@components/ui/button/index.js"
 import { Callout } from "@components/ui/callout/index.js"
-import { Card } from "@components/ui/card/index.js"
+import { CardList, CardRow } from "@components/ui/card/index.js"
 import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
 import { Slider } from "@components/ui/slider/index.js"
 import { Switch } from "@components/ui/switch/index.js"
@@ -225,21 +225,11 @@ async function copy() {
   max-width: var(--content-width);
 }
 
-.demo-settings {
-  --card-padding: 0;
-
-  padding-inline: var(--space-md);
-}
-
 .demo-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   min-height: calc(var(--control-lg) + var(--space-lg));
-}
-
-.demo-row + .demo-row {
-  box-shadow: var(--separator-top);
 }
 
 .tuner-panel {
