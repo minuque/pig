@@ -109,14 +109,13 @@ function clearFinished() {
 
 <style scoped>
 /* 会话面板的第三列：头部之下、贴右边，宽度两档；正文自己滚，头部不动 */
-/* 面板列里的一张 Card：宽高都随所在的挂载点，去掉卡片内边距、铺表面底 */
+/* 面板列里的一张 Card：宽高都随所在的挂载点，去掉卡片内边距，不铺底 */
 .rail-pane {
   display: flex;
   flex: 1;
   flex-direction: column;
   min-block-size: 0;
   padding: 0;
-  background: var(--bg-surface);
 }
 
 .rail-pane-head {

@@ -80,14 +80,14 @@ const bodyId = useId()
   flex-direction: column;
   min-inline-size: 0;
   padding: var(--space-xs);
-  background: var(--bg-surface);
   border-radius: var(--radius-card);
   box-shadow: 0 0 0 1px var(--border-subtle);
 }
 
-/* 拖着走的卡片浮起来；位移由 useDragReorder 驱动 */
+/* 拖着走的卡片浮起来，铺浮层底遮住下面的卡；位移由 useDragReorder 驱动 */
 .rail-card.is-drag-live {
   z-index: 2;
+  background: var(--bg-raised);
   box-shadow: var(--shadow-popover);
   cursor: grabbing;
   user-select: none;
@@ -143,13 +143,14 @@ const bodyId = useId()
   color: var(--fg-faint);
 }
 
+/* 收起时的摘要占满标题与把手之间，居中排；放不下时从起点截 */
 .rail-summary {
   display: flex;
+  flex: 1;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: safe center;
   gap: var(--space-2xs);
   min-inline-size: 0;
-  margin-inline-start: auto;
   overflow: hidden;
   color: var(--fg-faint);
   font-weight: 400;
