@@ -38,6 +38,8 @@
      必须写在这里：--gray-* 只在 .radix-themes 作用域内映射。 */
   --border: var(--gray-a4);
   --border-subtle: var(--gray-a3);
+  /* 浮在凹槽上的选中块描边，比 --border 高一档 */
+  --border-strong: var(--gray-a5);
   /* 卡片内的行间分隔：和卡片外环、rt 表格行线同一画法，用内阴影而不是 border，
      非整数缩放下不被取整成一条实线 */
   --separator-top: inset 0 var(--border-width) 0 var(--border-subtle);

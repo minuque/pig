@@ -39,6 +39,18 @@ const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<ToggleGrou
   background: none;
 }
 
+.rt-r-size-1 [data-slot="segmented-control-item"] .rt-SegmentedControlItemLabel {
+  padding-inline: var(--space-xs);
+}
+
+.rt-r-size-2 [data-slot="segmented-control-item"] .rt-SegmentedControlItemLabel {
+  padding-inline: calc(var(--spacing) * 2.5);
+}
+
+.rt-r-size-3 [data-slot="segmented-control-item"] .rt-SegmentedControlItemLabel {
+  padding-inline: var(--space-sm);
+}
+
 [data-slot="segmented-control-item"] .rt-SegmentedControlItemLabelInactive {
   font-weight: var(--font-weight-medium);
 }
