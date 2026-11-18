@@ -46,3 +46,26 @@ function onValueChange(value: unknown) {
   if (typeof value === "string" && value) emit("update:modelValue", value)
 }
 </script>
+
+<style scoped>
+/* 凹槽底 + 细环，指示块内缩 2px，圆角同心 */
+[data-slot="segmented-control"] {
+  border-radius: var(--radius-card);
+  background: var(--bg-sunken);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-subtle);
+}
+
+[data-slot="segmented-control"] .rt-SegmentedControlIndicator::before {
+  inset: 2px;
+  border-radius: calc(var(--radius-card) - 2px);
+  background: var(--bg-raised);
+}
+
+[data-slot="segmented-control"].rt-r-size-1 {
+  border-radius: var(--radius-control);
+}
+
+[data-slot="segmented-control"].rt-r-size-1 .rt-SegmentedControlIndicator::before {
+  border-radius: calc(var(--radius-control) - 2px);
+}
+</style>
