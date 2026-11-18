@@ -1,8 +1,25 @@
 import { mkdtemp, mkdir, realpath, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { afterAll, describe, expect, it } from "vitest"
-import { expandFileMentions, mentionPaths } from "../src/pi/file-mentions.js"
+import {
+  createAgentSession,
+  DefaultResourceLoader,
+  SessionManager,
+} from "@earendil-works/pi-coding-agent"
+import { BINDING_ENTRY, environmentFor } from "@pig/environment/source"
+import { afterAll, describe, expect, it, vi } from "vitest"
+import fileMentions from "../src/file-mentions/index.ts"
+import { expandFileMentions, mentionPaths } from "../src/file-mentions/expand.ts"
+
+// 远端替身：只有 /srv/app/far.md 一个文件
+vi.mock("@pig/environment/source", async (original) => ({
+  ...(await original<object>()),
+  environmentFor: vi.fn(() => ({
+    stat: async (path: string) =>
+      path === "/srv/app/far.md" ? { kind: "file", size: 13 } : undefined,
+    readFile: async () => Buffer.from("远端内容\n"),
+  })),
+}))
 
 // macOS 的 /var 与 Windows 的 8.3 短名都被实现里的 realpath 展开，基准路径先对齐
 const root = await realpath(await mkdtemp(join(tmpdir(), "pig-mentions-")))
@@ -76,4 +93,36 @@ describe("expandFileMentions", () => {
     // 只应剩真实闭合标签一个；内容里的已转义
     expect(out.match(/<\/file/gi)).toHaveLength(1)
   })
+})
+
+it("远程会话的 @ 引用经绑定的环境读远端 workspace 里的文件", async () => {
+  const cwd = join(root, "placeholder")
+  await mkdir(cwd, { recursive: true })
+  const manager = SessionManager.create(cwd, join(root, "sessions"))
+  manager.appendCustomEntry(BINDING_ENTRY, { environment: "ssh://box", path: "/srv/app" })
+
+  const loader = new DefaultResourceLoader({
+    cwd,
+    agentDir: join(root, "agent"),
+    noExtensions: true,
+    extensionFactories: [fileMentions],
+  })
+
+  await loader.reload()
+
+  const { session } = await createAgentSession({
+    cwd,
+    agentDir: join(root, "agent"),
+    sessionManager: manager,
+    resourceLoader: loader,
+  })
+
+  await session.bindExtensions({})
+
+  const result = await session.extensionRunner.emitInput("看 @far.md", undefined, "rpc", undefined)
+  expect(environmentFor).toHaveBeenCalledWith("ssh://box")
+  expect(result.action === "transform" && result.text).toContain(
+    '<file name="/srv/app/far.md">\n远端内容',
+  )
+  session.dispose()
 })

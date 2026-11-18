@@ -8,7 +8,7 @@ pnpm workspace：
 - `apps/desktop/` — Electron main / preload
 - `packages/gateway/` — Thin Host：平台接入与本地安全
 - `packages/protocol/` — gateway 与 web 之间的 WebSocket 消息与 HTTP 数据形状，只有类型
-- `packages/extensions/` — pig 内置的 pi 包（subagent、remote-workspace），只用公开 Extension API，pi TUI 里也能装
+- `packages/extensions/` — pig 内置的 pi 扩展（turn-timing、file-mentions、subagent、tasks、remote-workspace），只用公开 Extension API，只由 gateway 加载，不注册到 pi TUI
 - `packages/environment/` — 工具运行的环境：本机或 SSH 主机；执行命令、读写文件、搜索、环境列表
 
 架构看板：`pnpm arch` 扫描源码生成 `docs/architecture/dist/index.html`（不提交），含总览、依赖分层地图、数据流与接口表。生成器在 `scripts/arch/`。数据流手写在 `docs/architecture/flows.ts`，每步的 `ref` 指向真实代码，`pnpm check` 校验它们仍然存在。依赖的分层手写在 `docs/architecture/layers.ts`，新增模块没归层时 `pnpm arch` 报错。
@@ -38,7 +38,7 @@ apps/web/src/
 
 `shell/WorkbenchShell.vue` 是组合根：`useGatewayClient` + `useLocalWorkspaces` → `provideSession(pi, cwd)` → `provideNav(pi, cwd, session)`，再把 `connect` / `initialize` 交给启动门。子树只用 `useSession()` / `useNav()`，不写创建/发送/重命名等领域规则。
 
-会话状态在 `features/session/`（连接、历史、乐观消息、后台发送），没有视图。`features/session-workbench/` 只是主视图，除了 shell 和 router 没有模块引用它。feature 之间的引用保持单向：`session-nav`、`session-rail`、`extension-ui` 引用 `session`，不反过来。
+会话状态在 `features/session/`（连接、历史、乐观消息、后台发送），没有视图。`features/session` 不引用任何别的 feature，eslint 的 `no-restricted-imports` 守住这条；它要问输入卡「用户选了什么」时，由 composer 经 `setPresetPort` 注册进来。`features/session-workbench/` 只是主视图，除了 shell 和 router 没有模块引用它。
 
 `apps/web/test/` 镜像 `src/` 分层：`test/components/ui/` 对 `src/components/ui/`，`test/features/<module>/` 对 `features/<module>/`，`test/style/` 对 `style/`。根级只放 `setup.ts`。测 `src` 根文件的用例用相对路径。整页浏览器旅程不要放进本目录，写到仓库根 `e2e/`。
 
@@ -74,15 +74,21 @@ lib/             多处生产消费，或有单测的纯逻辑
 packages/gateway/src/
 ├── cli.ts
 ├── index.ts        # 导出 Gateway、DirectoryPort
-├── directory.ts    # 目录选择、canonicalizePath（含远程 workspace 键）
 ├── auth/           # 浏览器启动凭证与通行证
 ├── pi/             # Session 运行时、会话索引、transcript、卡片、远程会话
-└── server/         # HTTP 与 WebSocket 协议端（@pig/protocol）
+├── server/         # HTTP 与 WebSocket 协议端（@pig/protocol）
+└── system/         # directory.ts：目录选择、canonicalizePath（含远程 workspace 键）
 ```
 
 `test/` 跟 `src/` 同层。
 
-gateway 在进程内跑 pi SDK。内置扩展经 `additionalExtensionPaths` 加载，和用户装的扩展走同一条路；gateway 不给扩展开私有接口。
+gateway 在进程内跑 pi SDK。内置扩展经 `additionalExtensionPaths` 加载；gateway 不给扩展开私有接口。用户在 pi 里装的扩展（`settings.json` 的 `packages`、`~/.pi/agent/extensions`、项目 `.pi/extensions`）一律不加载，以后由设置页统一管理。pig 不读仓库的 `.pi/settings.json`，也不替用户安装任何包。目录里直接放的 skills、prompt 模板与 AGENTS.md 照常共用；包里带的不加载。
+
+SDK 跟版：
+
+- 仓库锁 `@earendil-works/pi-coding-agent` 的精确版本。本机 pi 可以比它新。
+- 兼容的底线是会话格式：两边的 `CURRENT_SESSION_VERSION` 一致。本机 pi 升级后，比一次两边的 `dist/core/session-manager.js` 与这个常量。
+- 升级 SDK 先读 changelog，评估后再改锁版本。
 
 ## 远程 workspace
 

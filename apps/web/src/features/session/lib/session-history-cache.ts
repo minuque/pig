@@ -7,15 +7,30 @@ export const SESSION_VIEW_CACHE = 5
 /** items 是已加载窗口（只增不缩）；heldLive 是本次连接的 live 覆盖；stale 表示连接断过，下次要重拉。 */
 export type SessionHistoryPage = {
   items: TranscriptItem[]
+  /** 最后拉到的网关投影，不含 live 覆盖；下次带 after 续拉的基准。 */
+  disk: TranscriptItem[]
   timings: TurnTiming[]
   hasMore: boolean
+  /** 磁盘文件版本；活会话没有。 */
+  version?: string | undefined
+  /** 别处正在跑回合。 */
+  externalTurn: boolean
   heldLive: TranscriptItem[]
   ready: boolean
   stale: boolean
 }
 
 export function emptyHistoryPage(): SessionHistoryPage {
-  return { items: [], timings: [], hasMore: false, heldLive: [], ready: false, stale: false }
+  return {
+    items: [],
+    disk: [],
+    timings: [],
+    hasMore: false,
+    externalTurn: false,
+    heldLive: [],
+    ready: false,
+    stale: false,
+  }
 }
 
 export function createSessionHistoryCache(max = SESSION_VIEW_CACHE) {

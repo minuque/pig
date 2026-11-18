@@ -1,9 +1,7 @@
 import { inject, shallowRef, watch, type InjectionKey, type Ref } from "vue"
 import { transcriptItem } from "@client/platform.js"
-import {
-  transcriptImages,
-  transcriptText,
-} from "@features/transcript-view/lib/transcript-format.js"
+import { transcriptText } from "@features/session/lib/transcript-text.js"
+import { transcriptImages } from "@features/transcript-view/lib/transcript-format.js"
 import type { ToolCallView } from "@features/transcript-view/type.js"
 
 /** 当前时间线所属会话；工具行展开时据此取完整输出。 */

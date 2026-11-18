@@ -1,6 +1,6 @@
 import { computed, shallowRef, type ComputedRef, type ShallowRef } from "vue"
 import { useSessionBuckets } from "@features/composer/hooks/use-session-buckets.js"
-import type { ComposerAttachmentBatch } from "@features/composer/hooks/use-composer-attachments.js"
+import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
 
 export interface QueuedPrompt {
   id: string

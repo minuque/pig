@@ -1,7 +1,7 @@
 import { readFile, realpath, stat } from "node:fs/promises"
 import { isAbsolute, posix, relative, resolve, sep } from "node:path"
 
-import type { Environment } from "@pig/environment"
+import type { Environment } from "@pig/environment/source"
 
 /**
  * @ 文件引用展开：把 prompt 里的 @path / @"quoted path" 展开为

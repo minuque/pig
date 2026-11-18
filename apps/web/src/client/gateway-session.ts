@@ -45,10 +45,14 @@ export class GatewaySession {
 
   private constructor(private readonly client: GatewayClient) {}
 
-  static async open(client: GatewayClient, sessionId: string) {
+  static async open(client: GatewayClient, sessionId: string, options?: { takeover?: boolean }) {
     const session = new GatewaySession(client)
     await session.#bindWith("open", () =>
-      client.requestSession({ command: "attach_session", sessionId }),
+      client.requestSession({
+        command: "attach_session",
+        sessionId,
+        ...(options?.takeover ? { takeover: true } : {}),
+      }),
     )
     return session
   }

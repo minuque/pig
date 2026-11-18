@@ -1,10 +1,6 @@
 import { realpath } from "node:fs/promises"
-import type { BrowserWindow, OpenDialogOptions, OpenDialogReturnValue } from "electron"
 
-const DIALOG_OPTIONS = {
-  title: "选择工作目录",
-  properties: ["openDirectory", "createDirectory"],
-} as const satisfies OpenDialogOptions
+import type { ChildMessage, DirectorySelected } from "./gateway-messages.js"
 
 export type CanonicalizePath = (path: string) => string
 
@@ -14,26 +10,32 @@ export type DirectoryPort = {
   validateDirectory(path: string): Promise<string>
 }
 
-export type PickDirectory = (
-  parent: BrowserWindow | undefined,
-  options: typeof DIALOG_OPTIONS,
-) => Promise<OpenDialogReturnValue>
-
-export function createElectronDirectoryPort(
-  getWindow: () => BrowserWindow | undefined,
-  pickDirectory: PickDirectory,
+/** 子进程一侧：对话框经消息交给主进程弹，选出的原始路径回来后在本进程规范化。 */
+export function createMessageDirectoryPort(
+  post: (message: ChildMessage) => void,
   canonicalizePath: CanonicalizePath,
-): DirectoryPort {
+): { port: DirectoryPort; settle(message: DirectorySelected): void } {
+  const pending = new Map<number, (path: string | undefined) => void>()
+  let nextId = 0
   return {
-    async selectDirectory() {
-      const result = await pickDirectory(getWindow(), DIALOG_OPTIONS)
-      const selected = result.filePaths[0]
+    port: {
+      async selectDirectory() {
+        const id = ++nextId
+        const selected = await new Promise<string | undefined>((resolve) => {
+          pending.set(id, resolve)
+          post({ type: "select-directory", id })
+        })
 
-      if (result.canceled || !selected) return undefined
-      return canonicalizePath(await realpath(selected))
+        if (!selected) return undefined
+        return canonicalizePath(await realpath(selected))
+      },
+      async validateDirectory(path) {
+        return canonicalizePath(await realpath(path))
+      },
     },
-    async validateDirectory(path) {
-      return canonicalizePath(await realpath(path))
+    settle(message) {
+      pending.get(message.id)?.(message.path)
+      pending.delete(message.id)
     },
   }
 }

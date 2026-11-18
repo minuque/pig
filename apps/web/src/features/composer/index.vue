@@ -121,9 +121,9 @@ import ModelPicker from "@features/composer/components/ModelPicker.vue"
 import ContextRing from "@features/composer/components/ContextRing.vue"
 import PromptEditor from "@features/composer/components/PromptEditor.vue"
 import QueuePanel from "@features/composer/components/QueuePanel.vue"
+import type { ComposerAttachment } from "@/types/attachment-type.js"
 import {
   MAX_COMPOSER_ATTACHMENTS,
-  type ComposerAttachment,
   type ComposerAttachmentsApi,
 } from "@features/composer/hooks/use-composer-attachments.js"
 import type { ComposerQueueApi, QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"

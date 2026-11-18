@@ -29,6 +29,8 @@ const E2E_BY_AREA = [
     prefix: "apps/web/src/features/session/",
     specs: [
       "e2e/conversation/one-turn.spec.ts",
+      "e2e/conversation/external-turn.spec.ts",
+      "e2e/conversation/external-append.spec.ts",
       NEW_SESSION,
       "e2e/sidebar/workspace.spec.ts",
       SPLIT_VIEW,
@@ -41,15 +43,11 @@ const E2E_BY_AREA = [
   },
   {
     prefix: "apps/web/src/features/session-rail/",
-    specs: ["e2e/workbench/subagent-rail.spec.ts", "e2e/workbench/background-task.spec.ts"],
+    specs: ["e2e/workbench/subagent-rail.spec.ts"],
   },
   { prefix: "apps/web/src/features/file-pane/", specs: ["e2e/workbench/file-pane.spec.ts"] },
   { prefix: "apps/web/src/features/split-view/", specs: [SPLIT_VIEW, NEW_SESSION] },
   { prefix: "apps/web/src/shell/", specs: [SPLIT_VIEW, NEW_SESSION] },
-  {
-    prefix: "apps/web/src/features/extension-ui/",
-    specs: ["e2e/conversation/extension-ui.spec.ts"],
-  },
   { prefix: "apps/web/src/features/settings/", specs: ["e2e/settings/"] },
   { prefix: "apps/web/src/features/startup/", specs: [NEW_SESSION, "e2e/startup/"] },
   // 布局、样式、主题、共享 UI 影响所有页面，跑新建会话旅程兜底

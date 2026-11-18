@@ -14,7 +14,13 @@
         :class="{ 'is-split': sideBySide, 'is-resizing': resizing }"
         :style="sideBySide ? { '--split-left': `${split.state.value.ratio * 100}%` } : undefined"
       >
-        <WorkbenchPane v-show="leftShown" class="split-left" side="left" :session="left" />
+        <WorkbenchPane
+          v-show="leftShown"
+          class="split-left"
+          side="left"
+          :session="left"
+          :preset="leftPreset"
+        />
 
         <div
           v-if="sideBySide"
@@ -29,7 +35,13 @@
           @keydown.right.prevent="split.setRatio(split.state.value.ratio + 0.02)"
         ></div>
 
-        <WorkbenchPane v-if="split.split.value" v-show="rightShown" side="right" :session="right" />
+        <WorkbenchPane
+          v-if="split.split.value"
+          v-show="rightShown"
+          side="right"
+          :session="right"
+          :preset="rightPreset"
+        />
 
         <!-- 会话拖出侧栏时显形：上半截按左右落到对应一侧，下半截仍是输入卡的引用落点 -->
         <div class="split-drop" aria-hidden="true">
@@ -75,6 +87,7 @@ import { useGatewayClient } from "@client/gateway-connection.js"
 import { Columns2Icon } from "@components/icons/index.js"
 import { useI18n } from "@i18n/index.js"
 import { sessionDropTargetAttrs, type DroppedSession } from "@features/session-nav/index.js"
+import { bindComposerPreset } from "@features/composer/index.js"
 import { provideSharedBuckets } from "@features/composer/hooks/use-session-buckets.js"
 import ExtensionUi from "@features/extension-ui/index.vue"
 import { provideExtensionUi } from "@features/extension-ui/index.js"
@@ -114,6 +127,9 @@ const sideSession = (side: Side) =>
   })
 const left = sideSession("left")
 const right = sideSession("right")
+/** 跟着会话建，不跟面板挂载：右侧关掉再开，模型选择仍在。 */
+const leftPreset = bindComposerPreset(left, pi.models)
+const rightPreset = bindComposerPreset(right, pi.models)
 const onSide = (side: Side) => (side === "right" ? right : left)
 const focused = focusedSession(
   () => onSide(split.focused.value),

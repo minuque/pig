@@ -21,6 +21,8 @@ test("window.open 被主进程拒绝，不新开 Electron 窗口", async () => {
     env: {
       ...process.env,
       PIG_CDP: "0",
+      // 测试窗口不抢焦点，跑测试时不打断手头的工作
+      PIG_NO_FOCUS: "1",
       PIG_VITE_PORT: String(VITE_PORT),
       PIG_SESSION_DIR: sessionDir,
       PIG_CWD: sessionDir,

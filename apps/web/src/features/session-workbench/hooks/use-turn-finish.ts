@@ -1,6 +1,6 @@
 import { watch } from "vue"
 import type { TranscriptItem } from "@/types/common-type.js"
-import type { ComposerAttachmentBatch } from "@features/composer/hooks/use-composer-attachments.js"
+import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
 import type { ComposerQueueApi } from "@features/composer/hooks/use-composer-queue.js"
 import { notifyTurnDone } from "@features/settings/index.js"
 

@@ -39,6 +39,7 @@ export type {
   SessionMetadata,
   SessionPhase,
   SessionSnapshot,
+  SessionTranscriptPage,
   ThinkingLevel,
   ToolTranscriptItem,
   TranscriptItem,

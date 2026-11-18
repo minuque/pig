@@ -63,7 +63,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
-import type { ComposerAttachment } from "@features/composer/hooks/use-composer-attachments.js"
+import type { ComposerAttachment } from "@/types/attachment-type.js"
 import { XIcon, FileTextIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()

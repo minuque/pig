@@ -2,12 +2,15 @@ import { computed, getCurrentInstance, onBeforeUnmount, ref, watch, type Compute
 import type { ModelRef, ThinkingLevel } from "@/types/common-type.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
-import type { ComposerAttachmentBatch } from "@features/composer/hooks/use-composer-attachments.js"
-import { useSessionComposer } from "@features/composer/index.js"
-import { sameModel, thinkingLevelOf } from "@features/composer/lib/model-preset.js"
+import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
+import { notify } from "@components/layout/notify.js"
+import { t } from "@i18n/index.js"
+import { isChangedElsewhere } from "@features/session/hooks/abortable-open.js"
 import { dropBatch, stageBatchFor } from "@features/session/hooks/use-background-send.js"
 import type { SessionHub } from "@features/session/hooks/use-session-hub.js"
 import { useForegroundSession } from "@features/session/hooks/use-foreground-session.js"
+import { projectContextUsage } from "@features/session/lib/context-usage.js"
+import { sameModel, thinkingLevelOf } from "@features/session/lib/model-ref.js"
 import {
   emptyClientState,
   handOffIdle,
@@ -17,7 +20,7 @@ import {
   sessionState,
   withPendingAssistant,
 } from "@features/session/lib/session-state.js"
-import type { SessionClientState } from "@features/session/type.js"
+import type { PresetPort, SessionClientState } from "@features/session/type.js"
 
 export interface SessionLifecycleOptions {
   hub: SessionHub
@@ -45,6 +48,9 @@ export function useSessionLifecycle(
     leaveForeground,
     dispose,
     history,
+    externalTurn,
+    takeover,
+    dropChanged,
     contextUsage: foregroundUsage,
   } = useForegroundSession(pi, sessionId, hub)
   const { backgroundRunningIds } = live
@@ -125,14 +131,8 @@ export function useSessionLifecycle(
   })
   const phase = computed(() => projection.value?.phase)
   const running = computed(() => projection.value?.running ?? false)
-  const { catalog, preset, usage, createModel, consumeDetachedEdit } = useSessionComposer({
-    models: pi.models,
-    snapshot,
-    phase,
-    estimate: foregroundUsage,
-    setModel,
-    setThinking,
-  })
+  const contextUsage = computed(() => projectContextUsage(foregroundUsage.value))
+  let presetPort: PresetPort | undefined
   const { states, backgroundSend } = hub
   const idleState = emptyClientState()
   const creatingCwd = ref<string>()
@@ -153,6 +153,11 @@ export function useSessionLifecycle(
     },
   })
 
+  /** 输入卡注册「用户选了什么」；没注册时建会话不带模型，发送前不改模型。 */
+  function setPresetPort(port?: PresetPort) {
+    presetPort = port
+  }
+
   /** 欢迎页建出会话时，让队列、附件等外部暂存跟着交接。 */
   function setWelcomeHandoff(fn?: (id: string) => void) {
     welcomeHandoff = fn
@@ -165,7 +170,7 @@ export function useSessionLifecycle(
     creatingCwd.value = nextCwd
 
     try {
-      const nextId = await createRemoteSession(nextCwd, createModel())
+      const nextId = await createRemoteSession(nextCwd, presetPort?.createModel())
 
       if (epoch !== idleState.epoch) {
         idleState.sends = []
@@ -238,7 +243,7 @@ export function useSessionLifecycle(
         if (!nextId || sessionId.value !== nextId || remote.value?.id !== nextId) return false
       } else {
         const id = sessionId.value
-        const chosen = consumeDetachedEdit()
+        const chosen = presetPort?.consumeDetachedEdit()
         await ensureRemote(id)
 
         if (epoch !== thread.epoch || sessionId.value !== id) return false
@@ -276,6 +281,13 @@ export function useSessionLifecycle(
       const index = thread.sends.findIndex((item) => item.item.id === send.item.id)
 
       if (index >= 0) thread.sends.splice(index, 1)
+
+      // 会话在别处有更新：网关已释放运行时，放掉连接重拉历史；草稿已还原，再点发送会重新挂上
+      if (isChangedElsewhere(error) && sessionId.value) {
+        dropChanged(sessionId.value)
+        notify(t("session.changedElsewhere"), "info")
+      }
+
       throw error
     } finally {
       if (epoch === thread.epoch) thread.submitting = false
@@ -355,11 +367,13 @@ export function useSessionLifecycle(
     historyFresh: history.isFresh,
     turnTimings: history.turnTimings,
     sessionCwd,
-    contextUsage: usage,
+    contextUsage,
     tasks,
     stopTask,
-    catalog,
-    preset,
+    snapshot,
+    setModel,
+    setThinking,
+    setPresetPort,
     prompt,
     clientState,
     creating: creatingCwd,
@@ -371,6 +385,8 @@ export function useSessionLifecycle(
     setBackgroundIdleHandler,
     setWelcomeHandoff,
     transcriptFor: history.transcriptFor,
+    externalTurn,
+    takeover,
     abortSession,
     initialize,
     remote,

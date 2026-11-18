@@ -22,6 +22,7 @@ export type {
   ContextUsageEstimate,
   ContextUsagePreview,
   SessionCard,
+  SessionTranscriptPage,
   TurnTiming,
 } from "./session.js"
 

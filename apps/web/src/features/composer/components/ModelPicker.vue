@@ -178,8 +178,8 @@ import {
   FAVORITES_SCOPE,
   listPickerRows,
   resolveModelInfo,
-  sameModel,
 } from "@features/composer/lib/model-preset.js"
+import { sameModel } from "@features/session/lib/model-ref.js"
 import {
   displayThinkingLevel,
   formatThinkingLevel,

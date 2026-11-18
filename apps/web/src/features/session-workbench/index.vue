@@ -80,6 +80,8 @@
               </span>
             </div>
 
+            <ExternalTurnNotice />
+
             <Composer
               v-model:prompt="prompt"
               v-model:preset="preset"
@@ -111,16 +113,16 @@ import { useRoute } from "vue-router"
 import { warmWorkspace } from "@client/platform.js"
 import { Button } from "@components/ui/button/index.js"
 import Composer from "@features/composer/index.vue"
-import {
-  useComposerAttachments,
-  type ComposerAttachmentBatch,
-} from "@features/composer/hooks/use-composer-attachments.js"
+import { useComposerPreset } from "@features/composer/index.js"
+import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
+import { useComposerAttachments } from "@features/composer/hooks/use-composer-attachments.js"
 import { useComposerQueue, type QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useI18n } from "@i18n/index.js"
 import { sessionDropTargetAttrs, useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session/index.js"
 import { useAppearancePrefs } from "@features/settings/index.js"
+import ExternalTurnNotice from "@features/session-workbench/components/ExternalTurnNotice.vue"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
 import WelcomeField from "@features/session-workbench/components/WelcomeField.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
@@ -163,8 +165,6 @@ const {
   turnPending,
   connectionError,
   connected,
-  catalog,
-  preset,
   prompt,
   aborting,
   sessionCwd,
@@ -177,7 +177,9 @@ const {
   transcriptFor,
   contextUsage,
   welcome,
+  externalTurn,
 } = useSession()
+const { catalog, preset } = useComposerPreset()
 const { groups, lastCwd, addingWorkspace, addWorkspace, addRemoteWorkspace } = useNav()
 const remoteOpen = ref(false)
 const { welcomeField } = useAppearancePrefs()
@@ -211,7 +213,11 @@ const heroWorkspaceId = computed({
 })
 const composerCwd = computed(() => (sessionId.value ? sessionCwd.value : welcomeWorkspaceId.value))
 const sendDisabled = computed(
-  () => !composerCwd.value || preset.value === undefined || Boolean(creating.value),
+  () =>
+    !composerCwd.value ||
+    preset.value === undefined ||
+    Boolean(creating.value) ||
+    externalTurn.value,
 )
 
 // 侧栏点目录会写 lastCwd，Hero 跟随；workspaces 变化只兜底失效项，保住 Hero 手选

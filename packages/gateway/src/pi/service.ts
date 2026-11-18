@@ -7,7 +7,6 @@ import {
   ModelRuntime,
   SessionManager,
 } from "@earendil-works/pi-coding-agent"
-import type { SessionEntry, SessionHeader } from "@earendil-works/pi-coding-agent"
 import { defaultTaskLogRoot } from "@pig/environment"
 import type {
   ComposerCommand,
@@ -17,7 +16,6 @@ import type {
   SessionCard,
   SessionMetadata,
   TranscriptItem,
-  TurnTiming,
 } from "@pig/protocol"
 import { GatewayError, SessionBusyError, SessionNotFoundError } from "./runtime-types.js"
 import type { CreateSessionOptions, SessionService, SessionRuntime } from "./runtime-types.js"
@@ -31,9 +29,10 @@ import { SessionIndex, type IndexedSession } from "./session-index.js"
 import { recentSessionCwd, sessionListName } from "./session-label.js"
 import { BINDING_ENTRY, parseRemoteKey, prepareRemoteCwd } from "./remote-session.js"
 import { PiHostSession } from "./session-runtime.js"
-import { DiskTranscripts } from "./disk-transcripts.js"
+import { TranscriptReader } from "./transcript-reader.js"
+import { createDefaultRuntime, serializeEntries } from "./service-support.js"
 import { createResourceLoader } from "./resource-loader.js"
-import { lightTranscript } from "./transcript-page.js"
+import { isTurnUnfinished } from "./turn-state.js"
 
 export type Runtime = Awaited<ReturnType<typeof ModelRuntime.create>>
 
@@ -85,7 +84,10 @@ export class PiHostService implements SessionService {
   private sessionsCache: { expiresAt: number; infos: IndexedSession[] } | undefined
   private readonly sessionIndex: SessionIndex
   private readonly cards = new SessionCardCache()
-  private readonly diskTranscripts = new DiskTranscripts()
+  private readonly transcripts = new TranscriptReader({
+    live: (id) => this.activeSessions.get(id),
+    findPath: (id) => this.findSessionPath(id),
+  })
 
   constructor(private readonly options: PiHostServiceOptions = {}) {
     this.sessionIndex = new SessionIndex(options.sessionDir)
@@ -344,13 +346,21 @@ export class PiHostService implements SessionService {
     return this.attachments.dispose()
   }
 
-  async openSession(sessionId: string): Promise<SessionRuntime> {
+  async openSession(
+    sessionId: string,
+    options: { takeover?: boolean } = {},
+  ): Promise<SessionRuntime> {
     const runtime = await this.runtime()
     const path = await this.findSessionPath(sessionId)
 
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
 
     const manager = SessionManager.open(path)
+
+    if (!options.takeover && isTurnUnfinished(manager.getBranch())) {
+      throw new GatewayError("session_locked", `Session ${sessionId} has a turn running elsewhere`)
+    }
+
     // 与 createSession 同一套规范化拼写，SDK 的扩展缓存才不会被会话文件的原生拼写顶掉
     const cwd = canonicalizePath(manager.getCwd())
     const loader = await this.resources(cwd)
@@ -370,27 +380,14 @@ export class PiHostService implements SessionService {
     return this.activeSessions.get(sessionId)?.contextUsage(previewKey)
   }
 
-  /** 历史 Transcript：一次给全部条目的轻量形态。不进协议 snapshot。 */
-  async sessionTranscript(
-    sessionId: string,
-  ): Promise<{ items: TranscriptItem[]; timings: TurnTiming[]; hasMore: false }> {
-    const full = await this.fullTranscript(sessionId)
-    return { items: lightTranscript(full.items), timings: full.timings, hasMore: false }
+  /** 历史 Transcript 的轻量形态：known 未变则不重发，after 对得上只给尾巴。 */
+  sessionTranscript(...args: Parameters<TranscriptReader["page"]>) {
+    return this.transcripts.page(...args)
   }
 
   /** 单条完整条目：轻量历史里被截断的工具输出展开时取。 */
-  async transcriptItem(sessionId: string, itemId: string): Promise<TranscriptItem | undefined> {
-    return (await this.fullTranscript(sessionId)).items.find((item) => item.id === itemId)
-  }
-
-  private async fullTranscript(sessionId: string) {
-    const live = this.activeSessions.get(sessionId)
-
-    if (live) return live.historyTranscript()
-    const path = await this.findSessionPath(sessionId)
-
-    if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
-    return this.diskTranscripts.read(path)
+  transcriptItem(sessionId: string, itemId: string): Promise<TranscriptItem | undefined> {
+    return this.transcripts.item(sessionId, itemId)
   }
 
   /** 刷新 sessionId → 磁盘路径索引，返回本次扫描到的全部 session 信息。 */
@@ -430,7 +427,7 @@ export class PiHostService implements SessionService {
     const pending = this.slot(key)
     const slot = await pending
 
-    if (slot.taken) return createResourceLoader(key, this.options.agentDir, this.events)
+    if (slot.taken) return createResourceLoader(key, this.options, this.events)
     slot.taken = true
 
     if (this.resourceSlots.get(key) === pending) this.resourceSlots.delete(key)
@@ -450,7 +447,7 @@ export class PiHostService implements SessionService {
       if (!oldest.done) this.resourceSlots.delete(oldest.value)
     }
 
-    const pending = createResourceLoader(cwd, this.options.agentDir, this.events).then(
+    const pending = createResourceLoader(cwd, this.options, this.events).then(
       (loader) => ({ loader, taken: false }),
       (error: unknown) => {
         this.resourceSlots.delete(cwd)
@@ -497,19 +494,4 @@ export class PiHostService implements SessionService {
     this.sessionPaths.delete(sessionId)
     await rm(path, { force: true })
   }
-}
-
-/** 默认 ModelRuntime：凭据与模型读配置目录（缺省 ~/.pi/agent）；不做网络刷新，避免启动时拉取模型目录。 */
-function createDefaultRuntime(agentDir: string | undefined): Promise<Runtime> {
-  return ModelRuntime.create({
-    allowModelNetwork: false,
-    ...(agentDir
-      ? { authPath: join(agentDir, "auth.json"), modelsPath: join(agentDir, "models.json") }
-      : {}),
-  })
-}
-
-/** 与仓库既有做法一致：header + 条目逐行 JSON 落盘。 */
-function serializeEntries(header: SessionHeader, entries: SessionEntry[]): string {
-  return [header, ...entries].map((entry) => JSON.stringify(entry)).join("\n") + "\n"
 }

@@ -5,6 +5,14 @@ import type {
   UserTranscriptItem,
 } from "@/types/common-type.js"
 
+/** 建会话和发送前问输入卡「用户选了什么」；由 composer 一侧注册。 */
+export interface PresetPort {
+  /** 新建会话带的模型与档位；没选时为 undefined。 */
+  createModel(): { model: ModelRef; thinkingLevel: ThinkingLevel } | undefined
+  /** 没打开会话时改过的选择，取一次即清；没改过时为 undefined。 */
+  consumeDetachedEdit(): { model: ModelRef; thinkingLevel: string } | undefined
+}
+
 export interface OptimisticUserMessage {
   item: UserTranscriptItem
   knownItemIds: readonly string[]

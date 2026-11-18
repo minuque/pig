@@ -32,7 +32,6 @@ export const layers: Record<string, Layer[]> = {
       name: "功能",
       note: "业务逻辑",
       dirs: [
-        "features/session",
         "features/split-view",
         "features/composer",
         "features/transcript-view",
@@ -44,6 +43,7 @@ export const layers: Record<string, Layer[]> = {
         "features/click-sound",
       ],
     },
+    { name: "状态", note: "会话状态，不引用别的功能", dirs: ["features/session"] },
     { name: "组件", note: "通用 UI", dirs: ["components/layout", "components/ui", "components/icons"] },
     { name: "底座", note: "谁都能用", dirs: ["client", "types", "i18n", "utils"] },
   ],
@@ -58,7 +58,7 @@ export const layers: Record<string, Layer[]> = {
     { name: "底座", note: "登录态与系统对接", dirs: ["auth", "system"] },
   ],
   "packages/extensions": [
-    { name: "扩展", note: "对外能力", dirs: ["subagent"] },
+    { name: "扩展", note: "对外能力", dirs: ["subagent", "turn-timing", "file-mentions"] },
     { name: "底座", note: "被其他扩展复用", dirs: ["tasks", "remote-workspace"] },
   ],
 }

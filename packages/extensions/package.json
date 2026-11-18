@@ -4,17 +4,7 @@
   "private": true,
   "license": "MIT",
   "type": "module",
-  "description": "pig 内置的 pi 扩展；只用公开 Extension API，pi TUI 里也能安装使用",
-  "keywords": [
-    "pi-package"
-  ],
-  "pi": {
-    "extensions": [
-      "./src/subagent/index.ts",
-      "./src/remote-workspace/index.ts",
-      "./src/tasks/index.ts"
-    ]
-  },
+  "description": "pig 内置的 pi 扩展，只由 pig 网关加载；只用公开 Extension API",
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit -p tsconfig.json"

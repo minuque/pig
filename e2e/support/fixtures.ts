@@ -9,12 +9,12 @@ import Gateway from "../../packages/gateway/src/index.js"
 import type { DirectoryPort } from "../../packages/gateway/src/system/directory.js"
 import { createFakeRuntime, type FakeProviderSpec } from "./fake-model-runtime.js"
 import { BUILTIN_PROVIDERS } from "./fake-provider-registry.js"
-import { writeBackgroundTaskExtension } from "./background-task-agent.js"
 import { prepareRemote } from "./remote-fixture.js"
 import {
   prebuildComplexSession,
   prebuildFillerSessions,
   prebuildChildSession,
+  prebuildExternalTurnSession,
 } from "./prebuild-session.js"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..")
@@ -84,8 +84,15 @@ export interface MultiE2eGateway extends E2eGateway {
   readonly secondWorkspaceId: string
 }
 
+/** 会话文件路径：测试进程借它扮演外部写入方。 */
+export interface ExternalTurnGateway extends E2eGateway {
+  readonly sessionFile: string
+}
+
 type TestFixtures = {
   gateway: E2eGateway
+  /** 一个末尾是用户消息的会话，像别处的 TUI 正跑到一半。 */
+  externalTurnGateway: ExternalTurnGateway
   complexGateway: E2eGateway
   /** 只装 6 个批量会话，用来验侧栏分组与分页。 */
   navGateway: E2eGateway
@@ -95,10 +102,6 @@ type TestFixtures = {
   modelsGateway: E2eGateway
   /** 没有任何可用模型，用来验 Composer 空态。 */
   emptyModelsGateway: E2eGateway
-  /** 临时 agentDir 里装一个会弹框的扩展，用来验扩展 UI。 */
-  extensionGateway: E2eGateway
-  /** 真实会话加 /bg 与 /bg-fail 命令：不经模型，直接让内置 tasks 扩展起后台命令。 */
-  backgroundTaskGateway: E2eGateway
   /** 一个普通会话加一个 subagent 子会话，用来验摘要面板与子会话抽屉。 */
   subagentGateway: E2eGateway
   /** 登记一台替身 SSH 主机（底下是本机目录），用来验远程 workspace。 */
@@ -120,7 +123,7 @@ async function startGateway(options: ConstructorParameters<typeof Gateway>[0]) {
   return { gateway, port }
 }
 
-async function withGateway(
+export async function withGateway(
   seed: (sessionDir: string, workspaceDir: string) => void,
   use: (gateway: E2eGateway) => Promise<void>,
   /** 准备临时 agentDir；默认只放一个离线模型。始终隔离本机 ~/.pi，CI 上也有模型可选。 */
@@ -363,6 +366,19 @@ export const test = base.extend<TestFixtures>({
     },
     { scope: "test" },
   ],
+  externalTurnGateway: [
+    async ({}, use) => {
+      let sessionFile = ""
+
+      await withGateway(
+        (sessionDir, workspaceDir) => {
+          sessionFile = prebuildExternalTurnSession(sessionDir, workspaceDir)
+        },
+        (gateway) => use({ ...gateway, sessionFile }),
+      )
+    },
+    { scope: "test" },
+  ],
   complexGateway: [
     async ({}, use) => {
       await withGateway(
@@ -398,18 +414,6 @@ export const test = base.extend<TestFixtures>({
     },
     { scope: "test" },
   ],
-  extensionGateway: [
-    async ({}, use) => {
-      await withGateway(() => undefined, use, prepareExtensionAgent)
-    },
-    { scope: "test" },
-  ],
-  backgroundTaskGateway: [
-    async ({}, use) => {
-      await withGateway(() => undefined, use, prepareBackgroundTaskAgent)
-    },
-    { scope: "test" },
-  ],
   subagentGateway: [
     async ({}, use) => {
       await withGateway((sessionDir, workspaceDir) => {
@@ -427,15 +431,13 @@ export const test = base.extend<TestFixtures>({
           writeFileSync(join(workspaceDir, "src", "remote-only.ts"), "")
         },
         use,
-        prepareExtensionAgent,
+        writeOfflineModel,
         prepareRemote,
       )
     },
     { scope: "test" },
   ],
 })
-export const EXTENSION_TITLE = "扩展想确认一件事"
-export const EXTENSION_YES = "扩展收到：是"
 
 /** 一个离线可选的本地模型：Prompt 由 sim-turn 拦下，不会真的请求它。 */
 async function writeOfflineModel(agentDir: string) {
@@ -453,30 +455,6 @@ async function writeOfflineModel(agentDir: string) {
       },
     }),
   )
-}
-
-/** 离线模型加一个 /ask 命令：confirm 之后把答案用 notify 报出来。 */
-async function prepareExtensionAgent(agentDir: string) {
-  await writeOfflineModel(agentDir)
-  await mkdir(join(agentDir, "extensions"))
-  await writeFile(
-    join(agentDir, "extensions", "ask.ts"),
-    `export default function (pi) {
-      pi.registerCommand("ask", {
-        description: "ask",
-        handler: async (_args, ctx) => {
-          const ok = await ctx.ui.confirm("${EXTENSION_TITLE}", "要不要继续")
-          ctx.ui.notify(ok ? "${EXTENSION_YES}" : "否", "info")
-        },
-      })
-    }`,
-  )
-}
-
-/** /bg 一类的测试命令：不经模型，直接让内置 tasks 扩展登记后台任务。 */
-async function prepareBackgroundTaskAgent(agentDir: string) {
-  await prepareExtensionAgent(agentDir)
-  await writeBackgroundTaskExtension(agentDir, root)
 }
 
 export { expect }

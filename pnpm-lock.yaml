@@ -229,6 +229,9 @@ importers:
 
   apps/desktop:
     dependencies:
+      '@pig/environment':
+        specifier: workspace:*
+        version: link:../../packages/environment
       '@pig/gateway':
         specifier: workspace:*
         version: file:packages/gateway(@aws-sdk/credential-provider-node@3.972.94)(@smithy/signature-v4@5.7.5)(supports-color@10.2.2)(zod@3.25.76)
