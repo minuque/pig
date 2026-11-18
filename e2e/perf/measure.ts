@@ -269,7 +269,7 @@ async function endWorstFrameSample(page: Page): Promise<number> {
 }
 
 /** 采样 action 期间的动画帧，返回最差帧长。 */
-export async function worstFrameDuring(page: Page, action: () => Promise<void>): Promise<number> {
+async function worstFrameDuring(page: Page, action: () => Promise<void>): Promise<number> {
   await beginFrameSample(page)
 
   try {
@@ -421,7 +421,7 @@ export async function scrollSessionList(page: Page): Promise<number> {
   return scrollOverflowWorstFrame(page, ".session-window", "侧栏未产生可滚动内容")
 }
 
-export function quantile(values: readonly number[], q: number): number {
+function quantile(values: readonly number[], q: number): number {
   if (values.length === 0) throw new Error("测量样本为空")
 
   if (

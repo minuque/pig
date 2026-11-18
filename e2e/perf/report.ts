@@ -12,10 +12,8 @@ export type MetricRow = {
   previous?: number | null
   /** 值是最长帧，帧率列显示换算后的 fps */
   frame?: boolean
-  unit?: Unit
+  unit?: "ms" | "cls"
 }
-
-type Unit = "ms" | "cls" | "count" | "bytes" | "percent"
 
 function paint(text: string, color: "green" | "red" | null) {
   if (color === "green") return `${GREEN}${text}${RESET}`
@@ -57,19 +55,10 @@ function pad(text: string, width: number, align: "left" | "right") {
   return align === "right" ? space + text : text + space
 }
 
-function formatMetric(value: number | null | undefined, unit: Unit = "ms") {
+function formatMetric(value: number | null | undefined, unit: "ms" | "cls" = "ms") {
   if (value == null || !Number.isFinite(value)) return "—"
 
   if (unit === "cls") return Number(value.toFixed(3)).toString()
-
-  if (unit === "count") return `${Number(value.toFixed(1))} 次`
-
-  if (unit === "percent") return `${Number(value.toFixed(1))}%`
-
-  if (unit === "bytes")
-    return Math.abs(value) >= 1024 * 1024
-      ? `${Number((value / 1024 / 1024).toFixed(2))} MB`
-      : `${Number((value / 1024).toFixed(1))} KB`
   return `${Number(value.toFixed(1))} ms`
 }
 
@@ -78,7 +67,7 @@ function formatFps(value: number | null | undefined) {
   return `约 ${Math.round(1000 / value)} fps`
 }
 
-function changeText(value: number | null, previous: number | null, unit: Unit = "ms") {
+function changeText(value: number | null, previous: number | null, unit: "ms" | "cls" = "ms") {
   if (value == null || previous == null || !Number.isFinite(value) || !Number.isFinite(previous))
     return "—"
   const diff = value - previous

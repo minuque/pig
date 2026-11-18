@@ -6,9 +6,7 @@ import { join, resolve } from "node:path"
 import Gateway from "../../packages/gateway/src/index.js"
 import { run } from "../../scripts/run.mjs"
 import type { DirectoryPort } from "../../packages/gateway/src/system/directory.js"
-import { createBenchRuntime, createFauxScript } from "../support/faux-runtime.js"
 import { canonicalizeWorkspacePath } from "../support/fixtures.js"
-import { GATEWAY_COUNTS, measureGatewayRound } from "./gateway.js"
 import { createDesktopHarness, createWebHarness, type BenchHarness } from "./harness.js"
 import {
   captureBenchFailure,
@@ -20,13 +18,10 @@ import {
   scrollTranscript,
   waitForWorkbench,
 } from "./measure.js"
-import { measureParallel } from "./parallel.js"
-import { measureRefetch, prepareRefetch, type RefetchContext } from "./refetch.js"
-import { regressionsSoFar, reportTable, type MetricRow } from "./report.js"
+import { regressionsSoFar, reportTable } from "./report.js"
 import { LONG_SESSION_NAME, SHORT_SESSION_NAME, seedBenchSessions } from "./seed.js"
 import { runTurn } from "./turn.js"
 
-const GW = "并行（网关）"
 /** 只量用户直接感知的几项；frame=true 的值是最长帧。 */
 const METRICS = [
   { key: "coldToWorkbench", label: "打开工作台", group: "启动" },
@@ -37,39 +32,7 @@ const METRICS = [
   { key: "composerKeyToFrame", label: "输入跟手", group: "输入与流式" },
   { key: "firstTokenMs", label: "发送后首条助手", group: "输入与流式" },
   { key: "streamKeepUpMs", label: "流式跟上", group: "输入与流式" },
-  { key: "splitTypeWhileStream", label: "分屏：右侧流式时左侧输入", group: "并行（界面）" },
-  {
-    key: "splitDualStreamWorstFrame",
-    label: "分屏：两侧同时流式",
-    group: "并行（界面）",
-    frame: true,
-  },
-  { key: "splitStreamKeepUp", label: "分屏：两侧流式时左侧跟上", group: "并行（界面）" },
-  { key: "bgTypeWhileStream", label: "4 个后台流式时输入", group: "并行（界面）" },
-  ...GATEWAY_COUNTS.flatMap((n) => [
-    { key: `gwLoopP99_${n}` as const, label: `事件循环 p99（${n} 会话）`, group: GW },
-    {
-      key: `gwLoopBusy_${n}` as const,
-      label: `事件循环占用（${n} 会话）`,
-      group: GW,
-      unit: "percent" as const,
-    },
-    { key: `gwFirstProgress_${n}` as const, label: `首帧推送（${n} 会话）`, group: GW },
-    { key: `gwProgressGapP99_${n}` as const, label: `推送间隔 p99（${n} 会话）`, group: GW },
-  ]),
-  { key: "gwHeapPerSession", label: "每会话 JS 堆", group: GW, unit: "bytes" },
-  { key: "gwTranscriptMs", label: "长会话全文历史", group: GW },
-  { key: "gwTranscriptBytes", label: "长会话全文历史大小", group: GW, unit: "bytes" },
-  // 仅 --web：桌面端网关在 Electron 里，注入不了替身供应商
-  { key: "turnRefetchCount", label: "一回合历史重拉", group: GW, unit: "count" },
-  { key: "turnRefetchBytes", label: "一回合历史重拉字节", group: GW, unit: "bytes" },
-] as const satisfies readonly {
-  key: string
-  label: string
-  group: string
-  frame?: true
-  unit?: MetricRow["unit"]
-}[]
+] as const
 /** 离线可选的本地模型：回合由桥接模拟，不会真的发请求。 */
 const BENCH_MODELS = {
   providers: {
@@ -125,20 +88,11 @@ async function startGateway(workspaceDir: string, sessionDir: string) {
     selectDirectory: async () => workspaceDir,
     validateDirectory: async (path) => path,
   }
-  // 与缺省同参的 runtime；替身供应商等界面场景跑完才挂上，前面的数不受影响
-  const runtime = await createBenchRuntime()
-  const gateway = new Gateway({
-    webRoot,
-    sessionDir,
-    cwd: workspaceDir,
-    platformPort,
-    port: 0,
-    createRuntime: async () => runtime,
-  })
+  const gateway = new Gateway({ webRoot, sessionDir, cwd: workspaceDir, platformPort, port: 0 })
 
   try {
     const port = await gateway.start()
-    return { gateway, runtime, origin: gateway.authenticatedUrl(`http://127.0.0.1:${port}`) }
+    return { gateway, origin: gateway.authenticatedUrl(`http://127.0.0.1:${port}`) }
   } catch (error) {
     await gateway.stop()
     throw error
@@ -194,34 +148,6 @@ async function measureRound(harness: BenchHarness, samples: Samples) {
   } finally {
     await turn.close()
   }
-
-  await measureParallel(harness, samples, failShot)
-}
-
-/** 4.1：每轮一个新实例，在长会话种子的分叉上跑真实回合。 */
-async function measureRefetchRounds(
-  harness: BenchHarness,
-  context: RefetchContext,
-  runs: number,
-  samples: Samples,
-) {
-  await prepareRefetch(context)
-
-  for (let round = 1; round <= runs; round += 1) {
-    console.log(`重拉第 ${round}/${runs} 轮`)
-    const session = await harness.open()
-
-    try {
-      const result = await measureRefetch(session, context, round)
-      samples.turnRefetchCount.push(result.count)
-      samples.turnRefetchBytes.push(result.bytes)
-    } catch (error) {
-      await captureBenchFailure(session.page, failShot)
-      throw error
-    } finally {
-      await session.close()
-    }
-  }
 }
 
 /** 同口径（版本、运行时、平台）的上次结果才拿来比较。 */
@@ -245,7 +171,6 @@ async function main() {
   const temp = await mkdtemp(join(tmpdir(), "pig-bench-"))
   let gateway: Gateway | undefined
   let harness: BenchHarness | undefined
-  let refetch: RefetchContext | undefined
 
   try {
     const workspaceDir = join(temp, "workspace")
@@ -259,26 +184,10 @@ async function main() {
     await writeFile(join(workspaceDir, ".keep"), "")
     seedBenchSessions(sessionDir, workspaceDir)
     const workspaceId = canonicalizeWorkspacePath(workspaceDir)
-    const samples = Object.fromEntries(METRICS.map(({ key }) => [key, []])) as unknown as Samples
-
-    // 网关层先跑：纯 Node，不开浏览器
-    for (let round = 1; round <= args.runs; round += 1) {
-      console.log(`网关第 ${round}/${args.runs} 轮`)
-
-      for (const [key, value] of Object.entries(await measureGatewayRound(temp)))
-        samples[key as MetricKey].push(value)
-    }
 
     if (args.web) {
       const started = await startGateway(workspaceDir, sessionDir)
       gateway = started.gateway
-      const script = createFauxScript()
-      refetch = {
-        sessionDir,
-        workspaceDir,
-        script,
-        install: () => started.runtime.registerNativeProvider(script.provider),
-      }
       harness = await createWebHarness({ headed: args.headed, origin: started.origin, workspaceId })
     } else {
       harness = await createDesktopHarness({ workspaceId, workspaceDir, sessionDir })
@@ -290,36 +199,23 @@ async function main() {
     await waitForWorkbench(warmup.page)
     await warmup.close()
 
+    const samples = Object.fromEntries(METRICS.map(({ key }) => [key, []])) as unknown as Samples
+
     for (let round = 1; round <= args.runs; round += 1) {
       console.log(`第 ${round}/${args.runs} 轮`)
       await measureRound(harness, samples)
     }
 
-    if (refetch) await measureRefetchRounds(harness, refetch, args.runs, samples)
-
     const config = {
-      version: 22,
+      version: 20,
       runs: args.runs,
       runtime: harness.runtime,
       browser: harness.runtimeLabel,
       platform: process.platform,
       arch: process.arch,
     }
-    // 桌面模式没有重拉样本，留空
-    const pick = (stat: (values: number[]) => number) =>
-      Object.fromEntries(
-        METRICS.map(({ key }) => {
-          const values = samples[key]
-
-          try {
-            return [key, values.length ? stat(values) : null]
-          } catch (error) {
-            throw new Error(`${key} 样本 ${JSON.stringify(values)}`, { cause: error })
-          }
-        }),
-      )
-    const metrics = pick(median)
-    const p90s = pick(p90)
+    const metrics = Object.fromEntries(METRICS.map(({ key }) => [key, median(samples[key])]))
+    const p90s = Object.fromEntries(METRICS.map(({ key }) => [key, p90(samples[key])]))
     const previous = await loadPrevious(config)
 
     await mkdir(join(root, "test-results"), { recursive: true })
@@ -333,7 +229,6 @@ async function main() {
         p90: p90s[metric.key] ?? null,
         previous: previous[metric.key] ?? null,
         frame: "frame" in metric,
-        ...("unit" in metric ? { unit: metric.unit } : {}),
       })),
     )
     console.log(`结果已写入 ${resultPath}`)
