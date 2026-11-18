@@ -45,9 +45,9 @@
   --bg-surface: #f6f6fa;
   --bg-raised: #fbfbff;
   --scrim: rgba(0, 0, 0, 0.4);
-  /* 反色主按钮 */
-  --bg-inverse: #292929;
-  --bg-inverse-hover: #3c3c3c;
+  /* 反色按钮（发送、停止、滚动到底部）：中灰底，对比度压一档不抢正文 */
+  --bg-inverse: #6b6b72;
+  --bg-inverse-hover: #57575e;
 
   /* --- 前景 --- */
   --fg-on-accent: var(--accent-contrast);
@@ -354,8 +354,8 @@ html[data-pig-desktop-platform="win32"] {
   --bg-surface: #17171a;
   --bg-raised: #1e1e20;
   --scrim: rgba(0, 0, 0, 0.55);
-  --bg-inverse: #e8e8e8;
-  --bg-inverse-hover: #ffffff;
+  --bg-inverse: #9da4ae;
+  --bg-inverse-hover: #b8bdc5;
 
   /* --- 前景 --- */
   /* 主文字与次要文字带一点冷蓝 */

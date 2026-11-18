@@ -101,7 +101,7 @@ spacing:
 - `--link`、焦点环：第 11 级。深色下文字类用法必须用第 11 级。
 - 「进行中」不用强调色：运行状态、转圈、上下文进度条与用量环走 `--info-*`（cyan），悬停与选中仍是 iris。
 - 一页只出现一个 solid 主按钮，其余用 soft 或 ghost。
-- 输入卡的发送 / 停止键与「滚动到底部」用黑白反色（`--bg-inverse` / `--fg-inverse`，rt 按钮写 `variant="solid" color="gray" high-contrast`），不用强调色。
+- 输入卡的发送 / 停止键与「滚动到底部」用反色（`--bg-inverse` / `--fg-inverse`），不用强调色。反色取中灰（浅色 `#6B6B72` 配白字 5.3:1，深色 `#9DA4AE` 配深字 7.6:1），不用纯黑白。发送键不可用时换 `--bg-emphasis` 底配 `--fg-faint` 图标，不靠降透明度。
 
 ### 中性色
 

@@ -70,7 +70,6 @@
                   type="button"
                   variant="solid"
                   color="gray"
-                  high-contrast
                   size="s"
                   radius="full"
                   @click="scrollToLatest('smooth')"
@@ -600,11 +599,20 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   pointer-events: auto;
 }
 
-/* 黑白反色胶囊浮在输入卡上方 */
+/* 反色胶囊浮在输入卡上方，与发送键同一组反色 */
 .scroll-latest {
   display: flex;
   align-self: flex-start;
   translate: 0 calc(-100% - var(--space-sm));
+}
+
+.scroll-latest-button {
+  background-color: var(--bg-inverse);
+  color: var(--fg-inverse);
+}
+
+.scroll-latest-button:hover {
+  background-color: var(--bg-inverse-hover);
 }
 
 @media (max-width: 900px) {

@@ -400,10 +400,12 @@ function onAbortHotkey(event: KeyboardEvent) {
   opacity: 0.85;
 }
 
+/* 不可发送：中性浅底配弱色箭头，和可发送的实心圆一眼分开 */
 .send:disabled {
   cursor: default;
-  opacity: 0.3;
   scale: 1;
+  background: var(--bg-emphasis);
+  color: var(--fg-faint);
   box-shadow: none;
 }
 
