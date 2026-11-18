@@ -103,7 +103,6 @@ import RailTaskRows from "@features/session-rail/components/RailTaskRows.vue"
 import { useSessionRail } from "@features/session-rail/index.js"
 import { RAIL_SECTIONS, type RailSectionId } from "@features/session-rail/lib/sections.js"
 import type { TaskSections } from "@features/session-rail/lib/task-list.js"
-import type { Task } from "@/types/common-type.js"
 
 const REMOTE_KEY = /^ssh:[/][/]([^/]+)([/].*)?$/
 const props = defineProps<{
@@ -111,7 +110,6 @@ const props = defineProps<{
   model: string | undefined
   usage: ContextUsage | undefined
   sessionId: string | undefined
-  tasks: readonly Task[]
   sections: TaskSections
   stoppable: ReadonlySet<string>
   stopping: ReadonlySet<string>
@@ -139,7 +137,11 @@ const shown = computed(() =>
 
     if (id === "context") return Boolean(props.usage)
 
-    if (id === "tasks") return props.tasks.length > 0 || statusLines.value.length > 0
+    if (id === "tasks")
+      return (
+        props.sections.running.length + props.sections.finished.length > 0 ||
+        statusLines.value.length > 0
+      )
     return true
   }),
 )

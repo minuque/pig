@@ -30,6 +30,15 @@ export function taskSections(tasks: readonly Task[]) {
 
 export type TaskSections = ReturnType<typeof taskSections>
 
+/** 去掉清除过的已结束任务再分段；清除过又跑起来的照常显示。 */
+export function visibleSections(
+  tasks: readonly Task[],
+  dismissed: readonly string[],
+): TaskSections {
+  const hidden = new Set(dismissed)
+  return taskSections(tasks.filter((task) => task.status === "running" || !hidden.has(task.id)))
+}
+
 /** 任务跑了多久：进行中算到 now，结束的算到结束时间；没有开始时间就空着。 */
 export function taskElapsed(task: Task, now: number): string {
   if (task.startedAt === undefined) return ""
