@@ -91,7 +91,8 @@ const open = ref(!model.value.id)
 
 <style scoped>
 .model-card {
-  padding: 0;
+  /* 内容让出外环一个线宽：行线与悬停底不叠到半透明外环上加深 */
+  padding: var(--border-width);
 }
 
 .card-head {

@@ -92,7 +92,8 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
 
 <style scoped>
 .model-list {
-  padding: 0;
+  /* 内容让出外环一个线宽：行线与悬停底不叠到半透明外环上加深 */
+  padding: var(--border-width);
 }
 
 .model-card + .model-card {

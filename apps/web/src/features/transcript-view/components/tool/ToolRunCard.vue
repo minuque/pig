@@ -50,7 +50,8 @@ const entries = computed<RunEntry[]>(() =>
 
 <style scoped>
 .tool-run-card {
-  --card-padding: 0;
+  /* 内容让出外环一个线宽：行线不叠到半透明外环上加深 */
+  --card-padding: var(--border-width);
 
   display: flex;
   flex-direction: column;
