@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import {
   Client,
   type ClientChannel,
@@ -17,6 +18,24 @@ type Connection = { client: Client; sftp: SFTPWrapper }
 const NO_SUCH_FILE = 2
 /** POSIX shell 单引号转义。 */
 export const quote = (value: string) => `'${value.replaceAll("'", String.raw`'\''`)}'`
+/** 命令放进自己的进程组并记下组号；用远端登录 shell 跑，外层固定 POSIX sh，不受 zsh/fish 影响。 */
+const WRAPPER = [
+  'cd "$1" || exit 1',
+  "set -m",
+  '"${SHELL:-sh}" -c "$2" &',
+  "pid=$!",
+  "set +m",
+  'echo "$pid" > "$3"',
+  'wait "$pid"',
+  "code=$?",
+  'rm -f "$3"',
+  'exit "$code"',
+].join("\n")
+export const remoteCommand = (cwd: string, command: string, pidFile: string) =>
+  `sh -c ${quote(WRAPPER)} sh ${quote(cwd)} ${quote(command)} ${quote(pidFile)}`
+/** 按组号杀整组：没分配 pty 时服务端常忽略 signal 请求，关通道也杀不掉子进程。 */
+export const remoteKill = (pidFile: string) =>
+  `sh -c ${quote('kill -9 -"$(cat "$1")" 2>/dev/null; rm -f "$1"')} sh ${quote(pidFile)}`
 const call = <T>(run: (done: (error: Error | null | undefined, value: T) => void) => void) =>
   new Promise<T>((resolve, reject) =>
     run((error, value) => (error ? reject(error) : resolve(value))),
@@ -37,13 +56,18 @@ export class SshEnvironment implements Environment {
   async exec(command: string, { cwd, onData, signal, timeout }: ExecOptions) {
     if (signal?.aborted) throw new Error("aborted")
     const { client } = await this.connect()
+    const pidFile = `/tmp/pig-exec-${randomUUID()}.pid`
     const channel = await call<ClientChannel>((done) =>
-      client.exec(`cd ${quote(cwd)} && ${command}`, done),
+      client.exec(remoteCommand(cwd, command, pidFile), done),
     )
     let timedOut = false
     const kill = () => {
+      // 杀完再关通道；开不了杀进程的通道就直接关
+      client.exec(remoteKill(pidFile), (error, killer) => {
+        if (error) channel.close()
+        else killer.on("close", () => channel.close()).resume()
+      })
       channel.signal("KILL")
-      channel.close()
     }
     const timer = timeout
       ? setTimeout(() => {
