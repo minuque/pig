@@ -229,7 +229,7 @@ export function sidebarItemProps(
     pinned: ctx.pinnedIds.has(session.id),
     settled: section.kind === "settled",
     variant: section.kind === "settled" ? "slim" : "card",
-    startedAt: section.kind === "working" ? ctx.runningSince[session.id] : undefined,
+    startedAt: ctx.runningSince[session.id],
     draggable: !draft,
     state: ctx.cardFootById.get(session.id)?.state,
     placeholder: draft,
