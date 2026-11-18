@@ -31,14 +31,7 @@
 :root {
   color-scheme: light;
 
-  /* ====== 原色阶：Radix slate / indigo / 状态色板由 rt 提供；这里只有文字三档 hex 输入，对比度层用它推出 --fg* ====== */
-  /* 文字对比度：把 3 档文字色按权重向 --contrast-target 推；20% 是固定基线，不再对外暴露 */
-  --contrast-boost: 20%;
-  --contrast-target: #000000;
-  /* 文字三级：主、次、弱；弱级只给非必要信息 */
-  --ink: #292929;
-  --ink-secondary: #505050;
-  --ink-faint: #6e6e6e;
+  /* ====== 原色阶：Radix slate / indigo / 状态色板由 rt 提供，这里不另写 ====== */
 
   /* ====== 语义层：全站共用，组件只读这一层与下面的组件层 ====== */
 
@@ -58,22 +51,10 @@
 
   /* --- 前景 --- */
   --fg-on-accent: var(--accent-contrast);
-  /* 对比度派生色：只在 :root 写一份；.dark 覆盖 --ink 后自动跟随 */
-  --fg: color-mix(
-    in oklab,
-    var(--ink) calc(100% - var(--contrast-boost)),
-    var(--contrast-target) var(--contrast-boost)
-  );
-  --fg-secondary: color-mix(
-    in oklab,
-    var(--ink-secondary) calc(100% - var(--contrast-boost)),
-    var(--contrast-target) var(--contrast-boost)
-  );
-  --fg-faint: color-mix(
-    in oklab,
-    var(--ink-faint) calc(100% - var(--contrast-boost)),
-    var(--contrast-target) var(--contrast-boost)
-  );
+  /* 文字三级固定色：与表面同一冷色相；正文对主区约 11.7:1，弱级只给非必要信息 */
+  --fg: #323237;
+  --fg-secondary: #5d5d62;
+  --fg-faint: #6f6f75;
   --fg-inverse: #ffffff;
 
   /* --- 边与分割 --- */
@@ -89,8 +70,8 @@
   --bg-hover: var(--accent-a3);
   --bg-selected: var(--accent-a4);
   /* 中性填充两档：轻档给徽标、芯片底，重档给进度轨道与卡片内滚动条 */
-  --bg-muted: color-mix(in srgb, var(--ink) 5%, transparent);
-  --bg-emphasis: color-mix(in srgb, var(--ink) 12%, transparent);
+  --bg-muted: color-mix(in srgb, var(--fg) 5%, transparent);
+  --bg-emphasis: color-mix(in srgb, var(--fg) 12%, transparent);
   --link: var(--accent-11);
   --opacity-disabled: 0.55;
   /* 焦点环：2px 实色第 11 级，深浅主题都看得见；配合 .ring-focus 使用 */
@@ -338,9 +319,8 @@
   /* 侧栏左下角的头像 */
   --user-avatar-size: 20px;
   /* 欢迎页「字符流光」背景：暗处到亮处的两端色，取文字色，浅色主题为黑、深色主题为白 */
-  /* 例外：WebGL 用 canvas 解析这两个色值，只认得原色阶的 hex，不认得 --fg* 的 color-mix */
-  --welcome-flow-low: var(--ink-faint);
-  --welcome-flow-high: var(--ink);
+  --welcome-flow-low: var(--fg-faint);
+  --welcome-flow-high: var(--fg);
   /* 首屏整体落位入场 */
   --welcome-settle-duration: 500ms;
   /* 欢迎页字符背景浮现：慢于首屏落位，等标题和输入框站稳再铺开 */
@@ -363,13 +343,6 @@ html[data-pig-desktop-platform="win32"] {
 .dark {
   color-scheme: dark;
 
-  /* ====== 原色阶：Radix slate / indigo / 状态色板由 rt 提供；这里只有文字三档 hex 输入，对比度层用它推出 --fg* ====== */
-  /* 深色下向白推，对比度层才朝正确方向生效 */
-  --contrast-target: #ffffff;
-  --ink: #e8e8e8;
-  --ink-secondary: #a1a1a1;
-  --ink-faint: #888888;
-
   /* ====== 语义层：全站共用，组件只读这一层与下面的组件层 ====== */
 
   /* --- 表面 --- */
@@ -382,6 +355,9 @@ html[data-pig-desktop-platform="win32"] {
   --bg-inverse-hover: #ffffff;
 
   /* --- 前景 --- */
+  --fg: #d0d0d6;
+  --fg-secondary: #a4a4a9;
+  --fg-faint: #88888e;
   --fg-on-accent: var(--accent-contrast);
   --fg-inverse: #111113;
 
