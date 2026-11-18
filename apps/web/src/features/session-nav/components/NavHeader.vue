@@ -96,7 +96,7 @@
 
     <ProjectIconDialog :path="iconPath" @close="iconPath = undefined" />
 
-    <SearchDialog
+    <SessionSearch
       :open="searchOpen"
       :sessions="sessions"
       @update:open="emit('update:searchOpen', $event)"
@@ -111,7 +111,7 @@ import { useI18n } from "@i18n/index.js"
 import { nextTick, shallowRef } from "vue"
 import ProjectIconDialog from "@features/session-nav/components/ProjectIconDialog.vue"
 import ScopeMenu from "@features/session-nav/components/ScopeMenu.vue"
-import SearchDialog from "@features/session-nav/components/SearchDialog.vue"
+import SessionSearch from "@features/session-nav/components/SessionSearch.vue"
 import type { SessionGroup } from "@features/session-nav/type.js"
 import {
   FolderPlusIcon,

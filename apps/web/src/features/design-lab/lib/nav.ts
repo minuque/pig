@@ -35,7 +35,7 @@ const LAYOUT: { id: string; title: Label; items: (string | [string, Label])[] }[
   {
     id: "overlays",
     title: { zh: "弹层", en: "Overlays" },
-    items: ["Dialog", "AlertDialog", "DropdownMenu", "ContextMenu", "HoverCard"],
+    items: ["Dialog", "AlertDialog", "CommandPalette", "DropdownMenu", "ContextMenu", "HoverCard"],
   },
   { id: "layout", title: { zh: "布局", en: "Layout" }, items: ["Card", "Table", "Tabs"] },
   {
