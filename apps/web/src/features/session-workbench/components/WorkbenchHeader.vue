@@ -338,7 +338,7 @@ function confirmDelete(): void {
   height: var(--header-height);
   min-height: var(--header-height);
   padding: var(--space-2xs) var(--space-sm);
-  /* Windows 的系统窗控浮在整个窗口右上角，只有最右侧的头部让出这一块 */
+  /* 自画窗控浮在整个窗口右上角，只有最右侧的头部让出这一块 */
   /* 与下方正文同底色：头部不另起一层 */
   background: transparent;
   color: var(--fg);
@@ -494,14 +494,10 @@ function confirmDelete(): void {
   opacity: 1;
 }
 
-/* 拖窗：macOS 的浮层标题条与 Windows 的隐藏标题条都靠头部这一行 */
-html:is([data-pig-desktop-platform="darwin"], [data-pig-desktop-platform="win32"])
-  .workbench-header {
+/* 拖窗：三个平台都藏起了标题条，靠头部这一行 */
+html[data-pig-desktop-platform] .workbench-header {
   -webkit-app-region: drag;
   app-region: drag;
-}
-
-html[data-pig-desktop-platform] .workbench-header {
   user-select: none;
 }
 

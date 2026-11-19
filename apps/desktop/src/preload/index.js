@@ -39,6 +39,26 @@ contextBridge.exposeInMainWorld("pigDesktop", {
   setThemeColor(color) {
     ipcRenderer.send("pig:theme-color", color)
   },
+  window: {
+    minimize() {
+      ipcRenderer.send("pig:window:minimize")
+    },
+    toggleMaximize() {
+      ipcRenderer.send("pig:window:toggle-maximize")
+    },
+    close() {
+      ipcRenderer.send("pig:window:close")
+    },
+    isMaximized() {
+      return ipcRenderer.invoke("pig:window:is-maximized")
+    },
+    onMaximizedChange(listener) {
+      const handler = (_event, value) => listener(Boolean(value))
+
+      ipcRenderer.on("pig:window:maximized", handler)
+      return () => ipcRenderer.removeListener("pig:window:maximized", handler)
+    },
+  },
 })
 
 stamp()

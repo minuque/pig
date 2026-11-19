@@ -169,7 +169,7 @@
   /* --- 布局 --- */
   /* 页面内标题条：只有 macOS 的浮层标题条占高度，其余平台为 0 */
   --titlebar-inset: 0px;
-  /* 右上角系统窗控占的宽：只有 Windows 的窗控浮在页面上，其余平台为 0 */
+  /* 右上角自画窗控占的宽：只有 Windows 与 Linux 画窗控，其余平台为 0 */
   --titlebar-controls-inset: 0px;
   /* 头部高：两栏首行与窗口标题条同高；28px 图标按钮 + 上下各 8px */
   --header-height: 44px;
@@ -178,6 +178,8 @@
 
   /* --- 层级 --- */
   --z-resizer: 1;
+  /* 窗控浮在主区头部之上 */
+  --z-window-controls: 1;
   --z-menu: 5;
   --z-drawer: 10;
   --z-modal: 20;
@@ -343,15 +345,15 @@
 }
 
 /* 桌面壳标题条：一处定义，三处消费（侧栏顶距、拖拽带、头部高度）。
-   只有 macOS 的浮层标题条占高度；Windows 与 Linux 走原生边框，头部取自然高。 */
+   只有 macOS 的浮层标题条占高度；Windows 与 Linux 的窗控画在头部这一行，头部取自然高。 */
 html[data-pig-desktop-platform="darwin"] {
   --titlebar-inset: 44px;
   --header-height: var(--titlebar-inset);
 }
 
-/* Windows 窗控宽度由 Electron 的 env 给出：视口宽减去标题条可用宽 */
-html[data-pig-desktop-platform="win32"] {
-  --titlebar-controls-inset: calc(100vw - env(titlebar-area-width, 100vw));
+/* Windows 与 Linux 的自画窗控：三枚 28px 图标按钮、两道间隙，再与头部内容隔一档 */
+html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]) {
+  --titlebar-controls-inset: calc(3 * var(--control-sm) + 2 * var(--space-2xs) + var(--space-xs));
 }
 
 /* ------ 深色覆盖：只覆盖颜色与阴影 ------ */

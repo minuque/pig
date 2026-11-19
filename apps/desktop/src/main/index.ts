@@ -27,7 +27,7 @@ import { connectGateway, type GatewayProcess } from "./gateway-process.js"
 import { createMainWindow } from "./window.js"
 import { loadWithRetry } from "./load-retry.js"
 import { parseThemeColor } from "./theme-color.js"
-import { titleBarOverlayFor } from "./window-chrome.js"
+import { registerWindowControls } from "./window-controls.js"
 import { resolveWebRoot } from "./paths.js"
 import {
   readWindowStateFile,
@@ -192,10 +192,8 @@ void app.whenReady().then(async () => {
 
       if (!color) return
       mainWindow?.setBackgroundColor(color)
-
-      // 窗控浮在页面右上角：符号色跟着底色深浅换
-      if (process.platform === "win32") mainWindow?.setTitleBarOverlay(titleBarOverlayFor(color))
     })
+    registerWindowControls(() => mainWindow)
     mainWindow = createMainWindow(preloadPath, {
       ...(isDev ? {} : { gatewayOrigin: httpOrigin }),
       frame,

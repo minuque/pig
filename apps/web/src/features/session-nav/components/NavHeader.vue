@@ -184,8 +184,8 @@ html[data-pig-desktop-platform="darwin"] .nav-titlebar {
   padding-inline-start: calc(var(--traffic-lights-width) + var(--space-xs));
 }
 
-/* Windows 藏起标题条，首行落进系统标题条这一行，可拖窗 */
-html[data-pig-desktop-platform="win32"] .nav-titlebar {
+/* Windows 与 Linux 藏起标题条，首行落进标题条这一行，可拖窗 */
+html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]) .nav-titlebar {
   -webkit-app-region: drag;
   app-region: drag;
 }
