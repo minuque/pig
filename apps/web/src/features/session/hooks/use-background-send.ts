@@ -1,16 +1,15 @@
 import type { TranscriptItem } from "@/types/common-type.js"
-import { bindAttachments, discardAttachments, stageAttachment } from "@client/platform.js"
+import { discardAttachments, stageAttachment } from "@client/platform.js"
 import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
 import type { LiveSubscription } from "@features/session/hooks/use-live-subscriptions.js"
 import { optimisticUserMessage, sessionState } from "@features/session/lib/session-state.js"
 import type { SessionClientState } from "@features/session/type.js"
 
 /**
- * 逐个 stage 再 bind 到指定 Session；aborted() 为真则中止并返回 false。
- * 前台提交的 epoch 时效与后台泵队共用。
+ * 逐个 stage 一个批次的文件字节；aborted() 为真则中止并返回 false。
+ * 提交时把 batch 显式带给 prompt，由 Gateway 按 batch 消费。
  */
-export async function stageBatchFor(
-  id: string,
+export async function stageBatch(
   batch: ComposerAttachmentBatch,
   aborted: () => boolean,
 ): Promise<boolean> {
@@ -47,7 +46,6 @@ export async function stageBatchFor(
       return false
     }
 
-    await bindAttachments(id, batch.batch)
     return true
   } catch (error) {
     resetAll()
@@ -95,7 +93,7 @@ export function createBackgroundSender(deps: BackgroundSendDeps) {
     thread.sends.push(send)
 
     try {
-      if (attachments && !(await stageBatchFor(id, attachments, () => !pooled()))) {
+      if (attachments && !(await stageBatch(attachments, () => !pooled()))) {
         await dropBatch(attachments.batch)
         return false
       }
@@ -105,7 +103,10 @@ export function createBackgroundSender(deps: BackgroundSendDeps) {
         return false
       }
 
-      await sub.session.submit(text)
+      await sub.session.submit(
+        text,
+        attachments ? { attachmentBatch: attachments.batch } : undefined,
+      )
       accepted = true
       return true
     } catch {

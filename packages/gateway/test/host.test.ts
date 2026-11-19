@@ -171,7 +171,7 @@ describe("thin host HTTP shell", () => {
     ).toBe(403)
   })
 
-  it("附件暂存走原始流，bind 校验入参与 session", async () => {
+  it("附件暂存走原始流，暂存链路不再有 bind", async () => {
     const base = await startGateway()
     const stage = (query: string, body: BodyInit) =>
       fetch(`${base}/api/v1/platform/attachments/stage?${query}`, {
@@ -200,10 +200,7 @@ describe("thin host HTTP shell", () => {
     expect(oversized.status).toBe(413)
     await expect(oversized.json()).resolves.toEqual({ code: "PAYLOAD_TOO_LARGE" })
 
-    // bind：缺参数 400，session 不存在 404（batch 是否存在先不校验）
-    expect((await request(base, "/api/v1/platform/attachments/bind", { batch: "b1" })).status).toBe(
-      400,
-    )
+    // bind 已随协议简化下线：附件批随 WS prompt 提交，不靠 HTTP 绑定
     expect(
       (await request(base, "/api/v1/platform/attachments/bind", { sessionId: "s", batch: "b1" }))
         .status,

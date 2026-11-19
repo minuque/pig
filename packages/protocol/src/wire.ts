@@ -57,7 +57,8 @@ export type Command =
     }
   | { command: "attach_session"; sessionId: string; takeover?: boolean }
   | { command: "detach_session"; sessionId: string }
-  | { command: "prompt"; sessionId: string; message: string }
+  /** prompt 可带一个附件 batch：Gateway 按 batch 原子消费已 stage 的附件。 */
+  | { command: "prompt"; sessionId: string; message: string; attachmentBatch?: string }
   | { command: "steer"; sessionId: string; message: string }
   | { command: "abort"; sessionId: string }
   | { command: "set_model"; sessionId: string; model: ModelRef }

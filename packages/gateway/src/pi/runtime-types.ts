@@ -35,7 +35,7 @@ export class SessionNotFoundError extends GatewayError {
   }
 }
 
-export type PromptInput = { text: string }
+export type PromptInput = { text: string; attachmentBatch?: string }
 
 export type SteerInput = { text: string }
 

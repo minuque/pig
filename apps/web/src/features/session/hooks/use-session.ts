@@ -6,7 +6,7 @@ import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
 import { notify } from "@components/layout/notify.js"
 import { t } from "@i18n/index.js"
 import { isChangedElsewhere } from "@features/session/hooks/abortable-open.js"
-import { dropBatch, stageBatchFor } from "@features/session/hooks/use-background-send.js"
+import { dropBatch, stageBatch } from "@features/session/hooks/use-background-send.js"
 import type { SessionHub } from "@features/session/hooks/use-session-hub.js"
 import { useForegroundSession } from "@features/session/hooks/use-foreground-session.js"
 import { projectContextUsage } from "@features/session/lib/context-usage.js"
@@ -57,12 +57,12 @@ export function useSessionLifecycle(
   const snapshot = computed(() => state.value?.snapshot)
   const liveTranscript = history.liveTranscript
 
-  async function submitRemote(text: string) {
-    await remote.value?.submit(text)
+  async function submitRemote(text: string, attachmentBatch?: string) {
+    await remote.value?.submit(text, attachmentBatch ? { attachmentBatch } : undefined)
   }
 
   /**
-   * 顺序暂存每个文件字节，再把 batch 绑到当前 Session；下一次 prompt 消费它。
+   * 顺序暂存每个文件字节；batch 随这次 prompt 一起提交，由 Gateway 按 batch 消费。
    * 每次 await 后查 epoch：被中止或切走就返回 false，由调用方丢弃这个批次。
    */
   async function stageAttachments(
@@ -70,10 +70,7 @@ export function useSessionLifecycle(
     thread: SessionClientState,
     epoch: number,
   ) {
-    const id = sessionId.value
-
-    if (!id) throw new Error("会话未连接")
-    return stageBatchFor(id, batch, () => epoch !== thread.epoch || sessionId.value !== id)
+    return stageBatch(batch, () => epoch !== thread.epoch)
   }
 
   /** 接管后台会话空闲后的泵队与收尾；不注册就直接出池。 */
@@ -205,7 +202,7 @@ export function useSessionLifecycle(
   }
 
   /**
-   * 附件随这次提交走：先确保 Session 存在，再 stage + bind，最后提交正文。
+   * 附件随这次提交走：先确保 Session 存在，再 stage 文件，prompt 带 batch 提交。
    * 只有真正提交成功才返回 true；被中止、切走或提前退出都返回 false。
    * 状态记在发起它的会话上；欢迎页建出会话后改记到新会话。
    */
@@ -270,7 +267,7 @@ export function useSessionLifecycle(
         return false
       }
 
-      await submitRemote(normalized)
+      await submitRemote(normalized, attachments?.batch)
       return true
     } catch (error) {
       await dropBatch(attachments?.batch)

@@ -89,11 +89,6 @@ export async function handlePlatformRequest(
     return true
   }
 
-  if (url.pathname === "/api/v1/platform/attachments/bind" && req.method === "POST") {
-    await handleBindAttachments(req, res, deps)
-    return true
-  }
-
   if (url.pathname === "/api/v1/platform/attachments/discard" && req.method === "POST") {
     await handleDiscardAttachment(req, res, deps)
     return true
@@ -128,43 +123,6 @@ async function handleStageAttachment(
     }
 
     console.error("attachments/stage failed:", error)
-    send(res, 500, { code: "INTERNAL_ERROR" })
-  }
-}
-
-async function handleBindAttachments(
-  req: IncomingMessage,
-  res: ServerResponse,
-  deps: PlatformRequestDeps,
-) {
-  const { send, hostService } = deps
-  const payload = await readObjectBody(req, res, deps)
-
-  if (!payload) return
-
-  const sessionId = typeof payload.sessionId === "string" ? payload.sessionId : ""
-  const batch = typeof payload.batch === "string" ? payload.batch : ""
-
-  if (!sessionId || !batch) {
-    send(res, 400, { code: "INVALID_REQUEST" })
-    return
-  }
-
-  if (!(await hostService.hasSession(sessionId))) {
-    send(res, 404, { code: "NOT_FOUND" })
-    return
-  }
-
-  try {
-    hostService.attachments.bind(sessionId, batch)
-    send(res, 200, { ok: true })
-  } catch (error) {
-    if (error instanceof AttachmentError) {
-      send(res, 400, { code: error.code })
-      return
-    }
-
-    console.error("attachments/bind failed:", error)
     send(res, 500, { code: "INTERNAL_ERROR" })
   }
 }

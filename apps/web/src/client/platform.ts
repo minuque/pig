@@ -338,14 +338,6 @@ export async function stageAttachment(batch: string, file: File): Promise<string
   return result.id
 }
 
-/** 把 batch 绑到 Session：该 Session 下一次 prompt 消费这批附件。 */
-export async function bindAttachments(sessionId: string, batch: string): Promise<void> {
-  await platformRequest("/api/v1/platform/attachments/bind", {
-    method: "POST",
-    body: JSON.stringify({ sessionId, batch }),
-  })
-}
-
 /** 丢弃一个批次：幂等，成功路径不要调用，Gateway 已经消费掉它。 */
 export async function discardAttachments(batch: string): Promise<void> {
   await platformRequest("/api/v1/platform/attachments/discard", {

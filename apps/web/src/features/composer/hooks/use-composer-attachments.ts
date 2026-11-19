@@ -71,7 +71,7 @@ export function clipboardFiles(data: DataTransfer | null | undefined): File[] {
 
 /**
  * 输入卡本地附件：白名单图片走 blob URL 预览，其余只留文件卡片。
- * 附件按会话暂存在内存，发送时由 sendPrompt 顺序 stage 每个文件再 bind。
+ * 附件按会话暂存在内存，发送时由 sendPrompt 逐个 stage，batch 随 prompt 提交。
  */
 export function useComposerAttachments(): ComposerAttachmentsApi {
   // 附件按会话暂存；卸载时释放 blob URL

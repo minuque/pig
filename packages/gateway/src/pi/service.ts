@@ -321,23 +321,16 @@ export class PiHostService implements SessionService {
     this.sessionsCache = undefined
   }
 
-  /** 删除 Pi 会话文件与它的附件暂存；仍有活 runtime 时拒绝，否则它会把文件写回来。 */
+  /** 删除 Pi 会话文件与它的任务日志；仍有活 runtime 时拒绝，否则它会把文件写回来。 */
   async deleteSession(sessionId: string): Promise<void> {
     if (this.activeSessions.has(sessionId)) throw new SessionBusyError("Session is still open")
     const path = await this.findSessionPath(sessionId)
 
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
     await rm(path, { force: true })
-    await this.attachments.clearSession(sessionId)
     await rm(join(defaultTaskLogRoot(), sessionId), { recursive: true, force: true })
     this.sessionPaths.delete(sessionId)
     this.sessionsCache = undefined
-  }
-
-  /** 会话是否已存在（活会话或磁盘上）；附件 bind 前校验用。 */
-  async hasSession(sessionId: string): Promise<boolean> {
-    if (this.activeSessions.has(sessionId)) return true
-    return Boolean(await this.findSessionPath(sessionId))
   }
 
   /** 停服：清掉附件清理定时器并删除本实例的临时文件。 */

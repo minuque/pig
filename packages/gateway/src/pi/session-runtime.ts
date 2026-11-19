@@ -192,8 +192,15 @@ export class PiHostSession implements SessionRuntime {
     await this.exclusive(async () => {
       if (!this.session.isIdle) throw new SessionBusyError("A prompt is already running")
       await this.rejectIfAppended()
-      // 先取暂存附件：busy 已提前拒绝，取走后 prompt 失败要放回，避免附件静默丢失
-      const staged = this.attachments?.take(this.session.sessionId) ?? []
+      // 附件按 batch 原子消费：取走后 prompt 失败要放回，避免附件静默丢失
+      const batch = input.attachmentBatch
+      const staged = (batch ? this.attachments?.take(batch) : []) ?? []
+
+      if (batch && !staged.length)
+        throw new GatewayError(
+          "invalid_request",
+          `Attachment batch ${batch} is not staged or has expired`,
+        )
 
       try {
         const binding = sessionBinding(this.session.sessionManager.getEntries())
@@ -209,7 +216,7 @@ export class PiHostSession implements SessionRuntime {
 
         await this.session.waitForIdle()
       } catch (error) {
-        this.attachments?.restore(this.session.sessionId, staged)
+        if (batch) this.attachments?.restore(batch, staged)
         throw error
       } finally {
         this.broadcastSnapshot()

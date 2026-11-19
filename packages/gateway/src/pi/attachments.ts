@@ -16,9 +16,7 @@ export const MAX_FILE_BYTES = 25 * 1024 * 1024
 export const MAX_IMAGE_BYTES = 3 * 1024 * 1024
 /** 单个 batch 最多 8 个附件。 */
 export const MAX_BATCH_ITEMS = 8
-/** 单个 session 的 pending 槽最多 32 个附件，防反复 bind 堆内存。 */
-export const MAX_PENDING_ITEMS = 32
-/** 暂存、pending 与未消费临时文件的存活时间。 */
+/** 暂存与未消费临时文件的存活时间。 */
 export const ATTACHMENT_TTL_MS = 30 * 60 * 1000
 /** 消费后临时文件续期到 24 小时：路径已写进会话历史，agent 可能很久之后再 read。 */
 export const CONSUMED_FILE_TTL_MS = 24 * 60 * 60 * 1000
@@ -38,8 +36,7 @@ const MIME_PATTERN = /^[\w.+-]+\/[\w.+-]+$/
 const MAX_NAME_LENGTH = 120
 const DEFAULT_MIME = "application/octet-stream"
 
-export type AttachmentErrorCode =
-  "PAYLOAD_TOO_LARGE" | "TOO_MANY_ITEMS" | "INVALID_REQUEST" | "BATCH_NOT_FOUND"
+export type AttachmentErrorCode = "PAYLOAD_TOO_LARGE" | "TOO_MANY_ITEMS" | "INVALID_REQUEST"
 
 export class AttachmentError extends Error {
   constructor(readonly code: AttachmentErrorCode) {
@@ -48,7 +45,7 @@ export class AttachmentError extends Error {
   }
 }
 
-/** 暂存项在字节落定前就有的身份信息；batch 标记供 discard 摘除 pending 用。 */
+/** 暂存项在字节落定前就有的身份信息；batch 标记供 discard 与消费定位用。 */
 interface StagedIdentity {
   id: string
   name: string
@@ -74,13 +71,14 @@ export interface StagedImage extends StagedBase {
 
 export type StagedAttachment = StagedFile | StagedImage
 
-/** prompt 前取走、失败后放回的窄接口，PiHostSession 只依赖这两个方法。 */
+/** prompt 按 batch 取走、失败后放回的窄接口，PiHostSession 只依赖这两个方法。 */
 export interface AttachmentSink {
-  take(sessionId: string): StagedAttachment[]
-  restore(sessionId: string, items: readonly StagedAttachment[]): void
+  /** 未知或已过期的 batch 返回 undefined。 */
+  take(batch: string): StagedAttachment[] | undefined
+  restore(batch: string, items: readonly StagedAttachment[]): void
 }
 
-/** batch 与 session pending 用同一形状：一堆暂存项 + 过期时间。 */
+/** 一个 batch 的暂存：一堆待消费项 + 过期时间。 */
 type Slot = { items: StagedAttachment[]; expiresAt: number }
 
 export interface AttachmentStoreOptions {
@@ -91,12 +89,11 @@ export interface AttachmentStoreOptions {
 }
 
 /**
- * 附件暂存：按 batch 收字节，bind 到 session 的 pending 槽，prompt 时被取走。
+ * 附件暂存：按 batch 收字节，prompt 带着同一个 batch 来取走。
  * 非图片落盘（内存只留元数据），图片留内存；定时 sweep 兜底回收。
  */
 export class AttachmentStore implements AttachmentSink {
   private readonly batches = new Map<string, Slot>()
-  private readonly pending = new Map<string, Slot>()
   /** 临时文件路径 → 过期时间；消费后仍由它兜底删除。 */
   private readonly tempFiles = new Map<string, number>()
   private readonly rootDir: string
@@ -153,83 +150,41 @@ export class AttachmentStore implements AttachmentSink {
     return { id: identity.id }
   }
 
-  /**
-   * 把 batch 的暂存项追加进 session 的 pending 槽。
-   * 重复 bind 同一 batch 回 BATCH_NOT_FOUND：batch 已被取走或过期，让客户端看见暂存失败。
-   */
-  bind(sessionId: string, batch: string): void {
+  /** 取走该 batch 的全部暂存项；文件按消费后 TTL 续期，交给 sweep 回收。 */
+  take(batch: string): StagedAttachment[] | undefined {
     const record = this.batches.get(batch)
 
-    if (!record) throw new AttachmentError("BATCH_NOT_FOUND")
-    const slot = this.pending.get(sessionId)
-    const items = [...(slot?.items ?? []), ...record.items]
-
-    if (items.length > MAX_PENDING_ITEMS) throw new AttachmentError("TOO_MANY_ITEMS")
+    if (!record) return undefined
     this.batches.delete(batch)
 
-    // 文件改由 pending 看管：续期，避免还在等 prompt 就被 sweep 删掉
-    for (const item of record.items) this.touch(item, ATTACHMENT_TTL_MS)
-    this.pending.set(sessionId, { items, expiresAt: Date.now() + ATTACHMENT_TTL_MS })
+    for (const item of record.items) this.touch(item, CONSUMED_FILE_TTL_MS)
+    return record.items
   }
 
-  /** 取出并清空该 session 的 pending；文件按消费后 TTL 续期，交给 sweep 回收。 */
-  take(sessionId: string): StagedAttachment[] {
-    const slot = this.pending.get(sessionId)
-
-    if (!slot) return []
-    this.pending.delete(sessionId)
-
-    for (const item of slot.items) this.touch(item, CONSUMED_FILE_TTL_MS)
-    return slot.items
-  }
-
-  /** prompt 失败时把取出的附件放回槽首，避免附件静默丢失。 */
-  restore(sessionId: string, items: readonly StagedAttachment[]): void {
+  /** prompt 失败时把取出的附件放回同一个 batch，避免附件静默丢失。 */
+  restore(batch: string, items: readonly StagedAttachment[]): void {
     if (!items.length) return
-    const slot = this.pending.get(sessionId)
+    const existing = this.batches.get(batch)
 
     for (const item of items) this.touch(item, ATTACHMENT_TTL_MS)
-    this.pending.set(sessionId, {
-      items: [...items, ...(slot?.items ?? [])],
+    this.batches.set(batch, {
+      items: [...items, ...(existing?.items ?? [])],
       expiresAt: Date.now() + ATTACHMENT_TTL_MS,
     })
   }
 
-  /** 前端补偿路径：丢弃未 bind 的 batch，并摘掉 pending 里属于它的项与临时文件。 */
+  /** 前端补偿路径：丢弃一个 batch 与它的临时文件；未知 batch 静默成功。 */
   async discard(batch: string): Promise<void> {
-    const dropped = [...(this.batches.get(batch)?.items ?? [])]
+    const dropped = this.batches.get(batch)?.items ?? []
 
     this.batches.delete(batch)
-
-    for (const [sessionId, slot] of this.pending) {
-      const kept = slot.items.filter((item) => item.batch !== batch)
-
-      if (kept.length === slot.items.length) continue
-      dropped.push(...slot.items.filter((item) => item.batch === batch))
-
-      if (kept.length) this.pending.set(sessionId, { items: kept, expiresAt: slot.expiresAt })
-      else this.pending.delete(sessionId)
-    }
-
     await Promise.all(dropped.map((item) => this.dropItem(item)))
   }
 
-  /** 会话被删除：丢弃 pending 并删掉它的临时文件。 */
-  async clearSession(sessionId: string): Promise<void> {
-    const slot = this.pending.get(sessionId)
-
-    this.pending.delete(sessionId)
-    await Promise.all((slot?.items ?? []).map((item) => this.dropItem(item)))
-  }
-
-  /** 兜底清理：过期 batch / pending 丢弃，过期临时文件删除。now 可注入便于测试。 */
+  /** 兜底清理：过期 batch 丢弃，过期临时文件删除。now 可注入便于测试。 */
   async sweep(now = Date.now()): Promise<void> {
     for (const [batch, record] of this.batches) {
       if (record.expiresAt <= now) this.batches.delete(batch)
-    }
-
-    for (const [sessionId, slot] of this.pending) {
-      if (slot.expiresAt <= now) this.pending.delete(sessionId)
     }
 
     await Promise.all(

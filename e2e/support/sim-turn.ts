@@ -23,6 +23,8 @@ export async function installTurnBridge(page: Page, options: { holdPromptReply?:
   let resolvePrompt: ((id: string) => void) | undefined
   const snapshots = new Map<string, SessionSnapshot>()
   const prompted: string[] = []
+  /** 每条 prompt 带来的附件 batch；没带附件的是 undefined。 */
+  const promptBatches: (string | undefined)[] = []
   const heldReplies = new Map<string, string>()
 
   await page.routeWebSocket("**/api/v1/pi", (route) => {
@@ -87,6 +89,7 @@ export async function installTurnBridge(page: Page, options: { holdPromptReply?:
           if (options.holdPromptReply) heldReplies.set(sessionId, message.id)
           else reply(message.id, "prompt", session)
           prompted.push(sessionId)
+          promptBatches.push(message.command.attachmentBatch)
           promptSessionId = sessionId
           resolvePrompt?.(sessionId)
           continue
@@ -134,6 +137,7 @@ export async function installTurnBridge(page: Page, options: { holdPromptReply?:
     snapshots,
     /** 收到过 prompt 的会话 id，按到达顺序。 */
     prompted,
+    promptBatches,
     connections: () => connections,
     send(message: ServerMessage) {
       if (!socket) throw new Error("e2e WebSocket 尚未建立")

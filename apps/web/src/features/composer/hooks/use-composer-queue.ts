@@ -5,7 +5,7 @@ import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
 export interface QueuedPrompt {
   id: string
   text: string
-  /** 入队时从输入卡带走的附件快照；发送时随 prompt 一起 stage + bind。 */
+  /** 入队时从输入卡带走的附件快照；发送时随 prompt 一起 stage 并带上 batch。 */
   attachments: ComposerAttachmentBatch | undefined
 }
 

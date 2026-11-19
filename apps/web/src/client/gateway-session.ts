@@ -97,7 +97,7 @@ export class GatewaySession {
   }
 
   /** 空闲时发 prompt，回合中发 steer，与 TUI 的回车语义一致。 */
-  async submit(text: string) {
+  async submit(text: string, options?: { attachmentBatch?: string }) {
     const message = text.trim()
 
     if (!message) return
@@ -105,8 +105,18 @@ export class GatewaySession {
 
     if (this.phase !== "idle" && this.phase !== "turn")
       throw new Error(`Session cannot accept input during ${this.phase ?? "unknown"} phase`)
-    const command = this.phase === "idle" ? "prompt" : "steer"
-    await this.#run("submit", () => this.client.requestSession({ command, sessionId, message }))
+    const batch = options?.attachmentBatch
+    const idle = this.phase === "idle"
+
+    // steer 只带文本：附件进不了回合计入，交给调用方丢弃这批暂存
+    if (!idle && batch) throw new Error("Attachments can only ride an idle prompt")
+    await this.#run("submit", () =>
+      this.client.requestSession(
+        idle
+          ? { command: "prompt", sessionId, message, ...(batch ? { attachmentBatch: batch } : {}) }
+          : { command: "steer", sessionId, message },
+      ),
+    )
   }
 
   async abort() {

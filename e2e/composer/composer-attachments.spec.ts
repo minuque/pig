@@ -70,11 +70,15 @@ test("输入卡附件：超量的跳过并提示，附件入口禁用", async ({
   await expect(attach).toBeDisabled()
 })
 
-test("附件随 Prompt 发送：逐个 stage 后 bind 到 Session", async ({ page, complexGateway }) => {
+test("附件随 Prompt 发送：逐个 stage 后由 WS prompt 带 batch 提交", async ({
+  page,
+  complexGateway,
+}) => {
   test.setTimeout(120_000)
   await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, complexGateway.workspaceId)
-  await installTurnBridge(page)
+  const bridge = await installTurnBridge(page)
+
   await page.goto(complexGateway.entryUrl)
 
   const card = page.locator(".session-card", {
@@ -88,31 +92,29 @@ test("附件随 Prompt 发送：逐个 stage 后 bind 到 Session", async ({ pag
   await expect(page.locator(".attach-tray .chip")).toHaveCount(2)
 
   const staged = page.waitForResponse((response) => response.url().includes("/attachments/stage"))
-  const bound = page.waitForResponse((response) => response.url().includes("/attachments/bind"))
 
   await page.getByRole("textbox", { name: "Prompt" }).fill("附件一轮")
   await page.locator("button.send").click()
 
   const stage = await staged
-  const bind = await bound
   const batch = new URL(stage.url()).searchParams.get("batch")
 
   expect(stage.status()).toBe(200)
   expect(stage.url()).toContain("name=note.md")
-  expect(bind.status()).toBe(200)
-  expect(bind.request().postDataJSON()).toEqual({ sessionId: COMPLEX_SESSION_ID, batch })
+  await expect.poll(() => bridge.promptBatches.length).toBe(1)
+  expect(bridge.promptBatches).toEqual([batch])
   await expect(
     page.locator(".row-user").getByText("附件一轮", { exact: true }).first(),
   ).toBeVisible()
   await expect(page.locator(".attach-tray")).toHaveCount(0)
 })
 
-test("发送中被中止：不再 bind，丢弃批次且保留 chips", async ({ page, complexGateway }) => {
+test("发送中被中止：不再发 prompt，丢弃批次且保留 chips", async ({ page, complexGateway }) => {
   test.setTimeout(120_000)
   await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, complexGateway.workspaceId)
-  await installTurnBridge(page)
-  // 闸住 stage 请求，中止一定落在 stage 与 bind 之间，不靠固定延时抢窗口
+  const bridge = await installTurnBridge(page)
+  // 闸住 stage 请求，中止一定落在 stage 与提交之间，不靠固定延时抢窗口
   let releaseStage = () => {}
   const stageGate = new Promise<void>((resolve) => {
     releaseStage = resolve
@@ -134,11 +136,6 @@ test("发送中被中止：不再 bind，丢弃批次且保留 chips", async ({ 
   await drag(page, "drop")
   await expect(page.locator(".attach-tray .chip")).toHaveCount(2)
 
-  const bound: string[] = []
-
-  page.on("request", (request) => {
-    if (request.url().includes("/attachments/bind")) bound.push(request.url())
-  })
   const staged = page.waitForRequest((request) => request.url().includes("/attachments/stage"))
   const discarded = page.waitForResponse((response) =>
     response.url().includes("/attachments/discard"),
@@ -157,6 +154,6 @@ test("发送中被中止：不再 bind，丢弃批次且保留 chips", async ({ 
 
   expect(discard.status()).toBe(200)
   expect(discard.request().postDataJSON()).toEqual({ batch })
-  expect(bound).toEqual([])
+  expect(bridge.promptBatches).toEqual([])
   await expect(page.locator(".attach-tray .chip")).toHaveCount(2)
 })

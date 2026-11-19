@@ -3,11 +3,10 @@ import { tmpdir } from "node:os"
 import { join, sep } from "node:path"
 import { afterEach, describe, expect, it } from "vitest"
 import {
-  AttachmentError,
+  ATTACHMENT_TTL_MS,
   AttachmentStore,
   MAX_BATCH_ITEMS,
   MAX_IMAGE_BYTES,
-  MAX_PENDING_ITEMS,
   composePrompt,
   sanitizeFileName,
   sanitizeMimeType,
@@ -18,7 +17,6 @@ import {
 const PNG = { name: "截图.png", mimeType: "image/png" }
 const PDF = { name: "报告 v2.pdf", mimeType: "application/pdf" }
 const SVG = { name: "矢量图.svg", mimeType: "image/svg+xml" }
-const SESSION = "sess-1"
 const stores: AttachmentStore[] = []
 const roots: string[] = []
 let rootDir = ""
@@ -56,7 +54,7 @@ async function stage(
   return store.stage({ batch, ...file, stream: chunks(bytes) })
 }
 
-/** 暂存 + bind，返回取出的附件（take 会清空 pending）。 */
+/** 暂存后按 batch 取走，模拟 prompt 消费这一批。 */
 async function takeStaged(
   store: AttachmentStore,
   batch: string,
@@ -64,8 +62,7 @@ async function takeStaged(
   bytes: Uint8Array,
 ): Promise<StagedAttachment[]> {
   await stage(store, batch, file, bytes)
-  store.bind(SESSION, batch)
-  return store.take(SESSION)
+  return store.take(batch) ?? []
 }
 
 const asFile = (item: StagedAttachment | undefined): StagedFile => {
@@ -85,8 +82,7 @@ describe("AttachmentStore.stage", () => {
     const store = await makeStore()
     const bytes = Buffer.from("hello 附件")
     const { id } = await stage(store, "batch-1", PDF, bytes)
-    store.bind(SESSION, "batch-1")
-    const item = asFile(store.take(SESSION)[0])
+    const item = asFile(store.take("batch-1")?.[0])
 
     expect(item).toMatchObject({
       kind: "file",
@@ -164,96 +160,63 @@ describe("AttachmentStore.stage", () => {
   })
 })
 
-// --- bind / take / restore --------------------------------------------------
+// --- 按 batch 消费 ----------------------------------------------------------
 
-describe("AttachmentStore bind 语义", () => {
-  it("bind 移进 pending，take 取走后清空，重复 bind 回 BATCH_NOT_FOUND", async () => {
+describe("AttachmentStore 按 batch 消费", () => {
+  it("take 取走整个 batch，同一个 batch 再取回 undefined", async () => {
     const store = await makeStore()
     await stage(store, "batch-1", PNG, Buffer.from("x"))
-    store.bind(SESSION, "batch-1")
-    expect(store.take(SESSION)).toHaveLength(1)
-    expect(store.take(SESSION)).toEqual([])
-    expect(() => store.bind(SESSION, "batch-1")).toThrowError(AttachmentError)
+    expect(store.take("batch-1")).toHaveLength(1)
+    expect(store.take("batch-1")).toBeUndefined()
   })
 
-  it("未知 batch 回 BATCH_NOT_FOUND，多个 batch 累加到同一 session", async () => {
+  it("未知 batch 回 undefined，batch 之间互不影响", async () => {
     const store = await makeStore()
-    expect(() => store.bind(SESSION, "nope")).toThrowError(AttachmentError)
+    expect(store.take("nope")).toBeUndefined()
     await stage(store, "b1", PNG, Buffer.from("x"))
     await stage(store, "b2", PDF, Buffer.from("y"))
-    store.bind(SESSION, "b1")
-    store.bind(SESSION, "b2")
-    expect(store.take(SESSION)).toHaveLength(2)
+    expect(store.take("b1")?.[0]?.batch).toBe("b1")
+    expect(store.take("b2")?.[0]?.batch).toBe("b2")
   })
 
-  it("pending 超过 32 项回 TOO_MANY_ITEMS，超限的 batch 仍可 bind 到别处", async () => {
+  it("过期 batch 被 sweep 丢掉，之后再 take 回 undefined", async () => {
     const store = await makeStore()
-
-    for (let index = 0; index < MAX_PENDING_ITEMS / MAX_BATCH_ITEMS; index += 1) {
-      const batch = `p${index}`
-
-      for (let item = 0; item < MAX_BATCH_ITEMS; item += 1)
-        await stage(store, batch, PNG, Buffer.from("x"))
-
-      store.bind(SESSION, batch)
-    }
-
-    await stage(store, "p-last", PNG, Buffer.from("x"))
-    expect(() => store.bind(SESSION, "p-last")).toThrowError(AttachmentError)
-    store.bind("other", "p-last")
-    expect(store.take(SESSION)).toHaveLength(MAX_PENDING_ITEMS)
-    expect(store.take("other")).toHaveLength(1)
+    await stage(store, "b1", PNG, Buffer.from("x"))
+    await store.sweep(Date.now() + ATTACHMENT_TTL_MS)
+    expect(store.take("b1")).toBeUndefined()
   })
 
-  it("restore 把取出的附件放回 pending", async () => {
+  it("restore 把取出的附件放回同一个 batch，重试仍能消费", async () => {
     const store = await makeStore()
     const items = await takeStaged(store, "b1", PNG, Buffer.from("x"))
-    store.restore(SESSION, items)
-    expect(store.take(SESSION)).toHaveLength(1)
-  })
-})
-
-// --- 会话清理 ---------------------------------------------------------------
-
-describe("AttachmentStore 清理", () => {
-  it("clearSession 丢弃 pending、删文件并收掉空目录", async () => {
-    const store = await makeStore()
-    const items = await takeStaged(store, "b1", PDF, Buffer.from("x"))
-    const path = asFile(items[0]).path
-
-    store.restore(SESSION, items)
-    await store.clearSession(SESSION)
-    expect(store.take(SESSION)).toEqual([])
-    expect(await exists(path)).toBe(false)
-    expect(await readdir(rootDir)).toEqual([])
+    store.restore("b1", items)
+    expect(store.take("b1")).toHaveLength(1)
   })
 })
 
 // --- discard ----------------------------------------------------------------
 
 describe("AttachmentStore discard", () => {
-  it("丢掉未 bind 的 batch 与它的文件", async () => {
+  it("丢掉未消费的 batch 与它的文件", async () => {
     const store = await makeStore()
     const { id } = await stage(store, "b1", PDF, Buffer.from("x"))
     const path = join(batchDir("b1"), `${id.slice(0, 8)}-${PDF.name}`)
 
     await store.discard("b1")
+    expect(store.take("b1")).toBeUndefined()
     expect(await exists(path)).toBe(false)
     expect(await readdir(rootDir)).toEqual([])
-    expect(() => store.bind(SESSION, "b1")).toThrowError(AttachmentError)
   })
 
-  it("摘掉 pending 里该 batch 的项，其他 batch 保留", async () => {
+  it("prompt 失败放回批后 discard 仍丢掉整批", async () => {
     const store = await makeStore()
-    await stage(store, "b1", PNG, Buffer.from("x"))
-    await stage(store, "b2", PNG, Buffer.from("y"))
-    store.bind(SESSION, "b1")
-    store.bind(SESSION, "b2")
-    await store.discard("b1")
-    const left = store.take(SESSION)
+    const items = await takeStaged(store, "b1", PDF, Buffer.from("x"))
+    const path = asFile(items[0]).path
 
-    expect(left).toHaveLength(1)
-    expect(left[0]?.batch).toBe("b2")
+    store.restore("b1", items)
+    await store.discard("b1")
+    expect(store.take("b1")).toBeUndefined()
+    expect(await exists(path)).toBe(false)
   })
 
   it("未知 batch 幂等，不抛错", async () => {

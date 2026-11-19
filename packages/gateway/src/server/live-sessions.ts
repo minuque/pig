@@ -86,7 +86,14 @@ export class LiveSessions {
         await this.detach(connection, command.sessionId)
         return { command: "detach_session", sessionId: command.sessionId }
       case "prompt":
-        return this.run(connection, command, (runtime) => runtime.prompt({ text: command.message }))
+        return this.run(connection, command, (runtime) =>
+          runtime.prompt({
+            text: command.message,
+            ...(command.attachmentBatch === undefined
+              ? {}
+              : { attachmentBatch: command.attachmentBatch }),
+          }),
+        )
       case "steer":
         return this.run(connection, command, (runtime) => runtime.steer({ text: command.message }))
       case "abort":
