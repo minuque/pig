@@ -57,6 +57,8 @@ function toMetadata(snapshot: SessionSnapshot): SessionMetadata {
 export class LiveSessions {
   private readonly live = new Map<string, LiveSession>()
   private readonly opening = new Map<string, Promise<LiveSession>>()
+  /** 会话文件监听：sessionId → 连接 → 该连接的退订函数。 */
+  private readonly watched = new Map<string, Map<ClientConnection, () => void>>()
 
   constructor(private readonly options: LiveSessionOptions) {}
 
@@ -107,11 +109,18 @@ export class LiveSessions {
       case "extension_ui_response":
         this.attached(connection, command.sessionId).runtime.respondExtensionUi(command.response)
         return { command: "extension_ui_response", sessionId: command.sessionId }
+      case "watch_session":
+        this.watchFile(connection, command.sessionId)
+        return { command: "watch_session", sessionId: command.sessionId }
+      case "unwatch_session":
+        this.unwatchFile(connection, command.sessionId)
+        return { command: "unwatch_session", sessionId: command.sessionId }
     }
   }
 
-  /** 连接断开：从所有会话摘下，能释放的释放。 */
+  /** 连接断开：摘掉它的会话与文件监听，能释放的释放。 */
   async disconnect(connection: ClientConnection) {
+    this.clearWatches(connection)
     const sessions = [...connection.sessionIds].flatMap((id) => this.live.get(id) ?? [])
     connection.sessionIds.clear()
 
@@ -143,6 +152,8 @@ export class LiveSessions {
   }
 
   async close() {
+    for (const watchers of this.watched.values()) for (const stop of watchers.values()) stop()
+    this.watched.clear()
     await Promise.allSettled([...this.opening.values()])
     const sessions = [...this.live.values()]
     this.live.clear()
@@ -153,6 +164,54 @@ export class LiveSessions {
         await live.runtime.dispose()
       }),
     )
+  }
+
+  /** 按需盯住会话文件：不要求挂着会话，多条连接看同一个会话时共用 Gateway 侧的一份监听。 */
+  private watchFile(connection: ClientConnection, sessionId: string) {
+    const watchers = this.watched.get(sessionId) ?? new Map<ClientConnection, () => void>()
+
+    this.watched.set(sessionId, watchers)
+
+    if (watchers.has(connection)) return
+    watchers.set(
+      connection,
+      this.options.service.watchSession(sessionId, () => this.fileChanged(sessionId)),
+    )
+  }
+
+  private unwatchFile(connection: ClientConnection, sessionId: string) {
+    const watchers = this.watched.get(sessionId)
+
+    watchers?.get(connection)?.()
+
+    if (!watchers?.delete(connection) || watchers.size > 0) return
+    this.watched.delete(sessionId)
+  }
+
+  /** 会话文件变了：只通知显式 watch 过的连接，其余连接靠快照与历史。 */
+  private fileChanged(sessionId: string) {
+    const watchers = this.watched.get(sessionId)
+
+    if (!watchers) return
+
+    const message: ServerMessage = {
+      type: "event",
+      event: { type: "session_file_changed", sessionId },
+    }
+
+    for (const connection of watchers.keys()) connection.send(message)
+  }
+
+  private clearWatches(connection: ClientConnection) {
+    for (const [sessionId, watchers] of [...this.watched]) {
+      const stop = watchers.get(connection)
+
+      if (!stop) continue
+      stop()
+      watchers.delete(connection)
+
+      if (watchers.size === 0) this.watched.delete(sessionId)
+    }
   }
 
   private async attachTo(

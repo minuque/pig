@@ -1,5 +1,4 @@
-import { computed, shallowRef, watch, type ComputedRef } from "vue"
-import { useIntervalFn } from "@vueuse/core"
+import { computed, shallowRef, type ComputedRef } from "vue"
 import { GatewaySession, type SessionState } from "@client/gateway-session.js"
 import type { ContextUsageEstimate, ModelRef, ThinkingLevel } from "@/types/common-type.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
@@ -16,14 +15,13 @@ import {
   type ForegroundOwner,
   type LiveSubscription,
 } from "@features/session/hooks/use-live-subscriptions.js"
+import { useSessionFileWatch } from "@features/session/hooks/use-session-file-watch.js"
 
 interface CreateSessionInput {
   cwd: string
   model?: ModelRef
   thinkingLevel?: ThinkingLevel
 }
-
-const FOLLOW_INTERVAL_MS = 2000
 
 /** 一侧 workbench 的前台连接：挂上、摘下、切换、转入共用后台池、释放。每侧同一时刻只有一条。 */
 export function useForegroundSession(
@@ -239,26 +237,15 @@ export function useForegroundSession(
     if (id) await ensureRemote(id, { takeover: true })
   }
 
-  /** 显示中且没挂连接（前台与后台池都没有）：每 2 秒强制重拉，等外部回合落盘。 */
-  const follow = useIntervalFn(
-    () => {
-      const id = history.activeId.value
-
-      if (id && remote.value?.id !== id && !live.backgroundSubscription(id))
-        void history.refreshHistory(id)
-    },
-    FOLLOW_INTERVAL_MS,
-    { immediate: false },
-  )
-
-  watch(
-    [history.activeId, remote, pi.connected],
-    ([id, attached, connected]) => {
-      if (id && connected && attached?.id !== id) follow.resume()
-      else follow.pause()
-    },
-    { immediate: true },
-  )
+  /** 显示中却没挂连接：按需 watch 会话文件，外部追加时立刻重拉，不再走定时轮询。 */
+  const fileWatch = useSessionFileWatch({
+    client: pi.client,
+    connected: pi.connected,
+    sessionId: history.activeId,
+    attached: computed(() => remote.value?.id),
+    pooled: (id) => live.backgroundSubscription(id) !== undefined,
+    changed: (id) => void history.refreshHistory(id),
+  })
 
   async function createRemoteSession(nextCwd: string, options?: Omit<CreateSessionInput, "cwd">) {
     const routeSessionAtStart = sessionId.value
@@ -286,7 +273,7 @@ export function useForegroundSession(
 
   /** 这一侧卸下：运行中的会话照旧转入共用后台池，池本身由 hub 收尾。 */
   async function dispose() {
-    follow.pause()
+    fileWatch.stop()
     unregister()
     history.setActive(undefined)
     abortInflightOpen?.()

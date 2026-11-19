@@ -31,6 +31,7 @@ import { SessionIndex, type IndexedSession } from "./session-index.js"
 import { recentSessionCwd, sessionListName } from "./session-label.js"
 import { BINDING_ENTRY, parseRemoteKey } from "./remote-session.js"
 import { PiHostSession } from "./session-runtime.js"
+import { SessionFileWatcher } from "./session-watcher.js"
 import { TranscriptReader } from "./transcript-reader.js"
 import { createDefaultRuntime, serializeEntries } from "./service-support.js"
 import { isTurnUnfinished } from "./turn-state.js"
@@ -90,6 +91,10 @@ export class PiHostService implements SessionService {
   private readonly transcripts = new TranscriptReader({
     live: (id) => this.activeSessions.get(id),
     findPath: (id) => this.findSessionPath(id),
+  })
+  /** 按需会话文件监听：watch_session 的落点，没有订阅者时不开句柄。 */
+  private readonly fileWatcher = new SessionFileWatcher({
+    resolvePath: (id) => this.findSessionPath(id),
   })
 
   constructor(private readonly options: PiHostServiceOptions = {}) {
@@ -345,10 +350,16 @@ export class PiHostService implements SessionService {
     this.catalogChanged()
   }
 
-  /** 停服：清掉附件清理定时器并删除本实例的临时文件。 */
+  /** 停服：清掉附件清理定时器、关会话文件监听，并删除本实例的临时文件。 */
   dispose(): Promise<void> {
     this.providers.dispose()
+    this.fileWatcher.close()
     return this.attachments.dispose()
+  }
+
+  /** 按需监听会话文件：同一会话共用一份 fs.watch，退订到零就关。 */
+  watchSession(sessionId: string, listener: () => void): () => void {
+    return this.fileWatcher.subscribe(sessionId, listener)
   }
 
   async openSession(

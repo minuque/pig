@@ -3,6 +3,7 @@ import type { GatewaySession, SessionState } from "@client/gateway-session.js"
 import type { TranscriptItem } from "@/types/common-type.js"
 import type { HistoryStore } from "@features/session/hooks/use-session-history.js"
 import { coalesceByFrame } from "@features/session/lib/coalesce-by-frame.js"
+import { NO_TOOL_STARTS, recordToolStartedAt } from "@features/session/lib/transcript-timeline.js"
 
 /** 一条 Session 的 live 订阅：前台写 state，后台只覆盖 live 与拉历史，发布逻辑两处共用。 */
 /** 挂着这条订阅的前台：每侧 workbench 一个，收状态与 revision 变化。 */
@@ -29,9 +30,6 @@ export interface LiveSubscription {
 /** 后台空闲接管结果：sent 表示已泵出一条留在池里，done 表示可以出池收尾。 */
 export type BackgroundIdleResult = "sent" | "done"
 
-/** 工具条目挂上客户端记的开始时刻；只是本地附加字段，不走协议校验。 */
-type TimedToolItem = TranscriptItem & { startedAt: number }
-
 /** 会话里还有后台任务在跑或排队：这样的连接切走时不放掉。 */
 export function hasRunningTasks(sub: LiveSubscription): boolean {
   return (
@@ -39,21 +37,6 @@ export function hasRunningTasks(sub: LiveSubscription): boolean {
       (task) => task.status === "running" || task.status === "queued",
     ) ?? false
   )
-}
-
-/** running 占位自带开始时刻；完成条目没这个字段，按 toolCallId 从订阅里回填。 */
-function withToolStart(sub: LiveSubscription, item: TranscriptItem): TranscriptItem {
-  if (item.role !== "tool") return item
-
-  if (item.status === "running") {
-    const startedAt = Math.min(sub.toolStartedAt.get(item.id) ?? item.timestamp, item.timestamp)
-
-    sub.toolStartedAt.set(item.id, startedAt)
-    return { ...item, startedAt } as TimedToolItem
-  }
-
-  const startedAt = sub.toolStartedAt.get(item.id)
-  return startedAt === undefined ? item : ({ ...item, startedAt } as TimedToolItem)
 }
 
 interface LiveDeps {
@@ -65,6 +48,8 @@ interface LiveDeps {
 export function useLiveSubscriptions(deps: LiveDeps) {
   const { history, discard } = deps
   const background = new Map<string, LiveSubscription>()
+  /** 所有在订阅的会话（含前台那一份）：工具开始时刻表与时间线投影都按 id 取。 */
+  const subscriptions = new Map<string, LiveSubscription>()
   const backgroundRunningIds = shallowRef<ReadonlySet<string>>(new Set())
   let backgroundIdleHandler: ((id: string) => Promise<BackgroundIdleResult>) | undefined
 
@@ -205,16 +190,32 @@ export function useLiveSubscriptions(deps: LiveDeps) {
     const coalesced = coalesceByFrame<SessionState>(publish, 8)
     // 快照广播会清空库内 progress，同一帧里后到的空快照会盖掉先到的 item_finished：按 id 逐事件累积
     const unsubscribe = session.subscribe((nextState) => {
-      for (const item of nextState.transcript) sub.liveItems.set(item.id, withToolStart(sub, item))
+      for (const item of nextState.transcript) {
+        sub.liveItems.set(item.id, item)
+        recordToolStartedAt(sub.toolStartedAt, item)
+      }
+
       coalesced.push(nextState)
     })
 
     sub.stop = () => {
       unsubscribe()
       coalesced.cancel()
+
+      const id = session.id
+
+      if (id && subscriptions.get(id) === sub) subscriptions.delete(id)
     }
 
+    const id = session.id
+
+    if (id) subscriptions.set(id, sub)
     return sub
+  }
+
+  /** 该会话 live 订阅记下的工具开始时刻；时间线投影回填用。 */
+  function toolStartedAtFor(id: string): ReadonlyMap<string, number> {
+    return subscriptions.get(id)?.toolStartedAt ?? NO_TOOL_STARTS
   }
 
   /** 后台池里该会话的订阅；后台泵队与接管前核对连接用。 */
@@ -252,6 +253,7 @@ export function useLiveSubscriptions(deps: LiveDeps) {
     moveToBackground,
     promoteBackground,
     backgroundSubscription,
+    toolStartedAtFor,
     setBackgroundIdle,
     takeBackground,
     dropBackground,

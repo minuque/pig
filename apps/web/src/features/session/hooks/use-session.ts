@@ -15,11 +15,13 @@ import {
   emptyClientState,
   handOffIdle,
   optimisticUserMessage,
-  projectClientTranscript,
   projectSessionSnapshot,
   sessionState,
-  withPendingAssistant,
 } from "@features/session/lib/session-state.js"
+import {
+  NO_TOOL_STARTS,
+  projectTranscriptTimeline,
+} from "@features/session/lib/transcript-timeline.js"
 import type { PresetPort, SessionClientState } from "@features/session/type.js"
 
 export interface SessionLifecycleOptions {
@@ -316,12 +318,16 @@ export function useSessionLifecycle(
   }
 
   const turnPending = computed(() => submitting.value || running.value)
-  const transcript = computed(() =>
-    withPendingAssistant(
-      projectClientTranscript(liveTranscript.value, clientState.value.sends),
-      turnPending.value,
-    ),
-  )
+  /** 一条时间线：磁盘底稿 + live 对齐 + 工具开始时刻 + 乐观句 + pending 占位，纯函数一次算完。 */
+  const transcript = computed(() => {
+    const id = history.activeId.value
+    return projectTranscriptTimeline({
+      ...history.timelineSource(id),
+      optimisticSends: clientState.value.sends,
+      turnPending: turnPending.value,
+      toolStartedAt: id ? live.toolStartedAtFor(id) : NO_TOOL_STARTS,
+    })
+  })
   const sessionCwd = computed(
     () =>
       projection.value?.cwd ??

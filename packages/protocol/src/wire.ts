@@ -65,15 +65,24 @@ export type Command =
   | { command: "set_thinking_level"; sessionId: string; level: ThinkingLevel }
   | { command: "extension_ui_response"; sessionId: string; response: ExtensionUiResponse }
   | { command: "stop_task"; sessionId: string; taskId: string }
+  /** 按需盯住一个会话文件：外部进程（如 Pi TUI）往里追加时推 session_file_changed。 */
+  | { command: "watch_session"; sessionId: string }
+  | { command: "unwatch_session"; sessionId: string }
 
 export type CommandResult =
   | { command: "list_sessions"; sessions: SessionMetadata[] }
   | { command: "detach_session"; sessionId: string }
   | { command: "extension_ui_response"; sessionId: string }
+  | { command: "watch_session"; sessionId: string }
+  | { command: "unwatch_session"; sessionId: string }
   | {
       command: Exclude<
         Command["command"],
-        "list_sessions" | "detach_session" | "extension_ui_response"
+        | "list_sessions"
+        | "detach_session"
+        | "extension_ui_response"
+        | "watch_session"
+        | "unwatch_session"
       >
       session: SessionSnapshot
     }
@@ -102,6 +111,8 @@ export type ServerEvent =
   | { type: "session_snapshot"; snapshot: SessionSnapshot }
   | { type: "session_progress"; sessionId: string; progress: TranscriptProgress }
   | { type: "extension_ui_request"; sessionId: string; request: ExtensionUiRequest }
+  /** 会话文件变了（外部追加、改名或删除）：客户端自己决定要不要重拉历史。 */
+  | { type: "session_file_changed"; sessionId: string }
 
 export type ServerMessage =
   | { type: "hello"; snapshot: ServerSnapshot }

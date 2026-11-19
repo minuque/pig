@@ -47,10 +47,28 @@ const { useForegroundSession } = await import("@features/session/hooks/use-foreg
 const { createHistoryStore } = await import("@features/session/hooks/use-session-history.js")
 const online = shallowRef(true)
 let reconnect: (() => Promise<void>) | undefined
+const fileListeners = new Map<string, Set<() => void>>()
+const watchSession = vi.fn(async (_id: string) => undefined)
+const unwatchSession = vi.fn(async (_id: string) => undefined)
+
+/** 替身 Gateway 推一次“会话文件变了”。 */
+function fileChanged(id: string) {
+  for (const listener of fileListeners.get(id) ?? []) listener()
+}
 
 function fakePi() {
   return {
-    client: shallowRef({ reconnect: vi.fn(async () => undefined) }),
+    client: shallowRef({
+      reconnect: vi.fn(async () => undefined),
+      watchSession,
+      unwatchSession,
+      onSessionFileChanged: (id: string, listener: () => void) => {
+        const listeners = fileListeners.get(id) ?? new Set()
+        listeners.add(listener)
+        fileListeners.set(id, listeners)
+        return () => listeners.delete(listener)
+      },
+    }),
     connected: computed(() => online.value),
     bindAttachedReconnect: vi.fn((fn?: () => Promise<void>) => {
       reconnect = fn
@@ -76,6 +94,9 @@ afterEach(() => {
   rejectReattachOf = undefined
   online.value = true
   reconnect = undefined
+  fileListeners.clear()
+  watchSession.mockClear()
+  unwatchSession.mockClear()
   transcript.mockClear()
   open.mockClear()
 })
@@ -103,27 +124,28 @@ describe("历史页：文件没变不重发", () => {
 })
 
 describe("外部回合只读", () => {
-  it("断线期间轮询不发请求，恢复后继续", async () => {
+  it("显示中且未挂连接时订阅会话文件，断线后退订、恢复后重新订阅并补拉一次", async () => {
     const scope = effectScope()
     const pi = fakePi()
     const left = scope.run(() => side(pi, createSessionHub(pi as never), "a"))!
 
     left.showHistory("a")
     await vi.advanceTimersByTimeAsync(0)
+    expect(watchSession).toHaveBeenCalledWith("a")
+
     online.value = false
     await vi.advanceTimersByTimeAsync(0)
+    expect(unwatchSession).toHaveBeenCalledWith("a")
     transcript.mockClear()
 
-    await vi.advanceTimersByTimeAsync(6000)
-    expect(transcript).not.toHaveBeenCalled()
-
     online.value = true
-    await vi.advanceTimersByTimeAsync(2000)
+    await vi.advanceTimersByTimeAsync(0)
+    expect(watchSession).toHaveBeenCalledTimes(2)
     expect(transcript).toHaveBeenCalledTimes(1)
     scope.stop()
   })
 
-  it("上一次重拉还没回来时轮询不另发请求，慢响应照常落地", async () => {
+  it("上一次重拉还没回来时再收到事件不另发请求，慢响应照常落地", async () => {
     const scope = effectScope()
     const pi = fakePi()
     const left = scope.run(() => side(pi, createSessionHub(pi as never), "a"))!
@@ -135,8 +157,9 @@ describe("外部回合只读", () => {
     transcript.mockImplementationOnce(() => new Promise((resolve) => (land = resolve)))
     transcript.mockClear()
 
-    await vi.advanceTimersByTimeAsync(2000)
-    await vi.advanceTimersByTimeAsync(2000)
+    fileChanged("a")
+    fileChanged("a")
+    await vi.advanceTimersByTimeAsync(0)
     expect(transcript).toHaveBeenCalledTimes(1)
 
     land({ ...page(false, "v2"), items: [{ id: "n" }] })
@@ -161,7 +184,7 @@ describe("外部回合只读", () => {
     scope.stop()
   })
 
-  it("跟随刷新：未挂连接时每 2 秒重拉，挂上或卸下后停止", async () => {
+  it("文件变化时重拉一次；挂上连接后事件不再触发请求", async () => {
     const scope = effectScope()
     const pi = fakePi()
     const left = scope.run(() => side(pi, createSessionHub(pi as never), "a"))!
@@ -170,18 +193,20 @@ describe("外部回合只读", () => {
     await vi.advanceTimersByTimeAsync(0)
     transcript.mockClear()
 
-    await vi.advanceTimersByTimeAsync(4000)
-    expect(transcript).toHaveBeenCalledTimes(2)
+    fileChanged("a")
+    await vi.advanceTimersByTimeAsync(0)
+    expect(transcript).toHaveBeenCalledTimes(1)
 
     await left.takeover()
     transcript.mockClear()
-    await vi.advanceTimersByTimeAsync(6000)
+    fileChanged("a")
+    await vi.advanceTimersByTimeAsync(0)
     expect(transcript).not.toHaveBeenCalled()
-
+    expect(unwatchSession).toHaveBeenCalledWith("a")
     scope.stop()
   })
 
-  it("一侧卸下后不再轮询", async () => {
+  it("一侧卸下后不再订阅，也不拉历史", async () => {
     const scope = effectScope()
     const pi = fakePi()
     const left = scope.run(() => side(pi, createSessionHub(pi as never), "a"))!
@@ -191,7 +216,8 @@ describe("外部回合只读", () => {
     await left.dispose()
     transcript.mockClear()
 
-    await vi.advanceTimersByTimeAsync(6000)
+    fileChanged("a")
+    await vi.advanceTimersByTimeAsync(0)
     expect(transcript).not.toHaveBeenCalled()
     scope.stop()
   })

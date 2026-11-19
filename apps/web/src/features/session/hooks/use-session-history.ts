@@ -5,9 +5,11 @@ import { errorMessage } from "@client/http.js"
 import { t } from "@i18n/index.js"
 import { sessionTranscript } from "@client/platform.js"
 import {
-  absorbLatestTranscriptPage,
-  mergeLiveTranscript,
-} from "@features/session/lib/session-state.js"
+  absorbTranscriptPage,
+  NO_TOOL_STARTS,
+  projectTranscriptTimeline,
+  type TimelineInput,
+} from "@features/session/lib/transcript-timeline.js"
 import { createSessionHistoryCache } from "@features/session/lib/session-history-cache.js"
 
 export type HistoryStore = ReturnType<typeof createHistoryStore>
@@ -34,12 +36,10 @@ export function createHistoryStore() {
 
   const isShown = (id: string) => [...shown.values()].includes(id)
 
+  /** live 覆盖就是本次连接收到的最新条目（按 id 去重后由订阅方给出），对齐与回填交给投影。 */
   function overlayLive(id: string, live: readonly TranscriptItem[]) {
     if (live.length === 0) return
-    const page = cache.peek(id)
-    cache.write(id, {
-      heldLive: mergeLiveTranscript(page?.heldLive ?? [], live),
-    })
+    cache.write(id, { heldLive: [...live] })
     bump()
   }
 
@@ -81,7 +81,7 @@ export function createHistoryStore() {
         const { timings, hasMore, version: fileVersion, externalTurn } = result
         // 尾巴接回请求时的基准，得到的就是网关此刻的全文
         const items = "append" in result ? [...disk, ...result.append] : result.items
-        const absorbed = absorbLatestTranscriptPage(cache.peek(id), { items, timings, hasMore })
+        const absorbed = absorbTranscriptPage(cache.peek(id), { items, timings, hasMore })
         cache.write(id, {
           ...absorbed,
           disk: items,
@@ -106,16 +106,28 @@ export function createHistoryStore() {
     return run
   }
 
-  /** 轮询用：已有请求在飞就等它落地，不另发。 */
+  /** watch 事件与重连补拉用：已有请求在飞就等它落地，不另发。 */
   function refreshHistory(id: string) {
     return inflight.get(id) ?? loadHistory(id, { force: true })
   }
 
-  /** 指定会话当前的合并转录（磁盘 + live 覆盖）；前台投影与后台泵队共用。 */
-  function transcriptFor(id: string): readonly TranscriptItem[] {
+  /** 时间线投影的底稿：磁盘窗口与 live 覆盖分开交出去，合并规则只在纯函数里。 */
+  function timelineSource(
+    id: string | undefined,
+  ): Pick<TimelineInput, "persisted" | "liveOverlay"> {
     void version.value
-    const page = cache.peek(id)
-    return page ? mergeLiveTranscript(page.items, page.heldLive) : []
+    const page = id ? cache.peek(id) : undefined
+    return { persisted: page?.items ?? [], liveOverlay: page?.heldLive ?? [] }
+  }
+
+  /** 指定会话当前的转录（磁盘 + live 对齐）；后台泵队与发送锚点用，不带客户端暂存。 */
+  function transcriptFor(id: string): readonly TranscriptItem[] {
+    return projectTranscriptTimeline({
+      ...timelineSource(id),
+      optimisticSends: [],
+      turnPending: false,
+      toolStartedAt: NO_TOOL_STARTS,
+    })
   }
 
   return {
@@ -123,6 +135,7 @@ export function createHistoryStore() {
     show,
     overlayLive,
     releaseLive,
+    timelineSource,
     transcriptFor,
     isFresh: (id: string) => cache.isFresh(id),
     isReady: (id: string) => cache.isReady(id),
@@ -178,6 +191,7 @@ export function useHistoryView(store: HistoryStore) {
     setActive,
     overlayLive: store.overlayLive,
     releaseLive: store.releaseLive,
+    timelineSource: store.timelineSource,
     transcriptFor,
     isFresh: store.isFresh,
     loadHistory: store.loadHistory,

@@ -247,6 +247,37 @@ export const flows: Flow[] = [
     ],
   },
   {
+    id: "external-change",
+    title: "外部进程改动会话文件",
+    channel: "ws",
+    steps: [
+      {
+        from: "session",
+        to: "Gateway",
+        text: "显示的会话没挂连接：WS 命令 watch_session 按需订阅",
+        ref: "apps/web/src/features/session/hooks/use-session-file-watch.ts#useSessionFileWatch",
+      },
+      {
+        from: "Gateway",
+        to: "Disk",
+        text: "同一会话多连接共用一个 fs.watch，只在有订阅者时开着",
+        ref: "packages/gateway/src/pi/session-watcher.ts#SessionFileWatcher",
+      },
+      {
+        from: "Gateway",
+        to: "session",
+        text: "事件防抖合并后推 session_file_changed",
+        ref: "packages/gateway/src/server/live-sessions.ts#LiveSessions.fileChanged",
+      },
+      {
+        from: "session",
+        to: "session",
+        text: "重拉一次历史，外部追加的回合落进时间线",
+        ref: "apps/web/src/features/session/hooks/use-session-history.ts#createHistoryStore",
+      },
+    ],
+  },
+  {
     id: "warm-workspace",
     title: "工作区预热",
     channel: "http",

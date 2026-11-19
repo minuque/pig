@@ -45,6 +45,7 @@ export class GatewayClient {
   readonly #snapshotListeners = new Set<(snapshot: ServerSnapshot) => void>()
   readonly #stateListeners = new Set<(change: ConnectionStateChange) => void>()
   readonly #sessionListeners = new Map<string, Set<(event: SessionEvent) => void>>()
+  readonly #fileListeners = new Map<string, Set<() => void>>()
   readonly #closeListeners = new Set<() => void>()
   readonly #extensionListeners = new Set<(event: ExtensionUiEvent) => void>()
 
@@ -152,6 +153,27 @@ export class GatewayClient {
     return () => this.#extensionListeners.delete(listener)
   }
 
+  /** 该会话文件变了：只通知为这个 sessionId 订阅过的调用方。 */
+  onSessionFileChanged(sessionId: string, listener: () => void): Unsubscribe {
+    const listeners = this.#fileListeners.get(sessionId) ?? new Set()
+    listeners.add(listener)
+    this.#fileListeners.set(sessionId, listeners)
+    return () => {
+      listeners.delete(listener)
+
+      if (listeners.size === 0) this.#fileListeners.delete(sessionId)
+    }
+  }
+
+  /** 让 Gateway 按需盯住会话文件；没连上就跳过，重连后由调用方重发。 */
+  watchSession(sessionId: string) {
+    return this.#quiet({ command: "watch_session", sessionId })
+  }
+
+  unwatchSession(sessionId: string) {
+    return this.#quiet({ command: "unwatch_session", sessionId })
+  }
+
   async listSessions(): Promise<readonly SessionMetadata[]> {
     const result = await this.request({ command: "list_sessions" })
     return result.command === "list_sessions" ? result.sessions : []
@@ -181,6 +203,14 @@ export class GatewayClient {
     if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message))
   }
 
+  /** 只是通知 Gateway 改订阅，失败不影响界面。 */
+  #quiet(command: Command) {
+    return this.request(command).then(
+      () => undefined,
+      () => undefined,
+    )
+  }
+
   #receive(message: ServerMessage) {
     if (message.type === "response") {
       const pending = this.#pending.get(message.id)
@@ -204,6 +234,11 @@ export class GatewayClient {
 
     if (event.type === "extension_ui_request") {
       this.#emit(this.#extensionListeners, event)
+      return
+    }
+
+    if (event.type === "session_file_changed") {
+      this.#emit(this.#fileListeners.get(event.sessionId) ?? [], undefined)
       return
     }
 

@@ -41,7 +41,12 @@ const { useForegroundSession } = await import("@features/session/hooks/use-foreg
 
 function fakePi() {
   return {
-    client: shallowRef({ reconnect: vi.fn(async () => undefined) }),
+    client: shallowRef({
+      reconnect: vi.fn(async () => undefined),
+      watchSession: vi.fn(async (_id: string) => undefined),
+      unwatchSession: vi.fn(async (_id: string) => undefined),
+      onSessionFileChanged: vi.fn((_id: string, _listener: () => void) => () => {}),
+    }),
     connected: computed(() => true),
     bindAttachedReconnect: vi.fn(),
   }

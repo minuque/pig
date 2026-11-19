@@ -80,4 +80,6 @@ export interface SessionService {
   listModels(): Promise<ModelMetadata[]>
   createSession(options: CreateSessionOptions): Promise<SessionRuntime>
   openSession(sessionId: string, options?: { takeover?: boolean }): Promise<SessionRuntime>
+  /** 会话文件变化：只在有订阅者时监听，返回退订函数。 */
+  watchSession(sessionId: string, listener: () => void): () => void
 }
