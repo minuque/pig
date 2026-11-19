@@ -84,11 +84,10 @@ const bodyId = useId()
   box-shadow: 0 0 0 1px var(--border-subtle);
 }
 
-/* 拖着走的卡片浮起来，铺浮层底遮住下面的卡；位移由 useDragReorder 驱动 */
+/* 拖着走的卡片压在上层，铺浮层底遮住下面的卡；位移由 useDragReorder 驱动 */
 .rail-card.is-drag-live {
   z-index: 2;
   background: var(--bg-raised);
-  box-shadow: var(--shadow-popover);
   cursor: grabbing;
   user-select: none;
 }
