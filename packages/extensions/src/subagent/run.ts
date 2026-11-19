@@ -51,6 +51,11 @@ function sharedRuntime() {
   return runtime
 }
 
+/** 宿主改过供应商、凭据或模型目录：丢掉缓存，下次开子会话时重新读盘。 */
+export function resetSharedRuntime(): void {
+  runtime = undefined
+}
+
 const brief = (value: unknown) => {
   const text = typeof value === "string" ? value : JSON.stringify(value ?? "")
   return text.length > 80 ? `${text.slice(0, 80)}…` : text

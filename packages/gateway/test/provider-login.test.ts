@@ -48,9 +48,10 @@ function loginRuntime(options: { fail?: boolean } = {}) {
 }
 
 let tempDir: string | undefined
-const service = (runtime: unknown) =>
+const service = (runtime: unknown, onCatalogChange?: () => void) =>
   new ProviderService({
     runtime: async () => runtime as never,
+    ...(onCatalogChange ? { onCatalogChange } : {}),
     ...(tempDir ? { agentDir: tempDir } : {}),
   })
 
@@ -71,7 +72,8 @@ describe("ProviderService login", () => {
   it("按顺序推送 auth_url 与 prompt，回答后落 done 并刷新 runtime", async () => {
     tempDir = await mkdtemp(join(tmpdir(), "pig-login-"))
     const fake = loginRuntime()
-    const providers = service(fake.runtime)
+    const changed = vi.fn()
+    const providers = service(fake.runtime, changed)
     const { loginId } = await providers.login("anthropic", "api_key")
     const pending: LoginEventView[] = []
     const consuming = (async () => {
@@ -90,6 +92,7 @@ describe("ProviderService login", () => {
     expect(pending.map((event) => event.type)).toEqual(["auth_url", "prompt", "done"])
     expect(fake.prompts).toEqual(["sk-test"])
     expect(fake.refresh).toHaveBeenCalledWith({ providers: ["anthropic"], allowNetwork: true })
+    expect(changed).toHaveBeenCalledTimes(1)
     expect(pending.map((event) => event.seq)).toEqual([1, 2, 3])
   })
 

@@ -1,13 +1,19 @@
 import { posix } from "node:path"
 
 import type { ExtensionAPI, ToolDefinition } from "@earendil-works/pi-coding-agent"
-import type { AgentTask, TaskDetails } from "@pig/protocol"
+import type { AgentTask, ModelChannels, TaskDetails } from "@pig/protocol"
 import { type AgentConfig, type AgentScope, discoverAgents } from "./agents.ts"
 import { fromEntries } from "../remote-workspace/index.ts"
 import { taskConfig } from "../tasks/config.ts"
 import { registryFor } from "../tasks/registry.ts"
-import { startChild as defaultStartChild, type ChildRun, type StartChild } from "./run.ts"
+import {
+  resetSharedRuntime,
+  startChild as defaultStartChild,
+  type ChildRun,
+  type StartChild,
+} from "./run.ts"
 
+const MODELS_CHANGED_CHANNEL = "pig:models:changed" satisfies keyof ModelChannels
 const MAX_TASKS = 8
 const MAX_CONCURRENCY = 4
 const RECENT_STEPS = 3
@@ -290,5 +296,19 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
 }
 
 export default function subagent(pi: ExtensionAPI) {
+  let offModelsChanged: (() => void) | undefined
+
+  pi.on("session_start", () => {
+    // 新会话：上一个会话缓存的运行时可能带着旧凭据与旧模型目录
+    resetSharedRuntime()
+    offModelsChanged?.()
+    offModelsChanged = pi.events.on(MODELS_CHANGED_CHANNEL, () => resetSharedRuntime())
+  })
+
+  pi.on("session_shutdown", () => {
+    offModelsChanged?.()
+    offModelsChanged = undefined
+  })
+
   pi.registerTool(createSubagentTool())
 }

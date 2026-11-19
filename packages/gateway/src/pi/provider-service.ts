@@ -40,6 +40,8 @@ type AuthType = Parameters<ModelRuntimeLike["login"]>[1]
 
 export interface ProviderServiceOptions {
   runtime: () => Promise<ModelRuntimeLike>
+  /** 供应商配置、凭据或模型目录变了以后调用：宿主据此通知扩展与协议端。 */
+  onCatalogChange?: () => void
   /** 凭据与配置目录；缺省 ~/.pi/agent。 */
   agentDir?: string
   /** models.json 路径；缺省 agentDir/models.json。 */
@@ -98,7 +100,9 @@ export class ProviderService {
     const runtime = await this.runtime()
 
     await runtime.refresh({ allowNetwork: true })
-    return this.listProviders()
+    const catalog = await this.listProviders()
+    this.catalogChanged()
+    return catalog
   }
 
   async listModels(): Promise<{ models: ModelMetadata[] }> {
@@ -228,6 +232,7 @@ export class ProviderService {
 
     settings.setEnabledModels(next)
     await settings.flush()
+    this.catalogChanged()
   }
 
   /** 写入自定义供应商；apiKey 留空保留旧值，成功后刷新 runtime。 */
@@ -307,6 +312,7 @@ export class ProviderService {
     if (!runtime.getProvider(providerId)) throw new ProviderServiceError(404, "NOT_FOUND")
     await runtime.logout(providerId, {})
     await runtime.refresh({ providers: [providerId] })
+    this.catalogChanged()
   }
 
   /** 停服：中止全部登录并清掉过期定时器。 */
@@ -362,6 +368,12 @@ export class ProviderService {
     const runtime = await this.runtime()
 
     await runtime.refresh({ providers: [providerId], allowNetwork: true })
+    this.catalogChanged()
+  }
+
+  /** 登录完成、配置写入这类异步收尾也要通知，HTTP 响应早就发出去了。 */
+  private catalogChanged(): void {
+    this.options.onCatalogChange?.()
   }
 
   private async credentials(): Promise<Record<string, StoredCredential>> {

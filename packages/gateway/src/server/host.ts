@@ -75,6 +75,8 @@ export class Gateway {
       allow: (req) => this.browser.rejection(req.headers),
       onError: (error) => console.error("Gateway protocol error:", error),
     })
+    // 会话目录与模型目录的变化经 HTTP 写进来，其他标签页要收到新的服务快照
+    this.hostService.onCatalogChange = () => this.protocol.broadcastServerSnapshot()
   }
 
   get launchToken(): string {

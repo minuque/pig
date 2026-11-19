@@ -6,12 +6,14 @@ import {
   DefaultResourceLoader,
   ModelRuntime,
   SessionManager,
+  type EventBus,
 } from "@earendil-works/pi-coding-agent"
 import { defaultTaskLogRoot } from "@pig/environment"
 import type {
   ComposerCommand,
   ContextPreviewKey,
   ContextUsageEstimate,
+  ModelChannels,
   ModelMetadata,
   SessionCard,
   SessionMetadata,
@@ -27,21 +29,18 @@ import { ProviderService } from "./provider-service.js"
 import { SessionCardCache } from "./session-card.js"
 import { SessionIndex, type IndexedSession } from "./session-index.js"
 import { recentSessionCwd, sessionListName } from "./session-label.js"
-import { BINDING_ENTRY, parseRemoteKey, prepareRemoteCwd } from "./remote-session.js"
+import { BINDING_ENTRY, parseRemoteKey } from "./remote-session.js"
 import { PiHostSession } from "./session-runtime.js"
 import { TranscriptReader } from "./transcript-reader.js"
 import { createDefaultRuntime, serializeEntries } from "./service-support.js"
-import { createResourceLoader } from "./resource-loader.js"
 import { isTurnUnfinished } from "./turn-state.js"
+import { WorkspaceResources } from "./workspace-resources.js"
 
 export type Runtime = Awaited<ReturnType<typeof ModelRuntime.create>>
 
 type SessionFactory = typeof createAgentSession
 
-/** 已 reload 的资源加载器；只交给一个会话，会话 dispose 后其扩展运行时即失效。 */
-type ResourceSlot = { loader: DefaultResourceLoader; taken: boolean }
-
-const MAX_RESOURCE_SLOTS = 4
+const MODELS_CHANGED_CHANNEL = "pig:models:changed" satisfies keyof ModelChannels
 
 export interface PiHostServiceOptions {
   /** 统一会话目录；缺省用 Pi 默认（~/.pi/agent/sessions/<cwd>/）。 */
@@ -58,6 +57,8 @@ export interface PiHostServiceOptions {
   createRuntime?: () => Promise<Runtime>
   /** 测试注入：AgentSession 工厂。 */
   createSession?: SessionFactory
+  /** 测试注入：扩展事件总线。 */
+  events?: EventBus
 }
 
 /**
@@ -73,9 +74,11 @@ export class PiHostService implements SessionService {
   private readonly sessionPaths = new Map<string, string>()
   private readonly activeSessions = new Map<string, PiHostSession>()
   /** 规范化 cwd → 该目录已 reload 的 loader。 */
-  private readonly resourceSlots = new Map<string, Promise<ResourceSlot>>()
+  private readonly resources: WorkspaceResources
   /** 所有会话的扩展共用一条事件总线；后台任务按会话 id 区分。 */
-  private readonly events = createEventBus()
+  private readonly events: EventBus
+  /** 会话目录或模型目录变了：Gateway 据此广播服务快照。 */
+  onCatalogChange: (() => void) | undefined
   /** 用户选过的目录（懒加载）；见 authorizedWorkspacesFile。 */
   private authorizedLoad: Promise<Set<string>> | undefined
   /** 已判定为已知的目录（含靠磁盘会话命中的），免每次重扫会话。 */
@@ -91,11 +94,25 @@ export class PiHostService implements SessionService {
 
   constructor(private readonly options: PiHostServiceOptions = {}) {
     this.sessionIndex = new SessionIndex(options.sessionDir)
+    this.events = options.events ?? createEventBus()
+    this.resources = new WorkspaceResources(
+      {
+        ...(options.agentDir ? { agentDir: options.agentDir } : {}),
+        ...(options.remoteRoot ? { remoteRoot: options.remoteRoot } : {}),
+        disabled: Boolean(options.createSession),
+      },
+      this.events,
+    )
     this.attachments = new AttachmentStore(
       options.attachmentRootDir ? { rootDir: options.attachmentRootDir } : {},
     )
     this.providers = new ProviderService({
       runtime: () => this.modelRuntime(),
+      // 供应商配置、凭据与模型目录变了：扩展重建缓存的运行时，协议端广播新快照
+      onCatalogChange: () => {
+        this.events.emit(MODELS_CHANGED_CHANNEL, undefined)
+        this.catalogChanged()
+      },
       ...(options.agentDir ? { agentDir: options.agentDir } : {}),
     })
   }
@@ -103,6 +120,11 @@ export class PiHostService implements SessionService {
   /** 供应商路由与登录流程共用同一个惰性 runtime 实例。 */
   modelRuntime(): Promise<Runtime> {
     return this.runtime()
+  }
+
+  /** 目录变了（会话重命名/删除、供应商配置）：通知 Gateway 广播服务快照。 */
+  catalogChanged(): void {
+    this.onCatalogChange?.()
   }
 
   async listSessions(): Promise<SessionMetadata[]> {
@@ -143,21 +165,9 @@ export class PiHostService implements SessionService {
     if (cwd) this.prepareWorkspace(cwd)
   }
 
-  /** 通知 Host 这个目录马上要用来建会话；预热与会话共用同一份 loader 缓存。
-   *  预热不授予目录权限：调用方需先通过 isKnownWorkspace 校验。 */
+  /** 通知 Host 这个目录马上要用来建会话；预热不授予目录权限，调用方需先校验。 */
   prepareWorkspace(cwd: string): void {
-    if (this.options.createSession) return
-    void this.localCwd(cwd)
-      .then((local) => this.slot(local))
-      .catch(() => undefined)
-  }
-
-  /** workspace 键对应的本地 cwd：远程键换成占位目录。 */
-  private async localCwd(workspace: string): Promise<string> {
-    const binding = parseRemoteKey(workspace)
-    return canonicalizePath(
-      binding ? await prepareRemoteCwd(binding, this.options.remoteRoot) : workspace,
-    )
+    this.resources.prepare(cwd)
   }
 
   /** 用户显式选定的目录：select-directory 成功后登记并落盘，是唯一的授权来源。 */
@@ -211,8 +221,7 @@ export class PiHostService implements SessionService {
     const key = canonicalizePath(cwd)
     // 远程 skills 由扩展在会话启动后补进会话的 loader，有活会话就读它的
     const live = [...this.activeSessions.values()].find((session) => session.cwd === key)
-    const pending = this.resourceSlots.get(await this.localCwd(key))
-    const slot = live ? { loader: live.loader } : await pending?.catch(() => undefined)
+    const slot = live ? { loader: live.loader } : await this.resources.peek(key)
 
     if (!slot) return { skills: [], prompts: [] }
     // 扩展命令名会被 Pi 在模板展开前截胡，作为保留名交给候选筛选
@@ -242,7 +251,7 @@ export class PiHostService implements SessionService {
     const runtime = await this.runtime()
     const workspace = canonicalizePath(options.cwd ?? this.options.cwd ?? process.cwd())
     const binding = parseRemoteKey(workspace)
-    const cwd = await this.localCwd(workspace)
+    const cwd = await this.resources.localCwd(workspace)
     const manager = SessionManager.create(cwd, this.options.sessionDir, { id: options.id })
 
     // 远程会话先把绑定写进会话，remote-workspace 扩展启动时读它
@@ -282,7 +291,7 @@ export class PiHostService implements SessionService {
     let loader: DefaultResourceLoader | undefined
 
     try {
-      loader = await this.resources(cwd)
+      loader = await this.resources.take(cwd)
 
       const { session } = await this.sessionFactory()({
         cwd,
@@ -311,6 +320,7 @@ export class PiHostService implements SessionService {
     if (live) {
       live.setSessionName(trimmed)
       this.sessionsCache = undefined
+      this.catalogChanged()
       return
     }
 
@@ -319,6 +329,7 @@ export class PiHostService implements SessionService {
     if (!path) throw new SessionNotFoundError(`Session ${sessionId} not found`)
     SessionManager.open(path).appendSessionInfo(trimmed)
     this.sessionsCache = undefined
+    this.catalogChanged()
   }
 
   /** 删除 Pi 会话文件与它的任务日志；仍有活 runtime 时拒绝，否则它会把文件写回来。 */
@@ -331,6 +342,7 @@ export class PiHostService implements SessionService {
     await rm(join(defaultTaskLogRoot(), sessionId), { recursive: true, force: true })
     this.sessionPaths.delete(sessionId)
     this.sessionsCache = undefined
+    this.catalogChanged()
   }
 
   /** 停服：清掉附件清理定时器并删除本实例的临时文件。 */
@@ -356,7 +368,7 @@ export class PiHostService implements SessionService {
 
     // 与 createSession 同一套规范化拼写，SDK 的扩展缓存才不会被会话文件的原生拼写顶掉
     const cwd = canonicalizePath(manager.getCwd())
-    const loader = await this.resources(cwd)
+    const loader = await this.resources.take(cwd)
     const { session } = await this.sessionFactory()({
       cwd,
       modelRuntime: runtime,
@@ -410,46 +422,6 @@ export class PiHostService implements SessionService {
     return (this.runtimePromise ??= this.options.createRuntime
       ? this.options.createRuntime()
       : createDefaultRuntime(this.options.agentDir))
-  }
-
-  /** 取该目录预热好的 loader 交给会话，并在后台为下一个会话预热一份新的。 */
-  private async resources(cwd: string): Promise<DefaultResourceLoader | undefined> {
-    if (this.options.createSession) return undefined
-
-    const key = canonicalizePath(cwd)
-    const pending = this.slot(key)
-    const slot = await pending
-
-    if (slot.taken) return createResourceLoader(key, this.options, this.events)
-    slot.taken = true
-
-    if (this.resourceSlots.get(key) === pending) this.resourceSlots.delete(key)
-    void this.slot(key).catch(() => undefined)
-    return slot.loader
-  }
-
-  /** 每个目录一份 loader；并发请求共用同一次加载，超上限按插入顺序淘汰一项。 */
-  private slot(cwd: string): Promise<ResourceSlot> {
-    const cached = this.resourceSlots.get(cwd)
-
-    if (cached) return cached
-
-    if (this.resourceSlots.size >= MAX_RESOURCE_SLOTS) {
-      const oldest = this.resourceSlots.keys().next()
-
-      if (!oldest.done) this.resourceSlots.delete(oldest.value)
-    }
-
-    const pending = createResourceLoader(cwd, this.options, this.events).then(
-      (loader) => ({ loader, taken: false }),
-      (error: unknown) => {
-        this.resourceSlots.delete(cwd)
-        throw error
-      },
-    )
-
-    this.resourceSlots.set(cwd, pending)
-    return pending
   }
 
   private sessionFactory(): SessionFactory {
