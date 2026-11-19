@@ -81,6 +81,7 @@ const bodyId = useId()
   min-inline-size: 0;
   padding: var(--space-xs);
   border-radius: var(--radius-card);
+  background: var(--bg-surface);
   box-shadow: 0 0 0 1px var(--border-subtle);
 }
 
