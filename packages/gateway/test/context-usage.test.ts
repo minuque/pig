@@ -45,11 +45,19 @@ describe("estimateContextUsage", () => {
     expect(usage.segments.toolResults).toBe(0)
   })
 
-  it("声明给模型的 MCP 工具单列一类，不算进工具定义；未声明的不计", () => {
+  it("声明给模型的 MCP 工具单列一类，不算进工具定义；按需加载的不占用，但计数并在预览里列出", () => {
+    const docs = { name: "mcp__docs" }
     const tools = [
       { name: "read", description: "Read a file", parameters: {} },
-      { name: "mcp__docs__search", description: "Search docs", parameters: {} },
-      { name: "mcp__docs__fetch", description: "Fetch a doc", parameters: {} },
+      { name: "mcp__docs__search", description: "Search docs", parameters: {}, namespace: docs },
+      {
+        name: "mcp__docs__fetch",
+        description: "Fetch a doc",
+        parameters: {},
+        exposure: "deferred",
+        namespace: docs,
+      },
+      { name: "mcp__docs__secret", description: "", parameters: {}, exposure: "hidden" },
     ]
     const builtinOnly = estimateContextUsage(source({ getAllTools: () => tools }))
     const usage = estimateContextUsage(
@@ -63,7 +71,10 @@ describe("estimateContextUsage", () => {
     expect(builtinOnly.segments.mcpTools).toBe(0)
     expect(usage.segments.tools).toBe(builtinOnly.segments.tools)
     expect(usage.segments.mcpTools).toBeGreaterThan(0)
-    expect(usage.preview?.content).toContain("mcp__docs__search")
-    expect(usage.preview?.content).not.toContain("mcp__docs__fetch")
+    expect(usage.mcpToolCount).toBe(2)
+    expect(usage.preview?.content).toContain("## 定义：mcp__docs__search")
+    expect(usage.preview?.content).toContain("## 按需加载：mcp__docs")
+    expect(usage.preview?.content).toContain("`mcp__docs__fetch`：Fetch a doc")
+    expect(usage.preview?.content).not.toContain("mcp__docs__secret")
   })
 })

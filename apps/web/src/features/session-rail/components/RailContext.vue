@@ -47,6 +47,11 @@
         </Link>
 
         <span v-else class="ctx-label">{{ segment.label }}</span>
+
+        <span v-if="segment.id === 'mcpTools'" class="ctx-note">
+          {{ t("rail.mcpAvailable", { count: usage.mcpToolCount }) }}
+        </span>
+
         <span class="ctx-tokens">{{ formatTokenCount(segment.tokens) }}</span>
         <span class="ctx-share">{{ share(segment) }}</span>
       </li>
@@ -84,8 +89,15 @@ const used = computed(() =>
     .filter((segment) => segment.id !== "idle" && segment.tokens > 0)
     .sort((a, b) => b.tokens - a.tokens),
 )
+/** MCP 工具全按需加载时不占上下文，有可用的就仍列一行，点开看有哪些。 */
+const mcpRow = computed(() =>
+  props.usage.mcpToolCount > 0
+    ? props.usage.segments.find((segment) => segment.id === "mcpTools" && segment.tokens === 0)
+    : undefined,
+)
 const rows = computed(() => [
   ...used.value,
+  ...(mcpRow.value ? [mcpRow.value] : []),
   ...props.usage.segments.filter((segment) => segment.id === "idle" && segment.tokens > 0),
 ])
 const share = (segment: ContextUsageSegment) =>
@@ -164,6 +176,12 @@ const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && 
 /* rt 的下划线取 accent-a5，灰色链接上几乎看不见：跟文字同色 */
 .ctx-label[data-slot="link"] {
   text-decoration-color: currentColor;
+}
+
+.ctx-note {
+  flex: none;
+  color: var(--fg-faint);
+  white-space: nowrap;
 }
 
 .ctx-tokens {

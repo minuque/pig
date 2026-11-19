@@ -40,6 +40,8 @@ export interface ContextUsagePreview {
 export interface ContextUsageEstimate {
   used: number
   window: number
+  /** 模型可用的 MCP 工具数，含按需加载、不占上下文的 */
+  mcpToolCount: number
   segments: {
     systemPrompt: number
     memory: number

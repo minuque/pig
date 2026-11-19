@@ -15,7 +15,7 @@ const PREVIEW_META: Record<ContextPreviewKey, { title: string; empty: string }> 
   memory: { title: "记忆", empty: "当前上下文没有记忆文件。" },
   skills: { title: "技能", empty: "当前上下文没有技能。" },
   tools: { title: "工具定义", empty: "没有启用的工具定义。" },
-  mcpTools: { title: "MCP 工具", empty: "没有启用的 MCP 工具。" },
+  mcpTools: { title: "MCP 工具", empty: "没有注册的 MCP 工具。" },
   toolResults: { title: "工具结果", empty: "当前上下文没有工具结果。" },
   conversation: { title: "消息", empty: "没有消息。" },
 }
@@ -30,6 +30,8 @@ interface ContextUsageSource {
     name: string
     description: string
     parameters: unknown
+    exposure?: string
+    namespace?: { name: string; description?: string }
   }>
   sessionManager: { buildContextEntries(): unknown[] }
   resourceLoader: {
@@ -124,6 +126,35 @@ function collectTools(
   }
 
   return { tokens, chunks }
+}
+
+/** 模型可用的 MCP 工具总数；预览按服务器列出其中没声明、按需加载（不占上下文）的那些。 */
+function collectOnDemandMcp(
+  source: ContextUsageSource,
+  preview: boolean,
+): { count: number; chunks: string[] } {
+  const active = new Set(source.getActiveToolNames())
+  const groups = new Map<string, { description?: string | undefined; lines: string[] }>()
+  let count = 0
+
+  for (const tool of source.getAllTools()) {
+    if (!tool.name.startsWith(MCP_TOOL_PREFIX) || tool.exposure === "hidden") continue
+    count += 1
+
+    if (!preview || active.has(tool.name)) continue
+
+    const key = tool.namespace?.name ?? tool.name
+    const group = groups.get(key) ?? { description: tool.namespace?.description, lines: [] }
+    const summary = tool.description.split("\n")[0]?.trim()
+    group.lines.push(`- \`${tool.name}\`${summary ? `：${summary}` : ""}`)
+    groups.set(key, group)
+  }
+
+  const chunks = [...groups].map(
+    ([name, group]) =>
+      `## 按需加载：${name}\n\n${group.description ? `${group.description}\n\n` : ""}${group.lines.join("\n")}`,
+  )
+  return { count, chunks }
 }
 
 function walkEntries(
@@ -297,6 +328,7 @@ export function estimateContextUsage(
   const systemPrompt = Math.max(0, estimateText(prompt) - memory - skills)
   const tools = collectTools(source, previewKey === "tools", false)
   const mcpTools = collectTools(source, previewKey === "mcpTools", true)
+  const onDemandMcp = collectOnDemandMcp(source, previewKey === "mcpTools")
   const walked = walkEntries(source.sessionManager.buildContextEntries(), previewKey)
   const known =
     systemPrompt +
@@ -315,6 +347,7 @@ export function estimateContextUsage(
   const estimate: ContextUsageEstimate = {
     used,
     window,
+    mcpToolCount: onDemandMcp.count,
     segments: {
       systemPrompt,
       memory,
@@ -339,7 +372,7 @@ export function estimateContextUsage(
           : previewKey === "tools"
             ? finishPreview("tools", tools.chunks)
             : previewKey === "mcpTools"
-              ? finishPreview("mcpTools", mcpTools.chunks)
+              ? finishPreview("mcpTools", [...mcpTools.chunks, ...onDemandMcp.chunks])
               : previewKey === "toolResults"
                 ? finishPreview("toolResults", walked.toolChunks)
                 : finishPreview("conversation", walked.contextChunks)

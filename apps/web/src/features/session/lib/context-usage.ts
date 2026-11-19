@@ -22,6 +22,8 @@ export interface ContextUsage {
   used: number
   window: number
   percent: number
+  /** 模型可用的 MCP 工具数，含按需加载、不占上下文的 */
+  mcpToolCount: number
   segments: ContextUsageSegment[]
 }
 
@@ -97,6 +99,7 @@ export function projectContextUsage(
     used,
     window,
     percent: window <= 0 || used <= 0 ? 0 : Math.min(100, Math.round((used / window) * 100)),
+    mcpToolCount: finiteTokens(estimate.mcpToolCount),
     segments: SEGMENT_DEFS.map((def) => ({
       id: def.id,
       label: def.label(),
