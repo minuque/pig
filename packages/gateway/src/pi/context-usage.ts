@@ -145,8 +145,7 @@ function collectOnDemandMcp(
 
     const key = tool.namespace?.name ?? tool.name
     const group = groups.get(key) ?? { description: tool.namespace?.description, lines: [] }
-    const summary = tool.description.split("\n")[0]?.trim()
-    group.lines.push(`- \`${tool.name}\`${summary ? `：${summary}` : ""}`)
+    group.lines.push(`- \`${tool.name}\``)
     groups.set(key, group)
   }
 
