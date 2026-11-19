@@ -159,8 +159,8 @@ const MIN = { fg: 4.5, secondary: 4.5, faint: 4.5 }
 const RT_VARS = {
   "--border": "var(--gray-a4)",
   "--border-subtle": "var(--gray-a3)",
-  "--bg-selected": "var(--accent-a4)",
-  "--bg-hover": "var(--accent-a3)",
+  "--bg-selected": "var(--slate-a4)",
+  "--bg-hover": "var(--slate-a3)",
 }
 const SHARED: {
   key: "hue" | "chroma"

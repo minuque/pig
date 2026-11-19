@@ -513,7 +513,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .configure-models {
-  color: var(--accent-solid);
+  color: var(--accent-text);
   font-size: var(--text-meta);
 }
 

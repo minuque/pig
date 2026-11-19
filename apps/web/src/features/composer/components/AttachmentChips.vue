@@ -214,7 +214,7 @@ const rows = computed(() =>
   width: 56px;
   height: 56px;
   pointer-events: none;
-  color: var(--accent-solid);
+  color: var(--accent-text);
 }
 
 .upload-ring path {
@@ -231,7 +231,7 @@ const rows = computed(() =>
   line-height: 12px;
   font-weight: 500;
   font-variant-numeric: tabular-nums;
-  color: var(--accent-solid);
+  color: var(--accent-text);
   pointer-events: none;
 }
 

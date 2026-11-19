@@ -2,7 +2,7 @@
   <div
     class="radix-themes"
     :class="{ dark: isDark }"
-    data-accent-color="iris"
+    data-accent-color="cyan"
     data-gray-color="slate"
     :data-is-root-theme="root ? 'true' : undefined"
     data-has-background="false"

@@ -281,7 +281,7 @@ html[data-session-dragging] .split-drop {
 }
 
 .split-drop-zone[data-session-drop-over] .split-drop-label {
-  color: var(--accent-solid);
+  color: var(--accent-text);
 }
 
 .split-drop-icon {

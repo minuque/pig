@@ -180,7 +180,7 @@ async function copy(text: string) {
   align-items: center;
   gap: var(--space-xs);
   align-self: flex-start;
-  color: var(--accent-solid);
+  color: var(--accent-text);
   font-size: var(--text-meta);
 }
 

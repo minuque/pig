@@ -2,9 +2,9 @@
 name: pig 工作台
 description: 本机 Pi agent 的多会话并行工作台界面
 colors:
-  primary: "#5B5BD6"
-  primary-hover-light: "#5151CD"
-  primary-hover-dark: "#6E6ADE"
+  primary: "#0A7F9C"
+  primary-hover-light: "#086E87"
+  primary-hover-dark: "#0A7F9C"
   primary-on: "#FFFFFF"
   link-light: "#0B6F88"
   link-dark: "#4CCCE6"
@@ -67,7 +67,7 @@ spacing:
 
 ## 基调
 
-克制、安静、舒服，表面与文字取 Linear 的冷灰基调。主题色 Radix iris，中性色 Radix slate。
+克制、安静、舒服，表面与文字取 Linear 的冷灰基调。主题色 Radix cyan，中性色 Radix slate。
 
 优先级：解决问题 > 易于使用 > 好看美观。界面靠布局和控件本身说话，不靠说明文字和装饰。
 
@@ -75,7 +75,7 @@ spacing:
 
 `style/tokens.css` 分三层，组件只读语义层和组件层：
 
-1. **原色阶**：Radix slate、iris 与状态色板由 rt 提供，`tokens.css` 不另写。
+1. **原色阶**：Radix slate、cyan 与状态色板由 rt 提供，`tokens.css` 不另写。
 2. **语义层**：全站共用，按「表面、前景、边与分割、交互、状态、字、间距、圆角、阴影、动效、图标与控件高、布局、层级」分组。命名一个概念一个词：前景 `fg`、底 `bg`、边 `border`、品牌色 `accent`、状态 `-text` / `-subtle`。
 3. **组件层**：只给单个组件或一类内容用，名字以组件开头（`--composer-*`、`--file-tab-*`、`--settings-*`、`--language-*`、`--mascot-*`）。能用语义档就不进这一层。
 
@@ -83,7 +83,7 @@ spacing:
 
 ## 七条规则
 
-1. **一页一个强调色。** 强调色只用于主操作、选中态、焦点、链接。卡片、区块不铺强调色；侧栏行的悬停与选中只带极淡的主题色底。
+1. **一页一个强调色。** 强调色只用于主操作、焦点、链接与进行中态。卡片、区块不铺强调色；悬停与选中走中性 `slate` 的极淡灰底（`--slate-a3` / `--slate-a4`），不带主题色。
 2. **一页最多 4 种字号。** 全局只有 4 档，层级靠字重和三级文字色。
 3. **默认扁平。** 不叠阴影、不发光。阴影与毛玻璃只给真正浮起来的层：弹窗、命令面板、菜单、下拉、浮卡共用 `--glass-*` 一套。
 4. **不卡片套卡片。** 卡片里的分组用标题加分割线。
@@ -95,12 +95,16 @@ spacing:
 
 ### 强调色
 
-强调色用 Radix 的 `iris`。`index.html` 与 `ThemeRoot` 的 `data-accent-color="iris"` 把它映射到 `--accent-*`。
+强调色用 Radix 的 `cyan`。`index.html` 与 `ThemeRoot` 的 `data-accent-color="cyan"` 把它映射到 `--accent-*`；`rt.css` 把默认主题 cyan 的 9/10/11 档接回语义层的校准值，因为 Radix 原生 cyan-9 配白字只有 3.0:1，直用不过 AA。
 
-- `--accent-solid`：第 9 级。实心主按钮的底，文字用 `--fg-on-accent`（白）。
-- 焦点环：第 11 级。深色下文字类用法必须用第 11 级。
-- 链接 `--link` 用 cyan，与「进行中」同色：浅色 `#0B6F88`（侧栏 5.0:1），深色 cyan-11。
-- 「进行中」不用强调色：运行状态、转圈、上下文进度条与用量环走 `--info-*`（cyan），悬停与选中仍是 iris。
+同一个 cyan 分两个角色，按用法取值，不混用：
+
+- `--accent-solid`：实心填充与描边。浅色 `#0A7F9C`（配白字 4.6:1），深色 `#097590`（5.3:1），悬停用 `--accent-solid-hover`。主按钮的底、进度填充、指示器用它，文字用 `--fg-on-accent`（白）。
+- `--accent-text`：文字与图标前景。浅色 `#0B6F88`（在主区、侧栏、卡片上都 ≥ 5:1），深色 cyan-11。链接、焦点环、`.text-primary` 与进行中的文字图标用它。
+- 焦点环 `--focus-ring` = 2px 实色 `--accent-text`。
+- 链接 `--link` 就是 `--accent-text`，与「进行中」同色。
+- 「进行中」与强调色合一：运行状态、转圈、上下文进度条与用量环走 `--info-*`，文字取 `--accent-text`，填充取 `--accent-solid`，浅底取 cyan 第 3 级 alpha。
+- 悬停与选中不跟强调色走：按钮、菜单项、侧栏行的 `--bg-hover` / `--bg-selected` 取中性 `slate` 的 `--slate-a3` / `--slate-a4`，深浅主题由色板自己切，列表再长也不出现一片彩色底。
 - 一页只出现一个 solid 主按钮，其余用 soft 或 ghost。
 - 输入卡的发送 / 停止键与「滚动到底部」用反色（`--bg-inverse` / `--fg-inverse`），不用强调色。反色取中灰（浅色 `#6B6B72` 配白字 5.3:1，深色 `#9DA4AE` 配深字 7.6:1），不用纯黑白。发送键不可用时换 `--bg-emphasis` 底配 `--fg-faint` 图标，不靠降透明度。
 
@@ -108,13 +112,13 @@ spacing:
 
 中性色用 Radix 的 `slate`（`data-gray-color="slate"`），描边与 rt 基础件的灰阶跟着它走；表面与文字是下表的固定值，取自 Linear 基调。
 
-| 层                             | 浅色                                 | 深色                      | token                         |
-| ------------------------------ | ------------------------------------ | ------------------------- | ----------------------------- |
-| 窗口、主区                     | `#F2F2F6`                            | `#101012`                 | `--bg`                        |
-| 侧栏（主侧栏、抽屉、设置导航） | `#EEEEF2`（比主区深半档）            | `#0A0A0B`（比主区暗一截） | `--bg-sunken`                 |
-| 卡片、输入卡、气泡、工具输入   | `#F6F6FA`                            | `#17171A`                 | `--bg-surface`                |
-| 浮层                           | `#FBFBFF`                            | `#1E1E20`                 | `--bg-raised`                 |
-| 按钮与行悬停 / 选中            | 主题色 `--accent-a3` / `--accent-a4` | `--accent-a3` / `#1A2143` | `--bg-hover`、`--bg-selected` |
+| 层                             | 浅色                        | 深色                      | token                         |
+| ------------------------------ | --------------------------- | ------------------------- | ----------------------------- |
+| 窗口、主区                     | `#F2F2F6`                   | `#101012`                 | `--bg`                        |
+| 侧栏（主侧栏、抽屉、设置导航） | `#EEEEF2`（比主区深半档）   | `#0A0A0B`（比主区暗一截） | `--bg-sunken`                 |
+| 卡片、输入卡、气泡、工具输入   | `#F6F6FA`                   | `#17171A`                 | `--bg-surface`                |
+| 浮起的实色表面                 | `#FBFBFF`                   | `#1E1E20`                 | `--bg-raised`                 |
+| 按钮与行悬停 / 选中            | `--slate-a3` / `--slate-a4` | 同左                      | `--bg-hover`、`--bg-selected` |
 
 文字只有三级，固定色。浅色与表面同一冷色相（OKLCH 色相约 285°），深色主文字与次要文字偏冷蓝（约 258°）：
 
@@ -128,7 +132,7 @@ spacing:
 
 ### 状态色
 
-文字色（`--success-text`、`--info-text`、`--warning-text`、`--danger-text`）配同色相浅底（`--*-subtle`）。成功取 Radix green 第 11 级与第 3 级 alpha；信息取 cyan：深色文字 cyan-11、填充 cyan-9，浅色文字 `#0B6F88`（侧栏 5.0:1）、填充 `#0A7F9C`（4.0:1），底为 cyan 第 3 级 alpha；警告、危险用项目自定色值，深浅各一套。进度条与用量环用 `--info-solid` 实色填充。不用实色填充，不加光晕。状态色只在真有状态时出现。
+文字色（`--success-text`、`--info-text`、`--warning-text`、`--danger-text`）配同色相浅底（`--*-subtle`）。成功取 Radix green 第 11 级与第 3 级 alpha；信息与强调色同为 cyan 族：文字取 `--accent-text`、填充取 `--accent-solid`（深色 cyan-9），浅底取 cyan 第 3 级 alpha，`Banner(info)` 跟随主题色因此也是 cyan；警告、危险用项目自定色值，深浅各一套。进度条与用量环用 `--info-solid` 实色填充。不用实色填充，不加光晕。状态色只在真有状态时出现。
 
 ### 例外
 
@@ -149,7 +153,7 @@ spacing:
 - 字重只用 400、500、600。
 - 界面字号档 S/M/L 缩放辅助、正文、标题三档，页面大标题不动；代码字号直接选 px（10–16，默认 13），只改 `--text-code`，`--text-code-line` 固定不动，文件面板按它算行位置。
 - `--monogram-size` 是图形尺寸，不算字号。
-- 对话区 Markdown 排版对齐 cc-wrapper，不受四档约束。
+- 对话区 Markdown 排版不受四档约束。
 
 ## 圆角
 
@@ -173,10 +177,10 @@ spacing:
 | `--composer-shadow` | 输入卡：1px 内环描边加内侧淡阴影（`--composer-inset`），浅色再加底部柔投影 |
 
 - 浮层与对话框阴影全用 rt 原值（自带 1px 外环）：`.radix-themes` 内 `--shadow-popover` 指向 rt `--shadow-5`，`--shadow-dialog` 指向 `--shadow-6`。
-- 浮层底色是实色 `--bg-raised`（`.surface-float`），不透明，不模糊。
+- 浮层按 `--glass-*` 用毛玻璃面板：`--glass-bg` 半透明底加 `--glass-filter` 模糊，不铺不透明的 `--bg-raised`；需要实色底的卡片用 `--bg-surface`。
 - 卡片用 1px `--border` 描边、不铺底；描边与底色差只用一种。
 - 分行卡片一律用 `CardList` + `CardRow`（`@components/ui/card`），不自写行线与内边距：12 圆角，行左右 16、上下 12，行线贴边；`interactive` 加悬停底；`bleed` 不带左右内边距，内容自己读 `--card-padding`。对话里的工具卡片留 8 圆角，与代码卡一致。
-- 焦点环：`--focus-ring` = 2px 实色第 11 级；危险态 `--focus-ring-danger`。
+- 焦点环：`--focus-ring` = 2px 实色 `--accent-text`；危险态 `--focus-ring-danger`。
 
 ## 间距与尺寸
 
@@ -187,12 +191,12 @@ spacing:
 
 ## 动画
 
-浮层进出 140ms / 100ms，只动透明度与位移。动效只表达在跑、层级变化与状态切换，遵守 `prefers-reduced-motion`。
+浮层进出 140ms / 100ms，只动透明度与位移；对话框进出用 `scale`（0.98 → 1）与 `opacity`，不只位移。动效只表达在跑、层级变化与状态切换，遵守 `prefers-reduced-motion`。
 
 ## 组件
 
 - 设置行只有标签和控件，没有说明文字。
-- 项目缩写用灰色 soft Badge；上下文用量图用强调色同色系深浅区分各段。
+- 项目缩写用灰色 soft Badge。
 
 ## 不要
 

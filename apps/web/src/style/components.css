@@ -328,7 +328,7 @@
 }
 
 .text-primary {
-  color: var(--accent-solid);
+  color: var(--accent-text);
 }
 
 .text-primary-foreground {

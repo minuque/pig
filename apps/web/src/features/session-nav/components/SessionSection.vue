@@ -163,7 +163,7 @@ function itemBind(session: SidebarSession) {
 }
 
 .section-head.is-drop-target .section-toggle {
-  color: var(--accent-solid);
+  color: var(--accent-text);
 }
 
 .section-toggle {

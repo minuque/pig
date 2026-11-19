@@ -341,7 +341,7 @@ async function remove() {
 
 .add-model {
   margin-inline-start: auto;
-  color: var(--accent-solid);
+  color: var(--accent-text);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
 }

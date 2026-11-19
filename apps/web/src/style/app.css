@@ -2,8 +2,7 @@
 
 @import "./reset.css" layer(base);
 
-/* 色板：主题色 iris、中性色 slate（见 index.html 的 html 属性）；其余几套给语义色与项目色。 */
-@import "@radix-ui/themes/tokens/colors/iris.css";
+/* 色板：主题色 cyan、中性色 slate（见 index.html 的 html 属性）；其余几套给语义色与项目色。 */
 @import "@radix-ui/themes/tokens/colors/indigo.css";
 @import "@radix-ui/themes/tokens/colors/green.css";
 @import "@radix-ui/themes/tokens/colors/orange.css";

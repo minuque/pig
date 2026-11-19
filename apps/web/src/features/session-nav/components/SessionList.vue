@@ -353,7 +353,7 @@ onUpdated(() => {
   border: 1px dashed var(--accent-solid);
   border-radius: var(--radius-control);
   background: var(--info-subtle);
-  color: var(--accent-solid);
+  color: var(--accent-text);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   opacity: 0;
@@ -407,7 +407,7 @@ onUpdated(() => {
 }
 
 .drag-label.is-target .drag-label-text {
-  color: var(--accent-solid);
+  color: var(--accent-text);
 }
 
 .drag-label.is-target .drag-label-line {

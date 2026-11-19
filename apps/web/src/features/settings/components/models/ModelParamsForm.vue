@@ -235,7 +235,7 @@ async function restore() {
 }
 
 .add-param {
-  color: var(--accent-solid);
+  color: var(--accent-text);
   font-size: var(--text-meta);
 }
 

@@ -31,7 +31,7 @@
 :root {
   color-scheme: light;
 
-  /* ====== 原色阶：Radix slate / iris / 状态色板由 rt 提供，这里不另写 ====== */
+  /* ====== 原色阶：Radix slate / cyan / 状态色板由 rt 提供，这里不另写 ====== */
 
   /* ====== 语义层：全站共用，组件只读这一层与下面的组件层 ====== */
 
@@ -62,28 +62,28 @@
   --border-width: 1px;
 
   /* --- 交互 --- */
-  /* Radix accent：--accent-* 由 rt 基座按 html 的 data-accent-color 映射，
-     这里只保留语义别名，--accent-solid / 选区 / 焦点环都指回它们；链接与「进行中」同用 cyan */
-  --accent-solid: var(--accent-9);
-  --accent-solid-hover: var(--accent-10);
-  /* 按钮与可点行共用：取 Radix 主题色 alpha 第 3 档做悬停、第 4 档做选中，深浅主题由色板自己切 */
-  --bg-hover: var(--accent-a3);
-  --bg-selected: var(--accent-a4);
+  /* 主强调色 cyan：实心填充取 --accent-solid，文字与图标前景取 --accent-text；链接与「进行中」同用强调色 */
+  --accent-solid: #0a7f9c;
+  --accent-solid-hover: #086e87;
+  --accent-text: #0b6f88;
+  /* 按钮与可点行共用：中性 slate 的 alpha 第 3 档做悬停、第 4 档做选中，不跟强调色走 */
+  --bg-hover: var(--slate-a3);
+  --bg-selected: var(--slate-a4);
   /* 中性填充两档：轻档给徽标、芯片底，重档给进度轨道与卡片内滚动条 */
   --bg-muted: color-mix(in srgb, var(--fg) 5%, transparent);
   --bg-emphasis: color-mix(in srgb, var(--fg) 12%, transparent);
-  --link: #0b6f88;
+  --link: var(--accent-text);
   --opacity-disabled: 0.55;
-  /* 焦点环：2px 实色第 11 级，深浅主题都看得见；配合 .ring-focus 使用 */
-  --focus-ring: 0 0 0 2px var(--accent-11);
+  /* 焦点环：2px 实色，取文字档保证灰底上也看得见；配合 .ring-focus 使用 */
+  --focus-ring: 0 0 0 2px var(--accent-text);
   --focus-ring-danger: 0 0 0 2px var(--danger-text);
 
   /* --- 状态 --- */
   /* 状态：文字色配同色相浅底，不用实色填充；成功沿用 Radix green */
   --success-text: var(--green-11);
-  /* 信息即「进行中」：运行状态、进度条与用量环用 cyan，和强调色分开 */
-  --info-text: #0b6f88;
-  --info-solid: #0a7f9c;
+  /* 信息即「进行中」：运行状态、进度条与用量环统一到强调色的 cyan */
+  --info-text: var(--accent-text);
+  --info-solid: var(--accent-solid);
   --warning-text: #8f5f13;
   --danger-text: #ae2e38;
   --success-subtle: var(--green-a3);
@@ -384,14 +384,16 @@ html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]
   --fg-inverse: #131316;
 
   /* --- 交互 --- */
-  --accent-solid: var(--accent-9);
-  --accent-solid-hover: var(--accent-10);
-  --link: var(--cyan-11);
-  /* 深色选中用不透明的深蓝底，在侧栏与主区上是同一个颜色 */
-  --bg-selected: #1a2143;
+  /* 深色实心档减一档亮度，文字档取 cyan 第 11 档 */
+  --accent-solid: #097590;
+  --accent-solid-hover: #0a7f9c;
+  --accent-text: var(--cyan-11);
+  --link: var(--accent-text);
+  --focus-ring: 0 0 0 2px var(--accent-text);
+  /* 悬停与选中直接继承 :root 的 slate alpha，深色不另写 */
 
   /* --- 状态 --- */
-  --info-text: var(--cyan-11);
+  --info-text: var(--accent-text);
   --info-solid: var(--cyan-9);
   --warning-text: #e8a33d;
   --danger-text: #ff7d88;

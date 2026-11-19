@@ -47,6 +47,17 @@
   --card-surface: transparent;
 }
 
+/* Radix 原生 cyan-9(#00a2c7) 配白字仅 3.00:1、浅色 cyan-11(#107d98) 压灰底 4.27:1；
+   默认主题 cyan 的 9/10/11 档接回语义层校准值，保证实心按钮白字与灰底链接过 AA 4.5:1。 */
+.radix-themes[data-accent-color="cyan"] {
+  --accent-9: var(--accent-solid);
+  --accent-10: var(--accent-solid-hover);
+  --accent-11: var(--accent-text);
+  --accent-a11: var(--accent-text);
+  --accent-indicator: var(--accent-solid);
+  --accent-track: var(--accent-solid);
+}
+
 /* 菜单尺寸：弹层用 rt 的 m 档字号，行高取 --control-md，内边距收到 s 档。
    项目不再用左侧留白放勾，左右内边距取同值，否则 rt 的 :has 会为勾多留一档。
    :where() 不抬特异性，靠写在 import 之后覆盖 rt 同名规则。 */

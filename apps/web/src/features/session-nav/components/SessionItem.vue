@@ -508,7 +508,7 @@ function confirmDelete() {
   padding-inline: var(--space-xs);
   border-radius: calc(var(--radius-control) / 2);
   background: var(--info-subtle);
-  color: var(--accent-solid);
+  color: var(--accent-text);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
   line-height: 1;
