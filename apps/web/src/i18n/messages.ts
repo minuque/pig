@@ -24,6 +24,8 @@ export const zh = {
     maximize: "最大化",
     restore: "还原",
     close: "关闭",
+    closeTitle: "关闭 Pig？",
+    closeBody: "关闭窗口会退出 Pig，正在运行的会话会中断。",
   },
   session: {
     deleteTitle: "删除会话",
@@ -453,6 +455,8 @@ export const en: Messages = {
     maximize: "Maximize",
     restore: "Restore",
     close: "Close",
+    closeTitle: "Close Pig?",
+    closeBody: "Closing the window quits Pig and stops any running sessions.",
   },
   session: {
     deleteTitle: "Delete session",

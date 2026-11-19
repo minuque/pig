@@ -43,6 +43,13 @@ test("自画窗控经 IPC 操作真实窗口", async () => {
     await page.locator('[data-window-control="close"]').hover()
     await expect(page.locator(".rt-TooltipContent")).toContainText("关闭")
 
+    await page.locator('[data-window-control="close"]').click()
+    const dialog = page.getByRole("alertdialog")
+    await expect(dialog).toContainText("关闭 Pig？")
+    await dialog.getByRole("button", { name: "取消" }).click()
+    await expect(dialog).toBeHidden()
+    expect(await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows().length)).toBe(1)
+
     const before = await isMaximized()
 
     await (before ? restore : maximize).click()

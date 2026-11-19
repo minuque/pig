@@ -5,6 +5,7 @@
         <IconButton
           type="button"
           size="m"
+          color="gray"
           variant="ghost"
           :data-window-control="control.id"
           :aria-label="control.label"
@@ -16,12 +17,39 @@
 
       <TooltipContent>{{ control.label }}</TooltipContent>
     </Tooltip>
+
+    <AlertDialog v-model:open="closeOpen">
+      <AlertDialogContent class="close-dialog">
+        <AlertDialogHeader>
+          <AlertDialogTitle>{{ t("window.closeTitle") }}</AlertDialogTitle>
+          <AlertDialogDescription>{{ t("window.closeBody") }}</AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel>{{ t("common.cancel") }}</AlertDialogCancel>
+
+          <AlertDialogAction variant="destructive" @click="bridge.close()">
+            {{ t("window.close") }}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, onScopeDispose, ref } from "vue"
 import { CopyIcon, MinusIcon, SquareIcon, XIcon } from "@components/icons/index.js"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@components/ui/alert-dialog/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { useI18n } from "@i18n/index.js"
@@ -31,6 +59,7 @@ const platform = document.documentElement.dataset.pigDesktopPlatform
 const bridge = platform === "win32" || platform === "linux" ? window.pigDesktop?.window : undefined
 const { t } = useI18n()
 const maximized = ref(false)
+const closeOpen = ref(false)
 
 if (bridge) {
   void bridge.isMaximized().then((value) => (maximized.value = value))
@@ -45,7 +74,7 @@ const controls = computed(() => [
     icon: maximized.value ? CopyIcon : SquareIcon,
     run: () => bridge?.toggleMaximize(),
   },
-  { id: "close", label: t("window.close"), icon: XIcon, run: () => bridge?.close() },
+  { id: "close", label: t("window.close"), icon: XIcon, run: () => (closeOpen.value = true) },
 ])
 </script>
 
@@ -63,5 +92,17 @@ const controls = computed(() => [
   padding-inline-end: var(--space-sm);
   -webkit-app-region: no-drag;
   app-region: no-drag;
+}
+
+/* 关闭是危险操作：悬停与聚焦换成 danger 的字色与浅底 */
+[data-window-control="close"]:is(:hover, :focus-visible) {
+  background-color: var(--danger-subtle);
+  color: var(--danger-text);
+}
+
+@media (min-width: 640px) {
+  .close-dialog {
+    max-inline-size: 28rem;
+  }
 }
 </style>
