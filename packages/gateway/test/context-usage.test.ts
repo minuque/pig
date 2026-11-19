@@ -37,6 +37,7 @@ describe("estimateContextUsage", () => {
       300,
     )
     expect(idle).toBe(700)
+    expect(Object.values(usage.segments).every((value) => typeof value === "number")).toBe(true)
     expect(usage.segments.systemPrompt).toBeGreaterThan(0)
     expect(usage.segments.tools).toBeGreaterThan(0)
     expect(usage.segments.conversation).toBeGreaterThan(0)

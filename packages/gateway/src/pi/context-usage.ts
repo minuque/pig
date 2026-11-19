@@ -242,7 +242,9 @@ function capVariable(
 ): { toolResults: number; conversation: number } {
   const estimated = raw.toolResults + raw.conversation
 
-  if (estimated <= budget || estimated === 0) return raw
+  if (estimated <= budget || estimated === 0) {
+    return { toolResults: raw.toolResults, conversation: raw.conversation }
+  }
 
   if (budget === 0) return { toolResults: 0, conversation: 0 }
   const toolResults = Math.round((raw.toolResults / estimated) * budget)
