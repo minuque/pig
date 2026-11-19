@@ -118,4 +118,42 @@ describe("estimateContextUsage", () => {
     expect(usage.preview?.content).toContain("r".repeat(400))
     expect(usage.preview?.content).not.toContain("ALL_TOOLS")
   })
+
+  it("预算只剩 1 token 时工具结果与 MCP 同时向上取整也不会超预算", () => {
+    const toolResult = (id: string, name: string) => ({
+      type: "message",
+      message: {
+        role: "toolResult",
+        toolCallId: id,
+        toolName: name,
+        content: [{ type: "text", text: "hi" }],
+      },
+    })
+    const usage = estimateContextUsage(
+      source({
+        systemPrompt: "",
+        getContextUsage: () => ({ tokens: 1, contextWindow: 1000, percent: null }),
+        getActiveToolNames: () => [],
+        getAllTools: () => [],
+        sessionManager: {
+          buildContextEntries: () => [toolResult("a", "read"), toolResult("b", "mcp__docs")],
+        },
+        resourceLoader: {
+          getAgentsFiles: () => ({ agentsFiles: [] }),
+          getSkills: () => ({ skills: [] }),
+        },
+      }),
+    )
+    const { idle, ...usedSegments } = usage.segments
+
+    expect(usage.used).toBe(1)
+    expect(usage.segments.toolResults).toBe(1)
+    expect(usage.segments.mcpTools).toBe(0)
+    expect(usage.segments.conversation).toBe(0)
+    expect(Object.values(usedSegments).every((value) => Number(value) >= 0)).toBe(true)
+    expect(Object.values(usedSegments).reduce((sum: number, value) => sum + Number(value), 0)).toBe(
+      usage.used,
+    )
+    expect(idle).toBe(999)
+  })
 })

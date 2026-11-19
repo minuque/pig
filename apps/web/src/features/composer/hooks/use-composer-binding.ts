@@ -62,8 +62,9 @@ export function useComposerBinding(options: ComposerBindingOptions) {
     if (!current) return
     const levels = resolveModelInfo(options.catalog.value, current.model).levels
 
+    // 走 writePreset，否则自动回落会被当成用户改档位，打开会话时不再认快照模型
     if (levels.length && !levels.includes(current.thinkingLevel)) {
-      preset.value = { ...current, thinkingLevel: levels[0]! }
+      writePreset({ ...current, thinkingLevel: levels[0]! })
     }
   })
   watch(

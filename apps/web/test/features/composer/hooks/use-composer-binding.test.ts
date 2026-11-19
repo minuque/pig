@@ -148,6 +148,43 @@ describe("useComposerBinding", () => {
     })
   })
 
+  it("默认模型的档位缺失或不在支持列表时，目录后到引起的自动回落不算用户修改，随后打开会话按快照选中模型", async () => {
+    const cases = [
+      [{ provider: "a", id: "one" }, ""],
+      [{ provider: "a", id: "one", thinkingLevel: "low" as const }, "low"],
+    ] as const
+
+    for (const [initial, configured] of cases) {
+      const state = ref<SessionSnapshot | undefined>(undefined)
+      // 目录比设置后到：回落发生在另一拍，不靠预设阶段的回声抑制
+      const vendors = ref<ComposerVendor[]>([])
+      const { preset, consumeDetachedEdit } = useComposerBinding({
+        catalog: vendors,
+        defaultModel: ref(initial),
+        snapshot: state,
+        phase: ref("idle"),
+        setModel: vi.fn(async () => undefined),
+        setThinking: vi.fn(async () => undefined),
+      })
+
+      await nextTick()
+      expect(preset.value).toEqual({
+        model: { provider: "a", id: "one" },
+        thinkingLevel: configured,
+      })
+
+      vendors.value = catalog
+      await nextTick()
+      expect(preset.value).toEqual({ model: { provider: "a", id: "one" }, thinkingLevel: "high" })
+      expect(consumeDetachedEdit()).toBeUndefined()
+
+      state.value = snapshot({ provider: "b", id: "two" }, "low")
+      await nextTick()
+      expect(preset.value).toEqual({ model: { provider: "b", id: "two" }, thinkingLevel: "low" })
+      expect(consumeDetachedEdit()).toBeUndefined()
+    }
+  })
+
   it("设置里没配默认模型时不预选，不拿目录里的模型顶上", async () => {
     const { preset } = useComposerBinding({
       catalog: ref(catalog),

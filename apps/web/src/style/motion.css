@@ -910,13 +910,21 @@
     content: none;
   }
 
-  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
+  :is(
+    [data-slot="dialog-content"],
+    [data-slot="alert-dialog-content"],
+    [data-slot="command-palette"]
+  ) {
     transition: none;
-    translate: 0 0;
+    scale: 1;
     opacity: 1;
   }
 
-  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="closed"] {
+  :is(
+    [data-slot="dialog-content"],
+    [data-slot="alert-dialog-content"],
+    [data-slot="command-palette"]
+  )[data-state="closed"] {
     animation: none;
     opacity: 0;
   }
@@ -937,8 +945,13 @@
   }
 
   .reveal-menu[data-state="closed"],
-  .reveal-overlay[data-state="closed"] {
+  .reveal-overlay[data-state="closed"],
+  .glass-backdrop[data-state="closed"] {
     animation: none;
     opacity: 0;
+  }
+
+  .glass-backdrop[data-state="open"] {
+    animation: none;
   }
 }

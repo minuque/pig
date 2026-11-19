@@ -47,8 +47,19 @@ afterEach(async () => {
   tempDir = undefined
 })
 
-async function start(runtime: Record<string, unknown> = fakeRuntime()) {
+async function start(
+  runtime: Record<string, unknown> = fakeRuntime(),
+  settings?: Record<string, unknown>,
+) {
   tempDir = await mkdtemp(join(tmpdir(), "pig-providers-"))
+
+  if (settings) {
+    const agentDir = join(tempDir, "agent")
+
+    await mkdir(agentDir, { recursive: true })
+    await writeFile(join(agentDir, "settings.json"), JSON.stringify(settings))
+  }
+
   gateway = new Gateway({
     createRuntime: async () => runtime as never,
     sessionDir: join(tempDir, "sessions"),
@@ -150,6 +161,51 @@ describe("provider routes", () => {
       provider: "anthropic",
       id: "claude-sonnet",
       authenticated: true,
+    })
+  })
+
+  it("GET /models 的 defaultModel 只认可用目录里的模型，被禁用时回 null", async () => {
+    const { base, auth } = await start(fakeRuntime(), {
+      defaultProvider: "anthropic",
+      defaultModel: "claude-sonnet",
+      enabledModels: ["anthropic/claude-opus"],
+    })
+    const models = await fetch(`${base}/api/v1/platform/models`, {
+      headers: { authorization: auth },
+    })
+    const catalog = (await models.json()) as { models: unknown[]; defaultModel: unknown }
+
+    expect(catalog.models).toEqual([])
+    expect(catalog.defaultModel).toBeNull()
+
+    // 设置页仍展示设置里写的默认模型
+    const list = await fetch(`${base}/api/v1/platform/providers`, {
+      headers: { authorization: auth },
+    })
+    const providers = (await list.json()) as { defaultModel: unknown }
+
+    expect(providers.defaultModel).toEqual({ provider: "anthropic", id: "claude-sonnet" })
+  })
+
+  it("GET /models 返回设置里就在可用目录中的默认模型与档位", async () => {
+    const { base, auth } = await start(fakeRuntime(), {
+      defaultProvider: "anthropic",
+      defaultModel: "claude-sonnet",
+      defaultThinkingLevel: "high",
+    })
+    const response = await fetch(`${base}/api/v1/platform/models`, {
+      headers: { authorization: auth },
+    })
+    const body = (await response.json()) as {
+      models: Array<{ id: string }>
+      defaultModel: unknown
+    }
+
+    expect(body.models.map((item) => item.id)).toEqual(["claude-sonnet"])
+    expect(body.defaultModel).toEqual({
+      provider: "anthropic",
+      id: "claude-sonnet",
+      thinkingLevel: "high",
     })
   })
 

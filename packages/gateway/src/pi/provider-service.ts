@@ -105,11 +105,18 @@ export class ProviderService {
     const settings = await this.settings()
     const enabledModels = settings.getEnabledModels()
     const models = await runtime.getAvailable()
+    const visible = models
+      .filter((model) => isModelEnabled(enabledModels, model.provider, model.id))
+      .map((model) => toModelMetadata(model, runtime.hasConfiguredAuth(model.provider)))
+    const configured = defaultModelOf(settings)
+    // 设置里的默认模型不在可用目录里就当没配，别让输入卡选中不存在的模型
     return {
-      defaultModel: defaultModelOf(settings),
-      models: models
-        .filter((model) => isModelEnabled(enabledModels, model.provider, model.id))
-        .map((model) => toModelMetadata(model, runtime.hasConfiguredAuth(model.provider))),
+      models: visible,
+      defaultModel:
+        configured &&
+        visible.some((m) => m.provider === configured.provider && m.id === configured.id)
+          ? configured
+          : null,
     }
   }
 

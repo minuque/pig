@@ -333,8 +333,9 @@ function capVariable(raw: VariableTokens, budget: number): VariableTokens {
 
   if (budget === 0) return { toolResults: 0, conversation: 0, mcpCalls: 0 }
   const toolResults = Math.round((raw.toolResults / estimated) * budget)
-  const mcpCalls = Math.round((raw.mcpCalls / estimated) * budget)
-  return { toolResults, mcpCalls, conversation: Math.max(0, budget - toolResults - mcpCalls) }
+  // 两段分别四舍五入会各自进位，MCP 取余量保证合计不超预算
+  const mcpCalls = Math.min(Math.round((raw.mcpCalls / estimated) * budget), budget - toolResults)
+  return { toolResults, mcpCalls, conversation: budget - toolResults - mcpCalls }
 }
 
 export function resolveUsedTokens(
