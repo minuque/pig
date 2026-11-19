@@ -102,7 +102,7 @@ function fontSample(name: string): string {
 }
 
 .group-count {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
 }
@@ -173,7 +173,7 @@ function fontSample(name: string): string {
 }
 
 .token-value {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 </style>

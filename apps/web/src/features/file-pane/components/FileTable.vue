@@ -52,7 +52,7 @@ const hidden = computed(() => Math.max(0, rows.value.length - 1 - ROW_LIMIT))
 
 .file-table-more {
   margin: var(--space-sm) 0 0;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 </style>

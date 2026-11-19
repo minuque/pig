@@ -66,12 +66,12 @@ function open(task: Task) {
 .task-dot {
   inline-size: var(--space-xs);
   block-size: var(--space-xs);
-  background: var(--fg-faint);
+  background: var(--fg-secondary);
   border-radius: var(--radius-pill);
 }
 
 .task-dot[data-status="running"] {
-  background: var(--accent-solid);
+  background: var(--info-solid);
 }
 
 .task-dot[data-status="completed"] {
@@ -92,7 +92,7 @@ function open(task: Task) {
   overflow: hidden;
   font-family: var(--font-mono);
   font-size: var(--text-meta);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   text-overflow: ellipsis;
   white-space: nowrap;
 }

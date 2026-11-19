@@ -442,7 +442,7 @@ defineExpose({ focus })
 /* contenteditable 的 placeholder：空内容时显示 data-placeholder */
 .field:empty::before {
   content: attr(data-placeholder);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   pointer-events: none;
 }
 

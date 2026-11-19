@@ -293,7 +293,7 @@ function onPreviewOpenChange(open: boolean) {
 
 /* 视口里的回合加深，正在看的那条最深 */
 .minimap-strip.strip-in-view {
-  background: var(--fg-faint);
+  background: var(--fg-secondary);
 }
 
 .minimap-strip.strip-active {
@@ -313,7 +313,7 @@ function onPreviewOpenChange(open: boolean) {
   border: 0;
   border-radius: calc(var(--radius-control) / 2);
   background: transparent;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   cursor: pointer;
   translate: -50% 0;
   opacity: 0;
@@ -363,7 +363,7 @@ function onPreviewOpenChange(open: boolean) {
   max-height: 3.75rem;
   margin-top: var(--space-2xs);
   overflow: hidden;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   line-height: 20px;
   line-clamp: 3;

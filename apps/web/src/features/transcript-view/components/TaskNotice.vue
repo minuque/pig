@@ -42,7 +42,7 @@ const elapsed = computed(() => {
   margin: 0;
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .task-notice-icon {

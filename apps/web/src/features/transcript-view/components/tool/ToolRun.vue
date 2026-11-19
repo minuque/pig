@@ -117,7 +117,7 @@ onBeforeUnmount(() => {
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font: inherit;
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
@@ -141,7 +141,7 @@ onBeforeUnmount(() => {
 
 .tool-run-time {
   flex: none;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-variant-numeric: tabular-nums;
 }
 

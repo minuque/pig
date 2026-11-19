@@ -32,7 +32,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 
@@ -44,7 +44,7 @@
   border: var(--border-width) solid var(--border-subtle);
   border-radius: var(--radius-control);
   background: var(--bg-muted);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 
@@ -69,14 +69,14 @@
   gap: var(--space-xs);
   margin: 0 0 var(--space-sm);
   padding-inline: var(--space-md);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-body);
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-body--line-height);
 }
 
 .sec-count {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-weight: var(--font-weight-normal);
 }
 
@@ -94,7 +94,7 @@
 .kvlabel {
   flex: none;
   width: 72px;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 
@@ -104,11 +104,11 @@
 }
 
 .kvvalue.muted {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .kvvalue.masked {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-family: var(--font-mono);
 }
 
@@ -117,7 +117,7 @@
   align-items: center;
   gap: 4px;
   margin-inline-start: auto;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 
@@ -138,7 +138,7 @@
 }
 
 .icon-button {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .icon-button:hover {
@@ -166,7 +166,7 @@
 
 .note {
   margin: 0;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   line-height: 1.4;
 }
@@ -224,7 +224,7 @@
 
 .empty {
   margin: 0;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 

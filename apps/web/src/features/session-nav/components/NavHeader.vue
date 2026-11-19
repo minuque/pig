@@ -212,7 +212,7 @@ html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]
 
 /* 工具行图标常态弱一档，悬停、聚焦或菜单打开时回到正文色 */
 .nav-tool[data-slot] {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   transition: color var(--duration-fast) var(--ease-out);
 }
 

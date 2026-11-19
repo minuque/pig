@@ -208,7 +208,7 @@ async function restore() {
 }
 
 .field-label {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }
@@ -254,7 +254,7 @@ async function restore() {
   place-items: center;
   width: 20px;
   height: 20px;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .remove-param:hover {

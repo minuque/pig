@@ -54,7 +54,7 @@ function retry() {
 .error-icon {
   inline-size: var(--icon-xl);
   block-size: var(--icon-xl);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .error-title {
@@ -67,7 +67,7 @@ function retry() {
 
 .error-detail {
   margin: 0;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   overflow-wrap: anywhere;

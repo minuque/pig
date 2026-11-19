@@ -508,7 +508,7 @@ function confirmDelete() {
   padding-inline: var(--space-xs);
   border-radius: calc(var(--radius-control) / 2);
   background: var(--info-subtle);
-  color: var(--accent-text);
+  color: var(--info-text);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
   line-height: 1;
@@ -566,7 +566,7 @@ function confirmDelete() {
   border: 0;
   border-radius: calc(var(--radius-control) / 2);
   background: transparent;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   cursor: pointer;
   transition: color var(--duration-fast) var(--ease-out);
 }
@@ -604,7 +604,7 @@ function confirmDelete() {
   place-items: center;
   width: 16px;
   height: 16px;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 /* 项目缩写：soft 徽标收成 16px 方块 */
@@ -632,7 +632,7 @@ function confirmDelete() {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   text-overflow: ellipsis;
@@ -650,7 +650,7 @@ function confirmDelete() {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   line-height: 20px;
@@ -689,7 +689,7 @@ function confirmDelete() {
 }
 
 .time-label {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
   line-height: var(--text-meta--line-height);
@@ -736,7 +736,7 @@ function confirmDelete() {
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   white-space: nowrap;

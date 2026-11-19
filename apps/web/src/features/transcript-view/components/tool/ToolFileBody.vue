@@ -178,7 +178,7 @@ watch(
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   text-overflow: ellipsis;

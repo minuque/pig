@@ -160,7 +160,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
 .file-search-heading {
   margin: 0;
   padding: var(--space-2xs) var(--space-xs);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
 }
@@ -210,7 +210,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
 .file-search-dir {
   min-inline-size: 0;
   overflow: hidden;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   text-overflow: ellipsis;
 }
@@ -219,7 +219,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
 .file-search-limit {
   margin: 0;
   padding: var(--space-xs);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   user-select: none;
 }
@@ -233,7 +233,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
 .file-search-empty {
   margin: 0;
   padding: var(--space-md) var(--space-xs);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-body);
   text-align: center;
 }

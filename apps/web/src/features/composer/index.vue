@@ -405,7 +405,7 @@ function onAbortHotkey(event: KeyboardEvent) {
   cursor: default;
   scale: 1;
   background: var(--bg-emphasis);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   box-shadow: none;
 }
 

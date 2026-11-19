@@ -124,7 +124,7 @@ function text(label: Label): string {
 
 .tile-count,
 .section-title {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .section {
@@ -169,6 +169,6 @@ function text(label: Label): string {
 }
 
 .row-icon {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 </style>

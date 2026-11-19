@@ -200,7 +200,7 @@ watch(
   flex: 1;
   min-inline-size: 0;
   overflow: hidden;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   white-space: nowrap;
 }

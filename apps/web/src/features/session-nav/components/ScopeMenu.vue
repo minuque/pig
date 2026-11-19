@@ -158,7 +158,7 @@ function toggleProject(canonicalPath: string): void {
 }
 
 .search-icon {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .scope-search input {
@@ -172,12 +172,12 @@ function toggleProject(canonicalPath: string): void {
 }
 
 .scope-search input::placeholder {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .scope-empty {
   padding: var(--space-xs);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 

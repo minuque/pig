@@ -48,7 +48,7 @@ provide(TABS_VARIANT, toRef(props, "variant"))
   block-size: calc(var(--spacing) * 9);
   padding-inline: 2px;
   border-radius: var(--radius-card);
-  background: var(--bg-sunken);
+  background: var(--sidebar);
   box-shadow: inset 0 0 0 var(--border-width) var(--border-subtle);
   font-size: var(--text-body);
   isolation: isolate;

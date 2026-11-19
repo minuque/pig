@@ -126,7 +126,7 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
 }
 
 .model-meta {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 
@@ -141,7 +141,7 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
   width: 22px;
   height: 22px;
   border-radius: var(--radius-control);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .chevron-button:hover {

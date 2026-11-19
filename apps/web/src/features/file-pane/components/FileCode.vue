@@ -113,7 +113,7 @@ watch(
 .file-code-notice {
   margin: 0;
   padding: var(--space-xs) var(--space-md);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 
@@ -149,7 +149,7 @@ watch(
   padding-inline: var(--space-md) 0;
   box-sizing: content-box;
   background: var(--bg-surface);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   text-align: right;
   user-select: none;
 }

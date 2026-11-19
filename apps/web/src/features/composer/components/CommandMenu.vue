@@ -138,7 +138,7 @@ watch(
 .command-label {
   margin: 0;
   padding: var(--space-2xs) var(--space-xs) var(--space-2xs);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-meta--line-height);
@@ -180,7 +180,7 @@ watch(
   flex: none;
   width: 16px;
   height: 16px;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .command-glyph,
@@ -204,7 +204,7 @@ watch(
 
 .command-secondary {
   overflow: hidden;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -214,14 +214,14 @@ watch(
   flex: none;
   margin-inline-start: auto;
   padding-inline-start: var(--space-xs);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 
 .command-status {
   margin: 0;
   padding: var(--space-xs) var(--space-sm);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 </style>

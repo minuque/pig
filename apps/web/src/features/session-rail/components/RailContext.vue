@@ -153,7 +153,7 @@ const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && 
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 

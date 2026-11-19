@@ -182,7 +182,7 @@ const rows = computed(() =>
   flex: none;
   width: 24px;
   height: 24px;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .file-name {
@@ -203,7 +203,7 @@ const rows = computed(() =>
 
 .file-ext {
   flex: none;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 /* 进度环与 tile 同位：描边中线压 tile 边缘，不再外扩出第二道框。

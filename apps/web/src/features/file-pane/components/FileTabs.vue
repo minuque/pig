@@ -192,7 +192,7 @@ watch(
   border: 0;
   border-radius: calc(var(--radius-control) - 2px);
   background: none;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .file-tab-close:hover {

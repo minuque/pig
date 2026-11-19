@@ -178,7 +178,7 @@ function itemBind(session: SidebarSession) {
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-meta--line-height);
@@ -257,7 +257,7 @@ function itemBind(session: SidebarSession) {
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
   cursor: default;

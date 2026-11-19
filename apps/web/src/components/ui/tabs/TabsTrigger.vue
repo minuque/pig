@@ -50,7 +50,7 @@ const variant = inject(TABS_VARIANT, ref("underline"))
 }
 
 [data-variant="segmented"][data-disabled] {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   cursor: not-allowed;
 }
 

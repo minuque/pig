@@ -53,7 +53,7 @@ const label = computed(() => thoughtStepLabel(props.step))
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font: inherit;
   font-size: var(--text-code);
   line-height: var(--text-meta--line-height);

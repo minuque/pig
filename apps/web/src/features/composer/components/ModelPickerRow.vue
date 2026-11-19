@@ -104,7 +104,7 @@ const { t } = useI18n()
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   opacity: 0.6;
   cursor: pointer;
   transition:

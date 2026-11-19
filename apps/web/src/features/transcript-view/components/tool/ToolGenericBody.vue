@@ -84,7 +84,7 @@ watch(
   position: relative;
   padding: var(--space-xs) var(--space-sm);
   padding-inline-end: calc(var(--space-sm) + 22px);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-family: var(--font-mono);
   font-size: var(--text-code);
   line-height: var(--text-code-line);
@@ -109,7 +109,7 @@ watch(
 
 .tool-empty {
   margin: 0;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: inherit;
 }
 </style>

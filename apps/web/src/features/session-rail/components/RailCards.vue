@@ -221,6 +221,6 @@ function nudge(id: RailSectionId, step: number) {
 .rail-status {
   font-family: var(--font-mono);
   font-size: var(--text-meta);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 </style>

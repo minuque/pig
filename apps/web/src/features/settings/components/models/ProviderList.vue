@@ -174,27 +174,27 @@ function sourceKind(provider: ProviderView) {
   border: var(--border-width) solid var(--border-subtle);
   border-radius: var(--radius-control);
   background: var(--bg-muted);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: 9px;
   font-weight: var(--font-weight-medium);
 }
 
 .provider-id {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }
 
 .provider-count {
   flex: none;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   white-space: nowrap;
 }
 
 .provider-chevron {
   flex: none;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .list-state {
@@ -204,7 +204,7 @@ function sourceKind(provider: ProviderView) {
   gap: var(--space-sm);
   margin: 0;
   padding-block: var(--space-xl);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 

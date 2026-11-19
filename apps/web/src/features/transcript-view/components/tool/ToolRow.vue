@@ -199,7 +199,7 @@ const thumb = computed(() => {
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font: inherit;
   font-size: var(--text-code);
   line-height: var(--text-meta--line-height);
@@ -260,7 +260,7 @@ const thumb = computed(() => {
 
 .tool-row-caret {
   flex: none;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   pointer-events: none;
   width: var(--icon-sm);
   height: var(--icon-sm);
@@ -280,7 +280,7 @@ const thumb = computed(() => {
 
 .tool-row-time {
   flex: none;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
 }

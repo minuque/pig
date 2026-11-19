@@ -200,7 +200,7 @@ function statusText(task: Task): string {
 
 .rail-tasks-head {
   margin: 0;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
   line-height: var(--text-meta--line-height);
@@ -253,7 +253,7 @@ button.rail-task-title:hover .rail-task-name {
   flex-wrap: wrap;
   align-items: baseline;
   gap: var(--space-2xs) var(--space-xs);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }
@@ -293,7 +293,7 @@ button.rail-task-title:hover .rail-task-name {
 .rail-task-output {
   display: grid;
   gap: var(--space-2xs);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);

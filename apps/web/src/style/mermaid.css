@@ -12,7 +12,7 @@
   --pele-surface: var(--bg);
   --pele-surface-alt: var(--bg-surface);
   --pele-fg: var(--fg);
-  --pele-muted: var(--fg-faint);
+  --pele-muted: var(--fg-secondary);
   --pele-line: var(--border);
   --pele-accent: var(--accent-11);
   --pele-border: var(--border);

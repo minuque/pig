@@ -169,7 +169,7 @@ const copyText = computed(() => (props.code ? props.lines.join("\n") : props.tex
 .line-number {
   flex: none;
   min-width: var(--line-number-width);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   text-align: end;
   user-select: none;
 }

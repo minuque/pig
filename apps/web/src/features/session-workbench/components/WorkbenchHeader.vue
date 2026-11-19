@@ -403,7 +403,7 @@ function confirmDelete(): void {
   align-items: center;
   flex-shrink: 1;
   min-width: 0;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body--line-height);
@@ -430,7 +430,7 @@ function confirmDelete(): void {
 
 .crumb-separator {
   flex: none;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-body);
 }
 

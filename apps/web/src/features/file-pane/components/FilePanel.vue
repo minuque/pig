@@ -247,7 +247,7 @@ const actions = computed(() => [
   flex: 1;
   place-items: center;
   margin: 0;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-body);
 }
 

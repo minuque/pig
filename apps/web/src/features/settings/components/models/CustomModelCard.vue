@@ -121,12 +121,12 @@ const open = ref(!model.value.id)
 }
 
 .model-meta {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 
 .icon-button {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .icon-button:hover {
@@ -168,7 +168,7 @@ const open = ref(!model.value.id)
 }
 
 .field-label {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 

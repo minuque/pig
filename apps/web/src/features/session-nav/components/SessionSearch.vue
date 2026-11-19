@@ -80,7 +80,7 @@ function activate(id: string) {
 .row-time {
   min-width: 3rem;
   flex: none;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
   text-align: end;

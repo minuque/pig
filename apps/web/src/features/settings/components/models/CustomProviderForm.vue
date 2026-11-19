@@ -303,7 +303,7 @@ async function remove() {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 
@@ -315,7 +315,7 @@ async function remove() {
   border: var(--border-width) solid var(--border-subtle);
   border-radius: var(--radius-control);
   background: var(--bg-muted);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 
@@ -328,14 +328,14 @@ async function remove() {
   align-items: baseline;
   gap: var(--space-xs);
   margin: 0 0 var(--space-sm);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-body);
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-body--line-height);
 }
 
 .sec-count {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-weight: var(--font-weight-normal);
 }
 
@@ -367,7 +367,7 @@ async function remove() {
 }
 
 .field-label {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 
@@ -396,7 +396,7 @@ async function remove() {
 
 .hint {
   margin: var(--space-xs) 0 0;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   line-height: 1.4;
 }

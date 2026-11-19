@@ -127,7 +127,7 @@ const moreCount = computed(() => props.sections.running.length - shownRunning.va
   flex-shrink: 0;
   inline-size: var(--icon-md);
   block-size: var(--icon-md);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .task-row-name {
@@ -140,7 +140,7 @@ const moreCount = computed(() => props.sections.running.length - shownRunning.va
 
 .task-row-time {
   flex-shrink: 0;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-variant-numeric: tabular-nums;
 }
 </style>

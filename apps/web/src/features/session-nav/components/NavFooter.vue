@@ -106,7 +106,7 @@ function toggleLocale() {
   min-width: 0;
   margin: 0;
   padding-inline: var(--space-2xs) var(--space-xs);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
 }
@@ -144,7 +144,7 @@ function toggleLocale() {
 .profile-value {
   margin-inline-start: auto;
   padding-inline-start: var(--space-md);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .footer-name {

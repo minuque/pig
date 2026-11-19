@@ -191,7 +191,7 @@ watch(
 }
 
 .file-tree-row[data-ignored] {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .file-tree-row[data-git="M"],
@@ -212,7 +212,7 @@ watch(
   flex: none;
   inline-size: var(--icon-sm);
   block-size: var(--icon-sm);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   transition: transform var(--duration-fast) var(--ease-out);
 }
 

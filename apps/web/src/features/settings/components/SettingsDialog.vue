@@ -385,7 +385,7 @@ watch(active, async () => {
   width: var(--settings-nav-width);
   padding: var(--space-sm) var(--space-xs);
   border-inline-end: var(--border-width) solid var(--border-subtle);
-  background: var(--bg-sunken);
+  background: var(--sidebar);
   user-select: none;
 }
 
@@ -397,7 +397,7 @@ watch(active, async () => {
   height: 2rem;
   padding-inline: var(--space-xs);
   border-radius: var(--radius-control);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body--line-height);
@@ -424,7 +424,7 @@ watch(active, async () => {
   height: 2rem;
   padding-inline: var(--space-xs);
   border-radius: var(--radius-control);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-body);
   transition:
     background-color var(--duration-fast) var(--ease-out),
@@ -451,7 +451,7 @@ watch(active, async () => {
 }
 
 .settings-dialog .search-input::placeholder {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .settings-dialog .search-clear {
@@ -475,7 +475,7 @@ watch(active, async () => {
 .settings-dialog .settings-search-empty {
   margin: 0;
   padding: var(--space-lg) var(--space-xs);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   text-align: center;
@@ -509,7 +509,7 @@ watch(active, async () => {
 
 .settings-dialog .result-section {
   overflow: hidden;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -556,7 +556,7 @@ watch(active, async () => {
   align-items: center;
   gap: 6px;
   min-width: 0;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-body);
 }
 
@@ -577,7 +577,7 @@ watch(active, async () => {
 }
 
 .settings-dialog .crumb-sep {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   user-select: none;
 }
 
@@ -588,7 +588,7 @@ watch(active, async () => {
   width: var(--control-sm);
   height: var(--control-sm);
   border-radius: var(--radius-control);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   cursor: pointer;
   transition:
     background-color var(--duration-fast) var(--ease-out),

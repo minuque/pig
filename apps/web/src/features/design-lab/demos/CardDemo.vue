@@ -137,7 +137,7 @@ const PROVIDERS = ["Anthropic", "DeepSeek", "OpenAI"]
 }
 
 .cell figcaption {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
 }
@@ -152,7 +152,7 @@ const PROVIDERS = ["Anthropic", "DeepSeek", "OpenAI"]
 }
 
 .card-text {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 

@@ -68,7 +68,7 @@ const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-card);
   background: var(--bg-surface);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   transition:
     background-color var(--duration-fast) var(--ease-out),
     border-color var(--duration-fast) var(--ease-out),

@@ -154,7 +154,7 @@ async function copy(text: string) {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 
@@ -170,7 +170,7 @@ async function copy(text: string) {
 .login-note,
 .hint {
   margin: 0;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   line-height: 1.5;
 }
@@ -205,7 +205,7 @@ async function copy(text: string) {
 }
 
 .icon-button {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .icon-button:hover {
@@ -213,7 +213,7 @@ async function copy(text: string) {
 }
 
 .device-uri {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 
@@ -224,7 +224,7 @@ async function copy(text: string) {
 }
 
 .login-label {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 

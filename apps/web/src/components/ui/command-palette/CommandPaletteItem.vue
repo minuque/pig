@@ -77,7 +77,7 @@ const emit = defineEmits<{ select: [] }>()
 }
 
 .description {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 </style>

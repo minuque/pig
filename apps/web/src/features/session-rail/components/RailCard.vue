@@ -139,7 +139,7 @@ const bodyId = useId()
   flex-shrink: 0;
   inline-size: var(--icon-sm);
   block-size: var(--icon-sm);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 /* 收起时的摘要居右，和把手占同一个位置：把手露出时摘要让开 */
@@ -152,7 +152,7 @@ const bodyId = useId()
   min-inline-size: 0;
   margin-inline-start: var(--space-xs);
   overflow: hidden;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-weight: 400;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -181,7 +181,7 @@ const bodyId = useId()
   align-items: center;
   justify-content: center;
   inline-size: var(--control-sm);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   border-radius: var(--radius-control);
   cursor: grab;
   touch-action: none;

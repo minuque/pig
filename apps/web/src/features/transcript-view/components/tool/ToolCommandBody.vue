@@ -129,7 +129,7 @@ watch(
 .prompt {
   flex: none;
   width: 1ch;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .command {
@@ -142,7 +142,7 @@ watch(
 .command-status {
   margin: 0;
   padding-inline-start: var(--space-sm);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   line-height: 1.43;

@@ -159,7 +159,7 @@ onMounted(() => document.getElementById("startup-splash")?.remove())
 }
 
 .lab-sep {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .lab-here {

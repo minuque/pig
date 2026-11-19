@@ -131,7 +131,7 @@
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   transition:
     background var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out),
@@ -494,7 +494,7 @@
 .shimmer {
   position: relative;
   display: inline-block;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .shimmer::before {

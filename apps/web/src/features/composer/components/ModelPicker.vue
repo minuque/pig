@@ -433,7 +433,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .tab-btn {
   position: relative;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   cursor: pointer;
 }
 
@@ -470,7 +470,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .search-icon {
   flex: none;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .search input {
@@ -485,7 +485,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .search input::placeholder {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .groups {
@@ -501,7 +501,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 .empty {
   padding: var(--space-md) var(--space-xs);
   font-size: var(--text-meta);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   text-align: center;
 }
 

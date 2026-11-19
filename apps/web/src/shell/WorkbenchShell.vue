@@ -287,7 +287,7 @@ html[data-session-dragging] .split-drop {
   display: inline-flex;
   align-items: center;
   gap: var(--space-xs);
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
   pointer-events: none;

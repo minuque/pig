@@ -97,7 +97,7 @@ function resetWidth() {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--bg-sunken);
+  background: var(--sidebar);
   border-inline-end: var(--border-width) solid var(--border-subtle);
   contain: layout style;
   visibility: hidden;
@@ -192,7 +192,7 @@ main {
     transition:
       transform var(--duration-normal) var(--ease-out),
       visibility 0s linear var(--duration-normal);
-    background: var(--bg-sunken);
+    background: var(--sidebar);
     border-inline-end: 0;
     box-shadow: var(--shadow-dialog);
   }

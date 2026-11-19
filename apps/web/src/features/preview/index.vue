@@ -73,7 +73,7 @@ function measure(event: Event) {
 
 .preview-meta {
   flex-shrink: 0;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
 }
