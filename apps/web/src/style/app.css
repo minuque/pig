@@ -14,6 +14,7 @@
 @import "@radix-ui/themes/tokens/colors/cyan.css";
 @import "@radix-ui/themes/tokens/colors/pink.css";
 @import "@radix-ui/themes/tokens/colors/amber.css";
+@import "@radix-ui/themes/tokens/colors/blue.css";
 @import "./tokens.css";
 @import "./rt.css";
 @import "./motion.css";

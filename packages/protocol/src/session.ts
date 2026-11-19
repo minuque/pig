@@ -29,7 +29,7 @@ export type SessionTranscriptPage =
   | ({ append: TranscriptItem[] } & TranscriptPageMeta)
 
 export type ContextPreviewKey =
-  "systemPrompt" | "memory" | "skills" | "tools" | "toolResults" | "conversation"
+  "systemPrompt" | "memory" | "skills" | "tools" | "mcpTools" | "toolResults" | "conversation"
 
 export interface ContextUsagePreview {
   key: ContextPreviewKey
@@ -45,6 +45,7 @@ export interface ContextUsageEstimate {
     memory: number
     skills: number
     tools: number
+    mcpTools: number
     toolResults: number
     conversation: number
     other: number

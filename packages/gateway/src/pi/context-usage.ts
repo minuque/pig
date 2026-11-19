@@ -6,6 +6,7 @@ export const CONTEXT_PREVIEW_KEYS = [
   "memory",
   "skills",
   "tools",
+  "mcpTools",
   "toolResults",
   "conversation",
 ] as const satisfies readonly ContextPreviewKey[]
@@ -14,8 +15,9 @@ const PREVIEW_META: Record<ContextPreviewKey, { title: string; empty: string }> 
   memory: { title: "记忆", empty: "当前上下文没有记忆文件。" },
   skills: { title: "技能", empty: "当前上下文没有技能。" },
   tools: { title: "工具定义", empty: "没有启用的工具定义。" },
+  mcpTools: { title: "MCP 工具", empty: "没有启用的 MCP 工具。" },
   toolResults: { title: "工具结果", empty: "当前上下文没有工具结果。" },
-  conversation: { title: "当前会话上下文", empty: "没有会话上下文。" },
+  conversation: { title: "消息", empty: "没有消息。" },
 }
 
 interface ContextUsageSource {
@@ -94,16 +96,21 @@ function embeddedTokens(prompt: string, chunk: string): number {
   return estimateText(chunk)
 }
 
+/** pi 给 MCP 服务器工具起名 `mcp__<server>__<tool>`。 */
+const MCP_TOOL_PREFIX = "mcp__"
+
+/** 只算声明给模型的工具；mcp 为真时只取 MCP 工具，否则只取其余工具。 */
 function collectTools(
   source: ContextUsageSource,
   preview: boolean,
+  mcp: boolean,
 ): { tokens: number; chunks: string[] } {
   const active = new Set(source.getActiveToolNames())
   let tokens = 0
   const chunks: string[] = []
 
   for (const tool of source.getAllTools()) {
-    if (!active.has(tool.name)) continue
+    if (!active.has(tool.name) || tool.name.startsWith(MCP_TOOL_PREFIX) !== mcp) continue
 
     const definition = {
       name: tool.name,
@@ -265,7 +272,7 @@ export function resolveUsedTokens(
 }
 
 /**
- * 以 Pi 的总占用校准分段。系统提示词 / 记忆 / 技能 / 工具定义
+ * 以 Pi 的总占用校准分段。系统提示词 / 记忆 / 技能 / 工具定义 / MCP 工具
  * 是固定项；工具结果与会话上下文按比例压缩；差额归入「其他」。
  */
 export function estimateContextUsage(
@@ -286,13 +293,20 @@ export function estimateContextUsage(
   const skillsText = formatSkillsForPrompt(source.resourceLoader.getSkills().skills ?? []).trim()
   const skills = embeddedTokens(prompt, skillsText)
   const systemPrompt = Math.max(0, estimateText(prompt) - memory - skills)
-  const tools = collectTools(source, previewKey === "tools")
+  const tools = collectTools(source, previewKey === "tools", false)
+  const mcpTools = collectTools(source, previewKey === "mcpTools", true)
   const walked = walkEntries(source.sessionManager.buildContextEntries(), previewKey)
   const known =
-    systemPrompt + memory + skills + tools.tokens + walked.toolResults + walked.conversation
+    systemPrompt +
+    memory +
+    skills +
+    tools.tokens +
+    mcpTools.tokens +
+    walked.toolResults +
+    walked.conversation
   const reported = source.getContextUsage()
   const window = Math.max(0, reported?.contextWindow ?? source.model?.contextWindow ?? 0)
-  const fixed = systemPrompt + memory + skills + tools.tokens
+  const fixed = systemPrompt + memory + skills + tools.tokens + mcpTools.tokens
   const used = Math.max(resolveUsedTokens(reported, known, window), fixed)
   const fitted = capVariable(walked, Math.max(0, used - fixed))
   const attributed = fixed + fitted.toolResults + fitted.conversation
@@ -304,6 +318,7 @@ export function estimateContextUsage(
       memory,
       skills,
       tools: tools.tokens,
+      mcpTools: mcpTools.tokens,
       ...fitted,
       other: Math.max(0, used - attributed),
       idle: Math.max(0, window - used),
@@ -321,8 +336,10 @@ export function estimateContextUsage(
           ? finishPreview("skills", skillsText ? [skillsText] : [])
           : previewKey === "tools"
             ? finishPreview("tools", tools.chunks)
-            : previewKey === "toolResults"
-              ? finishPreview("toolResults", walked.toolChunks)
-              : finishPreview("conversation", walked.contextChunks)
+            : previewKey === "mcpTools"
+              ? finishPreview("mcpTools", mcpTools.chunks)
+              : previewKey === "toolResults"
+                ? finishPreview("toolResults", walked.toolChunks)
+                : finishPreview("conversation", walked.contextChunks)
   return { ...estimate, preview }
 }

@@ -43,4 +43,26 @@ describe("estimateContextUsage", () => {
     expect(usage.segments.skills).toBe(0)
     expect(usage.segments.toolResults).toBe(0)
   })
+
+  it("声明给模型的 MCP 工具单列一类，不算进工具定义；未声明的不计", () => {
+    const tools = [
+      { name: "read", description: "Read a file", parameters: {} },
+      { name: "mcp__docs__search", description: "Search docs", parameters: {} },
+      { name: "mcp__docs__fetch", description: "Fetch a doc", parameters: {} },
+    ]
+    const builtinOnly = estimateContextUsage(source({ getAllTools: () => tools }))
+    const usage = estimateContextUsage(
+      source({
+        getAllTools: () => tools,
+        getActiveToolNames: () => ["read", "mcp__docs__search"],
+      }),
+      "mcpTools",
+    )
+
+    expect(builtinOnly.segments.mcpTools).toBe(0)
+    expect(usage.segments.tools).toBe(builtinOnly.segments.tools)
+    expect(usage.segments.mcpTools).toBeGreaterThan(0)
+    expect(usage.preview?.content).toContain("mcp__docs__search")
+    expect(usage.preview?.content).not.toContain("mcp__docs__fetch")
+  })
 })

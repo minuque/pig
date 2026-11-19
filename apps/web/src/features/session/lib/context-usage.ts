@@ -7,6 +7,7 @@ export interface ContextUsageSegment {
     | "memory"
     | "skills"
     | "tools"
+    | "mcpTools"
     | "toolResults"
     | "conversation"
     | "other"
@@ -54,6 +55,12 @@ const SEGMENT_DEFS = [
     previewable: true,
   },
   {
+    id: "mcpTools" as const,
+    label: () => t("composer.contextMcpTools"),
+    color: "var(--chart-mcp)",
+    previewable: true,
+  },
+  {
     id: "toolResults" as const,
     label: () => t("composer.contextToolResults"),
     color: "var(--chart-results)",
@@ -61,7 +68,7 @@ const SEGMENT_DEFS = [
   },
   {
     id: "conversation" as const,
-    label: () => t("composer.contextCurrentSession"),
+    label: () => t("composer.contextMessages"),
     color: "var(--chart-conversation)",
     previewable: true,
   },
