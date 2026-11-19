@@ -156,7 +156,7 @@ import {
 } from "@components/ui/alert-dialog/index.js"
 import { Button } from "@components/ui/button/index.js"
 import { TextFieldRoot } from "@components/ui/text-field/index.js"
-import VendorMark from "@features/composer/components/VendorMark.vue"
+import VendorMark from "@components/icons/VendorMark.vue"
 import CustomModelCard from "@features/settings/components/models/CustomModelCard.vue"
 import {
   customProviderPayload,

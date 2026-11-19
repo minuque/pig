@@ -27,7 +27,7 @@
 <script setup lang="ts">
 import { useI18n } from "@i18n/index.js"
 import { DropdownMenuItem } from "@components/ui/dropdown-menu/index.js"
-import VendorMark from "@features/composer/components/VendorMark.vue"
+import VendorMark from "@components/icons/VendorMark.vue"
 import { StarFilledIcon, StarIcon } from "@components/icons/index.js"
 
 defineProps<{

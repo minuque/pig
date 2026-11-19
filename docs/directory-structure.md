@@ -26,12 +26,13 @@ apps/web/src/
 ├── style/          # 全局样式：app.css 是入口，tokens.css 定 token，components.css 是原子类
 ├── client/         # 网络、凭证、传输、本地目录偏好
 ├── components/
+│   ├── icons/      # 图标：Lucide 注册表、语言与供应商标
 │   ├── layout/     # 壳层
 │   └── ui/         # 基础件：Reka 的行为 + Radix Themes 的外观
 ├── features/       # 领域模块
 ├── shell/          # 应用壳：启动门、布局与全局弹层的组合
 ├── i18n/           # 文案与语言切换
-├── utils/          # 跟领域无关的小工具（storage、motion）
+├── utils/          # 跟领域无关的小工具（storage、motion、theme-mode）
 ├── types/          # 公共类型：xxx-type.ts；三方类型：common-type.ts
 └── router/
 ```
@@ -48,7 +49,7 @@ apps/web/src/
 
 `style/components.css`：原子类的类名沿用 shadcn 与 Tailwind 的写法（`flex`、`items-center`、`truncate`、`w-full`、`text-body-md`、`rounded-md`），值只读 `app.css` 的 token。间距按 `--space-*` 命名（`gap-sm`、`p-md`）而不是数字刻度：项目已经把间距收进 `--space-*` 命名空间，再引入一套数字换算就是两套刻度并行。新增类名前先确认名字没有被任何 scoped 块当作业务类名用过。
 
-`types/`：被两条及以上路径依赖的类型，按业务写成 `xxx-type.ts`，消费写 `@/types/xxx-type.js`。三方依赖类型（如 `@earendil-works/*`）与 `@pig/protocol` 的接口形状放 `types/common-type.ts` 再导出；接口形状只在 `@pig/protocol` 定义，web 与 gateway 不各写一份，消费写 `@/types/common-type.js`；运行时值仍从原包引入。模块或组件目录内多文件共用的类型放该目录 `type.ts`。只被一个文件使用的类型留在该文件。
+`types/`：被两条及以上路径依赖的类型，按业务写成 `xxx-type.ts`，消费写 `@/types/xxx-type.js`。三方依赖类型（如 `@earendil-works/*`）与 `@pig/protocol` 的接口形状放 `types/common-type.ts` 再导出；接口形状只在 `@pig/protocol` 定义，web 与 gateway 不各写一份，消费写 `@/types/common-type.js`；运行时值仍从原包引入。`client/` 自己定义的连接与会话类型留在 `client/`，import 直接写 `@client/...`：反过来从 `types/` 转出就与 `client` 成环。模块或组件目录内多文件共用的类型放该目录 `type.ts`。只被一个文件使用的类型留在该文件。
 
 ### features/\<module\>/
 

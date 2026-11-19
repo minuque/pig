@@ -4,10 +4,10 @@
  */
 import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue"
 
-import type { ConnectionState, ServerSnapshot, Unsubscribe } from "@/types/common-type.js"
+import type { ServerSnapshot } from "@/types/common-type.js"
 import { t } from "@i18n/index.js"
 
-import { GatewayClient } from "@client/gateway-client.js"
+import { GatewayClient, type ConnectionState, type Unsubscribe } from "@client/gateway-client.js"
 import { webSocketUrl } from "@client/transport.js"
 import { listProviderModels } from "@client/platform.js"
 

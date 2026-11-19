@@ -1,6 +1,6 @@
 import { shallowRef } from "vue"
-import type { GatewaySession } from "@client/gateway-session.js"
-import type { SessionState, TranscriptItem } from "@/types/common-type.js"
+import type { GatewaySession, SessionState } from "@client/gateway-session.js"
+import type { TranscriptItem } from "@/types/common-type.js"
 import type { HistoryStore } from "@features/session/hooks/use-session-history.js"
 import { coalesceByFrame } from "@features/session/lib/coalesce-by-frame.js"
 

@@ -232,7 +232,7 @@ import {
   RotateCcwIcon,
   UserIcon,
 } from "@components/icons/index.js"
-import VendorMark from "@features/composer/components/VendorMark.vue"
+import VendorMark from "@components/icons/VendorMark.vue"
 import ProviderLoginPanel from "@features/settings/components/models/ProviderLoginPanel.vue"
 import ProviderModelList from "@features/settings/components/models/ProviderModelList.vue"
 import { useProviderLogin } from "@features/settings/hooks/use-provider-login.js"

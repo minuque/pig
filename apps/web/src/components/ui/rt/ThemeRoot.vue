@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import { useColorScheme } from "@features/theme/index.js"
+import { useIsDark } from "@utils/theme-mode.js"
 
 /**
  * Radix Themes 的作用域容器：rt 的面板、阴影、间距与圆角 token 都挂在 .radix-themes 上。
@@ -23,5 +23,5 @@ import { useColorScheme } from "@features/theme/index.js"
  * root 只给应用根用：rt 靠它把 color-scheme 与 min-height 挂到 html 上。
  */
 const props = withDefaults(defineProps<{ root?: boolean }>(), { root: false })
-const { isDark } = useColorScheme()
+const isDark = useIsDark()
 </script>

@@ -17,6 +17,7 @@ import { handlePigProtocol, registerPigScheme } from "./protocol.js"
 import {
   desktopCdpPort,
   gatewayOrigin,
+  gatewayTrustUrls,
   isDesktopBench,
   isDesktopDev,
   pigAppUrl,
@@ -51,9 +52,9 @@ const DIALOG_OPTIONS = {
   properties: ["openDirectory", "createDirectory"],
 } as const satisfies OpenDialogOptions
 
-function trustLoopback(token: string): void {
+function trustLoopback(port: number, token: string): void {
   session.defaultSession.webRequest.onBeforeSendHeaders(
-    { urls: ["http://127.0.0.1/*", "ws://127.0.0.1/*"] },
+    { urls: gatewayTrustUrls(port) },
     (details, callback) => {
       callback({
         requestHeaders: {
@@ -174,7 +175,7 @@ void app.whenReady().then(async () => {
     gateway = await startGateway(isPackaged, webRoot)
     const httpOrigin = gatewayOrigin(gateway.port)
     const launchToken = gateway.launchToken
-    trustLoopback(launchToken)
+    trustLoopback(gateway.port, launchToken)
 
     if (isDev) {
       vite = spawnVite({ GATEWAY_TARGET: httpOrigin, GATEWAY_TOKEN: launchToken })

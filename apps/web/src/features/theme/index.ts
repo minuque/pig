@@ -1,8 +1,7 @@
-import { useColorMode } from "@vueuse/core"
+/** 主题控制器：深浅色切换、外观视图与代码块配色。状态本身在 `utils/theme-mode`。 */
 import { computed, effectScope, type ComputedRef } from "vue"
 import type { ColorScheme } from "@/types/theme-type.js"
-
-const STORAGE_KEY = "npg-theme"
+import { useIsDark, useThemeMode } from "@utils/theme-mode.js"
 
 type Theme = {
   isDark: ComputedRef<boolean>
@@ -13,22 +12,18 @@ type Theme = {
 }
 
 let shared: Theme | undefined
-/** 分离 scope：主题 effect 跟模块同寿命，不随首个调用组件卸载。 */
+/** 分离 scope：主题控制器的 computed 跟模块同寿命，不随首个调用组件卸载。 */
 const scope = effectScope(true)
 
-/** 主题是全局面板和 html class，控制器只建一次。 */
+/** 界面控制器只建一次，各处共享同两个 computed。 */
 function theme(): Theme {
   shared ??= scope.run(createTheme) as Theme
   return shared
 }
 
 function createTheme(): Theme {
-  const mode = useColorMode({
-    initialValue: "auto",
-    storageKey: STORAGE_KEY,
-    disableTransition: false,
-  })
-  const isDark = computed(() => mode.state.value === "dark")
+  const mode = useThemeMode()
+  const isDark = useIsDark()
   const scheme = computed<ColorScheme>(() =>
     mode.store.value === "auto" ? "auto" : mode.state.value,
   )

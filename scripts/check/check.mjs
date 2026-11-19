@@ -171,12 +171,12 @@ async function checkTouched(scope, files, label = "check:touched") {
     steps.push({ name: "test:scripts", args: ["exec", "node", "--test", "scripts/**/*.test.mjs"] })
   }
 
-  // 数据流 ref 指向源码，源码或流本身改动都要重新校验
+  // 数据流 ref 与分层目录都指向源码，源码或它们本身改动都要重新校验
   if (!scope.scripts && files.some((f) => /^(apps|packages|docs\/architecture)\//.test(f)))
-    steps.push({
-      name: "arch-flows",
-      args: ["exec", "node", "--test", "scripts/arch/flows.test.mjs"],
-    })
+    steps.push(
+      { name: "arch-flows", args: ["exec", "node", "--test", "scripts/arch/flows.test.mjs"] },
+      { name: "arch-layers", args: ["exec", "node", "--test", "scripts/arch/layers.test.mjs"] },
+    )
 
   if (scope.e2e)
     steps.push({

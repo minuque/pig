@@ -30,8 +30,15 @@ const config = {
 }
 
 describe("analyzeLayers", () => {
-  it("仓库里的分层配置覆盖每个模块", async () => {
-    assert.deepEqual(analyzeLayers(scanGraph(root), await loadLayers(root)).errors, [])
+  it("仓库里的分层配置覆盖每个模块，且没有越层与循环", async () => {
+    const { views, errors } = analyzeLayers(scanGraph(root), await loadLayers(root))
+
+    assert.deepEqual(errors, [])
+
+    for (const [focus, view] of Object.entries(views)) {
+      assert.deepEqual(view.violations, [], `${focus || "包之间"}有下层引用上层`)
+      assert.deepEqual(view.cycles, [], `${focus || "包之间"}有循环依赖`)
+    }
   })
 
   it("漏写的模块和不存在的目录都报错", () => {

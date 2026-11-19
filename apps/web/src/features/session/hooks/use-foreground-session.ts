@@ -1,12 +1,7 @@
 import { computed, shallowRef, watch, type ComputedRef } from "vue"
 import { useIntervalFn } from "@vueuse/core"
-import { GatewaySession } from "@client/gateway-session.js"
-import type {
-  ContextUsageEstimate,
-  ModelRef,
-  SessionState,
-  ThinkingLevel,
-} from "@/types/common-type.js"
+import { GatewaySession, type SessionState } from "@client/gateway-session.js"
+import type { ContextUsageEstimate, ModelRef, ThinkingLevel } from "@/types/common-type.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
 import { contextUsage } from "@client/platform.js"
 import { useHistoryView } from "@features/session/hooks/use-session-history.js"

@@ -1,4 +1,4 @@
-import type { GatewaySession } from "@/types/common-type.js"
+import type { GatewaySession } from "@client/gateway-session.js"
 import { GatewayRequestError } from "@client/gateway-client.js"
 
 const OPEN_ABORTED = "open-aborted"

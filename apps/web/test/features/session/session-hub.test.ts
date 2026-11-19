@@ -1,6 +1,6 @@
 import { computed, effectScope, shallowRef } from "vue"
 import { afterEach, describe, expect, it, vi } from "vitest"
-import type { SessionState } from "@/types/common-type.js"
+import type { SessionState } from "@client/gateway-session.js"
 
 const opened: FakeSession[] = []
 

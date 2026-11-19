@@ -14,7 +14,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { vendorDisplayName, vendorIcon } from "@features/composer/lib/vendor-logo.js"
+import { vendorDisplayName, vendorIcon } from "./vendor-logo.js"
 
 const props = withDefaults(
   defineProps<{

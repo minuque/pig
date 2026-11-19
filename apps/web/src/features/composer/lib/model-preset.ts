@@ -5,7 +5,7 @@ import type {
   ComposerPreset,
   ComposerVendor,
 } from "@features/composer/type.js"
-import { vendorDisplayName } from "@features/composer/lib/vendor-logo.js"
+import { vendorDisplayName } from "@components/icons/vendor-logo.js"
 
 function filterCatalog(catalog: ComposerVendor[], query: string): ComposerVendor[] {
   const q = query.trim().toLowerCase()

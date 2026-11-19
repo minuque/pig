@@ -55,7 +55,7 @@ import { ref } from "vue"
 
 import { ChevronRightIcon } from "@components/icons/index.js"
 import { Switch } from "@components/ui/switch/index.js"
-import VendorMark from "@features/composer/components/VendorMark.vue"
+import VendorMark from "@components/icons/VendorMark.vue"
 import ModelParamsForm from "@features/settings/components/models/ModelParamsForm.vue"
 import { errorMessage } from "@client/http.js"
 import { setModelEnabled } from "@client/platform.js"
