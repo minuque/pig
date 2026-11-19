@@ -7,7 +7,7 @@
 
         <template v-if="current">
           <span class="lab-sep">/</span>
-          <span>{{ text(current.group.title) }}</span>
+          <span class="lab-group">{{ text(current.group.title) }}</span>
           <span class="lab-sep">/</span>
           <span class="lab-here">{{ text(current.item.title) }}</span>
         </template>
@@ -19,9 +19,27 @@
       </nav>
 
       <div class="lab-switches">
-        <Button :as="RouterLink" to="/design/guide" variant="soft" color="gray" size="s">
+        <Button
+          size="s"
+          variant="ghost"
+          color="gray"
+          :aria-label="text(SEARCH_PAGE)"
+          @click="search?.open()"
+        >
+          <SearchIcon class="size-icon-xs" />
+          <span class="lab-optional">{{ text(SEARCH) }}</span>
+        </Button>
+
+        <Button
+          :as="RouterLink"
+          to="/design/guide"
+          variant="soft"
+          color="gray"
+          size="s"
+          aria-label="DESIGN.md 规范"
+        >
           <FileTextIcon class="size-icon-xs" />
-          DESIGN.md
+          <span class="lab-optional">DESIGN.md</span>
         </Button>
 
         <TabsRoot :model-value="locale" @update:model-value="(v) => pickLocale(String(v))">
@@ -43,50 +61,66 @@
       </div>
     </header>
 
-    <main class="lab-panel">
-      <template v-if="current">
-        <h1 class="lab-title">{{ text(current.item.title) }}</h1>
-        <component :is="current.item.view" :key="current.item.path" />
+    <div class="lab-body">
+      <DesignNav class="lab-nav" />
 
-        <nav class="lab-pager">
-          <RouterLink v-if="current.prev" :to="`/design/${current.prev.path}`" class="lab-step">
-            <ChevronLeftIcon class="size-icon-xs" />
-            {{ text(current.prev.title) }}
-          </RouterLink>
+      <main class="lab-panel">
+        <template v-if="current">
+          <h1 class="lab-title">{{ text(current.item.title) }}</h1>
+          <component :is="current.item.view" :key="current.item.path" />
 
-          <RouterLink
-            v-if="current.next"
-            :to="`/design/${current.next.path}`"
-            class="lab-step is-next"
-          >
-            {{ text(current.next.title) }}
-            <ChevronRightIcon class="size-icon-xs" />
-          </RouterLink>
-        </nav>
-      </template>
+          <nav class="lab-pager">
+            <RouterLink v-if="current.prev" :to="`/design/${current.prev.path}`" class="lab-step">
+              <ChevronLeftIcon class="size-icon-xs" />
+              {{ text(current.prev.title) }}
+            </RouterLink>
 
-      <DesignGuide v-else-if="isGuide" />
-      <DesignHome v-else />
-    </main>
+            <RouterLink
+              v-if="current.next"
+              :to="`/design/${current.next.path}`"
+              class="lab-step is-next"
+            >
+              {{ text(current.next.title) }}
+              <ChevronRightIcon class="size-icon-xs" />
+            </RouterLink>
+          </nav>
+        </template>
+
+        <DesignGuide v-else-if="isGuide" />
+        <DesignHome v-else />
+      </main>
+    </div>
+
+    <DesignSearch ref="search" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, watch } from "vue"
+import { computed, onMounted, useTemplateRef, watch } from "vue"
 import { RouterLink, useRoute } from "vue-router"
-import { ChevronLeftIcon, ChevronRightIcon, FileTextIcon } from "@components/icons/index.js"
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  FileTextIcon,
+  SearchIcon,
+} from "@components/icons/index.js"
 import { Button } from "@components/ui/button/index.js"
 import { TabsList, TabsRoot, TabsTrigger } from "@components/ui/tabs/index.js"
 import { useColorScheme } from "@features/theme/index.js"
 import { useGeneralPrefs } from "@features/settings/index.js"
 import DesignGuide from "@features/design-lab/components/DesignGuide.vue"
 import DesignHome from "@features/design-lab/components/DesignHome.vue"
+import DesignNav from "@features/design-lab/components/DesignNav.vue"
+import DesignSearch from "@features/design-lab/components/DesignSearch.vue"
 import { NAV, type Label } from "@features/design-lab/lib/nav.js"
 
 const PAGES = NAV.flatMap((group) => group.items.map((item) => ({ group, item })))
+const SEARCH: Label = { zh: "搜索", en: "Search" }
+const SEARCH_PAGE: Label = { zh: "搜索页面", en: "Search pages" }
 const route = useRoute()
 const { isDark, setScheme } = useColorScheme()
 const { locale, setLocale } = useGeneralPrefs()
+const search = useTemplateRef<{ open: () => void }>("search")
 const path = computed(() => [route.params.page ?? []].flat().join("/"))
 // 设计规范文档不进翻页顺序，单独一页
 const isGuide = computed(() => path.value === "guide")
@@ -122,44 +156,58 @@ onMounted(() => document.getElementById("startup-splash")?.remove())
 <style scoped>
 .lab {
   display: flex;
-  flex-direction: column;
   min-height: 100vh;
+  flex-direction: column;
   background: var(--bg);
   color: var(--fg);
 }
 
 .lab-bar {
   position: sticky;
-  z-index: 1;
+  z-index: 2;
   inset-block-start: 0;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-lg);
-  block-size: var(--header-height);
-  padding-inline: var(--space-lg);
+  gap: var(--space-xs) var(--space-lg);
+  min-block-size: var(--header-height);
+  padding: var(--space-2xs) var(--space-lg);
   background: var(--bg);
   box-shadow: inset 0 calc(var(--border-width) * -1) 0 var(--border-subtle);
 }
 
 .lab-crumbs {
   display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
   align-items: baseline;
   gap: var(--space-xs);
-  min-width: 0;
   overflow: hidden;
   color: var(--fg-secondary);
   white-space: nowrap;
 }
 
 .lab-home {
+  flex: none;
   color: var(--fg);
   font-weight: var(--font-weight-semibold);
   text-decoration: none;
 }
 
+.lab-home:hover {
+  color: var(--accent-text);
+}
+
 .lab-sep {
+  flex: none;
   color: var(--fg-secondary);
+}
+
+.lab-group,
+.lab-here {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .lab-here {
@@ -168,14 +216,35 @@ onMounted(() => document.getElementById("startup-splash")?.remove())
 
 .lab-switches {
   display: flex;
+  flex: none;
+  align-items: center;
   gap: var(--space-xs);
+  margin-inline-start: auto;
+}
+
+.lab-body {
+  display: grid;
+  flex: 1;
+  grid-template-columns: 216px minmax(0, 1fr);
+  align-items: start;
+}
+
+.lab-nav {
+  position: sticky;
+  inset-block-start: var(--header-height);
+  max-block-size: calc(100dvh - var(--header-height));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--sidebar);
+  box-shadow: inset calc(var(--border-width) * -1) 0 0 var(--border-subtle);
 }
 
 .lab-panel {
   display: flex;
   flex-direction: column;
   gap: var(--space-xl);
-  width: min(100%, 1120px);
+  width: 100%;
+  max-inline-size: 1120px;
   margin-inline: auto;
   padding: var(--space-xl) var(--space-lg) var(--space-2xl);
 }
@@ -199,15 +268,38 @@ onMounted(() => document.getElementById("startup-splash")?.remove())
   display: inline-flex;
   align-items: center;
   gap: var(--space-2xs);
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--radius-control);
   color: var(--fg-secondary);
   text-decoration: none;
 }
 
 .lab-step:hover {
+  background: var(--bg-hover);
   color: var(--fg);
 }
 
 .lab-step.is-next {
   margin-inline-start: auto;
+}
+
+.lab-optional {
+  display: none;
+}
+
+@media (width >= 720px) {
+  .lab-optional {
+    display: inline;
+  }
+}
+
+@media (width < 960px) {
+  .lab-body {
+    display: block;
+  }
+
+  .lab-nav {
+    display: none;
+  }
 }
 </style>

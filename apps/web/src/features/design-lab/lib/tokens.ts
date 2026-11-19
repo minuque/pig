@@ -9,8 +9,25 @@ export type Layer = "primitive" | "semantic" | "component"
 /** 分组取自 tokens.css 的分区注释：语义层是 `--- 表面 ---` 这类小标题，组件层是名字前缀。 */
 export type Token = { name: string; value: string; layer: Layer; group: string }
 
-/** 样例画法：按值的类型决定怎么画。 */
-export type Kind = "color" | "text" | "font" | "space" | "radius" | "shadow" | "size" | "none"
+/** 样例画法：按名字与值的类型决定怎么画。 */
+export type Kind =
+  | "fill"
+  | "fg"
+  | "border"
+  | "paint"
+  | "text"
+  | "leading"
+  | "tracking"
+  | "font"
+  | "space"
+  | "radius"
+  | "shadow"
+  | "size"
+  | "width"
+  | "opacity"
+  | "ease"
+  | "layer"
+  | "none"
 
 export type Category = { id: string; title: Label; match: (token: Token) => boolean }
 
@@ -99,21 +116,45 @@ function placed(css: string, fallback = ""): Omit<Token, "value">[] {
   return [...seen.values()]
 }
 
+const LENGTH = /^-?[\d.]+(px|rem|em|%|ch|vh|vw)$/
+
 export function kindOf(token: Token): Kind {
   const { name, value } = token
+
+  // 先认字号行高这类同族变量，避免按值误判成尺寸
+  if (/line-height$|--text-[a-z]+-line$/.test(name)) return "leading"
+
+  if (name.endsWith("--letter-spacing")) return "tracking"
 
   if (/^--text-[a-z]+$/.test(name)) return "text"
 
   if (name.startsWith("--font-")) return "font"
 
-  if (name.startsWith("--space-")) return "space"
+  if (name === "--spacing" || name.startsWith("--space-")) return "space"
 
   if (name.startsWith("--radius-")) return "radius"
 
-  if (name.startsWith("--shadow-")) return "shadow"
+  if (/shadow|separator|focus-ring/.test(name)) return "shadow"
 
-  if (/^--(icon|control)-/.test(name) && name !== "--icon-stroke") return "size"
-  return CSS.supports("color", value) ? "color" : "none"
+  if (/^--(border-width|icon-stroke)$/.test(name)) return "width"
+
+  if (/^--(icon|control)-/.test(name)) return "size"
+
+  if (/opacity/.test(name)) return "opacity"
+
+  if (name.startsWith("--z-")) return "layer"
+
+  if (/^cubic-bezier/.test(value)) return "ease"
+
+  if (/gradient\(|url\(/.test(value)) return "paint"
+
+  if (LENGTH.test(value)) return "size"
+
+  // 文字色画一行字，表面色画色块；描边色只画环
+  if (/^--(fg|link)/.test(name) || /-text$/.test(name)) return "fg"
+
+  if (/^--border/.test(name)) return "border"
+  return CSS.supports("color", value) ? "fill" : "none"
 }
 
 /** 实时读取全部 token 的计算值，切换明暗后重读。 */

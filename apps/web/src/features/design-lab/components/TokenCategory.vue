@@ -1,33 +1,146 @@
 <template>
   <div class="overview">
+    <div v-if="all.length > 12" class="filter">
+      <TextFieldRoot
+        v-model="query"
+        size="s"
+        class="filter-field"
+        :placeholder="text(PLACEHOLDER)"
+        :aria-label="text(PLACEHOLDER)"
+      >
+        <TextFieldSlot side="left"><SearchIcon class="size-icon-xs" /></TextFieldSlot>
+      </TextFieldRoot>
+
+      <span class="filter-count">{{ filtered.length }} / {{ all.length }}</span>
+    </div>
+
+    <p v-if="!groups.length" class="empty">{{ text(EMPTY) }}</p>
+
     <section v-for="group in groups" :key="group.id" class="group">
       <h2 class="group-title">
         {{ text(groupTitle(group.id)) }}
         <span class="group-count">{{ group.tokens.length }}</span>
       </h2>
 
-      <div class="grid" :data-wide="group.tokens.some(isWide) || undefined">
-        <div v-for="token in group.tokens" :key="token.name" class="token" :title="token.value">
-          <div
-            v-if="kindOf(token) !== 'none'"
-            class="sample"
-            :data-kind="kindOf(token)"
-            :style="sampleStyle(token)"
-          >
-            <template v-if="kindOf(token) === 'text'">界面 Aa 123</template>
-            <template v-else-if="kindOf(token) === 'font'">{{ fontSample(token.name) }}</template>
-          </div>
+      <CardList>
+        <CardRow
+          v-for="token in group.tokens"
+          :key="token.name"
+          class="token"
+          :data-wide="isWide(token) || undefined"
+        >
+          <span class="sample" :data-kind="kindOf(token)">
+            <span
+              v-if="kindOf(token) === 'fill' || kindOf(token) === 'paint'"
+              class="swatch"
+              :style="{ background: css(token) }"
+            />
 
-          <div class="token-name">{{ token.name }}</div>
-          <div class="token-value">{{ token.value }}</div>
-        </div>
-      </div>
+            <span
+              v-else-if="kindOf(token) === 'border'"
+              class="ring"
+              :style="{ borderColor: css(token) }"
+            />
+
+            <span
+              v-else-if="kindOf(token) === 'fg'"
+              class="glyph"
+              :style="{ background: ground(token) }"
+            >
+              <span :style="{ color: css(token) }">Aa</span>
+            </span>
+
+            <span
+              v-else-if="kindOf(token) === 'text'"
+              class="type"
+              :style="{ fontSize: css(token) }"
+            >
+              界面 Aa 123
+            </span>
+
+            <span
+              v-else-if="kindOf(token) === 'leading'"
+              class="leading"
+              :style="{ lineHeight: css(token) }"
+            >
+              界面 Aa
+              <br />
+              界面 Aa
+            </span>
+
+            <span
+              v-else-if="kindOf(token) === 'tracking'"
+              class="type"
+              :style="{ letterSpacing: css(token) }"
+            >
+              界面 Aa
+            </span>
+
+            <span v-else-if="kindOf(token) === 'font'" class="type" :style="fontStyle(token)">
+              工作台 Workbench
+            </span>
+
+            <span
+              v-else-if="kindOf(token) === 'space' || kindOf(token) === 'size'"
+              class="bar"
+              :style="{ inlineSize: `min(${css(token)}, 100%)` }"
+            />
+
+            <span
+              v-else-if="kindOf(token) === 'radius'"
+              class="corner"
+              :style="{ borderStartStartRadius: css(token) }"
+            />
+
+            <span
+              v-else-if="kindOf(token) === 'shadow'"
+              class="lift"
+              :style="{ boxShadow: css(token) }"
+            />
+
+            <span
+              v-else-if="kindOf(token) === 'width'"
+              class="rule"
+              :style="{ blockSize: css(token) }"
+            />
+
+            <span
+              v-else-if="kindOf(token) === 'opacity'"
+              class="glyph"
+              :style="{ opacity: css(token) }"
+            >
+              Aa
+            </span>
+
+            <svg v-else-if="kindOf(token) === 'ease'" class="curve" viewBox="0 0 48 28">
+              <path class="axis" d="M4 24 H44" />
+              <path :d="easePath(token.value)" />
+            </svg>
+
+            <span v-else-if="kindOf(token) === 'layer'" class="stack">
+              <span />
+              <span />
+              <span />
+            </span>
+          </span>
+
+          <code class="name">
+            <span class="dash">--</span>
+            {{ token.name.slice(2) }}
+          </code>
+
+          <span class="value">{{ token.value }}</span>
+        </CardRow>
+      </CardList>
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, ref } from "vue"
+import { SearchIcon } from "@components/icons/index.js"
+import { CardList, CardRow } from "@components/ui/card/index.js"
+import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
 import { useGeneralPrefs } from "@features/settings/index.js"
 import type { Label } from "@features/design-lab/lib/nav.js"
 import {
@@ -42,40 +155,64 @@ import {
 const props = defineProps<{ category: Category }>()
 const { locale } = useGeneralPrefs()
 const tokens = useTokens()
+const query = ref("")
+const PLACEHOLDER: Label = { zh: "筛选名称或值", en: "Filter name or value" }
+const EMPTY: Label = { zh: "没有匹配的变量", en: "No matching tokens" }
+// 字号、字体这几种样例要一行字，给宽一档
+const WIDE: Kind[] = ["text", "leading", "tracking", "font"]
+// 白字画在白底上看不见，铺一层它该出现的底
+const GROUND: Record<string, string> = {
+  "--fg-on-accent": "var(--accent-solid)",
+  "--fg-inverse": "var(--bg-inverse)",
+}
+const all = computed(() => tokens.value.filter(props.category.match))
+const filtered = computed(() => {
+  const term = query.value.trim().toLowerCase()
+
+  if (!term) return all.value
+  return all.value.filter(
+    (token) => token.name.toLowerCase().includes(term) || token.value.toLowerCase().includes(term),
+  )
+})
 // 按 tokens.css 里的出现顺序分组
 const groups = computed(() => {
   const byGroup = new Map<string, Token[]>()
 
-  for (const token of tokens.value.filter(props.category.match))
+  for (const token of filtered.value)
     byGroup.set(token.group, [...(byGroup.get(token.group) ?? []), token])
   return [...byGroup].map(([id, list]) => ({ id, tokens: list }))
 })
-
-// 字号、字体、间距、尺寸的样例是横条或一行字，给宽列
-function isWide(token: Token): boolean {
-  return ["text", "font", "space", "size"].includes(kindOf(token))
-}
 
 function text(label: Label): string {
   return locale.value === "en" ? label.en : label.zh
 }
 
-function sampleStyle(token: Token): Record<string, string> {
-  const ref = `var(${token.name})`
-  const styles: Partial<Record<Kind, Record<string, string>>> = {
-    color: { background: ref },
-    text: { fontSize: ref },
-    font: token.name.includes("weight") ? { fontWeight: ref } : { fontFamily: ref },
-    space: { width: ref },
-    radius: { borderRadius: ref },
-    shadow: { boxShadow: ref },
-    size: { width: `min(${ref}, 100%)` },
-  }
-  return styles[kindOf(token)] ?? {}
+function css(token: Token): string {
+  return `var(${token.name})`
 }
 
-function fontSample(name: string): string {
-  return name.includes("mono") ? "const pig = 1" : "工作台 Workbench"
+function isWide(token: Token): boolean {
+  return WIDE.includes(kindOf(token))
+}
+
+function ground(token: Token): string | undefined {
+  return GROUND[token.name]
+}
+
+function fontStyle(token: Token): Record<string, string> {
+  return token.name.includes("weight") ? { fontWeight: css(token) } : { fontFamily: css(token) }
+}
+
+/** 缓动变量本身就是贝塞尔控制点，按原值画出曲线。 */
+function easePath(value: string): string {
+  const match = /cubic-bezier\(\s*([\d.-]+),\s*([\d.-]+),\s*([\d.-]+),\s*([\d.-]+)\s*\)/.exec(value)
+
+  if (!match) return "M4 24 C 16 24, 28 4, 44 4"
+
+  const [x1, y1, x2, y2] = match.slice(1).map(Number) as [number, number, number, number]
+  const x = (n: number) => (4 + n * 40).toFixed(1)
+  const y = (n: number) => (24 - n * 20).toFixed(1)
+  return `M4 24 C ${x(x1)} ${y(y1)} ${x(x2)} ${y(y2)} 44 4`
 }
 </script>
 
@@ -84,6 +221,30 @@ function fontSample(name: string): string {
   display: flex;
   flex-direction: column;
   gap: var(--space-2xl);
+}
+
+.filter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.filter-field {
+  inline-size: min(240px, 100%);
+}
+
+.filter-count {
+  color: var(--fg-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+.empty {
+  margin: 0;
+  padding-block: var(--space-2xl);
+  color: var(--fg-secondary);
+  text-align: center;
 }
 
 .group {
@@ -103,77 +264,168 @@ function fontSample(name: string): string {
 
 .group-count {
   color: var(--fg-secondary);
+  font-family: var(--font-mono);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: var(--space-sm);
-}
-
-.grid[data-wide] {
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  font-variant-numeric: tabular-nums;
 }
 
 .token {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2xs);
-  min-width: 0;
-  padding: var(--space-sm);
-  border-radius: var(--radius-card);
-  box-shadow: 0 0 0 var(--border-width) var(--border-subtle);
+  display: grid;
+  grid-template-areas:
+    "sample name"
+    "sample value";
+  grid-template-columns: 56px minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--space-sm);
+  row-gap: 1px;
+  padding-block: var(--space-xs);
+}
+
+.token[data-wide] {
+  grid-template-columns: min(38%, 152px) minmax(0, 1fr);
+}
+
+/* 宽屏一行内排开，名字列定宽对齐，值占剩余宽度 */
+@media (width >= 720px) {
+  .token {
+    grid-template-areas: "sample name value";
+    grid-template-columns: 56px minmax(180px, 240px) minmax(0, 1fr);
+  }
+
+  .token[data-wide] {
+    grid-template-columns: min(24%, 152px) minmax(180px, 240px) minmax(0, 1fr);
+  }
 }
 
 .sample {
   display: flex;
+  grid-area: sample;
+  min-inline-size: 0;
   align-items: center;
-  min-height: 40px;
-  margin-block-end: var(--space-2xs);
-  overflow: hidden;
-  white-space: nowrap;
+  color: var(--fg-secondary);
 }
 
-.sample[data-kind="color"] {
+.swatch,
+.ring,
+.lift,
+.glyph {
+  flex: none;
+  inline-size: 40px;
+  block-size: 24px;
   border-radius: var(--radius-control);
-  box-shadow: inset 0 0 0 var(--border-width) var(--border-subtle);
 }
 
-.sample:is([data-kind="radius"], [data-kind="shadow"]) {
-  width: 56px;
-  height: 40px;
-  border: var(--border-width) solid var(--border);
+.swatch {
+  box-shadow: inset 0 0 0 var(--border-width) var(--border);
+}
+
+.ring {
+  border: var(--border-width) solid var(--fg);
   background: var(--bg-surface);
 }
 
-.sample[data-kind="shadow"] {
-  border: 0;
+.glyph {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
 }
 
-.sample:is([data-kind="space"], [data-kind="size"]) {
-  min-height: 12px;
-  height: 12px;
-  border-radius: calc(var(--radius-control) / 2);
-  background: var(--accent-solid);
+.lift {
+  inline-size: 48px;
+  block-size: 32px;
+  background: var(--bg);
+  outline: var(--border-width) solid var(--border);
 }
 
-.token-name,
-.token-value {
+.type,
+.leading {
   overflow: hidden;
-  font-family: var(--font-mono);
+  color: var(--fg);
+  line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.token-name {
-  color: var(--fg);
+.leading {
   font-size: var(--text-meta);
+  white-space: normal;
 }
 
-.token-value {
-  color: var(--fg-secondary);
+.bar {
+  flex: none;
+  block-size: 10px;
+  border-radius: calc(var(--radius-control) / 2);
+  background: var(--bg-emphasis);
+}
+
+.corner {
+  flex: none;
+  inline-size: 32px;
+  block-size: 24px;
+  border-block-start: var(--border-width) solid currentColor;
+  border-inline-start: var(--border-width) solid currentColor;
+}
+
+.rule {
+  flex: none;
+  inline-size: 32px;
+  min-block-size: var(--border-width);
+  background: var(--fg-secondary);
+}
+
+.curve {
+  inline-size: 40px;
+  block-size: 28px;
+  fill: none;
+  stroke: var(--fg-secondary);
+  stroke-width: var(--icon-stroke);
+}
+
+.curve .axis {
+  stroke: var(--border);
+}
+
+.stack {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 2px;
+  inline-size: 32px;
+}
+
+.stack span {
+  block-size: 3px;
+  border-radius: 1px;
+  background: var(--bg-emphasis);
+}
+
+.stack span:last-child {
+  background: var(--fg-secondary);
+}
+
+.name,
+.value {
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
   font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+}
+
+.name {
+  grid-area: name;
+  color: var(--fg);
+  font-size: var(--text-code);
+}
+
+.dash {
+  color: var(--fg-secondary);
+}
+
+.value {
+  grid-area: value;
+  color: var(--fg-secondary);
 }
 </style>

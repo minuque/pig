@@ -108,12 +108,14 @@ const SIZES = ["--icon-sm", "--icon-md", "--icon-xl"]
   block-size: var(--space-xl);
   border-radius: var(--radius-control);
   background: var(--bg-raised);
+  outline: var(--border-width) solid var(--border);
 }
 
 .step {
+  flex: none;
   block-size: var(--space-xl);
   border-radius: var(--radius-control);
-  box-shadow: inset 0 0 0 var(--border-width) var(--border);
+  background: var(--bg-emphasis);
 }
 
 .curve {
@@ -128,8 +130,9 @@ const SIZES = ["--icon-sm", "--icon-md", "--icon-xl"]
 }
 
 .box {
+  flex: none;
   border-radius: var(--radius-control);
-  box-shadow: inset 0 0 0 var(--border-width) var(--border);
+  background: var(--bg-emphasis);
 }
 
 .composer {

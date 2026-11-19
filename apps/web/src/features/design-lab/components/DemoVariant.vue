@@ -26,6 +26,6 @@ defineProps<{ title: string }>()
 .demo-variant-body {
   padding: var(--space-md);
   border-radius: var(--radius-card);
-  box-shadow: 0 0 0 var(--border-width) var(--border-subtle);
+  background: var(--bg-surface);
 }
 </style>

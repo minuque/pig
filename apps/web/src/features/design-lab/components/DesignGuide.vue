@@ -1,5 +1,7 @@
 <template>
-  <MarkdownContent :nodes="nodes" />
+  <div class="guide">
+    <MarkdownContent :nodes="nodes" />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -15,3 +17,10 @@ const nodes = useMarkdownNodes({
   cacheKey: () => "design-guide",
 })
 </script>
+
+<style scoped>
+/* 正文按阅读行长排版，表格随宽度自适应 */
+.guide {
+  max-inline-size: var(--content-width);
+}
+</style>

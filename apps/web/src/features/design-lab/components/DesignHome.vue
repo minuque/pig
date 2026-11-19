@@ -11,6 +11,15 @@
           })
         }}
       </p>
+
+      <p class="home-stats">
+        {{
+          text({
+            zh: `${tokens.length} 个变量 · ${PAGES} 个页面`,
+            en: `${tokens.length} tokens · ${PAGES} pages`,
+          })
+        }}
+      </p>
     </header>
 
     <div class="tiles">
@@ -56,7 +65,8 @@ import { CATEGORIES, useTokens } from "@features/design-lab/lib/tokens.js"
 
 const { locale } = useGeneralPrefs()
 const tokens = useTokens()
-// 设计变量已经画成上面的卡片，列表只放组件与调节页
+const PAGES = NAV.reduce((total, group) => total + group.items.length, 0)
+// 设计变量已经画成上面的卡片，列表只放组件与调节页；桌面用侧栏，窄屏才回到目录
 const sections = NAV.filter((group) => group.id !== "tokens")
 const counts = computed(() =>
   Object.fromEntries(
@@ -80,6 +90,14 @@ function text(label: Label): string {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
+}
+
+.home-stats {
+  margin: 0;
+  color: var(--fg-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
 }
 
 .home-title {
@@ -109,6 +127,11 @@ function text(label: Label): string {
   flex-direction: column;
   color: inherit;
   text-decoration: none;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.tile[data-slot="card"]:hover {
+  background: var(--bg-hover);
 }
 
 .tile-foot {
@@ -127,10 +150,21 @@ function text(label: Label): string {
   color: var(--fg-secondary);
 }
 
+.tile-count {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
 .section {
-  display: flex;
+  display: none;
   flex-direction: column;
   gap: var(--space-sm);
+}
+
+@media (width < 960px) {
+  .section {
+    display: flex;
+  }
 }
 
 .section-title {
