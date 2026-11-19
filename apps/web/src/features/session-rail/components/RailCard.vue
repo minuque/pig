@@ -82,7 +82,7 @@ const bodyId = useId()
   padding: var(--space-xs);
   border-radius: var(--radius-card);
   background: var(--bg-surface);
-  box-shadow: 0 0 0 1px var(--border-subtle);
+  box-shadow: 0 0 0 1px var(--border);
 }
 
 /* 拖着走的卡片压在上层，铺浮层底遮住下面的卡；位移由 useDragReorder 驱动 */
