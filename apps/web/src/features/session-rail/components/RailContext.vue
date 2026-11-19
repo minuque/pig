@@ -25,49 +25,83 @@
     </div>
 
     <ul class="ctx-legend">
-      <li v-for="segment in rows" :key="segment.id">
-        <component
-          :is="canPreview(segment) ? 'button' : 'div'"
-          :type="canPreview(segment) ? 'button' : undefined"
-          class="ctx-row"
-          :data-idle="segment.id === 'idle' || undefined"
-          @click="canPreview(segment) && emit('preview', segment)"
+      <li
+        v-for="segment in rows"
+        :key="segment.id"
+        class="ctx-row"
+        :data-idle="segment.id === 'idle' || undefined"
+      >
+        <span class="ctx-swatch" :style="{ background: segment.color }" />
+
+        <Link
+          v-if="canPreview(segment)"
+          as="button"
+          type="button"
+          color="gray"
+          underline="hover"
+          truncate
+          class="ctx-label"
+          @click="previewing = segment"
         >
-          <span class="ctx-swatch" :style="{ background: segment.color }" />
-          <span class="ctx-label">{{ segment.label }}</span>
-          <span class="ctx-tokens">{{ formatTokenCount(segment.tokens) }}</span>
-          <span class="ctx-share">{{ share(segment) }}</span>
-        </component>
+          {{ labelOf(segment) }}
+        </Link>
+
+        <span v-else class="ctx-label">{{ labelOf(segment) }}</span>
+        <span class="ctx-tokens">{{ formatTokenCount(segment.tokens) }}</span>
+        <span class="ctx-share">{{ share(segment) }}</span>
       </li>
     </ul>
+
+    <RailContextPreview
+      v-if="sessionId && previewing"
+      open
+      :session-id="sessionId"
+      :segment="previewing"
+      @update:open="previewing = undefined"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
+import { Link } from "@components/ui/link/index.js"
 import {
   contextUsageSummary,
   formatTokenCount,
   segmentShare,
 } from "@features/composer/lib/context-usage.js"
 import type { ContextUsage, ContextUsageSegment } from "@features/composer/type.js"
+import RailContextPreview from "@features/session-rail/components/RailContextPreview.vue"
 
 const props = defineProps<{ usage: ContextUsage; sessionId: string | undefined }>()
-const emit = defineEmits<{ preview: [segment: ContextUsageSegment] }>()
 const { t } = useI18n()
+/** 点开预览的分类；弹框关掉就清空。 */
+const previewing = shallowRef<ContextUsageSegment>()
 /** 已占用的分类按 token 从多到少排；剩余空间单列在最后。 */
 const used = computed(() =>
   props.usage.segments
     .filter((segment) => segment.id !== "idle" && segment.tokens > 0)
     .sort((a, b) => b.tokens - a.tokens),
 )
+/** MCP 工具全按需加载时不占上下文，有可用的就仍列一行，点开看有哪些。 */
+const mcpRow = computed(() =>
+  props.usage.mcpToolCount > 0
+    ? props.usage.segments.find((segment) => segment.id === "mcpTools" && segment.tokens === 0)
+    : undefined,
+)
 const rows = computed(() => [
   ...used.value,
+  ...(mcpRow.value ? [mcpRow.value] : []),
   ...props.usage.segments.filter((segment) => segment.id === "idle" && segment.tokens > 0),
 ])
 const share = (segment: ContextUsageSegment) =>
   props.usage.window > 0 ? `${segmentShare(segment.tokens, props.usage.window).toFixed(1)}%` : "—"
+/** MCP 一行在名称后带上可用工具数。 */
+const labelOf = (segment: ContextUsageSegment) =>
+  segment.id === "mcpTools" && props.usage.mcpToolCount > 0
+    ? t("rail.mcpLabel", { label: segment.label, count: props.usage.mcpToolCount })
+    : segment.label
 const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && segment.previewable)
 </script>
 
@@ -83,21 +117,21 @@ const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && 
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-xs);
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
 }
 
 .ctx-percent {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .ctx-meter {
   display: flex;
   gap: 1px;
-  block-size: var(--size-meter-block);
+  block-size: var(--space-xs);
   overflow: hidden;
-  background: var(--fill-strong);
+  background: var(--bg-emphasis);
   border-radius: var(--radius-pill);
 }
 
@@ -108,50 +142,40 @@ const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && 
 .ctx-legend {
   display: flex;
   flex-direction: column;
+  gap: var(--space-2xs);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-/* 一行：色块 · 分类名 · token 数 · 占比 */
+/* 一行：色块 · 分类名 · token 数 · 占比；能预览的分类名是链接，悬停出下划线 */
 .ctx-row {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  inline-size: 100%;
-  min-block-size: var(--size-icon);
-  padding: 0 var(--space-xxs);
-  border: 0;
-  border-radius: var(--radius-control);
-  background: transparent;
-  color: var(--contrast-foreground-faint);
-  font: inherit;
+  color: var(--fg-faint);
   font-size: var(--text-meta);
-  text-align: start;
-}
-
-button.ctx-row {
-  cursor: pointer;
-}
-
-button.ctx-row:hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
 }
 
 .ctx-swatch {
   flex: none;
-  inline-size: var(--size-legend-swatch);
-  block-size: var(--size-legend-swatch);
+  inline-size: var(--space-sm);
+  block-size: var(--space-sm);
   border-radius: calc(var(--radius-control) / 3);
 }
 
 .ctx-label {
   flex: 1;
   min-inline-size: 0;
+  text-align: start;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* rt 的下划线取 accent-a5，灰色链接上几乎看不见：跟文字同色 */
+.ctx-label[data-slot="link"] {
+  text-decoration-color: currentColor;
 }
 
 .ctx-tokens {
@@ -161,9 +185,9 @@ button.ctx-row:hover {
 
 .ctx-share {
   flex: none;
-  min-inline-size: var(--size-legend-share);
+  min-inline-size: var(--legend-share);
   /* 占比是这一行的主数据，用一级文本色 */
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-variant-numeric: tabular-nums;
   text-align: end;
   white-space: nowrap;

@@ -143,7 +143,7 @@ export function turnOutputTokens(
   return total
 }
 
-/** 1 位小数 k/M/B，千分位 carry（同 cc-wrapper formatOutputTokens）。 */
+/** 1 位小数 k/M/B，千分位 carry。 */
 export function formatOutputTokens(tokens: number): string {
   if (!Number.isSafeInteger(tokens) || tokens < 0) return ""
   const units = ["", "k", "M", "B"]

@@ -87,27 +87,27 @@ function reset(): void {
 <style>
 /* 内容经 Portal 挂到 body，scoped 打不中，选择器统一挂在 .project-icon-dialog 前缀下。 */
 .project-icon-dialog.rt-DialogContent {
-  max-inline-size: var(--size-dialog-s);
+  max-inline-size: var(--dialog-width-sm);
 }
 
 .project-icon-dialog .icon-colors {
   display: flex;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   margin-block: var(--space-md) var(--space-sm);
 }
 
 .project-icon-dialog .swatch {
-  inline-size: var(--size-icon-xs);
-  block-size: var(--size-icon-xs);
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
   border-radius: var(--radius-pill);
   background-color: var(--tint);
 }
 
 .project-icon-dialog .icon-grid {
   display: grid;
-  grid-template-columns: repeat(10, var(--size-icon-button));
+  grid-template-columns: repeat(10, var(--control-sm));
   justify-content: space-between;
-  row-gap: var(--space-xxs);
+  row-gap: var(--space-2xs);
 }
 
 .project-icon-dialog .icon-actions {

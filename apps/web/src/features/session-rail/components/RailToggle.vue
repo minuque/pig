@@ -105,18 +105,18 @@ const label = computed(() => {
 
 /* 按下态：面板开着（或浮层开着）时用项目统一的选中底色 */
 .rail-toggle [data-active] {
-  color: var(--contrast-foreground);
-  background: var(--btn-selected);
+  color: var(--fg);
+  background: var(--bg-selected);
 }
 
 /* 有子任务在跑时，图标右上角亮一个点 */
 .rail-toggle-dot {
   position: absolute;
-  inset-block-start: var(--space-xxs);
-  inset-inline-end: var(--space-xxs);
+  inset-block-start: var(--space-2xs);
+  inset-inline-end: var(--space-2xs);
   inline-size: var(--space-xs);
   block-size: var(--space-xs);
-  background: var(--primary);
+  background: var(--accent-solid);
   border-radius: var(--radius-pill);
 }
 </style>
@@ -124,7 +124,7 @@ const label = computed(() => {
 <style>
 /* 浮层经 Portal 挂到 body，scoped 打不中 */
 .rail-popover.rt-PopoverContent {
-  inline-size: var(--size-rail);
+  inline-size: var(--rail-width);
   padding: var(--space-xs);
 }
 </style>

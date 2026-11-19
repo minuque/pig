@@ -1,6 +1,6 @@
 import type { Node, ElementNode } from "comark"
 
-/** 词级淡入节奏，移植自 cc-wrapper response-reveal-model：文字即时上屏，按批错开淡入。 */
+/** 词级淡入节奏：文字即时上屏，按批错开淡入。 */
 export const REVEAL_TAG = "reveal-words"
 export const REVEAL_FADE_MS = 200
 export const REVEAL_SETTLE_MS = 1000

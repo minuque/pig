@@ -1,16 +1,18 @@
 <template>
   <AlertDialogPortal>
     <ThemeRoot>
-      <AlertDialogOverlay :align="align">
+      <AlertDialogOverlay class="glass-backdrop" />
+
+      <div class="viewport">
         <AlertDialogContent
           data-slot="alert-dialog-content"
           v-bind="{ ...$attrs, ...forwarded }"
-          class="rt-BaseDialogContent rt-AlertDialogContent"
-          :class="[sizeClass, props.class]"
+          class="glass-panel"
+          :class="props.class"
         >
           <slot />
         </AlertDialogContent>
-      </AlertDialogOverlay>
+      </div>
     </ThemeRoot>
   </AlertDialogPortal>
 </template>
@@ -19,27 +21,49 @@
 import type { AlertDialogContentEmits, AlertDialogContentProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
-import { AlertDialogContent, AlertDialogPortal, useForwardPropsEmits } from "reka-ui"
+import {
+  AlertDialogContent,
+  AlertDialogOverlay,
+  AlertDialogPortal,
+  useForwardPropsEmits,
+} from "reka-ui"
 import { ThemeRoot } from "@components/ui/rt/index.js"
-import AlertDialogOverlay from "./AlertDialogOverlay.vue"
 
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
-  defineProps<
-    AlertDialogContentProps & {
-      class?: HTMLAttributes["class"]
-      size?: "1" | "2" | "3" | "4"
-      align?: "start" | "center"
-    }
-  >(),
-  { class: undefined, size: "3", align: "center" },
+  defineProps<AlertDialogContentProps & { class?: HTMLAttributes["class"] }>(),
+  { class: undefined },
 )
 const emits = defineEmits<AlertDialogContentEmits>()
-const delegatedProps = reactiveOmit(props, "class", "size", "align")
+const delegatedProps = reactiveOmit(props, "class")
 const forwarded = useForwardPropsEmits(
   delegatedProps,
   emits,
 ) as ComputedRef<AlertDialogContentProps>
-const sizeClass = `rt-r-size-${props.size}`
 </script>
+
+<style scoped>
+/* 上下各一份弹性空白，面板垂直居中且矮窗口里不顶出屏幕 */
+.viewport {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: 1fr auto 1fr;
+  justify-items: center;
+  padding: var(--space-md);
+  pointer-events: none;
+}
+
+[data-slot="alert-dialog-content"] {
+  display: flex;
+  grid-row-start: 2;
+  flex-direction: column;
+  width: 100%;
+  max-width: 32rem;
+  max-height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  pointer-events: auto;
+}
+</style>

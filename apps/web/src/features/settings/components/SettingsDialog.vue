@@ -362,9 +362,9 @@ watch(active, async () => {
 /* 内容经 Portal 挂到 body，scoped 打不中，选择器统一挂在 .settings-dialog 前缀下。 */
 .settings-dialog {
   display: flex;
-  width: min(88vw, var(--size-settings-dialog-width));
-  max-width: min(88vw, var(--size-settings-dialog-width));
-  height: clamp(var(--size-settings-dialog-height-min), 85vh, var(--size-settings-dialog-height));
+  width: min(88vw, var(--settings-dialog-width));
+  max-width: min(88vw, var(--settings-dialog-width));
+  height: clamp(var(--settings-dialog-height-min), 85vh, var(--settings-dialog-height));
   padding: 0;
   gap: 0;
   border-radius: var(--radius-dialog);
@@ -381,11 +381,11 @@ watch(active, async () => {
   display: flex;
   flex: none;
   flex-direction: column;
-  gap: var(--space-xxs);
-  width: var(--size-settings-dialog-nav);
+  gap: var(--space-2xs);
+  width: var(--settings-nav-width);
   padding: var(--space-sm) var(--space-xs);
-  border-inline-end: var(--border-width) solid var(--border-soft);
-  background: var(--sidebar);
+  border-inline-end: var(--border-width) solid var(--border-subtle);
+  background: var(--bg-sunken);
   user-select: none;
 }
 
@@ -397,7 +397,7 @@ watch(active, async () => {
   height: 2rem;
   padding-inline: var(--space-xs);
   border-radius: var(--radius-control);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body--line-height);
@@ -408,13 +408,13 @@ watch(active, async () => {
 }
 
 .settings-dialog .nav-item:hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 .settings-dialog .nav-item.on {
-  background: var(--btn-selected);
-  color: var(--contrast-foreground);
+  background: var(--bg-selected);
+  color: var(--fg);
 }
 
 .settings-dialog .settings-search {
@@ -424,7 +424,7 @@ watch(active, async () => {
   height: 2rem;
   padding-inline: var(--space-xs);
   border-radius: var(--radius-control);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-body);
   transition:
     background-color var(--duration-fast) var(--ease-out),
@@ -432,8 +432,8 @@ watch(active, async () => {
 }
 
 .settings-dialog .settings-search:focus-within {
-  background: var(--fill-quiet);
-  color: var(--contrast-foreground);
+  background: var(--bg-muted);
+  color: var(--fg);
 }
 
 .settings-dialog .search-icon {
@@ -445,13 +445,13 @@ watch(active, async () => {
   min-width: 0;
   border: 0;
   background: transparent;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font: inherit;
   outline: none;
 }
 
 .settings-dialog .search-input::placeholder {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .settings-dialog .search-clear {
@@ -468,14 +468,14 @@ watch(active, async () => {
 }
 
 .settings-dialog .search-clear:hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 .settings-dialog .settings-search-empty {
   margin: 0;
   padding: var(--space-lg) var(--space-xs);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   text-align: center;
@@ -495,12 +495,12 @@ watch(active, async () => {
 }
 
 .settings-dialog .search-result.on {
-  background: var(--btn-selected);
+  background: var(--bg-selected);
 }
 
 .settings-dialog .result-title {
   overflow: hidden;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   text-overflow: ellipsis;
@@ -509,7 +509,7 @@ watch(active, async () => {
 
 .settings-dialog .result-section {
   overflow: hidden;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -523,7 +523,7 @@ watch(active, async () => {
 
 @keyframes settings-flash {
   from {
-    box-shadow: 0 0 0 2px var(--primary);
+    box-shadow: 0 0 0 2px var(--accent-solid);
   }
 
   to {
@@ -537,7 +537,7 @@ watch(active, async () => {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  background: var(--background);
+  background: var(--bg);
 }
 
 .settings-dialog .settings-head {
@@ -547,8 +547,8 @@ watch(active, async () => {
   flex: none;
   gap: var(--space-xs);
   height: 3rem;
-  padding-inline: calc(var(--space-md) + var(--space-xxs)) var(--space-xs);
-  border-block-end: var(--border-width) solid var(--border-soft);
+  padding-inline: calc(var(--space-md) + var(--space-2xs)) var(--space-xs);
+  border-block-end: var(--border-width) solid var(--border-subtle);
 }
 
 .settings-dialog .settings-crumbs {
@@ -556,7 +556,7 @@ watch(active, async () => {
   align-items: center;
   gap: 6px;
   min-width: 0;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-body);
 }
 
@@ -569,15 +569,15 @@ watch(active, async () => {
 }
 
 .settings-dialog button.crumb:hover {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .settings-dialog .crumb[aria-current="page"] {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .settings-dialog .crumb-sep {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   user-select: none;
 }
 
@@ -585,10 +585,10 @@ watch(active, async () => {
   display: grid;
   flex: none;
   place-items: center;
-  width: var(--size-icon-button);
-  height: var(--size-icon-button);
+  width: var(--control-sm);
+  height: var(--control-sm);
   border-radius: var(--radius-control);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   cursor: pointer;
   transition:
     background-color var(--duration-fast) var(--ease-out),
@@ -596,8 +596,8 @@ watch(active, async () => {
 }
 
 .settings-dialog .settings-close:hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 .settings-dialog .settings-scroll {
@@ -605,12 +605,12 @@ watch(active, async () => {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: var(--space-lg) var(--space-lg) calc(var(--space-xxl) + var(--space-md));
+  padding: var(--space-lg) var(--space-lg) calc(var(--space-2xl) + var(--space-md));
 }
 
 .settings-dialog .settings-body {
   width: 100%;
-  max-width: var(--size-settings-body);
+  max-width: var(--settings-body-width);
   margin-inline: auto;
 }
 
@@ -621,8 +621,8 @@ watch(active, async () => {
 
   .settings-dialog .settings-nav {
     align-items: center;
-    width: var(--size-settings-dialog-nav-narrow);
-    padding-inline: var(--space-xxs);
+    width: var(--settings-nav-width-narrow);
+    padding-inline: var(--space-2xs);
   }
 
   .settings-dialog .nav-label {

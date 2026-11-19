@@ -74,7 +74,7 @@ const widthStyle = computed(() =>
 /* 关闭按钮：图标边缘与内容边缘对齐，偏移 = 内边距 -（按钮宽 - 图标宽）/ 2 */
 .dlg-close {
   position: absolute;
-  inset-block-start: calc(var(--dialog-content-padding) - (var(--space-lg) - var(--size-icon)) / 2);
-  inset-inline-end: calc(var(--dialog-content-padding) - (var(--space-lg) - var(--size-icon)) / 2);
+  inset-block-start: calc(var(--dialog-content-padding) - (var(--space-lg) - var(--icon-md)) / 2);
+  inset-inline-end: calc(var(--dialog-content-padding) - (var(--space-lg) - var(--icon-md)) / 2);
 }
 </style>

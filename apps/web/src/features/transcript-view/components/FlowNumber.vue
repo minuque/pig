@@ -73,8 +73,8 @@ onBeforeUnmount(() => {
   opacity: 1;
   translate: 0 0;
   transition:
-    opacity var(--duration-fast) var(--ease-icon),
-    translate var(--duration-fast) var(--ease-icon);
+    opacity var(--duration-fast) var(--ease-out),
+    translate var(--duration-fast) var(--ease-out);
 }
 
 .flow-slot[data-stage="enter"] {

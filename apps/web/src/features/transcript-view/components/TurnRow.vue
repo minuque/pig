@@ -112,13 +112,13 @@ const turnError = computed(() => {
 
 /* 还没挂载内容的回合按预估高度占位，滚动条长度接近真实 */
 .turn.is-deferred {
-  min-block-size: var(--size-turn-estimate);
+  min-block-size: var(--turn-estimate);
 }
 
 /* 屏外的已完成回合跳过排版与绘制；最后一轮在流式中，始终正常渲染 */
 .turn:not(:last-child) {
   content-visibility: auto;
-  contain-intrinsic-size: auto var(--size-turn-estimate);
+  contain-intrinsic-size: auto var(--turn-estimate);
 }
 
 .row {

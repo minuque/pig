@@ -1,33 +1,23 @@
 <template>
   <section class="provider-list">
-    <div class="list-tools">
-      <label class="provider-search">
-        <SearchIcon class="search-icon" />
+    <Card size="m" class="list-tools">
+      <TextFieldRoot
+        v-model="query"
+        class="provider-search"
+        size="m"
+        :placeholder="t('settings.models.searchProviders')"
+        :aria-label="t('settings.models.searchProviders')"
+      >
+        <TextFieldSlot side="left">
+          <SearchIcon class="size-icon" />
+        </TextFieldSlot>
+      </TextFieldRoot>
 
-        <input
-          v-model="query"
-          type="text"
-          :placeholder="t('settings.models.searchProviders')"
-          :aria-label="t('settings.models.searchProviders')"
-        />
-      </label>
-
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <Button
-            class="add-provider"
-            size="s"
-            variant="surface"
-            :aria-label="t('settings.models.addProvider')"
-            @click="emit('add')"
-          >
-            <PlusIcon />
-          </Button>
-        </TooltipTrigger>
-
-        <TooltipContent>{{ t("settings.models.addProvider") }}</TooltipContent>
-      </Tooltip>
-    </div>
+      <Button type="button" size="m" variant="surface" @click="emit('add')">
+        <PlusIcon class="size-icon" />
+        {{ t("settings.models.addProvider") }}
+      </Button>
+    </Card>
 
     <p v-if="loading && !providers.length" class="list-state">{{ t("settings.models.loading") }}</p>
 
@@ -42,10 +32,12 @@
     <div v-for="group in groups" :key="group.id" class="provider-group">
       <h3 class="provider-group-title">{{ t(`settings.models.group.${group.id}`) }}</h3>
 
-      <Card size="s" class="provider-card">
-        <button
+      <CardList>
+        <CardRow
           v-for="provider in group.providers"
           :key="provider.id"
+          as="button"
+          interactive
           type="button"
           class="provider-row"
           :data-provider="provider.id"
@@ -71,8 +63,8 @@
           </span>
 
           <ChevronRightIcon class="provider-chevron" />
-        </button>
-      </Card>
+        </CardRow>
+      </CardList>
     </div>
 
     <p v-if="!loading && !groups.length" class="list-state">
@@ -87,11 +79,11 @@ import { computed, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { PlusIcon, ChevronRightIcon, SearchIcon } from "@components/icons/index.js"
 import { Button } from "@components/ui/button/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
 import VendorMark from "@features/composer/components/VendorMark.vue"
 import { groupProviders, providerSourceText } from "@features/settings/lib/provider-view.js"
 import type { ProviderView } from "@/types/common-type.js"
-import { Card } from "@components/ui/card/index.js"
+import { Card, CardList, CardRow } from "@components/ui/card/index.js"
 
 const props = defineProps<{
   providers: ProviderView[]
@@ -121,46 +113,9 @@ function sourceKind(provider: ProviderView) {
   margin-block-end: var(--space-md);
 }
 
-.add-provider {
-  flex: none;
-  inline-size: 24px;
-  block-size: 24px;
-  padding: 0;
-}
-
 .provider-search {
-  display: flex;
   min-width: 0;
   flex: 1;
-  align-items: center;
-  gap: var(--space-xs);
-  height: 34px;
-  padding-inline: var(--space-sm);
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-control);
-  background: var(--surface);
-  color: var(--contrast-foreground-faint);
-}
-
-.search-icon {
-  flex: none;
-}
-
-.provider-search input {
-  width: 100%;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--contrast-foreground);
-  font-size: var(--text-meta);
-}
-
-.provider-search input::placeholder {
-  color: var(--foreground-faint);
-}
-
-.provider-card {
-  padding: 0;
 }
 
 .provider-group + .provider-group {
@@ -170,7 +125,7 @@ function sourceKind(provider: ProviderView) {
 .provider-group-title {
   margin: 0 0 var(--space-xs);
   padding-inline: var(--space-md);
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-title);
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-title--line-height);
@@ -181,19 +136,9 @@ function sourceKind(provider: ProviderView) {
   align-items: center;
   gap: var(--space-sm);
   width: 100%;
-  height: 52px;
-  padding-inline: var(--space-md);
-  color: var(--contrast-foreground);
+  height: 60px;
+  color: var(--fg);
   text-align: start;
-  transition: background-color var(--duration-fast) var(--ease-out);
-}
-
-.provider-row + .provider-row {
-  box-shadow: var(--divider-top);
-}
-
-.provider-row:hover {
-  background: var(--btn-hover);
 }
 
 .provider-mark {
@@ -226,30 +171,30 @@ function sourceKind(provider: ProviderView) {
   align-items: center;
   height: 16px;
   padding-inline: 5px;
-  border: var(--border-width) solid var(--border-soft);
+  border: var(--border-width) solid var(--border-subtle);
   border-radius: var(--radius-control);
-  background: var(--fill-quiet);
-  color: var(--contrast-foreground-faint);
+  background: var(--bg-muted);
+  color: var(--fg-faint);
   font-size: 9px;
   font-weight: var(--font-weight-medium);
 }
 
 .provider-id {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }
 
 .provider-count {
   flex: none;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   white-space: nowrap;
 }
 
 .provider-chevron {
   flex: none;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .list-state {
@@ -259,7 +204,7 @@ function sourceKind(provider: ProviderView) {
   gap: var(--space-sm);
   margin: 0;
   padding-block: var(--space-xl);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
@@ -272,9 +217,5 @@ function sourceKind(provider: ProviderView) {
   .provider-row {
     transition: none;
   }
-}
-
-:deep(.rt-BaseButton.rt-r-size-1) {
-  font-size: var(--text-body);
 }
 </style>

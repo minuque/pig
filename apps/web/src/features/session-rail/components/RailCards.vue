@@ -63,12 +63,7 @@
         </div>
       </template>
 
-      <RailContext
-        v-else-if="id === 'context' && usage"
-        :usage="usage"
-        :session-id="sessionId"
-        @preview="(segment) => rail.openPane({ kind: 'context', segment })"
-      />
+      <RailContext v-else-if="id === 'context' && usage" :usage="usage" :session-id="sessionId" />
 
       <template v-else-if="id === 'tasks'">
         <RailTaskRows
@@ -183,16 +178,16 @@ function nudge(id: RailSectionId, step: number) {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-xs);
-  min-block-size: var(--size-rail-row);
+  min-block-size: var(--control-sm);
   font-size: var(--text-meta);
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   white-space: nowrap;
 }
 
 .rail-value {
   min-width: 0;
   overflow: hidden;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-family: var(--font-mono);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -203,29 +198,29 @@ function nudge(id: RailSectionId, step: number) {
   display: flex;
   flex-shrink: 0;
   inline-size: var(--space-lg);
-  block-size: var(--size-battery-block);
-  padding: var(--size-battery-pad);
-  background: var(--fill-strong);
+  block-size: var(--battery-block);
+  padding: var(--battery-pad);
+  background: var(--bg-emphasis);
   border-radius: var(--radius-pill);
 }
 
 .rail-battery i {
-  min-inline-size: var(--size-battery-fill-min);
-  background: var(--primary);
+  min-inline-size: var(--battery-fill-min);
+  background: var(--info-solid);
   border-radius: var(--radius-pill);
 }
 
 .rail-battery[data-severity="warning"] i {
-  background: var(--warning);
+  background: var(--warning-text);
 }
 
 .rail-battery[data-severity="critical"] i {
-  background: var(--danger);
+  background: var(--danger-text);
 }
 
 .rail-status {
   font-family: var(--font-mono);
   font-size: var(--text-meta);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 </style>

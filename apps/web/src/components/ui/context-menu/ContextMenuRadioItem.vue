@@ -25,8 +25,8 @@ const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<ContextMen
 </script>
 
 <style scoped>
-/* 选中态用 --btn-selected 标出，比悬停深一档；不在左侧留白放勾：项本身已有前置图标，双标记会挤 */
+/* 选中态用 --bg-selected 标出，比悬停深一档；不在左侧留白放勾：项本身已有前置图标，双标记会挤 */
 .rt-ContextMenuRadioItem[data-state="checked"] {
-  background-color: var(--btn-selected);
+  background-color: var(--bg-selected);
 }
 </style>

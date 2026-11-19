@@ -2,7 +2,7 @@
 .pane {
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
+  gap: var(--space-2xl);
   padding-block-end: var(--space-md);
 }
 
@@ -15,41 +15,30 @@
 .group-title {
   margin: 0;
   padding-inline: var(--space-md);
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-title);
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-title--line-height);
-}
-
-.card {
-  padding: 0 var(--space-md);
-  display: flex;
-  flex-direction: column;
 }
 
 .row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-md);
-  min-height: calc(var(--size-control) + var(--space-lg));
+  gap: var(--space-2xl);
   padding-block: var(--space-sm);
-}
-
-.row + .row {
-  box-shadow: var(--divider-top);
 }
 
 .copy {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
 }
 
 .label {
   margin: 0;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body--line-height);
@@ -57,7 +46,7 @@
 
 .desc {
   margin: 0;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }

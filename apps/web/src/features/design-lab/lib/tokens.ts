@@ -1,0 +1,136 @@
+import { nextTick, onMounted, ref, watch } from "vue"
+import rtCss from "@style/rt.css?raw"
+import tokensCss from "@style/tokens.css?raw"
+import { useColorScheme } from "@features/theme/index.js"
+import type { Label } from "@features/design-lab/lib/nav.js"
+
+export type Layer = "primitive" | "semantic" | "component"
+
+/** 分组取自 tokens.css 的分区注释：语义层是 `--- 表面 ---` 这类小标题，组件层是名字前缀。 */
+export type Token = { name: string; value: string; layer: Layer; group: string }
+
+/** 样例画法：按值的类型决定怎么画。 */
+export type Kind = "color" | "text" | "font" | "space" | "radius" | "shadow" | "size" | "none"
+
+export type Category = { id: string; title: Label; match: (token: Token) => boolean }
+
+const COLOR_GROUPS = new Set(["表面", "前景", "边与分割", "交互", "状态"])
+const inGroups =
+  (...groups: string[]) =>
+  (token: Token) =>
+    token.layer === "semantic" && groups.includes(token.group)
+/** 总览卡片的 9 类：前 8 类是语义层（颜色带上原色阶），最后一类是组件层。 */
+export const CATEGORIES: Category[] = [
+  {
+    id: "colors",
+    title: { zh: "颜色", en: "Colors" },
+    match: (token) =>
+      token.layer === "primitive" || (token.layer === "semantic" && COLOR_GROUPS.has(token.group)),
+  },
+  { id: "typography", title: { zh: "字体排印", en: "Typography" }, match: inGroups("字") },
+  { id: "radius", title: { zh: "圆角", en: "Radius" }, match: inGroups("圆角") },
+  { id: "shadows", title: { zh: "阴影", en: "Shadows" }, match: inGroups("阴影") },
+  { id: "spacing", title: { zh: "间距", en: "Spacing" }, match: inGroups("间距") },
+  { id: "motion", title: { zh: "动效", en: "Motion" }, match: inGroups("动效") },
+  {
+    id: "sizes",
+    title: { zh: "尺寸与布局", en: "Size & layout" },
+    match: inGroups("图标与控件高", "布局"),
+  },
+  { id: "layers", title: { zh: "层级", en: "Layers" }, match: inGroups("层级") },
+  {
+    id: "components",
+    title: { zh: "组件层", en: "Components" },
+    match: (token) => token.layer === "component",
+  },
+]
+const GROUP_EN: Record<string, string> = {
+  原色阶: "Primitives",
+  表面: "Surface",
+  前景: "Foreground",
+  边与分割: "Border & separator",
+  交互: "Interaction",
+  状态: "Status",
+  字: "Type",
+  间距: "Spacing",
+  圆角: "Radius",
+  阴影: "Shadow",
+  动效: "Motion",
+  图标与控件高: "Icon & control height",
+  布局: "Layout",
+  层级: "Layers",
+}
+
+export function groupTitle(group: string): Label {
+  return { zh: group, en: GROUP_EN[group] ?? group }
+}
+
+// rt 自己的旋钮（--space-1、--radius-2、--base-* 等）不是项目 token
+const KNOB = /^--(radix|reka|base-|card-|table-|radius-\d+$|space-\d+$|default-|dialog-content)/
+const PLACES = [...placed(tokensCss), ...placed(rtCss, "边与分割")].filter(
+  (place, index, all) => all.findIndex((other) => other.name === place.name) === index,
+)
+
+/** 读 :root 与 .radix-themes 块，按分区注释给每个声明记下层与组；同名只记第一次。 */
+function placed(css: string, fallback = ""): Omit<Token, "value">[] {
+  const blocks = css.match(/(?::root|\.radix-themes)\s*\{[^}]*\}/g) ?? []
+  const seen = new Map<string, Omit<Token, "value">>()
+
+  for (const block of blocks) {
+    let layer: Layer = "semantic"
+    let group = fallback
+
+    for (const line of block.split("\n")) {
+      const header = /\/\*\s*(=+|-+)\s*([^：:-]+?)[：:\s-]/.exec(line)
+      const name = /^\s*(--[\w-]+)\s*:/.exec(line)?.[1]
+
+      if (header?.[1]!.startsWith("=")) {
+        const title = header[2]!.trim()
+        layer = title === "原色阶" ? "primitive" : title === "组件层" ? "component" : "semantic"
+        group = layer === "primitive" ? "原色阶" : group
+      } else if (header) group = header[2]!.trim()
+      else if (name && !KNOB.test(name) && !seen.has(name)) {
+        const prefix = name.split("-")[2] ?? name
+        seen.set(name, { name, layer, group: layer === "component" ? prefix : group })
+      }
+    }
+  }
+
+  return [...seen.values()]
+}
+
+export function kindOf(token: Token): Kind {
+  const { name, value } = token
+
+  if (/^--text-[a-z]+$/.test(name)) return "text"
+
+  if (name.startsWith("--font-")) return "font"
+
+  if (name.startsWith("--space-")) return "space"
+
+  if (name.startsWith("--radius-")) return "radius"
+
+  if (name.startsWith("--shadow-")) return "shadow"
+
+  if (/^--(icon|control)-/.test(name) && name !== "--icon-stroke") return "size"
+  return CSS.supports("color", value) ? "color" : "none"
+}
+
+/** 实时读取全部 token 的计算值，切换明暗后重读。 */
+export function useTokens() {
+  const { isDark } = useColorScheme()
+  const tokens = ref<Token[]>([])
+
+  function read() {
+    const root = document.querySelector("[data-is-root-theme]") ?? document.documentElement
+    const style = getComputedStyle(root)
+    tokens.value = PLACES.map((place) => ({
+      ...place,
+      value: style.getPropertyValue(place.name).trim(),
+    })).filter((token) => token.value !== "")
+  }
+
+  onMounted(read)
+  watch(isDark, () => nextTick(read))
+  return tokens
+}

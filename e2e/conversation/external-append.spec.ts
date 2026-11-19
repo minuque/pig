@@ -58,7 +58,7 @@ test("pig 持有会话时被外部追加：提示、显示外部那一轮、草�
   await send.click()
   await expect(page.getByText(fauxReply(1), { exact: true })).toBeVisible({ timeout: 30_000 })
 
-  const externalReplyId = appendExternalTurn(appendGateway.sessionFile)
+  const externalReplyId = appendExternalTurn(appendGateway.sessionFile, FAUX_MODEL)
 
   await prompt.fill(SECOND)
   await expect(send).toBeEnabled()

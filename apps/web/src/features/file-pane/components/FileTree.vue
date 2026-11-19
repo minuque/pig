@@ -64,8 +64,8 @@ type TreeNode = DirectoryEntry & { path: string }
 
 const { t } = useI18n()
 const pane = useFilePane()
-/** 与 tokens.css 的 --size-rail-row 一致：虚拟列表按它算每行的位置。 */
-const ROW_HEIGHT = 26
+/** 与 tokens.css 的 --control-sm 一致：虚拟列表按它算每行的位置。 */
+const ROW_HEIGHT = 28
 const root = useTemplateRef<{ $el: HTMLElement }>("root")
 /** 已读过的目录：键是工作区相对路径，根是 ""。 */
 const listed = shallowRef<Record<string, TreeNode[]>>({})
@@ -155,7 +155,7 @@ watch(
 .file-tree {
   flex: 1;
   min-block-size: 0;
-  padding: var(--space-xxs) var(--space-xs) var(--space-sm);
+  padding: var(--space-2xs) var(--space-xs) var(--space-sm);
   overflow: auto;
 }
 
@@ -164,11 +164,11 @@ watch(
   inset-inline-end: 0;
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
-  block-size: var(--size-rail-row);
+  gap: var(--space-2xs);
+  block-size: var(--control-sm);
   padding-inline: calc(var(--space-xs) + var(--tree-level) * var(--space-md)) var(--space-xs);
   border-radius: var(--radius-control);
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   font-size: var(--text-body);
   white-space: nowrap;
   cursor: default;
@@ -177,12 +177,12 @@ watch(
 }
 
 .file-tree-row:hover {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 .file-tree-row[data-active] {
-  background: var(--btn-selected);
-  color: var(--contrast-foreground);
+  background: var(--bg-selected);
+  color: var(--fg);
 }
 
 .file-tree-row:focus-visible {
@@ -191,28 +191,28 @@ watch(
 }
 
 .file-tree-row[data-ignored] {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .file-tree-row[data-git="M"],
 .file-tree-row[data-git="R"] {
-  color: var(--warning);
+  color: var(--warning-text);
 }
 
 .file-tree-row[data-git="A"],
 .file-tree-row[data-git="U"] {
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .file-tree-row[data-git="D"] {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .file-tree-caret {
   flex: none;
-  inline-size: var(--size-icon-xs);
-  block-size: var(--size-icon-xs);
-  color: var(--contrast-foreground-faint);
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
+  color: var(--fg-faint);
   transition: transform var(--duration-fast) var(--ease-out);
 }
 
@@ -222,13 +222,13 @@ watch(
 
 .file-tree-row .file-tree-icon {
   flex: none;
-  inline-size: var(--size-icon);
-  block-size: var(--size-icon);
+  inline-size: var(--icon-md);
+  block-size: var(--icon-md);
 }
 
 /* 文件没有展开箭头：让出箭头的宽，与同级目录的图标对齐 */
 .file-tree-row .file-tree-icon.is-file {
-  margin-inline-start: calc(var(--size-icon-xs) + var(--space-xxs));
+  margin-inline-start: calc(var(--icon-sm) + var(--space-2xs));
 }
 
 .file-tree-name {

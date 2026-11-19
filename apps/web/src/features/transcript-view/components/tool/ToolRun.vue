@@ -111,13 +111,13 @@ onBeforeUnmount(() => {
   display: flex;
   align-self: flex-start;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   max-width: 100%;
   min-width: 0;
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font: inherit;
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
@@ -128,41 +128,41 @@ onBeforeUnmount(() => {
 .tool-run-summary:hover,
 .tool-run-summary:focus-visible,
 .tool-run-summary[aria-expanded="true"] {
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 .tool-run-counts {
   display: flex;
   flex: none;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
 }
 
 .tool-run-time {
   flex: none;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-variant-numeric: tabular-nums;
 }
 
 .added {
-  padding: 0 var(--space-xxs);
+  padding: 0 var(--space-2xs);
   border-radius: calc(var(--radius-control) / 2);
-  background: var(--success-bg);
-  color: var(--success);
+  background: var(--success-subtle);
+  color: var(--success-text);
 }
 
 .removed {
-  padding: 0 var(--space-xxs);
+  padding: 0 var(--space-2xs);
   border-radius: calc(var(--radius-control) / 2);
-  background: var(--danger-bg);
-  color: var(--danger);
+  background: var(--danger-subtle);
+  color: var(--danger-text);
 }
 
 .tool-run-caret {
   flex: none;
-  width: var(--size-icon-xs);
-  height: var(--size-icon-xs);
+  width: var(--icon-sm);
+  height: var(--icon-sm);
   transition: transform var(--duration-fast) var(--ease-out);
 }
 

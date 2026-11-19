@@ -1,20 +1,59 @@
 <template>
-  <div v-if="loading" class="ctx-preview-status"><Spinner :size="24" /></div>
-  <pre v-else class="ctx-preview-text">{{ body }}</pre>
+  <PreviewDialog v-model:open="open" class="ctx-preview-dialog" :title="title">
+    <template #actions>
+      <Tooltip v-if="!loading">
+        <TooltipTrigger as-child>
+          <IconButton
+            type="button"
+            size="s"
+            variant="ghost"
+            color="gray"
+            :aria-label="toggleLabel"
+            @click="source = !source"
+          >
+            <SquareCodeIcon v-if="!source" class="size-icon" />
+            <EyeIcon v-else class="size-icon" />
+          </IconButton>
+        </TooltipTrigger>
+
+        <TooltipContent>{{ toggleLabel }}</TooltipContent>
+      </Tooltip>
+    </template>
+
+    <div v-if="loading" class="ctx-preview-status"><Spinner :size="24" /></div>
+    <FileCode v-else-if="source" path="context.md" :text="body" />
+    <MarkdownContent v-else :nodes="nodes" />
+  </PreviewDialog>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue"
+import { computed, ref, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { contextPreview } from "@client/platform.js"
+import { IconButton } from "@components/ui/button/index.js"
 import { Spinner } from "@components/ui/spinner/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { EyeIcon, SquareCodeIcon } from "@components/icons/index.js"
+import FileCode from "@features/file-pane/components/FileCode.vue"
+import PreviewDialog from "@features/preview/index.vue"
+import MarkdownContent from "@features/transcript-view/components/markdown/MarkdownContent.vue"
+import { useMarkdownNodes } from "@features/transcript-view/hooks/use-markdown-nodes.js"
 import type { ContextUsageSegment } from "@features/composer/type.js"
 
 const props = defineProps<{ sessionId: string; segment: ContextUsageSegment }>()
-const emit = defineEmits<{ title: [title: string] }>()
+const open = defineModel<boolean>("open", { default: false })
 const { t } = useI18n()
 const loading = ref(false)
 const body = ref("")
+const loadedTitle = ref("")
+const source = ref(false)
+const title = computed(() => loadedTitle.value || props.segment.label)
+const toggleLabel = computed(() => (source.value ? t("files.preview") : t("files.viewSource")))
+const nodes = useMarkdownNodes({
+  text: () => body.value,
+  streaming: () => false,
+  cacheKey: () => `context:${props.sessionId}/${props.segment.id}`,
+})
 
 /** 取这一类实际进上下文的内容；连点只认最后一次。 */
 watch(
@@ -26,13 +65,13 @@ watch(
     })
     loading.value = true
     body.value = ""
+    loadedTitle.value = ""
 
     try {
       const preview = await contextPreview(sessionId, segmentId)
 
       if (!active) return
-
-      if (preview?.title) emit("title", preview.title)
+      loadedTitle.value = preview?.title ?? ""
       body.value = preview?.content || t("rail.previewEmpty")
     } catch {
       if (active) body.value = t("rail.previewFailed")
@@ -50,13 +89,14 @@ watch(
   flex: 1;
   place-items: center;
 }
+</style>
 
-.ctx-preview-text {
-  margin: 0;
-  color: var(--contrast-foreground);
-  font: inherit;
-  font-size: var(--text-body);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+<style>
+/* 面板经 Portal 挂到 body，scoped 打不中；尺寸与设置弹窗同档 */
+.ctx-preview-dialog.rt-DialogContent {
+  width: min(88vw, var(--settings-dialog-width));
+  max-width: min(88vw, var(--settings-dialog-width));
+  height: clamp(var(--settings-dialog-height-min), 85vh, var(--settings-dialog-height));
+  max-height: none;
 }
 </style>

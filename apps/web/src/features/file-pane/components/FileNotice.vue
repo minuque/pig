@@ -30,7 +30,7 @@ const emit = defineEmits<{ action: [] }>()
 
 .file-notice-text {
   margin: 0;
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   font-size: var(--text-body);
   text-align: center;
 }

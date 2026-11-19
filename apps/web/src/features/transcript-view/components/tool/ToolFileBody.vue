@@ -158,7 +158,7 @@ watch(
 
 /* 全局 `*` 会给每个元素写默认拇指色；滚动的那层单独提亮，与其它工具卡同档 */
 .edit-diff :deep(.stream-diffs-shell) {
-  --scrollbar-thumb: var(--fill-strong);
+  --scrollbar-thumb: var(--bg-emphasis);
 }
 
 /* 只留外层 shell 滚动；内层的 overflow 是库写的行内样式，只能 !important 覆盖 */
@@ -171,14 +171,14 @@ watch(
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  padding: var(--space-xxs) var(--space-xxs) var(--space-xxs) var(--space-sm);
+  padding: var(--space-2xs) var(--space-2xs) var(--space-2xs) var(--space-sm);
 }
 
 .edit-path {
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   text-overflow: ellipsis;

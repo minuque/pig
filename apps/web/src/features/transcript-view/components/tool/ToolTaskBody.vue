@@ -34,7 +34,7 @@ function open(task: Task) {
 <style scoped>
 .task-list {
   display: grid;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -46,7 +46,7 @@ function open(task: Task) {
   align-items: center;
   gap: var(--space-xs);
   inline-size: 100%;
-  padding: var(--space-xxs) var(--space-xs);
+  padding: var(--space-2xs) var(--space-xs);
   color: inherit;
   text-align: start;
   background: none;
@@ -56,7 +56,7 @@ function open(task: Task) {
 }
 
 .task-row:not(:disabled):hover {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 .task-row:disabled {
@@ -66,25 +66,25 @@ function open(task: Task) {
 .task-dot {
   inline-size: var(--space-xs);
   block-size: var(--space-xs);
-  background: var(--contrast-foreground-faint);
+  background: var(--fg-faint);
   border-radius: var(--radius-pill);
 }
 
 .task-dot[data-status="running"] {
-  background: var(--primary);
+  background: var(--accent-solid);
 }
 
 .task-dot[data-status="completed"] {
-  background: var(--success);
+  background: var(--success-text);
 }
 
 .task-dot[data-status="failed"] {
-  background: var(--danger);
+  background: var(--danger-text);
 }
 
 .task-name {
   font-size: var(--text-body);
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .task-step {
@@ -92,7 +92,7 @@ function open(task: Task) {
   overflow: hidden;
   font-family: var(--font-mono);
   font-size: var(--text-meta);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   text-overflow: ellipsis;
   white-space: nowrap;
 }

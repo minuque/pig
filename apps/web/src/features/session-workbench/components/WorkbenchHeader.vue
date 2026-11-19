@@ -324,8 +324,8 @@ function confirmDelete(): void {
 <style scoped>
 /* 与摘要面板开关同一选中态 */
 .files-toggle[data-active] {
-  color: var(--contrast-foreground);
-  background: var(--btn-selected);
+  color: var(--fg);
+  background: var(--bg-selected);
 }
 
 .workbench-header {
@@ -337,11 +337,11 @@ function confirmDelete(): void {
   width: 100%;
   height: var(--header-height);
   min-height: var(--header-height);
-  padding: var(--space-xxs) var(--space-sm);
-  /* Windows 的系统窗控浮在整个窗口右上角，只有最右侧的头部让出这一块 */
+  padding: var(--space-2xs) var(--space-sm);
+  /* 自画窗控浮在整个窗口右上角，只有最右侧的头部让出这一块 */
   /* 与下方正文同底色：头部不另起一层 */
   background: transparent;
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .split-actions {
@@ -356,7 +356,7 @@ function confirmDelete(): void {
 }
 
 .workbench-header.is-dimmed .crumb-title {
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 /* 欢迎页头部浮在背景上，不占高度；拖窗与侧栏入口照常可用 */
@@ -403,7 +403,7 @@ function confirmDelete(): void {
   align-items: center;
   flex-shrink: 1;
   min-width: 0;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body--line-height);
@@ -412,7 +412,7 @@ function confirmDelete(): void {
 .crumb-project-label {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   max-width: 10em;
   min-width: 0;
 }
@@ -430,7 +430,7 @@ function confirmDelete(): void {
 
 .crumb-separator {
   flex: none;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-body);
 }
 
@@ -438,18 +438,18 @@ function confirmDelete(): void {
   display: flex;
   flex: 1;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-width: 0;
 }
 
 .crumb-title {
-  height: var(--size-nav-rail);
+  height: var(--control-sm);
   margin: 0;
   padding: 0;
   overflow: hidden;
   border: 0;
   background: transparent;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-body--line-height);
@@ -477,11 +477,11 @@ function confirmDelete(): void {
 }
 
 .crumb-input:focus {
-  caret-color: var(--primary);
-  box-shadow: inset 0 0 0 1px var(--primary);
+  caret-color: var(--accent-solid);
+  box-shadow: inset 0 0 0 1px var(--accent-solid);
 }
 
-/* 操作入口：悬停或聚焦标题时出现，与 t3code 的标题下拉箭头一致 */
+/* 操作入口：悬停或聚焦标题时出现 */
 .crumb-more {
   flex: none;
   opacity: 0;
@@ -494,14 +494,10 @@ function confirmDelete(): void {
   opacity: 1;
 }
 
-/* 拖窗：macOS 的浮层标题条与 Windows 的隐藏标题条都靠头部这一行 */
-html:is([data-pig-desktop-platform="darwin"], [data-pig-desktop-platform="win32"])
-  .workbench-header {
+/* 拖窗：三个平台都藏起了标题条，靠头部这一行 */
+html[data-pig-desktop-platform] .workbench-header {
   -webkit-app-region: drag;
   app-region: drag;
-}
-
-html[data-pig-desktop-platform] .workbench-header {
   user-select: none;
 }
 
@@ -527,12 +523,12 @@ html[data-pig-desktop-platform]
 
 /* macOS 侧栏收起后红绿灯落在头部左上角，头部让位 */
 html[data-pig-desktop-platform="darwin"] .shell.sb-offcanvas .workbench-header.is-leftmost {
-  padding-inline-start: calc(var(--space-sm) + var(--size-mac-traffic-lights));
+  padding-inline-start: calc(var(--space-sm) + var(--traffic-lights-width));
 }
 
 @media (max-width: 520px) {
   .workbench-header > .header-toggle:not(.is-stowed) {
-    width: calc(var(--size-nav-rail) + var(--space-xs));
+    width: calc(var(--control-sm) + var(--space-xs));
   }
 }
 

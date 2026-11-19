@@ -42,7 +42,7 @@ const { t } = useI18n()
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-inline-size: 14px;
   min-block-size: 14px;
 }
@@ -52,7 +52,7 @@ const { t } = useI18n()
   display: block;
   inline-size: 14px;
   block-size: 14px;
-  color: var(--state-working);
+  color: var(--info-text);
 }
 
 .spinner-track,
@@ -62,7 +62,7 @@ const { t } = useI18n()
 }
 
 .spinner-track {
-  stroke: var(--fill-strong);
+  stroke: var(--bg-emphasis);
 }
 
 .spinner-arc {
@@ -83,14 +83,14 @@ const { t } = useI18n()
 }
 
 .state-icon.unread {
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .state-icon.draft {
-  color: var(--warning);
+  color: var(--warning-text);
 }
 
 .state-icon.error {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 </style>

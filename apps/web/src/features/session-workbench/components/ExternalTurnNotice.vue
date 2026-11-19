@@ -1,5 +1,5 @@
 <template>
-  <Callout v-if="externalTurn" class="external-turn" size="s">
+  <Banner v-if="externalTurn" class="external-turn" size="s">
     <template #icon><EyeIcon /></template>
 
     <div class="external-turn-row">
@@ -9,7 +9,7 @@
         {{ t("session.takeover") }}
       </Button>
     </div>
-  </Callout>
+  </Banner>
 
   <AlertDialog v-model:open="confirming">
     <AlertDialogContent>
@@ -32,7 +32,7 @@ import { notifyAction } from "@components/layout/notify.js"
 import { EyeIcon } from "@components/icons/index.js"
 import { errorMessage } from "@client/http.js"
 import { Button } from "@components/ui/button/index.js"
-import { Callout } from "@components/ui/callout/index.js"
+import { Banner } from "@components/ui/banner/index.js"
 import {
   AlertDialog,
   AlertDialogAction,

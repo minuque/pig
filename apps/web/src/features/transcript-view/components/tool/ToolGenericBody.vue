@@ -79,12 +79,12 @@ watch(
 
 /* 输入保留底色，和下方只描边的输出区分开 */
 .tool-input {
-  --card-background-color: var(--surface);
+  --card-background-color: var(--bg-surface);
 
   position: relative;
   padding: var(--space-xs) var(--space-sm);
   padding-inline-end: calc(var(--space-sm) + 22px);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-family: var(--font-mono);
   font-size: var(--text-code);
   line-height: var(--text-code-line);
@@ -109,7 +109,7 @@ watch(
 
 .tool-empty {
   margin: 0;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: inherit;
 }
 </style>

@@ -2,20 +2,20 @@
   <div class="tuner">
     <!-- 预览区：变量只写在这个子树上，用的是真实组件 -->
     <section class="tuner-preview" :style="previewVars">
-      <Card size="s" class="demo-settings">
-        <div v-for="row in SETTINGS_ROWS" :key="row" class="demo-row">
+      <CardList>
+        <CardRow v-for="row in SETTINGS_ROWS" :key="row" class="demo-row">
           <span>{{ row }}</span>
           <Switch :model-value="true" size="s" />
-        </div>
-      </Card>
+        </CardRow>
+      </CardList>
 
       <MarkdownContent :nodes="nodes" />
 
-      <Callout variant="surface" size="s" color="destructive">
+      <Banner variant="surface" size="s" color="destructive">
         <template #icon><CircleExclamationPointIcon /></template>
         <template #title>出错了</template>
-        Callout 的边框不读卡片变量，放在这里作对照。
-      </Callout>
+        Banner 的边框不读卡片变量，放在这里作对照。
+      </Banner>
     </section>
 
     <section class="tuner-panel">
@@ -35,21 +35,25 @@
       <div class="tuner-field">
         <span class="tuner-label">外环颜色 --border</span>
 
-        <SegmentedControl v-model="value.border" size="s">
-          <SegmentedControlItem v-for="step in STEPS" :key="step" :value="step">
-            {{ step }}
-          </SegmentedControlItem>
-        </SegmentedControl>
+        <TabsRoot v-model="value.border">
+          <TabsList variant="segmented" size="s">
+            <TabsTrigger v-for="step in STEPS" :key="step" :value="step">
+              {{ step }}
+            </TabsTrigger>
+          </TabsList>
+        </TabsRoot>
       </div>
 
       <div class="tuner-field">
-        <span class="tuner-label">行间分隔 --border-soft</span>
+        <span class="tuner-label">行间分隔 --border-subtle</span>
 
-        <SegmentedControl v-model="value.divider" size="s">
-          <SegmentedControlItem v-for="step in STEPS" :key="step" :value="step">
-            {{ step }}
-          </SegmentedControlItem>
-        </SegmentedControl>
+        <TabsRoot v-model="value.divider">
+          <TabsList variant="segmented" size="s">
+            <TabsTrigger v-for="step in STEPS" :key="step" :value="step">
+              {{ step }}
+            </TabsTrigger>
+          </TabsList>
+        </TabsRoot>
       </div>
 
       <div class="tuner-field">
@@ -58,17 +62,19 @@
           <span class="tuner-value">{{ value.radius }}px</span>
         </span>
 
-        <Slider v-model="radius" :min="4" :max="16" :step="0.4" size="s" />
+        <Slider v-model="radius" :min="4" :max="16" :step="1" size="s" />
       </div>
 
       <div class="tuner-field">
         <span class="tuner-label">底色 --card-surface</span>
 
-        <SegmentedControl v-model="value.surface" size="s">
-          <SegmentedControlItem v-for="(_, key) in SURFACES" :key="key" :value="key">
-            {{ key }}
-          </SegmentedControlItem>
-        </SegmentedControl>
+        <TabsRoot v-model="value.surface">
+          <TabsList variant="segmented" size="s">
+            <TabsTrigger v-for="(_, key) in SURFACES" :key="key" :value="key">
+              {{ key }}
+            </TabsTrigger>
+          </TabsList>
+        </TabsRoot>
       </div>
 
       <div class="tuner-output">
@@ -90,29 +96,47 @@
 import { computed, reactive, ref } from "vue"
 import { useClipboard } from "@vueuse/core"
 import { Button } from "@components/ui/button/index.js"
-import { Callout } from "@components/ui/callout/index.js"
-import { Card } from "@components/ui/card/index.js"
-import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
+import { Banner } from "@components/ui/banner/index.js"
+import { CardList, CardRow } from "@components/ui/card/index.js"
+import { TabsList, TabsRoot, TabsTrigger } from "@components/ui/tabs/index.js"
 import { Slider } from "@components/ui/slider/index.js"
 import { Switch } from "@components/ui/switch/index.js"
 import { CircleExclamationPointIcon } from "@components/icons/index.js"
+import rtCss from "@style/rt.css?raw"
+import tokensCss from "@style/tokens.css?raw"
 import MarkdownContent from "@features/transcript-view/components/markdown/MarkdownContent.vue"
 import { useMarkdownNodes } from "@features/transcript-view/hooks/use-markdown-nodes.js"
 
 type Values = { border: string; divider: string; radius: number; surface: string }
 
-const STEPS = ["a3", "a4", "a5", "a6", "a7", "a8"]
+const STEPS = ["a2", "a3", "a4", "a5", "a6", "a7", "a8"]
 const SURFACES: Record<string, string> = {
   none: "transparent",
   a2: "var(--gray-a2)",
-  card: "var(--surface)",
-  code: "var(--surface)",
+  surface: "var(--bg-surface)",
+}
+// 「当前」直接读样式源码，其余预设相对它挪一档，样式改了预设跟着走
+const CURRENT: Values = {
+  border: declared(rtCss, "--border", /--gray-(a\d+)/) ?? "a4",
+  divider: declared(rtCss, "--border-subtle", /--gray-(a\d+)/) ?? "a3",
+  radius: Number(declared(tokensCss, "--radius-card", /([\d.]+)px/) ?? 8),
+  surface: declared(rtCss, "--card-surface", /(transparent)/) ? "none" : "surface",
 }
 const PRESETS: (Values & { name: string })[] = [
-  { name: "当前", border: "a6", divider: "a5", radius: 10.4, surface: "none" },
-  { name: "更淡", border: "a5", divider: "a4", radius: 12, surface: "none" },
-  { name: "更清晰", border: "a7", divider: "a6", radius: 8, surface: "none" },
-  { name: "浅底", border: "a5", divider: "a4", radius: 10.4, surface: "a2" },
+  { name: "当前", ...CURRENT },
+  {
+    name: "更淡",
+    ...CURRENT,
+    border: step(CURRENT.border, -1),
+    divider: step(CURRENT.divider, -1),
+  },
+  {
+    name: "更清晰",
+    ...CURRENT,
+    border: step(CURRENT.border, 1),
+    divider: step(CURRENT.divider, 1),
+  },
+  { name: "浅底", ...CURRENT, surface: "a2" },
 ]
 const SETTINGS_ROWS = ["发送后自动滚动", "完成时播放提示音", "显示思考过程"]
 const SAMPLE = [
@@ -126,7 +150,7 @@ const SAMPLE = [
   "| 变量 | 用途 |",
   "| --- | --- |",
   "| `--border` | 卡片外环 |",
-  "| `--border-soft` | 行间分隔 |",
+  "| `--border-subtle` | 行间分隔 |",
 ].join("\n")
 const nodes = useMarkdownNodes({
   text: () => SAMPLE,
@@ -138,27 +162,37 @@ const radius = computed({
   get: () => [value.radius],
   set: ([next]) => (value.radius = next ?? value.radius),
 })
-const rem = computed(() => `${+(value.radius / 16).toFixed(3)}rem`)
 const previewVars = computed(() => ({
   "--border": `var(--gray-${value.border})`,
-  "--border-soft": `var(--gray-${value.divider})`,
-  "--divider-top": `inset 0 var(--border-width) 0 var(--gray-${value.divider})`,
-  "--radius-card": rem.value,
+  "--border-subtle": `var(--gray-${value.divider})`,
+  "--separator-top": `inset 0 var(--border-width) 0 var(--gray-${value.divider})`,
+  "--radius-card": `${value.radius}px`,
   "--card-surface": SURFACES[value.surface],
 }))
 const output = computed(() =>
   [
     "/* style/rt.css → .radix-themes */",
     `--border: var(--gray-${value.border});`,
-    `--border-soft: var(--gray-${value.divider});`,
+    `--border-subtle: var(--gray-${value.divider});`,
     `--card-surface: ${SURFACES[value.surface]};`,
     "",
     "/* style/tokens.css → :root */",
-    `--radius-card: ${rem.value};`,
+    `--radius-card: ${value.radius}px;`,
   ].join("\n"),
 )
 const copied = ref(false)
 const { copy: write } = useClipboard({ legacy: true })
+
+/** 取样式源码里某个变量第一次声明的值，再用 pick 抠出要的那段。 */
+function declared(css: string, name: string, pick: RegExp): string | undefined {
+  const line = new RegExp(`(?<![\\w-])${name}:\\s*([^;]+);`).exec(css)?.[1]
+  return line ? pick.exec(line)?.[1] : undefined
+}
+
+function step(current: string, by: number): string {
+  const index = STEPS.indexOf(current) + by
+  return STEPS[Math.min(Math.max(index, 0), STEPS.length - 1)]!
+}
 
 function isPreset(preset: Values): boolean {
   return (["border", "divider", "radius", "surface"] as const).every(
@@ -194,24 +228,14 @@ async function copy() {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
-  max-width: var(--size-content);
-}
-
-.demo-settings {
-  --card-padding: 0;
-
-  padding-inline: var(--space-md);
+  max-width: var(--content-width);
 }
 
 .demo-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: calc(var(--size-control) + var(--space-lg));
-}
-
-.demo-row + .demo-row {
-  box-shadow: var(--divider-top);
+  min-height: calc(var(--control-lg) + var(--space-lg));
 }
 
 .tuner-panel {
@@ -238,7 +262,7 @@ async function copy() {
 .tuner-label {
   display: flex;
   justify-content: space-between;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
@@ -269,7 +293,7 @@ async function copy() {
   margin: 0;
   padding: var(--space-sm);
   border-radius: var(--radius-control);
-  background: var(--surface);
+  background: var(--bg-surface);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   line-height: 1.6;

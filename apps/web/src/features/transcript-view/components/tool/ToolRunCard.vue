@@ -1,6 +1,6 @@
 <template>
-  <Card size="s" variant="surface" class="tool-run-card">
-    <template v-for="entry in entries" :key="entry.id">
+  <CardList class="tool-run-card">
+    <CardRow v-for="entry in entries" :key="entry.id" as-child bleed>
       <ToolThoughtRow
         v-if="entry.kind === 'thought'"
         :step="entry.step"
@@ -14,13 +14,13 @@
         :open="expandedTools.get(entry.call.id) ?? false"
         @toggle="emit('toggleTool', entry.call.id, $event)"
       />
-    </template>
-  </Card>
+    </CardRow>
+  </CardList>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { Card } from "@components/ui/card/index.js"
+import { CardList, CardRow } from "@components/ui/card/index.js"
 import ToolRow from "@features/transcript-view/components/tool/ToolRow.vue"
 import ToolThoughtRow from "@features/transcript-view/components/tool/ToolThoughtRow.vue"
 import type {
@@ -50,19 +50,14 @@ const entries = computed<RunEntry[]>(() =>
 
 <style scoped>
 .tool-run-card {
-  --card-padding: 0;
+  --card-padding: var(--transcript-row-pad);
+  --card-border-radius: var(--radius-card);
 
-  display: flex;
-  flex-direction: column;
   min-width: 0;
   margin-block-start: var(--space-sm);
 }
 
 .tool-run-card > :deep(.tool-row) {
-  padding: var(--space-sm) var(--transcript-row-pad);
-}
-
-.tool-run-card > :deep(.tool-row + .tool-row) {
-  box-shadow: var(--divider-top);
+  padding: var(--space-sm) var(--card-padding);
 }
 </style>

@@ -159,11 +159,11 @@ function itemBind(session: SidebarSession) {
 }
 
 .section-head.is-sorting .section-toggle {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .section-head.is-drop-target .section-toggle {
-  color: var(--primary);
+  color: var(--accent-text);
 }
 
 .section-toggle {
@@ -178,7 +178,7 @@ function itemBind(session: SidebarSession) {
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-meta--line-height);
@@ -257,18 +257,18 @@ function itemBind(session: SidebarSession) {
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
   cursor: default;
   transition:
-    background-color var(--duration-fast) var(--ease-hover),
-    color var(--duration-fast) var(--ease-hover);
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
 }
 
 .more-button:hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 /* 箭头只在 hover 时显形；位置常驻，文字不跟着横移 */

@@ -12,6 +12,7 @@ import type {
   ComposerCommand,
   ContextPreviewKey,
   ContextUsageEstimate,
+  DefaultModelView,
   ModelMetadata,
   SessionCard,
   SessionMetadata,
@@ -131,8 +132,9 @@ export class PiHostService implements SessionService {
     return this.cards.list(infos)
   }
 
-  async listModels(): Promise<ModelMetadata[]> {
-    return (await this.providers.listModels()).models
+  /** 模型目录与设置里的默认模型。 */
+  listModels(): Promise<{ models: ModelMetadata[]; defaultModel: DefaultModelView | null }> {
+    return this.providers.listModels()
   }
 
   /** 监听前预热会话列表、模型目录和最近用过的会话目录，避免首次握手与首次建会话超时。 */

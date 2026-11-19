@@ -3,17 +3,13 @@
     <div class="field">
       <span class="field-label">{{ t("settings.models.thinking") }}</span>
 
-      <SegmentedControl
-        :model-value="form.thinkingLevel ?? 'off'"
-        size="s"
-        class="thinking"
-        :aria-label="t('settings.models.thinking')"
-        @update:model-value="onThinking"
-      >
-        <SegmentedControlItem v-for="level in THINKING_LEVELS" :key="level" :value="level">
-          {{ level }}
-        </SegmentedControlItem>
-      </SegmentedControl>
+      <TabsRoot :model-value="form.thinkingLevel ?? 'off'" @update:model-value="onThinking">
+        <TabsList variant="segmented" size="s" :aria-label="t('settings.models.thinking')">
+          <TabsTrigger v-for="level in THINKING_LEVELS" :key="level" :value="level">
+            {{ level }}
+          </TabsTrigger>
+        </TabsList>
+      </TabsRoot>
     </div>
 
     <div class="grid">
@@ -101,7 +97,7 @@ import { reactive, ref, watch } from "vue"
 
 import { Button } from "@components/ui/button/index.js"
 import { TrashIcon } from "@components/icons/index.js"
-import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
+import { TabsList, TabsRoot, TabsTrigger } from "@components/ui/tabs/index.js"
 import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
 import { updateModelParams } from "@client/platform.js"
 import { errorMessage } from "@client/http.js"
@@ -202,7 +198,7 @@ async function restore() {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  padding: var(--space-sm) var(--space-md) var(--space-lg);
+  padding: var(--space-md) var(--card-padding) var(--card-padding);
 }
 
 .field {
@@ -212,13 +208,9 @@ async function restore() {
 }
 
 .field-label {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
-}
-
-.thinking {
-  align-self: flex-start;
 }
 
 .field-input {
@@ -226,7 +218,7 @@ async function restore() {
 }
 
 .field-input[data-invalid] {
-  border-color: var(--danger);
+  border-color: var(--danger-text);
 }
 
 .grid {
@@ -243,7 +235,7 @@ async function restore() {
 }
 
 .add-param {
-  color: var(--primary);
+  color: var(--accent-text);
   font-size: var(--text-meta);
 }
 
@@ -262,11 +254,11 @@ async function restore() {
   place-items: center;
   width: 20px;
   height: 20px;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .remove-param:hover {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .remove-param svg {
@@ -276,7 +268,7 @@ async function restore() {
 
 .error {
   margin: 0;
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: var(--text-meta);
 }
 

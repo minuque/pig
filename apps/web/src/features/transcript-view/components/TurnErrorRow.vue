@@ -34,26 +34,26 @@ const label = computed(() => {
 /* 照 markdown 引用块排：左竖线加缩进；竖线与标题按状态染色，出错用危险色、中止用警示色 */
 .turn-error {
   padding-inline-start: var(--space-xs);
-  color: var(--warning);
-  border-inline-start: var(--border-width-quote) solid currentcolor;
+  color: var(--warning-text);
+  border-inline-start: var(--quote-border-width) solid currentcolor;
 }
 
 .turn-error[data-error] {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .turn-error-head {
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-meta--line-height);
 }
 
 .turn-error-message {
-  margin-block-start: var(--space-xxs);
-  color: var(--contrast-foreground-secondary);
+  margin-block-start: var(--space-2xs);
+  color: var(--fg-secondary);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);

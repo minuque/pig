@@ -80,15 +80,14 @@ const bodyId = useId()
   flex-direction: column;
   min-inline-size: 0;
   padding: var(--space-xs);
-  background: var(--surface);
   border-radius: var(--radius-card);
-  box-shadow: 0 0 0 1px var(--border-soft);
+  box-shadow: 0 0 0 1px var(--border-subtle);
 }
 
-/* 拖着走的卡片浮起来；位移由 useDragReorder 驱动 */
+/* 拖着走的卡片压在上层，铺浮层底遮住下面的卡；位移由 useDragReorder 驱动 */
 .rail-card.is-drag-live {
   z-index: 2;
-  box-shadow: var(--shadow-popover);
+  background: var(--bg-raised);
   cursor: grabbing;
   user-select: none;
 }
@@ -111,11 +110,11 @@ const bodyId = useId()
   display: flex;
   flex: 1;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-inline-size: 0;
-  min-block-size: var(--size-rail-row);
-  padding-inline: var(--space-xxs);
-  color: var(--contrast-foreground);
+  min-block-size: var(--control-sm);
+  padding-inline: var(--space-2xs);
+  color: var(--fg);
   font: inherit;
   font-size: var(--text-meta);
   font-weight: 500;
@@ -138,20 +137,22 @@ const bodyId = useId()
 
 .rail-caret {
   flex-shrink: 0;
-  inline-size: var(--size-icon-xs);
-  block-size: var(--size-icon-xs);
-  color: var(--contrast-foreground-faint);
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
+  color: var(--fg-faint);
 }
 
+/* 收起时的摘要居右，和把手占同一个位置：把手露出时摘要让开 */
 .rail-summary {
   display: flex;
+  flex: 1;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-inline-size: 0;
-  margin-inline-start: auto;
+  margin-inline-start: var(--space-xs);
   overflow: hidden;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-weight: 400;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
@@ -163,23 +164,30 @@ const bodyId = useId()
   opacity: 0;
 }
 
-/* 整张卡都能拖；把手只在悬停或键盘聚焦时露出（鼠标按下留下的焦点不算），位置照留 */
+.rail-card:hover .rail-summary,
+.rail-card:has(:focus-visible) .rail-summary,
+.rail-card.is-drag-live .rail-summary {
+  opacity: 0;
+}
+
+/* 整张卡都能拖；把手只在悬停或键盘聚焦时露出（鼠标按下留下的焦点不算），浮在行尾不占位 */
 .rail-grip {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
   opacity: 0;
   display: flex;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
-  inline-size: var(--size-rail-row);
-  block-size: var(--size-rail-row);
-  color: var(--contrast-foreground-faint);
+  inline-size: var(--control-sm);
+  color: var(--fg-faint);
   border-radius: var(--radius-control);
   cursor: grab;
   touch-action: none;
   transition:
     opacity var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out),
-    background var(--duration-fast) var(--ease-out);
+    color var(--duration-fast) var(--ease-out);
 }
 
 .rail-card:hover .rail-grip,
@@ -192,11 +200,14 @@ const bodyId = useId()
   .rail-grip {
     opacity: 1;
   }
+
+  .rail-summary {
+    opacity: 0;
+  }
 }
 
 .rail-grip:hover {
-  color: var(--contrast-foreground);
-  background: var(--btn-hover);
+  color: var(--fg);
 }
 
 .rail-grip:active {
@@ -204,11 +215,11 @@ const bodyId = useId()
 }
 
 .rail-grip :deep(svg) {
-  inline-size: var(--size-icon);
-  block-size: var(--size-icon);
+  inline-size: var(--icon-md);
+  block-size: var(--icon-md);
 }
 
 .rail-body {
-  padding: var(--space-xxs) var(--space-xxs) 0;
+  padding: var(--space-2xs) var(--space-2xs) 0;
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <Card size="s" class="model-card">
+  <CardList class="model-card">
     <div class="card-head">
       <button type="button" class="card-toggle" @click="open = !open">
         <VendorMark class="model-icon" :vendor="providerId" :name="providerName" :size="16" />
@@ -65,7 +65,7 @@
         </div>
       </div>
     </div>
-  </Card>
+  </CardList>
 </template>
 
 <script setup lang="ts">
@@ -78,7 +78,7 @@ import VendorMark from "@features/composer/components/VendorMark.vue"
 import { IconButton } from "@components/ui/button/index.js"
 import { useI18n } from "@i18n/index.js"
 import type { CustomModelDraft } from "@features/settings/lib/provider-view.js"
-import { Card } from "@components/ui/card/index.js"
+import { CardList } from "@components/ui/card/index.js"
 
 const model = defineModel<CustomModelDraft>({ required: true })
 
@@ -90,16 +90,12 @@ const open = ref(!model.value.id)
 </script>
 
 <style scoped>
-.model-card {
-  padding: 0;
-}
-
 .card-head {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  padding-inline: var(--space-md);
-  min-height: 44px;
+  padding-inline: var(--card-padding);
+  min-height: 52px;
 }
 
 .card-toggle {
@@ -117,7 +113,7 @@ const open = ref(!model.value.id)
 
 .model-name {
   overflow: hidden;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   text-overflow: ellipsis;
@@ -125,16 +121,16 @@ const open = ref(!model.value.id)
 }
 
 .model-meta {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
 .icon-button {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .icon-button:hover {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .chevron {
@@ -149,7 +145,7 @@ const open = ref(!model.value.id)
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
-  padding: 2px var(--space-md) var(--space-md);
+  padding: 2px var(--card-padding) var(--card-padding);
 }
 
 .field-grid {
@@ -168,11 +164,11 @@ const open = ref(!model.value.id)
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  min-height: var(--size-control);
+  min-height: var(--control-lg);
 }
 
 .field-label {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 

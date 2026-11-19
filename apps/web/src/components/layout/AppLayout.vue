@@ -25,6 +25,8 @@
     <main>
       <slot />
     </main>
+
+    <WindowControls />
   </div>
 </template>
 
@@ -33,6 +35,7 @@ import { computed, provide } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { leftPanelKey, useLeftPanel } from "@components/layout/hooks/use-left-panel.js"
 import { ResizeHandle } from "@components/ui/resize-handle/index.js"
+import WindowControls from "@components/layout/WindowControls.vue"
 
 defineSlots<{
   default(): unknown
@@ -83,7 +86,7 @@ function resetWidth() {
   height: 100vh;
   display: flex;
   overflow: hidden;
-  background: var(--background);
+  background: var(--bg);
 }
 
 .sidebar {
@@ -94,8 +97,8 @@ function resetWidth() {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--sidebar);
-  border-inline-end: var(--border-width) solid var(--border-soft);
+  background: var(--bg-sunken);
+  border-inline-end: var(--border-width) solid var(--border-subtle);
   contain: layout style;
   visibility: hidden;
   width: 0;
@@ -152,7 +155,7 @@ main {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: var(--background);
+  background: var(--bg);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -183,13 +186,13 @@ main {
     z-index: var(--z-drawer);
     inset-block: 0;
     inset-inline-start: 0;
-    width: min(88vw, var(--size-drawer));
+    width: min(88vw, var(--drawer-width));
     visibility: hidden;
     transform: translateX(-105%);
     transition:
       transform var(--duration-normal) var(--ease-out),
       visibility 0s linear var(--duration-normal);
-    background: var(--sidebar);
+    background: var(--bg-sunken);
     border-inline-end: 0;
     box-shadow: var(--shadow-dialog);
   }

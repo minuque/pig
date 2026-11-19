@@ -151,14 +151,14 @@ function toggleProject(canonicalPath: string): void {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  min-block-size: var(--size-composer-control);
-  margin-block-end: var(--space-xxs);
+  min-block-size: var(--control-md);
+  margin-block-end: var(--space-2xs);
   padding-inline: var(--space-xs);
-  border-block-end: var(--border-width) solid var(--border-soft);
+  border-block-end: var(--border-width) solid var(--border-subtle);
 }
 
 .search-icon {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .scope-search input {
@@ -167,17 +167,17 @@ function toggleProject(canonicalPath: string): void {
   border: 0;
   outline: 0;
   background: transparent;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font: inherit;
 }
 
 .scope-search input::placeholder {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .scope-empty {
   padding: var(--space-xs);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
@@ -185,7 +185,7 @@ function toggleProject(canonicalPath: string): void {
 .scope-projects {
   display: flex;
   flex-direction: column;
-  max-block-size: calc((var(--size-menu-item) + var(--menu-item-gap)) * 9);
+  max-block-size: calc((var(--control-md) + var(--menu-item-gap)) * 9);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -196,7 +196,7 @@ function toggleProject(canonicalPath: string): void {
   white-space: nowrap;
 }
 
-/* 选中态对齐 t3code：图标右下角打勾，行本身不铺选中底 */
+/* 选中态：图标右下角打勾，行本身不铺选中底 */
 .scope-item[data-state="checked"]:not([data-highlighted]) {
   background-color: transparent;
 }
@@ -214,22 +214,22 @@ function toggleProject(canonicalPath: string): void {
 
 .check-badge {
   position: absolute;
-  inset-block-end: calc(var(--space-xxs) * -1);
-  inset-inline-end: calc(var(--space-xxs) * -1);
+  inset-block-end: calc(var(--space-2xs) * -1);
+  inset-inline-end: calc(var(--space-2xs) * -1);
   display: grid;
   place-items: center;
-  inline-size: var(--size-icon-xs);
-  block-size: var(--size-icon-xs);
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
   border-radius: var(--radius-pill);
-  background-color: var(--primary);
-  box-shadow: 0 0 0 calc(var(--border-width) * 2) var(--popover);
-  color: var(--primary-foreground);
+  background-color: var(--accent-solid);
+  box-shadow: 0 0 0 calc(var(--border-width) * 2) var(--bg-raised);
+  color: var(--fg-on-accent);
 }
 
 .check-badge .lucide {
-  inline-size: calc(var(--size-icon-xs) - var(--space-xxs));
-  block-size: calc(var(--size-icon-xs) - var(--space-xxs));
-  stroke-width: calc(var(--line-icon-width) * 2);
+  inline-size: calc(var(--icon-sm) - var(--space-2xs));
+  block-size: calc(var(--icon-sm) - var(--space-2xs));
+  stroke-width: calc(var(--icon-stroke) * 2);
 }
 
 .scope-actions {
@@ -238,7 +238,7 @@ function toggleProject(canonicalPath: string): void {
   padding-inline-start: var(--space-xs);
 }
 
-/* t3code 式行尾操作：悬停或键盘高亮时出现；已置顶的图钉常显 */
+/* 行尾操作：悬停或键盘高亮时出现；已置顶的图钉常显 */
 .row-action:not([data-pinned]) {
   visibility: hidden;
 }

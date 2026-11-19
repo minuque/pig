@@ -5,7 +5,7 @@ const WorkbenchShell = () => import("@/shell/WorkbenchShell.vue")
 const FocusedRoute = { render: () => null }
 // 设计页只在开发时注册，正式构建整段剔除
 const devRoutes = import.meta.env.DEV
-  ? [{ path: "/design", component: () => import("@features/design-lab/index.vue") }]
+  ? [{ path: "/design/:page(.*)*", component: () => import("@features/design-lab/index.vue") }]
   : []
 const router = createRouter({
   history: createWebHistory("/"),

@@ -27,16 +27,27 @@
         >
           <template v-if="variant === 'card'">
             <span class="meta-line">
-              <span class="project-icon" aria-hidden="true">
-                <PinIcon class="size-icon-2xs" v-if="pinned" />
-
-                <ProjectIcon
-                  v-else-if="projectName"
-                  class="project-mono"
-                  :path="session.cwd"
-                  fallback="monogram"
-                />
+              <span v-if="projectName" class="project-icon" aria-hidden="true">
+                <ProjectIcon class="project-mono" :path="session.cwd" fallback="monogram" />
               </span>
+
+              <Tooltip v-if="pinned">
+                <TooltipTrigger as-child>
+                  <button
+                    type="button"
+                    class="pin-toggle"
+                    :aria-label="t('session.unpin')"
+                    :disabled="placeholder || dragging"
+                    @click.prevent.stop="emit('togglePinned', session.id)"
+                    @pointerdown.stop
+                  >
+                    <PinIcon class="pin-on" />
+                    <PinOffIcon class="pin-off" />
+                  </button>
+                </TooltipTrigger>
+
+                <TooltipContent>{{ t("session.unpin") }}</TooltipContent>
+              </Tooltip>
 
               <span class="project-name">{{ projectName }}</span>
 
@@ -58,7 +69,7 @@
                 </span>
 
                 <button
-                  v-if="!placeholder"
+                  v-if="!placeholder && startedAt === undefined"
                   class="row-action press-scale"
                   type="button"
                   :aria-label="settled ? t('session.unsettle') : t('session.settle')"
@@ -492,12 +503,12 @@ function confirmDelete() {
   inset-inline-end: 0;
   display: inline-flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   height: 20px;
   padding-inline: var(--space-xs);
   border-radius: calc(var(--radius-control) / 2);
-  background: var(--info-bg);
-  color: var(--primary);
+  background: var(--info-subtle);
+  color: var(--accent-text);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
   line-height: 1;
@@ -514,12 +525,12 @@ function confirmDelete() {
   color: inherit;
   text-decoration: none;
   cursor: default;
-  transition: background-color var(--duration-fast) var(--ease-hover);
+  transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 .session-card.card {
   flex-direction: column;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-height: 60px;
   padding: var(--space-xs) 10px;
 }
@@ -533,12 +544,58 @@ function confirmDelete() {
 }
 
 .session-item:hover .session-card {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 .session-card[data-state="open"],
 .session-card.active {
-  background: var(--btn-selected);
+  background: var(--bg-selected);
+}
+
+/* 还没发首条消息的新会话：警示浅底，悬停与选中都不换底 */
+.session-item .session-card.is-placeholder {
+  background: var(--warning-subtle);
+}
+
+/* 置顶标记即取消置顶按钮：平时图钉，悬停或键盘聚焦换成取消图标并提亮 */
+.pin-toggle {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: calc(var(--radius-control) / 2);
+  background: transparent;
+  color: var(--fg-faint);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.pin-toggle :deep(svg) {
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
+}
+
+.pin-toggle .pin-off,
+.pin-toggle:is(:hover, :focus-visible):not(:disabled) .pin-on {
+  display: none;
+}
+
+.pin-toggle:is(:hover, :focus-visible):not(:disabled) .pin-off {
+  display: block;
+}
+
+.pin-toggle:is(:hover, :focus-visible):not(:disabled) {
+  color: var(--fg);
+}
+
+.pin-toggle:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.pin-toggle:disabled {
+  cursor: default;
 }
 
 .project-icon {
@@ -547,17 +604,17 @@ function confirmDelete() {
   place-items: center;
   width: 16px;
   height: 16px;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
-/* t3code 式项目缩写：soft 徽标收成 16px 方块 */
+/* 项目缩写：soft 徽标收成 16px 方块 */
 .project-mono[data-accent-color] {
   justify-content: center;
   width: 16px;
   height: 16px;
   padding: 0;
   border-radius: calc(var(--radius-control) / 2);
-  font-size: var(--text-monogram);
+  font-size: var(--monogram-size);
   font-weight: var(--font-weight-bold);
   line-height: 1;
   letter-spacing: 0;
@@ -566,7 +623,7 @@ function confirmDelete() {
 .meta-line {
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-width: 0;
   height: 20px;
 }
@@ -575,7 +632,7 @@ function confirmDelete() {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   text-overflow: ellipsis;
@@ -593,20 +650,20 @@ function confirmDelete() {
   min-width: 0;
   flex: 1;
   overflow: hidden;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
   line-height: 20px;
   text-overflow: ellipsis;
   white-space: nowrap;
-  transition: color var(--duration-fast) var(--ease-hover);
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 /* 悬停、当前会话、菜单打开时回到一级文本色 */
 .session-item:hover .title,
 .session-card[data-state="open"] .title,
 .session-card.active .title {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .session-card.slim .title {
@@ -632,7 +689,7 @@ function confirmDelete() {
 }
 
 .time-label {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
   line-height: var(--text-meta--line-height);
@@ -644,8 +701,8 @@ function confirmDelete() {
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: var(--space-xxs);
-  color: var(--info);
+  gap: var(--space-2xs);
+  color: var(--info-text);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-meta--line-height);
@@ -660,9 +717,10 @@ function confirmDelete() {
   font-variant-numeric: tabular-nums;
 }
 
-.session-item:hover .state-mark,
-.session-item:focus-within .state-mark,
-.session-item.is-menu-open .state-mark {
+/* 行尾动作出现时让位；没有动作的行（新会话、工作中）状态照常显示 */
+.session-item:hover .state-slot:has(.row-action) .state-mark,
+.session-item:focus-within .state-slot:has(.row-action) .state-mark,
+.session-item.is-menu-open .state-slot:has(.row-action) .state-mark {
   opacity: 0;
 }
 
@@ -672,13 +730,13 @@ function confirmDelete() {
   top: 50%;
   display: inline-flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   padding-block: var(--icon-button-pad);
   padding-inline: var(--space-xs);
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   white-space: nowrap;
@@ -687,7 +745,7 @@ function confirmDelete() {
   pointer-events: none;
   transition:
     opacity var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-hover);
+    color var(--duration-fast) var(--ease-out);
 }
 
 .session-card.slim .row-action {
@@ -702,28 +760,28 @@ function confirmDelete() {
   pointer-events: auto;
 }
 
-/* 文字动作对齐 t3code：只在悬停时提亮，不铺底 */
+/* 文字动作：只在悬停时提亮，不铺底 */
 .row-action:hover,
 .row-action:focus-visible {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 /* 放在悬停规则之后：浮层与扫过态压过悬停与聚焦 */
 /* 拖起的浮层：实底加投影，不缩放 */
 .session-item.is-dragging .session-card {
-  background: var(--popover);
-  color: var(--contrast-foreground);
+  background: var(--bg-raised);
+  color: var(--fg);
   box-shadow: var(--shadow-popover);
   cursor: grabbing;
 }
 
 .session-item.is-dragging .title {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 /* 被扫过的行：铺选中底，行尾动作常亮 */
 .session-item.is-swept .session-card {
-  background: var(--btn-selected);
+  background: var(--bg-selected);
 }
 
 .session-item.is-swept .state-mark {
@@ -731,7 +789,7 @@ function confirmDelete() {
 }
 
 .session-item.is-swept .row-action {
-  color: var(--contrast-foreground);
+  color: var(--fg);
   opacity: 1;
 }
 
@@ -746,15 +804,15 @@ function confirmDelete() {
   flex: 1;
   height: 21px;
   margin-block: -2px;
-  padding: 0 var(--space-xxs);
+  padding: 0 var(--space-2xs);
   border: 0;
   border-radius: calc(var(--radius-control) / 2);
   outline: none;
-  background: var(--fill-quiet);
-  color: var(--contrast-foreground);
+  background: var(--bg-muted);
+  color: var(--fg);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
-  box-shadow: inset 0 0 0 1px var(--primary);
+  box-shadow: inset 0 0 0 1px var(--accent-solid);
 }
 
 :global(.title-tooltip) {

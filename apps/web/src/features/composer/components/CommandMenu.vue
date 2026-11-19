@@ -127,18 +127,18 @@ watch(
   max-height: 280px;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: var(--space-xxs);
+  padding: var(--space-2xs);
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-card);
-  corner-shape: var(--corner-shape-composer);
+  corner-shape: var(--composer-corner-shape);
   box-shadow: var(--shadow-popover);
   scrollbar-width: none;
 }
 
 .command-label {
   margin: 0;
-  padding: var(--space-xxs) var(--space-xs) var(--space-xxs);
-  color: var(--contrast-foreground-faint);
+  padding: var(--space-2xs) var(--space-xs) var(--space-2xs);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-meta--line-height);
@@ -147,9 +147,9 @@ watch(
 }
 
 .command-group + .command-group {
-  margin-top: var(--space-xxs);
-  border-top: var(--border-width) solid var(--border-soft);
-  padding-top: var(--space-xxs);
+  margin-top: var(--space-2xs);
+  border-top: var(--border-width) solid var(--border-subtle);
+  padding-top: var(--space-2xs);
 }
 
 .command-row {
@@ -158,20 +158,20 @@ watch(
   gap: var(--space-xs);
   width: 100%;
   min-width: 0;
-  padding: var(--space-xxs) var(--space-xs);
-  border-radius: calc(var(--radius-card) - var(--space-xxs));
-  corner-shape: var(--corner-shape-composer);
-  color: var(--contrast-foreground);
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: calc(var(--radius-card) - var(--space-2xs));
+  corner-shape: var(--composer-corner-shape);
+  color: var(--fg);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
   cursor: pointer;
   user-select: none;
-  transition: background var(--duration-fast) var(--ease-hover);
+  transition: background var(--duration-fast) var(--ease-out);
 }
 
 .command-row:hover,
 .command-row[data-active] {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 .command-icon {
@@ -180,7 +180,7 @@ watch(
   flex: none;
   width: 16px;
   height: 16px;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .command-glyph,
@@ -204,7 +204,7 @@ watch(
 
 .command-secondary {
   overflow: hidden;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -214,14 +214,14 @@ watch(
   flex: none;
   margin-inline-start: auto;
   padding-inline-start: var(--space-xs);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
 .command-status {
   margin: 0;
   padding: var(--space-xs) var(--space-sm);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 </style>

@@ -128,8 +128,8 @@ const sideSession = (side: Side) =>
 const left = sideSession("left")
 const right = sideSession("right")
 /** 跟着会话建，不跟面板挂载：右侧关掉再开，模型选择仍在。 */
-const leftPreset = bindComposerPreset(left, pi.models)
-const rightPreset = bindComposerPreset(right, pi.models)
+const leftPreset = bindComposerPreset(left, pi.models, pi.defaultModel)
+const rightPreset = bindComposerPreset(right, pi.models, pi.defaultModel)
 const onSide = (side: Side) => (side === "right" ? right : left)
 const focused = focusedSession(
   () => onSide(split.focused.value),
@@ -266,27 +266,27 @@ html[data-session-dragging] .split-drop {
 }
 
 .split-drop-zone[data-session-drop-over] {
-  border-color: var(--primary);
-  background: var(--surface);
+  border-color: var(--accent-solid);
+  background: var(--bg-surface);
 }
 
 .split-drop-label {
   display: inline-flex;
   align-items: center;
   gap: var(--space-xs);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
   pointer-events: none;
 }
 
 .split-drop-zone[data-session-drop-over] .split-drop-label {
-  color: var(--primary);
+  color: var(--accent-text);
 }
 
 .split-drop-icon {
-  width: var(--size-icon);
-  height: var(--size-icon);
+  width: var(--icon-md);
+  height: var(--icon-md);
 }
 
 .split-area.is-resizing {
@@ -313,7 +313,7 @@ html[data-session-dragging] .split-drop {
   content: "";
   position: absolute;
   inset-block: 0;
-  inset-inline: calc(-1 * var(--space-xxs));
+  inset-inline: calc(-1 * var(--space-2xs));
 }
 
 .split-resizer::after {
@@ -339,7 +339,7 @@ html[data-session-dragging] .split-drop {
 
 .split-area.is-resizing .split-resizer::after {
   opacity: 1;
-  background: var(--contrast-foreground-secondary);
+  background: var(--fg-secondary);
 }
 
 @media (prefers-reduced-motion: reduce) {

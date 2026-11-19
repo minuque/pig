@@ -68,7 +68,8 @@
                 <Button
                   class="scroll-latest-button"
                   type="button"
-                  variant="soft"
+                  variant="solid"
+                  color="gray"
                   size="s"
                   radius="full"
                   @click="scrollToLatest('smooth')"
@@ -476,17 +477,17 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   align-items: center;
   gap: var(--space-xs);
   padding: var(--space-sm) var(--space-md);
-  border: var(--border-width) dashed var(--primary);
+  border: var(--border-width) dashed var(--accent-solid);
   border-radius: var(--radius-pill);
-  background: var(--surface);
-  color: var(--primary);
+  background: var(--bg-surface);
+  color: var(--accent-text);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
 }
 
 .drop-guide-icon {
-  width: var(--size-icon);
-  height: var(--size-icon);
+  width: var(--icon-md);
+  height: var(--icon-md);
 }
 
 /* 正文列：右侧面板占的列不跨进来，滚动条跟着正文列 */
@@ -538,7 +539,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
 }
 
 .composer-bar.beside-rail {
-  inset-inline-end: var(--size-rail);
+  inset-inline-end: var(--rail-width);
 }
 
 .composer-bar.is-hero {
@@ -563,7 +564,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: min(calc(var(--size-content) + var(--space-sm)), calc(100% - 2 * var(--space-md)));
+  max-width: min(calc(var(--content-width) + var(--space-sm)), calc(100% - 2 * var(--space-md)));
   /* 整组最高到头部下沿：队列再长也从这里让位，不压住头部与窗控 */
   max-block-size: calc(100dvh - var(--header-height) - 2 * var(--space-sm));
   margin-inline: auto;
@@ -583,7 +584,7 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   overflow: visible;
   pointer-events: none;
   opacity: 0;
-  translate: 0 var(--space-xxs);
+  translate: 0 var(--space-2xs);
   transition:
     opacity var(--duration-fast) var(--ease-out),
     translate var(--duration-normal) var(--ease-spring);
@@ -598,23 +599,20 @@ useEventListener(window, "drop", onWindowFileDrop, { capture: true })
   pointer-events: auto;
 }
 
-/* soft 按钮底色半透明，垫一层同形实底，悬停时不透出正文；浮在输入卡上方 */
+/* 反色胶囊浮在输入卡上方，与发送键同一组反色 */
 .scroll-latest {
   display: flex;
   align-self: flex-start;
-  border-radius: var(--radius-pill);
-  background: var(--popover);
   translate: 0 calc(-100% - var(--space-sm));
 }
 
-/* 外边框沿用原圆形图标钮：盒内一圈 --border 细环 */
 .scroll-latest-button {
-  box-shadow: inset 0 0 0 var(--border-width) var(--border);
+  background-color: var(--bg-inverse);
+  color: var(--fg-inverse);
 }
 
-/* 不要按下反馈：按住时保持悬停的底色 */
-.scroll-latest-button:active {
-  background-color: var(--accent-a4);
+.scroll-latest-button:hover {
+  background-color: var(--bg-inverse-hover);
 }
 
 @media (max-width: 900px) {

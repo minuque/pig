@@ -8,7 +8,7 @@ import type {
 
 /** 一次命令行最多带多少个路径：Windows 命令行有长度上限。 */
 const IGNORE_BATCH = 200
-/** 内容搜索的上限取 cc-wrapper 的值：命中、单文件、总字节、耗时都封顶。 */
+/** 内容搜索的上限：命中、单文件、总字节、耗时都封顶。 */
 const MAX_MATCHES = 241
 const MAX_FILES = 5_000
 const MAX_FILE_BYTES = 2 * 1024 * 1024

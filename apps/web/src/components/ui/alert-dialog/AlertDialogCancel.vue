@@ -2,7 +2,8 @@
   <AlertDialogCancel
     data-slot="alert-dialog-cancel"
     v-bind="forwardedProps"
-    :class="[rtButtonClass('outline'), props.class]"
+    data-accent-color="gray"
+    :class="[rtButtonClass('surface'), props.class]"
   >
     <slot />
   </AlertDialogCancel>

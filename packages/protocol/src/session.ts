@@ -29,7 +29,7 @@ export type SessionTranscriptPage =
   | ({ append: TranscriptItem[] } & TranscriptPageMeta)
 
 export type ContextPreviewKey =
-  "systemPrompt" | "memory" | "skills" | "tools" | "toolResults" | "conversation"
+  "systemPrompt" | "memory" | "skills" | "tools" | "mcpTools" | "toolResults" | "conversation"
 
 export interface ContextUsagePreview {
   key: ContextPreviewKey
@@ -40,11 +40,14 @@ export interface ContextUsagePreview {
 export interface ContextUsageEstimate {
   used: number
   window: number
+  /** 模型可用的 MCP 工具数，含按需加载、不占上下文的 */
+  mcpToolCount: number
   segments: {
     systemPrompt: number
     memory: number
     skills: number
     tools: number
+    mcpTools: number
     toolResults: number
     conversation: number
     other: number
