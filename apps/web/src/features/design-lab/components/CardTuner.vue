@@ -106,10 +106,11 @@ import rtCss from "@style/rt.css?raw"
 import tokensCss from "@style/tokens.css?raw"
 import MarkdownContent from "@features/transcript-view/components/markdown/MarkdownContent.vue"
 import { useMarkdownNodes } from "@features/transcript-view/hooks/use-markdown-nodes.js"
+import { useColorScheme } from "@features/theme/index.js"
 
 type Values = { border: string; divider: string; radius: number; surface: string }
 
-const STEPS = ["a2", "a3", "a4", "a5", "a6", "a7", "a8"]
+const STEPS = ["a1", "a2", "a3", "a4"]
 const SURFACES: Record<string, string> = {
   none: "transparent",
   a2: "var(--gray-a2)",
@@ -117,8 +118,8 @@ const SURFACES: Record<string, string> = {
 }
 // 「当前」直接读样式源码，其余预设相对它挪一档，样式改了预设跟着走
 const CURRENT: Values = {
-  border: declared(rtCss, "--border", /--gray-(a\d+)/) ?? "a4",
-  divider: declared(rtCss, "--border-subtle", /--gray-(a\d+)/) ?? "a3",
+  border: declared(tokensCss, "--border", /--(?:black|white)-(a\d+)/) ?? "a2",
+  divider: declared(tokensCss, "--border-subtle", /--(?:black|white)-(a\d+)/) ?? "a1",
   radius: Number(declared(tokensCss, "--radius-card", /([\d.]+)px/) ?? 8),
   surface: declared(rtCss, "--card-surface", /(transparent)/) ? "none" : "surface",
 }
@@ -158,22 +159,31 @@ const nodes = useMarkdownNodes({
   cacheKey: () => "design-tuner",
 })
 const value = reactive<Values>({ ...PRESETS[0]! })
+const { isDark } = useColorScheme()
+// 描边在浅色取 black alpha、深色取 white alpha，跟着当前明暗选一套
+const neutral = (step: string) => `var(--${isDark.value ? "white" : "black"}-${step})`
 const radius = computed({
   get: () => [value.radius],
   set: ([next]) => (value.radius = next ?? value.radius),
 })
 const previewVars = computed(() => ({
-  "--border": `var(--gray-${value.border})`,
-  "--border-subtle": `var(--gray-${value.divider})`,
-  "--separator-top": `inset 0 var(--border-width) 0 var(--gray-${value.divider})`,
+  "--border": neutral(value.border),
+  "--border-subtle": neutral(value.divider),
+  "--separator-top": `inset 0 var(--border-width) 0 ${neutral(value.divider)}`,
   "--radius-card": `${value.radius}px`,
   "--card-surface": SURFACES[value.surface],
 }))
 const output = computed(() =>
   [
+    "/* style/tokens.css → :root */",
+    `--border: var(--black-${value.border});`,
+    `--border-subtle: var(--black-${value.divider});`,
+    "",
+    "/* style/tokens.css → .dark */",
+    `--border: var(--white-${value.border});`,
+    `--border-subtle: var(--white-${value.divider});`,
+    "",
     "/* style/rt.css → .radix-themes */",
-    `--border: var(--gray-${value.border});`,
-    `--border-subtle: var(--gray-${value.divider});`,
     `--card-surface: ${SURFACES[value.surface]};`,
     "",
     "/* style/tokens.css → :root */",
@@ -262,7 +272,7 @@ async function copy() {
 .tuner-label {
   display: flex;
   justify-content: space-between;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 

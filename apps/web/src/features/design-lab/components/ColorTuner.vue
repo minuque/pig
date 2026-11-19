@@ -7,7 +7,7 @@
         :key="theme"
         class="panel"
         :class="theme"
-        :style="{ ...previewVars(colors[theme]), ...RT_VARS }"
+        :style="previewVars(colors[theme])"
       >
         <aside class="panel-side">
           <div
@@ -25,7 +25,6 @@
           <UserMessage :item="USER_SHORT" />
           <p class="text-fg">正文：把卡片外环和行间分隔收进一组变量，组件只读语义层。</p>
           <p class="text-secondary">次要：运行 2 条命令，编辑 4 个文件，用时 18 秒。</p>
-          <p class="text-faint">弱：2 小时前 · DeepSeek V4.1 Flash</p>
 
           <div class="panel-card">
             卡片底色
@@ -152,16 +151,10 @@ type Theme = "light" | "dark"
 const THEMES: Theme[] = ["light", "dark"]
 const ROWS = ["把折叠阈值调到 12 行", "token 收成三层", "发布 GitHub Release"]
 const GROUNDS = ["主区", "侧栏", "卡片"]
-const LABELS = { fg: "正文", secondary: "次要", faint: "弱" }
-// 低于 AA 4.5 标红：弱级也承载会话标题、空状态等必要文字
-const MIN = { fg: 4.5, secondary: 4.5, faint: 4.5 }
-// rt 的灰阶 alpha 在 .radix-themes 上就算好了，预览块换了明暗要在自己身上重算一次
-const RT_VARS = {
-  "--border": "var(--gray-a4)",
-  "--border-subtle": "var(--gray-a3)",
-  "--bg-selected": "var(--slate-a4)",
-  "--bg-hover": "var(--slate-a3)",
-}
+const LABELS = { fg: "正文", secondary: "次要" }
+// 低于 AA 4.5 标红：两级文字都是必要文字
+const MIN = { fg: 4.5, secondary: 4.5 }
+// 描边与悬停选中都取 black / white alpha，不跟明暗重算，预览块直接继承
 const SHARED: {
   key: "hue" | "chroma"
   label: string
@@ -175,11 +168,11 @@ const SHARED: {
 ]
 const LEVELS: { key: keyof Levels; label: string; range: Record<Theme, [number, number]> }[] = [
   { key: "bg", label: "主区亮度", range: { light: [0.9, 1], dark: [0.1, 0.3] } },
-  { key: "step", label: "层差（侧栏低、卡片高）", range: { light: [0, 0.04], dark: [0, 0.04] } },
+  { key: "sidebar", label: "侧栏亮度", range: { light: [0.9, 1], dark: [0.1, 0.3] } },
+  { key: "surface", label: "卡片亮度", range: { light: [0.9, 1], dark: [0.1, 0.35] } },
   { key: "raised", label: "浮层亮度", range: { light: [0.9, 1], dark: [0.15, 0.35] } },
   { key: "fg", label: "正文亮度", range: { light: [0.15, 0.5], dark: [0.65, 0.98] } },
   { key: "secondary", label: "次要亮度", range: { light: [0.3, 0.65], dark: [0.5, 0.85] } },
-  { key: "faint", label: "弱级亮度", range: { light: [0.4, 0.75], dark: [0.4, 0.8] } },
 ]
 const params = reactive<Params>(structuredClone(DEFAULTS))
 const editing = ref<Theme>("light")
@@ -201,11 +194,11 @@ const { copy: write } = useClipboard({ legacy: true })
 function swatch(key: keyof Levels): string {
   const map = {
     bg: "bg",
-    step: "sunken",
+    sidebar: "sidebar",
+    surface: "surface",
     raised: "raised",
     fg: "fg",
     secondary: "secondary",
-    faint: "faint",
   } as const
   return colors.value[editing.value][map[key]]
 }
@@ -252,7 +245,7 @@ async function copy() {
   flex-direction: column;
   gap: var(--space-2xs);
   padding: var(--space-sm) var(--space-xs);
-  background: var(--bg-sunken);
+  background: var(--sidebar);
   box-shadow: inset calc(var(--border-width) * -1) 0 0 var(--border-subtle);
 }
 
@@ -268,7 +261,7 @@ async function copy() {
 }
 
 .side-meta {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 
@@ -291,11 +284,6 @@ async function copy() {
 
 .text-secondary {
   color: var(--fg-secondary);
-}
-
-.text-faint {
-  color: var(--fg-faint);
-  font-size: var(--text-meta);
 }
 
 .panel-card {
@@ -364,7 +352,7 @@ async function copy() {
 .tuner-label {
   display: flex;
   justify-content: space-between;
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
 }
 

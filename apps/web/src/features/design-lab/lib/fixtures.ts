@@ -29,8 +29,8 @@ export const card = { ring: "--border", radius: "--radius-card" }
 
 | 变量 | 用途 | 默认值 |
 | --- | --- | --- |
-| \`--border\` | 卡片外环 | gray-a4 |
-| \`--border-subtle\` | 行间分隔 | gray-a3 |
+| \`--border\` | 卡片外环 | black-a2 |
+| \`--border-subtle\` | 行间分隔 | black-a1 |
 | \`--card-surface\` | 卡片底色 | transparent |
 
 \`\`\`mermaid

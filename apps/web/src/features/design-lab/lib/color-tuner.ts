@@ -1,42 +1,39 @@
 import { contrast, oklchToHex } from "@features/design-lab/lib/oklch.js"
 
-/** 一套主题的亮度参数：主区、层差、浮层、三级文字，全是 OKLCH 的 L（0–1）。 */
+/** 一套主题的亮度参数：主区、侧栏、卡片、浮层、两级文字，全是 OKLCH 的 L（0–1）。 */
 export type Levels = {
   bg: number
-  step: number
+  sidebar: number
+  surface: number
   raised: number
   fg: number
   secondary: number
-  faint: number
 }
 
 export type Params = { hue: number; chroma: number; light: Levels; dark: Levels }
 
-export type Scheme = Record<
-  "bg" | "sunken" | "surface" | "raised" | "fg" | "secondary" | "faint",
-  string
->
+export type Scheme = Record<"bg" | "sidebar" | "surface" | "raised" | "fg" | "secondary", string>
 
-/** 起点：tokens.css 当前取值（色相 285°，色度 0.005）；深色文字实际偏冷蓝，这里按表面色相近似。 */
+/** 起点：tokens.css 当前取值（色相 285°，色度 0.005）。文字 token 是 black / white alpha，
+    这里取它们压在主区上的等效实色，方便按表面亮度调档。 */
 export const DEFAULTS: Params = {
   hue: 285,
   chroma: 0.005,
-  light: { bg: 0.962, step: 0.012, raised: 0.99, fg: 0.36, secondary: 0.46, faint: 0.53 },
-  dark: { bg: 0.174, step: 0.03, raised: 0.236, fg: 0.936, secondary: 0.716, faint: 0.62 },
+  light: { bg: 1, sidebar: 0.976, surface: 0.976, raised: 0.988, fg: 0.321, secondary: 0.51 },
+  dark: { bg: 0.174, sidebar: 0.159, surface: 0.205, raised: 0.226, fg: 0.928, secondary: 0.703 },
 }
 
-/** 侧栏比主区低一个层差，卡片高一个层差；文字色度取表面的两倍，冷色相读得出来但不发蓝。 */
+/** 每层各自取亮度：浅色各层都在白底上往下压，深色除侧栏外都比主区亮一档。 */
 export function scheme(params: Params, levels: Levels): Scheme {
   const surface = (l: number) => oklchToHex(l, params.chroma, params.hue)
   const text = (l: number) => oklchToHex(l, params.chroma * 2, params.hue)
   return {
     bg: surface(levels.bg),
-    sunken: surface(levels.bg - levels.step),
-    surface: surface(levels.bg + levels.step),
+    sidebar: surface(levels.sidebar),
+    surface: surface(levels.surface),
     raised: surface(levels.raised),
     fg: text(levels.fg),
     secondary: text(levels.secondary),
-    faint: text(levels.faint),
   }
 }
 
@@ -44,20 +41,19 @@ export function scheme(params: Params, levels: Levels): Scheme {
 export function previewVars(colors: Scheme): Record<string, string> {
   return {
     "--bg": colors.bg,
-    "--bg-sunken": colors.sunken,
+    "--sidebar": colors.sidebar,
     "--bg-surface": colors.surface,
     "--bg-raised": colors.raised,
     "--fg": colors.fg,
     "--fg-secondary": colors.secondary,
-    "--fg-faint": colors.faint,
   }
 }
 
-/** 三级文字分别压在主区、侧栏、卡片上的 WCAG 2 对比度。 */
+/** 两级文字分别压在主区、侧栏、卡片上的 WCAG 2 对比度。 */
 export function ratios(colors: Scheme) {
-  return (["fg", "secondary", "faint"] as const).map((key) => ({
+  return (["fg", "secondary"] as const).map((key) => ({
     key,
-    values: (["bg", "sunken", "surface"] as const).map((ground) =>
+    values: (["bg", "sidebar", "surface"] as const).map((ground) =>
       contrast(colors[key], colors[ground]),
     ),
   }))
@@ -67,11 +63,10 @@ export function cssBlock(selector: string, colors: Scheme): string {
   return [
     `/* tokens.css → ${selector} */`,
     `--bg: ${colors.bg};`,
-    `--bg-sunken: ${colors.sunken};`,
+    `--sidebar: ${colors.sidebar};`,
     `--bg-surface: ${colors.surface};`,
     `--bg-raised: ${colors.raised};`,
     `--fg: ${colors.fg};`,
     `--fg-secondary: ${colors.secondary};`,
-    `--fg-faint: ${colors.faint};`,
   ].join("\n")
 }
