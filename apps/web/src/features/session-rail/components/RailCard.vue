@@ -1,57 +1,53 @@
 <template>
-  <CollapsibleRoot
-    as="section"
-    class="rail-card"
-    :open="open"
-    :data-id="id"
-    :aria-labelledby="titleId"
-  >
-    <ContextMenu>
-      <ContextMenuTrigger as-child>
-        <div class="rail-top">
-          <h3 :id="titleId" class="rail-heading">
-            <button
-              type="button"
-              class="rail-head"
-              :aria-expanded="open"
-              :aria-controls="bodyId"
-              @click="$event.altKey ? emit('toggleAll') : emit('toggle')"
+  <CollapsibleRoot as-child :open="open">
+    <Card as="section" size="s" class="rail-card" :data-id="id" :aria-labelledby="titleId">
+      <ContextMenu>
+        <ContextMenuTrigger as-child>
+          <div class="rail-top">
+            <h3 :id="titleId" class="rail-heading">
+              <button
+                type="button"
+                class="rail-head"
+                :aria-expanded="open"
+                :aria-controls="bodyId"
+                @click="$event.altKey ? emit('toggleAll') : emit('toggle')"
+              >
+                <span class="rail-title">{{ title }}</span>
+
+                <ChevronRightIcon
+                  class="rail-caret motion-turn"
+                  :class="{ 'is-on': open }"
+                  aria-hidden="true"
+                />
+
+                <span v-if="$slots.summary" class="rail-summary" :aria-hidden="open || undefined">
+                  <slot name="summary" />
+                </span>
+              </button>
+            </h3>
+
+            <span
+              class="rail-grip"
+              role="button"
+              tabindex="0"
+              :aria-label="t('rail.reorder', { name: title })"
+              @keydown.up.prevent="emit('nudge', -1)"
+              @keydown.down.prevent="emit('nudge', 1)"
             >
-              <span class="rail-title">{{ title }}</span>
+              <GripVerticalIcon aria-hidden="true" />
+            </span>
+          </div>
+        </ContextMenuTrigger>
 
-              <ChevronRightIcon
-                class="rail-caret motion-turn"
-                :class="{ 'is-on': open }"
-                aria-hidden="true"
-              />
+        <ContextMenuContent size="s">
+          <slot name="menu" />
+        </ContextMenuContent>
+      </ContextMenu>
 
-              <span v-if="$slots.summary" class="rail-summary" :aria-hidden="open || undefined">
-                <slot name="summary" />
-              </span>
-            </button>
-          </h3>
-
-          <span
-            class="rail-grip"
-            role="button"
-            tabindex="0"
-            :aria-label="t('rail.reorder', { name: title })"
-            @keydown.up.prevent="emit('nudge', -1)"
-            @keydown.down.prevent="emit('nudge', 1)"
-          >
-            <GripVerticalIcon aria-hidden="true" />
-          </span>
-        </div>
-      </ContextMenuTrigger>
-
-      <ContextMenuContent size="s">
-        <slot name="menu" />
-      </ContextMenuContent>
-    </ContextMenu>
-
-    <CollapsibleContent :id="bodyId" class="rail-body">
-      <slot />
-    </CollapsibleContent>
+      <CollapsibleContent :id="bodyId">
+        <slot />
+      </CollapsibleContent>
+    </Card>
   </CollapsibleRoot>
 </template>
 
@@ -60,6 +56,7 @@ import { useId } from "vue"
 import { CollapsibleContent, CollapsibleRoot } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
 import { ChevronRightIcon, GripVerticalIcon } from "@components/icons/index.js"
+import { Card } from "@components/ui/card/index.js"
 import {
   ContextMenu,
   ContextMenuContent,
@@ -75,20 +72,16 @@ const bodyId = useId()
 </script>
 
 <style scoped>
+/* 外环、圆角、内边距都来自 Card；摘要卡只换底色 */
 .rail-card {
-  display: flex;
-  flex-direction: column;
-  min-inline-size: 0;
-  padding: var(--space-xs);
-  border-radius: var(--radius-card);
-  background: var(--bg-surface);
-  box-shadow: 0 0 0 1px var(--border);
+  --card-surface: var(--bg-surface);
 }
 
 /* 拖着走的卡片压在上层，铺浮层底遮住下面的卡；位移由 useDragReorder 驱动 */
 .rail-card.is-drag-live {
+  --card-surface: var(--bg-raised);
+
   z-index: 2;
-  background: var(--bg-raised);
   cursor: grabbing;
   user-select: none;
 }
@@ -114,7 +107,7 @@ const bodyId = useId()
   gap: var(--space-2xs);
   min-inline-size: 0;
   min-block-size: var(--control-sm);
-  padding-inline: var(--space-2xs);
+  padding: 0;
   color: var(--fg);
   font: inherit;
   font-size: var(--text-meta);
@@ -218,9 +211,5 @@ const bodyId = useId()
 .rail-grip :deep(svg) {
   inline-size: var(--icon-md);
   block-size: var(--icon-md);
-}
-
-.rail-body {
-  padding: var(--space-2xs) var(--space-2xs) 0;
 }
 </style>
