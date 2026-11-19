@@ -25,19 +25,30 @@
     </div>
 
     <ul class="ctx-legend">
-      <li v-for="segment in rows" :key="segment.id">
-        <component
-          :is="canPreview(segment) ? 'button' : 'div'"
-          :type="canPreview(segment) ? 'button' : undefined"
-          class="ctx-row"
-          :data-idle="segment.id === 'idle' || undefined"
-          @click="canPreview(segment) && (previewing = segment)"
+      <li
+        v-for="segment in rows"
+        :key="segment.id"
+        class="ctx-row"
+        :data-idle="segment.id === 'idle' || undefined"
+      >
+        <span class="ctx-swatch" :style="{ background: segment.color }" />
+
+        <Link
+          v-if="canPreview(segment)"
+          as="button"
+          type="button"
+          color="gray"
+          underline="hover"
+          truncate
+          class="ctx-label"
+          @click="previewing = segment"
         >
-          <span class="ctx-swatch" :style="{ background: segment.color }" />
-          <span class="ctx-label">{{ segment.label }}</span>
-          <span class="ctx-tokens">{{ formatTokenCount(segment.tokens) }}</span>
-          <span class="ctx-share">{{ share(segment) }}</span>
-        </component>
+          {{ segment.label }}
+        </Link>
+
+        <span v-else class="ctx-label">{{ segment.label }}</span>
+        <span class="ctx-tokens">{{ formatTokenCount(segment.tokens) }}</span>
+        <span class="ctx-share">{{ share(segment) }}</span>
       </li>
     </ul>
 
@@ -54,6 +65,7 @@
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
+import { Link } from "@components/ui/link/index.js"
 import {
   contextUsageSummary,
   formatTokenCount,
@@ -118,35 +130,19 @@ const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && 
 .ctx-legend {
   display: flex;
   flex-direction: column;
+  gap: var(--space-2xs);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-/* 一行：色块 · 分类名 · token 数 · 占比 */
+/* 一行：色块 · 分类名 · token 数 · 占比；能预览的分类名是链接，悬停出下划线 */
 .ctx-row {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  inline-size: 100%;
-  min-block-size: var(--control-sm);
-  padding: 0 var(--space-2xs);
-  border: 0;
-  border-radius: var(--radius-control);
-  background: transparent;
   color: var(--fg-faint);
-  font: inherit;
   font-size: var(--text-meta);
-  text-align: start;
-}
-
-button.ctx-row {
-  cursor: pointer;
-}
-
-button.ctx-row:hover {
-  background: var(--bg-hover);
-  color: var(--fg);
 }
 
 .ctx-swatch {
@@ -159,9 +155,15 @@ button.ctx-row:hover {
 .ctx-label {
   flex: 1;
   min-inline-size: 0;
+  text-align: start;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* rt 的下划线取 accent-a5，灰色链接上几乎看不见：跟文字同色 */
+.ctx-label[data-slot="link"] {
+  text-decoration-color: currentColor;
 }
 
 .ctx-tokens {

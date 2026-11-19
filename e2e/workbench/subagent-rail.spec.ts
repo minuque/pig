@@ -73,7 +73,7 @@ test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({
 
   // 上下文展开：按分类列 token 与占比，点分类在弹框里看实际进上下文的内容，可切源码
   const contextCard = rail.locator(".rail-card", { hasText: "上下文" })
-  await contextCard.locator("button.ctx-row").first().click()
+  await contextCard.locator(".ctx-row button").first().click()
   const preview = page.getByRole("dialog")
   const body = preview.locator(".preview-body")
   await expect(body).not.toBeEmpty({ timeout: 30_000 })
