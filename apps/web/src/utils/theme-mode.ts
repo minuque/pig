@@ -6,20 +6,22 @@ const STORAGE_KEY = "npg-theme"
 
 type Mode = UseColorModeReturn
 
-let shared: { mode: Mode; isDark: ComputedRef<boolean> } | undefined
+type ThemeState = { mode: Mode; isDark: ComputedRef<boolean> }
+
+let shared: ThemeState | undefined
 /** 分离 scope：主题 effect 跟模块同寿命，不随首个调用组件卸载。 */
 const scope = effectScope(true)
 
-function state() {
+function state(): ThemeState {
   shared ??= scope.run(() => {
     const mode = useColorMode({
       initialValue: "auto",
       storageKey: STORAGE_KEY,
       disableTransition: false,
-    })
+    }) as Mode
     const isDark = computed(() => mode.state.value === "dark")
     return { mode, isDark }
-  })!
+  }) as ThemeState
   return shared
 }
 

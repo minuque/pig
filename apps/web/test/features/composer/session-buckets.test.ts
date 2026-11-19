@@ -1,5 +1,4 @@
-import { defineComponent, h } from "vue"
-import { mount } from "@vue/test-utils"
+import { createRenderer, defineComponent, h } from "vue"
 import { describe, expect, it } from "vitest"
 import {
   useComposerQueue,
@@ -10,6 +9,21 @@ import {
   provideSharedBuckets,
   useSessionBuckets,
 } from "@features/composer/hooks/use-session-buckets.js"
+
+const noop = () => {}
+const node = () => ({})
+const { createApp } = createRenderer<object, object>({
+  patchProp: noop,
+  insert: noop,
+  remove: noop,
+  createElement: node,
+  createText: node,
+  createComment: node,
+  setText: noop,
+  setElementText: noop,
+  parentNode: () => null,
+  nextSibling: () => null,
+})
 
 function twoSides() {
   const store = createSharedBuckets()
@@ -53,13 +67,15 @@ describe("两侧共用的按会话暂存", () => {
         return () => h(Child)
       },
     })
-    const wrapper = mount(Shell)
+    const app = createApp(Shell)
+
+    app.mount({})
 
     childQueue.setKey("s1")
     childQueue.enqueue("后台待发")
 
     expect(shellQueue.shiftFor("s1")?.text).toBe("后台待发")
     expect(childQueue.sizeFor("s1")).toBe(0)
-    wrapper.unmount()
+    app.unmount()
   })
 })
