@@ -2,25 +2,23 @@
 name: pig 工作台
 description: 本机 Pi agent 的多会话并行工作台界面
 colors:
-  primary: "#0A7F9C"
-  primary-hover-light: "#086E87"
-  primary-hover-dark: "#0A7F9C"
+  primary: "#3E63DD"
+  primary-hover-light: "#3358D4"
+  primary-hover-dark: "#5472E4"
   primary-on: "#FFFFFF"
   link-light: "#0B6F88"
   link-dark: "#4CCCE6"
-  window-light: "#F2F2F6"
-  sidebar-light: "#EEEEF2"
-  overlay-light: "#FBFBFF"
+  window-light: "#FFFFFF"
+  sidebar-light: "#F7F8F8"
+  overlay-light: "#FBFBFC"
   window-dark: "#101012"
-  sidebar-dark: "#0A0A0B"
+  sidebar-dark: "#0D0D0E"
   card-dark: "#17171A"
-  overlay-dark: "#1E1E20"
-  ink-light: "#3C3C42"
-  ink-secondary-light: "#57575E"
-  ink-faint-light: "#6B6B72"
-  ink-dark: "#E8EAED"
-  ink-secondary-dark: "#9DA4AE"
-  ink-faint-dark: "#85858C"
+  overlay-dark: "#1C1C1F"
+  ink-light: "#333333"
+  ink-secondary-light: "#666666"
+  ink-dark: "#CFCFD0"
+  ink-secondary-dark: "#9F9FA0"
 typography:
   heading:
     fontFamily: "-apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
@@ -67,7 +65,7 @@ spacing:
 
 ## 基调
 
-克制、安静、舒服，表面与文字取 Linear 的冷灰基调。主题色 Radix cyan，中性色 Radix slate。
+克制、安静、舒服，表面与文字取 Linear 的冷灰基调。主题色 Radix indigo，悬停与选中浅色取 indigo 的 alpha 3 / 4 级、深色取 2 / 3 级，描边取 black / white alpha，rt 组件的灰阶取 Radix 纯灰（`gray`）；链接与进行中的 cyan 只管活动态。
 
 优先级：解决问题 > 易于使用 > 好看美观。界面靠布局和控件本身说话，不靠说明文字和装饰。
 
@@ -75,7 +73,7 @@ spacing:
 
 `style/tokens.css` 分三层，组件只读语义层和组件层：
 
-1. **原色阶**：Radix slate、cyan 与状态色板由 rt 提供，`tokens.css` 不另写。
+1. **原色阶**：Radix indigo、gray、cyan 与状态色板由 rt 提供，`tokens.css` 不另写。
 2. **语义层**：全站共用，按「表面、前景、边与分割、交互、状态、字、间距、圆角、阴影、动效、图标与控件高、布局、层级」分组。命名一个概念一个词：前景 `fg`、底 `bg`、边 `border`、品牌色 `accent`、状态 `-text` / `-subtle`。
 3. **组件层**：只给单个组件或一类内容用，名字以组件开头（`--composer-*`、`--file-tab-*`、`--settings-*`、`--language-*`、`--mascot-*`）。能用语义档就不进这一层。
 
@@ -83,8 +81,8 @@ spacing:
 
 ## 七条规则
 
-1. **一页一个强调色。** 强调色只用于主操作、焦点、链接与进行中态。卡片、区块不铺强调色；悬停与选中走中性 `slate` 的极淡灰底（`--slate-a3` / `--slate-a4`），不带主题色。
-2. **一页最多 4 种字号。** 全局只有 4 档，层级靠字重和三级文字色。
+1. **一页一个强调色。** 强调色（indigo）只用于主操作、焦点与悬停/选中底；活动态（链接、进行中、运行指示）另走 cyan。卡片、区块不铺强调色，悬停与选中只取 indigo 的 alpha（浅色 3 / 4 级、深色 2 / 3 级），不铺实色。
+2. **一页最多 4 种字号。** 全局只有 4 档，层级靠字重和两级文字色。
 3. **默认扁平。** 不叠阴影、不发光。阴影与毛玻璃只给真正浮起来的层：弹窗、命令面板、菜单、下拉、浮卡共用 `--glass-*` 一套。
 4. **不卡片套卡片。** 卡片里的分组用标题加分割线。
 5. **圆角同心。** 内层圆角 = 外层圆角 − 内边距。
@@ -95,49 +93,48 @@ spacing:
 
 ### 强调色
 
-强调色用 Radix 的 `cyan`。`index.html` 与 `ThemeRoot` 的 `data-accent-color="cyan"` 把它映射到 `--accent-*`；`rt.css` 把默认主题 cyan 的 9/10/11 档接回语义层的校准值，因为 Radix 原生 cyan-9 配白字只有 3.0:1，直用不过 AA。
+强调色用 Radix 的 `indigo`。`index.html` 与 `ThemeRoot` 的 `data-accent-color="indigo"` 把它映射到 `--accent-*`；indigo 的 9/10/11 档原生就过 AA（9 档配白字 5.2:1，11 档压灰底 5.6:1），不需要再校准。
 
-同一个 cyan 分两个角色，按用法取值，不混用：
+强调色分两个角色，按用法取值，不混用：
 
-- `--accent-solid`：实心填充与描边。浅色 `#0A7F9C`（配白字 4.6:1），深色 `#097590`（5.3:1），悬停用 `--accent-solid-hover`。主按钮的底、进度填充、指示器用它，文字用 `--fg-on-accent`（白）。
-- `--accent-text`：文字与图标前景。浅色 `#0B6F88`（在主区、侧栏、卡片上都 ≥ 5:1），深色 cyan-11。链接、焦点环、`.text-primary` 与进行中的文字图标用它。
-- 焦点环 `--focus-ring` = 2px 实色 `--accent-text`。
-- 链接 `--link` 就是 `--accent-text`，与「进行中」同色。
-- 「进行中」与强调色合一：运行状态、转圈、上下文进度条与用量环走 `--info-*`，文字取 `--accent-text`，填充取 `--accent-solid`，浅底取 cyan 第 3 级 alpha。
-- 悬停与选中不跟强调色走：按钮、菜单项、侧栏行的 `--bg-hover` / `--bg-selected` 取中性 `slate` 的 `--slate-a3` / `--slate-a4`，深浅主题由色板自己切，列表再长也不出现一片彩色底。
+- `--accent-solid`：实心填充与描边，取 `indigo-9`（`#3E63DD`，配白字 5.2:1），悬停用 `indigo-10`。主按钮的底、指示器、焦点描边用它，文字用 `--fg-on-accent`（白）。
+- `--accent-text`：文字与图标前景，取 `indigo-11`（浅色 `#3A5BC7`，深色 `#9EB1FF`）。焦点环、`.text-primary` 与强调色文字用它。
+- 焦点环 `--focus-ring` = 2px 实色 `--accent-text`（indigo）。
+- 链接 `--link` 取 `--info-text`，与「进行中」同一种 cyan，不跟强调色走。
+- 「进行中」与强调色分开：运行状态、转圈、上下文进度条与用量环走 `--info-*`，文字取 `--info-text`（浅色 `#0B6F88`，深色 cyan-11），填充取 `--info-solid`（cyan-9），浅底取 cyan 第 3 级 alpha。
+- 悬停与选中跟随强调色：按钮、菜单项、侧栏行的 `--bg-hover` / `--bg-selected` 浅色取 indigo 第 3、4 级 alpha，深色降到第 2、3 级，只做极淡的底色，不铺成彩色块。
 - 一页只出现一个 solid 主按钮，其余用 soft 或 ghost。
-- 输入卡的发送 / 停止键与「滚动到底部」用反色（`--bg-inverse` / `--fg-inverse`），不用强调色。反色取中灰（浅色 `#6B6B72` 配白字 5.3:1，深色 `#9DA4AE` 配深字 7.6:1），不用纯黑白。发送键不可用时换 `--bg-emphasis` 底配 `--fg-faint` 图标，不靠降透明度。
+- 输入卡的发送 / 停止键与「滚动到底部」用反色（`--bg-inverse` / `--fg-inverse`），不用强调色。反色取中灰（浅色 `#6B6B72` 配白字 5.3:1，深色 `#9DA4AE` 配深字 7.6:1），不用纯黑白。发送键不可用时换 `--bg-emphasis` 底配 `--fg-secondary` 图标，不靠降透明度。
 
 ### 中性色
 
-中性色用 Radix 的 `slate`（`data-gray-color="slate"`），描边与 rt 基础件的灰阶跟着它走；表面与文字是下表的固定值，取自 Linear 基调。
+表面、文字、悬停与描边都用 black / white alpha 与固定 hex，不带色相偏移。rt 组件的灰阶（`--gray-*`）取 Radix 纯灰（`data-gray-color="gray"`），即 `color="gray"` 的按钮、徽章、Kbd、表格行线与菜单分割线读的也是纯灰；图表里的中性档 `--chart-other` 取 `gray-8`。
 
-| 层                             | 浅色                        | 深色                      | token                         |
-| ------------------------------ | --------------------------- | ------------------------- | ----------------------------- |
-| 窗口、主区                     | `#F2F2F6`                   | `#101012`                 | `--bg`                        |
-| 侧栏（主侧栏、抽屉、设置导航） | `#EEEEF2`（比主区深半档）   | `#0A0A0B`（比主区暗一截） | `--bg-sunken`                 |
-| 卡片、输入卡、气泡、工具输入   | `#F6F6FA`                   | `#17171A`                 | `--bg-surface`                |
-| 浮起的实色表面                 | `#FBFBFF`                   | `#1E1E20`                 | `--bg-raised`                 |
-| 按钮与行悬停 / 选中            | `--slate-a3` / `--slate-a4` | 同左                      | `--bg-hover`、`--bg-selected` |
+| 层                             | 浅色                          | 深色                          | token                         |
+| ------------------------------ | ----------------------------- | ----------------------------- | ----------------------------- |
+| 窗口、主区                     | `#FFFFFF`                     | `#101012`                     | `--bg`                        |
+| 侧栏（主侧栏、抽屉、设置导航） | `#F7F8F8`（比主区深半档）     | `#0D0D0E`（比主区暗半档）     | `--sidebar`                   |
+| 卡片、输入卡、气泡、工具输入   | `#F7F8F8`（与侧栏同一档）     | `#17171A`                     | `--bg-surface`                |
+| 浮起的实色表面                 | `#FBFBFC`                     | `#1C1C1F`                     | `--bg-raised`                 |
+| 按钮与行悬停 / 选中            | `--indigo-a3` / `--indigo-a4` | `--indigo-a2` / `--indigo-a3` | `--bg-hover`、`--bg-selected` |
 
-文字只有三级，固定色。浅色与表面同一冷色相（OKLCH 色相约 285°），深色主文字与次要文字偏冷蓝（约 258°）：
+文字两级，取 Radix 的 black / white alpha：浅色压 black alpha，深色压 white alpha，alpha 随底自适应，侧栏与卡片上不再单独调色：
 
-| 级  | 浅色      | 深色      | 对主区     | 用途                                                       |
-| --- | --------- | --------- | ---------- | ---------------------------------------------------------- |
-| 主  | `#3C3C42` | `#E8EAED` | 9.8 / 15.8 | 正文、标题                                                 |
-| 次  | `#57575E` | `#9DA4AE` | 6.4 / 7.6  | 次要信息                                                   |
-| 弱  | `#6B6B72` | `#85858C` | 4.7 / 5.2  | 时间、占位、空状态等弱提示，在主区、侧栏、卡片上都 ≥ 4.5:1 |
+| 级  | 浅色                    | 深色                    | 对主区      | 用途       |
+| --- | ----------------------- | ----------------------- | ----------- | ---------- |
+| 主  | `black-a10`（≈#333333） | `white-a11`（≈#E7E7E8） | 12.6 / 15.4 | 正文、标题 |
+| 次  | `black-a8`（≈#666666）  | `white-a8`（≈#9F9FA0）  | 5.7 / 7.2   | 次要信息   |
 
-描边只有 `--border`（gray-a4）与 `--border-subtle`（gray-a3）。分割线只用 1px `--border-subtle`。
+描边只有 `--border`（alpha 第 2 档）、`--border-subtle`（第 1 档）与 `--border-strong`（第 3 档），都是 black / white alpha。分割线只用 1px `--border-subtle`。
 
 ### 状态色
 
-文字色（`--success-text`、`--info-text`、`--warning-text`、`--danger-text`）配同色相浅底（`--*-subtle`）。成功取 Radix green 第 11 级与第 3 级 alpha；信息与强调色同为 cyan 族：文字取 `--accent-text`、填充取 `--accent-solid`（深色 cyan-9），浅底取 cyan 第 3 级 alpha，`Banner(info)` 跟随主题色因此也是 cyan；警告、危险用项目自定色值，深浅各一套。进度条与用量环用 `--info-solid` 实色填充。不用实色填充，不加光晕。状态色只在真有状态时出现。
+文字色（`--success-text`、`--info-text`、`--warning-text`、`--danger-text`）配同色相浅底（`--*-subtle`）。成功取 Radix green 第 11 级与第 3 级 alpha；信息是活动态、单走 cyan 族，与强调色分开：文字取 `--info-text`、填充取 `--info-solid`，浅底取 cyan 第 3 级 alpha，`Banner(info)` 的强调色因此仍是 cyan；警告、危险用项目自定色值，深浅各一套。进度条与用量环用 `--info-solid` 实色填充。不用实色填充，不加光晕。状态色只在真有状态时出现。
 
 ### 例外
 
 - `--language-*`：代码块语言图标，只在代码块里。
-- Mermaid 图：浅色用 pele 自带的默认配色；深色在 `mermaid.css` 接 `--mermaid-*`（底 `#101012`、填充 `#17171A`、线 `#2A2A2E`）。
+- Mermaid 图：浅色用 pele 自带的默认配色；深色在 `mermaid.css` 接项目语义 token（底 `--bg`、填充 `--bg-surface`、线 `--border`）。
 - `--mascot-*`：吉祥物插画，深浅共用 logo 原色。
 
 ## 字号
