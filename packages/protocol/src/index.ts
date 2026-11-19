@@ -1,6 +1,16 @@
 /** web 与 gateway 之间的 WebSocket 消息与 HTTP 数据形状；只有类型，没有运行时代码。 */
 export type { ExtensionUiDialog, ExtensionUiRequest, ExtensionUiResponse } from "./extension-ui.js"
 
+export type {
+  PlatformHttpRouteKey,
+  PlatformHttpRoutes,
+  PlatformHttpRouteSpec,
+  PlatformRouteBody,
+  PlatformRouteParams,
+  PlatformRouteQuery,
+  PlatformRouteResponse,
+} from "./http.js"
+
 export type { ModelChannels, ModelMetadata, ModelRef, ThinkingLevel } from "./model.js"
 
 export type {

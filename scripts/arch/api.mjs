@@ -6,6 +6,8 @@ import ts from "typescript"
 const SERVER_DIR = "packages/gateway/src/server"
 const WIRE = "packages/protocol/src/wire.ts"
 const METHOD = /method\s*[!=]==\s*"([A-Z]+)"/g
+/** 声明式路由的键："POST /api/v1/platform/rename-session"。 */
+const ROUTE_KEY = /^(?:GET|POST|PUT|PATCH|DELETE|HEAD) (\/api\/\S+)$/
 const parse = (root, id) =>
   ts.createSourceFile(id, readFileSync(join(root, id), "utf8"), ts.ScriptTarget.Latest, true)
 
@@ -106,6 +108,13 @@ function fileRoutes(root, id) {
   }
 
   visit(file, (node) => {
+    // 声明式注册：路由键本身就是方法加路径
+    if (ts.isStringLiteral(node)) {
+      const key = ROUTE_KEY.exec(node.text)
+
+      if (key) add([key[1]], [node.text.slice(0, node.text.indexOf(" "))])
+    }
+
     if (
       ts.isBinaryExpression(node) &&
       node.operatorToken.kind === ts.SyntaxKind.EqualsEqualsEqualsToken &&
@@ -153,7 +162,9 @@ function webCallSites(root) {
       else if (/\.(?:ts|vue)$/.test(entry.name)) {
         const text = readFileSync(join(root, id), "utf8").replace(/\$\{[^}]*\}/g, "\0")
 
-        for (const m of text.matchAll(/["'`](\/api\/[^"'`?]*)/g)) sites.push({ id, url: m[1] })
+        // 声明式调用写的是 "GET /api/..."，方法前缀可有可无
+        for (const m of text.matchAll(/["'`](?:[A-Z]+ )?(\/api\/[^"'`?]*)/g))
+          sites.push({ id, url: m[1] })
       }
     }
   }
@@ -163,7 +174,13 @@ function webCallSites(root) {
 }
 
 const routeMatcher = (path) =>
-  new RegExp(`^${path.replace(/[.]/g, "\\.").replace(/:\d+/g, "[^/]+").replace(/\*$/, ".*")}$`)
+  new RegExp(
+    `^${path
+      .replace(/[.]/g, "\\.")
+      .replace(/\/:[A-Za-z]\w*/g, "/[^/]+")
+      .replace(/:\d+/g, "[^/]+")
+      .replace(/\*$/, ".*")}$`,
+  )
 
 function unionLiterals(file, typeName, key) {
   const out = []

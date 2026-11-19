@@ -20,9 +20,13 @@ describe("scanApi", () => {
     assert.ok(route.callers.includes("apps/web/src/client/platform.ts"))
   })
 
-  it("正则路由的捕获组显示成参数", () => {
-    assert.ok(api.http.some((r) => r.path === "/api/v1/platform/providers/:1/key"))
-    assert.ok(api.http.some((r) => r.path === "/api/v1/platform/providers/:1/models/:2/params"))
+  it("路径参数端点显示成 :name", () => {
+    assert.ok(api.http.some((r) => r.path === "/api/v1/platform/providers/:providerId/key"))
+    assert.ok(
+      api.http.some(
+        (r) => r.path === "/api/v1/platform/providers/:providerId/models/:modelId/params",
+      ),
+    )
   })
 
   it("WS 命令与事件来自协议联合类型", () => {

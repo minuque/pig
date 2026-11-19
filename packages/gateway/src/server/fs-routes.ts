@@ -1,18 +1,13 @@
+/** 工作区内文件的只读接口：stat / text / raw / list / search、git 状态与预览令牌。 */
 import type { IncomingMessage, ServerResponse } from "node:http"
 import { posix, win32 } from "node:path"
 import { pipeline } from "node:stream/promises"
-import type {
-  ContentSearchResponse,
-  DirectoryListResponse,
-  FileStatResponse,
-  FileTextResponse,
-  GitStatusResponse,
-} from "@pig/protocol"
 import type { Environment } from "@pig/environment"
-
+import type { FileStatResponse, FileTextResponse } from "@pig/protocol"
 import { workspaceEnvironment } from "../pi/remote-session.js"
-import type { PlatformRequestDeps } from "./platform.js"
+import type { PiHostService } from "../pi/service.js"
 import { issuePreviewToken } from "./file-preview.js"
+import { HttpError, type HttpDeps, type HttpRouteTable } from "./router.js"
 import { gitIgnored, gitStatus, searchContents } from "./workspace-git.js"
 
 /** 与 cc-wrapper 的 PREVIEW_LIMIT 一致：超过就不读文本。 */
@@ -57,60 +52,15 @@ export type Target = { env: Environment; file: string; root: string; path: PathA
 
 type Workspace = { env: Environment; root: string; path: PathApi }
 
+/** 文件路由只需要判定工作区是否授权过。 */
+export type FileDeps = HttpDeps & { hostService: Pick<PiHostService, "isKnownWorkspace"> }
+
 const cwd = (url: URL) => url.searchParams.get("cwd")?.trim() ?? ""
-
-/** 工作区内文件的只读接口；true=已处理。 */
-export async function handleFsRequest(
-  req: IncomingMessage,
-  res: ServerResponse,
-  url: URL,
-  deps: PlatformRequestDeps,
-): Promise<boolean> {
-  const kind =
-    /^\/api\/v1\/platform\/(?:fs\/(stat|text|raw|list|search|preview-token)|git\/(status))$/
-      .exec(url.pathname)
-      ?.slice(1)
-      .find(Boolean)
-
-  if (!kind || req.method !== "GET") return false
-
-  if (kind === "search" || kind === "status" || kind === "preview-token") {
-    await handleWorkspaceRequest(req, res, url, deps, kind)
-    return true
-  }
-
-  const target = await resolveFile(cwd(url), url.searchParams.get("path") ?? "", deps)
-
-  if (typeof target === "number") {
-    deps.send(res, target, { code: target === 403 ? "FORBIDDEN" : "NOT_FOUND" })
-    return true
-  }
-
-  try {
-    const info = await target.env.stat(target.file)
-
-    if (!info) deps.send(res, 404, { code: "NOT_FOUND" })
-    else if (kind === "stat") deps.send(res, 200, info satisfies FileStatResponse)
-    else if (kind === "list")
-      deps.send(res, info.kind === "directory" ? 200 : 400, await listDirectory(target))
-    else if (info.kind !== "file") deps.send(res, 400, { code: "NOT_A_FILE" })
-    else if (kind === "text")
-      deps.send(res, 200, await readText(target, info.size, url.searchParams.has("force")))
-    else await sendRaw(req, res, target, info.size)
-  } catch (error) {
-    console.error(`fs ${kind} failed:`, error)
-
-    if (!res.headersSent) deps.send(res, 500, { code: "INTERNAL_ERROR" })
-    else res.destroy()
-  }
-
-  return true
-}
 
 /** 授权过的工作区：环境、根目录与该环境的路径规则。 */
 async function authorizedWorkspace(
   cwd: string,
-  deps: Pick<PlatformRequestDeps, "hostService">,
+  deps: Pick<FileDeps, "hostService">,
 ): Promise<Workspace | undefined> {
   if (!cwd || !(await deps.hostService.isKnownWorkspace(cwd))) return undefined
 
@@ -122,7 +72,7 @@ async function authorizedWorkspace(
 export async function resolveFile(
   cwd: string,
   requested: string,
-  deps: Pick<PlatformRequestDeps, "hostService">,
+  deps: Pick<FileDeps, "hostService">,
 ): Promise<Target | number> {
   const workspace = requested ? await authorizedWorkspace(cwd, deps) : undefined
 
@@ -141,49 +91,86 @@ export async function resolveFile(
   }
 }
 
-async function handleWorkspaceRequest(
-  req: IncomingMessage,
-  res: ServerResponse,
-  url: URL,
-  deps: PlatformRequestDeps,
-  kind: "search" | "status" | "preview-token",
-) {
-  const workspace = await authorizedWorkspace(cwd(url), deps)
+/** 按 query 里的 cwd/path 定位文件；越界回 403，不存在回 404。 */
+async function openFile(url: URL, deps: FileDeps): Promise<Target> {
+  const target = await resolveFile(cwd(url), url.searchParams.get("path") ?? "", deps)
 
-  if (!workspace) {
-    deps.send(res, 403, { code: "FORBIDDEN" })
-    return
-  }
-
-  const controller = new AbortController()
-  req.once("close", () => controller.abort())
-
-  try {
-    const { env, root, path } = workspace
-    const body: GitStatusResponse | ContentSearchResponse | { token: string } =
-      kind === "preview-token"
-        ? { token: issuePreviewToken(cwd(url)) }
-        : kind === "status"
-          ? await gitStatus(env, root)
-          : await searchContents(
-              env,
-              root,
-              path.join,
-              url.searchParams.get("q") ?? "",
-              controller.signal,
-            )
-
-    deps.send(res, 200, body)
-  } catch (error) {
-    console.error(`workspace ${kind} failed:`, error)
-    deps.send(res, 500, { code: "INTERNAL_ERROR" })
-  }
+  if (typeof target !== "number") return target
+  throw new HttpError(target, target === 403 ? "FORBIDDEN" : "NOT_FOUND")
 }
 
+/** stat 之后再确认类型：文本与原始字节要文件，列表要目录。 */
+async function statFile(
+  url: URL,
+  deps: FileDeps,
+): Promise<{ target: Target; info: FileStatResponse }> {
+  const target = await openFile(url, deps)
+  const info = await target.env.stat(target.file)
+
+  if (!info) throw new HttpError(404, "NOT_FOUND")
+  return { target, info }
+}
+
+async function requireFile(url: URL, deps: FileDeps): Promise<{ target: Target; size: number }> {
+  const { target, info } = await statFile(url, deps)
+
+  if (info.kind !== "file") throw new HttpError(400, "NOT_A_FILE")
+  return { target, size: info.size }
+}
+
+export const fsRoutes = {
+  "GET /api/v1/platform/fs/stat": async ({ url, deps }): Promise<FileStatResponse> => {
+    const { info } = await statFile(url, deps)
+    return info
+  },
+
+  "GET /api/v1/platform/fs/text": async ({ url, deps }): Promise<FileTextResponse> => {
+    const { target, size } = await requireFile(url, deps)
+    return readText(target, size, url.searchParams.has("force"))
+  },
+
+  "GET /api/v1/platform/fs/list": async ({ url, deps }) => {
+    const { target, info } = await statFile(url, deps)
+
+    if (info.kind !== "directory") throw new HttpError(400, "NOT_A_DIRECTORY")
+    return listDirectory(target)
+  },
+
+  "GET /api/v1/platform/fs/raw": async ({ req, res, url, deps }) => {
+    const { target, size } = await requireFile(url, deps)
+    await sendRaw(req, res, target, size)
+  },
+
+  "GET /api/v1/platform/fs/search": async ({ req, url, deps }) => {
+    const workspace = await authorizedWorkspace(cwd(url), deps)
+
+    if (!workspace) throw new HttpError(403, "FORBIDDEN")
+    const controller = new AbortController()
+
+    req.once("close", () => controller.abort())
+
+    const { env, root, path } = workspace
+    return searchContents(env, root, path.join, url.searchParams.get("q") ?? "", controller.signal)
+  },
+
+  "GET /api/v1/platform/git/status": async ({ url, deps }) => {
+    const workspace = await authorizedWorkspace(cwd(url), deps)
+
+    if (!workspace) throw new HttpError(403, "FORBIDDEN")
+    return gitStatus(workspace.env, workspace.root)
+  },
+
+  "GET /api/v1/platform/fs/preview-token": async ({ url, deps }) => {
+    const workspace = await authorizedWorkspace(cwd(url), deps)
+
+    if (!workspace) throw new HttpError(403, "FORBIDDEN")
+    return { token: issuePreviewToken(cwd(url)) }
+  },
+} satisfies HttpRouteTable<FileDeps>
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" })
 
 /** 目录在前、名字按自然序；顺带标出被 .gitignore 命中的项。 */
-async function listDirectory({ env, file, root, path }: Target): Promise<DirectoryListResponse> {
+async function listDirectory({ env, file, root, path }: Target) {
   const items = (await env.readdir(file)).sort(
     (a, b) =>
       Number(b.kind === "directory") - Number(a.kind === "directory") ||
