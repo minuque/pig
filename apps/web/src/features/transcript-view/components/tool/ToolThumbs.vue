@@ -1,6 +1,6 @@
 <template>
   <span v-if="images.length" class="tool-thumbs">
-    <Tooltip v-for="(image, i) in images" :key="i" :delay-duration="150">
+    <Tooltip v-for="(image, i) in shown" :key="i" :delay-duration="150">
       <TooltipTrigger as-child>
         <button
           type="button"
@@ -17,6 +17,16 @@
       </TooltipContent>
     </Tooltip>
 
+    <button
+      v-if="rest"
+      type="button"
+      class="tool-thumb-more"
+      :aria-label="t('common.preview', { name: images[MAX]!.title })"
+      @click.stop="show(MAX)"
+    >
+      +{{ rest }}
+    </button>
+
     <PreviewDialog
       v-model:open="open"
       v-model:index="index"
@@ -27,13 +37,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { computed, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import PreviewDialog, { type PreviewImage } from "@features/preview/index.vue"
 
-defineProps<{ images: readonly PreviewImage[] }>()
-
+/** 行尾最多摆 3 张，其余收成「+N」，点开从第 4 张看起。 */
+const MAX = 3
+const props = defineProps<{ images: readonly PreviewImage[] }>()
+const shown = computed(() => props.images.slice(0, MAX))
+const rest = computed(() => Math.max(0, props.images.length - MAX))
 const { t } = useI18n()
 const open = ref(false)
 const index = ref(0)
@@ -52,6 +65,23 @@ function show(i: number) {
   flex: none;
   align-items: center;
   gap: var(--space-2xs);
+}
+
+.tool-thumb-more {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--fg-secondary);
+  font: inherit;
+  font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
+  cursor: zoom-in;
+  pointer-events: auto;
+}
+
+.tool-thumb-more:hover {
+  color: var(--fg);
 }
 
 /* 缩略图不超出所在行的行高，避免把单行工具行撑高 */

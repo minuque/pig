@@ -19,9 +19,9 @@
         </span>
       </button>
 
-      <!-- 缩略图浮在触发器的伪元素之上，单独可点 -->
-      <ToolThumbs :images="images" />
       <ChevronRightIcon class="tool-run-caret" :class="{ 'is-open': open }" data-icon="inline" />
+      <!-- 缩略图靠整行最右，浮在触发器的伪元素之上，单独可点 -->
+      <ToolThumbs class="tool-run-thumbs" :images="images" />
     </div>
 
     <ToolRunCard
@@ -149,7 +149,6 @@ onBeforeUnmount(() => {
 .tool-run-head {
   position: relative;
   display: flex;
-  align-self: flex-start;
   align-items: center;
   gap: var(--space-2xs);
   max-width: 100%;
@@ -184,6 +183,11 @@ onBeforeUnmount(() => {
 .tool-run-summary:focus-visible,
 .tool-run-summary[aria-expanded="true"] {
   color: var(--fg-secondary);
+}
+
+.tool-run-thumbs {
+  margin-inline-start: auto;
+  padding-inline-start: var(--space-xs);
 }
 
 .tool-run-counts {
