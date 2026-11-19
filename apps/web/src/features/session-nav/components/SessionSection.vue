@@ -50,6 +50,7 @@
 
         <li
           v-if="
+            open &&
             section.kind === 'settled' &&
             (section.shown < section.total || (moreBySection[section.key] ?? 0) > 0)
           "
@@ -271,27 +272,18 @@ function itemBind(session: SidebarSession) {
   color: var(--fg);
 }
 
-/* 箭头只在 hover 时显形；位置常驻，文字不跟着横移 */
 .more-icon {
   flex: none;
-  opacity: 0;
-  transition: opacity var(--duration-fast) var(--ease-out);
 }
 
 .more-icon.is-up {
   rotate: 180deg;
 }
 
-.more-button:hover .more-icon,
-.more-button:focus-visible .more-icon {
-  opacity: 1;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .session-section.is-sorting .session-row,
   .section-head.is-sorting,
-  .section-chevron,
-  .more-icon {
+  .section-chevron {
     transition: none;
   }
 }
