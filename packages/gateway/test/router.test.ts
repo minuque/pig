@@ -32,13 +32,15 @@ function setup(body: () => Promise<Record<string, unknown>> = async () => ({})) 
 }
 
 describe("HttpRouter", () => {
+  const router = new HttpRouter(table)
+
   it("命中后自动发 200 与 handler 的返回值", async () => {
     const { deps, sent } = setup()
-    const router = new HttpRouter(deps, table)
     const handled = await router.handle(
       request("GET"),
       response(),
       url("/api/v1/platform/providers/anthropic/key"),
+      deps,
     )
 
     expect(handled).toBe(true)
@@ -47,15 +49,25 @@ describe("HttpRouter", () => {
 
   it(":param 取出并解码", async () => {
     const { deps, sent } = setup()
-    const router = new HttpRouter(deps, table)
 
     await router.handle(
       request("GET"),
       response(),
       url(`/api/v1/platform/providers/${encodeURIComponent("a/b")}/key`),
+      deps,
     )
-    await router.handle(request("GET"), response(), url("/api/v1/platform/providers/custom/x"))
-    await router.handle(request("DELETE"), response(), url("/api/v1/platform/providers/custom/x"))
+    await router.handle(
+      request("GET"),
+      response(),
+      url("/api/v1/platform/providers/custom/x"),
+      deps,
+    )
+    await router.handle(
+      request("DELETE"),
+      response(),
+      url("/api/v1/platform/providers/custom/x"),
+      deps,
+    )
 
     expect(sent).toEqual([
       { status: 200, body: { key: "a/b" } },
@@ -63,18 +75,44 @@ describe("HttpRouter", () => {
     ])
   })
 
-  it("方法与路径对不上都返回未处理，不写响应", async () => {
+  it("坏 URL 编码命中后回 400，未命中别的路由仍返回未处理", async () => {
     const { deps, sent } = setup()
-    const router = new HttpRouter(deps, table)
 
     expect(
-      await router.handle(request("POST"), response(), url("/api/v1/platform/providers/x/key")),
+      await router.handle(
+        request("GET"),
+        response(),
+        url("/api/v1/platform/providers/%E0%A4%A/other"),
+        deps,
+      ),
     ).toBe(false)
-    expect(await router.handle(request("GET"), response(), url("/api/v1/platform/nope"))).toBe(
-      false,
-    )
     expect(
-      await router.handle(request("GET"), response(), url("/api/v1/platform/providers/x")),
+      await router.handle(
+        request("GET"),
+        response(),
+        url("/api/v1/platform/providers/%E0%A4%A/key"),
+        deps,
+      ),
+    ).toBe(true)
+    expect(sent).toEqual([{ status: 400, body: { code: "INVALID_REQUEST" } }])
+  })
+
+  it("方法与路径对不上都返回未处理，不写响应", async () => {
+    const { deps, sent } = setup()
+
+    expect(
+      await router.handle(
+        request("POST"),
+        response(),
+        url("/api/v1/platform/providers/x/key"),
+        deps,
+      ),
+    ).toBe(false)
+    expect(
+      await router.handle(request("GET"), response(), url("/api/v1/platform/nope"), deps),
+    ).toBe(false)
+    expect(
+      await router.handle(request("GET"), response(), url("/api/v1/platform/providers/x"), deps),
     ).toBe(false)
     expect(sent).toEqual([])
   })
@@ -84,11 +122,7 @@ describe("HttpRouter", () => {
       throw new Error("bad json")
     })
 
-    await new HttpRouter(deps, table).handle(
-      request("POST"),
-      response(),
-      url("/api/v1/platform/rename-session"),
-    )
+    await router.handle(request("POST"), response(), url("/api/v1/platform/rename-session"), deps)
 
     expect(sent).toEqual([{ status: 400, body: { code: "INVALID_REQUEST" } }])
   })
@@ -96,11 +130,7 @@ describe("HttpRouter", () => {
   it("HttpError 原样发出", async () => {
     const { deps, sent } = setup(async () => ({ name: "boom" }))
 
-    await new HttpRouter(deps, table).handle(
-      request("POST"),
-      response(),
-      url("/api/v1/platform/rename-session"),
-    )
+    await router.handle(request("POST"), response(), url("/api/v1/platform/rename-session"), deps)
 
     expect(sent).toEqual([{ status: 409, body: { code: "BUSY" } }])
   })
@@ -108,11 +138,11 @@ describe("HttpRouter", () => {
   it("其他异常交给 mapError，默认记日志并回 500", async () => {
     const log = vi.spyOn(console, "error").mockImplementation(() => {})
     const { deps, sent } = setup()
-    const router = new HttpRouter(deps, {
+    const failing = new HttpRouter({
       "GET /api/v1/platform/session-cards": async () => Promise.reject(new Error("nope")),
     })
 
-    await router.handle(request("GET"), response(), url("/api/v1/platform/session-cards"))
+    await failing.handle(request("GET"), response(), url("/api/v1/platform/session-cards"), deps)
 
     expect(sent).toEqual([{ status: 500, body: { code: "INTERNAL_ERROR" } }])
     expect(log).toHaveBeenCalledOnce()

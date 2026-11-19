@@ -70,24 +70,23 @@ function compile(route: PlatformHttpRouteKey): Compiled {
   return entry
 }
 
-/** 段数一致再逐段比对；参数段解 URL 编码，坏的编码按 400 处理。 */
+/** 先核对全部字面量段，再解参数段 URL 编码；坏编码抛 400。 */
 function match(route: Compiled, pathname: string): Record<string, string> | undefined {
   const parts = pathname.split("/")
 
   if (parts.length !== route.segments.length) return undefined
 
+  for (const [index, segment] of route.segments.entries()) {
+    if ("literal" in segment && segment.literal !== (parts[index] ?? "")) return undefined
+  }
+
   const params: Record<string, string> = {}
 
   for (const [index, segment] of route.segments.entries()) {
-    const part = parts[index] ?? ""
-
-    if ("literal" in segment) {
-      if (segment.literal !== part) return undefined
-      continue
-    }
+    if (!("param" in segment)) continue
 
     try {
-      params[segment.param] = decodeURIComponent(part)
+      params[segment.param] = decodeURIComponent(parts[index] ?? "")
     } catch {
       throw new HttpError(400, "INVALID_REQUEST")
     }
@@ -116,12 +115,11 @@ type Entry<D extends HttpDeps> = {
   handler: (ctx: HttpContext<D, PlatformHttpRouteKey>) => Promise<unknown>
 }
 
-/** 声明式路由表；`handle` 未命中返回 false，交给下一个分发。 */
+/** 声明式路由表；模块级构造一次，`handle` 未命中返回 false，交给下一个分发。 */
 export class HttpRouter<D extends HttpDeps> {
   private readonly entries: Entry<D>[] = []
 
   constructor(
-    private readonly deps: D,
     table: HttpRouteTable<D>,
     private readonly mapError: MapError = defaultMapError,
   ) {
@@ -139,17 +137,25 @@ export class HttpRouter<D extends HttpDeps> {
     this.entries.sort((a, b) => b.path.literals - a.path.literals)
   }
 
-  async handle(req: IncomingMessage, res: ServerResponse, url: URL): Promise<boolean> {
+  async handle(req: IncomingMessage, res: ServerResponse, url: URL, deps: D): Promise<boolean> {
     const method = req.method ?? "GET"
 
     for (const entry of this.entries) {
       if (entry.path.method !== method) continue
 
-      const params = match(entry.path, url.pathname)
+      let params: Record<string, string> | undefined
+
+      try {
+        params = match(entry.path, url.pathname)
+      } catch (error) {
+        const mapped = this.mapError(error, entry.route)
+        deps.send(res, mapped.status, { code: mapped.code })
+        return true
+      }
 
       if (!params) continue
 
-      await this.run(entry, req, res, url, params)
+      await this.run(entry, req, res, url, params, deps)
       return true
     }
 
@@ -162,26 +168,27 @@ export class HttpRouter<D extends HttpDeps> {
     res: ServerResponse,
     url: URL,
     params: Record<string, string>,
+    deps: D,
   ) {
     const context = {
       req,
       res,
       url,
       params,
-      deps: this.deps,
-      json: () => readJson(this.deps, req),
+      deps,
+      json: () => readJson(deps, req),
     } as HttpContext<D, PlatformHttpRouteKey>
 
     try {
       const result = await entry.handler(context)
 
-      if (!res.headersSent && result !== undefined) this.deps.send(res, 200, result)
+      if (!res.headersSent && result !== undefined) deps.send(res, 200, result)
     } catch (error) {
       const mapped = this.mapError(error, entry.route)
 
       // handler 已经发过响应时，唯一能做的只有断掉连接
       if (res.headersSent) res.destroy()
-      else this.deps.send(res, mapped.status, { code: mapped.code })
+      else deps.send(res, mapped.status, { code: mapped.code })
     }
   }
 }

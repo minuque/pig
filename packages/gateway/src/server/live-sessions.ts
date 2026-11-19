@@ -175,7 +175,9 @@ export class LiveSessions {
     if (watchers.has(connection)) return
     watchers.set(
       connection,
-      this.options.service.watchSession(sessionId, () => this.fileChanged(sessionId)),
+      this.options.service.watchSession(sessionId, () =>
+        connection.send({ type: "event", event: { type: "session_file_changed", sessionId } }),
+      ),
     )
   }
 
@@ -186,20 +188,6 @@ export class LiveSessions {
 
     if (!watchers?.delete(connection) || watchers.size > 0) return
     this.watched.delete(sessionId)
-  }
-
-  /** 会话文件变了：只通知显式 watch 过的连接，其余连接靠快照与历史。 */
-  private fileChanged(sessionId: string) {
-    const watchers = this.watched.get(sessionId)
-
-    if (!watchers) return
-
-    const message: ServerMessage = {
-      type: "event",
-      event: { type: "session_file_changed", sessionId },
-    }
-
-    for (const connection of watchers.keys()) connection.send(message)
   }
 
   private clearWatches(connection: ClientConnection) {

@@ -236,6 +236,10 @@ describe("pig 协议：watch_session 跟随外部追加", () => {
     appendExternal(path, "第一句追加")
     expect(await first.next(fileChanged)).toBeTruthy()
     expect(await second.next(fileChanged)).toBeTruthy()
+    await sleep(200)
+    // 每条连接只收到一次，不按连接数 N×N 放大
+    expect(first.has(fileChanged)).toBe(false)
+    expect(second.has(fileChanged)).toBe(false)
 
     first.socket.close()
     await sleep(200)

@@ -214,14 +214,17 @@ const platformError: MapError = (error, route) => {
 
   return defaultMapError(error, route)
 }
+const platformRouter = new HttpRouter<PlatformRequestDeps>(
+  { ...platformRoutes, ...fsRoutes },
+  platformError,
+)
 
 /** 平台 HTTP 分发；true=已处理（含 400/404/500）。 */
-export async function handlePlatformRequest(
+export function handlePlatformRequest(
   req: IncomingMessage,
   res: ServerResponse,
   url: URL,
   deps: PlatformRequestDeps,
 ): Promise<boolean> {
-  const table: HttpRouteTable<PlatformRequestDeps> = { ...platformRoutes, ...fsRoutes }
-  return new HttpRouter(deps, table, platformError).handle(req, res, url)
+  return platformRouter.handle(req, res, url, deps)
 }

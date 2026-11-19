@@ -267,7 +267,7 @@ export const flows: Flow[] = [
         from: "Gateway",
         to: "session",
         text: "事件防抖合并后推 session_file_changed",
-        ref: "packages/gateway/src/server/live-sessions.ts#LiveSessions.fileChanged",
+        ref: "packages/gateway/src/server/live-sessions.ts#LiveSessions.watchFile",
       },
       {
         from: "session",

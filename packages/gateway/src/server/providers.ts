@@ -163,13 +163,14 @@ const providerError: MapError = (error, route) => {
   if (error instanceof ProviderServiceError) return new HttpError(error.status, error.code)
   return defaultMapError(error, route)
 }
+const providerRouter = new HttpRouter<ProviderRequestDeps>(providerRoutes, providerError)
 
 /** 供应商 HTTP 分发；true=已处理（含 400/404/409/500）。 */
-export async function handleProviderRequest(
+export function handleProviderRequest(
   req: IncomingMessage,
   res: ServerResponse,
   url: URL,
   deps: ProviderRequestDeps,
 ): Promise<boolean> {
-  return new HttpRouter(deps, providerRoutes, providerError).handle(req, res, url)
+  return providerRouter.handle(req, res, url, deps)
 }

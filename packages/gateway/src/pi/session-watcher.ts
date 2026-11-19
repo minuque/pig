@@ -65,7 +65,9 @@ export class SessionFileWatcher {
       const path = await this.options.resolvePath(sessionId).catch(() => undefined)
 
       if (!path || this.closed || !this.listeners.has(sessionId)) return
-      this.files.set(sessionId, this.watchFile(sessionId, path))
+      const watched = this.watchFile(sessionId, path)
+
+      if (watched) this.files.set(sessionId, watched)
     })()
 
     this.resolving.set(sessionId, run)
@@ -75,14 +77,20 @@ export class SessionFileWatcher {
     return run
   }
 
-  private watchFile(sessionId: string, path: string): WatchedFile {
+  private watchFile(sessionId: string, path: string): WatchedFile | undefined {
     const name = basename(path).toLowerCase()
     const dir = dirname(path)
-    // 目录被删或句柄失效：先放掉，下一次订阅按需重建
-    const watcher = watch(dir, (_event, filename) => {
-      if (filename && filename.toString().toLowerCase() !== name) return
-      this.schedule(sessionId)
-    })
+    // 目录刚被删或无权限：静默跳过，避免未捕获异常
+    let watcher: FSWatcher
+
+    try {
+      watcher = watch(dir, (_event, filename) => {
+        if (filename && filename.toString().toLowerCase() !== name) return
+        this.schedule(sessionId)
+      })
+    } catch {
+      return undefined
+    }
 
     watcher.on("error", () => this.closeFile(sessionId))
     watcher.unref()
