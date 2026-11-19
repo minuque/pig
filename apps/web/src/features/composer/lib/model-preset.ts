@@ -1,10 +1,5 @@
 import type { ModelMetadata } from "@/types/common-type.js"
-import type {
-  ComposerModel,
-  ComposerModelInfo,
-  ComposerPreset,
-  ComposerVendor,
-} from "@features/composer/type.js"
+import type { ComposerModel, ComposerModelInfo, ComposerVendor } from "@features/composer/type.js"
 import { vendorDisplayName } from "@features/composer/lib/vendor-logo.js"
 
 function filterCatalog(catalog: ComposerVendor[], query: string): ComposerVendor[] {
@@ -79,19 +74,4 @@ export function catalogFromModels(models: readonly ModelMetadata[]): ComposerVen
   }
 
   return [...vendors.values()]
-}
-
-/** 目录首个可用模型的默认执行档；目录为空时返回 undefined。 */
-export function defaultPresetFrom(catalog: readonly ComposerVendor[]): ComposerPreset | undefined {
-  for (const vendor of catalog) {
-    const first = vendor.models[0]
-
-    if (!first) continue
-    return {
-      model: { provider: vendor.id, id: first.id },
-      thinkingLevel: first.thinkingLevels[0] ?? "",
-    }
-  }
-
-  return undefined
 }

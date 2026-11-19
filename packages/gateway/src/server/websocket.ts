@@ -118,7 +118,7 @@ export class ProtocolServer {
   }
 
   private async serverSnapshot(): Promise<ServerSnapshot> {
-    const [sessions, models] = await Promise.all([
+    const [sessions, catalog] = await Promise.all([
       this.sessions.listMetadata(),
       this.options.service.listModels(),
     ])
@@ -127,7 +127,8 @@ export class ProtocolServer {
       protocolVersion: 1,
       revision: this.revision,
       sessions,
-      models,
+      models: catalog.models,
+      defaultModel: catalog.defaultModel,
     }
   }
 

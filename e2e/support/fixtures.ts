@@ -439,8 +439,12 @@ export const test = base.extend<TestFixtures>({
   ],
 })
 
-/** 一个离线可选的本地模型：Prompt 由 sim-turn 拦下，不会真的请求它。 */
+/** 一个离线可选的本地模型，并设为默认：Prompt 由 sim-turn 拦下，不会真的请求它。 */
 async function writeOfflineModel(agentDir: string) {
+  await writeFile(
+    join(agentDir, "settings.json"),
+    JSON.stringify({ defaultProvider: "local", defaultModel: "e2e-model" }),
+  )
   await writeFile(
     join(agentDir, "models.json"),
     JSON.stringify({

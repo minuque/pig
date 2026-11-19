@@ -128,8 +128,8 @@ const sideSession = (side: Side) =>
 const left = sideSession("left")
 const right = sideSession("right")
 /** 跟着会话建，不跟面板挂载：右侧关掉再开，模型选择仍在。 */
-const leftPreset = bindComposerPreset(left, pi.models)
-const rightPreset = bindComposerPreset(right, pi.models)
+const leftPreset = bindComposerPreset(left, pi.models, pi.defaultModel)
+const rightPreset = bindComposerPreset(right, pi.models, pi.defaultModel)
 const onSide = (side: Side) => (side === "right" ? right : left)
 const focused = focusedSession(
   () => onSide(split.focused.value),
