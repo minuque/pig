@@ -1,7 +1,7 @@
 import { PROJECT_ICONS } from "@components/icons/project-icons.js"
 import { workspaceName } from "@features/session-nav/lib/format.js"
 
-/** 复用 app.css 已引入的 rt 色板；gray 跟随 slate。 */
+/** 复用 app.css 已引入的 rt 色板；gray 即 Radix 纯灰色阶。 */
 export const PROJECT_ICON_COLORS = [
   "gray",
   "indigo",

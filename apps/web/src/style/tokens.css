@@ -31,19 +31,19 @@
 :root {
   color-scheme: light;
 
-  /* ====== 原色阶：Radix slate / cyan / 状态色板由 rt 提供，这里不另写 ====== */
+  /* ====== 原色阶：Radix gray / cyan / 状态色板由 rt 提供，这里不另写 ====== */
 
   /* ====== 语义层：全站共用，组件只读这一层与下面的组件层 ====== */
 
   /* --- 表面 --- */
   --white: #ffffff;
-  /* 表面统一中性灰：侧栏低一档，主区一层，卡片与输入卡一层，浮层再抬一档 */
-  --bg: #f2f2f6;
-  /* 所有侧栏共用：主侧栏、抽屉、设置弹窗导航；与主区同一中性灰，低一档 */
-  --bg-sunken: #eeeef2;
+  /* 主区纯白；其余层都是白底上的半档灰 */
+  --bg: #ffffff;
+  /* 所有侧栏共用：主侧栏、抽屉、设置弹窗导航；与卡片同一档灰 */
+  --sidebar: #f7f8f8;
   /* 抬起的表面：卡片、输入卡、用户气泡、工具输入与思考内容共用 */
-  --bg-surface: #f6f6fa;
-  --bg-raised: #fbfbff;
+  --bg-surface: #f7f8f8;
+  --bg-raised: #fbfbfc;
   --scrim: rgba(0, 0, 0, 0.4);
   /* 反色按钮（发送、停止、滚动到底部）：中灰底，对比度压一档不抢正文 */
   --bg-inverse: #6b6b72;
@@ -51,28 +51,31 @@
 
   /* --- 前景 --- */
   --fg-on-accent: var(--accent-contrast);
-  /* 文字三级固定色：与表面同一冷色相；三级在主区、侧栏、卡片上都不低于 4.5:1 */
-  --fg: #3c3c42;
-  --fg-secondary: #57575e;
-  --fg-faint: #6b6b72;
+  /* 文字两级固定色：取 Radix 的 black alpha，与表面同一中性；深色镜像到 white alpha */
+  --fg: var(--black-a10);
+  --fg-secondary: var(--black-a8);
   --fg-inverse: #ffffff;
 
   /* --- 边与分割 --- */
-  /* 描边颜色在 rt.css（--gray-* 只在 .radix-themes 里映射）；这里只有线宽 */
+  /* 描边只用中性 black alpha：第 1 档跟随悬停，第 2 档常态，第 3 档跟随选中；深色镜像到 white alpha */
   --border-width: 1px;
+  --border: var(--black-a2);
+  --border-subtle: var(--black-a1);
+  --border-strong: var(--black-a3);
 
   /* --- 交互 --- */
-  /* 主强调色 cyan：实心填充取 --accent-solid，文字与图标前景取 --accent-text；链接与「进行中」同用强调色 */
-  --accent-solid: #0a7f9c;
-  --accent-solid-hover: #086e87;
-  --accent-text: #0b6f88;
-  /* 按钮与可点行共用：中性 slate 的 alpha 第 3 档做悬停、第 4 档做选中，不跟强调色走 */
-  --bg-hover: var(--slate-a3);
-  --bg-selected: var(--slate-a4);
+  /* 主强调色 indigo：实心填充取 --accent-solid，文字与图标前景取 --accent-text */
+  --accent-solid: var(--indigo-9);
+  --accent-solid-hover: var(--indigo-10);
+  --accent-text: var(--indigo-11);
+  /* 按钮与可点行共用：浅色取 indigo 第 3 级 alpha 做悬停、第 4 级做选中；深色降一档，见 .dark */
+  --bg-hover: var(--indigo-a3);
+  --bg-selected: var(--indigo-a4);
   /* 中性填充两档：轻档给徽标、芯片底，重档给进度轨道与卡片内滚动条 */
   --bg-muted: color-mix(in srgb, var(--fg) 5%, transparent);
   --bg-emphasis: color-mix(in srgb, var(--fg) 12%, transparent);
-  --link: var(--accent-text);
+  /* 链接与「进行中」不跟强调色走，单走 cyan */
+  --link: var(--info-text);
   --opacity-disabled: 0.55;
   /* 焦点环：2px 实色，取文字档保证灰底上也看得见；配合 .ring-focus 使用 */
   --focus-ring: 0 0 0 2px var(--accent-text);
@@ -81,9 +84,9 @@
   /* --- 状态 --- */
   /* 状态：文字色配同色相浅底，不用实色填充；成功沿用 Radix green */
   --success-text: var(--green-11);
-  /* 信息即「进行中」：运行状态、进度条与用量环统一到强调色的 cyan */
-  --info-text: var(--accent-text);
-  --info-solid: var(--accent-solid);
+  /* 信息即「进行中」：运行状态、进度条与用量环走 cyan，与主强调色分开 */
+  --info-text: #0b6f88;
+  --info-solid: #0a7f9c;
   --warning-text: #8f5f13;
   --danger-text: #ae2e38;
   --success-subtle: var(--green-a3);
@@ -103,7 +106,7 @@
     "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", "Microsoft YaHei",
     monospace;
   --font-mono: var(--font-mono-default);
-  /* 字号四档：辅助、正文、标题、页面大标题；一页最多用其中 4 种，层级靠字重与三级文字色 */
+  /* 字号四档：辅助、正文、标题、页面大标题；一页最多用其中 4 种，层级靠字重与两级文字色 */
   --text-meta: 12px;
   --text-meta--line-height: 1.4;
   --text-body: 14px;
@@ -204,7 +207,7 @@
   --chart-mcp: var(--blue-9);
   --chart-results: var(--green-9);
   --chart-conversation: var(--orange-9);
-  --chart-other: var(--slate-8);
+  --chart-other: var(--gray-8);
   --chart-free: var(--bg-emphasis);
   /* 行内码：正文色压 10% 的底，深浅主题自动跟随 */
   --code-inline-bg: color-mix(in srgb, var(--fg) 10%, transparent);
@@ -293,7 +296,7 @@
   /* 浮层出入与 hover 统一曲线 */
   --menu-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
   --menu-duration-out: 100ms;
-  --minimap-marker: color-mix(in srgb, var(--fg-faint) 35%, transparent);
+  --minimap-marker: color-mix(in srgb, var(--fg-secondary) 35%, transparent);
   /* 模型选择面板固定宽 320px，列表最高 200px */
   --model-picker-width: 320px;
   --model-picker-list-height: 200px;
@@ -319,8 +322,8 @@
   /* 任务输出卡片的最高高度 */
   --task-output-max: 200px;
   /* 主题预览线框：固定画浅色与深色两套界面，不跟当前主题走 */
-  --theme-wire-light: #f2f2f6;
-  --theme-wire-light-raised: #f6f6fa;
+  --theme-wire-light: #ffffff;
+  --theme-wire-light-raised: #f7f8f8;
   --theme-wire-dark: #101012;
   --theme-wire-dark-raised: #17171a;
   --theme-switch-duration: 600ms;
@@ -339,7 +342,7 @@
   /* 侧栏左下角的头像 */
   --user-avatar-size: 20px;
   /* 欢迎页「字符流光」背景：暗处到亮处的两端色，取文字色，浅色主题为黑、深色主题为白 */
-  --welcome-flow-low: var(--fg-faint);
+  --welcome-flow-low: var(--fg-secondary);
   --welcome-flow-high: var(--fg);
   /* 首屏整体落位入场 */
   --welcome-settle-duration: 500ms;
@@ -368,32 +371,38 @@ html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]
   /* --- 表面 --- */
   /* 侧栏比主区暗一截，层次靠底色就分得开 */
   --bg: #101012;
-  --bg-sunken: #0a0a0b;
+  --sidebar: #0d0d0e;
   --bg-surface: #17171a;
-  --bg-raised: #1e1e20;
+  --bg-raised: #1c1c1f;
   --scrim: rgba(0, 0, 0, 0.55);
   --bg-inverse: #9da4ae;
   --bg-inverse-hover: #b8bdc5;
 
   /* --- 前景 --- */
-  /* 主文字与次要文字带一点冷蓝 */
-  --fg: #e8eaed;
-  --fg-secondary: #9da4ae;
-  --fg-faint: #85858c;
+  /* 与浅色对称，两级都取 white alpha */
+  --fg: var(--white-a11);
+  --fg-secondary: var(--white-a8);
   --fg-on-accent: var(--accent-contrast);
   --fg-inverse: #131316;
 
+  /* --- 边与分割 --- */
+  /* 与浅色对称：描边取 white alpha 的第 1、2、3 档 */
+  --border: var(--white-a2);
+  --border-subtle: var(--white-a1);
+  --border-strong: var(--white-a3);
+
   /* --- 交互 --- */
-  /* 深色实心档减一档亮度，文字档取 cyan 第 11 档 */
-  --accent-solid: #097590;
-  --accent-solid-hover: #0a7f9c;
-  --accent-text: var(--cyan-11);
-  --link: var(--accent-text);
+  /* 深色同样取 indigo 的 9/10/11 档 */
+  --accent-solid: var(--indigo-9);
+  --accent-solid-hover: var(--indigo-10);
+  --accent-text: var(--indigo-11);
   --focus-ring: 0 0 0 2px var(--accent-text);
-  /* 悬停与选中直接继承 :root 的 slate alpha，深色不另写 */
+  /* indigo 的 alpha 在深色更重，悬停与选中回落到第 2、3 档，与浅色的 3、4 档体感一致 */
+  --bg-hover: var(--indigo-a2);
+  --bg-selected: var(--indigo-a3);
 
   /* --- 状态 --- */
-  --info-text: var(--accent-text);
+  --info-text: var(--cyan-11);
   --info-solid: var(--cyan-9);
   --warning-text: #e8a33d;
   --danger-text: #ff7d88;

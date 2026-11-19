@@ -316,15 +316,11 @@
 }
 
 .text-foreground-muted {
-  color: var(--fg-faint);
-}
-
-.text-foreground-faint {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .text-muted-foreground {
-  color: var(--fg-faint);
+  color: var(--fg-secondary);
 }
 
 .text-primary {

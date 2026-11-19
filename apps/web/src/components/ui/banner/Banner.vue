@@ -80,7 +80,7 @@ const emit = defineEmits<{ close: [] }>()
 /** 项目语义色 → rt 的 accent 族：info 跟随当前 accent，中性走 gray 族。 */
 const ACCENT_BY_COLOR: Record<BannerColor, string | undefined> = {
   neutral: "gray",
-  info: undefined,
+  info: "cyan",
   success: "green",
   warning: "orange",
   destructive: "red",
