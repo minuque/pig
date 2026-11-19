@@ -100,8 +100,6 @@ function embeddedTokens(prompt: string, chunk: string): number {
 
 /** pi 给 MCP 服务器工具起名 `mcp__<server>__<tool>`。 */
 const MCP_TOOL_PREFIX = "mcp__"
-/** codemode 脚本经 `tools.mcp__…` 调按需加载的 MCP 工具。 */
-const CODEMODE_TOOL = "codemode"
 
 /** 只算声明给模型的工具；mcp 为真时只取 MCP 工具，否则只取其余工具。 */
 function collectTools(
@@ -178,8 +176,7 @@ function walkEntries(
   const wantTools = preview === "toolResults"
   const wantContext = preview === "conversation"
   const wantMcp = preview === "mcpTools"
-  /** 调了 MCP 工具的那些调用；它们的结果也归 MCP。 */
-  const mcpCallIds = new Set<string>()
+  const mcpCallIds = mcpScriptCallIds(entries)
 
   for (const raw of entries) {
     const entry = raw as {
@@ -212,10 +209,12 @@ function walkEntries(
           text?: string
           thinking?: string
         }>) {
-          if (block.type === "toolCall" && isMcpCall(block.name, block.arguments)) {
+          if (
+            block.type === "toolCall" &&
+            (String(block.name).startsWith(MCP_TOOL_PREFIX) ||
+              (block.id !== undefined && mcpCallIds.has(block.id)))
+          ) {
             mcpCalls += estimateText(block.name) + estimateText(block.arguments)
-
-            if (block.id) mcpCallIds.add(block.id)
 
             if (wantMcp) {
               mcpChunks.push(`## 调用：${String(block.name)}\n\n${previewValue(block.arguments)}`)
@@ -300,12 +299,23 @@ function walkEntries(
   return { toolResults, conversation, mcpCalls, toolChunks, contextChunks, mcpChunks }
 }
 
-/** 直接调 MCP 工具，或 codemode 脚本里调了 MCP 工具。 */
-function isMcpCall(name: unknown, args: unknown): boolean {
-  if (typeof name !== "string") return false
+/** 实际调用过 MCP 工具的脚本调用：codemode 在结果的 details.calls 里记下脚本调过的每个工具。 */
+function mcpScriptCallIds(entries: unknown[]): Set<string> {
+  const ids = new Set<string>()
 
-  if (name.startsWith(MCP_TOOL_PREFIX)) return true
-  return name === CODEMODE_TOOL && JSON.stringify(args ?? "").includes(MCP_TOOL_PREFIX)
+  for (const raw of entries) {
+    const message = (raw as { message?: { role?: string; toolCallId?: string; details?: unknown } })
+      .message
+
+    if (message?.role !== "toolResult" || !message.toolCallId) continue
+    const calls = (message.details as { calls?: Array<{ name?: unknown }> } | undefined)?.calls
+
+    if (calls?.some((call) => String(call.name).startsWith(MCP_TOOL_PREFIX))) {
+      ids.add(message.toolCallId)
+    }
+  }
+
+  return ids
 }
 
 type VariableTokens = { toolResults: number; conversation: number; mcpCalls: number }
