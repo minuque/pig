@@ -105,7 +105,7 @@ const suffix = computed(() => t(workspaceId.value ? "hero.askSuffix" : "hero.pic
   gap: 0.3em;
   max-width: 100%;
   margin: 0;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-heading);
   font-weight: var(--font-weight-normal);
   line-height: var(--text-heading--line-height);
@@ -149,7 +149,7 @@ const suffix = computed(() => t(workspaceId.value ? "hero.askSuffix" : "hero.pic
 
 /* 菜单排版对齐侧栏项目筛选：项目多时区内滚动，长名截断 */
 .hero-projects {
-  max-block-size: calc(var(--size-nav-rail) * 9);
+  max-block-size: calc(var(--control-sm) * 9);
   overflow-y: auto;
   overscroll-behavior: contain;
 }

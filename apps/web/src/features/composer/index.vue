@@ -321,14 +321,14 @@ function onAbortHotkey(event: KeyboardEvent) {
 .attach-tray {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   width: 100%;
   min-width: 0;
 }
 
 .attach-error {
   margin: 0;
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }
@@ -338,15 +338,15 @@ function onAbortHotkey(event: KeyboardEvent) {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: var(--size-composer-control);
-  height: var(--size-composer-control);
-  min-width: var(--size-composer-control);
+  width: var(--control-md);
+  height: var(--control-md);
+  min-width: var(--control-md);
   min-height: 0;
   padding: 0;
   border: 0;
   border-radius: var(--radius-pill);
   background: transparent;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   cursor: pointer;
   transition:
     background var(--duration-fast) var(--ease-out),
@@ -354,8 +354,8 @@ function onAbortHotkey(event: KeyboardEvent) {
 }
 
 .attach:not(:disabled):hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 .attach:disabled {
@@ -368,9 +368,9 @@ function onAbortHotkey(event: KeyboardEvent) {
   align-items: center;
   justify-content: center;
   flex: none;
-  width: var(--size-composer-control);
-  height: var(--size-composer-control);
-  min-width: var(--size-composer-control);
+  width: var(--control-md);
+  height: var(--control-md);
+  min-width: var(--control-md);
   min-height: 0;
   padding: 0;
   border: 0;
@@ -379,21 +379,20 @@ function onAbortHotkey(event: KeyboardEvent) {
   transition:
     background var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out),
-    opacity var(--duration-fast) var(--ease-out),
     opacity var(--duration-fast) var(--ease-out);
-  background: var(--primary);
-  color: var(--primary-foreground);
+  /* 黑白反色圆：浅色主题黑底白字，深色主题白底黑字 */
+  background: var(--bg-inverse);
+  color: var(--fg-inverse);
 }
 
 .send:not(:disabled):hover {
-  background: var(--primary-active);
+  background: var(--bg-inverse-hover);
 }
 
-/* 停止态：实心墨色圆 + 内部圆角方块，hover 只降不透明度 */
+/* 停止态：同一个反色圆，内部换成圆角方块，hover 只降不透明度 */
 .send--abort,
 .send--abort:not(:disabled):hover {
-  background: var(--inverse-background);
-  color: var(--inverse-foreground);
+  background: var(--bg-inverse);
   box-shadow: none;
 }
 
@@ -401,10 +400,12 @@ function onAbortHotkey(event: KeyboardEvent) {
   opacity: 0.85;
 }
 
+/* 不可发送：中性浅底配弱色箭头，和可发送的实心圆一眼分开 */
 .send:disabled {
   cursor: default;
-  opacity: 0.3;
   scale: 1;
+  background: var(--bg-emphasis);
+  color: var(--fg-faint);
   box-shadow: none;
 }
 
@@ -424,7 +425,7 @@ function onAbortHotkey(event: KeyboardEvent) {
 }
 
 .tooltip-hint {
-  margin-inline-start: var(--space-xxs);
+  margin-inline-start: var(--space-2xs);
   font: inherit;
   opacity: 0.55;
 }
@@ -437,18 +438,18 @@ function onAbortHotkey(event: KeyboardEvent) {
 }
 
 .send:focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--accent-solid);
   outline-offset: 2px;
 }
 
 .attach:focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--accent-solid);
   outline-offset: 2px;
 }
 
 /* 回形针比正文图标大一档 */
 .attach-icon {
-  inline-size: var(--size-icon-2xs);
-  block-size: var(--size-icon-2xs);
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
 }
 </style>

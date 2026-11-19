@@ -3,8 +3,8 @@
     <section class="group">
       <h2 class="group-title">{{ t("settings.interface") }}</h2>
 
-      <Card size="s" class="card">
-        <div id="setting-user-name" class="row">
+      <CardList>
+        <CardRow id="setting-user-name" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.userName") }}</h3>
             <p class="desc">{{ t("settings.userNameHint") }}</p>
@@ -17,9 +17,9 @@
             :aria-label="t('settings.userName')"
             @update:model-value="setUserName"
           />
-        </div>
+        </CardRow>
 
-        <div id="setting-language" class="row">
+        <CardRow id="setting-language" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.language") }}</h3>
             <p class="desc">{{ t("settings.languageHint") }}</p>
@@ -36,8 +36,8 @@
               </SelectItem>
             </SelectContent>
           </Select>
-        </div>
-      </Card>
+        </CardRow>
+      </CardList>
     </section>
   </section>
 </template>
@@ -48,7 +48,7 @@ import { useI18n } from "@i18n/index.js"
 import { useGeneralPrefs, type UiLocale } from "@features/settings/index.js"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@components/ui/select/index.js"
 import { TextFieldRoot } from "@components/ui/text-field/index.js"
-import { Card } from "@components/ui/card/index.js"
+import { CardList, CardRow } from "@components/ui/card/index.js"
 
 const { t } = useI18n()
 const { locale, userName, setUserName, setLocale } = useGeneralPrefs()

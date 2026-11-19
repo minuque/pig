@@ -1,102 +1,102 @@
 <template>
   <div class="lab">
-    <!-- 页头整体吸顶：品牌、一级分组、全局开关一行，组内页面一行 -->
-    <header class="lab-head">
-      <div class="lab-bar">
-        <h1 class="lab-title">Design</h1>
+    <!-- 页头吸顶：标题回总览、当前位置、全局开关 -->
+    <header class="lab-bar">
+      <nav class="lab-crumbs">
+        <RouterLink to="/design" class="lab-home">Design</RouterLink>
 
-        <TabsRoot
-          :model-value="current.group.id"
-          class="lab-groups"
-          @update:model-value="openGroup"
-        >
-          <TabsList size="m" class="lab-tab-list">
-            <TabsTrigger v-for="group in groups" :key="group.id" :value="group.id">
-              {{ text(group.title) }}
-            </TabsTrigger>
+        <template v-if="current">
+          <span class="lab-sep">/</span>
+          <span>{{ text(current.group.title) }}</span>
+          <span class="lab-sep">/</span>
+          <span class="lab-here">{{ text(current.item.title) }}</span>
+        </template>
+
+        <template v-else-if="isGuide">
+          <span class="lab-sep">/</span>
+          <span class="lab-here">DESIGN.md</span>
+        </template>
+      </nav>
+
+      <div class="lab-switches">
+        <Button :as="RouterLink" to="/design/guide" variant="soft" color="gray" size="s">
+          <FileTextIcon class="size-icon-xs" />
+          DESIGN.md
+        </Button>
+
+        <TabsRoot :model-value="locale" @update:model-value="(v) => pickLocale(String(v))">
+          <TabsList variant="segmented" size="s">
+            <TabsTrigger value="zh-CN">中</TabsTrigger>
+            <TabsTrigger value="en">EN</TabsTrigger>
           </TabsList>
         </TabsRoot>
 
-        <div class="lab-switches">
-          <SegmentedControl :model-value="locale" size="s" @update:model-value="pickLocale">
-            <SegmentedControlItem value="zh-CN">中</SegmentedControlItem>
-            <SegmentedControlItem value="en">EN</SegmentedControlItem>
-          </SegmentedControl>
-
-          <SegmentedControl
-            :model-value="isDark ? 'dark' : 'light'"
-            size="s"
-            @update:model-value="pickScheme"
-          >
-            <SegmentedControlItem value="light">Light</SegmentedControlItem>
-            <SegmentedControlItem value="dark">Dark</SegmentedControlItem>
-          </SegmentedControl>
-        </div>
+        <TabsRoot
+          :model-value="isDark ? 'dark' : 'light'"
+          @update:model-value="(v) => pickScheme(String(v))"
+        >
+          <TabsList variant="segmented" size="s">
+            <TabsTrigger value="light">Light</TabsTrigger>
+            <TabsTrigger value="dark">Dark</TabsTrigger>
+          </TabsList>
+        </TabsRoot>
       </div>
-
-      <TabsRoot
-        v-if="current.group.items.length > 1"
-        :model-value="current.item.id"
-        @update:model-value="(id) => open(String(id))"
-      >
-        <TabsList size="s" class="lab-tab-list is-sub">
-          <TabsTrigger v-for="item in current.group.items" :key="item.id" :value="item.id">
-            {{ text(item.title) }}
-          </TabsTrigger>
-        </TabsList>
-      </TabsRoot>
     </header>
 
     <main class="lab-panel">
-      <component :is="current.item.view" :key="current.item.id" />
+      <template v-if="current">
+        <h1 class="lab-title">{{ text(current.item.title) }}</h1>
+        <component :is="current.item.view" :key="current.item.path" />
+
+        <nav class="lab-pager">
+          <RouterLink v-if="current.prev" :to="`/design/${current.prev.path}`" class="lab-step">
+            <ChevronLeftIcon class="size-icon-xs" />
+            {{ text(current.prev.title) }}
+          </RouterLink>
+
+          <RouterLink
+            v-if="current.next"
+            :to="`/design/${current.next.path}`"
+            class="lab-step is-next"
+          >
+            {{ text(current.next.title) }}
+            <ChevronRightIcon class="size-icon-xs" />
+          </RouterLink>
+        </nav>
+      </template>
+
+      <DesignGuide v-else-if="isGuide" />
+      <DesignHome v-else />
     </main>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from "vue"
-import { useRoute, useRouter } from "vue-router"
-import { SegmentedControl, SegmentedControlItem } from "@components/ui/segmented-control/index.js"
+import { computed, onMounted, watch } from "vue"
+import { RouterLink, useRoute } from "vue-router"
+import { ChevronLeftIcon, ChevronRightIcon, FileTextIcon } from "@components/icons/index.js"
+import { Button } from "@components/ui/button/index.js"
 import { TabsList, TabsRoot, TabsTrigger } from "@components/ui/tabs/index.js"
 import { useColorScheme } from "@features/theme/index.js"
 import { useGeneralPrefs } from "@features/settings/index.js"
-import CardTuner from "@features/design-lab/components/CardTuner.vue"
-import TokenOverview from "@features/design-lab/components/TokenOverview.vue"
-import { demoGroups, type Label, type NavGroup } from "@features/design-lab/lib/nav.js"
+import DesignGuide from "@features/design-lab/components/DesignGuide.vue"
+import DesignHome from "@features/design-lab/components/DesignHome.vue"
+import { NAV, type Label } from "@features/design-lab/lib/nav.js"
 
-const groups: NavGroup[] = [
-  {
-    id: "overview",
-    title: { zh: "总览", en: "Overview" },
-    items: [{ id: "tokens", title: { zh: "设计变量", en: "Tokens" }, view: TokenOverview }],
-  },
-  {
-    id: "tuners",
-    title: { zh: "调节", en: "Tuners" },
-    items: [{ id: "card-tuner", title: { zh: "卡片", en: "Card" }, view: CardTuner }],
-  },
-  ...demoGroups(),
-]
+const PAGES = NAV.flatMap((group) => group.items.map((item) => ({ group, item })))
 const route = useRoute()
-const router = useRouter()
 const { isDark, setScheme } = useColorScheme()
 const { locale, setLocale } = useGeneralPrefs()
-// 当前页记在地址里，刷新后停在原处；找不到时回到总览
+const path = computed(() => [route.params.page ?? []].flat().join("/"))
+// 设计规范文档不进翻页顺序，单独一页
+const isGuide = computed(() => path.value === "guide")
+// 地址段对上某页就显示该页，对不上回总览
 const current = computed(() => {
-  const id = route.query.page
-  const group = groups.find((item) => item.items.some((entry) => entry.id === id)) ?? groups[0]!
-  return { group, item: group.items.find((entry) => entry.id === id) ?? group.items[0]! }
+  const index = PAGES.findIndex((page) => page.item.path === path.value)
+
+  if (index < 0) return null
+  return { ...PAGES[index]!, prev: PAGES[index - 1]?.item, next: PAGES[index + 1]?.item }
 })
-
-function open(id: string) {
-  void router.replace({ query: { page: id } })
-}
-
-function openGroup(id: string | number) {
-  const group = groups.find((item) => item.id === id)
-
-  if (group) open(group.items[0]!.id)
-}
 
 function text(label: Label): string {
   return locale.value === "en" ? label.en : label.zh
@@ -110,6 +110,11 @@ function pickScheme(next: string) {
   setScheme(next === "dark" ? "dark" : "light")
 }
 
+watch(
+  () => route.path,
+  () => window.scrollTo(0, 0),
+)
+
 // 设计页不经过启动门，自己撤掉 index.html 里的启动画面
 onMounted(() => document.getElementById("startup-splash")?.remove())
 </script>
@@ -119,76 +124,90 @@ onMounted(() => document.getElementById("startup-splash")?.remove())
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: var(--background);
-  color: var(--contrast-foreground);
-}
-
-.lab-head {
-  position: sticky;
-  z-index: 1;
-  inset-block-start: 0;
-  background: var(--background);
-  box-shadow: inset 0 calc(var(--border-width) * -1) 0 var(--border-soft);
+  background: var(--bg);
+  color: var(--fg);
 }
 
 .lab-bar {
-  display: grid;
-  grid-template-areas: "title groups switches";
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  position: sticky;
+  z-index: 1;
+  inset-block-start: 0;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space-lg);
+  block-size: var(--header-height);
   padding-inline: var(--space-lg);
+  background: var(--bg);
+  box-shadow: inset 0 calc(var(--border-width) * -1) 0 var(--border-subtle);
 }
 
-.lab-title {
-  grid-area: title;
-  margin: 0;
-  font-size: var(--text-title);
-  font-weight: var(--font-weight-semibold);
-}
-
-.lab-groups {
-  grid-area: groups;
+.lab-crumbs {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
   min-width: 0;
+  overflow: hidden;
+  color: var(--fg-secondary);
+  white-space: nowrap;
+}
+
+.lab-home {
+  color: var(--fg);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+}
+
+.lab-sep {
+  color: var(--fg-faint);
+}
+
+.lab-here {
+  color: var(--fg);
 }
 
 .lab-switches {
   display: flex;
-  grid-area: switches;
   gap: var(--space-xs);
 }
 
-/* 标签栏底线交给页头统一画；标签多时横向滚动 */
-.lab-tab-list {
-  overflow-x: auto;
-  box-shadow: none;
-  scrollbar-width: none;
-}
-
-.lab-tab-list.is-sub {
-  padding-inline: calc(var(--space-lg) - var(--space-xs));
-}
-
 .lab-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
   width: min(100%, 1120px);
   margin-inline: auto;
-  padding: var(--space-xl) var(--space-lg) var(--space-xxl);
+  padding: var(--space-xl) var(--space-lg) var(--space-2xl);
 }
 
-/* 窄窗口：标题与开关一行，分组单独一行 */
-@media (width < 900px) {
-  .lab-bar {
-    grid-template-areas:
-      "title switches"
-      "groups groups";
-    grid-template-columns: minmax(0, 1fr) auto;
-    row-gap: 0;
-    padding-block-start: var(--space-sm);
-  }
+.lab-title {
+  margin: 0;
+  font-size: var(--text-heading);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--text-heading--letter-spacing);
+  line-height: var(--text-heading--line-height);
+}
 
-  /* 一级标签文字左缘与标题对齐：抵掉 rt 标签自带的两层内边距 */
-  .lab-groups {
-    margin-inline-start: calc(var(--space-md) * -1);
-  }
+.lab-pager {
+  display: flex;
+  justify-content: space-between;
+  padding-block-start: var(--space-lg);
+  box-shadow: var(--separator-top);
+}
+
+.lab-step {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  color: var(--fg-secondary);
+  text-decoration: none;
+}
+
+.lab-step:hover {
+  color: var(--fg);
+}
+
+.lab-step.is-next {
+  margin-inline-start: auto;
 }
 </style>

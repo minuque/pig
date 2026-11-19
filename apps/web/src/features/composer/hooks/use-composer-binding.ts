@@ -1,7 +1,7 @@
 import { nextTick, ref, watch, type Ref } from "vue"
-import type { SessionPhase, ThinkingLevel } from "@/types/common-type.js"
+import type { DefaultModelView, SessionPhase, ThinkingLevel } from "@/types/common-type.js"
 import type { ComposerModel, ComposerPreset, ComposerVendor } from "@features/composer/type.js"
-import { defaultPresetFrom, resolveModelInfo } from "@features/composer/lib/model-preset.js"
+import { resolveModelInfo } from "@features/composer/lib/model-preset.js"
 import { sameModel, thinkingLevelOf } from "@features/session/lib/model-ref.js"
 
 interface ComposerSnapshot {
@@ -11,6 +11,8 @@ interface ComposerSnapshot {
 
 interface ComposerBindingOptions {
   catalog: Ref<ComposerVendor[]>
+  /** pi 设置里的默认模型；没配就不预选，不拿目录里别的模型顶上 */
+  defaultModel: Ref<DefaultModelView | null>
   snapshot: Ref<ComposerSnapshot | undefined>
   phase: Ref<SessionPhase | undefined>
   setModel(model: ComposerModel): Promise<void>
@@ -60,8 +62,9 @@ export function useComposerBinding(options: ComposerBindingOptions) {
     if (!current) return
     const levels = resolveModelInfo(options.catalog.value, current.model).levels
 
+    // 走 writePreset，否则自动回落会被当成用户改档位，打开会话时不再认快照模型
     if (levels.length && !levels.includes(current.thinkingLevel)) {
-      preset.value = { ...current, thinkingLevel: levels[0]! }
+      writePreset({ ...current, thinkingLevel: levels[0]! })
     }
   })
   watch(
@@ -110,11 +113,13 @@ export function useComposerBinding(options: ComposerBindingOptions) {
   })
 
   watch(
-    options.catalog,
-    (items) => {
-      const fallback = defaultPresetFrom(items)
-
-      if (!preset.value && fallback) writePreset(fallback)
+    options.defaultModel,
+    (initial) => {
+      if (preset.value || !initial) return
+      writePreset({
+        model: { provider: initial.provider, id: initial.id },
+        thinkingLevel: initial.thinkingLevel ?? "",
+      })
     },
     { immediate: true },
   )

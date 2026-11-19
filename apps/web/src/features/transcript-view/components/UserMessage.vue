@@ -110,8 +110,10 @@ useResizeObserver(body, measure)
   margin: 0;
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-card);
-  background: var(--surface);
-  color: var(--contrast-foreground);
+  background: var(--bg-surface);
+  /* 1px 细环画在盒内：气泡贴着对话列右缘，画在盒外会被列的溢出裁掉 */
+  box-shadow: inset 0 0 0 var(--border-width) var(--border);
+  color: var(--fg);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
 }
@@ -133,11 +135,11 @@ useResizeObserver(body, measure)
 }
 
 .toggle {
-  margin: var(--space-xxs) 0 0;
+  margin: var(--space-2xs) 0 0;
   padding: 0;
   border: 0;
   background: none;
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   font: inherit;
   font-size: var(--text-meta);
   line-height: 1.4;
@@ -145,7 +147,7 @@ useResizeObserver(body, measure)
 }
 
 .toggle:hover {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .images {

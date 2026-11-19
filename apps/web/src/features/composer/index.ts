@@ -1,5 +1,5 @@
 import { inject, provide, type InjectionKey, type Ref } from "vue"
-import type { ModelMetadata } from "@/types/common-type.js"
+import type { DefaultModelView, ModelMetadata } from "@/types/common-type.js"
 import { t } from "@i18n/index.js"
 import { useSessionComposer } from "@features/composer/hooks/use-session-composer.js"
 import type { SessionContext } from "@features/session/index.js"
@@ -15,9 +15,11 @@ const composerPresetKey: InjectionKey<ComposerPresetContext> = Symbol("composer-
 export function bindComposerPreset(
   session: SessionContext,
   models: Ref<readonly ModelMetadata[]>,
+  defaultModel: Ref<DefaultModelView | null>,
 ): ComposerPresetContext {
   const { catalog, preset, createModel, consumeDetachedEdit } = useSessionComposer({
     models,
+    defaultModel,
     snapshot: session.snapshot,
     phase: session.phase,
     setModel: session.setModel,

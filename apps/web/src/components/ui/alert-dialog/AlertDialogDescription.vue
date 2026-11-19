@@ -2,7 +2,6 @@
   <AlertDialogDescription
     data-slot="alert-dialog-description"
     v-bind="forwardedProps"
-    class="rt-Text rt-r-size-3"
     :class="props.class"
   >
     <slot />
@@ -22,3 +21,18 @@ const props = withDefaults(
 const delegatedProps = reactiveOmit(props, "class")
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<AlertDialogDescriptionProps>
 </script>
+
+<style scoped>
+[data-slot="alert-dialog-description"] {
+  max-height: min(24rem, 60dvh);
+  min-height: 0;
+  margin: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  color: var(--fg-secondary);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+</style>

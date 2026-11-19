@@ -6,6 +6,7 @@ export const CONTEXT_PREVIEW_KEYS = [
   "memory",
   "skills",
   "tools",
+  "mcpTools",
   "toolResults",
   "conversation",
 ] as const satisfies readonly ContextPreviewKey[]
@@ -14,8 +15,9 @@ const PREVIEW_META: Record<ContextPreviewKey, { title: string; empty: string }> 
   memory: { title: "记忆", empty: "当前上下文没有记忆文件。" },
   skills: { title: "技能", empty: "当前上下文没有技能。" },
   tools: { title: "工具定义", empty: "没有启用的工具定义。" },
+  mcpTools: { title: "MCP 工具", empty: "没有注册的 MCP 工具。" },
   toolResults: { title: "工具结果", empty: "当前上下文没有工具结果。" },
-  conversation: { title: "当前会话上下文", empty: "没有会话上下文。" },
+  conversation: { title: "消息", empty: "没有消息。" },
 }
 
 interface ContextUsageSource {
@@ -28,6 +30,8 @@ interface ContextUsageSource {
     name: string
     description: string
     parameters: unknown
+    exposure?: string
+    namespace?: { name: string; description?: string }
   }>
   sessionManager: { buildContextEntries(): unknown[] }
   resourceLoader: {
@@ -94,16 +98,21 @@ function embeddedTokens(prompt: string, chunk: string): number {
   return estimateText(chunk)
 }
 
+/** pi 给 MCP 服务器工具起名 `mcp__<server>__<tool>`。 */
+const MCP_TOOL_PREFIX = "mcp__"
+
+/** 只算声明给模型的工具；mcp 为真时只取 MCP 工具，否则只取其余工具。 */
 function collectTools(
   source: ContextUsageSource,
   preview: boolean,
+  mcp: boolean,
 ): { tokens: number; chunks: string[] } {
   const active = new Set(source.getActiveToolNames())
   let tokens = 0
   const chunks: string[] = []
 
   for (const tool of source.getAllTools()) {
-    if (!active.has(tool.name)) continue
+    if (!active.has(tool.name) || tool.name.startsWith(MCP_TOOL_PREFIX) !== mcp) continue
 
     const definition = {
       name: tool.name,
@@ -119,16 +128,55 @@ function collectTools(
   return { tokens, chunks }
 }
 
+/** 模型可用的 MCP 工具总数；预览按服务器列出其中没声明、按需加载（不占上下文）的那些。 */
+function collectOnDemandMcp(
+  source: ContextUsageSource,
+  preview: boolean,
+): { count: number; chunks: string[] } {
+  const active = new Set(source.getActiveToolNames())
+  const groups = new Map<string, { description?: string | undefined; lines: string[] }>()
+  let count = 0
+
+  for (const tool of source.getAllTools()) {
+    if (!tool.name.startsWith(MCP_TOOL_PREFIX) || tool.exposure === "hidden") continue
+    count += 1
+
+    if (!preview || active.has(tool.name)) continue
+
+    const key = tool.namespace?.name ?? tool.name
+    const group = groups.get(key) ?? { description: tool.namespace?.description, lines: [] }
+    group.lines.push(`- \`${tool.name}\``)
+    groups.set(key, group)
+  }
+
+  const chunks = [...groups].map(
+    ([name, group]) =>
+      `## 按需加载：${name}\n\n${group.description ? `${group.description}\n\n` : ""}${group.lines.join("\n")}`,
+  )
+  return { count, chunks }
+}
+
 function walkEntries(
   entries: unknown[],
   preview: ContextPreviewKey | undefined,
-): { toolResults: number; conversation: number; toolChunks: string[]; contextChunks: string[] } {
+): {
+  toolResults: number
+  conversation: number
+  mcpCalls: number
+  toolChunks: string[]
+  contextChunks: string[]
+  mcpChunks: string[]
+} {
   let toolResults = 0
   let conversation = 0
+  let mcpCalls = 0
   const toolChunks: string[] = []
   const contextChunks: string[] = []
+  const mcpChunks: string[] = []
   const wantTools = preview === "toolResults"
   const wantContext = preview === "conversation"
+  const wantMcp = preview === "mcpTools"
+  const mcpCallIds = mcpScriptCallIds(entries)
 
   for (const raw of entries) {
     const entry = raw as {
@@ -141,6 +189,7 @@ function walkEntries(
         content?: unknown
         summary?: unknown
         toolName?: string
+        toolCallId?: string
         command?: unknown
         output?: unknown
       }
@@ -154,12 +203,23 @@ function walkEntries(
       if (message.role === "assistant" && Array.isArray(message.content)) {
         for (const block of message.content as Array<{
           type?: string
+          id?: string
           name?: unknown
           arguments?: unknown
           text?: string
           thinking?: string
         }>) {
-          if (block.type === "toolCall") {
+          if (
+            block.type === "toolCall" &&
+            (String(block.name).startsWith(MCP_TOOL_PREFIX) ||
+              (block.id !== undefined && mcpCallIds.has(block.id)))
+          ) {
+            mcpCalls += estimateText(block.name) + estimateText(block.arguments)
+
+            if (wantMcp) {
+              mcpChunks.push(`## 调用：${String(block.name)}\n\n${previewValue(block.arguments)}`)
+            }
+          } else if (block.type === "toolCall") {
             conversation += estimateText(block.name) + estimateText(block.arguments)
 
             if (wantContext) {
@@ -178,6 +238,16 @@ function walkEntries(
               contextChunks.push(`## 助手思考\n\n${block.thinking}`)
             }
           }
+        }
+      } else if (
+        message.role === "toolResult" &&
+        ((message.toolCallId && mcpCallIds.has(message.toolCallId)) ||
+          message.toolName?.startsWith(MCP_TOOL_PREFIX))
+      ) {
+        mcpCalls += countMessage(message)
+
+        if (wantMcp) {
+          mcpChunks.push(`## 结果：${message.toolName}\n\n${previewValue(message.content)}`)
         }
       } else if (message.role === "toolResult") {
         toolResults += countMessage(message)
@@ -226,20 +296,46 @@ function walkEntries(
     }
   }
 
-  return { toolResults, conversation, toolChunks, contextChunks }
+  return { toolResults, conversation, mcpCalls, toolChunks, contextChunks, mcpChunks }
 }
 
-function capVariable(
-  raw: { toolResults: number; conversation: number },
-  budget: number,
-): { toolResults: number; conversation: number } {
-  const estimated = raw.toolResults + raw.conversation
+/** 实际调用过 MCP 工具的脚本调用：codemode 在结果的 details.calls 里记下脚本调过的每个工具。 */
+function mcpScriptCallIds(entries: unknown[]): Set<string> {
+  const ids = new Set<string>()
 
-  if (estimated <= budget || estimated === 0) return raw
+  for (const raw of entries) {
+    const message = (raw as { message?: { role?: string; toolCallId?: string; details?: unknown } })
+      .message
 
-  if (budget === 0) return { toolResults: 0, conversation: 0 }
+    if (message?.role !== "toolResult" || !message.toolCallId) continue
+    const calls = (message.details as { calls?: Array<{ name?: unknown }> } | undefined)?.calls
+
+    if (calls?.some((call) => String(call.name).startsWith(MCP_TOOL_PREFIX))) {
+      ids.add(message.toolCallId)
+    }
+  }
+
+  return ids
+}
+
+type VariableTokens = { toolResults: number; conversation: number; mcpCalls: number }
+
+/** 可变项超出预算时按比例压缩，舍入差额落在会话上下文上。 */
+function capVariable(raw: VariableTokens, budget: number): VariableTokens {
+  const estimated = raw.toolResults + raw.conversation + raw.mcpCalls
+  const counts = {
+    toolResults: raw.toolResults,
+    conversation: raw.conversation,
+    mcpCalls: raw.mcpCalls,
+  }
+
+  if (estimated <= budget || estimated === 0) return counts
+
+  if (budget === 0) return { toolResults: 0, conversation: 0, mcpCalls: 0 }
   const toolResults = Math.round((raw.toolResults / estimated) * budget)
-  return { toolResults, conversation: budget - toolResults }
+  // 两段分别四舍五入会各自进位，MCP 取余量保证合计不超预算
+  const mcpCalls = Math.min(Math.round((raw.mcpCalls / estimated) * budget), budget - toolResults)
+  return { toolResults, mcpCalls, conversation: budget - toolResults - mcpCalls }
 }
 
 export function resolveUsedTokens(
@@ -265,8 +361,8 @@ export function resolveUsedTokens(
 }
 
 /**
- * 以 Pi 的总占用校准分段。系统提示词 / 记忆 / 技能 / 工具定义
- * 是固定项；工具结果与会话上下文按比例压缩；差额归入「其他」。
+ * 以 Pi 的总占用校准分段。系统提示词 / 记忆 / 技能 / 工具定义 / MCP 工具定义
+ * 是固定项；工具结果、MCP 调用与会话上下文按比例压缩；差额归入「其他」。
  */
 export function estimateContextUsage(
   source: ContextUsageSource,
@@ -286,25 +382,37 @@ export function estimateContextUsage(
   const skillsText = formatSkillsForPrompt(source.resourceLoader.getSkills().skills ?? []).trim()
   const skills = embeddedTokens(prompt, skillsText)
   const systemPrompt = Math.max(0, estimateText(prompt) - memory - skills)
-  const tools = collectTools(source, previewKey === "tools")
+  const tools = collectTools(source, previewKey === "tools", false)
+  const mcpTools = collectTools(source, previewKey === "mcpTools", true)
+  const onDemandMcp = collectOnDemandMcp(source, previewKey === "mcpTools")
   const walked = walkEntries(source.sessionManager.buildContextEntries(), previewKey)
   const known =
-    systemPrompt + memory + skills + tools.tokens + walked.toolResults + walked.conversation
+    systemPrompt +
+    memory +
+    skills +
+    tools.tokens +
+    mcpTools.tokens +
+    walked.toolResults +
+    walked.conversation +
+    walked.mcpCalls
   const reported = source.getContextUsage()
   const window = Math.max(0, reported?.contextWindow ?? source.model?.contextWindow ?? 0)
-  const fixed = systemPrompt + memory + skills + tools.tokens
+  const fixed = systemPrompt + memory + skills + tools.tokens + mcpTools.tokens
   const used = Math.max(resolveUsedTokens(reported, known, window), fixed)
   const fitted = capVariable(walked, Math.max(0, used - fixed))
-  const attributed = fixed + fitted.toolResults + fitted.conversation
+  const attributed = fixed + fitted.toolResults + fitted.conversation + fitted.mcpCalls
   const estimate: ContextUsageEstimate = {
     used,
     window,
+    mcpToolCount: onDemandMcp.count,
     segments: {
       systemPrompt,
       memory,
       skills,
       tools: tools.tokens,
-      ...fitted,
+      mcpTools: mcpTools.tokens + fitted.mcpCalls,
+      toolResults: fitted.toolResults,
+      conversation: fitted.conversation,
       other: Math.max(0, used - attributed),
       idle: Math.max(0, window - used),
     },
@@ -321,8 +429,14 @@ export function estimateContextUsage(
           ? finishPreview("skills", skillsText ? [skillsText] : [])
           : previewKey === "tools"
             ? finishPreview("tools", tools.chunks)
-            : previewKey === "toolResults"
-              ? finishPreview("toolResults", walked.toolChunks)
-              : finishPreview("conversation", walked.contextChunks)
+            : previewKey === "mcpTools"
+              ? finishPreview("mcpTools", [
+                  ...mcpTools.chunks,
+                  ...walked.mcpChunks,
+                  ...onDemandMcp.chunks,
+                ])
+              : previewKey === "toolResults"
+                ? finishPreview("toolResults", walked.toolChunks)
+                : finishPreview("conversation", walked.contextChunks)
   return { ...estimate, preview }
 }

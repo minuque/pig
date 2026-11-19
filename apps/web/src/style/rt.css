@@ -9,12 +9,12 @@
 /* 间距与圆角接到本项目的刻度：rt 的 space 1-6、radius 1-6 全部由 token 派生，
    改 --space-* 或 --radius 整片跟随。space 7-9（40/48/64）项目里没有对应档，留 rt 原值。 */
 .radix-themes {
-  --space-1: var(--space-xxs);
+  --space-1: var(--space-2xs);
   --space-2: var(--space-xs);
   --space-3: var(--space-sm);
   --space-4: var(--space-md);
   --space-5: var(--space-lg);
-  --space-6: var(--space-xxl);
+  --space-6: var(--space-2xl);
 
   /* rt 的 6 档圆角收到项目三档：1-3 给控件，4 给卡片与浮层，5-6 给对话框 */
   --radius-1: calc(var(--radius-control) / 2);
@@ -28,29 +28,42 @@
   --shadow-popover: var(--shadow-5);
   --shadow-dialog: var(--shadow-6);
 
-  /* rt 把字体、根字号与字色定在自己身上，接回项目基线：随包字体、正文档、对比度层。
+  /* rt 把字体、根字号与字色定在自己身上，接回项目基线：项目字体栈、正文档、对比度层。
      不接这三项，包在根上的 ThemeRoot 会让整站退回系统字体与 16px。 */
   --default-font-family: var(--font-sans);
   --default-font-size: var(--text-body);
-  color: var(--contrast-foreground);
+  color: var(--fg);
 
   /* 描边直接取 radix 的 alpha 灰阶：亮暗与 gray 家族都由色板切。
      必须写在这里：--gray-* 只在 .radix-themes 作用域内映射。 */
-  --border: var(--gray-a5);
-  --border-soft: var(--gray-a4);
+  --border: var(--gray-a4);
+  --border-subtle: var(--gray-a3);
+  /* 浮在凹槽上的选中块描边，比 --border 高一档 */
+  --border-strong: var(--gray-a5);
   /* 卡片内的行间分隔：和卡片外环、rt 表格行线同一画法，用内阴影而不是 border，
      非整数缩放下不被取整成一条实线 */
-  --divider-top: inset 0 var(--border-width) 0 var(--border-soft);
+  --separator-top: inset 0 var(--border-width) 0 var(--border-subtle);
   /* 卡片与 surface 表格的底色，默认不铺底 */
   --card-surface: transparent;
 }
 
-/* 菜单尺寸：弹层用 rt 的 m 档字号，行高取 --size-menu-item，内边距收到 s 档。
+/* Radix 原生 cyan-9(#00a2c7) 配白字仅 3.00:1、浅色 cyan-11(#107d98) 压灰底 4.27:1；
+   默认主题 cyan 的 9/10/11 档接回语义层校准值，保证实心按钮白字与灰底链接过 AA 4.5:1。 */
+.radix-themes[data-accent-color="cyan"] {
+  --accent-9: var(--accent-solid);
+  --accent-10: var(--accent-solid-hover);
+  --accent-11: var(--accent-text);
+  --accent-a11: var(--accent-text);
+  --accent-indicator: var(--accent-solid);
+  --accent-track: var(--accent-solid);
+}
+
+/* 菜单尺寸：弹层用 rt 的 m 档字号，行高取 --control-md，内边距收到 s 档。
    项目不再用左侧留白放勾，左右内边距取同值，否则 rt 的 :has 会为勾多留一档。
    :where() 不抬特异性，靠写在 import 之后覆盖 rt 同名规则。 */
 .rt-BaseMenuContent:where(.rt-r-size-2) {
   --base-menu-content-padding: var(--space-1);
-  --base-menu-item-height: var(--size-menu-item);
+  --base-menu-item-height: var(--control-md);
   --base-menu-item-padding-left: var(--space-2);
   --base-menu-item-padding-right: var(--space-2);
 }
@@ -67,10 +80,10 @@
   line-height: var(--text-body--line-height);
 }
 
-/* soft 菜单与下拉的悬停底与按钮、侧栏行统一走 --btn-hover */
+/* soft 菜单与下拉的悬停底与按钮、侧栏行统一走 --bg-hover */
 .rt-BaseMenuContent:where(.rt-variant-soft) :where(.rt-BaseMenuItem[data-highlighted]),
 .rt-SelectContent:where(.rt-variant-soft) :where(.rt-SelectItem[data-highlighted]) {
-  background-color: var(--btn-hover);
+  background-color: var(--bg-hover);
 }
 
 /* 破坏性项悬停取同一档的红色：底不同色相，文字仍走 danger */
@@ -98,9 +111,9 @@
   margin-block-start: 0;
 }
 
-/* 图标按钮定档：s=24、m=28（`--size-nav-rail`）。
+/* 图标按钮定档：s=24、m=28（`--control-sm`）。
    rt 原生：m 是 32px、圆角 max(--radius-1)=3px、ghost 尺寸靠 content-box 自撑、悬停是 accent-a3。
-   这里统一成固定方框 + `--radius-control` + 前景色 + `--btn-hover`，接管房里所有 28px 图标按钮。 */
+   这里统一成固定方框 + `--radius-control` + 前景色 + `--bg-hover`，接管房里所有 28px 图标按钮。 */
 .rt-IconButton {
   border-radius: var(--radius-control);
   transition:
@@ -109,7 +122,7 @@
 }
 
 .rt-IconButton:where(.rt-r-size-2) {
-  --base-button-height: var(--size-nav-rail);
+  --base-button-height: var(--control-sm);
 }
 
 .rt-IconButton:where(.rt-variant-ghost) {
@@ -118,17 +131,17 @@
   block-size: var(--base-button-height);
   padding: 0;
   margin: 0;
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .rt-IconButton:where(.rt-variant-ghost):where(:hover) {
-  background-color: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background-color: var(--bg-hover);
+  color: var(--fg);
 }
 
 /* ghost 文字按钮悬停同一底色，与图标按钮、侧栏行一致 */
 .rt-Button:where(.rt-variant-ghost):where(:hover) {
-  background-color: var(--btn-hover);
+  background-color: var(--bg-hover);
 }
 
 /* 类卡片外观的唯一来源：Card 与 surface 表格共用 --border 细环、--radius-card 圆角，外壳不铺底。
@@ -162,9 +175,44 @@
   pointer-events: none;
 }
 
+/* 分行卡片（CardList / CardRow）：12 圆角，行线贴边，行左右读卡片的 --card-padding。
+   内容让出外环一个线宽，行线与悬停底不叠到半透明外环上加深 */
+.card-list {
+  --card-border-radius: var(--radius-dialog);
+
+  display: flex;
+  flex-direction: column;
+  padding: var(--border-width);
+}
+
+.card-row {
+  padding-inline: var(--card-padding);
+}
+
+.card-row[data-bleed] {
+  padding-inline: 0;
+}
+
+.card-row + .card-row {
+  box-shadow: var(--separator-top);
+}
+
+.card-row[data-interactive] {
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.card-row[data-interactive]:hover {
+  background-color: var(--bg-hover);
+}
+
+/* rt 的表格行字色写死 --gray-12，接回项目正文色 */
+.rt-TableRow {
+  color: var(--fg);
+}
+
 /* 表头铺面板底，正文单元格透明 */
 .rt-TableRoot:where(.rt-variant-surface) :where(.rt-TableHeader) {
-  --table-row-background-color: var(--surface);
+  --table-row-background-color: var(--bg-surface);
 }
 
 /* Reka 与 rt 对浮层用的 CSS 变量前缀不同：rt 的组件 CSS 读 --radix-*，
@@ -194,30 +242,28 @@
 }
 
 /* 弹层默认宽度跟 rt 的 600px 一致；调用方的 scoped 类特异性更高，仍能按需改宽度。 */
-.rt-DialogContent,
-.rt-AlertDialogContent {
+.rt-DialogContent {
   max-inline-size: var(--dialog-max-width, 600px);
 }
 
-/* 对话框内边距按圆角推算（见 tokens.css 的 --space-dialog），替换 rt 的 12/16/24/48 四档；
+/* 对话框内边距按圆角推算（见 tokens.css 的 --dialog-padding），替换 rt 的 12/16/24/48 四档；
    与 rt 同为 0-1-0、写在其后，调用方 scoped 类仍可覆盖 */
 .rt-BaseDialogContent:where(.rt-r-size-1, .rt-r-size-2) {
-  --dialog-content-padding: var(--space-dialog-compact);
+  --dialog-content-padding: var(--dialog-padding-compact);
 }
 
 .rt-BaseDialogContent:where(.rt-r-size-3, .rt-r-size-4) {
-  --dialog-content-padding: var(--space-dialog);
+  --dialog-content-padding: var(--dialog-padding);
 }
 
 /* 模态框内容区统一取主区底色，不用 rt 的面板色 */
 .rt-BaseDialogContent {
-  background-color: var(--background);
+  background-color: var(--bg);
 }
 
 /* 标题下边距：rt 的 Dialog.Title 用 mb="3" 的 margin 工具类实现，
    我们没引 utilities.css（250 KB 只为几个间距），同档写死在这里。 */
-.rt-DialogTitle,
-.rt-AlertDialogTitle {
+.rt-DialogTitle {
   margin-block-end: var(--space-3);
 }
 
@@ -235,4 +281,18 @@
 
 .rt-Link[data-accent-color].rt-high-contrast {
   color: var(--accent-12);
+}
+
+/* 菜单、下拉、选择框、浮卡与气泡卡共用弹窗的毛玻璃底；双类压过 rt 的单类面板色与阴影 */
+.rt-PopperContent:is(
+  .rt-BaseMenuContent,
+  .rt-SelectContent,
+  .rt-PopoverContent,
+  .rt-HoverCardContent
+) {
+  background-color: var(--glass-bg);
+  box-shadow:
+    0 0 0 var(--border-width) var(--glass-border),
+    var(--glass-menu-shadow);
+  backdrop-filter: var(--glass-filter);
 }

@@ -33,22 +33,27 @@ test("搜索弹层过滤并跳到选中会话", async ({ page, navGateway }) => 
 
   await page.locator(".nav-head").getByRole("button", { name: "搜索" }).click()
 
-  const dialog = page.locator(".search-dialog")
+  const dialog = page.getByRole("dialog", { name: "搜索" })
   await expect(dialog).toBeVisible()
 
-  const input = dialog.locator(".search-input")
+  const input = dialog.getByPlaceholder("搜索会话和项目")
   await input.fill("批量会话 3")
-  await expect(dialog.locator(".search-row")).toHaveCount(1)
-  await expect(dialog.locator(".search-row")).toContainText(`${FILLER_PREFIX} 3`)
+  await expect(dialog.getByRole("option")).toHaveCount(1)
+  await expect(dialog.getByRole("option")).toContainText(`${FILLER_PREFIX} 3`)
 
   await input.fill("没有这个会话")
-  await expect(dialog.locator(".search-row")).toHaveCount(0)
-  await expect(dialog.locator(".search-empty")).toHaveText("没有匹配的会话")
+  await expect(dialog.getByRole("option")).toHaveCount(0)
+  await expect(dialog.getByText("没有匹配的会话")).toBeVisible()
 
   await input.fill("批量会话 2")
-  await dialog.locator(".search-row").first().click()
+  await dialog.getByRole("option").first().click()
   await expect(page).toHaveURL(/\/sessions\/e2e-filler-1$/)
   await expect(dialog).toHaveCount(0)
+
+  await page.locator(".nav-head").getByRole("button", { name: "搜索" }).click()
+  await input.fill("批量会话 3")
+  await input.press("Enter")
+  await expect(page).toHaveURL(/\/sessions\/e2e-filler-2$/)
 })
 
 /** 用指针把一行拖到目标上的某一点（默认中心）：拖拽阈值为 6px，分步移动让 pointermove 生效。 */

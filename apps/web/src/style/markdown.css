@@ -1,9 +1,9 @@
-/* 助手正文排版（对齐 cc-wrapper）。每个根块包在 display:contents 的 .comark-content 里。 */
+/* 助手正文排版。每个根块包在 display:contents 的 .comark-content 里。 */
 
 /* ------ 字体与块间距 ------ */
 .prose {
   min-width: 0;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-body);
   /* 正文行距略高于基准，给行内码留出上下空隙 */
   line-height: 1.5;
@@ -46,7 +46,7 @@
   }
 
   h6 {
-    color: var(--contrast-foreground-faint);
+    color: var(--fg-faint);
   }
 
   :is(strong, b) {
@@ -82,14 +82,14 @@
   }
 
   li::marker {
-    color: var(--contrast-foreground-faint);
+    color: var(--fg-faint);
   }
 
   /* ------ 引用与分隔线 ------ */
   blockquote {
     padding-inline-start: 8px;
-    border-inline-start: var(--border-width-quote) solid var(--border-soft);
-    color: var(--contrast-foreground-faint);
+    border-inline-start: var(--quote-border-width) solid var(--border-subtle);
+    color: var(--fg-faint);
   }
 
   blockquote > * + * {
@@ -98,7 +98,7 @@
 
   hr {
     border: 0;
-    border-top: var(--border-width) solid var(--border-soft);
+    border-top: var(--border-width) solid var(--border-subtle);
   }
 
   /* ------ 行内码：字色随正文，浅底无描边，比正文小一档；折行时每段各自带圆角。
@@ -107,7 +107,7 @@
     margin-inline: 0.2em;
     padding: 0.1em 0.35em;
     border-radius: calc(var(--radius-control) / 2);
-    background: var(--inline-code-background);
+    background: var(--code-inline-bg);
     color: inherit;
     font-family: var(--font-mono);
     font-size: 0.85em;

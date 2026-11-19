@@ -66,10 +66,10 @@ const full = computed(() =>
 .stamp {
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   width: fit-content;
-  min-height: var(--size-icon-button);
-  color: var(--contrast-foreground-faint);
+  min-height: var(--control-sm);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }
@@ -79,7 +79,7 @@ const full = computed(() =>
 }
 
 .stamp-time {
-  padding-inline: var(--space-xxs);
+  padding-inline: var(--space-2xs);
   font-variant-numeric: tabular-nums;
   user-select: none;
 }

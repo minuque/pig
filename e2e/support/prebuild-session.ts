@@ -42,13 +42,14 @@ function assistantMessage(
   content: AssistantMessage["content"],
   timestamp: number,
   stopReason: AssistantMessage["stopReason"] = "stop",
+  model: { provider: string; id: string } = { provider: "test-provider", id: "test-model" },
 ): AssistantMessage {
   return {
     role: "assistant",
     content,
-    api: "openai-completions",
-    provider: "test-provider",
-    model: "test-model",
+    api: model.provider === "faux" ? "faux" : "openai-completions",
+    provider: model.provider,
+    model: model.id,
     usage: USAGE,
     stopReason,
     timestamp,
@@ -263,7 +264,7 @@ export function prebuildAppendSession(
   manager.appendModelChange(model.provider, model.id)
   manager.appendMessage({ role: "user", content: "e2e 先前的提问", timestamp })
   manager.appendMessage(
-    assistantMessage([{ type: "text", text: "e2e 先前的回答" }], timestamp + 1_000),
+    assistantMessage([{ type: "text", text: "e2e 先前的回答" }], timestamp + 1_000, "stop", model),
   )
   const file = manager.getSessionFile()
 
@@ -272,12 +273,12 @@ export function prebuildAppendSession(
 }
 
 /** 另开一个 SessionManager 追加一整轮：这就是 TUI。返回 TUI 那条回答的条目 id。 */
-export function appendExternalTurn(file: string) {
+export function appendExternalTurn(file: string, model?: { provider: string; id: string }) {
   const manager = SessionManager.open(file)
 
   manager.appendMessage({ role: "user", content: APPEND_EXTERNAL_PROMPT, timestamp: Date.now() })
   return manager.appendMessage(
-    assistantMessage([{ type: "text", text: APPEND_EXTERNAL_REPLY }], Date.now()),
+    assistantMessage([{ type: "text", text: APPEND_EXTERNAL_REPLY }], Date.now(), "stop", model),
   )
 }
 

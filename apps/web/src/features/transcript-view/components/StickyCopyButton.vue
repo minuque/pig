@@ -24,12 +24,12 @@ defineProps<{ text: string }>()
    实底与按钮同大同圆角，颜色取所在卡片的底色（透明卡片露出页面底色） */
 .copy-backdrop {
   position: absolute;
-  top: calc(var(--space-xxs) - var(--space-xs));
-  inset-inline-end: calc(var(--space-xxs) - var(--space-sm) - 22px);
+  top: calc(var(--space-2xs) - var(--space-xs));
+  inset-inline-end: calc(var(--space-2xs) - var(--space-sm) - 22px);
   display: flex;
   border-radius: var(--radius-control);
   background:
-    linear-gradient(var(--card-background-color), var(--card-background-color)), var(--background);
+    linear-gradient(var(--card-background-color), var(--card-background-color)), var(--bg);
   white-space: normal;
 }
 

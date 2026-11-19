@@ -3,8 +3,8 @@
     <section class="group">
       <h2 class="group-title">{{ t("settings.notifications") }}</h2>
 
-      <Card size="s" class="card">
-        <div id="setting-notify-system" class="row">
+      <CardList>
+        <CardRow id="setting-notify-system" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.notifySystem") }}</h3>
             <p class="desc">{{ t("settings.notifySystemHint") }}</p>
@@ -15,9 +15,9 @@
             :model-value="notifyOn"
             @update:model-value="onNotify"
           />
-        </div>
+        </CardRow>
 
-        <div id="setting-notify-sound" class="row">
+        <CardRow id="setting-notify-sound" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.notifySound") }}</h3>
             <p class="desc">{{ t("settings.notifySoundHint") }}</p>
@@ -28,8 +28,8 @@
             :model-value="soundOn"
             @update:model-value="toggleSound()"
           />
-        </div>
-      </Card>
+        </CardRow>
+      </CardList>
     </section>
   </section>
 </template>
@@ -39,7 +39,7 @@ import { useI18n } from "@i18n/index.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useGeneralPrefs } from "@features/settings/index.js"
 import { Switch } from "@components/ui/switch/index.js"
-import { Card } from "@components/ui/card/index.js"
+import { CardList, CardRow } from "@components/ui/card/index.js"
 
 const { t } = useI18n()
 const { enabled: soundOn, toggle: toggleSound } = useSound()

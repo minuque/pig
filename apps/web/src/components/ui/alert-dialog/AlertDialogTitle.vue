@@ -1,10 +1,5 @@
 <template>
-  <AlertDialogTitle
-    data-slot="alert-dialog-title"
-    v-bind="forwardedProps"
-    class="rt-Heading rt-r-size-5 rt-r-trim-start rt-AlertDialogTitle"
-    :class="props.class"
-  >
+  <AlertDialogTitle data-slot="alert-dialog-title" v-bind="forwardedProps" :class="props.class">
     <slot />
   </AlertDialogTitle>
 </template>
@@ -22,3 +17,14 @@ const props = withDefaults(
 const delegatedProps = reactiveOmit(props, "class")
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<AlertDialogTitleProps>
 </script>
+
+<style scoped>
+[data-slot="alert-dialog-title"] {
+  flex: none;
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--text-title--line-height);
+  overflow-wrap: anywhere;
+}
+</style>

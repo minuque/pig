@@ -363,13 +363,13 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .selector.rt-Button[data-state="open"] {
-  background-color: var(--btn-hover);
+  background-color: var(--bg-hover);
 }
 
 .selector-labels {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-width: 0;
 }
 
@@ -382,12 +382,12 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .selector-effort {
   flex: none;
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 /* 固定宽度：不随模型名和厂商数伸缩。菜单根节点经 Portal 挂到 body，scoped 属性打不到，用 :global */
 :global(.picker-menu) {
-  --picker-w: min(var(--size-model-picker), calc(100vw - var(--space-lg)));
+  --picker-w: min(var(--model-picker-width), calc(100vw - var(--space-lg)));
   inline-size: var(--picker-w);
   min-inline-size: var(--picker-w);
   max-inline-size: var(--picker-w);
@@ -407,7 +407,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   flex: none;
   align-items: center;
   padding: 6px;
-  border-bottom: var(--border-width) solid var(--border-soft);
+  border-bottom: var(--border-width) solid var(--border-subtle);
 }
 
 .tabs {
@@ -433,7 +433,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .tab-btn {
   position: relative;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   cursor: pointer;
 }
 
@@ -444,13 +444,13 @@ function onSelectModel(event: Event, provider: string, id: string) {
   bottom: -6px;
   height: 2px;
   border-radius: var(--radius-pill);
-  background: var(--primary);
+  background: var(--accent-solid);
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
 .tab-btn[data-current] {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .tab-btn[data-current]::after {
@@ -463,14 +463,14 @@ function onSelectModel(event: Event, provider: string, id: string) {
   flex: none;
   align-items: center;
   gap: var(--space-xs);
-  min-height: var(--size-composer-control);
+  min-height: var(--control-md);
   padding-inline: 10px;
-  border-bottom: var(--border-width) solid var(--border-soft);
+  border-bottom: var(--border-width) solid var(--border-subtle);
 }
 
 .search-icon {
   flex: none;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .search input {
@@ -479,20 +479,20 @@ function onSelectModel(event: Event, provider: string, id: string) {
   border: 0;
   outline: 0;
   background: transparent;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font: inherit;
   font-size: var(--text-meta);
 }
 
 .search input::placeholder {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .groups {
   flex: 0 1 auto;
   min-height: 80px;
-  max-height: min(var(--size-model-picker-list), 40vh);
-  padding: var(--space-xxs);
+  max-height: min(var(--model-picker-list-height), 40vh);
+  padding: var(--space-2xs);
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: none;
@@ -501,7 +501,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 .empty {
   padding: var(--space-md) var(--space-xs);
   font-size: var(--text-meta);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   text-align: center;
 }
 
@@ -513,7 +513,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .configure-models {
-  color: var(--primary);
+  color: var(--accent-text);
   font-size: var(--text-meta);
 }
 

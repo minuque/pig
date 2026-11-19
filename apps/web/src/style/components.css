@@ -154,7 +154,7 @@
 
 /* ------ 间距 ------ */
 .gap-xxs {
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
 }
 
 .gap-xs {
@@ -174,7 +174,7 @@
 }
 
 .p-xxs {
-  padding: var(--space-xxs);
+  padding: var(--space-2xs);
 }
 
 .p-xs {
@@ -194,7 +194,7 @@
 }
 
 .px-xxs {
-  padding-inline: var(--space-xxs);
+  padding-inline: var(--space-2xs);
 }
 
 .px-xs {
@@ -210,7 +210,7 @@
 }
 
 .py-xxs {
-  padding-block: var(--space-xxs);
+  padding-block: var(--space-2xs);
 }
 
 .py-xs {
@@ -230,7 +230,7 @@
 }
 
 .my-xxs {
-  margin-block: var(--space-xxs);
+  margin-block: var(--space-2xs);
 }
 
 .my-xs {
@@ -252,7 +252,7 @@
 
 /* 高度取控件档；py-0 用于压掉基础件的默认内边距 */
 .h-control {
-  block-size: var(--size-control);
+  block-size: var(--control-lg);
 }
 
 .py-0 {
@@ -312,44 +312,44 @@
 
 /* ------ 文字 ------ */
 .text-foreground {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .text-foreground-muted {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .text-foreground-faint {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .text-muted-foreground {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .text-primary {
-  color: var(--primary);
+  color: var(--accent-text);
 }
 
 .text-primary-foreground {
-  color: var(--primary-foreground);
+  color: var(--fg-on-accent);
 }
 
 .text-destructive {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 /* ------ 背景 ------ */
 .bg-card {
-  background-color: var(--surface);
+  background-color: var(--bg-surface);
 }
 
 .bg-background {
-  background-color: var(--background);
+  background-color: var(--bg);
 }
 
 .bg-primary {
-  background-color: var(--primary);
+  background-color: var(--accent-solid);
 }
 
 .bg-transparent {
@@ -386,11 +386,20 @@
   border-radius: var(--radius-pill);
 }
 
-.btn-destructive {
-  background-color: var(--danger-bg);
-  color: var(--danger);
+/* 毛玻璃弹层：警告框与命令面板共用。弹层经 Portal 挂到 body，scoped 打不中，写在这里 */
+.glass-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--glass-backdrop);
+  backdrop-filter: var(--glass-backdrop-filter);
 }
 
-.btn-destructive:hover {
-  background-color: var(--red-a4);
+.glass-panel {
+  border: var(--border-width) solid var(--glass-border);
+  border-radius: var(--glass-radius);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-filter);
+  color: var(--fg);
+  outline: none;
 }

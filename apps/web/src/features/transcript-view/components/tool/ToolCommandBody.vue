@@ -90,7 +90,7 @@ watch(
 
 /* 输入保留底色，和下方只描边的输出区分开 */
 .command-block {
-  --card-background-color: var(--surface);
+  --card-background-color: var(--bg-surface);
 
   position: relative;
   display: flex;
@@ -113,11 +113,11 @@ watch(
   max-height: var(--transcript-tool-max);
   overflow: auto;
   /* 卡片底比全局滚动条色深，滚动条会看不出，这里提到 ink 12% */
-  --scrollbar-thumb: var(--fill-strong);
+  --scrollbar-thumb: var(--bg-emphasis);
 }
 
 .command-scroll :deep(.copy-backdrop) {
-  background: var(--surface);
+  background: var(--bg-surface);
 }
 
 .command-row {
@@ -129,7 +129,7 @@ watch(
 .prompt {
   flex: none;
   width: 1ch;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .command {
@@ -142,13 +142,13 @@ watch(
 .command-status {
   margin: 0;
   padding-inline-start: var(--space-sm);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   line-height: 1.43;
 }
 
 .command-status.is-error {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 </style>

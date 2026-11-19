@@ -31,75 +31,216 @@
 :root {
   color-scheme: light;
 
+  /* ====== 原色阶：Radix slate / cyan / 状态色板由 rt 提供，这里不另写 ====== */
+
+  /* ====== 语义层：全站共用，组件只读这一层与下面的组件层 ====== */
+
+  /* --- 表面 --- */
+  --white: #ffffff;
+  /* 表面统一中性灰：侧栏低一档，主区一层，卡片与输入卡一层，浮层再抬一档 */
+  --bg: #f2f2f6;
+  /* 所有侧栏共用：主侧栏、抽屉、设置弹窗导航；与主区同一中性灰，低一档 */
+  --bg-sunken: #eeeef2;
+  /* 抬起的表面：卡片、输入卡、用户气泡、工具输入与思考内容共用 */
+  --bg-surface: #f6f6fa;
+  --bg-raised: #fbfbff;
+  --scrim: rgba(0, 0, 0, 0.4);
+  /* 反色按钮（发送、停止、滚动到底部）：中灰底，对比度压一档不抢正文 */
+  --bg-inverse: #6b6b72;
+  --bg-inverse-hover: #57575e;
+
+  /* --- 前景 --- */
+  --fg-on-accent: var(--accent-contrast);
+  /* 文字三级固定色：与表面同一冷色相；三级在主区、侧栏、卡片上都不低于 4.5:1 */
+  --fg: #3c3c42;
+  --fg-secondary: #57575e;
+  --fg-faint: #6b6b72;
+  --fg-inverse: #ffffff;
+
+  /* --- 边与分割 --- */
+  /* 描边颜色在 rt.css（--gray-* 只在 .radix-themes 里映射）；这里只有线宽 */
+  --border-width: 1px;
+
+  /* --- 交互 --- */
+  /* 主强调色 cyan：实心填充取 --accent-solid，文字与图标前景取 --accent-text；链接与「进行中」同用强调色 */
+  --accent-solid: #0a7f9c;
+  --accent-solid-hover: #086e87;
+  --accent-text: #0b6f88;
+  /* 按钮与可点行共用：中性 slate 的 alpha 第 3 档做悬停、第 4 档做选中，不跟强调色走 */
+  --bg-hover: var(--slate-a3);
+  --bg-selected: var(--slate-a4);
+  /* 中性填充两档：轻档给徽标、芯片底，重档给进度轨道与卡片内滚动条 */
+  --bg-muted: color-mix(in srgb, var(--fg) 5%, transparent);
+  --bg-emphasis: color-mix(in srgb, var(--fg) 12%, transparent);
+  --link: var(--accent-text);
+  --opacity-disabled: 0.55;
+  /* 焦点环：2px 实色，取文字档保证灰底上也看得见；配合 .ring-focus 使用 */
+  --focus-ring: 0 0 0 2px var(--accent-text);
+  --focus-ring-danger: 0 0 0 2px var(--danger-text);
+
+  /* --- 状态 --- */
+  /* 状态：文字色配同色相浅底，不用实色填充；成功沿用 Radix green */
+  --success-text: var(--green-11);
+  /* 信息即「进行中」：运行状态、进度条与用量环统一到强调色的 cyan */
+  --info-text: var(--accent-text);
+  --info-solid: var(--accent-solid);
+  --warning-text: #8f5f13;
+  --danger-text: #ae2e38;
+  --success-subtle: var(--green-a3);
+  --info-subtle: var(--cyan-a3);
+  --warning-subtle: #f7efdd;
+  --danger-subtle: #faeaeb;
+
+  /* --- 字 --- */
+  /* 代码：等宽字体观感比同号 sans 大一档，13 号与 14 号正文相当 */
+  --text-code: 13px;
+  --text-code-line: 24.5px;
+  /* 外观设置里换字体时，html 内联把 --font-sans / --font-mono 改成「所选字体, 默认栈」 */
+  --font-sans-default:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --font-sans: var(--font-sans-default);
+  --font-mono-default:
+    "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", "Microsoft YaHei",
+    monospace;
+  --font-mono: var(--font-mono-default);
+  /* 字号四档：辅助、正文、标题、页面大标题；一页最多用其中 4 种，层级靠字重与三级文字色 */
+  --text-meta: 12px;
+  --text-meta--line-height: 1.4;
+  --text-body: 14px;
+  --text-body--line-height: 1.5;
+  --text-title: 16px;
+  --text-title--line-height: 1.4;
+  --text-heading: 24px;
+  --text-heading--line-height: 1.3;
+  --text-heading--letter-spacing: -0.2px;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* --- 间距 --- */
   /* 间距基数：--space-* 由它派生 */
   --spacing: 4px;
+  /* 间距刻度用 --space-*；--spacing-* 是 max-w/w/size/leading 的兜底命名空间，塞进去会顶掉默认刻度 */
+  --space-2xs: calc(var(--spacing) * 1);
+  --space-xs: calc(var(--spacing) * 2);
+  --space-sm: calc(var(--spacing) * 3);
+  --space-md: calc(var(--spacing) * 4);
+  --space-lg: calc(var(--spacing) * 6);
+  --space-xl: calc(var(--spacing) * 7);
+  --space-2xl: calc(var(--spacing) * 8);
 
-  /* 文字对比度：把 3 档文字色按权重向 --contrast-target 推；20% 是固定基线，不再对外暴露 */
-  --contrast-boost: 20%;
-  --contrast-target: #000000;
+  /* --- 圆角 --- */
+  /* 圆角三档加全圆角；嵌套元素写 calc(外层圆角 - 内边距)，同心更好看 */
+  --radius-control: 6px;
+  --radius-card: 8px;
+  --radius-dialog: 12px;
+  /* 项目自用的全圆角，别改回 --radius-full：rt 拿那个名字当胶囊开关，medium 档是 0 */
+  --radius-pill: 9999px;
 
-  /* Radix accent：--accent-* 由 rt 基座按 html 的 data-accent-color 映射，
-     这里只保留语义别名，--primary / --link / 选区 / 焦点环都指回它们 */
-  --primary: var(--accent-9);
-  --primary-active: var(--accent-10);
-  --primary-foreground: var(--accent-contrast);
-  --white: #ffffff;
+  /* --- 阴影 --- */
+  /* 阴影只给真正浮起来的层：下拉、菜单、提示用 popover，对话框与抽屉用 dialog */
+  --shadow-popover: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-dialog: 0 16px 48px rgba(0, 0, 0, 0.18);
 
-  /* 表面统一中性灰：侧栏低一档，主区一层，卡片与输入卡一层，浮层再抬一档 */
-  --background: #f4f4f4;
-  /* 所有侧栏共用：主侧栏、抽屉、设置弹窗导航；与主区同一中性灰，低一档 */
-  --sidebar: #f0f0f0;
-  /* 按钮与可点行共用：取 Radix 主题色 alpha 第 3 档做悬停、第 4 档做选中，深浅主题由色板自己切 */
-  --btn-hover: var(--accent-a3);
-  --btn-selected: var(--accent-a4);
-  /* 菜单选项：行高比侧栏行高一档留足内边距，行与行之间只留一道细缝 */
-  --size-menu-item: 32px;
-  --menu-item-gap: calc(var(--spacing) / 2);
-  /* 代码块语言图标的色相，取自 @pierre/vscode-icons 调色板：浅色 600 档，深色 400 档 */
-  --language-gray: #6c6c71;
-  --language-red: #d52c36;
-  --language-orange: #d47628;
-  --language-yellow: #d5a910;
-  --language-green: #199f43;
-  --language-teal: #17a5af;
-  --language-cyan: #1ca1c7;
-  --language-blue: #1a85d4;
-  --language-indigo: #693acf;
-  --language-purple: #a631be;
-  --language-pink: #d32a61;
+  /* --- 动效 --- */
+  --ease-out: cubic-bezier(0.17, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.66, 0, 0.34, 1);
+  --ease-spring: cubic-bezier(0.22, 1.18, 0.36, 1);
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+
+  /* --- 图标与控件高 --- */
+  /* 控件高三档：图标按钮与侧栏行 28，菜单项与输入卡控件 32，输入框 40 */
+  --control-sm: 28px;
+  --control-md: 32px;
+  --control-lg: 40px;
+  /* 线性图标：14px 图标配 13px 正文 */
+  --icon-md: 14px;
+  /* 折叠箭头等比正文缩一档 */
+  --icon-sm: calc(var(--icon-md) - 2px);
+  --icon-lg: 16px;
+  /* 启动失败页的主图标 */
+  --icon-xl: 32px;
+  /* 24 画布线宽；低于 1.71 时 14px 图标下等效不到 1px，会糊成半调灰 */
+  --icon-stroke: 1.75px;
+
+  /* --- 布局 --- */
+  /* 页面内标题条：只有 macOS 的浮层标题条占高度，其余平台为 0 */
+  --titlebar-inset: 0px;
+  /* 右上角自画窗控占的宽：只有 Windows 与 Linux 画窗控，其余平台为 0 */
+  --titlebar-controls-inset: 0px;
+  /* 头部高：两栏首行与窗口标题条同高；28px 图标按钮 + 上下各 8px */
+  --header-height: 44px;
+  /* 顶部通知条宽度：随窗口取一半，窄屏不低于 20rem，宽屏不超过 40rem */
+  --banner-width: clamp(20rem, 50vw, 40rem);
+  /* 对话正文与输入卡的内容宽度：舒适档 */
+  --content-width: 768px;
+
+  /* --- 层级 --- */
+  --z-resizer: 1;
+  /* 窗控浮在主区头部之上 */
+  --z-window-controls: 1;
+  --z-menu: 5;
+  --z-drawer: 10;
+  --z-modal: 20;
+  --z-drag: 30;
+
+  /* ====== 组件层：按组件前缀排列，只给单个组件或一类内容用 ====== */
+  /* 收藏星标：琥珀色，深浅共用 */
+  --favorite: #fbbf24;
+  /* logo 拆层：蓝底图在此，小猪单独一层做探头；主蓝兜底图片未载入 */
+  --brand-mark-bg: #5d77d0 url("/logo-bg.png") center / cover;
+  /* 收起摘要里的电池：10 高的槽，内边距 2，电量最窄 6（槽宽 24 取 --space-lg） */
+  --battery-block: 10px;
+  --battery-pad: 2px;
+  --battery-fill-min: 6px;
+  /* 上下文分类色：相邻分类色相拉开；不用 red（危险）与 cyan（进行中） */
+  --chart-system: var(--indigo-9);
+  --chart-memory: var(--violet-9);
+  --chart-skills: var(--pink-9);
+  --chart-tools: var(--amber-9);
+  --chart-mcp: var(--blue-9);
+  --chart-results: var(--green-9);
+  --chart-conversation: var(--orange-9);
+  --chart-other: var(--slate-8);
+  --chart-free: var(--bg-emphasis);
   /* 行内码：正文色压 10% 的底，深浅主题自动跟随 */
-  --inline-code-background: color-mix(in srgb, var(--contrast-foreground) 10%, transparent);
-  /* 抬起的表面：卡片、输入卡、用户气泡、工具输入与思考内容共用 */
-  --surface: #ffffff;
-  --popover: #fcfcfc;
-
-  /* 文字三级：主、次、弱；弱级只给非必要信息 */
-  --foreground: #292929;
-  --foreground-secondary: #505050;
-  --foreground-faint: #6e6e6e;
-
-  /* 对比度派生色：只在 :root 写一份；.dark 覆盖 --foreground 后自动跟随 */
-  --contrast-foreground: color-mix(
-    in oklab,
-    var(--foreground) calc(100% - var(--contrast-boost)),
-    var(--contrast-target) var(--contrast-boost)
-  );
-  --contrast-foreground-secondary: color-mix(
-    in oklab,
-    var(--foreground-secondary) calc(100% - var(--contrast-boost)),
-    var(--contrast-target) var(--contrast-boost)
-  );
-  --contrast-foreground-faint: color-mix(
-    in oklab,
-    var(--foreground-faint) calc(100% - var(--contrast-boost)),
-    var(--contrast-target) var(--contrast-boost)
-  );
-
-  /* 结构 / 交互 */
-  /* 中性填充两档：轻档给徽标、芯片底，重档给进度轨道与卡片内滚动条 */
-  --fill-quiet: color-mix(in srgb, var(--foreground) 5%, transparent);
-  --fill-strong: color-mix(in srgb, var(--foreground) 12%, transparent);
-  --minimap-marker: color-mix(in srgb, var(--foreground-faint) 35%, transparent);
+  --code-inline-bg: color-mix(in srgb, var(--fg) 10%, transparent);
+  /* 输入区最高 208px，超过内部滚动 */
+  --composer-field-max: 208px;
+  /* 连续曲率：输入卡与菜单浮层共用一套角部形状（比 squircle 关键字的 2 更克制） */
+  --composer-corner-shape: superellipse(1.5);
+  --composer-shadow: 0 12px 28px -18px rgba(0, 0, 0, 0.4);
+  /* 输入卡内侧淡阴影：顶边往里压一点，像卡片嵌进页面 */
+  --composer-inset: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+  /* 输入卡停靠：首屏→会话 420ms，回首屏 470ms。名字由 use-composer-dock.ts 拼接，不是字面量。 */
+  --composer-dock-in: 420ms;
+  --composer-dock-out: 470ms;
+  --composer-radius: 32px;
+  --dialog-width-sm: 420px;
+  /* 对话框内边距：不小于外圆角（内容不撞圆角），向上对齐 4px 网格（再大显空）。
+     大号 12 → 12，小号随卡片圆角 8 → 8；改圆角时内边距跟着走 */
+  --dialog-padding: round(up, var(--radius-dialog), var(--spacing));
+  --dialog-padding-compact: round(up, var(--radius-card), var(--spacing));
+  /* 毛玻璃弹层（警告框、命令面板）：半透明底加模糊，背后的遮罩也带轻模糊 */
+  --glass-bg: color-mix(in srgb, var(--bg) 80%, transparent);
+  --glass-filter: blur(12px) saturate(1.14);
+  --glass-border: rgba(0, 0, 0, 0.1);
+  --glass-shadow: 0 24px 64px -24px rgba(0, 0, 0, 0.65);
+  --glass-radius: 16px;
+  /* 菜单、下拉、浮卡等贴着触发器的小浮层：同一块毛玻璃，阴影短一档 */
+  --glass-menu-shadow: 0 16px 40px -18px rgba(0, 0, 0, 0.55);
+  --glass-backdrop: color-mix(in srgb, var(--bg) 60%, transparent);
+  --glass-backdrop-filter: blur(4px);
+  --glass-footer-bg: color-mix(in srgb, var(--fg) 2.5%, transparent);
+  --glass-footer-border: color-mix(in srgb, var(--fg) 7%, transparent);
+  --glass-kbd-bg: color-mix(in srgb, var(--fg) 8%, transparent);
+  --drawer-width: 360px;
+  /* 滚动边缘渐隐：类只选带宽，颜色由 mask 决定 */
+  --edge-fade-band: 24px;
+  --edge-fade-menu-band: 12px;
   /* 强度滑条：外壳渐变 + 0.5px 描边，主题色渐变填充，白色胶囊滑块；深色在 .dark 覆盖 */
   --effort-shell: rgba(230, 230, 232, 0.504);
   --effort-shell-2: rgba(232, 232, 233, 0.357);
@@ -113,17 +254,28 @@
   --effort-fill-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.16);
   --effort-thumb: linear-gradient(180deg, #ffffff, #f5f5f5);
   --effort-thumb-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
-  /* 收藏星标：琥珀色，深浅共用 */
-  --favorite: #fbbf24;
-  --link: var(--accent-11);
-  --scrollbar-color: #d6d6d6;
-
-  /* 滚动边缘渐隐：类只选带宽，颜色由 mask 决定 */
-  --edge-fade-band: 24px;
-  --edge-fade-menu-band: 12px;
-
-  /* logo 拆层：蓝底图在此，小猪单独一层做探头；主蓝兜底图片未载入 */
-  --brand-mark-bg: #5d77d0 url("/logo-bg.png") center / cover;
+  /* Files 面板的标签：basis 192、最窄 104、标签文字最宽 140、高 24 */
+  --file-tab-width: 192px;
+  --file-tab-min: 104px;
+  --file-tab-label: 140px;
+  --file-tab-height: 24px;
+  --file-tab-close: 20px;
+  /* 侧边栏紧凑图标按钮：图标外 2px */
+  --icon-button-pad: 2px;
+  /* 代码块语言图标的色相，取自 @pierre/vscode-icons 调色板：浅色 600 档，深色 400 档 */
+  --language-gray: #6c6c71;
+  --language-red: #d52c36;
+  --language-orange: #d47628;
+  --language-yellow: #d5a910;
+  --language-green: #199f43;
+  --language-teal: #17a5af;
+  --language-cyan: #1ca1c7;
+  --language-blue: #1a85d4;
+  --language-indigo: #693acf;
+  --language-purple: #a631be;
+  --language-pink: #d32a61;
+  /* 上下文图例的占比列最窄宽 */
+  --legend-share: 44px;
   /* 吉祥物取 logo 小猪原色，深浅主题共用 */
   --mascot-body: #fde3b4;
   --mascot-snout: #fda88e;
@@ -135,247 +287,139 @@
   /* 吉祥物轻立体：身体下沿暗面与落地投影 */
   --mascot-shade: rgba(196, 128, 60, 0.32);
   --mascot-shadow: rgba(0, 0, 0, 0.2);
-
-  /* 状态：文字色配同色相浅底，不用实色填充；成功沿用 Radix green */
-  --success: var(--green-11);
-  --info: var(--accent-11);
-  --warning: #8f5f13;
-  --danger: #ae2e38;
-  --state-working: var(--info);
-  --success-bg: var(--green-a3);
-  --info-bg: #edeff9;
-  --warning-bg: #f7efdd;
-  --danger-bg: #faeaeb;
-
-  /* 代码：等宽字体观感比同号 sans 大一档，13 号与 14 号正文相当 */
-  --text-code: 13px;
-  --text-code-line: 24.5px;
-
-  /* 输入卡控件（回形针、发送、模型 chip、上下文环） */
-  --size-composer-control: 32px;
+  /* 小猪探头：开屏与侧栏品牌共用同一节奏 */
+  --mascot-peek-duration: 640ms;
+  --menu-item-gap: calc(var(--spacing) / 2);
+  /* 浮层出入与 hover 统一曲线 */
+  --menu-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --menu-duration-out: 100ms;
+  --minimap-marker: color-mix(in srgb, var(--fg-faint) 35%, transparent);
   /* 模型选择面板固定宽 320px，列表最高 200px */
-  --size-model-picker: 320px;
-  --size-model-picker-list: 200px;
-  /* 输入区最高 208px，超过内部滚动 */
-  --size-composer-field-max: 208px;
-  /* 连续曲率：输入卡与菜单浮层共用一套角部形状（比 squircle 关键字的 2 更克制） */
-  --corner-shape-composer: superellipse(1.5);
-
-  /* 尺寸 */
-  --size-control: 40px;
-  /* 页面内标题条：只有 macOS 的浮层标题条占高度，其余平台为 0 */
-  --titlebar-inset: 0px;
-  /* 右上角系统窗控占的宽：只有 Windows 的窗控浮在页面上，其余平台为 0 */
-  --titlebar-controls-inset: 0px;
-  /* 头部高：两栏首行与窗口标题条同高；28px 图标按钮 + 上下各 8px */
-  --header-height: 44px;
-  /** macOS 侧栏收起时红绿灯占位：红绿灯簇与间距 60px */
-  --size-mac-traffic-lights: 68px;
-  --size-drawer: 360px;
-  /* 电池式用量条：24×10 的槽，内边距 2px，电量最窄 6px */
-  --size-task-output-max: 200px;
-  --size-battery-block: 10px;
-  --size-battery-pad: 2px;
-  --size-battery-fill-min: 6px;
-  /* 分类用量条与图例：条高 6px、色块 10px、占比列最窄 44px */
-  --size-meter-block: 6px;
-  /* 上下文分类色：相邻分类色相拉开；不用 red，它在项目里表示危险 */
-  --chart-system: var(--indigo-9);
-  --chart-memory: var(--violet-9);
-  --chart-skills: var(--cyan-9);
-  --chart-tools: var(--amber-9);
-  --chart-results: var(--green-9);
-  --chart-conversation: var(--orange-9);
-  --chart-other: var(--slate-8);
-  --chart-free: var(--fill-strong);
-  --size-legend-swatch: 10px;
-  --size-legend-share: 44px;
+  --model-picker-width: 320px;
+  --model-picker-list-height: 200px;
+  /* 图形尺寸，不算字号：项目缩写方块的字母 */
+  --monogram-size: calc(var(--text-body) - 5px);
+  /* 引用块左竖线：markdown 引用与轮次错误行共用 */
+  --quote-border-width: 2px;
   /* 摘要面板与子会话只读抽屉 */
-  --size-rail: 280px;
-  --size-rail-row: 26px;
-  --size-child-drawer: 560px;
-  /* Files 面板的标签：照 cc-wrapper 的 basis 192、最窄 104、标签文字最宽 140、高 24 */
-  --size-file-tab: 192px;
-  --size-file-tab-min: 104px;
-  --size-file-tab-label: 140px;
-  --size-file-tab-height: 24px;
-  --size-file-tab-close: 20px;
-  --size-dialog-s: 420px;
-  --size-settings-body: 56rem;
-  --size-settings-dialog-width: 80rem;
-  --size-settings-dialog-height: 60rem;
-  --size-settings-dialog-height-min: 34rem;
-  --size-settings-dialog-nav: 15rem;
-  --size-settings-dialog-nav-narrow: 2.75rem;
-  /* 线性图标：14px 图标配 13px 正文 */
-  --size-icon: 14px;
-  /* 折叠箭头等比正文缩一档 */
-  --size-icon-xs: calc(var(--size-icon) - 2px);
-  --size-icon-2xs: 16px;
-  /* 启动失败页的主图标 */
-  --size-icon-hero: 32px;
-  /* 模型标签旁的上下文占用圆环 */
-  --size-context-ring: 15px;
-  --size-icon-button: 28px;
+  --rail-width: 280px;
   /* 分栏拖拽把手的胶囊：长 40、粗 3 */
-  --size-resize-grip: 40px;
-  --size-resize-grip-thickness: 3px;
-  /* 侧栏左下角的头像 */
-  --size-avatar: 20px;
-  /* 24 画布线宽；低于 1.71 时 14px 图标下等效不到 1px，会糊成半调灰 */
-  --line-icon-width: 1.75px;
-  /* 侧边栏紧凑图标按钮：图标外 2px */
-  --icon-button-pad: 2px;
-  /* 屏外回合未排版前的预估高度；排过一次后浏览器记住真实高度 */
-  --size-turn-estimate: 480px;
-  /* 对话正文与输入卡的内容宽度：舒适档 */
-  --size-content: 768px;
+  --resize-grip-length: 40px;
+  --resize-grip-thickness: 3px;
+  --scrollbar-color: #d6d6d6;
+  --settings-body-width: 56rem;
+  --settings-dialog-width: 80rem;
+  --settings-dialog-height: 60rem;
+  --settings-dialog-height-min: 34rem;
+  --settings-nav-width: 15rem;
+  --settings-nav-width-narrow: 2.75rem;
+  --shimmer-duration: 3400ms;
+  /* 启动画面的 logo */
+  --startup-logo-size: 88px;
+  /* 任务输出卡片的最高高度 */
+  --task-output-max: 200px;
+  /* 主题预览线框：固定画浅色与深色两套界面，不跟当前主题走 */
+  --theme-wire-light: #f2f2f6;
+  --theme-wire-light-raised: #f6f6fa;
+  --theme-wire-dark: #101012;
+  --theme-wire-dark-raised: #17171a;
+  --theme-switch-duration: 600ms;
+  /** macOS 侧栏收起时红绿灯占位：红绿灯簇与间距 60px */
+  --traffic-lights-width: 68px;
   /* 正文排版：左右留白、上下留白、轮与行间距、卡片行内边距 */
   --transcript-gutter: 32px;
   --transcript-gutter-narrow: 20px;
   --transcript-pad-block: 48px;
   --transcript-turn-gap: 24px;
-  --transcript-item-gap: 16px;
+  --transcript-item-gap: 20px;
   --transcript-row-pad: 10px;
   --transcript-tool-max: 400px;
-  /* 侧栏行高 */
-  --size-nav-rail: 28px;
-  --startup-logo-size: 88px;
-
-  /* 边框 / 遮罩 / 层级 */
-  --border-width: 1px;
-  /* 引用块左竖线：markdown 引用与轮次错误行共用 */
-  --border-width-quote: 2px;
-  --scrim: rgba(0, 0, 0, 0.4);
-  --z-resizer: 1;
-  --z-menu: 5;
-  --z-drawer: 10;
-  --z-modal: 20;
-  --z-drag: 30;
-  --opacity-disabled: 0.55;
-
-  /* 阴影只给真正浮起来的层：下拉、菜单、提示用 popover，对话框与抽屉用 dialog */
-  --shadow-popover: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
-  --shadow-dialog: 0 16px 48px rgba(0, 0, 0, 0.18);
-  --shadow-composer: 0 12px 28px -18px rgba(0, 0, 0, 0.4);
-  /* 输入卡内侧淡阴影：顶边往里压一点，像卡片嵌进页面 */
-  --composer-inset: inset 0 1px 3px rgba(0, 0, 0, 0.05);
-  /* 主题预览线框：固定画浅色与深色两套界面，不跟当前主题走 */
-  --theme-wire-light: #f4f4f4;
-  --theme-wire-light-raised: #ffffff;
-  --theme-wire-dark: #101012;
-  --theme-wire-dark-raised: #17171a;
-
-  /* 反色主按钮 */
-  --inverse-background: #292929;
-  --inverse-background-hover: #3c3c3c;
-  --inverse-foreground: #ffffff;
+  /* 屏外回合未排版前的预估高度；排过一次后浏览器记住真实高度 */
+  --turn-estimate: 480px;
+  /* 侧栏左下角的头像 */
+  --user-avatar-size: 20px;
   /* 欢迎页「字符流光」背景：暗处到亮处的两端色，取文字色，浅色主题为黑、深色主题为白 */
-  --welcome-flow-low: var(--foreground-faint);
-  --welcome-flow-high: var(--foreground);
-
-  /* 动效 */
-  --ease-out: cubic-bezier(0.17, 1, 0.32, 1);
-  --ease-in-out: cubic-bezier(0.66, 0, 0.34, 1);
-  --ease-spring: cubic-bezier(0.22, 1.18, 0.36, 1);
-  /* 浮层出入与 hover 统一曲线 */
-  --ease-menu: cubic-bezier(0.25, 0.1, 0.25, 1);
-  --ease-hover: cubic-bezier(0.4, 0, 0.2, 1);
-  --duration-menu-out: 100ms;
-  --duration-fast: 150ms;
-  --duration-normal: 200ms;
-  /* 输入卡停靠：首屏→会话 420ms，回首屏 470ms。名字由 use-composer-dock.ts 拼接，不是字面量。 */
-  --duration-dock-in: 420ms;
-  --duration-dock-out: 470ms;
+  --welcome-flow-low: var(--fg-faint);
+  --welcome-flow-high: var(--fg);
   /* 首屏整体落位入场 */
-  --duration-settle: 500ms;
-  --duration-slow: 300ms;
+  --welcome-settle-duration: 500ms;
   /* 欢迎页字符背景浮现：慢于首屏落位，等标题和输入框站稳再铺开 */
-  --duration-reveal: 1200ms;
-  /* 小猪探头：开屏与侧栏品牌共用同一节奏 */
-  --duration-pig-peek: 640ms;
-  --duration-theme: 600ms;
-  --duration-shimmer: 3400ms;
-  --ease-icon: cubic-bezier(0.2, 0, 0, 1);
-
-  /* 焦点环：2px 实色第 11 级，深浅主题都看得见；配合 .ring-focus 使用 */
-  --focus-ring: 0 0 0 2px var(--accent-11);
-  --focus-ring-danger: 0 0 0 2px var(--danger);
-  /* 外观设置里换字体时，html 内联把 --font-sans / --font-mono 改成「所选字体, 默认栈」 */
-  --font-sans-default:
-    "anthropic-sans", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
-    "Microsoft YaHei", sans-serif;
-  --font-sans: var(--font-sans-default);
-  --font-mono-default:
-    "anthropic-mono", ui-monospace, "SF Mono", Menlo, Consolas, "PingFang SC", "Microsoft YaHei",
-    monospace;
-  --font-mono: var(--font-mono-default);
-
-  /* 字号四档：辅助、正文、标题、页面大标题；一页最多用其中 4 种，层级靠字重与三级文字色 */
-  --text-meta: 12px;
-  --text-meta--line-height: 1.4;
-  --text-body: 14px;
-  --text-body--line-height: 1.43;
-  --text-title: 16px;
-  --text-title--line-height: 1.4;
-  --text-heading: 24px;
-  --text-heading--line-height: 1.3;
-  --text-heading--letter-spacing: -0.2px;
-  /* 图形尺寸，不算字号：项目缩写方块的字母 */
-  --text-monogram: calc(var(--text-body) - 5px);
-
-  --font-weight-normal: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-
-  /* 间距刻度用 --space-*；--spacing-* 是 max-w/w/size/leading 的兜底命名空间，塞进去会顶掉默认刻度 */
-  --space-xxs: calc(var(--spacing) * 1);
-  --space-xs: calc(var(--spacing) * 2);
-  --space-sm: calc(var(--spacing) * 3);
-  --space-md: calc(var(--spacing) * 4);
-  --space-lg: calc(var(--spacing) * 6);
-  --space-xl: calc(var(--spacing) * 7);
-  --space-xxl: calc(var(--spacing) * 8);
-
-  /* 圆角三档加全圆角；嵌套元素写 calc(外层圆角 - 内边距)，同心更好看 */
-  --radius-control: 6px;
-  --radius-card: 10px;
-  --radius-dialog: 14px;
-  /* 对话框内边距：不小于外圆角（内容不撞圆角），向上对齐 4px 网格（再大显空）。
-     大号 14 → 16，小号随卡片圆角 10 → 12；改圆角时内边距跟着走 */
-  --space-dialog: round(up, var(--radius-dialog), var(--spacing));
-  --space-dialog-compact: round(up, var(--radius-card), var(--spacing));
-  --radius-composer: 32px;
-  /* 项目自用的全圆角，别改回 --radius-full：rt 拿那个名字当胶囊开关，medium 档是 0 */
-  --radius-pill: 9999px;
+  --welcome-reveal-duration: 1200ms;
 }
 
 /* 桌面壳标题条：一处定义，三处消费（侧栏顶距、拖拽带、头部高度）。
-   只有 macOS 的浮层标题条占高度；Windows 与 Linux 走原生边框，头部取自然高。 */
+   只有 macOS 的浮层标题条占高度；Windows 与 Linux 的窗控画在头部这一行，头部取自然高。 */
 html[data-pig-desktop-platform="darwin"] {
   --titlebar-inset: 44px;
   --header-height: var(--titlebar-inset);
 }
 
-/* Windows 窗控宽度由 Electron 的 env 给出：视口宽减去标题条可用宽 */
-html[data-pig-desktop-platform="win32"] {
-  --titlebar-controls-inset: calc(100vw - env(titlebar-area-width, 100vw));
+/* Windows 与 Linux 的自画窗控：三枚 28px 图标按钮、两道间隙，再与头部内容隔一档 */
+html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]) {
+  --titlebar-controls-inset: calc(3 * var(--control-sm) + 2 * var(--space-2xs) + var(--space-xs));
 }
 
 /* ------ 深色覆盖：只覆盖颜色与阴影 ------ */
 .dark {
   color-scheme: dark;
 
-  /* 深色下向白推，对比度层才朝正确方向生效 */
-  --contrast-target: #ffffff;
+  /* ====== 语义层：全站共用，组件只读这一层与下面的组件层 ====== */
 
-  --primary: var(--accent-9);
-  --primary-active: var(--accent-10);
-  --primary-foreground: var(--accent-contrast);
+  /* --- 表面 --- */
+  /* 侧栏比主区暗一截，层次靠底色就分得开 */
+  --bg: #101012;
+  --bg-sunken: #0a0a0b;
+  --bg-surface: #17171a;
+  --bg-raised: #1e1e20;
+  --scrim: rgba(0, 0, 0, 0.55);
+  --bg-inverse: #9da4ae;
+  --bg-inverse-hover: #b8bdc5;
 
-  --background: #101012;
-  --sidebar: #0e0e10;
+  /* --- 前景 --- */
+  /* 主文字与次要文字带一点冷蓝 */
+  --fg: #e8eaed;
+  --fg-secondary: #9da4ae;
+  --fg-faint: #85858c;
+  --fg-on-accent: var(--accent-contrast);
+  --fg-inverse: #131316;
+
+  /* --- 交互 --- */
+  /* 深色实心档减一档亮度，文字档取 cyan 第 11 档 */
+  --accent-solid: #097590;
+  --accent-solid-hover: #0a7f9c;
+  --accent-text: var(--cyan-11);
+  --link: var(--accent-text);
+  --focus-ring: 0 0 0 2px var(--accent-text);
+  /* 悬停与选中直接继承 :root 的 slate alpha，深色不另写 */
+
+  /* --- 状态 --- */
+  --info-text: var(--accent-text);
+  --info-solid: var(--cyan-9);
+  --warning-text: #e8a33d;
+  --danger-text: #ff7d88;
+  --warning-subtle: #251b0d;
+  --danger-subtle: #281518;
+
+  /* --- 阴影 --- */
+  --shadow-popover: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-dialog: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 48px rgba(0, 0, 0, 0.6);
+
+  /* ====== 组件层：按组件前缀排列，只给单个组件或一类内容用 ====== */
+  /* 写成透明零阴影而不是 none：它和内环拼在同一个 box-shadow 列表里，none 会让整条失效 */
+  --composer-shadow: 0 0 transparent;
+  --composer-inset: inset 0 1px 0 rgba(255, 255, 255, 0.03), inset 0 1px 3px rgba(0, 0, 0, 0.2);
+  --glass-filter: blur(16px) saturate(1.08);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: inset 0 1px rgba(255, 255, 255, 0.04), 0 24px 72px -20px rgba(0, 0, 0, 0.9);
+  --glass-backdrop: color-mix(in srgb, var(--bg) 64%, transparent);
+  --glass-menu-shadow: 0 18px 44px -18px rgba(0, 0, 0, 0.8);
+  --effort-shell: rgba(255, 255, 255, 0.07);
+  --effort-shell-2: rgba(255, 255, 255, 0.1);
+  --effort-line: rgba(255, 255, 255, 0.08);
+  --effort-label: #ffffff;
+  --effort-label-dim: rgba(255, 255, 255, 0.4);
+  --effort-tick: rgba(255, 255, 255, 0.256);
+  --effort-thumb-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
   --language-gray: #adadb1;
   --language-red: #ff6762;
   --language-orange: #ffa359;
@@ -387,40 +431,8 @@ html[data-pig-desktop-platform="win32"] {
   --language-indigo: #9d6afb;
   --language-purple: #d568ea;
   --language-pink: #ff678d;
-  --surface: #17171a;
-  --popover: #1c1c1f;
-
-  --foreground: #e8e8e8;
-  --foreground-secondary: #a1a1a1;
-  --foreground-faint: #888888;
-
-  --warning: #e8a33d;
-  --danger: #ff7d88;
-  --info-bg: #1a2143;
-  --warning-bg: #251b0d;
-  --danger-bg: #281518;
-
-  --effort-shell: rgba(255, 255, 255, 0.07);
-  --effort-shell-2: rgba(255, 255, 255, 0.1);
-  --effort-line: rgba(255, 255, 255, 0.08);
-  --effort-label: #ffffff;
-  --effort-label-dim: rgba(255, 255, 255, 0.4);
-  --effort-tick: rgba(255, 255, 255, 0.256);
-  --effort-thumb-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
   --mascot-shadow: rgba(0, 0, 0, 0.5);
-  --link: var(--accent-11);
   --scrollbar-color: #2a2a2e;
-
-  --scrim: rgba(0, 0, 0, 0.55);
-  --shadow-popover: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 8px 24px rgba(0, 0, 0, 0.5);
-  --shadow-dialog: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 48px rgba(0, 0, 0, 0.6);
-  /* 写成透明零阴影而不是 none：它和内环拼在同一个 box-shadow 列表里，none 会让整条失效 */
-  --shadow-composer: 0 0 transparent;
-  --composer-inset: inset 0 1px 0 rgba(255, 255, 255, 0.03), inset 0 1px 3px rgba(0, 0, 0, 0.2);
-
-  --inverse-background: #e8e8e8;
-  --inverse-background-hover: #ffffff;
-  --inverse-foreground: #101012;
 }
 
 /* 界面字号档：默认 M；S/L 缩放辅助、正文、标题三档，页面大标题不动。 */
@@ -440,11 +452,11 @@ html[data-ui-size="l"] {
 
 /* 对话宽度档：舒适为默认，宽档加宽，满宽铺满列。 */
 html[data-chat-width="wide"] {
-  --size-content: 920px;
+  --content-width: 920px;
 }
 
 html[data-chat-width="full"] {
-  --size-content: 100%;
+  --content-width: 100%;
 }
 
 /* 着色图标：在带 data-accent-color 的元素上取该色板第 11 级，项目图标用 */

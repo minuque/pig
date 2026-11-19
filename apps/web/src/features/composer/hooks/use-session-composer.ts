@@ -1,5 +1,10 @@
 import { computed, type Ref } from "vue"
-import type { ModelMetadata, SessionPhase, ThinkingLevel } from "@/types/common-type.js"
+import type {
+  DefaultModelView,
+  ModelMetadata,
+  SessionPhase,
+  ThinkingLevel,
+} from "@/types/common-type.js"
 import { useComposerBinding } from "@features/composer/hooks/use-composer-binding.js"
 import { catalogFromModels } from "@features/composer/lib/model-preset.js"
 import type { ComposerModel, ComposerPreset } from "@features/composer/type.js"
@@ -12,6 +17,7 @@ interface ComposerSnapshot {
 
 interface SessionComposerOptions {
   models: Ref<readonly ModelMetadata[]>
+  defaultModel: Ref<DefaultModelView | null>
   snapshot: Ref<ComposerSnapshot | undefined>
   phase: Ref<SessionPhase | undefined>
   setModel(model: ComposerModel): Promise<void>
@@ -23,6 +29,7 @@ export function useSessionComposer(options: SessionComposerOptions) {
   const catalog = computed(() => catalogFromModels(options.models.value))
   const { preset, consumeDetachedEdit } = useComposerBinding({
     catalog,
+    defaultModel: options.defaultModel,
     snapshot: options.snapshot,
     phase: options.phase,
     setModel: options.setModel,

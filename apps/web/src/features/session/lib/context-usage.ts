@@ -7,6 +7,7 @@ export interface ContextUsageSegment {
     | "memory"
     | "skills"
     | "tools"
+    | "mcpTools"
     | "toolResults"
     | "conversation"
     | "other"
@@ -21,6 +22,8 @@ export interface ContextUsage {
   used: number
   window: number
   percent: number
+  /** 模型可用的 MCP 工具数，含按需加载、不占上下文的 */
+  mcpToolCount: number
   segments: ContextUsageSegment[]
 }
 
@@ -54,6 +57,12 @@ const SEGMENT_DEFS = [
     previewable: true,
   },
   {
+    id: "mcpTools" as const,
+    label: () => t("composer.contextMcpTools"),
+    color: "var(--chart-mcp)",
+    previewable: true,
+  },
+  {
     id: "toolResults" as const,
     label: () => t("composer.contextToolResults"),
     color: "var(--chart-results)",
@@ -61,7 +70,7 @@ const SEGMENT_DEFS = [
   },
   {
     id: "conversation" as const,
-    label: () => t("composer.contextCurrentSession"),
+    label: () => t("composer.contextMessages"),
     color: "var(--chart-conversation)",
     previewable: true,
   },
@@ -90,6 +99,7 @@ export function projectContextUsage(
     used,
     window,
     percent: window <= 0 || used <= 0 ? 0 : Math.min(100, Math.round((used / window) * 100)),
+    mcpToolCount: finiteTokens(estimate.mcpToolCount),
     segments: SEGMENT_DEFS.map((def) => ({
       id: def.id,
       label: def.label(),

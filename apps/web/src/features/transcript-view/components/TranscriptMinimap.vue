@@ -293,17 +293,17 @@ function onPreviewOpenChange(open: boolean) {
 
 /* 视口里的回合加深，正在看的那条最深 */
 .minimap-strip.strip-in-view {
-  background: var(--contrast-foreground-faint);
+  background: var(--fg-faint);
 }
 
 .minimap-strip.strip-active {
-  background: var(--contrast-foreground);
+  background: var(--fg);
 }
 
 /* 上一个 / 下一个回合：圆角方块贴着导轨两端，悬停导轨时露出 */
 .minimap-nav {
   position: absolute;
-  inset-inline-start: var(--space-xxs);
+  inset-inline-start: var(--space-2xs);
   z-index: 1;
   display: grid;
   place-items: center;
@@ -313,14 +313,14 @@ function onPreviewOpenChange(open: boolean) {
   border: 0;
   border-radius: calc(var(--radius-control) / 2);
   background: transparent;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   cursor: pointer;
   translate: -50% 0;
   opacity: 0;
   transition:
     opacity var(--duration-fast) var(--ease-out),
-    background var(--duration-fast) var(--ease-hover),
-    color var(--duration-fast) var(--ease-hover);
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
 }
 
 .minimap-stage:hover .minimap-nav,
@@ -329,8 +329,8 @@ function onPreviewOpenChange(open: boolean) {
 }
 
 .minimap-nav:hover:not(:disabled) {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 .minimap-nav:disabled {
@@ -339,18 +339,18 @@ function onPreviewOpenChange(open: boolean) {
 }
 
 .minimap-nav.is-previous {
-  bottom: calc(100% + var(--space-xxs));
+  bottom: calc(100% + var(--space-2xs));
 }
 
 .minimap-nav.is-next {
-  top: calc(100% + var(--space-xxs));
+  top: calc(100% + var(--space-2xs));
 }
 
 /* 面板的底色、圆角、阴影、内边距由 rt-PopoverContent 提供，这里只管排版 */
 .preview-user {
   display: block;
   overflow: hidden;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-body);
   font-weight: var(--font-weight-normal);
   line-height: 20px;
@@ -361,9 +361,9 @@ function onPreviewOpenChange(open: boolean) {
 .preview-assistant {
   display: -webkit-box;
   max-height: 3.75rem;
-  margin-top: var(--space-xxs);
+  margin-top: var(--space-2xs);
   overflow: hidden;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: 20px;
   line-clamp: 3;

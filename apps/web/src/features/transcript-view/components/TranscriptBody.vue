@@ -412,7 +412,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 /* 顶部渐隐层压住普通行，工具行由 .row-tools 的 z-index 抬到它上面 */
 .transcript-edge-top {
   /* 与正文同底：main 的底色 */
-  background: linear-gradient(to bottom, var(--background), transparent);
+  background: linear-gradient(to bottom, var(--bg), transparent);
 }
 
 /* 最后一轮至少撑满可见区：贴底时这轮的用户消息落在顶部渐隐带下方，指示器跟在消息后。
@@ -454,8 +454,8 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   /* 底部留白：正文留白 + 输入条占位 */
   padding-bottom: calc(var(--transcript-pad-block) + var(--composer-reserve, 0px));
   /* 在正文列里居中；右侧面板占自己的列，不再叠进正文宽 */
-  padding-inline-start: max(var(--transcript-gutter), calc((100% - var(--size-content)) / 2));
-  padding-inline-end: max(var(--transcript-gutter), calc((100% - var(--size-content)) / 2));
+  padding-inline-start: max(var(--transcript-gutter), calc((100% - var(--content-width)) / 2));
+  padding-inline-end: max(var(--transcript-gutter), calc((100% - var(--content-width)) / 2));
   /* 横向裁在列内，避免视口 overflow-x 裁掉竖条；内边距留给满宽卡片边框 */
   overflow-x: clip;
 }

@@ -76,14 +76,14 @@ watch(
 <style scoped>
 /* 代码块底色用 surface，从正文里托出来 */
 .code-block {
-  --card-background-color: var(--surface);
+  --card-background-color: var(--bg-surface);
 }
 
 .code-header {
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
-  padding: var(--space-xxs) var(--space-xxs) var(--space-xxs) var(--space-sm);
+  gap: var(--space-2xs);
+  padding: var(--space-2xs) var(--space-2xs) var(--space-2xs) var(--space-sm);
 }
 
 .code-header :deep(.copy-button) {
@@ -99,7 +99,7 @@ watch(
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   line-height: 1.4;
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .fence-name {

@@ -104,7 +104,7 @@ watch(
 .file-tabs {
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-inline-size: 0;
 }
 
@@ -112,36 +112,36 @@ watch(
   display: flex;
   flex: 1;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-inline-size: 0;
   overflow-x: auto;
   scrollbar-width: none;
 }
 
-/* 照 cc-wrapper：标签 basis 192，最窄 104，选中时字色转主色、底色用选中态 */
+/* 标签 basis 192，最窄 104，选中时字色转主色、底色用选中态 */
 .file-tab {
   position: relative;
   display: flex;
-  flex: 0 1 var(--size-file-tab);
+  flex: 0 1 var(--file-tab-width);
   align-items: center;
-  gap: var(--space-xxs);
-  min-inline-size: var(--size-file-tab-min);
+  gap: var(--space-2xs);
+  min-inline-size: var(--file-tab-min);
   max-inline-size: max-content;
-  block-size: var(--size-file-tab-height);
+  block-size: var(--file-tab-height);
   padding: 2px;
   border-radius: var(--radius-control);
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   user-select: none;
 }
 
 .file-tab:hover {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 .file-tab[data-selected] {
-  background: var(--btn-selected);
-  color: var(--contrast-foreground);
+  background: var(--bg-selected);
+  color: var(--fg);
 }
 
 .file-tab:has(:focus-visible) {
@@ -154,7 +154,7 @@ watch(
   align-items: center;
   min-inline-size: 0;
   block-size: 100%;
-  padding: 0 0 0 var(--space-xxs);
+  padding: 0 0 0 var(--space-2xs);
   border: 0;
   background: none;
   color: inherit;
@@ -171,7 +171,7 @@ watch(
 
 .file-tab-label {
   overflow: hidden;
-  max-inline-size: var(--size-file-tab-label);
+  max-inline-size: var(--file-tab-label);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -186,21 +186,21 @@ watch(
   display: grid;
   flex-shrink: 0;
   place-items: center;
-  inline-size: var(--size-file-tab-close);
-  block-size: var(--size-file-tab-close);
+  inline-size: var(--file-tab-close);
+  block-size: var(--file-tab-close);
   padding: 0;
   border: 0;
   border-radius: calc(var(--radius-control) - 2px);
   background: none;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .file-tab-close:hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 .file-tab[data-selected] .file-tab-close {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 </style>

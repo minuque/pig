@@ -27,9 +27,11 @@ export interface ProviderView {
   models: ProviderModelView[]
 }
 
+/** pi 设置里的默认模型与思考档位；新会话照它预选，没配就不预选。 */
 export interface DefaultModelView {
   provider: string
   id: string
+  thinkingLevel?: ThinkingLevel
 }
 
 export interface ProviderListResponse {

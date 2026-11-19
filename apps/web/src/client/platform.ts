@@ -8,6 +8,7 @@ import type {
   ContextUsageEstimate,
   ContextUsagePreview,
   CustomProviderInput,
+  DefaultModelView,
   DirectoryListResponse,
   EnvironmentInfo,
   FileSearchEntry,
@@ -116,10 +117,12 @@ export async function listProviders(): Promise<ProviderListResponse> {
   return request("GET /api/v1/platform/providers")
 }
 
-/** 刷新后的模型目录；与 PiServer 快照里的 models 同形。 */
-export async function listProviderModels(): Promise<ModelMetadata[]> {
-  const { models } = await request("GET /api/v1/platform/models")
-  return models
+/** 刷新后的模型目录与设置里的默认模型；与 PiServer 快照里的同名字段同形。 */
+export function listProviderModels(): Promise<{
+  models: ModelMetadata[]
+  defaultModel: DefaultModelView | null
+}> {
+  return request("GET /api/v1/platform/models")
 }
 
 /** 开始一次供应商登录；事件由 openLoginEvents 消费。 */

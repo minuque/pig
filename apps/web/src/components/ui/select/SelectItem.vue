@@ -24,7 +24,7 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectItemProps
 }
 
 .rt-SelectItem[data-state="checked"]:not([data-highlighted]) {
-  background: var(--btn-selected);
-  color: var(--contrast-foreground);
+  background: var(--bg-selected);
+  color: var(--fg);
 }
 </style>

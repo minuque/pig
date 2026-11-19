@@ -14,7 +14,7 @@ const key = (code: string, mods: Partial<KeyboardEvent> = {}) =>
   }) as KeyboardEvent
 
 describe("分屏快捷键", () => {
-  it("macOS 照 cc-wrapper：⌃⌘\\ 右侧新建，⌃⌘W 关闭", () => {
+  it("macOS：⌃⌘\\ 右侧新建，⌃⌘W 关闭", () => {
     expect(splitShortcut(key("Backslash", { ctrlKey: true, metaKey: true }), true)).toBe(
       "new-right",
     )

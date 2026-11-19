@@ -96,7 +96,7 @@ function openLink() {
   flex: 1;
   inline-size: 100%;
   border: 0;
-  background: var(--surface);
+  background: var(--bg-surface);
 }
 
 .file-html-link {

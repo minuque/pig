@@ -2,6 +2,7 @@
 import type { ModelMetadata } from "./model.js"
 import type {
   CustomProviderInput,
+  DefaultModelView,
   ModelParamsPatch,
   ProviderListResponse,
   ProviderTestResult,
@@ -113,7 +114,9 @@ export interface PlatformHttpRoutes {
   }
   "GET /api/v1/platform/providers": { response: ProviderListResponse }
   "POST /api/v1/platform/providers/refresh": { response: ProviderListResponse }
-  "GET /api/v1/platform/models": { response: { models: ModelMetadata[] } }
+  "GET /api/v1/platform/models": {
+    response: { models: ModelMetadata[]; defaultModel: DefaultModelView | null }
+  }
   "POST /api/v1/platform/providers/login": {
     body: { providerId: string; type: "api_key" | "oauth" }
     response: { loginId: string }

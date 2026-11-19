@@ -29,25 +29,32 @@
     <Variant title="业务里的用法">
       <div class="grid is-wide">
         <figure class="cell">
-          <Card size="s" class="rows-card">
-            <div v-for="row in ROWS" :key="row" class="row">
+          <CardList>
+            <CardRow v-for="row in ROWS" :key="row" class="row">
               <span>{{ row }}</span>
               <Switch :model-value="true" size="s" />
-            </div>
-          </Card>
+            </CardRow>
+          </CardList>
 
-          <figcaption>设置分组：行间用 --divider-top</figcaption>
+          <figcaption>设置分组：CardList + CardRow，行线内缩</figcaption>
         </figure>
 
         <figure class="cell">
-          <Card size="s" class="list-card">
-            <button v-for="row in PROVIDERS" :key="row" type="button" class="list-row">
+          <CardList>
+            <CardRow
+              v-for="row in PROVIDERS"
+              :key="row"
+              as="button"
+              interactive
+              type="button"
+              class="list-row"
+            >
               {{ row }}
               <ChevronRightIcon class="size-icon" />
-            </button>
-          </Card>
+            </CardRow>
+          </CardList>
 
-          <figcaption>可点列表：内容贴边，悬停铺底</figcaption>
+          <figcaption>可点列表：CardRow interactive，行线贴边，悬停铺底</figcaption>
         </figure>
 
         <figure class="cell">
@@ -92,7 +99,7 @@ pnpm check:touched</pre>
 <script setup lang="ts">
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { Card } from "@components/ui/card/index.js"
+import { Card, CardList, CardRow } from "@components/ui/card/index.js"
 import { Switch } from "@components/ui/switch/index.js"
 import {
   TableBody,
@@ -130,7 +137,7 @@ const PROVIDERS = ["Anthropic", "DeepSeek", "OpenAI"]
 }
 
 .cell figcaption {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
 }
@@ -145,30 +152,15 @@ const PROVIDERS = ["Anthropic", "DeepSeek", "OpenAI"]
 }
 
 .card-text {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
-}
-
-.rows-card {
-  --card-padding: 0;
-
-  padding-inline: var(--space-md);
 }
 
 .row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: calc(var(--size-control) + var(--space-md));
-}
-
-.row + .row,
-.list-row + .list-row {
-  box-shadow: var(--divider-top);
-}
-
-.list-card {
-  --card-padding: 0;
+  min-height: calc(var(--control-lg) + var(--space-md));
 }
 
 .list-row {
@@ -176,17 +168,13 @@ const PROVIDERS = ["Anthropic", "DeepSeek", "OpenAI"]
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: var(--space-sm) var(--space-md);
+  padding-block: var(--space-sm);
   border: 0;
   background: transparent;
   color: inherit;
   font: inherit;
   text-align: start;
   cursor: pointer;
-}
-
-.list-row:hover {
-  background: var(--btn-hover);
 }
 
 .code {

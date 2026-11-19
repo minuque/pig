@@ -143,7 +143,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
 
 .file-search-field {
   flex-shrink: 0;
-  margin: var(--space-xs) var(--space-xs) var(--space-xxs);
+  margin: var(--space-xs) var(--space-xs) var(--space-2xs);
 }
 
 .file-search-results {
@@ -159,8 +159,8 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
 
 .file-search-heading {
   margin: 0;
-  padding: var(--space-xxs) var(--space-xs);
-  color: var(--contrast-foreground-faint);
+  padding: var(--space-2xs) var(--space-xs);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
 }
@@ -170,11 +170,11 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
   align-items: baseline;
   gap: var(--space-xs);
   inline-size: 100%;
-  padding: var(--space-xxs) var(--space-xs);
+  padding: var(--space-2xs) var(--space-xs);
   border: 0;
   border-radius: var(--radius-control);
   background: none;
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font: inherit;
   font-size: var(--text-body);
   text-align: start;
@@ -187,7 +187,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
 }
 
 .file-search-row:hover {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 .file-search-row:focus-visible {
@@ -210,16 +210,16 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
 .file-search-dir {
   min-inline-size: 0;
   overflow: hidden;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   text-overflow: ellipsis;
 }
 
-/* 照 cc-wrapper 的 .sfs-limit：结果末尾一行弱色小字 */
+/* 搜索截断提示：结果末尾一行弱色小字 */
 .file-search-limit {
   margin: 0;
   padding: var(--space-xs);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   user-select: none;
 }
@@ -233,7 +233,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
 .file-search-empty {
   margin: 0;
   padding: var(--space-md) var(--space-xs);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-body);
   text-align: center;
 }

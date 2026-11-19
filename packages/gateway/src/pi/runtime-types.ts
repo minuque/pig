@@ -2,6 +2,7 @@ import type {
   ExtensionUiDialog,
   ExtensionUiRequest,
   ExtensionUiResponse,
+  DefaultModelView,
   ModelMetadata,
   ModelRef,
   SessionMetadata,
@@ -77,7 +78,7 @@ export interface SessionRuntime {
 /** 会话目录与打开入口。 */
 export interface SessionService {
   listSessions(): Promise<SessionMetadata[]>
-  listModels(): Promise<ModelMetadata[]>
+  listModels(): Promise<{ models: ModelMetadata[]; defaultModel: DefaultModelView | null }>
   createSession(options: CreateSessionOptions): Promise<SessionRuntime>
   openSession(sessionId: string, options?: { takeover?: boolean }): Promise<SessionRuntime>
   /** 会话文件变化：只在有订阅者时监听，返回退订函数。 */

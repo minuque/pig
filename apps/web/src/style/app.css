@@ -2,7 +2,7 @@
 
 @import "./reset.css" layer(base);
 
-/* 色板：主题色 indigo、中性色 slate（见 index.html 的 html 属性）；其余几套给语义色。 */
+/* 色板：主题色 cyan、中性色 slate（见 index.html 的 html 属性）；其余几套给语义色与项目色。 */
 @import "@radix-ui/themes/tokens/colors/indigo.css";
 @import "@radix-ui/themes/tokens/colors/green.css";
 @import "@radix-ui/themes/tokens/colors/orange.css";
@@ -11,7 +11,9 @@
 /* 上下文分类图表用：与上面几套一起拉开色相 */
 @import "@radix-ui/themes/tokens/colors/violet.css";
 @import "@radix-ui/themes/tokens/colors/cyan.css";
+@import "@radix-ui/themes/tokens/colors/pink.css";
 @import "@radix-ui/themes/tokens/colors/amber.css";
+@import "@radix-ui/themes/tokens/colors/blue.css";
 @import "./tokens.css";
 @import "./rt.css";
 @import "./motion.css";
@@ -27,38 +29,44 @@
   scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
-/* ------ Anthropic 可变字体（cc-wrapper 拆包）；先声明再让 token 引用 ------ */
+/* ------ JetBrains Mono（v2.304，OFL 1.1）：代码默认字体，按用到的字重各一份 ------ */
 @font-face {
-  font-family: "anthropic-sans";
-  src: url("../assets/fonts/anthropic-sans.woff2") format("woff2");
-  font-weight: 300 800;
-  font-style: normal;
-  font-display: swap;
-  font-feature-settings: "dlig" 0;
-}
-
-@font-face {
-  font-family: "anthropic-sans";
-  src: url("../assets/fonts/anthropic-sans-italic.woff2") format("woff2");
-  font-weight: 300 800;
-  font-style: italic;
-  font-display: swap;
-  font-feature-settings: "dlig" 0;
-}
-
-@font-face {
-  font-family: "anthropic-mono";
-  src: url("../assets/fonts/anthropic-mono.woff2") format("woff2");
-  font-weight: 300 800;
+  font-family: "JetBrains Mono";
+  src: url("../assets/fonts/JetBrainsMono-Regular.woff2") format("woff2");
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "anthropic-mono";
-  src: url("../assets/fonts/anthropic-mono-italic.woff2") format("woff2");
-  font-weight: 300 800;
+  font-family: "JetBrains Mono";
+  src: url("../assets/fonts/JetBrainsMono-Italic.woff2") format("woff2");
+  font-weight: 400;
   font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../assets/fonts/JetBrainsMono-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../assets/fonts/JetBrainsMono-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("../assets/fonts/JetBrainsMono-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
   font-display: swap;
 }
 
@@ -66,35 +74,35 @@
 /* Lucide 图标基座：零特异性，调用方的 size-* 类和 scoped 样式可覆盖 */
 :where(.lucide) {
   flex: none;
-  inline-size: var(--size-icon);
-  block-size: var(--size-icon);
-  stroke-width: var(--line-icon-width);
+  inline-size: var(--icon-md);
+  block-size: var(--icon-md);
+  stroke-width: var(--icon-stroke);
 }
 
 .size-icon {
-  inline-size: var(--size-icon);
-  block-size: var(--size-icon);
+  inline-size: var(--icon-md);
+  block-size: var(--icon-md);
 }
 
 .size-icon-xs {
-  inline-size: var(--size-icon-xs);
-  block-size: var(--size-icon-xs);
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
 }
 
 .size-icon-2xs {
-  inline-size: var(--size-icon-2xs);
-  block-size: var(--size-icon-2xs);
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
 }
 
 /* 浮层统一底：实色，不透明 */
 .surface-float {
-  background-color: var(--popover);
+  background-color: var(--bg-raised);
 }
 
 /* ------ 基础 reset 与字号档 ------ */
 body {
-  background: var(--background);
-  color: var(--contrast-foreground);
+  background: var(--bg);
+  color: var(--fg);
   font-family: var(--font-sans);
 }
 
@@ -137,6 +145,6 @@ p {
 /* 触屏上把菜单行高抬到可点击尺寸 */
 @media (pointer: coarse) {
   :is([data-slot="dropdown-menu-item"], [data-slot="context-menu-item"]) {
-    min-height: calc(var(--size-control) + var(--space-xxs));
+    min-height: calc(var(--control-lg) + var(--space-2xs));
   }
 }

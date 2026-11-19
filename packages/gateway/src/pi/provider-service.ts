@@ -8,6 +8,7 @@ import type {
   ModelParamsPatch,
   ProviderTestResult,
   ProviderView,
+  ThinkingLevel,
 } from "@pig/protocol"
 
 import { toModelMetadata } from "./model-metadata.js"
@@ -87,9 +88,7 @@ export class ProviderService {
           enabledModels,
         ),
       )
-    const provider = settings.getDefaultProvider()
-    const id = settings.getDefaultModel()
-    return { providers, defaultModel: provider && id ? { provider, id } : null }
+    return { providers, defaultModel: defaultModelOf(settings) }
   }
 
   /** 全量刷新 runtime，再返回刷新后的供应商目录。 */
@@ -105,15 +104,23 @@ export class ProviderService {
     return catalog
   }
 
-  async listModels(): Promise<{ models: ModelMetadata[] }> {
+  async listModels(): Promise<{ models: ModelMetadata[]; defaultModel: DefaultModelView | null }> {
     const runtime = await this.runtime()
     const settings = await this.settings()
     const enabledModels = settings.getEnabledModels()
     const models = await runtime.getAvailable()
+    const visible = models
+      .filter((model) => isModelEnabled(enabledModels, model.provider, model.id))
+      .map((model) => toModelMetadata(model, runtime.hasConfiguredAuth(model.provider)))
+    const configured = defaultModelOf(settings)
+    // 设置里的默认模型不在可用目录里就当没配，别让输入卡选中不存在的模型
     return {
-      models: models
-        .filter((model) => isModelEnabled(enabledModels, model.provider, model.id))
-        .map((model) => toModelMetadata(model, runtime.hasConfiguredAuth(model.provider))),
+      models: visible,
+      defaultModel:
+        configured &&
+        visible.some((m) => m.provider === configured.provider && m.id === configured.id)
+          ? configured
+          : null,
     }
   }
 
@@ -386,4 +393,18 @@ export class ProviderService {
       return {}
     }
   }
+}
+
+/** pi 设置里的默认模型；供应商或模型没配就是 null，不拿别的模型顶上。 */
+function defaultModelOf(settings: {
+  getDefaultProvider(): string | undefined
+  getDefaultModel(): string | undefined
+  getDefaultThinkingLevel(): ThinkingLevel | undefined
+}): DefaultModelView | null {
+  const provider = settings.getDefaultProvider()
+  const id = settings.getDefaultModel()
+
+  if (!provider || !id) return null
+  const thinkingLevel = settings.getDefaultThinkingLevel()
+  return { provider, id, ...(thinkingLevel ? { thinkingLevel } : {}) }
 }

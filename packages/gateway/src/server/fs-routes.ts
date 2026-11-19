@@ -10,7 +10,7 @@ import { issuePreviewToken } from "./file-preview.js"
 import { HttpError, type HttpDeps, type HttpRouteTable } from "./router.js"
 import { gitIgnored, gitStatus, searchContents } from "./workspace-git.js"
 
-/** 与 cc-wrapper 的 PREVIEW_LIMIT 一致：超过就不读文本。 */
+/** 预览上限：超过就不读文本。 */
 const TEXT_LIMIT = 1024 * 1024
 /** 与 git 的判定一致：前 8000 字节里有 NUL 就当二进制。 */
 const BINARY_PROBE = 8000

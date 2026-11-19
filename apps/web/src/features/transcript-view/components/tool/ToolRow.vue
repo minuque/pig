@@ -18,7 +18,7 @@
               {{ shownVerb }}
             </span>
 
-            <!-- 文件名点开 Files 面板，不展开行；照 cc-wrapper 的 ToolPath -->
+            <!-- 文件名点开 Files 面板，不展开行 -->
             <span
               v-if="target.text"
               class="tool-row-target"
@@ -186,7 +186,7 @@ const thumb = computed(() => {
   position: relative;
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-width: 0;
 }
 
@@ -194,12 +194,12 @@ const thumb = computed(() => {
   display: flex;
   flex: 1 1 auto;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-width: 0;
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font: inherit;
   font-size: var(--text-code);
   line-height: var(--text-meta--line-height);
@@ -218,7 +218,7 @@ const thumb = computed(() => {
 .tool-row-trigger[aria-expanded="true"],
 .tool-row-head:has(.tool-row-trigger:is(:hover, :focus-visible, [aria-expanded="true"]))
   .tool-row-caret {
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 .tool-row-text {
@@ -229,7 +229,7 @@ const thumb = computed(() => {
 .tool-row-line {
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   min-width: 0;
 }
 
@@ -242,7 +242,7 @@ const thumb = computed(() => {
 }
 
 .tool-row-trigger.is-file .tool-row-target {
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-weight: var(--font-weight-medium);
 }
 
@@ -260,10 +260,10 @@ const thumb = computed(() => {
 
 .tool-row-caret {
   flex: none;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   pointer-events: none;
-  width: var(--size-icon-xs);
-  height: var(--size-icon-xs);
+  width: var(--icon-sm);
+  height: var(--icon-sm);
   transition: transform var(--duration-fast) var(--ease-out);
 }
 
@@ -274,13 +274,13 @@ const thumb = computed(() => {
   display: flex;
   flex: none;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   pointer-events: none;
 }
 
 .tool-row-time {
   flex: none;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
 }
@@ -300,7 +300,7 @@ const thumb = computed(() => {
   overflow: clip;
   border: 0;
   border-radius: calc(var(--radius-control) / 2);
-  background: var(--background);
+  background: var(--bg);
   box-shadow: inset 0 0 0 var(--border-width) var(--border);
   cursor: zoom-in;
   pointer-events: auto;
@@ -325,35 +325,35 @@ const thumb = computed(() => {
 .tool-row-counts {
   display: flex;
   flex: none;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
 }
 
 .tool-row-counts .added {
-  padding: 0 var(--space-xxs);
+  padding: 0 var(--space-2xs);
   border-radius: calc(var(--radius-control) / 2);
-  background: var(--success-bg);
-  color: var(--success);
+  background: var(--success-subtle);
+  color: var(--success-text);
 }
 
 .tool-row-counts .removed {
-  padding: 0 var(--space-xxs);
+  padding: 0 var(--space-2xs);
   border-radius: calc(var(--radius-control) / 2);
-  background: var(--danger-bg);
-  color: var(--danger);
+  background: var(--danger-subtle);
+  color: var(--danger-text);
 }
 
 .added {
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .removed {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .is-failed .tool-row-verb {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .tool-row-body {
@@ -373,7 +373,7 @@ const thumb = computed(() => {
 <style>
 /* tooltip 内容经 portal 到 body，scoped 打不中 */
 .tool-thumb-tip {
-  padding: var(--space-xxs);
+  padding: var(--space-2xs);
 }
 
 .tool-thumb-tip p {

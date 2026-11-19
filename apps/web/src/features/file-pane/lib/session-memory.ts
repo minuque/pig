@@ -1,6 +1,6 @@
 import { readPref, writePref, type PrefStorage } from "@utils/storage.js"
 
-/** 与 cc-wrapper 的会话布局记忆同一上限：超出时最久没写的先丢。 */
+/** 会话布局记忆的上限：超出时最久没写的先丢。 */
 const MAX_SESSIONS = 100
 
 function readAll(key: string, storage: PrefStorage): Record<string, unknown> {

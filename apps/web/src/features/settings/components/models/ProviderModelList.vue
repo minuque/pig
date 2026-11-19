@@ -1,8 +1,8 @@
 <template>
-  <Card size="s" class="model-list">
+  <CardList>
     <p v-if="error" class="list-error">{{ error }}</p>
 
-    <div v-for="model in provider.models" :key="model.id" class="model-card">
+    <CardRow v-for="model in provider.models" :key="model.id" bleed class="model-card">
       <div class="model-row">
         <button
           type="button"
@@ -46,8 +46,8 @@
           @saved="emit('changed')"
         />
       </Transition>
-    </div>
-  </Card>
+    </CardRow>
+  </CardList>
 </template>
 
 <script setup lang="ts">
@@ -62,7 +62,7 @@ import { setModelEnabled } from "@client/platform.js"
 import { modelMeta } from "@features/settings/lib/provider-view.js"
 import { useI18n } from "@i18n/index.js"
 import type { ProviderModelView, ProviderView } from "@/types/common-type.js"
-import { Card } from "@components/ui/card/index.js"
+import { CardList, CardRow } from "@components/ui/card/index.js"
 
 const props = defineProps<{ provider: ProviderView }>()
 const emit = defineEmits<{ changed: [] }>()
@@ -91,20 +91,12 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
 </script>
 
 <style scoped>
-.model-list {
-  padding: 0;
-}
-
-.model-card + .model-card {
-  box-shadow: var(--divider-top);
-}
-
 .model-row {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  height: 44px;
-  padding-inline: var(--space-md);
+  height: 52px;
+  padding-inline: var(--card-padding);
 }
 
 .model-toggle {
@@ -128,18 +120,18 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
 }
 
 .model-name {
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
 }
 
 .model-meta {
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
 .model-row:hover {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 .chevron-button {
@@ -149,12 +141,12 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
   width: 22px;
   height: 22px;
   border-radius: var(--radius-control);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .chevron-button:hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 .chevron {
@@ -170,7 +162,7 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
 .list-error {
   margin: 0;
   padding: var(--space-xs) var(--space-sm);
-  color: var(--danger);
+  color: var(--danger-text);
   font-size: var(--text-meta);
 }
 </style>

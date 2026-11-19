@@ -32,7 +32,7 @@ import {
 } from "@features/transcript-view/lib/code-highlight.js"
 import { fileLanguage } from "@features/transcript-view/lib/tool-summary.js"
 
-/** 照 cc-wrapper 的 HIGHLIGHT_LIMITS：超过就按纯文本显示，不分词。 */
+/** 高亮上限：超过就按纯文本显示，不分词。 */
 const MAX_CODE_UNITS = 100_000
 const MAX_LINES = 2_000
 const MAX_LINE_UNITS = 1_000
@@ -113,7 +113,7 @@ watch(
 .file-code-notice {
   margin: 0;
   padding: var(--space-xs) var(--space-md);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
@@ -138,7 +138,7 @@ watch(
 }
 
 .file-code-line[data-hl] {
-  background: var(--btn-hover);
+  background: var(--bg-hover);
 }
 
 .file-code-number {
@@ -148,13 +148,13 @@ watch(
   min-inline-size: var(--line-number-width);
   padding-inline: var(--space-md) 0;
   box-sizing: content-box;
-  background: var(--surface);
-  color: var(--contrast-foreground-faint);
+  background: var(--bg-surface);
+  color: var(--fg-faint);
   text-align: right;
   user-select: none;
 }
 
 .file-code-line[data-hl] .file-code-number {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 </style>

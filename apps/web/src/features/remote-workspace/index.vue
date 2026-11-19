@@ -110,7 +110,7 @@ async function submit() {
 <style>
 /* 内容经 Portal 挂到 body，scoped 打不中，选择器统一挂在 .remote-dialog 前缀下。 */
 .remote-dialog.rt-DialogContent {
-  max-inline-size: var(--size-dialog-s);
+  max-inline-size: var(--dialog-width-sm);
 }
 
 .remote-dialog .remote-form {
@@ -121,20 +121,20 @@ async function submit() {
 
 .remote-dialog .remote-field {
   display: grid;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   font-size: var(--text-meta);
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 .remote-dialog .remote-hint,
 .remote-dialog .remote-error {
   margin: var(--space-sm) 0 0;
   font-size: var(--text-meta);
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 .remote-dialog .remote-error {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .remote-dialog .remote-actions {

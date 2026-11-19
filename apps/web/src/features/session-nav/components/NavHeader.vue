@@ -96,7 +96,7 @@
 
     <ProjectIconDialog :path="iconPath" @close="iconPath = undefined" />
 
-    <SearchDialog
+    <SessionSearch
       :open="searchOpen"
       :sessions="sessions"
       @update:open="emit('update:searchOpen', $event)"
@@ -111,7 +111,7 @@ import { useI18n } from "@i18n/index.js"
 import { nextTick, shallowRef } from "vue"
 import ProjectIconDialog from "@features/session-nav/components/ProjectIconDialog.vue"
 import ScopeMenu from "@features/session-nav/components/ScopeMenu.vue"
-import SearchDialog from "@features/session-nav/components/SearchDialog.vue"
+import SessionSearch from "@features/session-nav/components/SessionSearch.vue"
 import type { SessionGroup } from "@features/session-nav/type.js"
 import {
   FolderPlusIcon,
@@ -161,7 +161,7 @@ async function openIconDialog(canonicalPath: string): Promise<void> {
   gap: var(--space-xs);
   min-width: 0;
   /* 上边不内缩：首行与工作台头部内元素落在同一条横线上 */
-  padding-block: 0 var(--space-xxs);
+  padding-block: 0 var(--space-2xs);
 }
 
 /* 首行与工作台头部同高：两栏首行共用一条横向基线 */
@@ -181,20 +181,20 @@ async function openIconDialog(canonicalPath: string): Promise<void> {
 
 /* macOS 的红绿灯压在首行左上，收起按钮让出整簇宽度 */
 html[data-pig-desktop-platform="darwin"] .nav-titlebar {
-  padding-inline-start: calc(var(--size-mac-traffic-lights) + var(--space-xs));
+  padding-inline-start: calc(var(--traffic-lights-width) + var(--space-xs));
 }
 
-/* Windows 藏起标题条，首行落进系统标题条这一行，可拖窗 */
-html[data-pig-desktop-platform="win32"] .nav-titlebar {
+/* Windows 与 Linux 藏起标题条，首行落进标题条这一行，可拖窗 */
+html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]) .nav-titlebar {
   -webkit-app-region: drag;
   app-region: drag;
 }
 
-/* t3code 式工具行：搜索占满左侧，视图与命令图标靠右 */
+/* 工具行：搜索占满左侧，视图与命令图标靠右 */
 .nav-toolbar {
   display: flex;
   align-items: center;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   padding-inline: var(--nav-inline);
 }
 
@@ -212,13 +212,13 @@ html[data-pig-desktop-platform="win32"] .nav-titlebar {
 
 /* 工具行图标常态弱一档，悬停、聚焦或菜单打开时回到正文色 */
 .nav-tool[data-slot] {
-  color: var(--contrast-foreground-faint);
-  transition: color var(--duration-fast) var(--ease-hover);
+  color: var(--fg-faint);
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 .nav-tool[data-slot]:hover,
 .nav-tool[data-slot]:focus-visible,
 .nav-tool[data-slot][data-state="open"] {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 </style>

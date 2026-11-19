@@ -16,7 +16,7 @@ import type { Task } from "@/types/common-type.js"
 
 const props = defineProps<{ task: Task }>()
 const { t } = useI18n()
-/** 时间线末尾的一行（照 t3code 的 ThreadNow）：图标、「后台命令已完成 · 描述」、耗时。 */
+/** 时间线末尾的一行：图标、「后台命令已完成 · 描述」、耗时。 */
 const label = computed(() => t(`taskNotice.${props.task.kind}.${props.task.status}`))
 const icon = computed(() =>
   props.task.status === "completed"
@@ -42,7 +42,7 @@ const elapsed = computed(() => {
   margin: 0;
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .task-notice-icon {
@@ -53,11 +53,11 @@ const elapsed = computed(() => {
 
 .task-notice-label {
   flex: none;
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 .task-notice[data-status="failed"] :is(.task-notice-icon, .task-notice-label) {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .task-notice-text {

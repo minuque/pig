@@ -9,7 +9,7 @@
   display: grid;
   place-items: center;
   overflow: hidden;
-  background: var(--surface);
+  background: var(--bg-surface);
   font-family: var(--font-sans);
   -webkit-app-region: no-drag;
   app-region: no-drag;
@@ -68,7 +68,7 @@
 
 /* 入场：蓝框先落位，小猪歪着头探出并摆正；不回弹，底边始终贴住框底 */
 #startup-splash .startup-logo {
-  animation: pig-peek var(--duration-pig-peek) both;
+  animation: pig-peek var(--mascot-peek-duration) both;
 }
 
 @keyframes startup-mark-enter {
@@ -131,7 +131,7 @@
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   transition:
     background var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out),
@@ -139,14 +139,14 @@
 }
 
 .icon-toggle:hover {
-  background: var(--btn-hover);
-  color: var(--contrast-foreground);
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 @media (pointer: coarse) {
   .icon-toggle {
-    width: var(--size-control);
-    min-height: var(--size-control);
+    width: var(--control-lg);
+    min-height: var(--control-lg);
   }
 }
 
@@ -177,8 +177,8 @@
 .dock-hero-enter-active,
 .dock-hero-appear-active {
   transition:
-    opacity var(--duration-settle) var(--ease-out) var(--duration-fast),
-    translate var(--duration-settle) var(--ease-out) var(--duration-fast);
+    opacity var(--welcome-settle-duration) var(--ease-out) var(--duration-fast),
+    translate var(--welcome-settle-duration) var(--ease-out) var(--duration-fast);
 }
 
 .dock-hero-enter-from,
@@ -190,7 +190,8 @@
 /* 首屏挂载时输入条与 Hero 同拍落位。fill 只能用 backwards：both/forwards 会把 translate 留在
    输入条外框上，外框成了 backdrop root，输入卡的毛玻璃就抽不到背后的正文。 */
 .settle-in {
-  animation: settle-down var(--duration-settle) var(--ease-out) var(--duration-fast) backwards;
+  animation: settle-down var(--welcome-settle-duration) var(--ease-out) var(--duration-fast)
+    backwards;
 }
 
 @keyframes settle-down {
@@ -273,39 +274,64 @@
 }
 
 /* ------ 对话框（reka data-slot 直挂 transition；Teleport 后 scoped 打不中） ------ */
-:is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
+:is(
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="command-palette"]
+) {
   transform-origin: center;
-  translate: 0 2px;
+  scale: 0.98;
   opacity: 0;
   transition:
-    translate var(--duration-normal) var(--ease-menu),
-    opacity var(--duration-normal) var(--ease-menu);
+    scale var(--duration-normal) var(--ease-in-out),
+    opacity var(--duration-normal) var(--ease-in-out);
 }
 
-:is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="open"] {
-  translate: 0 0;
+:is(
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="command-palette"]
+)[data-state="open"] {
+  scale: 1;
   opacity: 1;
 }
 
 @starting-style {
-  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="open"] {
-    translate: 0 2px;
+  :is(
+    [data-slot="dialog-content"],
+    [data-slot="alert-dialog-content"],
+    [data-slot="command-palette"]
+  )[data-state="open"] {
+    scale: 0.98;
     opacity: 0;
   }
 }
 
-/* 对话框的进出靠 translate/opacity 独立属性，pop-reveal-out 只动 transform，
+/* 对话框的进出靠 scale/opacity 独立属性，pop-reveal-out 只动 transform，
    打在对话框上是空转。这里给关闭态单独一条关键帧。 */
-:is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="closed"] {
+:is(
+  [data-slot="dialog-content"],
+  [data-slot="alert-dialog-content"],
+  [data-slot="command-palette"]
+)[data-state="closed"] {
   transition: none;
   animation: dialog-out var(--duration-normal) var(--ease-out) forwards;
 }
 
 @keyframes dialog-out {
   to {
-    translate: 0 2px;
+    scale: 0.98;
     opacity: 0;
   }
+}
+
+/* 毛玻璃遮罩随弹层淡入淡出 */
+.glass-backdrop[data-state="open"] {
+  animation: overlay-in var(--duration-normal) var(--ease-in-out);
+}
+
+.glass-backdrop[data-state="closed"] {
+  animation: overlay-out var(--duration-normal) var(--ease-in-out) forwards;
 }
 
 /* ------ 面板与列表过渡 ------ */
@@ -331,7 +357,7 @@
   transform: translateY(-12px);
 }
 
-/* 行增删：高度随行一起收放，下方内容跟着滑，不瞬跳；负上边距抵掉 --space-xxs 行距 */
+/* 行增删：高度随行一起收放，下方内容跟着滑，不瞬跳；负上边距抵掉 --space-2xs 行距 */
 .list-reveal-enter-active,
 .list-reveal-leave-active {
   overflow: hidden;
@@ -350,7 +376,7 @@
 .list-reveal-enter-from,
 .list-reveal-leave-to {
   height: 0;
-  margin-block-start: calc(var(--space-xxs) * -1);
+  margin-block-start: calc(var(--space-2xs) * -1);
   opacity: 0;
 }
 
@@ -361,7 +387,7 @@
 /* ------ 欢迎页字符背景：Hero 落位后慢慢浮现；离开首屏与 Hero 同拍淡出 ------ */
 .welcome-field-enter-active,
 .welcome-field-appear-active {
-  transition: opacity var(--duration-reveal) var(--ease-out) var(--duration-settle);
+  transition: opacity var(--welcome-reveal-duration) var(--ease-out) var(--welcome-settle-duration);
 }
 
 .welcome-field-leave-active {
@@ -388,14 +414,14 @@
 /* ------ 输入卡 @// 菜单：与浮层同一组时长与曲线 ------ */
 .menu-reveal-enter-active {
   transition:
-    opacity var(--duration-fast) var(--ease-menu),
-    translate var(--duration-fast) var(--ease-menu);
+    opacity var(--duration-fast) var(--menu-ease),
+    translate var(--duration-fast) var(--menu-ease);
 }
 
 .menu-reveal-leave-active {
   transition:
-    opacity var(--duration-menu-out) var(--ease-menu),
-    translate var(--duration-menu-out) var(--ease-menu);
+    opacity var(--menu-duration-out) var(--menu-ease),
+    translate var(--menu-duration-out) var(--menu-ease);
 }
 
 .menu-reveal-enter-from {
@@ -410,7 +436,7 @@
 
 /* ------ 主题切换 view-transition ------ */
 ::view-transition-group(root) {
-  animation-duration: var(--duration-theme);
+  animation-duration: var(--theme-switch-duration);
   animation-timing-function: var(--ease-out);
 }
 
@@ -468,7 +494,7 @@
 .shimmer {
   position: relative;
   display: inline-block;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
 }
 
 .shimmer::before {
@@ -480,7 +506,7 @@
     90deg,
     transparent 0%,
     transparent 41%,
-    var(--foreground) 50%,
+    var(--fg) 50%,
     transparent 59%,
     transparent 100%
   );
@@ -490,7 +516,7 @@
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  animation: shimmer var(--duration-shimmer) infinite;
+  animation: shimmer var(--shimmer-duration) infinite;
 }
 
 .motion-nudge {
@@ -512,7 +538,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 40%, transparent);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent-solid) 40%, transparent);
   animation: motion-pulse-ring 2s var(--ease-out) infinite;
   content: "";
 }
@@ -590,8 +616,8 @@
   opacity: 0.3;
   translate: var(--menu-shift-x) var(--menu-shift-y);
   transition:
-    opacity var(--duration-fast) var(--ease-menu),
-    translate var(--duration-fast) var(--ease-menu);
+    opacity var(--duration-fast) var(--menu-ease),
+    translate var(--duration-fast) var(--menu-ease);
 }
 
 .reveal-menu[data-side="top"] {
@@ -631,7 +657,7 @@
 }
 
 .reveal-menu[data-state="closed"] {
-  animation: menu-retreat var(--duration-menu-out) var(--ease-menu) forwards;
+  animation: menu-retreat var(--menu-duration-out) var(--menu-ease) forwards;
 }
 
 @keyframes menu-retreat {
@@ -884,13 +910,21 @@
     content: none;
   }
 
-  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]) {
+  :is(
+    [data-slot="dialog-content"],
+    [data-slot="alert-dialog-content"],
+    [data-slot="command-palette"]
+  ) {
     transition: none;
-    translate: 0 0;
+    scale: 1;
     opacity: 1;
   }
 
-  :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-state="closed"] {
+  :is(
+    [data-slot="dialog-content"],
+    [data-slot="alert-dialog-content"],
+    [data-slot="command-palette"]
+  )[data-state="closed"] {
     animation: none;
     opacity: 0;
   }
@@ -911,8 +945,13 @@
   }
 
   .reveal-menu[data-state="closed"],
-  .reveal-overlay[data-state="closed"] {
+  .reveal-overlay[data-state="closed"],
+  .glass-backdrop[data-state="closed"] {
     animation: none;
     opacity: 0;
+  }
+
+  .glass-backdrop[data-state="open"] {
+    animation: none;
   }
 }

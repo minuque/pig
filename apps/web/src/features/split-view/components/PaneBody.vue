@@ -38,7 +38,7 @@ import PanelColumn from "@features/split-view/components/PanelColumn.vue"
 import { SPLIT_CHAT_MIN } from "@features/split-view/lib/split-state.js"
 import type { PanelHost } from "@features/split-view/index.js"
 
-/** 面板列默认与最窄宽度照 cc-wrapper 的侧栏 tile；对话最小宽度单个时 640，分屏时 480。 */
+/** 面板列默认与最窄宽度；对话最小宽度单个时 640，分屏时 480。 */
 const CHAT_MIN = 640
 const PANE_MIN = 320
 const PANE_DEFAULT = 560
@@ -108,6 +108,6 @@ useResizeObserver(root, ([entry]) => {
   flex-direction: column;
   /* 盖住对话时左右各留同样的边距，底边与输入条对齐 */
   padding: 0 var(--space-sm) calc(var(--space-sm) + env(safe-area-inset-bottom, 0px));
-  background: var(--background);
+  background: var(--bg);
 }
 </style>

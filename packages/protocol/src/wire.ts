@@ -1,5 +1,6 @@
 import type { ExtensionUiRequest, ExtensionUiResponse } from "./extension-ui.js"
 import type { ModelMetadata, ModelRef, ThinkingLevel } from "./model.js"
+import type { DefaultModelView } from "./provider.js"
 import type { Task } from "./task.js"
 import type { TranscriptItem, TranscriptProgress, UserTranscriptItem } from "./transcript.js"
 
@@ -43,6 +44,7 @@ export interface ServerSnapshot {
   revision: number
   sessions: SessionMetadata[]
   models: ModelMetadata[]
+  defaultModel: DefaultModelView | null
 }
 
 /** 会话命令名照 pi RPC（prompt / steer / abort / set_model / set_thinking_level）；会话路由是 pig 自己的。 */

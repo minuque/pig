@@ -116,14 +116,14 @@ const copyText = computed(() => (props.code ? props.lines.join("\n") : props.tex
 }
 
 .tool-output-card {
-  margin-top: var(--space-xxs);
+  margin-top: var(--space-2xs);
 }
 
 .tool-output-pre {
   margin: 0;
   padding: var(--space-sm);
   padding-inline-end: calc(var(--space-sm) + 22px);
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   font-family: var(--font-mono);
   font-size: inherit;
   line-height: var(--text-code-line);
@@ -135,7 +135,7 @@ const copyText = computed(() => (props.code ? props.lines.join("\n") : props.tex
 
 /* pre 的上内边距是 sm，复制按钮跟着上移 */
 .tool-output-pre :deep(.copy-backdrop) {
-  top: calc(var(--space-xxs) - var(--space-sm));
+  top: calc(var(--space-2xs) - var(--space-sm));
 }
 
 .images {
@@ -150,7 +150,7 @@ const copyText = computed(() => (props.code ? props.lines.join("\n") : props.tex
   overflow: auto;
   padding: var(--space-xs);
   padding-inline-end: calc(var(--space-sm) + 22px);
-  --scrollbar-thumb: var(--fill-strong);
+  --scrollbar-thumb: var(--bg-emphasis);
 }
 
 .code-lines {
@@ -169,13 +169,13 @@ const copyText = computed(() => (props.code ? props.lines.join("\n") : props.tex
 .line-number {
   flex: none;
   min-width: var(--line-number-width);
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   text-align: end;
   user-select: none;
 }
 
 code {
-  color: var(--contrast-foreground);
+  color: var(--fg);
   font: inherit;
   white-space: pre;
 }
@@ -191,9 +191,9 @@ code {
   width: 100%;
   padding: var(--space-xs) 0;
   border: 0;
-  box-shadow: var(--divider-top);
+  box-shadow: var(--separator-top);
   background: transparent;
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   font: inherit;
   font-size: var(--text-meta);
   text-align: center;
@@ -201,7 +201,7 @@ code {
 }
 
 .show-all:hover {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .is-soft-wrap code,

@@ -181,7 +181,7 @@ onBeforeUnmount(() => teardown(viewport.value, stage.value))
 
 .preview-scale {
   min-width: 4ch;
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
   text-align: center;
@@ -213,9 +213,9 @@ onBeforeUnmount(() => teardown(viewport.value, stage.value))
 <style>
 /* 面板经 Portal 挂到 body，scoped 打不中；尺寸与设置弹窗同档 */
 .diagram-dialog.rt-DialogContent {
-  width: min(88vw, var(--size-settings-dialog-width));
-  max-width: min(88vw, var(--size-settings-dialog-width));
-  height: clamp(var(--size-settings-dialog-height-min), 85vh, var(--size-settings-dialog-height));
+  width: min(88vw, var(--settings-dialog-width));
+  max-width: min(88vw, var(--settings-dialog-width));
+  height: clamp(var(--settings-dialog-height-min), 85vh, var(--settings-dialog-height));
   max-height: none;
 }
 </style>

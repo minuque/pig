@@ -200,7 +200,7 @@ function statusText(task: Task): string {
 
 .rail-tasks-head {
   margin: 0;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
   line-height: var(--text-meta--line-height);
@@ -209,10 +209,10 @@ function statusText(task: Task): string {
 .rail-task {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xxs);
+  gap: var(--space-2xs);
   padding: var(--space-sm);
   overflow-wrap: anywhere;
-  background: var(--fill-quiet);
+  background: var(--bg-muted);
   border-radius: var(--radius-card);
 }
 
@@ -227,7 +227,7 @@ function statusText(task: Task): string {
   flex: 1;
   min-inline-size: 0;
   padding: 0;
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   font: inherit;
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
@@ -245,25 +245,25 @@ button.rail-task-title:hover .rail-task-name {
 }
 
 .rail-task[data-status="running"] .rail-task-title {
-  color: var(--contrast-foreground);
+  color: var(--fg);
 }
 
 .rail-task-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: var(--space-xxs) var(--space-xs);
-  color: var(--contrast-foreground-faint);
+  gap: var(--space-2xs) var(--space-xs);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }
 
 .rail-task[data-status="running"] .rail-task-value {
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
 }
 
 .rail-task-failed {
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .rail-task-time {
@@ -292,30 +292,30 @@ button.rail-task-title:hover .rail-task-name {
 
 .rail-task-output {
   display: grid;
-  gap: var(--space-xxs);
-  color: var(--contrast-foreground-faint);
+  gap: var(--space-2xs);
+  color: var(--fg-faint);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }
 
 .rail-task-command {
-  max-block-size: var(--size-task-output-max);
+  max-block-size: var(--task-output-max);
   overflow: auto;
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
 .rail-task-output pre {
-  max-block-size: var(--size-task-output-max);
+  max-block-size: var(--task-output-max);
   margin: 0;
   padding: var(--space-xs);
   overflow: auto;
-  color: var(--contrast-foreground-secondary);
+  color: var(--fg-secondary);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
-  background: var(--fill-quiet);
+  background: var(--bg-muted);
   border-radius: var(--radius-control);
 }
 </style>

@@ -36,27 +36,19 @@
         @stop="emit('stop', $event)"
       />
 
-      <RailChild v-else-if="pane.kind === 'child'" :child="pane.child" :progress="progress" />
-
-      <RailContextPreview
-        v-else-if="sessionId"
-        :session-id="sessionId"
-        :segment="pane.segment"
-        @title="(next) => (contextTitle = next)"
-      />
+      <RailChild v-else :child="pane.child" :progress="progress" />
     </div>
   </Card>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue"
+import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Card } from "@components/ui/card/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { XIcon, TrashIcon } from "@components/icons/index.js"
 import RailChild from "@features/session-rail/components/RailChild.vue"
-import RailContextPreview from "@features/session-rail/components/RailContextPreview.vue"
 import RailTasks from "@features/session-rail/components/RailTasks.vue"
 import { useSessionRail, type RailPane } from "@features/session-rail/index.js"
 import type { TaskSections } from "@features/session-rail/lib/task-list.js"
@@ -73,12 +65,9 @@ const props = defineProps<{
 const emit = defineEmits<{ stop: [taskId: string] }>()
 const { t } = useI18n()
 const rail = useSessionRail()!
-const contextTitle = ref("")
 const title = computed(() => {
   if (props.pane.kind === "tasks") return t("rail.tasks")
-
-  if (props.pane.kind === "child") return props.pane.child.agent
-  return contextTitle.value || props.pane.segment.label
+  return props.pane.child.agent
 })
 const actions = computed(() => [
   ...(props.pane.kind === "tasks"
@@ -95,11 +84,6 @@ const actions = computed(() => [
   { key: "close", label: t("common.close"), icon: XIcon, disabled: false, run: rail.closePane },
 ])
 
-watch(
-  () => props.pane,
-  () => (contextTitle.value = ""),
-)
-
 function clearFinished() {
   if (props.sessionId)
     rail.dismiss(
@@ -111,14 +95,13 @@ function clearFinished() {
 
 <style scoped>
 /* 会话面板的第三列：头部之下、贴右边，宽度两档；正文自己滚，头部不动 */
-/* 面板列里的一张 Card：宽高都随所在的挂载点，去掉卡片内边距、铺表面底 */
+/* 面板列里的一张 Card：宽高都随所在的挂载点，去掉卡片内边距，不铺底 */
 .rail-pane {
   display: flex;
   flex: 1;
   flex-direction: column;
   min-block-size: 0;
   padding: 0;
-  background: var(--surface);
 }
 
 .rail-pane-head {
@@ -127,7 +110,7 @@ function clearFinished() {
   align-items: center;
   gap: var(--space-xs);
   padding: var(--space-sm) var(--space-sm) var(--space-sm) var(--space-md);
-  border-block-end: var(--border-width) solid var(--border-soft);
+  border-block-end: var(--border-width) solid var(--border-subtle);
 }
 
 .rail-pane-title {
@@ -150,7 +133,7 @@ function clearFinished() {
 
 .rail-pane-meta {
   flex-shrink: 0;
-  color: var(--contrast-foreground-faint);
+  color: var(--fg-faint);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
 }

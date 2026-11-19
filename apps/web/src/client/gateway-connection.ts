@@ -38,6 +38,7 @@ export function useGatewayClient() {
   const connected = computed(() => connectionState.value === "connected")
   const sessions = computed(() => serverSnapshot.value?.sessions ?? [])
   const models = computed(() => serverSnapshot.value?.models ?? [])
+  const defaultModel = computed(() => serverSnapshot.value?.defaultModel ?? null)
 
   function unsubscribeAll() {
     for (const unsubscribe of unsubscribes) unsubscribe()
@@ -100,8 +101,8 @@ export function useGatewayClient() {
     const snapshot = serverSnapshot.value
 
     if (!snapshot) return
-    const models = await listProviderModels()
-    serverSnapshot.value = { ...snapshot, models }
+    const { models, defaultModel } = await listProviderModels()
+    serverSnapshot.value = { ...snapshot, models, defaultModel }
   }
 
   async function dispose() {
@@ -153,6 +154,7 @@ export function useGatewayClient() {
     connected,
     sessions,
     models,
+    defaultModel,
     connect,
     refreshSessions,
     refreshModels,
