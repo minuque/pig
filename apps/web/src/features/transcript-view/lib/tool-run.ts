@@ -4,6 +4,7 @@ import {
   toolCallDetail,
   toolCommand,
   toolPath,
+  transcriptImageSrc,
 } from "@features/transcript-view/lib/transcript-format.js"
 import { pathBasename, toolGroupKey } from "@features/transcript-view/lib/tool-summary.js"
 import {
@@ -99,4 +100,18 @@ export function runningToolLabel(row: ToolRow): string | null {
   if (!running) return null
   const target = toolCallTarget(running)
   return [toolCallLiveVerb(running), target.text].filter(Boolean).join(" ")
+}
+
+/** 工具输出的图片，标题取调用目标（文件名）。 */
+export function toolCallImages(call: ToolCallView): { src: string; title: string }[] {
+  const title = toolCallTarget(call).text || t("transcript.image")
+  return call.outputImages.map((image) => ({
+    src: transcriptImageSrc(image.data, image.mimeType),
+    title,
+  }))
+}
+
+/** 一段工具里所有调用输出的图片，按调用顺序。 */
+export function toolRunImages(row: ToolRow): { src: string; title: string }[] {
+  return toolCalls(row).flatMap(toolCallImages)
 }

@@ -17,6 +17,8 @@ export const zh = {
     times: "次",
     remove: "移除 {name}",
     preview: "预览 {name}",
+    previous: "上一张",
+    next: "下一张",
     justNow: "刚刚",
   },
   window: {
@@ -451,6 +453,8 @@ export const en: Messages = {
     times: "time | times",
     remove: "Remove {name}",
     preview: "Preview {name}",
+    previous: "Previous",
+    next: "Next",
     justNow: "Just now",
   },
   window: {

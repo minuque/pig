@@ -39,36 +39,13 @@
         </span>
       </button>
 
-      <span v-if="thumb || duration" class="tool-row-meta">
-        <Tooltip v-if="thumb" :delay-duration="150">
-          <TooltipTrigger as-child>
-            <button
-              type="button"
-              class="tool-row-thumb"
-              :aria-label="t('common.preview', { name: t('transcript.image') })"
-              @click="previewOpen = true"
-            >
-              <img :src="thumb" alt="" />
-            </button>
-          </TooltipTrigger>
-
-          <TooltipContent class="tool-thumb-tip" :side-offset="6">
-            <img :src="thumb" alt="" />
-          </TooltipContent>
-        </Tooltip>
-
+      <span v-if="images.length || duration" class="tool-row-meta">
+        <ToolThumbs :images="images" />
         <span v-if="duration" class="tool-row-time">{{ duration }}</span>
       </span>
 
       <ChevronRightIcon class="tool-row-caret" :class="{ 'is-open': open }" data-icon="inline" />
     </div>
-
-    <PreviewDialog
-      v-if="thumb"
-      v-model:open="previewOpen"
-      :src="thumb"
-      :title="target.text || t('transcript.image')"
-    />
 
     <div v-if="open" class="tool-row-body">
       <ToolTaskBody v-if="tasks.length" :tasks="tasks" />
@@ -85,17 +62,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref } from "vue"
-import { useI18n } from "@i18n/index.js"
+import { computed, inject } from "vue"
 import { ChevronRightIcon } from "@components/icons/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { RollText } from "@components/ui/roll-text/index.js"
-import PreviewDialog from "@features/preview/index.vue"
 import ToolCommandBody from "@features/transcript-view/components/tool/ToolCommandBody.vue"
 import ToolFileBody from "@features/transcript-view/components/tool/ToolFileBody.vue"
 import ToolGenericBody from "@features/transcript-view/components/tool/ToolGenericBody.vue"
 import ToolTaskBody from "@features/transcript-view/components/tool/ToolTaskBody.vue"
+import ToolThumbs from "@features/transcript-view/components/tool/ToolThumbs.vue"
 import {
+  toolCallImages,
   toolCallLiveVerb,
   toolCallTarget,
   toolCallVariant,
@@ -108,7 +84,6 @@ import {
 } from "@features/transcript-view/lib/tool-summary.js"
 import { openFileKey } from "@features/transcript-view/index.js"
 import { toolTasks } from "@features/transcript-view/lib/tool-tasks.js"
-import { transcriptImageSrc } from "@features/transcript-view/lib/transcript-format.js"
 import { formatElapsed } from "@utils/time.js"
 import { useFullToolOutput } from "@features/transcript-view/hooks/use-full-tool-output.js"
 import type { ToolCallView } from "@features/transcript-view/type.js"
@@ -118,8 +93,6 @@ const props = defineProps<{
   open: boolean
 }>()
 const emit = defineEmits<{ toggle: [open: boolean] }>()
-const { t } = useI18n()
-const previewOpen = ref(false)
 const fullCall = useFullToolOutput(
   () => props.call,
   () => props.open,
@@ -168,10 +141,7 @@ function openTarget(event: MouseEvent) {
   })
 }
 
-const thumb = computed(() => {
-  const image = props.call.outputImages[0]
-  return image ? transcriptImageSrc(image.data, image.mimeType) : null
-})
+const images = computed(() => toolCallImages(props.call))
 </script>
 
 <style scoped>
@@ -291,28 +261,6 @@ const thumb = computed(() => {
   font-variant-numeric: tabular-nums;
 }
 
-/* 缩略图不超出所在行的行高，避免把单行工具行撑高 */
-.tool-row-thumb {
-  flex: none;
-  height: calc(var(--text-meta) * var(--text-meta--line-height));
-  aspect-ratio: 4 / 3;
-  padding: 0;
-  overflow: clip;
-  border: 0;
-  border-radius: calc(var(--radius-control) / 2);
-  background: var(--bg);
-  box-shadow: inset 0 0 0 var(--border-width) var(--border);
-  cursor: zoom-in;
-  pointer-events: auto;
-}
-
-.tool-row-thumb img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 .tool-row-verb {
   flex: none;
   white-space: nowrap;
@@ -368,24 +316,4 @@ const thumb = computed(() => {
     transition: none;
   }
 }
-</style>
-
-<style>
-/* tooltip 内容经 portal 到 body，scoped 打不中 */
-.tool-thumb-tip {
-  padding: var(--space-2xs);
-}
-
-.tool-thumb-tip p {
-  margin: 0;
-}
-
-.tool-thumb-tip img {
-  display: block;
-  max-inline-size: 280px;
-  max-block-size: 280px;
-  border-radius: var(--radius-control);
-}
-
-/* 大图预览与附件预览同款：铺满视口、点任意处关闭，图整体缩进窗口 */
 </style>

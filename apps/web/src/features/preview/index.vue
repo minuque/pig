@@ -3,21 +3,42 @@
     <DialogContent
       v-bind="$attrs"
       class="preview-dialog"
-      :data-kind="src ? 'image' : undefined"
+      :data-kind="shownSrc ? 'image' : undefined"
       :aria-describedby="undefined"
+      @keydown.left="step(-1)"
+      @keydown.right="step(1)"
     >
       <!-- 头部不随正文滚动；高度取图标高，与弹框自带的关闭按钮同一中线 -->
       <header class="preview-header">
         <DialogTitle class="preview-title">
-          <span class="preview-name">{{ title }}</span>
+          <span class="preview-name">{{ shownTitle }}</span>
           <span v-if="shownMeta" class="preview-meta">{{ shownMeta }}</span>
         </DialogTitle>
+
+        <div v-if="gallery" class="preview-pager">
+          <IconButton variant="ghost" size="s" :aria-label="t('common.previous')" @click="step(-1)">
+            <ChevronLeftIcon class="size-icon" />
+          </IconButton>
+
+          <span class="preview-count">{{ index + 1 }} / {{ images!.length }}</span>
+
+          <IconButton variant="ghost" size="s" :aria-label="t('common.next')" @click="step(1)">
+            <ChevronRightIcon class="size-icon" />
+          </IconButton>
+        </div>
 
         <slot name="actions" />
       </header>
 
       <div class="preview-body">
-        <img v-if="src" :src="src" :alt="title" class="preview-image" @load="measure" />
+        <img
+          v-if="shownSrc"
+          :src="shownSrc"
+          :alt="shownTitle"
+          class="preview-image"
+          @load="measure"
+        />
+
         <slot v-else />
       </div>
     </DialogContent>
@@ -26,13 +47,38 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue"
+import { useI18n } from "@i18n/index.js"
+import { IconButton } from "@components/ui/button/index.js"
 import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
+import { ChevronLeftIcon, ChevronRightIcon } from "@components/icons/index.js"
 
 defineOptions({ inheritAttrs: false })
 
-/** 传 src 时正文是这张图，副标题自动取图片像素尺寸；否则正文走默认插槽。 */
-const props = defineProps<{ title: string; meta?: string; src?: string }>()
+export type PreviewImage = { src: string; title: string }
+
+/** 传 src 时正文是这张图，副标题自动取图片像素尺寸；传 images 时多图轮播；否则正文走默认插槽。 */
+const props = defineProps<{
+  title: string
+  meta?: string
+  src?: string
+  images?: readonly PreviewImage[]
+}>()
 const open = defineModel<boolean>("open", { default: false })
+const index = defineModel<number>("index", { default: 0 })
+const { t } = useI18n()
+const current = computed(() => props.images?.[index.value])
+const shownSrc = computed(() => current.value?.src ?? props.src)
+const shownTitle = computed(() => current.value?.title ?? props.title)
+const gallery = computed(() => (props.images?.length ?? 0) > 1)
+
+/** 首尾相接：最后一张再往后回到第一张。 */
+function step(delta: number) {
+  const count = props.images?.length ?? 0
+
+  if (count < 2) return
+  index.value = (index.value + delta + count) % count
+}
+
 const imageSize = ref("")
 const shownMeta = computed(() => props.meta || imageSize.value)
 
@@ -69,6 +115,19 @@ function measure(event: Event) {
   font-weight: var(--font-weight-semibold);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.preview-pager {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2xs);
+}
+
+.preview-count {
+  color: var(--fg-secondary);
+  font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
 }
 
 .preview-meta {
