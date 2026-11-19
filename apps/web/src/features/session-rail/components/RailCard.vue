@@ -142,11 +142,12 @@ const bodyId = useId()
   color: var(--fg-faint);
 }
 
-/* 收起时的摘要紧跟标题靠左，占满到把手之前；右侧只留把手 */
+/* 收起时的摘要居右，和把手占同一个位置：把手露出时摘要让开 */
 .rail-summary {
   display: flex;
   flex: 1;
   align-items: center;
+  justify-content: flex-end;
   gap: var(--space-2xs);
   min-inline-size: 0;
   margin-inline-start: var(--space-xs);
@@ -163,23 +164,30 @@ const bodyId = useId()
   opacity: 0;
 }
 
-/* 整张卡都能拖；把手只在悬停或键盘聚焦时露出（鼠标按下留下的焦点不算），位置照留 */
+.rail-card:hover .rail-summary,
+.rail-card:has(:focus-visible) .rail-summary,
+.rail-card.is-drag-live .rail-summary {
+  opacity: 0;
+}
+
+/* 整张卡都能拖；把手只在悬停或键盘聚焦时露出（鼠标按下留下的焦点不算），浮在行尾不占位 */
 .rail-grip {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
   opacity: 0;
   display: flex;
   flex-shrink: 0;
   align-items: center;
   justify-content: center;
   inline-size: var(--control-sm);
-  block-size: var(--control-sm);
   color: var(--fg-faint);
   border-radius: var(--radius-control);
   cursor: grab;
   touch-action: none;
   transition:
     opacity var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out),
-    background var(--duration-fast) var(--ease-out);
+    color var(--duration-fast) var(--ease-out);
 }
 
 .rail-card:hover .rail-grip,
@@ -192,11 +200,14 @@ const bodyId = useId()
   .rail-grip {
     opacity: 1;
   }
+
+  .rail-summary {
+    opacity: 0;
+  }
 }
 
 .rail-grip:hover {
   color: var(--fg);
-  background: var(--bg-hover);
 }
 
 .rail-grip:active {
