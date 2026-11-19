@@ -1,932 +1,304 @@
 <!doctype html>
-<html lang="zh-CN" data-accent-color="indigo" data-gray-color="slate">
+<html lang="zh-CN" class="radix-themes" data-accent-color="cyan" data-gray-color="slate">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>pig 架构看板</title>
     <link rel="icon" type="image/png" href="__ICON__" />
+    <script>
+      ;(function () {
+        try {
+          var mode = localStorage.getItem("pig-arch-theme")
+          var dark =
+            mode === "dark" ||
+            (mode !== "light" && matchMedia("(prefers-color-scheme: dark)").matches)
+          if (dark) document.documentElement.classList.add("dark")
+        } catch {}
+      })()
+    </script>
     <style>
       /*__CSS__*/
     </style>
-    <style>
-      * {
-        box-sizing: border-box;
-      }
-
-      body {
-        margin: 0;
-        background: var(--bg);
-        color: var(--fg);
-        font-family: var(--font-sans);
-        font-size: var(--text-body);
-        line-height: var(--text-body--line-height);
-      }
-
-      header {
-        position: sticky;
-        top: 0;
-        z-index: 1;
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--space-sm) var(--space-lg);
-        align-items: center;
-        padding: var(--space-sm) var(--space-lg);
-        border-bottom: 1px solid var(--border);
-        background: var(--bg-sunken);
-      }
-
-      h1 {
-        margin: 0;
-        font-size: var(--text-title);
-        font-weight: 600;
-      }
-
-      h2 {
-        margin: 0 0 var(--space-xs);
-        font-size: var(--text-title);
-        font-weight: 600;
-      }
-
-      .meta,
-      .hint {
-        color: var(--fg-faint);
-        font-size: var(--text-meta);
-      }
-
-      nav {
-        display: flex;
-        gap: var(--space-2xs);
-      }
-
-      nav a {
-        padding: var(--space-2xs) var(--space-sm);
-        border-radius: var(--radius-control);
-        color: var(--fg-secondary);
-        text-decoration: none;
-      }
-
-      nav a:hover {
-        background: var(--bg-hover);
-      }
-
-      nav a[aria-current="page"] {
-        background: var(--bg-selected);
-        color: var(--fg);
-      }
-
-      main {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr);
-        gap: var(--space-lg);
-        padding: var(--space-lg);
-      }
-
-      .card {
-        padding: var(--space-lg);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-card);
-        background: var(--bg-surface);
-      }
-
-      .diagram {
-        overflow: hidden;
-        padding: var(--space-md);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-card);
-        cursor: zoom-in;
-      }
-
-      .diagram:hover {
-        border-color: var(--accent-7);
-      }
-
-      .diagram svg,
-      .preview-body svg {
-        display: block;
-        max-width: 100%;
-        height: auto;
-        margin: 0 auto;
-      }
-
-      .preview {
-        width: min(96vw, 1600px);
-        max-width: none;
-        max-height: 92vh;
-        padding: 0;
-        border: 1px solid var(--border);
-        border-radius: var(--radius-card);
-        background: var(--bg-surface);
-        color: var(--fg);
-        box-shadow: var(--shadow-dialog);
-      }
-
-      .preview::backdrop {
-        background: var(--slate-a8);
-      }
-
-      .preview-head {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: var(--space-sm) var(--space-md);
-        border-bottom: 1px solid var(--border);
-      }
-
-      .preview-body {
-        padding: var(--space-lg);
-      }
-
-      .preview-body svg {
-        width: 100%;
-        max-height: calc(92vh - 120px);
-      }
-
-      .icon-btn {
-        display: inline-grid;
-        place-items: center;
-        width: 32px;
-        height: 32px;
-        padding: 0;
-        border: 0;
-        border-radius: var(--radius-control);
-        background: none;
-        color: var(--fg-secondary);
-        cursor: pointer;
-      }
-
-      .icon-btn:hover {
-        background: var(--bg-hover);
-        color: var(--fg);
-      }
-
-      #theme {
-        margin-left: auto;
-      }
-
-      .flow-head {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--space-sm);
-        align-items: center;
-        margin-bottom: var(--space-md);
-      }
-
-      .flow-head h2 {
-        margin: 0;
-      }
-
-      .steps {
-        display: grid;
-        gap: var(--space-md);
-        margin: var(--space-lg) 0 0;
-        padding: 0;
-        list-style: none;
-      }
-
-      .steps li {
-        display: grid;
-        grid-template-columns: 24px minmax(0, 1fr);
-        gap: var(--space-sm);
-      }
-
-      .step-no {
-        display: grid;
-        place-items: center;
-        width: 24px;
-        height: 24px;
-        border-radius: var(--radius-pill);
-        background: var(--accent-a3);
-        color: var(--accent-11);
-        font-size: var(--text-meta);
-        font-variant-numeric: tabular-nums;
-      }
-
-      .steps p {
-        margin: 0;
-      }
-
-      .step-ref {
-        margin-top: var(--space-2xs);
-        color: var(--fg-secondary);
-      }
-
-      /* 依赖图的边是主要信息，深色下不能用边框色 */
-      .dark .diagram {
-        --pele-line: var(--fg-faint);
-      }
-
-      .bands {
-        display: grid;
-        gap: var(--space-xs);
-      }
-
-      .band {
-        display: grid;
-        grid-template-columns: 96px minmax(0, 1fr);
-        gap: var(--space-sm);
-        padding: var(--space-sm);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-card);
-      }
-
-      .band-name {
-        color: var(--fg-secondary);
-        font-weight: 500;
-      }
-
-      .band-name small {
-        display: block;
-        color: var(--fg-faint);
-        font-size: var(--text-meta);
-        font-weight: 400;
-      }
-
-      .tiles {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--space-xs);
-        align-content: start;
-      }
-
-      .tile {
-        padding: var(--space-2xs) var(--space-sm);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-control);
-        background: var(--bg);
-        color: var(--fg-secondary);
-        text-decoration: none;
-      }
-
-      .tile:hover {
-        background: var(--bg-hover);
-      }
-
-      .tile i {
-        margin-left: var(--space-xs);
-        font-style: normal;
-      }
-
-      [data-state="me"] {
-        border-color: var(--accent-9);
-        background: var(--accent-9);
-        color: var(--accent-contrast);
-      }
-
-      [data-state="up"] {
-        border-color: var(--amber-7);
-        background: var(--amber-3);
-        color: var(--amber-11);
-      }
-
-      [data-state="down"] {
-        border-color: var(--green-7);
-        background: var(--green-3);
-        color: var(--green-11);
-      }
-
-      [data-state="bad"] {
-        border-color: var(--red-7);
-        background: var(--danger-subtle);
-        color: var(--danger-text);
-      }
-
-      .legend {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--space-md);
-        margin: var(--space-sm) 0;
-        color: var(--fg-secondary);
-        font-size: var(--text-meta);
-      }
-
-      .swatch {
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        margin-right: var(--space-2xs);
-        border-radius: var(--radius-control);
-        vertical-align: -1px;
-      }
-
-      .count {
-        margin-left: var(--space-xs);
-        padding: 0 var(--space-xs);
-        border-radius: var(--radius-pill);
-        background: var(--bg-hover);
-        color: var(--fg-secondary);
-        font-size: var(--text-meta);
-        font-weight: 400;
-        font-variant-numeric: tabular-nums;
-      }
-
-      .faint {
-        color: var(--fg-faint);
-      }
-
-      .rel h2 {
-        display: flex;
-        align-items: center;
-        margin-bottom: var(--space-sm);
-      }
-
-      .rel details {
-        border-top: 1px solid var(--border);
-      }
-
-      .rel summary {
-        display: flex;
-        align-items: center;
-        padding: var(--space-xs) var(--space-2xs);
-        list-style: none;
-      }
-
-      .rel summary::before {
-        content: "›";
-        width: 1em;
-        color: var(--fg-faint);
-      }
-
-      .rel details[open] summary::before {
-        rotate: 90deg;
-      }
-
-      .rel summary:hover {
-        background: var(--bg-hover);
-      }
-
-      .rel summary .count {
-        margin-left: auto;
-      }
-
-      .pairs {
-        display: grid;
-        grid-template-columns: max-content auto minmax(0, 1fr);
-        gap: var(--space-2xs) var(--space-xs);
-        margin: 0 0 var(--space-sm);
-        padding: 0 0 0 calc(1em + var(--space-2xs));
-        list-style: none;
-      }
-
-      .files {
-        display: grid;
-        gap: var(--space-2xs);
-        margin: 0 0 var(--space-sm);
-        padding: 0 0 0 calc(1em + var(--space-2xs));
-        list-style: none;
-      }
-
-      .files a {
-        color: var(--fg);
-      }
-
-      .pairs li {
-        display: contents;
-      }
-
-      .pairs a,
-      .file-table a {
-        color: var(--fg);
-        text-decoration: none;
-      }
-
-      .arrow {
-        color: var(--fg-faint);
-      }
-
-      .table-box {
-        overflow: hidden;
-        border: 1px solid var(--border);
-        border-radius: var(--radius-card);
-      }
-
-      .file-table th {
-        background: var(--bg-hover);
-        font-size: var(--text-meta);
-      }
-
-      .file-table th,
-      .file-table td {
-        padding: var(--space-xs) var(--space-md);
-        vertical-align: baseline;
-      }
-
-      .file-table tbody tr:last-child td {
-        border-bottom: 0;
-      }
-
-      .file-table tbody tr:hover {
-        background: var(--bg-hover);
-      }
-
-      .file-table .num {
-        width: 96px;
-        text-align: right;
-        font-family: var(--font-mono);
-        font-size: var(--text-body);
-        font-variant-numeric: tabular-nums;
-      }
-
-      .file-table .num[data-zero] {
-        color: var(--fg-faint);
-      }
-
-      .callout {
-        margin-top: var(--space-xs);
-        padding: var(--space-sm) var(--space-md);
-        border-radius: var(--radius-card);
-        background: var(--accent-a3);
-        color: var(--accent-12);
-      }
-
-      .callout[data-tone="danger"] {
-        background: var(--danger-subtle);
-        color: var(--danger-text);
-      }
-
-      h3 {
-        margin: var(--space-sm) 0 var(--space-2xs);
-        color: var(--fg-secondary);
-        font-size: var(--text-body);
-        font-weight: 500;
-      }
-
-      summary {
-        cursor: pointer;
-      }
-
-      .crumbs {
-        display: flex;
-        flex-wrap: wrap;
-        gap: var(--space-xs);
-        align-items: center;
-        margin-bottom: var(--space-sm);
-      }
-
-      .crumbs {
-        font-family: var(--font-mono);
-      }
-
-      .crumbs a {
-        color: var(--fg-secondary);
-      }
-
-      .crumbs > * + *::before {
-        content: "/";
-        display: inline-block;
-        margin-right: var(--space-xs);
-        color: var(--fg-faint);
-      }
-
-      .crumbs [aria-current] {
-        color: var(--fg);
-        font-weight: 600;
-      }
-
-      a {
-        color: var(--link);
-        text-decoration: none;
-      }
-
-      main a:not(.tile):hover {
-        text-decoration: underline;
-      }
-
-      code,
-      .mono {
-        font-family: var(--font-mono);
-        font-size: var(--text-body);
-      }
-
-      table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-
-      th,
-      td {
-        padding: var(--space-2xs) var(--space-xs);
-        border-bottom: 1px solid var(--border);
-        text-align: left;
-        vertical-align: top;
-      }
-
-      th {
-        color: var(--fg-secondary);
-        font-weight: 500;
-      }
-
-      .cols {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-        gap: var(--space-lg);
-      }
-
-      ol {
-        margin: var(--space-xs) 0 0;
-        padding-left: var(--space-lg);
-      }
-
-      .tag {
-        padding: 0 var(--space-xs);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-pill);
-        color: var(--fg-secondary);
-        font-size: var(--text-meta);
-      }
-
-      .error {
-        color: var(--red-11);
-        white-space: pre-wrap;
-      }
-    </style>
   </head>
   <body>
-    <header>
-      <h1>pig 架构看板</h1>
-      <nav>
-        <a href="#overview">总览</a>
-        <a href="#dep/">依赖</a>
-        <a href="#flows">数据流</a>
-        <a href="#api">接口</a>
-      </nav>
-      <span class="meta" id="meta"></span>
-      <button class="icon-btn" id="theme" type="button"></button>
+    <a class="skip-link" href="#view">跳到主要内容</a>
+
+    <header class="topbar">
+      <div class="topbar-inner">
+        <a class="brand" href="#overview">
+          <img class="brand-icon" src="__ICON__" width="20" height="20" alt="" />
+          <span>pig 架构看板</span>
+        </a>
+
+        <nav class="main-nav" aria-label="主导航">
+          <a href="#overview">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+            <span>总览</span>
+          </a>
+          <a href="#dep/">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m12 2 9 4.5-9 4.5-9-4.5L12 2Z" />
+              <path d="m3 12 9 4.5 9-4.5" />
+              <path d="m3 17.5 9 4.5 9-4.5" />
+            </svg>
+            <span>依赖</span>
+          </a>
+          <a href="#flows">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="6" cy="6" r="3" />
+              <circle cx="18" cy="18" r="3" />
+              <path d="M13 6h3a2 2 0 0 1 2 2v7" />
+              <path d="M6 9v12" />
+            </svg>
+            <span>数据流</span>
+          </a>
+          <a href="#api">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 22v-5" />
+              <path d="M9 8V2" />
+              <path d="M15 8V2" />
+              <path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z" />
+            </svg>
+            <span>接口</span>
+          </a>
+        </nav>
+
+        <div class="topbar-actions">
+          <button
+            class="search-trigger"
+            id="open-search"
+            type="button"
+            aria-label="全局搜索（快捷键 / 或 Ctrl+K）"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            <span class="search-trigger-label">搜索…</span>
+            <kbd class="kbd">/</kbd>
+          </button>
+
+          <span class="commit-pill mono" id="meta-commit"></span>
+          <button class="icon-btn" id="theme" type="button"></button>
+        </div>
+      </div>
     </header>
-    <main id="view"></main>
-    <dialog class="preview" id="preview">
-      <div class="preview-head">
-        <h2 id="preview-title"></h2>
-        <button
-          class="icon-btn"
-          type="button"
-          aria-label="关闭"
-          title="关闭"
-          onclick="this.closest('dialog').close()"
+
+    <main id="view" class="page" tabindex="-1"></main>
+    <div id="live-status" class="sr-only" role="status" aria-live="polite"></div>
+
+    <dialog class="dialog preview-dialog" id="preview" aria-labelledby="preview-title">
+      <div class="dialog-head">
+        <div class="preview-heading">
+          <h2 id="preview-title"></h2>
+          <span class="meta mono" id="preview-meta"></span>
+        </div>
+
+        <div class="preview-tools">
+          <div class="zoom-group">
+            <button
+              class="icon-btn"
+              id="preview-zoom-out"
+              type="button"
+              aria-label="缩小"
+              title="缩小"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                aria-hidden="true"
+              >
+                <path d="M5 12h14" />
+              </svg>
+            </button>
+            <span class="preview-scale mono num" id="preview-scale">100%</span>
+            <button
+              class="icon-btn"
+              id="preview-zoom-in"
+              type="button"
+              aria-label="放大"
+              title="放大"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                aria-hidden="true"
+              >
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </button>
+          </div>
+
+          <button class="btn-ghost" id="preview-fit" type="button">适应</button>
+          <button class="btn-ghost" id="preview-actual" type="button">100%</button>
+          <button class="btn-ghost" id="preview-copy" type="button">复制源码</button>
+
+          <button class="icon-btn" id="preview-close" type="button" aria-label="关闭" title="关闭">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="preview-viewport" id="preview-viewport">
+        <div class="preview-stage mermaid-diagram" id="preview-stage"></div>
+      </div>
+    </dialog>
+
+    <dialog class="dialog search-dialog" id="search-dialog" aria-labelledby="search-title">
+      <h2 id="search-title" class="sr-only">全局搜索</h2>
+
+      <div class="search-head">
+        <svg
+          class="search-head-icon"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
         >
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+
+        <label class="sr-only" for="search-input">搜索文件、模块、数据流或接口</label>
+        <input
+          id="search-input"
+          class="search-input"
+          type="search"
+          placeholder="搜索文件、模块、数据流、HTTP 路由或 WS 消息…"
+          role="combobox"
+          aria-expanded="true"
+          aria-controls="search-results"
+          aria-autocomplete="list"
+          autocomplete="off"
+        />
+
+        <button class="icon-btn" id="search-close" type="button" aria-label="关闭搜索" title="关闭">
           <svg
-            width="18"
-            height="18"
+            width="16"
+            height="16"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            stroke-width="2"
+            stroke-width="1.75"
             stroke-linecap="round"
+            aria-hidden="true"
           >
             <path d="M18 6 6 18M6 6l12 12" />
           </svg>
         </button>
       </div>
-      <div class="preview-body mermaid-diagram" id="preview-body"></div>
+
+      <div class="search-results" id="search-results" role="listbox" aria-label="搜索结果"></div>
+
+      <div class="search-foot">
+        <span class="search-count" id="search-count"></span>
+        <div class="search-keys" aria-hidden="true">
+          <span>
+            <kbd class="kbd">↑</kbd>
+            <kbd class="kbd">↓</kbd>
+            选择
+          </span>
+          <span>
+            <kbd class="kbd">Enter</kbd>
+            打开
+          </span>
+          <span>
+            <kbd class="kbd">Esc</kbd>
+            关闭
+          </span>
+        </div>
+      </div>
     </dialog>
+
     <script>
       /*__PELE__*/
     </script>
-    <script></script>
     <script>
-      const DATA = /*__DATA__*/
-      const { files, edges } = DATA.graph
-      const byId = new Map(files.map((f) => [f.id, f]))
-      const view = document.getElementById("view")
-
-      const THEME_KEY = "pig-arch-theme"
-      const systemDark = matchMedia("(prefers-color-scheme: dark)")
-      const themeButton = document.getElementById("theme")
-      const SUN = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" /></svg>'
-      const MOON = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" /></svg>'
-      /** 手动选过就用手动的，否则跟随系统。 */
-      function applyTheme() {
-        const isDark = (localStorage.getItem(THEME_KEY) ?? (systemDark.matches ? "dark" : "light")) === "dark"
-        document.documentElement.classList.toggle("dark", isDark)
-        themeButton.innerHTML = isDark ? SUN : MOON
-        themeButton.title = isDark ? "切换到浅色" : "切换到深色"
-        themeButton.setAttribute("aria-label", themeButton.title)
-      }
-      applyTheme()
-      systemDark.addEventListener("change", applyTheme)
-      themeButton.addEventListener("click", () => {
-        localStorage.setItem(THEME_KEY, document.documentElement.classList.contains("dark") ? "light" : "dark")
-        applyTheme()
-      })
-
-      const previewDialog = document.getElementById("preview")
-      previewDialog.addEventListener("click", (event) => {
-        if (event.target === previewDialog) previewDialog.close()
-      })
-
-      const esc = (s) =>
-        String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c])
-      const label = (s) => String(s).replace(/"/g, "'")
-      const tail = (id, parent) => (parent && id.startsWith(`${parent}/`) ? id.slice(parent.length + 1) : id)
-      const depLink = (id, text = id) => `<a class="mono" href="#dep/${esc(id)}">${esc(text)}</a>`
-
-      function card(html) {
-        const el = document.createElement("section")
-        el.className = "card"
-        el.innerHTML = html
-        view.append(el)
-        return el
-      }
-
-      /** 图按宽度缩放；点空白处放大预览，点节点链接照常跳转。 */
-      function diagram(parent, source, title) {
-        const box = document.createElement("div")
-        box.className = "diagram mermaid-diagram"
-        box.tabIndex = 0
-        box.title = "点击放大"
-        parent.append(box)
-
-        try {
-          box.innerHTML = pele.render(source, { links: true, responsive: false }).svg
-        } catch (error) {
-          box.innerHTML = `<p class="error">${esc(error.message)}</p>`
-          return
-        }
-
-        const open = () => {
-          document.getElementById("preview-title").textContent = title
-          document.getElementById("preview-body").replaceChildren(box.querySelector("svg").cloneNode(true))
-          previewDialog.showModal()
-        }
-        box.addEventListener("click", (event) => {
-          if (!event.target.closest("a")) open()
-        })
-        box.addEventListener("keydown", (event) => {
-          if (event.key === "Enter") open()
-        })
-      }
-
-      const dirPkg = new Map(files.map((f) => [f.dir, f.pkg]))
-      const pkgOf = (focus) => (dirPkg.has(focus) ? dirPkg.get(focus) : focus)
-      const short = (key, focus) => tail(key, focus).replace(/^src\//, "")
-      const importers = new Map()
-      const imports = new Map()
-      for (const e of edges) {
-        if (!importers.has(e.to)) importers.set(e.to, [])
-        if (!imports.has(e.from)) imports.set(e.from, [])
-        importers.get(e.to).push(e.from)
-        imports.get(e.from).push(e.to)
-      }
-
-      function crumbs(path) {
-        const file = byId.get(path)
-        const pkg = file?.pkg ?? (path ? pkgOf(path) : undefined)
-        const dir = file?.dir ?? (dirPkg.has(path) ? path : undefined)
-        const parts = [["", "全部"]]
-        if (pkg) parts.push([pkg, pkg])
-        if (dir && dir !== pkg) parts.push([dir, short(dir, pkg)])
-        if (file) parts.push([file.id, tail(file.id, file.dir)])
-        const items = parts.map(([id, text], i) =>
-          i === parts.length - 1
-            ? `<span aria-current="page">${esc(text)}</span>`
-            : `<a href="#dep/${esc(id)}">${esc(text)}</a>`,
-        )
-        return `<div class="crumbs">${items.join("")}</div>`
-      }
-
-      /** 文件按目录折叠，目录按文件数从多到少。 */
-      function grouped(ids) {
-        const groups = Map.groupBy(ids, (id) => byId.get(id).dir)
-        if (!groups.size) return `<p class="hint">无</p>`
-        return [...groups]
-          .sort((a, b) => b[1].length - a[1].length || a[0].localeCompare(b[0]))
-          .map(([dir, list]) => {
-            const pkg = dirPkg.get(dir)
-            const items = list
-              .sort()
-              .map((id) => `<li><a href="#dep/${esc(id)}">${fileName(id, dir)}</a></li>`)
-              .join("")
-            return `<details><summary><span class="mono"><span class="faint">${esc(pkg)}/</span>${esc(short(dir, pkg))}</span><span class="count">${list.length}</span></summary><ul class="files">${items}</ul></details>`
-          })
-          .join("")
-      }
-
-      /** 某个焦点下模块之间的引用：键 "a\nb"，值是具体的文件对。 */
-      function pairsOf(focus) {
-        const keyOf = (f) => (focus ? f.dir : f.pkg)
-        const pairs = new Map()
-        for (const e of edges) {
-          const [a, b] = [byId.get(e.from), byId.get(e.to)]
-          if (focus && (a.pkg !== focus || b.pkg !== focus)) continue
-          if (keyOf(a) === keyOf(b)) continue
-          const key = `${keyOf(a)}\n${keyOf(b)}`
-          pairs.set(key, [...(pairs.get(key) ?? []), e])
-        }
-        return pairs
-      }
-
-      const swatch = (state, text) => `<span><span class="swatch" data-state="${state}"></span>${text}</span>`
-      const callout = (tone, html) => `<div class="callout" data-tone="${tone}">${html}</div>`
-
-      /** 分层地图：不画线，选中一个模块后，用它的和它用的分别上色。 */
-      function renderMap(focus, sel) {
-        const { bands, cycles, violations } = DATA.layers[focus]
-        const pairs = pairsOf(focus)
-        const users = new Map()
-        const uses = new Map()
-        for (const [key, list] of pairs) {
-          const [a, b] = key.split("\n")
-          if (b === sel) users.set(a, list)
-          if (a === sel) uses.set(b, list)
-        }
-        const bad = new Set([...cycles.flat(), ...violations.flatMap((v) => [v.from, v.to])])
-        const name = (k) => esc(short(k, focus))
-        const tile = (k) => {
-          const state = k === sel ? "me" : users.has(k) ? "up" : uses.has(k) ? "down" : bad.has(k) ? "bad" : ""
-          const count = users.has(k) ? `用它 ${users.get(k).length}` : uses.has(k) ? `被用 ${uses.get(k).length}` : ""
-          return `<a class="tile mono" href="#dep/${esc(k)}" data-state="${state}">${name(k)}${count ? `<i>${count}</i>` : ""}</a>`
-        }
-        const rows = bands
-          .map(
-            (b) =>
-              `<div class="band"><div class="band-name">${esc(b.name)}<small>${esc(b.note)}</small></div><div class="tiles">${b.keys.map(tile).join("")}</div></div>`,
-          )
-          .join("")
-        const legend = sel
-          ? [swatch("me", "选中"), swatch("up", "用它的"), swatch("down", "它用的"), swatch("bad", "有问题")]
-          : bad.size
-            ? [swatch("bad", "循环引用或下层引用上层")]
-            : []
-
-        let info = focus ? "点任意一块，看它被谁用、用了谁。" : "点一个包，看包内模块怎么分层。"
-        if (sel) {
-          const layerOf = new Map(bands.flatMap((b, i) => b.keys.map((k) => [k, i])))
-          const below = [...users.keys()].filter((k) => layerOf.get(k) > layerOf.get(sel)).length
-          const top = [...uses].sort((a, b) => b[1].length - a[1].length).slice(0, 2)
-          const size = files.filter((f) => (focus ? f.dir : f.pkg) === sel).length
-          info =
-            `<b class="mono">${name(sel)}</b>：${size} 个文件。<b>${users.size} 个模块用它</b>` +
-            (below ? `，其中 ${below} 个在下层，违反分层。` : "，都在上层或同层，正常。") +
-            `<b>它用 ${uses.size} 个模块</b>` +
-            (top.length ? `，主要是 ${top.map(([k, l]) => `<span class="mono">${name(k)}</span>（${l.length} 处）`).join("、")}。` : "。") +
-            "具体文件见下方。"
-        }
-        const problems = [
-          cycles.length &&
-            `<b>${cycles.length} 处循环引用</b>：${cycles.map((c) => `<span class="mono">${c.map(name).join(" ⇄ ")}</span>`).join("；")}`,
-          violations.length &&
-            `<b>${violations.length} 处下层引用上层</b>：${violations.map((v) => `<span class="mono">${name(v.from)} → ${name(v.to)}</span>（${v.count} 处）`).join("；")}`,
-        ].filter(Boolean)
-
-        card(
-          `${crumbs(sel ?? focus)}<div class="bands">${rows}</div>${legend.length ? `<div class="legend">${legend.join("")}</div>` : ""}${callout("info", info)}${problems.length ? callout("danger", problems.join("<br />")) : ""}`,
-        )
-        if (sel) renderModule(sel, users, uses, focus)
-      }
-
-      /** 文件名在前，所在子目录淡显。 */
-      function fileName(id, dir) {
-        const rest = tail(id, dir)
-        const at = rest.lastIndexOf("/") + 1
-        return `<span class="mono"><span class="faint">${esc(rest.slice(0, at))}</span>${esc(rest.slice(at))}</span>`
-      }
-
-      /** 选中模块的文件表，以及它和上下游之间具体的文件引用。 */
-      function renderModule(dir, users = new Map(), uses = new Map(), focus) {
-        const own = files.filter((f) => f.dir === dir)
-        const num = (n) => `<td class="num"${n ? "" : " data-zero"}>${n}</td>`
-        const rows = own
-          .map((f) => [f.id, importers.get(f.id)?.length ?? 0, imports.get(f.id)?.length ?? 0])
-          .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-          .map(([id, into, out]) => `<tr><td><a href="#dep/${esc(id)}">${fileName(id, dir)}</a></td>${num(into)}${num(out)}</tr>`)
-          .join("")
-        const fileCard = `<h2>文件 <span class="count">${own.length}</span></h2><div class="table-box"><table class="file-table"><thead><tr><th>文件</th><th class="num">被引用</th><th class="num">引用</th></tr></thead><tbody>${rows}</tbody></table></div>`
-        if (!focus) return card(`${crumbs(dir)}${fileCard}`)
-        const links = (map) =>
-          [...map]
-            .sort((a, b) => b[1].length - a[1].length)
-            .map(
-              ([k, list]) =>
-                `<details><summary><span class="mono">${esc(short(k, focus))}</span><span class="count">${list.length}</span></summary><ul class="pairs">${list
-                  .map(
-                    (e) =>
-                      `<li><a href="#dep/${esc(e.from)}">${fileName(e.from, byId.get(e.from).dir)}</a><span class="arrow">→</span><a href="#dep/${esc(e.to)}">${fileName(e.to, byId.get(e.to).dir)}</a></li>`,
-                  )
-                  .join("")}</ul></details>`,
-            )
-            .join("") || '<p class="hint">无</p>'
-        const side = (state, title, map) =>
-          `<div class="rel"><h2><span class="swatch" data-state="${state}"></span>${title} <span class="count">${map.size}</span></h2>${links(map)}</div>`
-        card(`<div class="cols">${side("up", "谁用它", users)}${side("down", "它用谁", uses)}</div>`)
-        card(fileCard)
-      }
-
-      /** 反向逐层展开：第 1 层是直接引用方，之后是间接受影响的文件。 */
-      function impactLayers(path) {
-        const seen = new Set([path])
-        const layers = []
-        let front = [path]
-        while (front.length) {
-          front = [...new Set(front.flatMap((id) => importers.get(id) ?? []))].filter((id) => !seen.has(id))
-          for (const id of front) seen.add(id)
-          if (front.length) layers.push(front)
-        }
-        return layers
-      }
-
-      function renderFile(path) {
-        const layers = impactLayers(path)
-        const total = layers.reduce((n, l) => n + l.length, 0)
-        const impact = layers.map((l, i) => `<h3>${i ? `第 ${i + 1} 层` : "直接引用"}（${l.length}）</h3>${grouped(l)}`).join("")
-        const out = imports.get(path) ?? []
-        card(
-          `${crumbs(path)}<div class="cols"><div class="rel"><h2>谁引用它 <span class="count">共波及 ${total}</span></h2>${impact || '<p class="hint">无</p>'}</div><div class="rel"><h2>它引用谁 <span class="count">${out.length}</span></h2>${grouped(out)}</div></div>`,
-        )
-      }
-
-      function renderDeps(path) {
-        if (byId.has(path)) return renderFile(path)
-        const pkg = pkgOf(path)
-        if (!DATA.layers[pkg ?? ""]) return renderModule(dirPkg.has(path) ? path : files.find((f) => f.pkg === pkg).dir)
-        if (dirPkg.has(path)) return renderMap(pkg, path)
-        renderMap(path)
-      }
-
-      function renderOverview() {
-        const pkgs = [...new Set(files.map((f) => f.pkg))]
-        const n = (p) => `p${pkgs.indexOf(p)}`
-        const counts = new Map()
-        for (const e of edges) {
-          const a = byId.get(e.from).pkg
-          const b = byId.get(e.to).pkg
-          if (a !== b) counts.set(`${n(a)} --> ${n(b)}`, (counts.get(`${n(a)} --> ${n(b)}`) ?? 0) + 1)
-        }
-        const lines = ["flowchart TB"]
-        for (const p of pkgs) {
-          const size = files.filter((f) => f.pkg === p).length
-          lines.push(`  ${n(p)}["${p}<br/>${size} 个文件"]`, `  click ${n(p)} href "#dep/${p}"`)
-        }
-        for (const [pair, count] of counts) lines.push(`  ${pair.replace("-->", `-->|${count}|`)}`)
-        for (const [from, to, text] of DATA.runtime) {
-          const a = pkgs.includes(from) ? n(from) : `x${label(from).replace(/\W/g, "")}`
-          const b = pkgs.includes(to) ? n(to) : `x${label(to).replace(/\W/g, "")}`
-          if (!pkgs.includes(from)) lines.push(`  ${a}(["${label(from)}"])`)
-          if (!pkgs.includes(to)) lines.push(`  ${b}(["${label(to)}"])`)
-          lines.push(`  ${a} -.->|${label(text)}| ${b}`)
-        }
-        const el = card(
-          `<h2>总览</h2><p class="hint">实线是 import（数字为条数），虚线是运行时通道；点包进入依赖下钻。</p>`,
-        )
-        diagram(el, lines.join("\n"), "总览")
-      }
-
-      function renderFlows() {
-        for (const flow of DATA.flows) {
-          const actors = [...new Set(flow.steps.flatMap((s) => [s.from, s.to]))]
-          const a = (name) => `a${actors.indexOf(name)}`
-          const lines = ["sequenceDiagram", ...actors.map((name) => `  participant ${a(name)} as ${name}`)]
-          flow.steps.forEach((s, i) => lines.push(`  ${a(s.from)}->>${a(s.to)}: ${i + 1}. ${s.text.replace(/[;#]/g, "，")}`))
-          const steps = flow.steps
-            .map((s, i) => {
-              const [path, symbol] = (s.ref ?? "").split("#")
-              const ref = path
-                ? `<p class="step-ref">${depLink(path)}${symbol ? ` <code class="faint">${esc(symbol)}</code>` : ""}</p>`
-                : ""
-              return `<li><span class="step-no">${i + 1}</span><div><p>${esc(s.text)}</p>${ref}</div></li>`
-            })
-            .join("")
-          const el = card(
-            `<div class="flow-head"><h2 id="flow-${flow.id}">${esc(flow.title)}</h2><span class="tag">${flow.channel}</span><span class="hint">${flow.steps.length} 步</span></div>`,
-          )
-          diagram(el, lines.join("\n"), flow.title)
-          el.insertAdjacentHTML("beforeend", `<ol class="steps">${steps}</ol>`)
-        }
-      }
-
-      function renderApi() {
-        const rows = DATA.api.http
-          .map(
-            (r) =>
-              `<tr><td class="mono">${r.method}</td><td class="mono">${esc(r.path)}</td><td>${depLink(r.handler, tail(r.handler, "packages/gateway/src"))}</td><td>${r.callers.map((c) => depLink(c, tail(c, "apps/web/src"))).join("<br/>") || '<span class="hint">无</span>'}</td></tr>`,
-          )
-          .join("")
-        card(
-          `<h2>HTTP（${DATA.api.http.length}）</h2><table><thead><tr><th>方法</th><th>路径</th><th>处理</th><th>web 调用方</th></tr></thead><tbody>${rows}</tbody></table>`,
-        )
-        const list = (items) => `<ol>${items.map((x) => `<li class="mono">${esc(x)}</li>`).join("")}</ol>`
-        card(
-          `<h2>WebSocket <code>${esc(DATA.api.ws.path)}</code></h2><div class="cols"><div><h2>命令</h2>${list(DATA.api.ws.commands)}</div><div><h2>事件</h2>${list(DATA.api.ws.events)}</div></div>`,
-        )
-      }
-
-      function route() {
-        const hash = decodeURIComponent(location.hash.slice(1)) || "overview"
-        const tab = hash.startsWith("dep/") ? "#dep/" : `#${hash}`
-        for (const a of document.querySelectorAll("nav a"))
-          a.toggleAttribute("aria-current", a.getAttribute("href") === tab)
-        document.querySelector("nav a[aria-current]")?.setAttribute("aria-current", "page")
-        if (previewDialog.open) previewDialog.close()
-        view.replaceChildren()
-        if (hash.startsWith("dep/")) renderDeps(hash.slice(4))
-        else if (hash === "flows") renderFlows()
-        else if (hash === "api") renderApi()
-        else renderOverview()
-        scrollTo(0, 0)
-      }
-
-      document.getElementById("meta").textContent =
-        `${DATA.commit} · ${files.length} 个文件 · ${edges.length} 条 import · 生成于 ${DATA.generatedAt}`
-      addEventListener("hashchange", route)
-      route()
+      globalThis.__ARCH_DATA__ = /*__DATA__*/
+    </script>
+    <script>
+      /*__APP__*/
     </script>
   </body>
 </html>
