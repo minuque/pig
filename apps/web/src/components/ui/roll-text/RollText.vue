@@ -44,6 +44,14 @@ let settleTimer: ReturnType<typeof setTimeout> | undefined
 
 /** 换字时宽度从旧值滑到新值，避免尾部元素跟着瞬间跳位。 */
 watch([() => props.text, () => Boolean(props.live)], async ([text, live]) => {
+  const prev = slots.value.at(-1)
+
+  // 流式参数只往后长：同一段文字原地更新，不滚动也不锁宽，否则每个增量都闪一次
+  if (prev && prev.live === live && text.startsWith(prev.text)) {
+    slots.value = [{ ...prev, text }]
+    return
+  }
+
   const node = stack.value
   const from = node?.getBoundingClientRect().width ?? 0
   const slot = { id: ++slotId, text, live }
