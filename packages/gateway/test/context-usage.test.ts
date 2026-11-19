@@ -78,4 +78,43 @@ describe("estimateContextUsage", () => {
     expect(usage.preview?.content).not.toContain("Fetch a doc")
     expect(usage.preview?.content).not.toContain("mcp__docs__secret")
   })
+
+  it("codemode 脚本里调了 MCP 工具，这次调用与结果算进 MCP；没调的仍归消息与工具结果", () => {
+    const call = (id: string, code: string) => ({
+      type: "message",
+      message: {
+        role: "assistant",
+        content: [{ type: "toolCall", id, name: "codemode", arguments: { code } }],
+      },
+    })
+    const result = (id: string, text: string) => ({
+      type: "message",
+      message: {
+        role: "toolResult",
+        toolCallId: id,
+        toolName: "codemode",
+        content: [{ type: "text", text }],
+      },
+    })
+    const entries = [
+      call("a", "await tools.mcp__docs__search({ q: 'x' })"),
+      result("a", "r".repeat(400)),
+      call("b", "console.log(1)"),
+      result("b", "1"),
+    ]
+    const usage = estimateContextUsage(
+      source({
+        getContextUsage: () => undefined,
+        sessionManager: { buildContextEntries: () => entries },
+      }),
+      "mcpTools",
+    )
+
+    expect(usage.segments.mcpTools).toBeGreaterThan(100)
+    expect(usage.segments.toolResults).toBeGreaterThan(0)
+    expect(usage.segments.toolResults).toBeLessThan(usage.segments.mcpTools)
+    expect(usage.preview?.content).toContain("## 调用：codemode")
+    expect(usage.preview?.content).toContain("r".repeat(400))
+    expect(usage.preview?.content).not.toContain("console.log(1)")
+  })
 })
