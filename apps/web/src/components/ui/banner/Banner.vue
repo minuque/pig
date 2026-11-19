@@ -1,6 +1,6 @@
 <template>
   <Primitive
-    data-slot="callout"
+    data-slot="banner"
     :data-color="color"
     :data-size="size"
     :data-accent-color="accentColor"
@@ -11,22 +11,22 @@
       `rt-r-size-${rtSize}`,
       `rt-variant-${variant}`,
       highContrast && 'rt-high-contrast',
-      'callout',
-      dismissible && 'callout-dismissible',
+      'banner',
+      dismissible && 'banner-dismissible',
       floating && 'surface-float',
       props.class,
     ]"
   >
-    <div class="rt-CalloutIcon callout-icon">
+    <div class="rt-CalloutIcon banner-icon">
       <slot name="icon" />
     </div>
 
-    <div class="callout-content">
-      <div v-if="$slots.title" class="rt-Text callout-title" :class="textSizeClass">
+    <div class="banner-content">
+      <div v-if="$slots.title" class="rt-Text banner-title" :class="textSizeClass">
         <slot name="title" />
       </div>
 
-      <div class="rt-Text callout-body" :class="textSizeClass">
+      <div class="rt-Text banner-body" :class="textSizeClass">
         <slot />
       </div>
     </div>
@@ -34,7 +34,7 @@
     <button
       v-if="dismissible"
       type="button"
-      class="callout-action"
+      class="banner-action"
       :aria-label="t('common.close')"
       @click="emit('close')"
     >
@@ -51,13 +51,13 @@ import { Primitive } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
 import { XIcon } from "@components/icons/index.js"
 import { RT_SIZE, type Size } from "@components/ui/rt/size.js"
-import { type CalloutColor, type CalloutVariant } from "./index.js"
+import { type BannerColor, type BannerVariant } from "./index.js"
 
 const { t } = useI18n()
 
 interface Props extends PrimitiveProps {
-  variant?: CalloutVariant
-  color?: CalloutColor
+  variant?: BannerVariant
+  color?: BannerColor
   size?: Size
   highContrast?: boolean
   dismissible?: boolean
@@ -78,7 +78,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 const emit = defineEmits<{ close: [] }>()
 /** 项目语义色 → rt 的 accent 族：info 跟随当前 accent，中性走 gray 族。 */
-const ACCENT_BY_COLOR: Record<CalloutColor, string | undefined> = {
+const ACCENT_BY_COLOR: Record<BannerColor, string | undefined> = {
   neutral: "gray",
   info: undefined,
   success: "green",
@@ -87,32 +87,32 @@ const ACCENT_BY_COLOR: Record<CalloutColor, string | undefined> = {
 }
 const rtSize = computed(() => RT_SIZE[props.size])
 const accentColor = computed(() => ACCENT_BY_COLOR[props.color])
-/** 照 rt 的 Callout.Text：1、2 档落到 text 2，3 档落到 text 3。 */
+/** 照 rt 的 Banner.Text：1、2 档落到 text 2，3 档落到 text 3。 */
 const textSizeClass = computed(() => `rt-r-size-${props.size === "l" ? "3" : "2"}`)
 </script>
 
 <style scoped>
 /* 标题、正文、关闭键是项目扩展；底色、描边、尺寸由 rt 的 CalloutRoot 负责。 */
-.callout {
+.banner {
   position: relative;
 }
 
-.callout-content {
+.banner-content {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
   min-inline-size: 0;
 }
 
-.callout-dismissible .callout-content {
+.banner-dismissible .banner-content {
   padding-inline-end: var(--space-5);
 }
 
-.callout-title {
+.banner-title {
   font-weight: var(--font-weight-medium);
 }
 
-.callout-action {
+.banner-action {
   position: absolute;
   inset-block-start: var(--space-2);
   inset-inline-end: var(--space-2);
@@ -128,17 +128,17 @@ const textSizeClass = computed(() => `rt-r-size-${props.size === "l" ? "3" : "2"
   cursor: pointer;
 }
 
-.callout-action:hover {
+.banner-action:hover {
   background: var(--bg-hover);
 }
 
-.callout[data-size="s"] .callout-icon :deep(svg),
-.callout[data-size="m"] .callout-icon :deep(svg) {
+.banner[data-size="s"] .banner-icon :deep(svg),
+.banner[data-size="m"] .banner-icon :deep(svg) {
   inline-size: var(--icon-md);
   block-size: var(--icon-md);
 }
 
-.callout[data-size="l"] .callout-icon :deep(svg) {
+.banner[data-size="l"] .banner-icon :deep(svg) {
   inline-size: var(--icon-lg);
   block-size: var(--icon-lg);
 }

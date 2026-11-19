@@ -1,90 +1,90 @@
 <template>
-  <Story title="Callout">
+  <Story title="Banner">
     <Variant title="Colors">
       <div style="display: flex; flex-direction: column; gap: 12px; max-width: 480px">
-        <Callout color="neutral">
+        <Banner color="neutral">
           <template #icon><MessageSquareIcon /></template>
           <template #title>Neutral</template>
-          Neutral callout body text.
-        </Callout>
+          Neutral banner body text.
+        </Banner>
 
-        <Callout color="info">
+        <Banner color="info">
           <template #icon><MessageSquareIcon /></template>
           <template #title>Info</template>
-          Info callout body text.
-        </Callout>
+          Info banner body text.
+        </Banner>
 
-        <Callout color="success">
+        <Banner color="success">
           <template #icon><CircleCheckIcon /></template>
           <template #title>Success</template>
-          Success callout body text.
-        </Callout>
+          Success banner body text.
+        </Banner>
 
-        <Callout color="warning">
+        <Banner color="warning">
           <template #icon><CircleQuestionMarkIcon /></template>
           <template #title>Warning</template>
-          Warning callout body text.
-        </Callout>
+          Warning banner body text.
+        </Banner>
 
-        <Callout color="destructive">
+        <Banner color="destructive">
           <template #icon><CircleExclamationPointIcon /></template>
           <template #title>Destructive</template>
-          Destructive callout body text.
-        </Callout>
+          Destructive banner body text.
+        </Banner>
       </div>
     </Variant>
 
     <Variant title="Variants">
       <div style="display: flex; flex-direction: column; gap: 12px; max-width: 480px">
-        <Callout variant="soft" color="info">
+        <Banner variant="soft" color="info">
           <template #icon><MessageSquareIcon /></template>
           <template #title>Soft</template>
-          Soft callout body text.
-        </Callout>
+          Soft banner body text.
+        </Banner>
 
-        <Callout variant="surface" color="info">
+        <Banner variant="surface" color="info">
           <template #icon><MessageSquareIcon /></template>
           <template #title>Surface</template>
-          Surface callout body text.
-        </Callout>
+          Surface banner body text.
+        </Banner>
 
-        <Callout variant="outline" color="info">
+        <Banner variant="outline" color="info">
           <template #icon><MessageSquareIcon /></template>
           <template #title>Outline</template>
-          Outline callout body text.
-        </Callout>
+          Outline banner body text.
+        </Banner>
       </div>
     </Variant>
 
     <Variant title="Sizes">
       <div style="display: flex; flex-direction: column; gap: 12px; max-width: 480px">
-        <Callout size="s" color="info">
+        <Banner size="s" color="info">
           <template #icon><MessageSquareIcon /></template>
           <template #title>Small</template>
-          Small callout body text.
-        </Callout>
+          Small banner body text.
+        </Banner>
 
-        <Callout size="m" color="info">
+        <Banner size="m" color="info">
           <template #icon><MessageSquareIcon /></template>
           <template #title>Medium</template>
-          Medium callout body text.
-        </Callout>
+          Medium banner body text.
+        </Banner>
 
-        <Callout size="l" color="info">
+        <Banner size="l" color="info">
           <template #icon><MessageSquareIcon /></template>
           <template #title>Large</template>
-          Large callout body text.
-        </Callout>
+          Large banner body text.
+        </Banner>
       </div>
     </Variant>
 
     <Variant title="Dismissible">
       <div style="max-width: 480px">
-        <Callout color="warning" dismissible>
+        <Banner color="warning" dismissible>
           <template #icon><CircleQuestionMarkIcon /></template>
           <template #title>Dismissible</template>
           The close button sits in the top right corner.
-        </Callout>
+        </Banner>
       </div>
     </Variant>
   </Story>
@@ -99,5 +99,5 @@ import {
   CircleExclamationPointIcon,
   CircleQuestionMarkIcon,
 } from "@components/icons/index.js"
-import { Callout } from "@components/ui/callout/index.js"
+import { Banner } from "@components/ui/banner/index.js"
 </script>

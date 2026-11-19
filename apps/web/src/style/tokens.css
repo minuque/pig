@@ -173,6 +173,8 @@
   --titlebar-controls-inset: 0px;
   /* 头部高：两栏首行与窗口标题条同高；28px 图标按钮 + 上下各 8px */
   --header-height: 44px;
+  /* 顶部通知条宽度：随窗口取一半，窄屏不低于 20rem，宽屏不超过 40rem */
+  --banner-width: clamp(20rem, 50vw, 40rem);
   /* 对话正文与输入卡的内容宽度：舒适档 */
   --content-width: 768px;
 

@@ -11,11 +11,11 @@
 
       <MarkdownContent :nodes="nodes" />
 
-      <Callout variant="surface" size="s" color="destructive">
+      <Banner variant="surface" size="s" color="destructive">
         <template #icon><CircleExclamationPointIcon /></template>
         <template #title>出错了</template>
-        Callout 的边框不读卡片变量，放在这里作对照。
-      </Callout>
+        Banner 的边框不读卡片变量，放在这里作对照。
+      </Banner>
     </section>
 
     <section class="tuner-panel">
@@ -96,7 +96,7 @@
 import { computed, reactive, ref } from "vue"
 import { useClipboard } from "@vueuse/core"
 import { Button } from "@components/ui/button/index.js"
-import { Callout } from "@components/ui/callout/index.js"
+import { Banner } from "@components/ui/banner/index.js"
 import { CardList, CardRow } from "@components/ui/card/index.js"
 import { TabsList, TabsRoot, TabsTrigger } from "@components/ui/tabs/index.js"
 import { Slider } from "@components/ui/slider/index.js"
