@@ -43,15 +43,10 @@
           class="ctx-label"
           @click="previewing = segment"
         >
-          {{ segment.label }}
+          {{ labelOf(segment) }}
         </Link>
 
-        <span v-else class="ctx-label">{{ segment.label }}</span>
-
-        <span v-if="segment.id === 'mcpTools'" class="ctx-note">
-          {{ t("rail.mcpAvailable", { count: usage.mcpToolCount }) }}
-        </span>
-
+        <span v-else class="ctx-label">{{ labelOf(segment) }}</span>
         <span class="ctx-tokens">{{ formatTokenCount(segment.tokens) }}</span>
         <span class="ctx-share">{{ share(segment) }}</span>
       </li>
@@ -102,6 +97,11 @@ const rows = computed(() => [
 ])
 const share = (segment: ContextUsageSegment) =>
   props.usage.window > 0 ? `${segmentShare(segment.tokens, props.usage.window).toFixed(1)}%` : "—"
+/** MCP 一行在名称后带上可用工具数。 */
+const labelOf = (segment: ContextUsageSegment) =>
+  segment.id === "mcpTools" && props.usage.mcpToolCount > 0
+    ? t("rail.mcpLabel", { label: segment.label, count: props.usage.mcpToolCount })
+    : segment.label
 const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && segment.previewable)
 </script>
 
@@ -176,12 +176,6 @@ const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && 
 /* rt 的下划线取 accent-a5，灰色链接上几乎看不见：跟文字同色 */
 .ctx-label[data-slot="link"] {
   text-decoration-color: currentColor;
-}
-
-.ctx-note {
-  flex: none;
-  color: var(--fg-faint);
-  white-space: nowrap;
 }
 
 .ctx-tokens {
