@@ -9,18 +9,19 @@
   >
     <RunningPigGlyph class="turn-status-pig" :state="pigState" />
 
+    <!-- 时间与 token 定宽在前，长短不一的活动文字放最后，前面的数字不跟着横移 -->
     <span class="turn-status-label">
-      <RollText :text="label" :live="busy" />
-
       <template v-if="elapsedLabel">
-        <span class="label-dot">·</span>
         <FlowNumber :text="elapsedLabel" />
+        <span class="label-dot">·</span>
       </template>
 
       <template v-if="tokensLabel">
-        <span class="label-dot">·</span>
         <FlowNumber :text="tokensLabel" />
+        <span class="label-dot">·</span>
       </template>
+
+      <RollText :text="label" :live="busy" />
     </span>
   </div>
 </template>
@@ -200,11 +201,10 @@ const tokensLabel = computed(() => {
   line-height: var(--text-meta--line-height);
 }
 
-/* 图标比一行文本高，负外边距抵掉多出的高度，不撑开行距 */
+/* 小猪高度等于一行文本的行高，不撑开行距 */
 .turn-status-pig {
-  font-size: var(--text-meta);
-  height: calc(var(--text-meta) * 1.8);
-  margin-block: calc(var(--text-meta) * (var(--text-meta--line-height) - 1.8) / 2);
+  flex: none;
+  height: calc(var(--text-meta) * var(--text-meta--line-height));
 }
 
 .turn-status-label {
