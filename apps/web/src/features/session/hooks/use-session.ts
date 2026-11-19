@@ -73,9 +73,6 @@ export function useSessionLifecycle(
     return stageBatch(batch, () => epoch !== thread.epoch)
   }
 
-  /** 接管后台会话空闲后的泵队与收尾；不注册就直接出池。 */
-  const setBackgroundIdleHandler = live.setBackgroundIdle
-
   async function abortRemote() {
     await remote.value?.abort()
   }
@@ -130,7 +127,7 @@ export function useSessionLifecycle(
   const running = computed(() => projection.value?.running ?? false)
   const contextUsage = computed(() => projectContextUsage(foregroundUsage.value))
   let presetPort: PresetPort | undefined
-  const { states, backgroundSend } = hub
+  const { states } = hub
   const idleState = emptyClientState()
   const creatingCwd = ref<string>()
   /** 会话已建、路由未落位的窗口里用它指向新会话状态，transcript 不出现空档 */
@@ -378,8 +375,6 @@ export function useSessionLifecycle(
     aborting,
     createSession,
     sendPrompt,
-    sendBackgroundPrompt: backgroundSend.send,
-    setBackgroundIdleHandler,
     setWelcomeHandoff,
     transcriptFor: history.transcriptFor,
     externalTurn,

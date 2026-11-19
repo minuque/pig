@@ -5,6 +5,7 @@ import { createAbortableOpen } from "@features/session/hooks/abortable-open.js"
 import { createBackgroundSender } from "@features/session/hooks/use-background-send.js"
 import { createHistoryStore } from "@features/session/hooks/use-session-history.js"
 import { useLiveSubscriptions } from "@features/session/hooks/use-live-subscriptions.js"
+import type { BackgroundIdleResult } from "@features/session/hooks/use-live-subscriptions.js"
 import type { sessionState } from "@features/session/lib/session-state.js"
 
 export type SessionHub = ReturnType<typeof createSessionHub>
@@ -66,9 +67,15 @@ export function createSessionHub(
     for (const entry of foregrounds) if (entry !== by && entry.remote()?.id === id) entry.handOver()
   }
 
+  /** 后台会话空闲的接管者由组合根挂一次：泵队与收尾不跟分屏面板的挂载走。 */
+  function setBackgroundIdle(handler?: (id: string) => Promise<BackgroundIdleResult>) {
+    live.setBackgroundIdle(handler)
+  }
+
   async function dispose() {
     stopClientSync()
     pi.bindAttachedReconnect()
+    setBackgroundIdle()
 
     for (const sub of live.takeBackground()) await discard(sub.session)
   }
@@ -82,6 +89,7 @@ export function createSessionHub(
     backgroundSend,
     registerForeground,
     claim,
+    setBackgroundIdle,
     dispose,
   }
 }

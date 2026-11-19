@@ -20,6 +20,10 @@ export function useSession(): SessionContext {
 
 export { sessionTitle, untitledSession } from "@features/session/lib/session-title.js"
 
+export { endedCleanly } from "@features/session/lib/ended-cleanly.js"
+
+export type { BackgroundIdleResult } from "@features/session/hooks/use-live-subscriptions.js"
+
 export { useSessionLifecycle } from "@features/session/hooks/use-session.js"
 
 export { createSessionHub, type SessionHub } from "@features/session/hooks/use-session-hub.js"

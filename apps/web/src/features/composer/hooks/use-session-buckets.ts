@@ -11,9 +11,11 @@ export function createSharedBuckets(): SharedBuckets {
   return new Map()
 }
 
-/** 两侧 workbench 共用同一份按会话分桶的暂存：会话换到另一侧时队列和附件跟着走。 */
-export function provideSharedBuckets() {
-  provide(sharedKey, createSharedBuckets())
+/** 两侧 workbench 共用同一份按会话分桶的暂存；返回同一份 store 给宿主组件自身复用。 */
+export function provideSharedBuckets(): SharedBuckets {
+  const store = createSharedBuckets()
+  provide(sharedKey, store)
+  return store
 }
 
 /**

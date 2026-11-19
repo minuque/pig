@@ -26,15 +26,14 @@ function assistant(status: "complete" | "error" | "aborted"): TranscriptItem {
   return { ...base, status: "aborted", stopReason: "aborted" }
 }
 
-/** 接线成 index.vue 的形态：前台走 sendForeground，后台走 sendBackground。 */
-function setup(options?: { backgroundAccepted?: boolean }) {
+/** 接线成 index.vue 的形态：前台只负责收尾与泵队，后台泵队归壳层。 */
+function setup() {
   const sessionId = ref<string | undefined>("s1")
   const running = ref(false)
   const items = shallowRef<readonly TranscriptItem[]>([])
   const queue = useComposerQueue()
   const sound = { play: vi.fn() }
   const sent: { id: string; text: string }[] = []
-  let accepted = options?.backgroundAccepted ?? true
   const scope = effectScope()
   const turnFinish = scope.run(() =>
     useTurnFinish({
@@ -48,27 +47,11 @@ function setup(options?: { backgroundAccepted?: boolean }) {
         sent.push({ id: "", text })
         return true
       },
-      sendBackground: async (id, text) => {
-        sent.push({ id, text })
-        return accepted
-      },
-      transcriptFor: () => items.value,
     }),
   )!
 
   scopes.push(scope)
-  return {
-    running,
-    items,
-    queue,
-    sound,
-    sent,
-    sessionId,
-    turnFinish,
-    reject: () => {
-      accepted = false
-    },
-  }
+  return { running, items, queue, sound, sent, sessionId, turnFinish }
 }
 
 describe("前台轮次收尾", () => {
@@ -134,49 +117,6 @@ describe("前台轮次收尾", () => {
     ctx.running.value = false
     await nextTick()
 
-    expect(ctx.sound.play).not.toHaveBeenCalled()
-  })
-})
-
-describe("后台会话收尾", () => {
-  it("队列有货直接发出返回 sent；队列空返回 done 并响完成音", async () => {
-    const ctx = setup()
-
-    ctx.items.value = [assistant("complete")]
-    ctx.queue.setKey("s1")
-    ctx.queue.enqueue("后台一条")
-    ctx.queue.setKey("s2")
-
-    await expect(ctx.turnFinish.onBackgroundIdle("s1")).resolves.toBe("sent")
-    expect(ctx.sent).toEqual([{ id: "s1", text: "后台一条" }])
-    expect(ctx.sound.play).not.toHaveBeenCalled()
-
-    await expect(ctx.turnFinish.onBackgroundIdle("s1")).resolves.toBe("done")
-    expect(ctx.sound.play).toHaveBeenCalledWith("done")
-    expect(ctx.sound.play).toHaveBeenCalledTimes(1)
-  })
-
-  it("失败路径：后台发送失败条目回队首且不响完成音", async () => {
-    const ctx = setup({ backgroundAccepted: false })
-
-    ctx.items.value = [assistant("complete")]
-    ctx.queue.setKey("s1")
-    ctx.queue.enqueue("第一条")
-    ctx.queue.enqueue("第二条")
-    ctx.queue.setKey("s2")
-
-    await expect(ctx.turnFinish.onBackgroundIdle("s1")).resolves.toBe("done")
-    expect(ctx.queue.sizeFor("s1")).toBe(2)
-    expect(ctx.sound.play).not.toHaveBeenCalled()
-  })
-
-  it("失败路径：最后一条助手 error 不响完成音", async () => {
-    const ctx = setup()
-
-    ctx.items.value = [assistant("error")]
-    ctx.queue.setKey("s1")
-
-    await expect(ctx.turnFinish.onBackgroundIdle("s1")).resolves.toBe("done")
     expect(ctx.sound.play).not.toHaveBeenCalled()
   })
 })

@@ -1,6 +1,9 @@
 import { computed, shallowRef, type ComputedRef, type ShallowRef } from "vue"
-import { useSessionBuckets } from "@features/composer/hooks/use-session-buckets.js"
 import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
+import {
+  useSessionBuckets,
+  type SharedBuckets,
+} from "@features/composer/hooks/use-session-buckets.js"
 
 export interface QueuedPrompt {
   id: string
@@ -31,12 +34,14 @@ export interface ComposerQueueApi {
 /**
  * 本地待发队列：内存按 sessionId 分桶（welcome 为 ""）。
  * 轮次结束（running → false）由调用方泵队首；立即发送走 steer。
+ * store 直接指定共用的桶：脱离组件树（如单测）时要同一份队列。
  */
-export function useComposerQueue(): ComposerQueueApi {
+export function useComposerQueue(store?: SharedBuckets): ComposerQueueApi {
   const buckets = useSessionBuckets<ShallowRef<QueuedPrompt[]>>(
     () => shallowRef([]),
     undefined,
     "queue",
+    store,
   )
   const bucket = buckets.current
   const items = computed(() => bucket().value)

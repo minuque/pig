@@ -94,9 +94,9 @@
               :usage="welcome ? undefined : contextUsage"
               :send-disabled="sendDisabled"
               :queue="composerQueue"
-              @send="onSend"
-              @send-now="onQueueSendNow"
-              @queue="onQueue"
+              @send="sendNow"
+              @send-now="sendQueued"
+              @queue="enqueue"
               @abort="onAbort"
             />
           </div>
@@ -107,16 +107,14 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue"
-import { useEventListener, useResizeObserver } from "@vueuse/core"
+import { computed, onMounted, ref, useTemplateRef, watch } from "vue"
+import { useResizeObserver } from "@vueuse/core"
 import { useRoute } from "vue-router"
-import { warmWorkspace } from "@client/platform.js"
 import { Button } from "@components/ui/button/index.js"
 import Composer from "@features/composer/index.vue"
 import { useComposerPreset } from "@features/composer/index.js"
-import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
 import { useComposerAttachments } from "@features/composer/hooks/use-composer-attachments.js"
-import { useComposerQueue, type QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
+import { useComposerQueue } from "@features/composer/hooks/use-composer-queue.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useI18n } from "@i18n/index.js"
 import { sessionDropTargetAttrs, useNav } from "@features/session-nav/index.js"
@@ -127,8 +125,12 @@ import StartupError from "@features/session-workbench/components/StartupError.vu
 import WelcomeField from "@features/session-workbench/components/WelcomeField.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { useComposerDock } from "@features/session-workbench/hooks/use-composer-dock.js"
+import { useComposerReserve } from "@features/session-workbench/hooks/use-composer-reserve.js"
+import { useComposerSubmit } from "@features/session-workbench/hooks/use-composer-submit.js"
+import { useFileDrop } from "@features/session-workbench/hooks/use-file-drop.js"
 import { useSessionDrop } from "@features/session-workbench/hooks/use-session-drop.js"
 import { useTurnFinish } from "@features/session-workbench/hooks/use-turn-finish.js"
+import { useWelcomeWorkspace } from "@features/session-workbench/hooks/use-welcome-workspace.js"
 import TranscriptView from "@features/transcript-view/index.vue"
 import SessionRail from "@features/session-rail/index.vue"
 import { useSessionRail } from "@features/session-rail/index.js"
@@ -141,17 +143,6 @@ onMounted(() => {
     requestIdleCallback(prefetchTranscriptView, { timeout: 2000 })
   else setTimeout(prefetchTranscriptView, 1)
 })
-
-function nextWelcomeWorkspaceId(
-  items: readonly string[],
-  current: string | undefined,
-  lastCwd: string | undefined,
-): string | undefined {
-  if (items.includes(current ?? "")) return current
-
-  if (lastCwd !== undefined && items.includes(lastCwd)) return lastCwd
-  return items[0]
-}
 
 const { t } = useI18n()
 const route = useRoute()
@@ -171,10 +162,7 @@ const {
   creating,
   abortSession,
   sendPrompt,
-  sendBackgroundPrompt,
-  setBackgroundIdleHandler,
   setWelcomeHandoff,
-  transcriptFor,
   contextUsage,
   welcome,
   externalTurn,
@@ -204,46 +192,19 @@ useResizeObserver(panel, ([entry]) => {
   if (entry) rail?.setWidth(entry.contentRect.width)
 })
 
-const welcomeWorkspaceId = shallowRef<string>()
-const heroWorkspaceId = computed({
-  get: () => (sessionId.value ? sessionCwd.value : welcomeWorkspaceId.value),
-  set: (id) => {
-    if (!sessionId.value) welcomeWorkspaceId.value = id
-  },
+const { welcomeWorkspaceId, heroWorkspaceId, composerCwd } = useWelcomeWorkspace({
+  sessionId: () => sessionId.value,
+  sessionCwd: () => sessionCwd.value,
+  workspaces: () => workspaces.value,
+  lastCwd: () => lastCwd.value,
+  connected: () => connected.value,
 })
-const composerCwd = computed(() => (sessionId.value ? sessionCwd.value : welcomeWorkspaceId.value))
 const sendDisabled = computed(
   () =>
     !composerCwd.value ||
     preset.value === undefined ||
     Boolean(creating.value) ||
     externalTurn.value,
-)
-
-// 侧栏点目录会写 lastCwd，Hero 跟随；workspaces 变化只兜底失效项，保住 Hero 手选
-watch(lastCwd, (last) => {
-  if (last !== undefined) welcomeWorkspaceId.value = last
-})
-
-watch(
-  workspaces,
-  (items) => {
-    welcomeWorkspaceId.value = nextWelcomeWorkspaceId(
-      items,
-      welcomeWorkspaceId.value,
-      lastCwd.value,
-    )
-  },
-  { immediate: true },
-)
-
-// 第一条 Prompt 用这个目录建会话；连上后让 Host 后台预热同一目录的扩展与技能
-watch(
-  [connected, welcomeWorkspaceId],
-  ([live, id]) => {
-    if (live && id) void warmWorkspace(id).catch(() => undefined)
-  },
-  { immediate: true },
 )
 
 type TranscriptViewRef = InstanceType<typeof TranscriptView>
@@ -255,38 +216,7 @@ const settleIn = welcome.value
 
 useComposerDock(composerBar, welcome)
 
-const RESERVE_DEBOUNCE_MS = 120
-let reserveTimer = 0
-
-/** 输入条脱离文档流后，把占位高度写给对话列，转录和空态都靠它留白。 */
-function publishComposerReserve(entries: readonly ResizeObserverEntry[]) {
-  const bar = composerBar.value
-  const column = bar?.closest(".conversation-column")
-  const box = entries[0]?.borderBoxSize?.[0]
-  const height = box?.blockSize ?? bar?.getBoundingClientRect().height ?? 0
-
-  if (!(column instanceof HTMLElement) || height <= 0) return
-  const next = `${Math.ceil(height)}px`
-  const prev = column.style.getPropertyValue("--composer-reserve")
-
-  if (prev === next) return
-  window.clearTimeout(reserveTimer)
-
-  // 动画逐帧回写会让转录列每帧重排，合到尾沿写一次；首屏没有转录，Hero 直接跟着输入卡长高
-  if (prev && !welcome.value) {
-    reserveTimer = window.setTimeout(() => {
-      reserveTimer = 0
-      column.style.setProperty("--composer-reserve", next)
-    }, RESERVE_DEBOUNCE_MS)
-    return
-  }
-
-  column.style.setProperty("--composer-reserve", next)
-}
-
-useResizeObserver(composerBar, publishComposerReserve, { box: "border-box" })
-
-onBeforeUnmount(() => window.clearTimeout(reserveTimer))
+useComposerReserve(composerBar, () => welcome.value)
 
 const showScrollToLatest = computed(() => transcriptView.value?.showScrollToLatest ?? false)
 
@@ -310,138 +240,38 @@ watch(
   { immediate: true },
 )
 
-function deliverPrompt(text: string, batch?: ComposerAttachmentBatch) {
-  if (sessionId.value) scrollToLatest("auto")
-  else if (!welcomeWorkspaceId.value) return Promise.resolve(false)
-  return sendPrompt(text, sessionId.value ? undefined : welcomeWorkspaceId.value, batch).catch(
-    () => false,
-  )
-}
-
-const { markAborted, onBackgroundIdle } = useTurnFinish({
+const { deliver, sendNow, sendQueued, enqueue } = useComposerSubmit({
+  sessionId: () => sessionId.value,
+  welcomeCwd: () => welcomeWorkspaceId.value,
+  prompt,
+  queue: composerQueue,
+  attachments: composerAttachments,
+  scrollToLatest: () => scrollToLatest("auto"),
+  submit: sendPrompt,
+})
+const { markAborted } = useTurnFinish({
   sessionId: () => sessionId.value,
   running: () => running.value,
   pending: () => turnPending.value,
   transcript: () => transcript.value,
   queue: composerQueue,
   sound,
-  sendForeground: deliverPrompt,
-  sendBackground: sendBackgroundPrompt,
-  transcriptFor,
+  sendForeground: deliver,
 })
-
-// lifecycle 不认队列：后台会话跑完后的泵队与完成音由这里注入
-setBackgroundIdleHandler(onBackgroundIdle)
 
 setWelcomeHandoff((id) => {
   composerQueue.handOff(id)
   composerAttachments.handOff(id)
 })
 
-function onSend(text: string) {
-  const batch = composerAttachments.consumeForSend()
-
-  void deliverPrompt(text, batch).then((sent) => {
-    // 只移走这次发出的附件；发送途中新加的留着，被中止或切走时 chips 也留着
-    if (sent && batch) composerAttachments.settle(batch)
-  })
-}
-
-/** 发送成功才出队：被拒（提交中、中止、切走）时条目留在队列里。 */
-function onQueueSendNow(item: QueuedPrompt) {
-  void deliverPrompt(item.text, item.attachments).then((sent) => {
-    if (sent) composerQueue.remove(item.id)
-  })
-}
-
-function onQueue(text: string) {
-  const batch = composerAttachments.consumeForSend()
-
-  composerQueue.enqueue(text, batch)
-
-  // 附件归队列持有：入队同时清掉输入卡暂存，否则同一批文件会再传一次
-  if (batch) composerAttachments.settle(batch)
-  prompt.value = ""
-}
-
 function onAbort() {
   markAborted()
   void abortSession()
 }
 
-const dropActive = ref(false)
-
-function looksLikeFileDrag(event: DragEvent): boolean {
-  const data = event.dataTransfer
-
-  if (!data) return false
-  const types = Array.from(data.types)
-
-  if (types.includes("Files") || types.includes("application/x-moz-file")) return true
-
-  if (Array.from(data.items).some((item) => item.kind === "file")) return true
-  // Windows 资源管理器在进入窗口前 types 经常是空的
-  return types.length === 0
-}
-
-function claimFileDrag(event: DragEvent) {
-  if (!looksLikeFileDrag(event)) return false
-  event.preventDefault()
-
-  if (event.dataTransfer) event.dataTransfer.dropEffect = "copy"
-  return true
-}
-
-function stillInsidePanel(event: DragEvent): boolean {
-  const node = event.currentTarget
-
-  if (!(node instanceof HTMLElement)) return false
-  const to = event.relatedTarget
-
-  if (to instanceof Node && node.contains(to)) return true
-
-  if (to) return false
-  const box = node.getBoundingClientRect()
-  const x = event.clientX
-  const y = event.clientY
-  return x > box.left && x < box.right && y > box.top && y < box.bottom
-}
-
-function onDragEnter(event: DragEvent) {
-  if (!claimFileDrag(event)) return
-  dropActive.value = true
-}
-
-function onDragOver(event: DragEvent) {
-  if (!claimFileDrag(event)) return
-  dropActive.value = true
-}
-
-function onDragLeave(event: DragEvent) {
-  if (stillInsidePanel(event)) return
-  dropActive.value = false
-}
-
-function onDrop(event: DragEvent) {
-  dropActive.value = false
-  event.preventDefault()
-  composerAttachments.addDropped(event.dataTransfer)
-}
-
-function onWindowFileDragOver(event: DragEvent) {
-  claimFileDrag(event)
-}
-
-function onWindowFileDrop(event: DragEvent) {
-  if (!looksLikeFileDrag(event)) return
-  event.preventDefault()
-}
-
-useEventListener(window, "dragenter", onWindowFileDragOver, { capture: true })
-
-useEventListener(window, "dragover", onWindowFileDragOver, { capture: true })
-
-useEventListener(window, "drop", onWindowFileDrop, { capture: true })
+const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop(
+  composerAttachments.addDropped,
+)
 </script>
 
 <style scoped>

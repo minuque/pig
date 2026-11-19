@@ -1,6 +1,13 @@
+import { defineComponent, h } from "vue"
+import { mount } from "@vue/test-utils"
 import { describe, expect, it } from "vitest"
 import {
+  useComposerQueue,
+  type ComposerQueueApi,
+} from "@features/composer/hooks/use-composer-queue.js"
+import {
   createSharedBuckets,
+  provideSharedBuckets,
   useSessionBuckets,
 } from "@features/composer/hooks/use-session-buckets.js"
 
@@ -28,5 +35,31 @@ describe("两侧共用的按会话暂存", () => {
 
     expect(right.current().items).toEqual(["待发"])
     expect(left.forKey(undefined).items).toEqual([])
+  })
+
+  it("壳层用 provideSharedBuckets 返回的桶建队列时，与子面板 inject 到的是同一份", () => {
+    let shellQueue!: ComposerQueueApi
+    let childQueue!: ComposerQueueApi
+    const Child = defineComponent({
+      setup() {
+        childQueue = useComposerQueue()
+        return () => null
+      },
+    })
+    const Shell = defineComponent({
+      setup() {
+        const buckets = provideSharedBuckets()
+        shellQueue = useComposerQueue(buckets)
+        return () => h(Child)
+      },
+    })
+    const wrapper = mount(Shell)
+
+    childQueue.setKey("s1")
+    childQueue.enqueue("后台待发")
+
+    expect(shellQueue.shiftFor("s1")?.text).toBe("后台待发")
+    expect(childQueue.sizeFor("s1")).toBe(0)
+    wrapper.unmount()
   })
 })

@@ -88,7 +88,9 @@ import { Columns2Icon } from "@components/icons/index.js"
 import { useI18n } from "@i18n/index.js"
 import { sessionDropTargetAttrs, type DroppedSession } from "@features/session-nav/index.js"
 import { bindComposerPreset } from "@features/composer/index.js"
+import { useComposerQueue } from "@features/composer/hooks/use-composer-queue.js"
 import { provideSharedBuckets } from "@features/composer/hooks/use-session-buckets.js"
+import { useSound } from "@features/click-sound/index.js"
 import ExtensionUi from "@features/extension-ui/index.vue"
 import { provideExtensionUi } from "@features/extension-ui/index.js"
 import SessionNav from "@features/session-nav/index.vue"
@@ -100,6 +102,7 @@ import { createSessionHub, useSessionLifecycle } from "@features/session/index.j
 import { focusedSession, provideSplitView, type Side } from "@features/split-view/index.js"
 import { splitShortcut } from "@features/split-view/lib/split-shortcut.js"
 import { prefetchHighlighter } from "@features/transcript-view/index.js"
+import { createBackgroundPump } from "@/shell/hooks/use-background-pump.js"
 import WorkbenchPane from "@/shell/WorkbenchPane.vue"
 
 const { t } = useI18n()
@@ -116,7 +119,19 @@ const routeSessionId = computed(() => {
 const split = provideSplitView(routeSessionId, (id) => {
   void router.replace(id ? { name: "session", params: { sessionId: id } } : "/")
 })
+// 队列与附件按会话分桶：会话换到另一侧，待发队列跟着走；壳层显式传桶，不依赖同组件 inject
+const sharedBuckets = provideSharedBuckets()
 const hub = createSessionHub(pi)
+const backgroundPump = createBackgroundPump({
+  queue: useComposerQueue(sharedBuckets),
+  sound: useSound(),
+  send: hub.backgroundSend.send,
+  transcriptFor: hub.history.transcriptFor,
+})
+
+// 后台泵队在壳层挂一次：哪一侧面板挂上或卸掉都不重注册、不解绑
+hub.setBackgroundIdle(backgroundPump.onIdle)
+
 const sideSession = (side: Side) =>
   useSessionLifecycle(pi, cwd, {
     hub,
@@ -140,8 +155,6 @@ const focused = focusedSession(
   split.leaveSession,
 )
 const { settingsOpen, settingsPane, openSettings, closeSettings } = useSettingsDialog()
-
-provideSharedBuckets()
 
 provideNav(pi, cwd, focused)
 
