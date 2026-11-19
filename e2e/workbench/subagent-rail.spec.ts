@@ -71,13 +71,17 @@ test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({
   expect(viewportBox.x + viewportBox.width).toBeGreaterThan(railBox.x)
   expect(railBox.x + railBox.width).toBeLessThanOrEqual(viewportBox.x + viewportBox.width + 1)
 
-  // 上下文展开：按分类列 token 与占比，点分类在右侧面板里看实际进上下文的内容
+  // 上下文展开：按分类列 token 与占比，点分类在弹框里看实际进上下文的内容，可切源码
   const contextCard = rail.locator(".rail-card", { hasText: "上下文" })
   await contextCard.locator("button.ctx-row").first().click()
-  const preview = page.locator(".rail-pane")
-  await expect(preview.locator(".ctx-preview-text")).not.toBeEmpty({ timeout: 30_000 })
-  await expect(preview.locator(".ctx-preview-text")).not.toHaveText("无法加载预览。")
-  await preview.getByRole("button", { name: "关闭" }).click()
+  const preview = page.getByRole("dialog")
+  const body = preview.locator(".preview-body")
+  await expect(body).not.toBeEmpty({ timeout: 30_000 })
+  await expect(body).not.toHaveText("无法加载预览。")
+  await expect(page.locator(".rail-pane")).toHaveCount(0)
+  await preview.getByRole("button", { name: "查看源码" }).click()
+  await expect(preview.locator(".file-code-line").first()).toBeVisible()
+  await preview.getByRole("button", { name: "关闭" }).last().click()
   await expect(preview).toBeHidden()
 
   // 收起环境：正文收起，标题行显示摘要

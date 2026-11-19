@@ -35,27 +35,19 @@
         @stop="emit('stop', $event)"
       />
 
-      <RailChild v-else-if="pane.kind === 'child'" :child="pane.child" :progress="progress" />
-
-      <RailContextPreview
-        v-else-if="sessionId"
-        :session-id="sessionId"
-        :segment="pane.segment"
-        @title="(next) => (contextTitle = next)"
-      />
+      <RailChild v-else :child="pane.child" :progress="progress" />
     </div>
   </Card>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from "vue"
+import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Card } from "@components/ui/card/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { XIcon, TrashIcon } from "@components/icons/index.js"
 import RailChild from "@features/session-rail/components/RailChild.vue"
-import RailContextPreview from "@features/session-rail/components/RailContextPreview.vue"
 import RailTasks from "@features/session-rail/components/RailTasks.vue"
 import { useSessionRail, type RailPane } from "@features/session-rail/index.js"
 import type { TaskSections } from "@features/session-rail/lib/task-list.js"
@@ -71,12 +63,9 @@ const props = defineProps<{
 const emit = defineEmits<{ stop: [taskId: string] }>()
 const { t } = useI18n()
 const rail = useSessionRail()!
-const contextTitle = ref("")
 const title = computed(() => {
   if (props.pane.kind === "tasks") return t("rail.tasks")
-
-  if (props.pane.kind === "child") return props.pane.child.agent
-  return contextTitle.value || props.pane.segment.label
+  return props.pane.child.agent
 })
 const actions = computed(() => [
   ...(props.pane.kind === "tasks"
@@ -92,11 +81,6 @@ const actions = computed(() => [
     : []),
   { key: "close", label: t("common.close"), icon: XIcon, disabled: false, run: rail.closePane },
 ])
-
-watch(
-  () => props.pane,
-  () => (contextTitle.value = ""),
-)
 
 function clearFinished() {
   if (props.sessionId)

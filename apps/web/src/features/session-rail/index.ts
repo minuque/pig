@@ -1,7 +1,6 @@
 import { computed, inject, provide, shallowRef, type InjectionKey } from "vue"
 import { readFlag, writeFlag } from "@utils/storage.js"
 import { openTaskSessionKey } from "@features/transcript-view/index.js"
-import type { ContextUsageSegment } from "@features/composer/type.js"
 import { railModeOf } from "@features/session-rail/lib/layout.js"
 import { dismissTasks, readDismissed } from "@features/session-rail/lib/task-list.js"
 import {
@@ -20,9 +19,7 @@ export interface OpenChild {
 
 /** 右侧面板正在显示的内容；点摘要卡里的条目都在这里展开。 */
 export type RailPane =
-  | { kind: "tasks"; focus?: string | undefined }
-  | { kind: "child"; child: OpenChild }
-  | { kind: "context"; segment: ContextUsageSegment }
+  { kind: "tasks"; focus?: string | undefined } | { kind: "child"; child: OpenChild }
 
 const DOCKED_KEY = "pig.rail.docked"
 

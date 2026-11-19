@@ -63,12 +63,7 @@
         </div>
       </template>
 
-      <RailContext
-        v-else-if="id === 'context' && usage"
-        :usage="usage"
-        :session-id="sessionId"
-        @preview="(segment) => rail.openPane({ kind: 'context', segment })"
-      />
+      <RailContext v-else-if="id === 'context' && usage" :usage="usage" :session-id="sessionId" />
 
       <template v-else-if="id === 'tasks'">
         <RailTaskRows

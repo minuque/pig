@@ -31,7 +31,7 @@
           :type="canPreview(segment) ? 'button' : undefined"
           class="ctx-row"
           :data-idle="segment.id === 'idle' || undefined"
-          @click="canPreview(segment) && emit('preview', segment)"
+          @click="canPreview(segment) && (previewing = segment)"
         >
           <span class="ctx-swatch" :style="{ background: segment.color }" />
           <span class="ctx-label">{{ segment.label }}</span>
@@ -40,11 +40,19 @@
         </component>
       </li>
     </ul>
+
+    <RailContextPreview
+      v-if="sessionId && previewing"
+      open
+      :session-id="sessionId"
+      :segment="previewing"
+      @update:open="previewing = undefined"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
 import {
   contextUsageSummary,
@@ -52,10 +60,12 @@ import {
   segmentShare,
 } from "@features/composer/lib/context-usage.js"
 import type { ContextUsage, ContextUsageSegment } from "@features/composer/type.js"
+import RailContextPreview from "@features/session-rail/components/RailContextPreview.vue"
 
 const props = defineProps<{ usage: ContextUsage; sessionId: string | undefined }>()
-const emit = defineEmits<{ preview: [segment: ContextUsageSegment] }>()
 const { t } = useI18n()
+/** 点开预览的分类；弹框关掉就清空。 */
+const previewing = shallowRef<ContextUsageSegment>()
 /** 已占用的分类按 token 从多到少排；剩余空间单列在最后。 */
 const used = computed(() =>
   props.usage.segments
@@ -119,7 +129,7 @@ const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && 
   align-items: center;
   gap: var(--space-xs);
   inline-size: 100%;
-  min-block-size: var(--icon-md);
+  min-block-size: var(--control-sm);
   padding: 0 var(--space-2xs);
   border: 0;
   border-radius: var(--radius-control);
