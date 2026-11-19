@@ -717,11 +717,20 @@ function confirmDelete() {
   font-variant-numeric: tabular-nums;
 }
 
-/* 行尾动作出现时让位；没有动作的行（新会话、工作中）状态照常显示 */
-.session-item:hover .state-slot:has(.row-action) .state-mark,
-.session-item:focus-within .state-slot:has(.row-action) .state-mark,
-.session-item.is-menu-open .state-slot:has(.row-action) .state-mark {
+/* 行尾动作出现时与状态互换文档流，左侧目录名按动作宽度省略；没有动作的行状态照常显示 */
+.session-item:is(:hover, :focus-within, .is-menu-open, .is-swept)
+  .state-slot:has(.row-action)
+  .state-mark {
+  position: absolute;
+  inset-inline-end: 0;
   opacity: 0;
+}
+
+.session-item:is(:hover, :focus-within, .is-menu-open, .is-swept) .row-action {
+  position: relative;
+  inset: auto;
+  margin-inline-end: calc(var(--space-xs) * -1);
+  translate: none;
 }
 
 .row-action {
