@@ -66,7 +66,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
 :where([data-slot="switch"])::before {
   content: "";
   display: block;
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-pill);
   background-repeat: no-repeat;
   transition:
     background-position 120ms linear,
@@ -82,7 +82,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
 :where([data-slot="switch"][data-size="s"])::before {
   width: calc(var(--space-md) * 1.75);
   height: var(--space-md);
-  border-radius: calc(var(--radius-control) / 2);
   background-size: calc(var(--space-md) * 4.5) 100%;
 }
 
@@ -131,6 +130,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
 :where([data-slot="switch-thumb"]) {
   position: absolute;
   inset-inline-start: 1px;
+  border-radius: var(--radius-pill);
   background-color: white;
   transition:
     transform 140ms cubic-bezier(0.45, 0.05, 0.55, 0.95),
@@ -140,7 +140,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
 :where([data-slot="switch"][data-size="s"]) :where([data-slot="switch-thumb"]) {
   width: calc(var(--space-md) - 2px);
   height: calc(var(--space-md) - 2px);
-  border-radius: calc(var(--radius-control) / 2 - 1px);
 }
 
 :where([data-slot="switch"][data-size="s"])
@@ -151,7 +150,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
 :where([data-slot="switch"][data-size="m"]) :where([data-slot="switch-thumb"]) {
   width: calc(var(--space-lg) * 5 / 6 - 2px);
   height: calc(var(--space-lg) * 5 / 6 - 2px);
-  border-radius: calc(var(--radius-control) - 1px);
 }
 
 :where([data-slot="switch"][data-size="m"])
@@ -162,7 +160,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
 :where([data-slot="switch"][data-size="l"]) :where([data-slot="switch-thumb"]) {
   width: calc(var(--space-lg) - 2px);
   height: calc(var(--space-lg) - 2px);
-  border-radius: calc(var(--radius-control) - 1px);
 }
 
 :where([data-slot="switch"][data-size="l"])

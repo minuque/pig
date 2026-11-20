@@ -184,7 +184,7 @@ provide(TABS_VARIANT, toRef(props, "variant"))
   inset-inline-start: 0;
   inline-size: var(--reka-tabs-indicator-size);
   border-radius: calc(var(--radius-card) - 2px);
-  background: var(--bg-surface);
+  background: var(--bg-raised);
   box-shadow: 0 0 0 var(--border-width) var(--border-strong);
   transform: translateX(var(--reka-tabs-indicator-position));
   transition-property: transform, inline-size;

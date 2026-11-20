@@ -69,7 +69,7 @@ const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | unde
   display: flex;
   align-items: center;
   flex-grow: 1;
-  border-radius: calc(var(--space-xs) / 3);
+  border-radius: var(--radius-pill);
   user-select: none;
   touch-action: none;
 }
@@ -85,10 +85,6 @@ const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | unde
   block-size: 100%;
 }
 
-:where([data-slot="slider"][data-size="s"]) {
-  border-radius: calc(var(--space-xs) * 0.75 / 3);
-}
-
 :where([data-slot="slider"][data-size="s"][data-orientation="horizontal"]),
 :where([data-slot="slider"][data-size="s"][data-orientation="horizontal"])
   :where([data-slot="slider-track"]) {
@@ -99,10 +95,6 @@ const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | unde
 :where([data-slot="slider"][data-size="s"][data-orientation="vertical"])
   :where([data-slot="slider-track"]) {
   inline-size: calc(var(--space-xs) * 0.75);
-}
-
-:where([data-slot="slider"][data-size="l"]) {
-  border-radius: calc(var(--space-xs) * 1.25 / 3);
 }
 
 :where([data-slot="slider"][data-size="l"][data-orientation="horizontal"]),
@@ -180,7 +172,7 @@ const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | unde
   position: absolute;
   inset: calc(var(--space-xs) * -0.25);
   background-color: white;
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-pill);
   cursor: pointer;
 }
 

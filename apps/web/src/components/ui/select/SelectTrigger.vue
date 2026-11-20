@@ -208,6 +208,36 @@ const size = useSelectSize()
   background-image: linear-gradient(var(--black-a1) -20%, transparent, var(--white-a1));
 }
 
+/* 深色下换成顶亮线更弱、底暗线更重的一套，避免 90% 白的高光 */
+html.dark :where([data-slot="select-trigger"][data-variant="classic"]) {
+  box-shadow:
+    inset 0 0 0 var(--border-width) var(--white-a4),
+    inset 0 1px 1px var(--white-a4),
+    inset 0 -1px 1px var(--black-a9);
+}
+
+html.dark :where([data-slot="select-trigger"][data-variant="classic"]:hover) {
+  box-shadow:
+    inset 0 0 0 var(--border-width) var(--gray-a3),
+    inset 0 1px 1px var(--white-a4),
+    inset 0 -1px 1px var(--black-a9);
+}
+
+html.dark :where([data-slot="select-trigger"][data-variant="classic"][data-state="open"]) {
+  box-shadow:
+    inset 0 0 0 var(--border-width) var(--gray-a3),
+    inset 0 1px 1px var(--white-a4),
+    inset 0 -1px 1px var(--black-a9);
+}
+
+html.dark :where([data-slot="select-trigger"][data-variant="classic"]:disabled) {
+  box-shadow:
+    inset 0 0 0 var(--border-width) var(--gray-a5),
+    inset 0 4px 2px -2px var(--gray-a2),
+    inset 0 1px 1px var(--gray-a5),
+    inset 0 -1px 1px var(--black-a3);
+}
+
 /* --- soft --- */
 :where([data-slot="select-trigger"][data-variant="soft"]) {
   background-color: var(--accent-a3);

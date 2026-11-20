@@ -461,4 +461,9 @@ html.dark :where([data-button][data-variant="classic"])::after {
   background-image: linear-gradient(var(--black-a1) -20%, transparent, var(--white-a1));
   box-shadow: none;
 }
+
+/* 加载态：spinner 绝对定位在按钮内，按钮自己提供定位上下文 */
+:where([data-button][data-loading]) {
+  position: relative;
+}
 </style>
