@@ -1,5 +1,5 @@
 /* 组件样式：布局、排版、颜色与圆角的原子类。类名沿用 shadcn 与 Tailwind 的写法，
-   值只读 app.css 的 token。间距按 --space-* 命名（gap-sm 而不是 gap-3）：项目已把
+   值只读 tokens.css 的 token。间距按 --space-* 命名（gap-sm 而不是 gap-3）：项目已把
    间距刻度收进 --space-* 命名空间，再引数字刻度会多出一套并行换算。
    原先这些类由 Tailwind 的 @theme 生成，删依赖时改成手写，SFC 里的写法保持不变。
    只登记用得到的，新增一档先在这里补。 */
@@ -382,6 +382,37 @@
   border-radius: var(--radius-pill);
 }
 
+/* ------ 图标 ------ */
+
+/* Lucide 图标基座：零特异性，调用方的 size-* 类和 scoped 样式可覆盖 */
+:where(.lucide) {
+  flex: none;
+  inline-size: var(--icon-md);
+  block-size: var(--icon-md);
+  stroke-width: var(--icon-stroke);
+}
+
+.size-icon {
+  inline-size: var(--icon-md);
+  block-size: var(--icon-md);
+}
+
+.size-icon-xs {
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
+}
+
+.size-icon-2xs {
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
+}
+
+/* ------ 共用组件 ------ */
+
+/* 浮层统一底：实色，不透明；写在颜色原子类之后，同一元素上的时候取它 */
+.surface-float {
+  background-color: var(--bg-raised);
+}
 /* 毛玻璃弹层：警告框与命令面板共用。弹层经 Portal 挂到 body，scoped 打不中，写在这里 */
 .glass-backdrop {
   position: fixed;
@@ -398,4 +429,13 @@
   backdrop-filter: var(--glass-filter);
   color: var(--fg);
   outline: none;
+}
+
+/* ------ 触屏 ------ */
+
+/* 触屏上把菜单行高抬到可点击尺寸 */
+@media (pointer: coarse) {
+  :is([data-slot="dropdown-menu-item"], [data-slot="context-menu-item"]) {
+    min-height: calc(var(--control-lg) + var(--space-2xs));
+  }
 }

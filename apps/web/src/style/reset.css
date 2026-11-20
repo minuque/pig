@@ -1,5 +1,6 @@
 /* 归零层：接替 Tailwind 的 preflight，逐条对齐它原来做的事，
-   删依赖前后同一份 DOM 的默认值不变。字体、色板、间距都在 app.css 里，这里只管浏览器默认值。 */
+   删依赖前后同一份 DOM 的默认值不变。这里只管浏览器默认值：
+   字体与色板在 tokens.css、globals.css，分片入口是 app.css。 */
 
 *,
 ::after,

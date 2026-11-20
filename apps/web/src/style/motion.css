@@ -1,4 +1,4 @@
-/* 工作台运动：token 在 app.css :root。此处只放可复用类与 Vue Transition 名。
+/* 工作台运动：token 在 tokens.css。此处只放可复用类与 Vue Transition 名。
    首屏与工作台动效集中维护，避免重复加载和减少动态效果规则分散，因此本文件保留超过 500 行。 */
 
 /* ------ 启动页 ------ */

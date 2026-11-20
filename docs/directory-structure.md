@@ -43,11 +43,11 @@ apps/web/src/
 
 `apps/web/test/` 镜像 `src/` 分层：`test/components/ui/` 对 `src/components/ui/`，`test/features/<module>/` 对 `features/<module>/`，`test/style/` 对 `style/`。根级只放 `setup.ts`。测 `src` 根文件的用例用相对路径。整页浏览器旅程不要放进本目录，写到仓库根 `e2e/`。
 
-`style/`：`app.css` 是入口，按顺序引重置、Radix 色板与各分片；`reset.css` 归零浏览器默认值（放在 `base` 层，不压库样式），`tokens.css` 放全局 token 与深浅覆盖，`rt.css` 引 Radix Themes 的 base 与 components 并把间距圆角接到本项目刻度，`desktop.css` 放桌面壳的拖拽与弹层规则，`markdown.css` 是助手正文（Comark 渲染）的排版，`mermaid.css` 把 pele 图的主题变量接到 token，`components.css` 是布局、排版、颜色与圆角的原子类。
+`style/`：`app.css` 只做入口，按顺序引重置、Radix 色板与各分片；`reset.css` 归零浏览器默认值（放在 `base` 层，不压库样式），`tokens.css` 放全局 token 与深浅覆盖，`rt.css` 引 Radix Themes 的 base 与 components 并把间距圆角接到本项目刻度，`desktop.css` 放桌面壳的拖拽与弹层规则，`markdown.css` 是助手正文（Comark 渲染）的排版，`mermaid.css` 把 pele 图的主题变量接到 token，`components.css` 是布局、排版、颜色与圆角的原子类加共用组件类，`globals.css` 放字体文件与文档基线（body 的底与字色、原生元素行为、焦点环默认、滚动条）。`globals.css` 不分层且排在最后：库的默认值比 `reset.css` 的 `base` 层优先，要靠它压住。
 
 `components/ui/rt/`：Radix Themes 的接入层。`ThemeRoot.vue` 是 `.radix-themes` 作用域容器（弹层要在 teleport 里再包一层），`props.ts` 是 rt 的 prop → 类名引擎的精简版，`size.ts` 把对外的 s / m / l 映射到 rt 的 1 / 2 / 3。基础件的 props 照 rt 的语义（`size`、`variant`、`color`、`highContrast`、`radius`），尺寸档只有 s / m / l 三档。
 
-`style/components.css`：原子类的类名沿用 shadcn 与 Tailwind 的写法（`flex`、`items-center`、`truncate`、`w-full`、`text-body-md`、`rounded-md`），值只读 `app.css` 的 token。间距按 `--space-*` 命名（`gap-sm`、`p-md`）而不是数字刻度：项目已经把间距收进 `--space-*` 命名空间，再引入一套数字换算就是两套刻度并行。新增类名前先确认名字没有被任何 scoped 块当作业务类名用过。
+`style/components.css`：原子类的类名沿用 shadcn 与 Tailwind 的写法（`flex`、`items-center`、`truncate`、`w-full`、`text-body-md`、`rounded-md`），值只读 `tokens.css` 的 token。间距按 `--space-*` 命名（`gap-sm`、`p-md`）而不是数字刻度：项目已经把间距收进 `--space-*` 命名空间，再引入一套数字换算就是两套刻度并行。新增类名前先确认名字没有被任何 scoped 块当作业务类名用过。
 
 `types/`：被两条及以上路径依赖的类型，按业务写成 `xxx-type.ts`，消费写 `@/types/xxx-type.js`。三方依赖类型（如 `@earendil-works/*`）与 `@pig/protocol` 的接口形状放 `types/common-type.ts` 再导出；接口形状只在 `@pig/protocol` 定义，web 与 gateway 不各写一份，消费写 `@/types/common-type.js`；运行时值仍从原包引入。`client/` 自己定义的连接与会话类型留在 `client/`，import 直接写 `@client/...`：反过来从 `types/` 转出就与 `client` 成环。模块或组件目录内多文件共用的类型放该目录 `type.ts`。只被一个文件使用的类型留在该文件。
 
