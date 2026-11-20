@@ -1,17 +1,20 @@
+import {
+  INLINE_IMAGE_PATTERN,
+  MAX_BATCH_ITEMS,
+  MAX_FILE_BYTES,
+  MAX_IMAGE_BYTES,
+} from "@pig/protocol"
 import { computed, getCurrentInstance, onUnmounted, ref, shallowRef, type Ref } from "vue"
 import type { ComposerAttachment, ComposerAttachmentBatch } from "@/types/attachment-type.js"
 import { t } from "@i18n/index.js"
 import { useSessionBuckets } from "@features/composer/hooks/use-session-buckets.js"
 
-/** 单个 batch 的附件数上限，与 Gateway 的 MAX_BATCH_ITEMS 对齐。 */
-export const MAX_COMPOSER_ATTACHMENTS = 8
-/** 单张图片上限：图片直接进 SDK images，比普通文件保守得多。 */
-export const MAX_IMAGE_BYTES = 3 * 1024 * 1024
-/** 单个非图片文件上限，与 Gateway 的 MAX_ATTACHMENT_BYTES 对齐。 */
-export const MAX_FILE_BYTES = 25 * 1024 * 1024
+/** 输入卡自己的叫法；上限与网关共用 @pig/protocol 的一份。 */
+export const MAX_COMPOSER_ATTACHMENTS = MAX_BATCH_ITEMS
+
+export { MAX_FILE_BYTES, MAX_IMAGE_BYTES }
+
 const MEGABYTE = 1024 * 1024
-/** provider 只稳吃这几种位图，其余（svg / bmp / heic）当普通文件，避免整轮 prompt 失败。 */
-const IMAGE_MIME_PATTERN = /^image\/(png|jpeg|gif|webp)$/i
 
 export interface ComposerAttachmentsApi {
   files: Ref<ComposerAttachment[]>
@@ -128,7 +131,7 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
       }
 
       const mimeType = file.type || "application/octet-stream"
-      const image = IMAGE_MIME_PATTERN.test(mimeType)
+      const image = INLINE_IMAGE_PATTERN.test(mimeType)
       const limit = image ? MAX_IMAGE_BYTES : MAX_FILE_BYTES
 
       if (file.size > limit) {

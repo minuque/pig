@@ -6,16 +6,16 @@ import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { finished } from "node:stream/promises"
 import type { PromptOptions } from "@earendil-works/pi-coding-agent"
+import {
+  INLINE_IMAGE_PATTERN,
+  MAX_BATCH_ITEMS,
+  MAX_FILE_BYTES,
+  MAX_IMAGE_BYTES,
+} from "@pig/protocol"
 
 /** SDK prompt 的图片块形状，直接从 SDK 取，避免手抄结构漂移。 */
 export type PromptImage = NonNullable<PromptOptions["images"]>[number]
 
-/** 非图片单文件上限 25MB。 */
-export const MAX_FILE_BYTES = 25 * 1024 * 1024
-/** 图片单文件上限 3MB：provider 内联上限约 4.5MB base64，3MB 编码后约 4MB。 */
-export const MAX_IMAGE_BYTES = 3 * 1024 * 1024
-/** 单个 batch 最多 8 个附件。 */
-export const MAX_BATCH_ITEMS = 8
 /** 暂存与未消费临时文件的存活时间。 */
 export const ATTACHMENT_TTL_MS = 30 * 60 * 1000
 /** 消费后临时文件续期到 24 小时：路径已写进会话历史，agent 可能很久之后再 read。 */
@@ -28,8 +28,6 @@ const STALE_FILE_MS = 30 * 60 * 1000
 const ROOT_DIR = join(tmpdir(), "pig-attachments")
 /** batch 来自客户端且用作目录名，只允许安全字符。 */
 const BATCH_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
-/** provider 只稳定吃这几种内联图片；svg/bmp/heic 走文件落盘，否则整轮会被拒。 */
-const INLINE_IMAGE_PATTERN = /^image\/(png|jpeg|gif|webp)$/i
 /** mimeType 会拼进 prompt 文本行，只放行 type/subtype 形状。 */
 const MIME_PATTERN = /^[\w.+-]+\/[\w.+-]+$/
 /** 文件名保留长度上限。 */

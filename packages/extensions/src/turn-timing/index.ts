@@ -1,8 +1,5 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent"
-import type { TurnTiming } from "@pig/protocol"
-
-/** 会话里的计时条目；网关的 readTurnTimings 按这个名字读。 */
-const TIMING_ENTRY = "pig.turn-timing"
+import { TURN_TIMING_ENTRY as TIMING_ENTRY, type TurnTiming } from "@pig/protocol"
 
 type Outcome = Exclude<TurnTiming["outcome"], "running">
 

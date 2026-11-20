@@ -2,6 +2,7 @@ import { execFile } from "node:child_process"
 import { realpath } from "node:fs/promises"
 import { resolve } from "node:path"
 import { promisify } from "node:util"
+import { canonicalizeWorkspaceKey } from "@pig/protocol"
 
 const execFileAsync = promisify(execFile)
 const PICKER_TIMEOUT_MS = 60_000
@@ -124,21 +125,14 @@ export type DirectoryExecFile = (
   options: { encoding: "utf8"; windowsHide: boolean; timeout: number },
 ) => Promise<{ stdout: string }>
 
-// 与 web 端 apps/web/src/client/local-cwd.ts 的 canonicalizeWorkspacePath 是同一套
-// 规范化逻辑（分隔符/大小写/尾斜杠），跨包各自维护，修改时需两处同步。
+/** 本地路径先 `resolve` 再规范化；远程 workspace 键不是本地路径，直接按键处理。 */
 export function canonicalizePath(path: string): string {
-  // 远程 workspace 键不是本地路径，只去尾斜杠
-  if (path.startsWith("ssh://")) {
-    const key = path.replace(/\/+$/, "")
-    return /^ssh:\/\/[^/]+$/.test(key) ? `${key}/` : key
-  }
+  if (path.startsWith("ssh://")) return canonicalizeWorkspaceKey(path)
 
-  const trimmed = resolve(path).replaceAll("\\", "/").replace(/\/+$/, "")
-  // 根路径保留尾斜杠：`c:` 是该盘当前目录，不是盘符根
-  const normalized = trimmed === "" || /^[a-zA-Z]:$/.test(trimmed) ? `${trimmed}/` : trimmed
+  const key = canonicalizeWorkspaceKey(resolve(path))
 
-  if (process.platform === "win32") return normalized.toLowerCase()
-  return /^[a-zA-Z]:/.test(normalized) ? normalized.toLowerCase() : normalized
+  if (process.platform === "win32") return key.toLowerCase()
+  return /^[a-zA-Z]:/.test(key) ? key.toLowerCase() : key
 }
 
 async function validateDirectory(path: string): Promise<string> {

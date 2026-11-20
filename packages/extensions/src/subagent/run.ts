@@ -12,8 +12,9 @@ import { BINDING_ENTRY, type RemoteBinding } from "@pig/environment/source"
 import remoteWorkspace from "../remote-workspace/index.ts"
 import type { AgentConfig } from "./agents.ts"
 
-/** 子会话文件里的标记：会话列表据此把子会话与普通分叉区分开。 */
-export const SUBAGENT_ENTRY = "pig.subagent"
+import { SUBAGENT_ENTRY } from "@pig/protocol"
+
+export { SUBAGENT_ENTRY }
 
 type Model = NonNullable<Parameters<typeof createAgentSession>[0]>["model"]
 

@@ -6,6 +6,7 @@ import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
 import Gateway from "../../packages/gateway/src/index.js"
+import { canonicalizeWorkspacePath } from "../../packages/protocol/src/index.js"
 import type { DirectoryPort } from "../../packages/gateway/src/system/directory.js"
 import { createFakeRuntime, type FakeProviderSpec } from "./fake-model-runtime.js"
 import { BUILTIN_PROVIDERS } from "./fake-provider-registry.js"
@@ -20,11 +21,7 @@ import {
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..")
 const webRoot = join(root, "apps/web/dist")
 
-/** 与 web canonicalizeWorkspacePath 对齐，供 localStorage 种子。 */
-export function canonicalizeWorkspacePath(path: string): string {
-  const normalized = path.replaceAll("\\", "/").replace(/\/+$/, "")
-  return /^[a-zA-Z]:/.test(normalized) ? normalized.toLowerCase() : normalized
-}
+export { canonicalizeWorkspacePath }
 
 /** 种子 localStorage 定位工作区；reducedMotion 由调用方按需 emulate（bench 要切两档）。 */
 export async function seedWorkspaces(page: Page, workspaceIds: readonly string[]) {

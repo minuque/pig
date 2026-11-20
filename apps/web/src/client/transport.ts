@@ -1,8 +1,6 @@
 /** 本机 Gateway 的 WebSocket 地址：Gateway 在 `GET /api/v1/pi` 收 JSON 文本帧。 */
+import { WEBSOCKET_PATH } from "@pig/protocol"
 import { t } from "@i18n/index.js"
-
-// 与 gateway 端 packages/gateway/src/server/websocket.ts 的 WEBSOCKET_PATH 必须一致。
-export const WEBSOCKET_PATH = "/api/v1/pi"
 
 function stampedGatewayOrigin(): string | undefined {
   if (typeof document === "undefined") return undefined

@@ -4,14 +4,9 @@ import { join } from "node:path"
 
 import { readSshConfig, sshHosts } from "./ssh-config.js"
 
-/** 环境列表的一项；saved 表示 pig 自己保存过（带默认目录）。 */
-export interface EnvironmentInfo {
-  id: string
-  kind: "local" | "ssh"
-  host?: string
-  defaultPath?: string
-  saved: boolean
-}
+import type { EnvironmentInfo } from "@pig/protocol"
+
+export type { EnvironmentInfo }
 
 type SavedEnvironment = { host: string; path?: string }
 

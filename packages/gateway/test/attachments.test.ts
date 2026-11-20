@@ -1,12 +1,11 @@
 import { mkdtemp, readdir, readFile, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join, sep } from "node:path"
+import { MAX_BATCH_ITEMS, MAX_IMAGE_BYTES } from "@pig/protocol"
 import { afterEach, describe, expect, it } from "vitest"
 import {
   ATTACHMENT_TTL_MS,
   AttachmentStore,
-  MAX_BATCH_ITEMS,
-  MAX_IMAGE_BYTES,
   composePrompt,
   sanitizeFileName,
   sanitizeMimeType,

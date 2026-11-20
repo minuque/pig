@@ -1,7 +1,5 @@
 import type { SessionEntry } from "@earendil-works/pi-coding-agent"
-import type { TurnTiming } from "@pig/protocol"
-
-const CUSTOM_TYPE = "pig.turn-timing"
+import { TURN_TIMING_ENTRY as CUSTOM_TYPE, type TurnTiming } from "@pig/protocol"
 
 function parseTiming(data: unknown): TurnTiming | undefined {
   if (

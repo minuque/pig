@@ -9,6 +9,7 @@ const gateway = join(root, "packages/gateway")
 const temp = await mkdtemp(join(tmpdir(), "nono-package-"))
 
 try {
+  run("pnpm", ["--filter", "@pig/protocol", "build"], { cwd: root })
   run("pnpm", ["--filter", "@pig/web", "build"], { cwd: root })
   run("pnpm", ["--filter", "@pig/environment", "build"], { cwd: root })
   await rm(join(gateway, "dist"), { recursive: true, force: true })

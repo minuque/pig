@@ -10,16 +10,10 @@ import { readPref, writeJson, writePref, type PrefStorage } from "@utils/storage
 export const LOCAL_WORKSPACES_KEY = "pig.localWorkspaces"
 export const LAST_CWD_KEY = "pig.lastCwd"
 
-/** 兼容旧偏好：统一分隔符、尾斜杠；Windows 盘符路径整段小写。新路径由 Host realpath。 */
-// 与 gateway 端 packages/gateway/src/system/directory.ts 的 canonicalizePath 是同一套
-// 规范化逻辑（分隔符/大小写/尾斜杠），跨包各自维护，修改时需两处同步。
-export function canonicalizeWorkspacePath(path: string): string {
-  const trimmed = path.replaceAll("\\", "/").replace(/\/+$/, "")
-  // 根路径保留尾斜杠：`c:` 是该盘当前目录，不是盘符根
-  const normalized =
-    (trimmed === "" && path !== "") || /^[a-zA-Z]:$/.test(trimmed) ? `${trimmed}/` : trimmed
-  return /^[a-zA-Z]:/.test(normalized) ? normalized.toLowerCase() : normalized
-}
+import { canonicalizeWorkspacePath } from "@pig/protocol"
+
+/** 旧偏好兼容由 Host realpath 收口，这里只做键规范化。 */
+export { canonicalizeWorkspacePath }
 
 /** 规范化后按键去重，保留首次出现顺序。 */
 export function uniqueCanonicalPaths(paths: readonly string[]): string[] {

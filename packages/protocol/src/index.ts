@@ -1,4 +1,4 @@
-/** web 与 gateway 之间的 WebSocket 消息与 HTTP 数据形状；只有类型，没有运行时代码。 */
+/** web 与 gateway 之间的 WebSocket 消息与 HTTP 数据形状，以及两端共用的常量与键规范化。 */
 export type { ExtensionUiDialog, ExtensionUiRequest, ExtensionUiResponse } from "./extension-ui.js"
 
 export type {
@@ -80,3 +80,15 @@ export type {
 export type { AgentTask, Task, TaskDetails, TaskStatus } from "./task.js"
 
 export type { BashTask, TaskChannels, TaskStopEvent, TasksEvent } from "./task.js"
+
+export {
+  WEBSOCKET_PATH,
+  MAX_BATCH_ITEMS,
+  MAX_IMAGE_BYTES,
+  MAX_FILE_BYTES,
+  INLINE_IMAGE_PATTERN,
+  TURN_TIMING_ENTRY,
+  SUBAGENT_ENTRY,
+  canonicalizeWorkspaceKey,
+  canonicalizeWorkspacePath,
+} from "./shared.js"

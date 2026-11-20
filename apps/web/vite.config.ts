@@ -65,6 +65,10 @@ export default defineConfig({
       "@router": fileURLToPath(new URL("./src/router", import.meta.url)),
       "@i18n": fileURLToPath(new URL("./src/i18n", import.meta.url)),
       "@utils": fileURLToPath(new URL("./src/utils", import.meta.url)),
+      // 两端共用的常量与键规范化：直接用源码，不走 dist
+      "@pig/protocol": fileURLToPath(
+        new URL("../../packages/protocol/src/index.ts", import.meta.url),
+      ),
     },
   },
   server: {
