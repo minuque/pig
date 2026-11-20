@@ -1,96 +1,41 @@
 <!-- 会话状态图标：侧栏行右侧与页脚计数共用。 -->
 <template>
-  <span class="state-icon" :class="state">
-    <svg
-      v-if="state === 'running'"
-      class="state-spinner motion-spin"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
-      <circle class="spinner-track" cx="12" cy="12" r="10" pathLength="100" />
-      <circle class="spinner-arc" cx="12" cy="12" r="10" pathLength="100" />
-    </svg>
-
-    <template v-else-if="state === 'unread'">
-      <CircleCheckIcon class="state-glyph" />
-      <span class="state-label">{{ t("session.done") }}</span>
-    </template>
-
-    <template v-else-if="state === 'error'">
-      <CircleExclamationPointIcon class="state-glyph" />
-      <span class="state-label">{{ t("session.failed") }}</span>
-    </template>
-
-    <PenIcon v-else-if="state === 'draft'" class="state-glyph" />
-  </span>
+  <StatusIndicator
+    class="state-icon"
+    :class="state"
+    appearance="icon"
+    :status="STATUS_BY_GLYPH[state]"
+    :label="label"
+  />
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue"
+import { StatusIndicator, type StatusTone } from "@components/ui/status-indicator/index.js"
 import { useI18n } from "@i18n/index.js"
-import { CircleCheckIcon, CircleExclamationPointIcon, PenIcon } from "@components/icons/index.js"
 import type { SidebarStateGlyph } from "@features/session-nav/type.js"
 
-defineProps<{
+const STATUS_BY_GLYPH: Record<SidebarStateGlyph, StatusTone> = {
+  running: "running",
+  unread: "success",
+  error: "error",
+  draft: "draft",
+}
+const props = defineProps<{
   state: SidebarStateGlyph
 }>()
-
 const { t } = useI18n()
+const label = computed(() => {
+  if (props.state === "unread") return t("session.done")
+
+  if (props.state === "error") return t("session.failed")
+  return undefined
+})
 </script>
 
 <style scoped>
 .state-icon {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: var(--space-2xs);
-  min-inline-size: 14px;
-  min-block-size: 14px;
-}
-
-/* 运行中：暗色整环当轨道，亮弧转圈，比缺口图标更像进度 */
-.state-spinner {
-  display: block;
-  inline-size: 14px;
-  block-size: 14px;
-  color: var(--info-text);
-}
-
-.spinner-track,
-.spinner-arc {
-  fill: none;
-  stroke-width: 3;
-}
-
-.spinner-track {
-  stroke: var(--bg-emphasis);
-}
-
-.spinner-arc {
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-dasharray: 26 74;
-}
-
-.state-glyph {
-  display: block;
-}
-
-.state-label {
-  font-size: var(--text-meta);
-  font-weight: var(--font-weight-medium);
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.state-icon.unread {
-  color: var(--success-text);
-}
-
-.state-icon.draft {
-  color: var(--warning-text);
-}
-
-.state-icon.error {
-  color: var(--danger-text);
+  min-inline-size: var(--icon-md);
+  min-block-size: var(--icon-md);
 }
 </style>

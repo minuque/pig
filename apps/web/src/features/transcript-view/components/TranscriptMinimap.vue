@@ -21,7 +21,7 @@
             :disabled="!previousItem"
             @click="previousItem && emit('select', previousItem)"
           >
-            <ChevronUpIcon class="size-icon-xs" />
+            <ChevronUpIcon class="size-icon-sm" />
           </button>
         </TooltipTrigger>
 
@@ -58,7 +58,7 @@
             :disabled="!nextItem"
             @click="nextItem && emit('select', nextItem)"
           >
-            <ChevronDownIcon class="size-icon-xs" />
+            <ChevronDownIcon class="size-icon-sm" />
           </button>
         </TooltipTrigger>
 
@@ -239,7 +239,7 @@ function onPreviewOpenChange(open: boolean) {
   position: absolute;
   top: calc((100% - var(--composer-reserve, 0px)) / 2);
   inset-inline-start: var(--space-md);
-  z-index: 3;
+  z-index: var(--z-overlay);
   display: none;
   width: 44px;
   transform: translateY(-50%);
@@ -304,7 +304,7 @@ function onPreviewOpenChange(open: boolean) {
 .minimap-nav {
   position: absolute;
   inset-inline-start: var(--space-2xs);
-  z-index: 1;
+  z-index: var(--z-raise);
   display: grid;
   place-items: center;
   width: 20px;
@@ -334,7 +334,7 @@ function onPreviewOpenChange(open: boolean) {
 }
 
 .minimap-nav:disabled {
-  opacity: 0.35;
+  opacity: var(--opacity-disabled);
   cursor: default;
 }
 
@@ -346,7 +346,7 @@ function onPreviewOpenChange(open: boolean) {
   top: calc(100% + var(--space-2xs));
 }
 
-/* 面板的底色、圆角、阴影、内边距由 rt-PopoverContent 提供，这里只管排版 */
+/* 面板的底色、圆角、阴影、内边距由 popover-content 提供，这里只管排版 */
 .preview-user {
   display: block;
   overflow: hidden;

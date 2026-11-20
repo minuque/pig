@@ -3,49 +3,50 @@
     <p v-if="error" class="list-error">{{ error }}</p>
 
     <CardRow v-for="model in provider.models" :key="model.id" bleed class="model-card">
-      <div class="model-row">
-        <button
-          type="button"
-          class="model-toggle"
-          :aria-expanded="expanded === model.id"
-          @click="toggle(model.id)"
-        >
-          <VendorMark class="model-icon" :vendor="provider.id" :name="provider.name" :size="16" />
+      <Collapsible :open="expanded === model.id">
+        <div class="model-row">
+          <button
+            type="button"
+            class="model-toggle"
+            :aria-expanded="expanded === model.id"
+            @click="toggle(model.id)"
+          >
+            <VendorMark class="model-icon" :vendor="provider.id" :name="provider.name" :size="16" />
 
-          <span class="model-copy">
-            <span class="model-name">{{ model.name }}</span>
-            <span class="model-meta">{{ modelMeta(model) }}</span>
-          </span>
-        </button>
+            <span class="model-copy">
+              <span class="model-name">{{ model.name }}</span>
+              <span class="model-meta">{{ modelMeta(model) }}</span>
+            </span>
+          </button>
 
-        <Switch
-          :model-value="model.enabled"
-          size="s"
-          :disabled="busy === model.id"
-          :aria-label="t('settings.models.modelEnabled', { name: model.name })"
-          @update:model-value="toggleEnabled(model, $event)"
-        />
+          <Switch
+            :model-value="model.enabled"
+            size="s"
+            :disabled="busy === model.id"
+            :aria-label="t('settings.models.modelEnabled', { name: model.name })"
+            @update:model-value="toggleEnabled(model, $event)"
+          />
 
-        <button
-          type="button"
-          class="chevron-button"
-          :aria-expanded="expanded === model.id"
-          :aria-label="t('settings.models.expandModel')"
-          @click="toggle(model.id)"
-        >
-          <ChevronRightIcon class="chevron" :data-open="expanded === model.id ? '' : undefined" />
-        </button>
-      </div>
+          <button
+            type="button"
+            class="chevron-button"
+            :aria-expanded="expanded === model.id"
+            :aria-label="t('settings.models.expandModel')"
+            @click="toggle(model.id)"
+          >
+            <ChevronRightIcon class="chevron" :data-open="expanded === model.id ? '' : undefined" />
+          </button>
+        </div>
 
-      <Transition name="panel-reveal">
-        <ModelParamsForm
-          v-if="expanded === model.id"
-          :key="model.id"
-          :provider-id="provider.id"
-          :model="model"
-          @saved="emit('changed')"
-        />
-      </Transition>
+        <CollapsibleContent>
+          <ModelParamsForm
+            :key="model.id"
+            :provider-id="provider.id"
+            :model="model"
+            @saved="emit('changed')"
+          />
+        </CollapsibleContent>
+      </Collapsible>
     </CardRow>
   </CardList>
 </template>
@@ -63,6 +64,7 @@ import { modelMeta } from "@features/settings/lib/provider-view.js"
 import { useI18n } from "@i18n/index.js"
 import type { ProviderModelView, ProviderView } from "@/types/common-type.js"
 import { CardList, CardRow } from "@components/ui/card/index.js"
+import { Collapsible, CollapsibleContent } from "@components/ui/collapsible/index.js"
 
 const props = defineProps<{ provider: ProviderView }>()
 const emit = defineEmits<{ changed: [] }>()

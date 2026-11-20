@@ -69,7 +69,7 @@ const full = computed(() =>
   gap: var(--space-2xs);
   width: fit-content;
   min-height: var(--control-sm);
-  color: var(--fg-secondary);
+  color: var(--fg-muted);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }

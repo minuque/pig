@@ -11,7 +11,7 @@
           :aria-label="control.label"
           @click="control.run"
         >
-          <component :is="control.icon" class="size-icon-2xs" />
+          <component :is="control.icon" class="size-icon-lg" />
         </IconButton>
       </TooltipTrigger>
 

@@ -103,7 +103,7 @@ useResizeObserver(root, ([entry]) => {
 .pane-body-cover {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: var(--z-overlay);
   display: flex;
   flex-direction: column;
   /* 盖住对话时左右各留同样的边距，底边与输入条对齐 */

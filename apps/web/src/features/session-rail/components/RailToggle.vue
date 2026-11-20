@@ -14,8 +14,14 @@
           :aria-label="t('rail.toggle')"
           @click="rail.toggleDocked"
         >
-          <NotepadTextIcon class="size-icon-2xs" />
-          <span v-if="runningCount > 0" class="rail-toggle-dot" />
+          <NotepadTextIcon class="size-icon-lg" />
+
+          <StatusIndicator
+            v-if="runningCount > 0"
+            class="rail-toggle-dot"
+            status="running"
+            size="m"
+          />
         </IconButton>
       </TooltipTrigger>
 
@@ -37,8 +43,14 @@
               :data-active="popoverOpen || undefined"
               :aria-label="t('rail.toggle')"
             >
-              <NotepadTextIcon class="size-icon-2xs" />
-              <span v-if="runningCount > 0" class="rail-toggle-dot" />
+              <NotepadTextIcon class="size-icon-lg" />
+
+              <StatusIndicator
+                v-if="runningCount > 0"
+                class="rail-toggle-dot"
+                status="running"
+                size="m"
+              />
             </IconButton>
           </TooltipTrigger>
         </PopoverTrigger>
@@ -60,6 +72,7 @@ import { useI18n } from "@i18n/index.js"
 import { NotepadTextIcon } from "@components/icons/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover/index.js"
+import { StatusIndicator } from "@components/ui/status-indicator/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import RailCards from "@features/session-rail/components/RailCards.vue"
 import { useRailCards } from "@features/session-rail/hooks/use-rail-cards.js"
@@ -114,16 +127,12 @@ const label = computed(() => {
   position: absolute;
   inset-block-start: var(--space-2xs);
   inset-inline-end: var(--space-2xs);
-  inline-size: var(--space-xs);
-  block-size: var(--space-xs);
-  background: var(--accent-solid);
-  border-radius: var(--radius-pill);
 }
 </style>
 
 <style>
 /* 浮层经 Portal 挂到 body，scoped 打不中 */
-.rail-popover.rt-PopoverContent {
+.rail-popover[data-slot="popover-content"] {
   inline-size: var(--rail-width);
   padding: var(--space-xs);
 }

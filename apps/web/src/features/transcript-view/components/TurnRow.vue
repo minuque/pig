@@ -107,18 +107,18 @@ const turnError = computed(() => {
 }
 
 .turn + .turn {
-  margin-block-start: var(--transcript-turn-gap);
+  margin-block-start: var(--space-lg);
 }
 
 /* 还没挂载内容的回合按预估高度占位，滚动条长度接近真实 */
 .turn.is-deferred {
-  min-block-size: var(--turn-estimate);
+  min-block-size: 480px;
 }
 
 /* 屏外的已完成回合跳过排版与绘制；最后一轮在流式中，始终正常渲染 */
 .turn:not(:last-child) {
   content-visibility: auto;
-  contain-intrinsic-size: auto var(--turn-estimate);
+  contain-intrinsic-size: auto 480px;
 }
 
 .row {
@@ -127,11 +127,11 @@ const turnError = computed(() => {
 }
 
 .row + .row {
-  margin-block-start: var(--transcript-item-gap);
+  margin-block-start: 20px;
 }
 
 .turn-error-row {
-  margin-block-start: var(--transcript-item-gap);
+  margin-block-start: 20px;
 }
 
 .row :deep(.stamp:not([data-pinned])) {

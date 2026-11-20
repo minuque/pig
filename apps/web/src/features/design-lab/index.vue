@@ -26,7 +26,7 @@
           :aria-label="text(SEARCH_PAGE)"
           @click="search?.open()"
         >
-          <SearchIcon class="size-icon-xs" />
+          <SearchIcon class="size-icon-sm" />
           <span class="lab-optional">{{ text(SEARCH) }}</span>
         </Button>
 
@@ -38,7 +38,7 @@
           size="s"
           aria-label="DESIGN.md 规范"
         >
-          <FileTextIcon class="size-icon-xs" />
+          <FileTextIcon class="size-icon-sm" />
           <span class="lab-optional">DESIGN.md</span>
         </Button>
 
@@ -62,7 +62,9 @@
     </header>
 
     <div class="lab-body">
-      <DesignNav class="lab-nav" />
+      <ScrollArea scrollbars="vertical" class="lab-nav">
+        <DesignNav />
+      </ScrollArea>
 
       <main class="lab-panel">
         <template v-if="current">
@@ -71,7 +73,7 @@
 
           <nav class="lab-pager">
             <RouterLink v-if="current.prev" :to="`/design/${current.prev.path}`" class="lab-step">
-              <ChevronLeftIcon class="size-icon-xs" />
+              <ChevronLeftIcon class="size-icon-sm" />
               {{ text(current.prev.title) }}
             </RouterLink>
 
@@ -81,7 +83,7 @@
               class="lab-step is-next"
             >
               {{ text(current.next.title) }}
-              <ChevronRightIcon class="size-icon-xs" />
+              <ChevronRightIcon class="size-icon-sm" />
             </RouterLink>
           </nav>
         </template>
@@ -105,6 +107,7 @@ import {
   SearchIcon,
 } from "@components/icons/index.js"
 import { Button } from "@components/ui/button/index.js"
+import { ScrollArea } from "@components/ui/scroll-area/index.js"
 import { TabsList, TabsRoot, TabsTrigger } from "@components/ui/tabs/index.js"
 import { useColorScheme } from "@features/theme/index.js"
 import { useGeneralPrefs } from "@features/settings/index.js"
@@ -164,7 +167,7 @@ onMounted(() => document.getElementById("startup-splash")?.remove())
 
 .lab-bar {
   position: sticky;
-  z-index: 2;
+  z-index: var(--z-sticky);
   inset-block-start: 0;
   display: flex;
   flex-wrap: wrap;
@@ -201,7 +204,7 @@ onMounted(() => document.getElementById("startup-splash")?.remove())
 
 .lab-sep {
   flex: none;
-  color: var(--fg-secondary);
+  color: var(--fg-muted);
 }
 
 .lab-group,
@@ -232,9 +235,7 @@ onMounted(() => document.getElementById("startup-splash")?.remove())
 .lab-nav {
   position: sticky;
   inset-block-start: var(--header-height);
-  max-block-size: calc(100dvh - var(--header-height));
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  block-size: calc(100dvh - var(--header-height));
   background: var(--sidebar);
   box-shadow: inset calc(var(--border-width) * -1) 0 0 var(--border-subtle);
 }

@@ -291,7 +291,7 @@ async function restore() {
   }
 }
 
-:deep(.rt-BaseButton.rt-r-size-1) {
+:deep([data-button][data-size="s"]) {
   font-size: var(--text-body);
 }
 </style>

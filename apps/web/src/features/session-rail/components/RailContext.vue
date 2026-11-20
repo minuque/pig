@@ -185,7 +185,7 @@ const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && 
 
 .ctx-share {
   flex: none;
-  min-inline-size: var(--legend-share);
+  min-inline-size: 44px;
   /* 占比是这一行的主数据，用一级文本色 */
   color: var(--fg);
   font-variant-numeric: tabular-nums;

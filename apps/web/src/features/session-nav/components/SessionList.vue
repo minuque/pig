@@ -267,14 +267,14 @@ onUpdated(() => {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  padding-inline-start: var(--nav-inline);
+  padding-inline-start: calc(var(--nav-inline) - var(--space-2xs));
 }
 
 /* 渐隐带挂在滚动区顶上：内容滚出视口才显示 */
 .nav-body::before {
   content: "";
   position: absolute;
-  z-index: 1;
+  z-index: var(--z-raise);
   inset-inline: var(--nav-inline);
   top: 0;
   height: var(--edge-fade-band);
@@ -301,6 +301,7 @@ onUpdated(() => {
   scrollbar-width: thin;
   scrollbar-gutter: stable;
   scrollbar-color: transparent transparent;
+  padding-inline-start: var(--space-2xs);
   padding-block-start: var(--space-2xs);
 }
 
@@ -323,6 +324,8 @@ onUpdated(() => {
   max-height: 60%;
   overflow-x: hidden;
   overflow-y: auto;
+  padding-inline-start: var(--space-2xs);
+  padding-block-end: var(--space-2xs);
   background: var(--sidebar);
   scrollbar-width: thin;
   scrollbar-gutter: stable;
@@ -368,7 +371,7 @@ onUpdated(() => {
 /* 拖拽段名：0 高，靠投影让出一条，落点在这一段时变主色 */
 .drag-label {
   position: relative;
-  z-index: 2;
+  z-index: var(--z-sticky);
   height: 0;
   pointer-events: none;
   transition:

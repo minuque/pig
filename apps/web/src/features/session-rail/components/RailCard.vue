@@ -1,5 +1,5 @@
 <template>
-  <CollapsibleRoot as-child :open="open">
+  <Collapsible as-child :open="open">
     <Card as="section" size="s" class="rail-card" :data-id="id" :aria-labelledby="titleId">
       <ContextMenu>
         <ContextMenuTrigger as-child>
@@ -48,15 +48,15 @@
         <slot />
       </CollapsibleContent>
     </Card>
-  </CollapsibleRoot>
+  </Collapsible>
 </template>
 
 <script setup lang="ts">
 import { useId } from "vue"
-import { CollapsibleContent, CollapsibleRoot } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
 import { ChevronRightIcon, GripVerticalIcon } from "@components/icons/index.js"
 import { Card } from "@components/ui/card/index.js"
+import { Collapsible, CollapsibleContent } from "@components/ui/collapsible/index.js"
 import {
   ContextMenu,
   ContextMenuContent,
@@ -81,7 +81,7 @@ const bodyId = useId()
 .rail-card.is-drag-live {
   --card-surface: var(--bg-raised);
 
-  z-index: 2;
+  z-index: var(--z-sticky);
   cursor: grabbing;
   user-select: none;
 }

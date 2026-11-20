@@ -69,25 +69,25 @@ function openPreview() {
 }
 
 /* 外观来自 surface 表格的统一卡片样式；字号随正文 */
-.md-table-root :deep(.rt-TableRootTable) {
+.md-table-root :deep([data-slot="table-element"]) {
   font-size: inherit;
   line-height: inherit;
 }
 
 /* 正文里单元格限宽并按词折行，长内容去弹框里看全 */
-.md-table-root :deep(.rt-TableCell) {
+.md-table-root :deep([data-slot="table-cell"]) {
   max-width: 24em;
   overflow-wrap: break-word;
 }
 
-.md-table-root.is-preview :deep(.rt-TableCell) {
+.md-table-root.is-preview :deep([data-slot="table-cell"]) {
   max-width: none;
 }
 
 /* 放大按钮压在表头右上角，表头末格给它让位；叠在表格之上，不被单元格文字盖住 */
 .md-table-zoom {
   position: absolute;
-  z-index: 1;
+  z-index: var(--z-raise);
   top: var(--space-2xs);
   inset-inline-end: var(--space-2xs);
   color: var(--fg-secondary);
@@ -97,7 +97,8 @@ function openPreview() {
   color: var(--fg);
 }
 
-.md-table-root:not(.is-preview) :deep(.rt-TableColumnHeaderCell:last-child) {
+.md-table-root:not(.is-preview)
+  :deep([data-slot="table-cell"][data-kind="column-header"]:last-child) {
   padding-inline-end: var(--control-sm);
 }
 </style>
@@ -105,10 +106,10 @@ function openPreview() {
 <style>
 /* 面板经 Portal 挂到 body，scoped 打不中。宽度与设置弹窗同档；
    高度跟表格内容走，最高到设置弹窗的高度，再高就在正文里滚动 */
-.md-table-dialog.rt-DialogContent {
-  width: min(88vw, var(--settings-dialog-width));
-  max-width: min(88vw, var(--settings-dialog-width));
+.md-table-dialog[data-slot="dialog-content"] {
+  width: min(88vw, var(--dialog-width-lg));
+  max-width: min(88vw, var(--dialog-width-lg));
   height: auto;
-  max-height: min(85vh, var(--settings-dialog-height));
+  max-height: min(85vh, var(--dialog-height-lg));
 }
 </style>

@@ -186,7 +186,7 @@ watch(
 }
 
 .file-tree-row:focus-visible {
-  outline: var(--focus-ring);
+  outline: 2px solid var(--focus-color);
   outline-offset: -2px;
 }
 

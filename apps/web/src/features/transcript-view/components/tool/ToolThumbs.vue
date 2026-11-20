@@ -60,7 +60,7 @@ function show(i: number) {
 <style scoped>
 .tool-thumbs {
   position: relative;
-  z-index: 1;
+  z-index: var(--z-raise);
   display: flex;
   flex: none;
   align-items: center;

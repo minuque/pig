@@ -418,13 +418,11 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 /* 最后一轮至少撑满可见区：贴底时这轮的用户消息落在顶部渐隐带下方，指示器跟在消息后。
    跑道扣掉正文上下留白和渐隐带，消息才不会顶到视口上沿被盖住。 */
 .turn-runway {
-  min-height: calc(
-    100cqh - var(--transcript-pad-block) - var(--edge-fade-band) - var(--composer-reserve, 0px)
-  );
+  min-height: calc(100cqh - 48px - var(--edge-fade-band) - var(--composer-reserve, 0px));
 }
 
 .transcript-viewport:has(.code-more-menu) {
-  z-index: 3;
+  z-index: var(--z-overlay);
 }
 
 /* 网格列：正文的百分比内边距只按自己那一列算，不把右侧摘要列算进去 */
@@ -438,7 +436,7 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 .transcript-aside {
   position: sticky;
   inset-block-start: 0;
-  z-index: 2;
+  z-index: var(--z-sticky);
   grid-column: 2;
   display: flex;
   flex-direction: column;
@@ -450,19 +448,19 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   grid-column: 1;
   width: 100%;
   min-width: 0;
-  padding-top: var(--transcript-pad-block);
+  padding-top: 48px;
   /* 底部留白：正文留白 + 输入条占位 */
-  padding-bottom: calc(var(--transcript-pad-block) + var(--composer-reserve, 0px));
+  padding-bottom: calc(48px + var(--composer-reserve, 0px));
   /* 在正文列里居中；右侧面板占自己的列，不再叠进正文宽 */
-  padding-inline-start: max(var(--transcript-gutter), calc((100% - var(--content-width)) / 2));
-  padding-inline-end: max(var(--transcript-gutter), calc((100% - var(--content-width)) / 2));
+  padding-inline-start: max(var(--space-2xl), calc((100% - var(--content-width)) / 2));
+  padding-inline-end: max(var(--space-2xl), calc((100% - var(--content-width)) / 2));
   /* 横向裁在列内，避免视口 overflow-x 裁掉竖条；内边距留给满宽卡片边框 */
   overflow-x: clip;
 }
 
 @media (max-width: 780px) {
   .transcript {
-    padding-inline: var(--transcript-gutter-narrow);
+    padding-inline: 20px;
   }
 }
 

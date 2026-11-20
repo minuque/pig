@@ -360,19 +360,35 @@ defineExpose({ focus })
   margin-bottom: var(--space-2xs);
 }
 
-/* 两行卡片：上面输入区，下面按钮行 */
+/* 两行卡片：上面输入区，下面按钮行；聚焦输入区时提亮底色并抬升阴影 */
 .composer-card {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  /* 描边与 rt 卡片同法：内阴影画 1px 环，不用 border，非整数缩放下圆角不发毛 */
   border-radius: var(--composer-radius);
-  background: var(--bg-surface);
+  background: var(--composer-bg);
   box-shadow:
-    inset 0 0 0 var(--border-width) var(--border),
+    inset 0 0 0 var(--border-width) var(--composer-border),
     var(--composer-inset),
     var(--composer-shadow);
   corner-shape: var(--composer-corner-shape);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.composer-card:hover {
+  box-shadow:
+    inset 0 0 0 var(--border-width) var(--composer-border-hover),
+    var(--composer-inset),
+    var(--composer-shadow);
+}
+
+.composer-card:has(.field:focus) {
+  background: var(--composer-focus-bg);
+  box-shadow:
+    inset 0 0 0 var(--border-width) var(--composer-border-hover),
+    var(--composer-focus-shadow);
 }
 
 .body {
@@ -442,7 +458,7 @@ defineExpose({ focus })
 /* contenteditable 的 placeholder：空内容时显示 data-placeholder */
 .field:empty::before {
   content: attr(data-placeholder);
-  color: var(--fg-secondary);
+  color: var(--fg-muted);
   pointer-events: none;
 }
 
@@ -486,5 +502,11 @@ defineExpose({ focus })
 .field::selection {
   background: Highlight;
   color: HighlightText;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .composer-card {
+    transition: none;
+  }
 }
 </style>

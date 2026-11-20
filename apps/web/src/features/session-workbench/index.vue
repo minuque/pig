@@ -289,7 +289,7 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
 .drop-guide {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: var(--z-overlay);
   display: grid;
   place-items: center;
   pointer-events: none;
@@ -329,10 +329,6 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
   flex: 1;
   display: flex;
   flex-direction: column;
-  /* 测量前占位，挂上后由输入条边框盒覆盖 */
-  --composer-reserve: 7rem;
-  /* 首屏输入条底边离列底的距离：标题加输入条整组的中线落在列高 45% 处 */
-  --hero-dock: calc(55% - var(--composer-reserve) / 2 - 2rem);
 }
 
 .session-stage {
@@ -345,13 +341,13 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
 
 .session-stage :deep(.row-tools) {
   position: relative;
-  z-index: 2;
+  z-index: var(--z-sticky);
 }
 
 /* 首屏：Hero 贴在输入条上沿，两者作为一组略高于垂直中线 */
 .idle-hero {
   position: absolute;
-  inset: 0 0 calc(var(--hero-dock) + var(--composer-reserve));
+  inset: 0 0 calc(55% + var(--composer-reserve) / 2 - 2rem);
   display: grid;
   place-items: end center;
   padding-inline: var(--space-md);
@@ -363,7 +359,7 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
   position: absolute;
   inset-inline: 0;
   bottom: 0;
-  z-index: 2;
+  z-index: var(--z-sticky);
   padding-bottom: calc(var(--space-sm) + env(safe-area-inset-bottom, 0px));
   pointer-events: none;
 }
@@ -373,18 +369,17 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
 }
 
 .composer-bar.is-hero {
-  bottom: var(--hero-dock);
+  bottom: calc(55% - var(--composer-reserve) / 2 - 2rem);
 }
 
 /* 输入条下方的渐隐直接淡出正文本身，不再叠一层底色，输入卡圆角和投影不受遮挡；
    第二层让右侧滚动条一列保持不透明 */
 .session-stage :deep(.transcript-viewport) {
-  --composer-gap: calc(var(--space-sm) + env(safe-area-inset-bottom, 0px));
   mask-image:
     linear-gradient(
       to top,
-      transparent var(--composer-gap),
-      black calc(var(--composer-gap) + var(--edge-fade-band))
+      transparent calc(var(--space-sm) + env(safe-area-inset-bottom, 0px)),
+      black calc(var(--space-sm) + env(safe-area-inset-bottom, 0px) + var(--edge-fade-band))
     ),
     linear-gradient(to right, transparent calc(100% - var(--space-sm)), black 0);
 }
@@ -407,7 +402,7 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
   inset-block-start: 0;
   /* composer-bar 已经让出侧栏，这里再让一次会偏左 */
   inset-inline: 0;
-  z-index: 1;
+  z-index: var(--z-raise);
   display: flex;
   justify-content: center;
   height: 0;

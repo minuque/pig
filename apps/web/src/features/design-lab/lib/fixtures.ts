@@ -98,7 +98,7 @@ const STEPS: ToolRow["steps"] = [
       "read-1",
       "read",
       { path: "apps/web/src/style/rt.css" },
-      ".rt-Card {\n  --card-border-radius: var(--radius-card);\n}",
+      ':where([data-slot="card"]) {\n  --card-border-radius: var(--radius-card);\n}',
     ),
   ]),
   group("g-search", "search", [

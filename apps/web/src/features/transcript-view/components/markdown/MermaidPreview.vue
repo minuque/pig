@@ -212,10 +212,10 @@ onBeforeUnmount(() => teardown(viewport.value, stage.value))
 
 <style>
 /* 面板经 Portal 挂到 body，scoped 打不中；尺寸与设置弹窗同档 */
-.diagram-dialog.rt-DialogContent {
-  width: min(88vw, var(--settings-dialog-width));
-  max-width: min(88vw, var(--settings-dialog-width));
-  height: clamp(var(--settings-dialog-height-min), 85vh, var(--settings-dialog-height));
+.diagram-dialog[data-slot="dialog-content"] {
+  width: min(88vw, var(--dialog-width-lg));
+  max-width: min(88vw, var(--dialog-width-lg));
+  height: clamp(var(--dialog-height-lg-min), 85vh, var(--dialog-height-lg));
   max-height: none;
 }
 </style>

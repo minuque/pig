@@ -58,7 +58,7 @@ async function copy() {
 /* 默认贴在卡片右上角；放进工具条时由父级改回静态定位 */
 .copy-button {
   position: absolute;
-  z-index: 1;
+  z-index: var(--z-raise);
   top: var(--space-2xs);
   inset-inline-end: var(--space-2xs);
   color: var(--fg-secondary);

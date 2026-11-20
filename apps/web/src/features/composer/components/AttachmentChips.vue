@@ -248,7 +248,7 @@ const rows = computed(() =>
   position: absolute;
   inset-block-start: 3px;
   inset-inline-end: 3px;
-  z-index: 1;
+  z-index: var(--z-raise);
   display: inline-flex;
   align-items: center;
   justify-content: center;

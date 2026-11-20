@@ -109,7 +109,7 @@ onBeforeUnmount(() => reorder.detach())
 
 /* 拖拽跟手：源行保持实体阴影，邻项让位由 useDragReorder 的 transform 预览驱动 */
 .row.is-drag-live {
-  z-index: 2;
+  z-index: var(--z-sticky);
   background: var(--bg-surface);
   box-shadow: var(--shadow-popover);
   cursor: grabbing;
@@ -119,8 +119,7 @@ onBeforeUnmount(() => reorder.detach())
   flex: none;
   width: var(--icon-md);
   height: var(--icon-md);
-  color: var(--fg);
-  opacity: 0.5;
+  color: var(--fg-muted);
   cursor: grab;
   touch-action: none;
 }
@@ -150,11 +149,9 @@ onBeforeUnmount(() => reorder.detach())
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--fg);
-  opacity: 0.72;
+  color: var(--fg-secondary);
   cursor: pointer;
   transition:
-    opacity var(--duration-fast) var(--ease-out),
     background var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out);
 }
@@ -162,7 +159,6 @@ onBeforeUnmount(() => reorder.detach())
 .action:hover {
   background: var(--bg-hover);
   color: var(--fg);
-  opacity: 1;
 }
 
 .action-icon {

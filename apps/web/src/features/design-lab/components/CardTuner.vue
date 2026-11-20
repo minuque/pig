@@ -102,7 +102,6 @@ import { TabsList, TabsRoot, TabsTrigger } from "@components/ui/tabs/index.js"
 import { Slider } from "@components/ui/slider/index.js"
 import { Switch } from "@components/ui/switch/index.js"
 import { CircleExclamationPointIcon } from "@components/icons/index.js"
-import rtCss from "@style/rt.css?raw"
 import tokensCss from "@style/tokens.css?raw"
 import MarkdownContent from "@features/transcript-view/components/markdown/MarkdownContent.vue"
 import { useMarkdownNodes } from "@features/transcript-view/hooks/use-markdown-nodes.js"
@@ -121,7 +120,7 @@ const CURRENT: Values = {
   border: declared(tokensCss, "--border", /--(?:black|white)-(a\d+)/) ?? "a2",
   divider: declared(tokensCss, "--border-subtle", /--(?:black|white)-(a\d+)/) ?? "a1",
   radius: Number(declared(tokensCss, "--radius-card", /([\d.]+)px/) ?? 8),
-  surface: declared(rtCss, "--card-surface", /(transparent)/) ? "none" : "surface",
+  surface: declared(tokensCss, "--card-surface", /(transparent)/) ? "none" : "surface",
 }
 const PRESETS: (Values & { name: string })[] = [
   { name: "当前", ...CURRENT },
@@ -179,11 +178,11 @@ const output = computed(() =>
     `--border: var(--black-${value.border});`,
     `--border-subtle: var(--black-${value.divider});`,
     "",
-    "/* style/tokens.css → .dark */",
+    "/* style/tokens.css → html.dark */",
     `--border: var(--white-${value.border});`,
     `--border-subtle: var(--white-${value.divider});`,
     "",
-    "/* style/rt.css → .radix-themes */",
+    "/* style/tokens.css → :root */",
     `--card-surface: ${SURFACES[value.surface]};`,
     "",
     "/* style/tokens.css → :root */",

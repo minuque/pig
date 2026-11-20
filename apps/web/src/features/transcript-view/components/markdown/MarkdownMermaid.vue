@@ -133,7 +133,7 @@ onBeforeUnmount(() => mounted.value?.destroy())
 /* 控件浮在右上角，悬停或键盘聚焦时才出现，不顶动图的位置。 */
 .diagram-actions {
   position: absolute;
-  z-index: 1;
+  z-index: var(--z-raise);
   top: 0;
   inset-inline-end: 0;
   display: flex;

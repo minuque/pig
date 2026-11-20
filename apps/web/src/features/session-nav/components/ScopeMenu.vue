@@ -27,7 +27,7 @@
         @select.prevent="emit('update:scopeFilter', new Set())"
       >
         <span class="scope-icon">
-          <FolderIcon class="size-icon-2xs" />
+          <FolderIcon class="size-icon-lg" />
           <span v-if="scopeFilter.size === 0" class="check-badge"><CheckIcon /></span>
         </span>
 
@@ -42,7 +42,7 @@
         @select.prevent="toggleProject(group.canonicalPath)"
       >
         <span class="scope-icon">
-          <ProjectIcon :path="group.canonicalPath" class="size-icon-2xs" />
+          <ProjectIcon :path="group.canonicalPath" class="size-icon-lg" />
           <span v-if="scopeFilter.has(group.canonicalPath)" class="check-badge"><CheckIcon /></span>
         </span>
 

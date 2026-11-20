@@ -173,7 +173,6 @@ function onCreateSession(cwd?: string): void {
 
 <style scoped>
 .session-nav {
-  --nav-inline: var(--space-xs);
   position: relative;
   isolation: isolate;
   display: flex;
