@@ -11,8 +11,8 @@
 
 ## UI
 
-- 基础件的样式来自 Radix Themes：`apps/web/src/style/rt.css` 引入它的 base 与 components，组件用 `rt-*` 类加 `data-*` 属性表达外观。改这些wrapper 前先读 `node_modules/@radix-ui/themes` 的对应源码，props 照它的 prop def 语义。
-- 外观微调写 SFC 的 scoped 样式：scoped 选择器带 data 属性，特异性高于 rt 的 0-1-0，不需要 `!important`，也不受引入顺序影响。不要在模板里堆工具类压 rt。
+- 基础件正在从 Radix Themes 的 `rt-*` 类迁出：已迁的组件用 `data-slot`、`data-size`、`data-variant` 等属性加自己的 `<style>` 表达外观，`rt.css` 只保留它们的 token 映射；未迁的组件仍走 `rt-*` 类。改 wrapper 前先读 `node_modules/@radix-ui/themes` 的对应源码，props 照它的 prop def 语义，外观照它的 CSS 逐条翻成项目 token。
+- 外观微调写 SFC 的 scoped 样式：scoped 选择器带 data 属性，特异性高于 `:where()` 的组件默认样式，不需要 `!important`。不要在模板里堆工具类。
 - 组件样式只消费 `apps/web/src/style/tokens.css` 的 token。缺档先补 `tokens.css`，再写组件；SFC 不声明 `--*`，不写裸 hex/rgb/`color-mix`。
 - 弹层用 `<ThemeRoot>` 包住 teleport 内容：rt 的面板与阴影 token 挂在 `.radix-themes` 上，飞出文档流就取不到。
 - 动画复用 `apps/web/src/style/motion.css` 的类与 `@keyframes`。缺档先补 `motion.css`，再写组件。

@@ -44,7 +44,7 @@ apps/web/src/
 
 ### style/
 
-`app.css` 只做入口，按顺序引重置、Radix 色板与各分片；`reset.css` 归零浏览器默认值（放在 `base` 层，不压库样式），`tokens.css` 放全局 token 与深浅覆盖，`rt.css` 引 Radix Themes 的 base 与 components 并把间距圆角接到本项目刻度，`desktop.css` 放桌面壳的拖拽与弹层规则，`markdown.css` 是助手正文（Comark 渲染）的排版，`mermaid.css` 把 pele 图的主题变量接到 token，`components.css` 是布局、排版、颜色与圆角的原子类加共用组件类，`globals.css` 放字体文件与文档基线（body 的底与字色、原生元素行为、焦点环默认、滚动条）。`globals.css` 不分层且排在最后：库的默认值比 `reset.css` 的 `base` 层优先，要靠它压住。
+`app.css` 只做入口，按顺序引重置、Radix 色板与各分片；`reset.css` 归零浏览器默认值（放在 `base` 层，不压库样式），`tokens.css` 放全局 token 与深浅覆盖，`rt.css` 只引 Radix Themes 的 token 层（色板在 `app.css`），并把它的间距圆角接到本项目刻度；组件外观已全部写在各自 SFC 的 `data-*` 规则里，`desktop.css` 放桌面壳的拖拽与弹层规则，`markdown.css` 是助手正文（Comark 渲染）的排版，`mermaid.css` 把 pele 图的主题变量接到 token，`components.css` 是布局、排版、颜色与圆角的原子类加共用组件类，`globals.css` 放字体文件与文档基线（body 的底与字色、原生元素行为、焦点环默认、滚动条）。`globals.css` 不分层且排在最后：库的默认值比 `reset.css` 的 `base` 层优先，要靠它压住。
 
 `components.css` 的原子类沿用 shadcn 与 Tailwind 的写法（`flex`、`items-center`、`truncate`、`w-full`、`text-body-md`、`rounded-md`），值只读 `tokens.css` 的 token。间距按 `--space-*` 命名（`gap-sm`、`p-md`）而不是数字刻度：项目已经把间距收进 `--space-*` 命名空间，再引入一套数字换算就是两套刻度并行。新增类名前先确认名字没有被任何 scoped 块当作业务类名用过。
 
