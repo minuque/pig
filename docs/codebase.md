@@ -81,7 +81,7 @@ packages/gateway/src/
 └── system/         # directory.ts：目录选择、canonicalizePath（含远程 workspace 键）
 ```
 
-`test/` 跟 `src/` 同层。
+`test/` 跟 `src/` 同层。运行配置走环境变量：`PORT`（默认 `8787`）、`OPEN=1`（启动后打开浏览器，等价 `--open`）、`PIG_SESSION_DIR`（会话目录，默认用 Pi 的）、`PIG_CWD`（初始工作目录）。
 
 gateway 在进程内跑 pi SDK。内置扩展经 `additionalExtensionPaths` 加载；gateway 不给扩展开私有接口。用户在 pi 里装的扩展（`settings.json` 的 `packages`、`~/.pi/agent/extensions`、项目 `.pi/extensions`）一律不加载，以后由设置页统一管理。本机与仓库设置里的 `packages` 对 pi 藏起，pig 不加载也不替用户安装任何包。本机与仓库目录里直接放的 skills、prompt 模板、AGENTS.md、MCP 配置照常共用；包里带的不加载。
 

@@ -71,7 +71,7 @@ spacing:
 
 ## Token 分层
 
-`style/tokens.css` 分三层，组件只读语义层和组件层：
+`apps/web/src/style/tokens.css` 分三层，组件只读语义层和组件层：
 
 1. **原色阶**：Radix indigo、gray、cyan 与状态色板由 rt 提供，`tokens.css` 不另写。
 2. **语义层**：全站共用，按「表面、前景、边与分割、交互、状态、字、间距、圆角、阴影、动效、图标与控件高、布局、层级」分组。命名一个概念一个词：前景 `fg`、底 `bg`、边 `border`、品牌色 `accent`、状态 `-text` / `-subtle`。

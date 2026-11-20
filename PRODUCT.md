@@ -32,20 +32,20 @@ web
 - 工作台：流式 transcript、思考区块、diff 渲染、待发队列、附件（有单文件大小与数量上限）、停止当前 turn。
 - 模型：供应商连接（API Key 或 OAuth 订阅登录）、自定义 provider 与模型写入 `models.json`、思考强度与采样参数、连接测试、用量查看。
 - 设置：外观（浅色 / 深色 / 跟随系统、8 套强调色、字号、文字对比度、半透明窗口）、语言、系统通知与完成提示音、skills、extensions。
-- 已知缺口（记录在 `docs/ISSUES.md`，尚未实现）：会话归档、retry 详情、thinking 精确时长、streaming 期间的实时 token 计数。
+- 已知缺口（尚未实现）：会话归档、retry 详情、thinking 精确时长、streaming 期间的实时 token 计数。
 - 数据契约在 `pi-protocol` schema 与 gateway：界面拿不到的事实先补协议与 gateway，不在前端造数据。
 
 ## Brand Commitments
 
 - 名称 `pig`，logo 与 PWA 图标在 `apps/web/public/`。
 - MIT 许可。
-- 定位叙述、快速开始与配置项以 `README.md` / `README.en.md` 为准，架构边界以 `ROADMAP.md`、`docs/codebase.md` 为准。
+- 定位叙述以本文为准，设计规则见 `DESIGN.md`，架构边界与运行配置见 `docs/codebase.md`。
 - 界面文案以中文为主，英文为对等翻译；改动文案要两边同时成立。
 
 ## Evidence on Hand
 
 - 真实素材：`apps/web/public/logo.png`、`logo-pig.png`、`logo-bg.png` 及 PWA 图标。
-- 真实素材：仓库内的 README、ROADMAP、`docs/` 说明与界面文案本身就是产品说明来源。
+- 真实素材：仓库内的 README、`docs/` 说明与界面文案本身就是产品说明来源。
 - 没有用户评价、客户案例、基准数据、定价页。后续工作不得编造这些内容。
 
 ## Product Principles

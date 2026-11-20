@@ -16,11 +16,13 @@
 - 组件样式只消费 `apps/web/src/style/tokens.css` 的 token。缺档先补 `tokens.css`，再写组件；SFC 不声明 `--*`，不写裸 hex/rgb/`color-mix`。
 - 弹层用 `<ThemeRoot>` 包住 teleport 内容：rt 的面板与阴影 token 挂在 `.radix-themes` 上，飞出文档流就取不到。
 - 动画复用 `apps/web/src/style/motion.css` 的类与 `@keyframes`。缺档先补 `motion.css`，再写组件。
-- 设计取值与规则见 [`apps/web/DESIGN.md`](apps/web/DESIGN.md)，改 UI 前读，守它的「七条规则」。
+- 设计取值与规则见 [`DESIGN.md`](DESIGN.md)，改 UI 前读，守它的「七条规则」。
 
 ## 文档
 
 - 代码库结构与领域边界：[`docs/codebase.md`](docs/codebase.md)
+- 设计规则：[`DESIGN.md`](DESIGN.md)
+- 产品定位与约束：[`PRODUCT.md`](PRODUCT.md)
 
 ## worktree
 

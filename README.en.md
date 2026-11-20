@@ -13,35 +13,14 @@
 
 > A **Pi Agent GUI** that follows Pi's design philosophy: no extra built-in tools; all capabilities come from the Extension API.
 
-## Quick start
-
-```bash
-pnpm install
-pnpm dev            # start Gateway and Web, then open the printed http://127.0.0.1:5555 in a browser
-pnpm dev:desktop    # Electron desktop development
-```
-
-## Configuration
-
-| Variable          | Default    | Meaning                                                      |
-| ----------------- | ---------- | ------------------------------------------------------------ |
-| `PORT`            | `8787`     | Gateway port                                                 |
-| `OPEN`            | off        | Set to `1` to open a browser after startup; same as `--open` |
-| `PIG_SESSION_DIR` | Pi default | Session directory                                            |
-| `PIG_CWD`         | none       | Initial working directory                                    |
+> Early stage: directories, interfaces and UI are still changing fast and may break at any time. Do not depend on it yet.
 
 ## Docs
 
-- [`ROADMAP.md`](ROADMAP.md) — architecture and boundary principles
-- [`docs/codebase.md`](docs/codebase.md) — codebase structure and module conventions
-
-## Development
-
-- `pnpm check:touched` — check the files this change touched
-- `pnpm check` — full check
-- `pnpm test` / `pnpm test:e2e` — module tests / browser journeys
-- `pnpm dev:debug` — same as `dev`, plus the 8888 inspector
-- Commit and collaboration rules: [`AGENTS.md`](AGENTS.md)
+- [`DESIGN.md`](DESIGN.md) — design rules: token layers, the seven rules, colour, type and radius values
+- [`PRODUCT.md`](PRODUCT.md) — product: users, capabilities and constraints, boundaries
+- [`docs/codebase.md`](docs/codebase.md) — codebase structure and module conventions, including the env vars for running
+- [`AGENTS.md`](AGENTS.md) — commit and collaboration rules
 
 ## License
 
