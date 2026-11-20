@@ -141,9 +141,7 @@ function killPidTree(pid: number): void {
   } catch {
     try {
       process.kill(pid, "SIGTERM")
-    } catch {
-      // 已退出
-    }
+    } catch {}
   }
 }
 
@@ -201,9 +199,7 @@ export async function waitForHttp(
       const response = await fetch(url)
 
       if (response.ok) return
-    } catch {
-      // 尚未监听
-    }
+    } catch {}
 
     if (Date.now() >= deadline) throw new Error("Vite 开发服务未就绪")
     await new Promise((resolve) => setTimeout(resolve, 200))

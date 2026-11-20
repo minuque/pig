@@ -24,9 +24,7 @@ function stampGatewayOrigin() {
 
     if (!document.documentElement) return
     document.documentElement.dataset.pigGatewayOrigin = url.origin
-  } catch {
-    /* 非法参数忽略 */
-  }
+  } catch {}
 }
 
 function stamp() {

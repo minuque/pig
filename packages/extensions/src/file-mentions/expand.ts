@@ -3,14 +3,6 @@ import { isAbsolute, posix, relative, resolve, sep } from "node:path"
 
 import type { Environment } from "@pig/environment/source"
 
-/**
- * @ 文件引用展开：把 prompt 里的 @path / @"quoted path" 展开为
- * <file name="abs">…</file> 文本块（与 Pi CLI processFileArguments 同一形状），
- * 读不到的文件按纯文本留下，agent 仍能用 read 工具自己找。
- *
- * 只处理 token 级 @（空白或行首起），避免吃掉邮件地址与代码示例。
- */
-
 const MENTION_PATTERN = /(^|\s)@(?:"((?:\\.|[^"\\])*)"|([^\s@]+))/g
 const MAX_MENTION_FILES = 16
 const MAX_INLINE_BYTES = 512 * 1024
@@ -126,7 +118,6 @@ async function expandTokens(
 
   for (const token of tokens.slice(0, MAX_MENTION_FILES)) {
     try {
-      // 别名按真实路径去重
       const target = await source.locate(token.path)
 
       if (!target || seen.has(target)) continue

@@ -48,10 +48,6 @@ function toMetadata(snapshot: SessionSnapshot): SessionMetadata {
   }
 }
 
-/**
- * 已打开会话的登记表：多连接可挂同一会话，事件扇出给所有挂着的连接；
- * 没有连接、没有进行中的命令且空闲时释放运行时。
- */
 export class LiveSessions {
   private readonly live = new Map<string, LiveSession>()
   private readonly opening = new Map<string, Promise<LiveSession>>()

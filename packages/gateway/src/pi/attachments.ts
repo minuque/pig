@@ -72,10 +72,6 @@ export interface AttachmentStoreOptions {
   rootDir?: string
 }
 
-/**
- * 附件暂存：按 batch 收字节，prompt 带着同一个 batch 来取走。
- * 非图片落盘（内存只留元数据），图片留内存；定时 sweep 兜底回收。
- */
 export class AttachmentStore implements AttachmentSink {
   private readonly batches = new Map<string, Slot>()
   private readonly tempFiles = new Map<string, number>()

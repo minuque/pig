@@ -97,7 +97,6 @@ async function startGateway(workspaceDir: string, sessionDir: string) {
   }
 }
 
-/** 输入跟手：丢掉首次（字体与布局预热），取其后七次的中位数。 */
 async function composerLatency(page: Parameters<typeof keyToNextFrame>[0]) {
   const values: number[] = []
 

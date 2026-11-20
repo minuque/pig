@@ -65,9 +65,7 @@ async function main() {
     } else {
       try {
         process.kill(-pid, "SIGTERM")
-      } catch {
-        // 已退出
-      }
+      } catch {}
     }
   }
 

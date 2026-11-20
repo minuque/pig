@@ -24,7 +24,6 @@ test("远程目录：选主机与目录，@ 搜到远端文件，会话按「主
   await expect(dialog).toHaveCount(0)
   await expect(page.locator(".hero-picker .hero-name")).toHaveText(label)
 
-  // @ 候选来自远端目录
   const field = page.locator(".composer .field, .field").first()
   await field.click()
   await page.keyboard.type("@remote-only")

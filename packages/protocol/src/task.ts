@@ -16,11 +16,9 @@ export interface AgentTask extends TaskBase {
   kind: "agent"
   /** 子会话 id；有它就能点开看过程。 */
   sessionId?: string
-  /** 交给子代理的任务。 */
   prompt: string
   /** 最近几步工具调用的单行摘要。 */
   steps: string[]
-  /** 子代理的最终回复。 */
   summary?: string
   tokens: number
 }

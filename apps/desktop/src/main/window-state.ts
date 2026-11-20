@@ -62,9 +62,7 @@ export function readWindowStateFile(file: string): WindowState | undefined {
 export function writeWindowStateFile(file: string, state: WindowState): void {
   try {
     writeFileSync(file, `${JSON.stringify(state)}\n`, "utf8")
-  } catch {
-    // 写失败不挡关窗
-  }
+  } catch {}
 }
 
 export function restoreWindowFrame(

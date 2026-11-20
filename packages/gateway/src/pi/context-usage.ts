@@ -353,10 +353,6 @@ export function resolveUsedTokens(
   return Math.max(0, Math.round(resolved))
 }
 
-/**
- * 以 Pi 的总占用校准分段。系统提示词 / 记忆 / 技能 / 工具定义 / MCP 工具定义
- * 是固定项；工具结果、MCP 调用与会话上下文按比例压缩；差额归入「其他」。
- */
 export function estimateContextUsage(
   source: ContextUsageSource,
   previewKey?: ContextPreviewKey,

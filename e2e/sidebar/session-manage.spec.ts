@@ -16,7 +16,6 @@ test("改名后侧栏标签跟着变", async ({ page, navGateway }) => {
   const first = page.locator(".session-card").first()
   await expect(first.locator(".title")).toHaveText(`${FILLER_PREFIX} 6`)
 
-  // 右键卡片打开菜单
   await first.click({ button: "right" })
   await page.getByRole("menuitem", { name: "重命名" }).click()
 

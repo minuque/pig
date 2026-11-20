@@ -31,9 +31,7 @@ function killPidTree(pid: number): void {
 
   try {
     process.kill(pid, "SIGTERM")
-  } catch {
-    // 已退出
-  }
+  } catch {}
 }
 
 const vitePort = viteDevPort()

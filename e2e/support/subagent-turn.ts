@@ -10,7 +10,6 @@ export async function startSubagentTurn(page: Page, subagentGateway: E2eGateway)
   const bridge = await installTurnBridge(page)
   await page.goto(subagentGateway.entryUrl)
 
-  // 子会话不进侧栏
   await expect(page.locator(".session-card")).toHaveCount(1, { timeout: 30_000 })
   await page.locator(".session-card").first().click()
   await expect(page.getByText(`${FILLER_PREFIX} 1 的内容`)).toBeVisible({ timeout: 30_000 })

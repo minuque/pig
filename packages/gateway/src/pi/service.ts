@@ -55,10 +55,6 @@ export interface PiHostServiceOptions {
   events?: EventBus
 }
 
-/**
- * 把 Pi SDK（SessionManager + AgentSession + ModelRuntime）映射为官方
- * SessionService。会话真相以 Pi 持久化为准，本类不维护第二套领域状态。
- */
 export class PiHostService implements SessionService {
   readonly attachments: AttachmentStore
   readonly providers: ProviderService
@@ -130,10 +126,6 @@ export class PiHostService implements SessionService {
       })
   }
 
-  /**
-   * 侧栏卡片投影：消息数与结果来自当前分支，模型来自最后一次 model_change；按文件版本缓存。
-   * 不进协议 SessionMetadata（strict，会丢掉额外字段）。
-   */
   async listSessionCards(): Promise<SessionCard[]> {
     this.sessionsCache = undefined
     const infos = await this.refreshSessionPaths()

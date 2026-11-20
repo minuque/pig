@@ -119,10 +119,6 @@ export function indexSessionText(
   }
 }
 
-/**
- * 会话目录的元数据索引：按文件的 mtime 与大小缓存，没变的文件只做一次 stat。
- * 自定义会话目录是平铺的 .jsonl；缺省目录按工作目录分子目录。
- */
 export class SessionIndex {
   private readonly cache = new Map<string, Cached>()
 

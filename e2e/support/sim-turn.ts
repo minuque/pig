@@ -11,10 +11,6 @@ function decode<T>(data: string | Buffer): T {
   return JSON.parse(data) as T
 }
 
-/**
- * 拦截 prompt / abort，不转发到真实模型；其余消息仍走 Gateway。
- * holdPromptReply 模拟真实网关：prompt 的应答等这一轮结束（这里是 abort）才回。
- */
 export async function installTurnBridge(page: Page, options: { holdPromptReply?: boolean } = {}) {
   let socket: WebSocketRoute | undefined
   let upstream: WebSocketRoute | undefined

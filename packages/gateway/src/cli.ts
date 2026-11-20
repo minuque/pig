@@ -6,10 +6,6 @@ import { resolve } from "path"
 
 import Gateway from "./index.js"
 
-/**
- * web 产物解析顺序：显式参数 → 仓库里的 apps/web/dist（开发，永远最新） → ../web（打包产物）。
- * build-package 会把 dist 复制到 packages/gateway/web，开发时不能让它遮住新构建。
- */
 function resolveWebRoot(arg: string | undefined): string {
   if (arg) return resolve(arg)
   const monorepo = fileURLToPath(new URL("../../../apps/web/dist/", import.meta.url))

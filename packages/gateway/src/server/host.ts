@@ -29,10 +29,6 @@ export interface GatewayOptions {
   remoteRoot?: string
 }
 
-/**
- * Thin Host：本地 HTTP 壳（health / 静态 SPA / 目录选择）
- * + 只绑 127.0.0.1 的 WebSocket 协议端，会话命令交给 PiHostService。
- */
 export class Gateway {
   private readonly server = createServer(this.handleRequest.bind(this))
   private readonly hostService: PiHostService

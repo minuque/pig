@@ -60,13 +60,6 @@ function changedElsewhere(sessionId: string): GatewayError {
   )
 }
 
-/**
- * 一个已获取的 AgentSession 的会话运行时。
- *
- * 冲突操作（并发 prompt、idle 时 steer/setModel/setThinking）按协议拒绝，
- * 不排队。phase 由 AgentSession 状态推导；branch_summary 与 compaction
- * 共享 isCompacting（Pi 未暴露区分 API），统一按 compaction 展示。
- */
 export class PiHostSession implements SessionRuntime {
   private readonly projection = new TranscriptProjection()
   private readonly listeners = new Set<(event: SessionRuntimeEvent) => void>()

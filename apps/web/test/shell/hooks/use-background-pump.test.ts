@@ -134,7 +134,6 @@ describe("后台泵队挂在 Hub 上", () => {
     a.emit(phase("idle", 2))
     await vi.waitFor(() => expect(a.submitted).toEqual(["后台一条"]))
 
-    // 泵完一条就出池收尾：同一个空闲快照不会让队列再发一次
     expect(ctx.paneQueue.items.value).toEqual([])
     expect(ctx.sound.play).toHaveBeenCalledTimes(1)
     ctx.scope.stop()
