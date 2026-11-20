@@ -38,7 +38,7 @@
         <TabsRoot v-model="value.border">
           <TabsList variant="segmented" size="s">
             <TabsTrigger v-for="step in STEPS" :key="step" :value="step">
-              {{ step }}
+              {{ step.replace("--border-", "").replace("--", "") }}
             </TabsTrigger>
           </TabsList>
         </TabsRoot>
@@ -50,7 +50,7 @@
         <TabsRoot v-model="value.divider">
           <TabsList variant="segmented" size="s">
             <TabsTrigger v-for="step in STEPS" :key="step" :value="step">
-              {{ step }}
+              {{ step.replace("--border-", "").replace("--", "") }}
             </TabsTrigger>
           </TabsList>
         </TabsRoot>
@@ -93,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue"
+import { computed, reactive, ref, shallowRef, watch } from "vue"
 import { useClipboard } from "@vueuse/core"
 import { Button } from "@components/ui/button/index.js"
 import { Banner } from "@components/ui/banner/index.js"
@@ -109,19 +109,17 @@ import { useColorScheme } from "@features/theme/index.js"
 
 type Values = { border: string; divider: string; radius: number; surface: string }
 
-const ALPHA_RE = /rgba\(0, 0, 0, ([\d.]+)\)/
-const STEPS = ["a1", "a2", "a3", "a4"]
-// 每档对应的描边不透明度
-const ALPHA: Record<string, number> = { a1: 0.05, a2: 0.1, a3: 0.15, a4: 0.2 }
+// 描边的四档就是 tokens.css 现有的四个描边 token，由浅到深
+const STEPS = ["--border-subtle", "--border", "--border-strong", "--border-input"]
 const SURFACES: Record<string, string> = {
   none: "transparent",
   a2: "var(--bg-muted)",
   surface: "var(--bg-surface)",
 }
-// 「当前」直接读样式源码，其余预设相对它挪一档，样式改了预设跟着走
+// 「当前」是两个描边 token 自身，其余预设相对它挪一档
 const CURRENT: Values = {
-  border: stepOf(declared(tokensCss, "--border", ALPHA_RE)) ?? "a2",
-  divider: stepOf(declared(tokensCss, "--border-subtle", ALPHA_RE)) ?? "a1",
+  border: "--border",
+  divider: "--border-subtle",
   radius: Number(declared(tokensCss, "--radius-card", /([\d.]+)px/) ?? 8),
   surface: declared(tokensCss, "--card-surface", /(transparent)/) ? "none" : "surface",
 }
@@ -162,10 +160,22 @@ const nodes = useMarkdownNodes({
 })
 const value = reactive<Values>({ ...PRESETS[0]! })
 const { isDark } = useColorScheme()
-// 描边在浅色取黑色 alpha、深色取白色 alpha，跟着当前明暗选一套
-const ink = (step: string, dark: boolean) =>
-  `rgba(${dark ? "255, 255, 255" : "0, 0, 0"}, ${ALPHA[step]})`
-const neutral = (step: string) => ink(step, isDark.value)
+// 预览要用 token 在文档根上的原值：直接写 var() 会被预览容器里改过的同名变量带偏
+const steps = shallowRef<Record<string, string>>({})
+
+// 明暗切换后 html 的 class 在 post 阶段才更新，读值要排在它之后
+watch(
+  isDark,
+  () => {
+    const root = getComputedStyle(document.documentElement)
+    steps.value = Object.fromEntries(
+      STEPS.map((name) => [name, root.getPropertyValue(name).trim()]),
+    )
+  },
+  { flush: "post", immediate: true },
+)
+
+const neutral = (step: string) => steps.value[step] ?? ""
 const radius = computed({
   get: () => [value.radius],
   set: ([next]) => (value.radius = next ?? value.radius),
@@ -179,13 +189,9 @@ const previewVars = computed(() => ({
 }))
 const output = computed(() =>
   [
-    "/* style/tokens.css → :root */",
-    `--border: ${ink(value.border, false)};`,
-    `--border-subtle: ${ink(value.divider, false)};`,
-    "",
-    "/* style/tokens.css → html.dark */",
-    `--border: ${ink(value.border, true)};`,
-    `--border-subtle: ${ink(value.divider, true)};`,
+    `/* style/tokens.css → ${isDark.value ? "html.dark" : ":root"} */`,
+    `--border: ${neutral(value.border)};`,
+    `--border-subtle: ${neutral(value.divider)};`,
     "",
     "/* style/tokens.css → :root */",
     `--card-surface: ${SURFACES[value.surface]};`,
@@ -201,12 +207,6 @@ const { copy: write } = useClipboard({ legacy: true })
 function declared(css: string, name: string, pick: RegExp): string | undefined {
   const line = new RegExp(`(?<![\\w-])${name}:\\s*([^;]+);`).exec(css)?.[1]
   return line ? pick.exec(line)?.[1] : undefined
-}
-
-/** 把样式源码里的不透明度对回最近的一档。 */
-function stepOf(alpha: string | undefined): string | undefined {
-  if (alpha === undefined) return undefined
-  return STEPS.find((key) => ALPHA[key] === Number(alpha))
 }
 
 function step(current: string, by: number): string {

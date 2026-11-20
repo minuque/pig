@@ -331,7 +331,7 @@
   /* --- 色调派生比例 --- */
   --tone-subtle-mix: 8%;
   --tone-border-mix: 35%;
-  --tone-text-mix: 70%;
+  --tone-text-lightness: 0.53;
   --hue-indigo: #3e63dd;
   --hue-cyan: #00a2c7;
   --hue-green: #30a46c;
@@ -451,7 +451,7 @@ html.dark {
   /* --- 色调派生比例 --- */
   --tone-subtle-mix: 16%;
   --tone-border-mix: 48%;
-  --tone-text-mix: 55%;
+  --tone-text-lightness: 0.79;
 }
 
 /* 界面字号档：默认 M；S/L 缩放辅助、正文、标题三档，页面大标题不动。 */
@@ -520,7 +520,7 @@ html[data-chat-width="full"] {
   --tone-border: var(--border-input);
 }
 
-/* 标识色：项目图标、首字母徽章用，每个色相只存一个值，文字由它与正文色混出 */
+/* 标识色：项目图标、首字母徽章用，每个色相只存一个值；文字档保留它的色相与彩度，只把明度定到固定档 */
 [data-tone="indigo"] {
   --tone: var(--hue-indigo);
 }
@@ -556,5 +556,5 @@ html[data-chat-width="full"] {
 [data-tone="orange"],
 [data-tone="red"],
 [data-tone="violet"] {
-  --tone-text: color-mix(in srgb, var(--tone) var(--tone-text-mix), var(--fg));
+  --tone-text: oklch(from var(--tone) var(--tone-text-lightness) c h);
 }

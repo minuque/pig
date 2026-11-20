@@ -35,7 +35,6 @@
   --pele-surface-alt: var(--bg-surface);
   --pele-fg: var(--fg);
   --pele-muted: var(--fg-secondary);
-  --pele-line: var(--fg-faint);
   --pele-border: var(--border-strong);
   --pele-accent: var(--accent-text);
 }
@@ -138,7 +137,6 @@ h3,
 .meta,
 .hint {
   margin: 0;
-  color: var(--fg-faint);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }
@@ -159,10 +157,6 @@ code,
 
 .num {
   font-variant-numeric: tabular-nums;
-}
-
-.faint {
-  color: var(--fg-faint);
 }
 
 /* 吸顶顶栏：与主内容同宽对齐 */
@@ -495,7 +489,6 @@ code,
 }
 
 .stat-sub {
-  color: var(--fg-faint);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
 }
@@ -653,7 +646,6 @@ code,
   content: "/";
   display: inline-block;
   margin-inline-end: var(--space-xs);
-  color: var(--fg-faint);
 }
 
 .crumbs [aria-current="page"] {
@@ -760,7 +752,6 @@ code,
 }
 
 .band-note {
-  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
@@ -788,10 +779,6 @@ code,
   transition-property: background-color, border-color, color, opacity;
   transition-duration: var(--duration-fast);
   transition-timing-function: var(--ease-out);
-}
-
-.tile-prefix {
-  color: var(--fg-faint);
 }
 
 .tile-badge {
@@ -970,7 +957,6 @@ code,
 
 .rel-chevron {
   flex: none;
-  color: var(--fg-faint);
 }
 
 .rel-group[open] .rel-chevron {
@@ -1021,10 +1007,6 @@ code,
 .file-list a,
 .data-table a {
   color: var(--fg);
-}
-
-.arrow {
-  color: var(--fg-faint);
 }
 
 .wave-block {
@@ -1085,7 +1067,6 @@ code,
 .input-icon {
   position: absolute;
   inset-inline-start: 10px;
-  color: var(--fg-faint);
   pointer-events: none;
 }
 
@@ -1098,10 +1079,6 @@ code,
   border-radius: var(--radius-control);
   background: var(--bg);
   color: var(--fg);
-}
-
-.filter-input::placeholder {
-  color: var(--fg-faint);
 }
 
 .table-toolbar {
@@ -1188,10 +1165,6 @@ code,
   block-size: 100%;
   border-radius: var(--radius-pill);
   background: var(--accent-solid);
-}
-
-.num-zero {
-  color: var(--fg-faint);
 }
 
 /* 数据流视图：主从导航 + 聚焦时间轴 */
@@ -1456,7 +1429,6 @@ code,
 .dialog {
   margin: auto;
   padding: 0;
-  border: 1px solid var(--glass-border);
   border-radius: var(--radius-dialog);
   background: var(--glass-bg);
   backdrop-filter: var(--glass-filter);
@@ -1564,7 +1536,6 @@ code,
 
 .search-head-icon {
   flex: none;
-  color: var(--fg-faint);
 }
 
 .search-input {
@@ -1578,10 +1549,6 @@ code,
 
 .search-input::-webkit-search-cancel-button {
   display: none;
-}
-
-.search-input::placeholder {
-  color: var(--fg-faint);
 }
 
 .search-results {
@@ -1624,7 +1591,6 @@ code,
 
 .search-option-sub {
   flex: none;
-  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
@@ -1643,7 +1609,6 @@ code,
   padding: var(--space-xs) var(--space-md);
   border-block-start: 1px solid var(--border-subtle);
   background: var(--glass-footer-bg);
-  color: var(--fg-faint);
   font-size: var(--text-meta);
 }
 
