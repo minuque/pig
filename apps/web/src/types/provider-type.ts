@@ -1,4 +1,3 @@
-/** 供应商配置页自己的界面类型；接口数据形状在 @pig/protocol。 */
 import type { ProviderView, ThinkingLevel } from "@/types/common-type.js"
 
 export interface SamplingParamRow {

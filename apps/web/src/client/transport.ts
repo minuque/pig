@@ -1,4 +1,3 @@
-/** 本机 Gateway 的 WebSocket 地址：Gateway 在 `GET /api/v1/pi` 收 JSON 文本帧。 */
 import { WEBSOCKET_PATH } from "@pig/protocol"
 import { t } from "@i18n/index.js"
 

@@ -1,43 +1,17 @@
-/**
- * 共享运动基建。
- *
- * useDragReorder：pointer 跟手 + 松手落位的拖拽重排，替代原生 HTML5 DnD 的静态反馈。
- *   拖拽期间不改 DOM，只用 transform 预览；松手一次性提交 index，配合 move 动画落位。
- */
-
 export function prefersReducedMotion(): boolean {
   return matchMedia("(prefers-reduced-motion: reduce)").matches
 }
 
-/* ------------------------------------------------------------------ */
-/* 拖拽重排                                                            */
-/* ------------------------------------------------------------------ */
-
 export interface DragReorderOptions {
   axis: "x" | "y"
-  /** 拖动元素的父容器。 */
   container: () => HTMLElement | null | undefined
-  /** 拖动元素选择器；元素须带 data-id。 */
   itemSelector: string
-  /** 只在此选择器命中的元素上启动拖拽；默认 itemSelector 整体可拖。 */
   handleSelector?: string
-  /** 触发拖动的最小位移（px）。 */
   threshold?: number
-  /** 越界橡皮筋阻尼（0~1）。 */
   rubber?: number
-  /** 落位动画时长（ms）。 */
   settleMs?: number
-  /** 邻项让位过渡时长（ms）。 */
   shiftMs?: number
-  /**
-   * 拖动中目标槽位变化时回调。默认用 transform 预览让位；
-   * 返回 true 表示调用方已自己处理（如实进 DOM 重排），不再预览。
-   */
   onPreview?: (id: string, toIndex: number) => boolean | void
-  /**
-   * 松手提交重排：拖动的 id 与目标 index。
-   * continuous 模式下拖动中已通过 onPreview 实时提交，此回调只在松手时收尾，可省略。
-   */
   onMove?: (id: string, toIndex: number) => void
 }
 
@@ -51,7 +25,6 @@ interface DragState {
   moved: boolean
   items: HTMLElement[]
   rects: { pos: number; size: number }[]
-  /** 拖动项自身尺寸：邻项让位距离。 */
   self: number
   from: number
   to: number
@@ -84,7 +57,6 @@ export function useDragReorder(opts: DragReorderOptions) {
     return { its, rects }
   }
 
-  /** 目标槽位：往下看拖动项的下沿、往上看上沿越过了谁的中线；用中点时，比邻项高的卡片到不了两端。 */
   function targetIndex(): number {
     const st = s!
     let to = st.from
@@ -108,7 +80,6 @@ export function useDragReorder(opts: DragReorderOptions) {
     return to
   }
 
-  /** 邻项按 from→to 让位；让位距离用拖动项自身尺寸，支持变高元素。 */
   function layoutShift() {
     const st = s!
     st.items.forEach((el, i) => {
@@ -122,7 +93,6 @@ export function useDragReorder(opts: DragReorderOptions) {
     })
   }
 
-  /** 目标槽位变化：交给 onPreview 或默认预览。 */
   function preview(to: number) {
     const st = s!
 
@@ -166,7 +136,6 @@ export function useDragReorder(opts: DragReorderOptions) {
     let next = st.base + delta
     const min = st.rects[0]?.pos ?? 0
     const last = st.rects[st.rects.length - 1]
-    // 下界是列表底部减去自身高度：拖动项落在最后一格时的位置
     const max = last ? last.pos + last.size - st.self : 0
 
     if (next < min) next = min + (next - min) * rubber
@@ -199,9 +168,7 @@ export function useDragReorder(opts: DragReorderOptions) {
     const landing = (st.rects[to]?.pos ?? st.offset) - st.base
     const live = st.offset - st.base
     st.node.classList.remove("is-drag-live")
-    // 顺序有关：先取消拖拽位移，重排才不会把文字推出可视区。
     clearShift()
-    // 重排会复用这行。位移留到下一帧再清，文字会先被推出可视区。
     st.node.style.transform = ""
 
     const animation =
@@ -216,7 +183,6 @@ export function useDragReorder(opts: DragReorderOptions) {
 
     if (to !== from) opts.onMove?.(id, to)
 
-    // 重排让这行回到文档流的新位置，吸附位移会再把它推出去。
     if (to !== from) animation?.cancel()
     sweep()
   }

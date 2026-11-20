@@ -1,4 +1,3 @@
-/** 运行时长：不足一秒给毫秒，其余按秒；有分钟时带两位秒；有小时时时分秒都给。 */
 export function formatElapsed(
   elapsedMs: number,
   { showMs = true }: { showMs?: boolean } = {},
@@ -27,7 +26,6 @@ const RELATIVE_UNITS: [Intl.RelativeTimeFormatUnit, number][] = [
   ["minute", 60],
 ]
 
-/** 相对时间：一分钟内说「现在」，其余取最大的整单位，如「5 分钟前」「昨天」。 */
 export function formatRelative(dateMs: number, nowMs: number, locale: string): string {
   const format = new Intl.RelativeTimeFormat(locale, { numeric: "auto" })
   const seconds = Math.round((dateMs - nowMs) / 1000)

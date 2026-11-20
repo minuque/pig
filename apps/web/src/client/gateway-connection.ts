@@ -12,14 +12,12 @@ import { webSocketUrl } from "@client/transport.js"
 import { listProviderModels } from "@client/platform.js"
 
 export interface GatewayConnectionOptions {
-  /** 覆盖默认的本机 WebSocket URL。 */
   url?: string
 }
 
 const RECONNECT_ATTEMPTS = 5
 
 export function useGatewayClient() {
-  // 客户端实例仅存引用，不响应式深追踪
   const client = shallowRef<GatewayClient>()
   const serverSnapshot = shallowRef<ServerSnapshot>()
   const connectionState = ref<ConnectionState>("disconnected")
@@ -34,7 +32,6 @@ export function useGatewayClient() {
     attachedReconnect = fn
   }
 
-  // 纯派生：由上述状态 computed 得到
   const connected = computed(() => connectionState.value === "connected")
   const sessions = computed(() => serverSnapshot.value?.sessions ?? [])
   const models = computed(() => serverSnapshot.value?.models ?? [])
@@ -45,7 +42,6 @@ export function useGatewayClient() {
     unsubscribes = []
   }
 
-  /** 创建新连接：先脱离旧实例并断开，避免旧回调污染新连接状态。 */
   async function connect(options: GatewayConnectionOptions = {}): Promise<GatewayClient> {
     if (disposed) throw new Error(t("errors.gatewayClientDisposed"))
     const previous = client.value
@@ -86,7 +82,6 @@ export function useGatewayClient() {
     return next
   }
 
-  /** 用 list 结果覆盖快照里的 sessions，不另建列表。 */
   async function refreshSessions() {
     const current = client.value
     const snapshot = serverSnapshot.value
@@ -96,7 +91,6 @@ export function useGatewayClient() {
     serverSnapshot.value = { ...snapshot, sessions: [...sessions] }
   }
 
-  /** 用 /models 结果替换快照里的模型目录，Composer 无需重连。 */
   async function refreshModels() {
     const snapshot = serverSnapshot.value
 
@@ -134,9 +128,7 @@ export function useGatewayClient() {
           try {
             if (attachedReconnect) await attachedReconnect()
             else await client.value?.reconnect()
-          } catch {
-            // 继续退避；最终失败由 connectionError 呈现
-          }
+          } catch {}
         }
       } finally {
         reconnecting = false

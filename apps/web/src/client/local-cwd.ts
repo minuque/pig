@@ -1,9 +1,3 @@
-/**
- * 本地 cwd 偏好（Browser platform）。
- * 已授权目录列表与最近使用的 cwd 持久化在 localStorage；
- * 目录授权属于 transport security，不进入任何 Agent Domain。
- * 平台层只处理 canonicalPath 字符串，展示视图由 features 层映射。
- */
 import { readonly, ref } from "vue"
 import { readPref, writeJson, writePref, type PrefStorage } from "@utils/storage.js"
 
@@ -12,10 +6,8 @@ export const LAST_CWD_KEY = "pig.lastCwd"
 
 import { canonicalizeWorkspacePath } from "@pig/protocol"
 
-/** 旧偏好兼容由 Host realpath 收口，这里只做键规范化。 */
 export { canonicalizeWorkspacePath }
 
-/** 规范化后按键去重，保留首次出现顺序。 */
 export function uniqueCanonicalPaths(paths: readonly string[]): string[] {
   const seen = new Set<string>()
   const next: string[] = []
@@ -31,7 +23,6 @@ export function uniqueCanonicalPaths(paths: readonly string[]): string[] {
   return next
 }
 
-/** 解析持久化的目录列表：非法 JSON 或非字符串项一律丢弃。 */
 export function parseLocalWorkspaces(json: string | null): string[] {
   if (!json) return []
 
@@ -66,7 +57,6 @@ export function saveLastCwd(path: string, storage: PrefStorage = localStorage): 
   writePref(LAST_CWD_KEY, path, storage)
 }
 
-/** 本地目录列表偏好：添加/移除立即持久化；select 记录最近使用的 cwd。 */
 export function useLocalWorkspaces() {
   const workspaces = ref<string[]>(loadLocalWorkspaces())
   const lastCwd = ref<string | undefined>(loadLastCwd())

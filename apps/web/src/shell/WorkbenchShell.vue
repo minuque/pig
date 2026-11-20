@@ -43,7 +43,6 @@
           :preset="rightPreset"
         />
 
-        <!-- 会话拖出侧栏时显形：上半截按左右落到对应一侧，下半截仍是输入卡的引用落点 -->
         <div class="split-drop" aria-hidden="true">
           <div
             v-for="zone in dropZones"
@@ -110,7 +109,6 @@ const pi = useGatewayClient()
 const cwd = useLocalWorkspaces()
 const route = useRoute()
 const router = useRouter()
-/** 聚焦侧的会话；出错页不是工作台页，给 null 让分屏保持原样。 */
 const routeSessionId = computed(() => {
   if (route.name === "error") return null
   const raw = route.params.sessionId
@@ -119,7 +117,6 @@ const routeSessionId = computed(() => {
 const split = provideSplitView(routeSessionId, (id) => {
   void router.replace(id ? { name: "session", params: { sessionId: id } } : "/")
 })
-// 队列与附件按会话分桶：会话换到另一侧，待发队列跟着走；壳层显式传桶，不依赖同组件 inject
 const sharedBuckets = provideSharedBuckets()
 const hub = createSessionHub(pi)
 const backgroundPump = createBackgroundPump({
@@ -129,7 +126,6 @@ const backgroundPump = createBackgroundPump({
   transcriptFor: hub.history.transcriptFor,
 })
 
-// 后台泵队在壳层挂一次：哪一侧面板挂上或卸掉都不重注册、不解绑
 hub.setBackgroundIdle(backgroundPump.onIdle)
 
 const sideSession = (side: Side) =>
@@ -142,7 +138,6 @@ const sideSession = (side: Side) =>
   })
 const left = sideSession("left")
 const right = sideSession("right")
-/** 跟着会话建，不跟面板挂载：右侧关掉再开，模型选择仍在。 */
 const leftPreset = bindComposerPreset(left, pi.models, pi.defaultModel)
 const rightPreset = bindComposerPreset(right, pi.models, pi.defaultModel)
 const onSide = (side: Side) => (side === "right" ? right : left)
@@ -205,7 +200,6 @@ useEventListener(window, "keydown", (event: KeyboardEvent) => {
 
 const dropZones: Side[] = ["left", "right"]
 
-/** 拖到某一侧：那一侧是聚焦侧就在原地打开，否则在另一侧打开。 */
 function onSessionDrop(zone: Side, event: Event) {
   const id = (event as CustomEvent<readonly DroppedSession[]>).detail[0]?.id
 
@@ -311,7 +305,6 @@ html[data-session-dragging] .split-drop {
   pointer-events: none;
 }
 
-/* 照搬侧栏分隔条：不占位，从 header 下方开始响应，header 那一段留给拖窗 */
 .split-resizer {
   position: relative;
   z-index: var(--z-resizer);

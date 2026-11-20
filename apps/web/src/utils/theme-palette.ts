@@ -121,7 +121,6 @@ function inGamut([r, g, b]: [number, number, number]): boolean {
   return r >= -eps && r <= 1 + eps && g >= -eps && g <= 1 + eps && b >= -eps && b <= 1 + eps
 }
 
-/** 保持色相和明度，超出色域时向内收彩度避免偏色。 */
 export function oklchToHex(color: OklchColor): string {
   const l = clamp01(color.l)
 
@@ -185,7 +184,6 @@ function tuneContrast(
   return oklchToHex({ l, c: base.c, h: base.h })
 }
 
-/** 由双种子（canvas + accent）推导出完整表面、文字与强调色梯度，并保证对比度下限。 */
 export function deriveThemeTokens(
   seed: ThemeSeed,
   isDark: boolean,
