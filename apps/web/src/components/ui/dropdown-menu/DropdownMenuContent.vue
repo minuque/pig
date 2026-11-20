@@ -5,10 +5,13 @@
         data-slot="dropdown-menu-content"
         v-bind="{ ...$attrs, ...forwarded, ...(reference && { reference }) }"
         :data-accent-color="props.color"
-        class="rt-PopperContent rt-BaseMenuContent rt-DropdownMenuContent"
-        :class="[sizeClass, variantClass, highContrastClass, props.class]"
+        data-menu-content
+        :data-size="size"
+        :data-variant="variant"
+        :data-high-contrast="highContrast || undefined"
+        :class="props.class"
       >
-        <div v-if="!bare" class="rt-BaseMenuViewport rt-DropdownMenuViewport">
+        <div v-if="!bare" data-menu-viewport>
           <slot />
         </div>
 
@@ -24,7 +27,6 @@ import { computed, toRef, type ComputedRef, type HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { DropdownMenuContent, DropdownMenuPortal, useForwardPropsEmits } from "reka-ui"
 import { ThemeRoot } from "@components/ui/rt/index.js"
-import { sizeClass as rtSizeClass } from "@components/ui/rt/size.js"
 import {
   provideMenuContent,
   type MenuSize,
@@ -79,9 +81,6 @@ const forwarded = useForwardPropsEmits(
   delegatedProps,
   emits,
 ) as ComputedRef<DropdownMenuContentProps>
-const sizeClass = computed(() => rtSizeClass(props.size))
-const variantClass = computed(() => `rt-variant-${props.variant}`)
-const highContrastClass = computed(() => (props.highContrast ? "rt-high-contrast" : undefined))
 
 provideMenuContent({
   size: toRef(props, "size"),

@@ -2,7 +2,7 @@
   <DropdownMenuLabel
     data-slot="dropdown-menu-label"
     v-bind="forwardedProps"
-    class="rt-BaseMenuLabel rt-DropdownMenuLabel"
+    data-menu-label
     :class="props.class"
   >
     <slot />

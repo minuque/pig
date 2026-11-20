@@ -1,4 +1,4 @@
-import { sizeClass, type Size } from "@components/ui/rt/size.js"
+import type { Size } from "@components/ui/rt/size.js"
 
 export { default as Button } from "./Button.vue"
 
@@ -14,7 +14,11 @@ export type Radius = "none" | "small" | "medium" | "large" | "full"
 
 export type HighContrast = boolean
 
-/** 拼一组 rt 按钮类：给不用 Button 组件、但要是同一种外观的元素（如 AlertDialog 的动作按钮）。 */
-export function rtButtonClass(variant: ButtonVariant = "solid", size: ButtonSize = "m"): string {
-  return `rt-reset rt-BaseButton rt-Button ${sizeClass(size)} rt-variant-${variant}`
+/** 给不用 Button 组件、但要是同一种外观的元素（如 AlertDialog 的动作按钮）用 */
+export function buttonAttrs(variant: ButtonVariant = "solid", size: ButtonSize = "m") {
+  return {
+    "data-button": "",
+    "data-variant": variant,
+    "data-size": size,
+  }
 }

@@ -3,7 +3,6 @@
     data-slot="text-field-slot"
     :data-accent-color="color"
     :data-side="side"
-    class="rt-TextFieldSlot"
     :class="props.class"
   >
     <slot />

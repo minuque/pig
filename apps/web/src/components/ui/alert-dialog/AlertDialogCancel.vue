@@ -1,9 +1,9 @@
 <template>
   <AlertDialogCancel
     data-slot="alert-dialog-cancel"
-    v-bind="forwardedProps"
+    v-bind="{ ...forwardedProps, ...buttonAttrs('surface') }"
     data-accent-color="gray"
-    :class="[rtButtonClass('surface'), props.class]"
+    :class="props.class"
   >
     <slot />
   </AlertDialogCancel>
@@ -14,7 +14,7 @@ import type { AlertDialogCancelProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { AlertDialogCancel, useForwardProps } from "reka-ui"
-import { rtButtonClass } from "@components/ui/button/index.js"
+import { buttonAttrs } from "@components/ui/button/index.js"
 
 const props = withDefaults(
   defineProps<AlertDialogCancelProps & { class?: HTMLAttributes["class"] }>(),

@@ -1,10 +1,5 @@
 <template>
-  <SelectLabel
-    data-slot="select-label"
-    v-bind="forwarded"
-    class="rt-SelectLabel"
-    :class="props.class"
-  >
+  <SelectLabel data-slot="select-label" v-bind="forwarded" :class="props.class">
     <slot />
   </SelectLabel>
 </template>
@@ -22,9 +17,24 @@ const delegatedProps = reactiveOmit(props, "class")
 const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectLabelProps>
 </script>
 
-<style scoped>
+<style>
 /* 与选项同一组左右边距：选项不再留勾选图标的槽位 */
-.rt-SelectLabel[data-slot="select-label"] {
+:where([data-slot="select-label"]) {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  block-size: var(--control-md);
   padding-inline: var(--space-sm);
+  color: var(--gray-a10);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  user-select: none;
+  cursor: default;
+}
+
+:where([data-slot="select-content"][data-size="s"]) :where([data-slot="select-label"]) {
+  block-size: var(--space-lg);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
 }
 </style>

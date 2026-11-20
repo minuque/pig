@@ -3,13 +3,14 @@
     data-slot="dropdown-menu-sub-trigger"
     v-bind="forwardedProps"
     :data-accent-color="props.color"
-    class="rt-BaseMenuItem rt-BaseMenuSubTrigger rt-DropdownMenuItem rt-DropdownMenuSubTrigger"
+    data-menu-item
+    data-menu-sub-trigger
     :class="props.class"
   >
     <slot />
 
-    <div class="rt-BaseMenuShortcut rt-DropdownMenuShortcut">
-      <ChevronRightIcon class="rt-BaseMenuSubTriggerIcon rt-DropdownMenuSubtriggerIcon" />
+    <div data-menu-shortcut>
+      <ChevronRightIcon data-menu-sub-trigger-icon />
     </div>
   </DropdownMenuSubTrigger>
 </template>

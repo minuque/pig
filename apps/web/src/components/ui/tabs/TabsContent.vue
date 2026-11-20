@@ -1,5 +1,5 @@
 <template>
-  <TabsContent data-slot="tabs-content" class="rt-TabsContent" v-bind="forwarded">
+  <TabsContent data-slot="tabs-content" v-bind="forwarded">
     <slot />
   </TabsContent>
 </template>
@@ -13,3 +13,14 @@ const props = defineProps<TabsContentProps>()
 // reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，cast 到组件 props 类型
 const forwarded = useForwardProps(props) as ComputedRef<TabsContentProps>
 </script>
+
+<style>
+:where([data-slot="tabs-content"]) {
+  position: relative;
+  outline: 0;
+}
+
+:where([data-slot="tabs-content"]:focus-visible) {
+  outline: 2px solid var(--focus-color);
+}
+</style>

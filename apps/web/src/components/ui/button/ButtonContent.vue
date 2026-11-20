@@ -29,7 +29,7 @@ const spinnerSize = computed(() => (props.size === "s" ? 12 : 16))
   visibility: hidden;
 }
 
-/* rt 的 .rt-loading 已给按钮 position: relative */
+/* [data-loading] 已给按钮 position: relative */
 .button-spinner {
   position: absolute;
   inset: 0;

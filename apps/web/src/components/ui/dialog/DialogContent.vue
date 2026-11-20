@@ -4,18 +4,21 @@
       <DialogOverlay :align="align" :style="widthStyle">
         <DialogContent
           data-slot="dialog-content"
+          :data-size="size"
           v-bind="{ ...$attrs, ...forwarded }"
-          class="rt-BaseDialogContent rt-DialogContent"
-          :class="[sizeClass, props.class]"
+          :class="props.class"
         >
           <slot />
 
           <DialogClose
             v-if="showCloseButton"
-            data-slot="dialog-close"
-            :aria-label="t('common.close')"
-            class="dlg-close rt-reset rt-BaseButton rt-IconButton rt-variant-ghost rt-r-size-1"
+            data-button
+            data-slot="icon-button"
+            data-size="s"
+            data-variant="ghost"
             data-accent-color="gray"
+            :aria-label="t('common.close')"
+            class="dlg-close"
           >
             <XIcon class="size-icon" />
           </DialogClose>
@@ -33,6 +36,7 @@ import { reactiveOmit } from "@vueuse/core"
 import { DialogClose, DialogContent, DialogPortal, useForwardPropsEmits } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
 import { ThemeRoot } from "@components/ui/rt/index.js"
+import type { Size } from "@components/ui/rt/size.js"
 import { XIcon } from "@components/icons/index.js"
 import DialogOverlay from "./DialogOverlay.vue"
 
@@ -45,8 +49,8 @@ const props = withDefaults(
     DialogContentProps & {
       class?: HTMLAttributes["class"]
       showCloseButton?: boolean
-      /** Radix Themes 的面板宽度档：1 最窄、4 最宽 */
-      size?: "1" | "2" | "3" | "4"
+      /** 面板宽度与内边距档：s / m / l */
+      size?: Size
       /** 面板最大宽度，默认沿用 rt 的 600px；调用方的 scoped 类仍可覆盖 */
       maxWidth?: string
       align?: "start" | "center"
@@ -55,7 +59,7 @@ const props = withDefaults(
   {
     class: undefined,
     showCloseButton: true,
-    size: "3",
+    size: "m",
     align: "center",
   },
 )
@@ -63,18 +67,60 @@ const emits = defineEmits<DialogContentEmits>()
 const { t } = useI18n()
 const delegatedProps = reactiveOmit(props, "class", "showCloseButton", "size", "maxWidth", "align")
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<DialogContentProps>
-const sizeClass = `rt-r-size-${props.size}`
 const widthStyle = computed(() =>
   props.maxWidth ? { "--dialog-max-width": props.maxWidth } : undefined,
 )
 </script>
 
+<style>
+/* 面板：主区底色、内边距与圆角同值（同心），尺寸档只改内边距、圆角与最大宽度 */
+:where([data-slot="dialog-content"]) {
+  position: relative;
+  z-index: var(--z-raise);
+  box-sizing: border-box;
+  width: 100%;
+  margin: auto;
+  max-inline-size: var(--dialog-max-width, 600px);
+  padding: round(up, var(--radius-dialog), var(--spacing));
+  border-radius: var(--radius-dialog);
+  background-color: var(--bg);
+  box-shadow: var(--shadow-dialog);
+  outline: none;
+}
+
+:where([data-slot="dialog-content"][data-size="s"]) {
+  max-inline-size: var(--dialog-max-width, var(--dialog-width-sm));
+  padding: round(up, var(--radius-card), var(--spacing));
+  border-radius: var(--radius-card);
+}
+
+:where([data-slot="dialog-content"][data-size="l"]) {
+  max-inline-size: var(--dialog-max-width, 720px);
+}
+
+:where([data-slot="dialog-content"] [data-slot="dialog-title"]) {
+  margin-block-end: var(--space-sm);
+}
+</style>
+
 <style scoped>
-/* 只留定位：尺寸、配色、悬停与焦点环由 rt 的图标按钮类承担。 */
 /* 关闭按钮：图标边缘与内容边缘对齐，偏移 = 内边距 -（按钮宽 - 图标宽）/ 2 */
 .dlg-close {
   position: absolute;
-  inset-block-start: calc(var(--dialog-content-padding) - (var(--space-lg) - var(--icon-md)) / 2);
-  inset-inline-end: calc(var(--dialog-content-padding) - (var(--space-lg) - var(--icon-md)) / 2);
+  inset-block-start: calc(
+    round(up, var(--radius-dialog), var(--spacing)) - (var(--space-lg) - var(--icon-md)) / 2
+  );
+  inset-inline-end: calc(
+    round(up, var(--radius-dialog), var(--spacing)) - (var(--space-lg) - var(--icon-md)) / 2
+  );
+}
+
+[data-size="s"] > .dlg-close {
+  inset-block-start: calc(
+    round(up, var(--radius-card), var(--spacing)) - (var(--space-lg) - var(--icon-md)) / 2
+  );
+  inset-inline-end: calc(
+    round(up, var(--radius-card), var(--spacing)) - (var(--space-lg) - var(--icon-md)) / 2
+  );
 }
 </style>

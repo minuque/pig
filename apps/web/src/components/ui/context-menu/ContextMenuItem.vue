@@ -5,11 +5,11 @@
     :data-variant="variant"
     v-bind="forwardedProps"
     :data-accent-color="variant === 'destructive' ? 'red' : props.color"
-    class="rt-BaseMenuItem rt-ContextMenuItem"
+    data-menu-item
     :class="props.class"
   >
     <slot />
-    <div v-if="shortcut" class="rt-BaseMenuShortcut rt-ContextMenuShortcut">{{ shortcut }}</div>
+    <div v-if="shortcut" data-menu-shortcut>{{ shortcut }}</div>
   </ContextMenuItem>
 </template>
 

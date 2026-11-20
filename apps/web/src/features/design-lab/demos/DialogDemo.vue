@@ -32,7 +32,7 @@
           <Button variant="soft">Open large dialog</Button>
         </DialogTrigger>
 
-        <DialogContent size="4">
+        <DialogContent size="l">
           <DialogTitle>Large dialog</DialogTitle>
 
           <DialogDescription>

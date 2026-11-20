@@ -1,6 +1,12 @@
 <template>
-  <span class="rt-Spinner" :class="[sizeClass, props.class]" role="status" :aria-label="label">
-    <span v-for="n in 8" :key="n" class="rt-SpinnerLeaf" />
+  <span
+    data-slot="spinner"
+    :data-size="sizeTier"
+    :class="props.class"
+    role="status"
+    :aria-label="label"
+  >
+    <span v-for="n in 8" :key="n" data-slot="spinner-leaf" />
   </span>
 </template>
 
@@ -9,7 +15,7 @@ import { computed, type HTMLAttributes } from "vue"
 
 const props = withDefaults(
   defineProps<{
-    /** 期望的像素尺寸，就近落到 Radix Themes 的三档（12 / 16 / 20） */
+    /** 期望的像素尺寸，就近落到三档（12 / 16 / 20） */
     size?: number
     /** 读屏名称 */
     label?: string
@@ -17,7 +23,86 @@ const props = withDefaults(
   }>(),
   { size: 16, class: undefined },
 )
-const sizeClass = computed(() =>
-  props.size <= 12 ? "rt-r-size-1" : props.size <= 16 ? "rt-r-size-2" : "rt-r-size-3",
-)
+const sizeTier = computed(() => (props.size <= 12 ? "s" : props.size <= 16 ? "m" : "l"))
 </script>
+
+<style>
+:where([data-slot="spinner"]) {
+  display: block;
+  position: relative;
+  opacity: 0.65;
+}
+
+:where([data-slot="spinner"][data-size="s"]) {
+  width: var(--space-sm);
+  height: var(--space-sm);
+}
+
+:where([data-slot="spinner"][data-size="m"]) {
+  width: var(--space-md);
+  height: var(--space-md);
+}
+
+:where([data-slot="spinner"][data-size="l"]) {
+  width: calc(1.25 * var(--space-md));
+  height: calc(1.25 * var(--space-md));
+}
+
+:where([data-slot="spinner-leaf"]) {
+  position: absolute;
+  top: 0;
+  left: calc(50% - 12.5% / 2);
+  width: 12.5%;
+  height: 100%;
+  animation: spinner-leaf-fade 800ms linear infinite;
+}
+
+:where([data-slot="spinner-leaf"])::before {
+  content: "";
+  display: block;
+  width: 100%;
+  height: 30%;
+  border-radius: calc(var(--radius-control) / 2);
+  background-color: currentColor;
+}
+
+:where([data-slot="spinner-leaf"]:nth-child(1)) {
+  transform: rotate(0deg);
+  animation-delay: -800ms;
+}
+
+:where([data-slot="spinner-leaf"]:nth-child(2)) {
+  transform: rotate(45deg);
+  animation-delay: -700ms;
+}
+
+:where([data-slot="spinner-leaf"]:nth-child(3)) {
+  transform: rotate(90deg);
+  animation-delay: -600ms;
+}
+
+:where([data-slot="spinner-leaf"]:nth-child(4)) {
+  transform: rotate(135deg);
+  animation-delay: -500ms;
+}
+
+:where([data-slot="spinner-leaf"]:nth-child(5)) {
+  transform: rotate(180deg);
+  animation-delay: -400ms;
+}
+
+:where([data-slot="spinner-leaf"]:nth-child(6)) {
+  transform: rotate(225deg);
+  animation-delay: -300ms;
+}
+
+:where([data-slot="spinner-leaf"]:nth-child(7)) {
+  transform: rotate(270deg);
+  animation-delay: -200ms;
+}
+
+:where([data-slot="spinner-leaf"]:nth-child(8)) {
+  transform: rotate(315deg);
+  animation-delay: -100ms;
+}
+</style>

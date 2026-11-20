@@ -1,10 +1,11 @@
 <template>
   <Primitive
     data-slot="kbd"
+    :data-size="size"
+    :data-variant="variant"
     :as="as"
     :as-child="asChild"
-    class="rt-reset rt-Kbd"
-    :class="[sizeClass, variantClass, props.class]"
+    :class="props.class"
     v-bind="$attrs"
   >
     <slot />
@@ -14,9 +15,8 @@
 <script setup lang="ts">
 import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
-import { computed } from "vue"
 import { Primitive } from "reka-ui"
-import { sizeClass as rtSizeClass, type Size } from "@components/ui/rt/size.js"
+import type { Size } from "@components/ui/rt/size.js"
 
 defineOptions({ inheritAttrs: false })
 
@@ -31,6 +31,101 @@ const props = withDefaults(
   >(),
   { as: "kbd", asChild: false, size: "m", variant: "classic", class: undefined },
 )
-const sizeClass = computed(() => rtSizeClass(props.size))
-const variantClass = computed(() => `rt-variant-${props.variant}`)
 </script>
+
+<style>
+:where([data-slot="kbd"]) {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  height: fit-content;
+  position: relative;
+  top: -0.03em;
+  min-width: 1.75em;
+  padding-left: 0.5em;
+  padding-right: 0.5em;
+  padding-bottom: 0.05em;
+  border: 0;
+  border-radius: calc(var(--radius-control) * 0.7);
+  font-family: var(--font-sans);
+  font-weight: var(--font-weight-normal);
+  font-size: 0.75em;
+  line-height: 1.7em;
+  vertical-align: text-top;
+  white-space: nowrap;
+  word-spacing: -0.1em;
+  user-select: none;
+  color: var(--fg);
+}
+
+:where([data-slot="kbd"][data-size="s"]) {
+  font-size: calc(var(--text-meta) * 0.8);
+}
+
+:where([data-slot="kbd"][data-size="m"]) {
+  font-size: calc(var(--text-body) * 0.8);
+}
+
+:where([data-slot="kbd"][data-size="l"]) {
+  font-size: calc(var(--text-title) * 0.8);
+}
+
+:where([data-slot="kbd"][data-variant="classic"]) {
+  background-color: var(--gray-1);
+  box-shadow: var(--kbd-box-shadow);
+  transition:
+    box-shadow var(--duration-fast),
+    background-color var(--duration-fast);
+}
+
+:where([data-slot="kbd"][data-variant="classic"]:is(:any-link, button):is([data-state="open"])) {
+  background-color: var(--bg);
+  box-shadow:
+    var(--kbd-box-shadow),
+    0 0 0 0.05em var(--gray-a5);
+}
+
+:where(
+  [data-slot="kbd"][data-variant="classic"]:is(:any-link, button):active:not([data-state="open"])
+) {
+  padding-top: 0.05em;
+  padding-bottom: 0;
+  background-color: var(--gray-2);
+  box-shadow:
+    inset 0 0.05em var(--black-a3),
+    0 0 0 0.05em var(--gray-a7);
+}
+
+:where([data-slot="kbd"][data-variant="soft"]) {
+  background-color: var(--gray-a3);
+}
+
+:where([data-slot="kbd"][data-variant="soft"]:is(:any-link, button):is([data-state="open"])) {
+  background-color: var(--gray-a4);
+}
+
+:where(
+  [data-slot="kbd"][data-variant="soft"]:is(:any-link, button):active:not([data-state="open"])
+) {
+  background-color: var(--gray-a5);
+}
+
+:where([data-slot="kbd"]:is(:any-link, button):focus-visible) {
+  outline: 2px solid var(--focus-color);
+}
+
+@media (hover: hover) {
+  :where([data-slot="kbd"][data-variant="classic"]:is(:any-link, button):hover) {
+    background-color: var(--bg);
+    box-shadow:
+      var(--kbd-box-shadow),
+      0 0 0 0.05em var(--gray-a5);
+  }
+
+  :where([data-slot="kbd"][data-variant="soft"]:is(:any-link, button):hover) {
+    background-color: var(--gray-a4);
+  }
+}
+</style>

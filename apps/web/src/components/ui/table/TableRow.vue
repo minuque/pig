@@ -1,3 +1,3 @@
 <template>
-  <tr data-slot="table-row" class="rt-TableRow"><slot /></tr>
+  <tr data-slot="table-row"><slot /></tr>
 </template>

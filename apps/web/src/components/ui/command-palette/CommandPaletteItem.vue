@@ -35,6 +35,7 @@ const emit = defineEmits<{ select: [] }>()
   border-radius: calc(var(--radius-control) - 2px);
   color: var(--fg);
   font-size: var(--text-body);
+  outline: none;
   cursor: pointer;
   user-select: none;
 }
@@ -45,7 +46,7 @@ const emit = defineEmits<{ select: [] }>()
 
 [data-slot="command-palette-item"][data-disabled] {
   cursor: default;
-  opacity: 0.64;
+  opacity: var(--opacity-disabled);
 }
 
 /* 图标与首行文字对齐，两行时不居中到整行 */

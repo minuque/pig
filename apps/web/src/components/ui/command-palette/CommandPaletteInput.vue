@@ -26,7 +26,7 @@ const model = defineModel<string>({ default: "" })
 .lead {
   flex: none;
   width: var(--space-2xl);
-  color: var(--fg-secondary);
+  color: var(--fg-muted);
 }
 
 .input {
@@ -41,6 +41,6 @@ const model = defineModel<string>({ default: "" })
 }
 
 .input::placeholder {
-  color: var(--fg-secondary);
+  color: var(--fg-muted);
 }
 </style>

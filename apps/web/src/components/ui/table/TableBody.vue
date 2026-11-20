@@ -1,3 +1,3 @@
 <template>
-  <tbody data-slot="table-body" class="rt-TableBody"><slot /></tbody>
+  <tbody data-slot="table-body"><slot /></tbody>
 </template>

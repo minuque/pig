@@ -1,10 +1,5 @@
 <template>
-  <SelectGroup
-    data-slot="select-group"
-    v-bind="forwarded"
-    class="rt-SelectGroup"
-    :class="props.class"
-  >
+  <SelectGroup data-slot="select-group" v-bind="forwarded" :class="props.class">
     <slot />
   </SelectGroup>
 </template>

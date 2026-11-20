@@ -3,11 +3,11 @@
     data-slot="context-menu-checkbox-item"
     v-bind="forwardedProps"
     :data-accent-color="props.color"
-    class="rt-BaseMenuItem rt-BaseMenuCheckboxItem rt-ContextMenuItem rt-ContextMenuCheckboxItem"
+    data-menu-item
     :class="props.class"
   >
     <slot />
-    <div v-if="shortcut" class="rt-BaseMenuShortcut rt-ContextMenuShortcut">{{ shortcut }}</div>
+    <div v-if="shortcut" data-menu-shortcut>{{ shortcut }}</div>
   </ContextMenuCheckboxItem>
 </template>
 
@@ -30,10 +30,3 @@ const props = withDefaults(
 const delegatedProps = reactiveOmit(props, "class", "shortcut", "color")
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<ContextMenuCheckboxItemProps>
 </script>
-
-<style scoped>
-/* 选中态用 --bg-selected 标出，比悬停深一档；不在左侧留白放勾：项本身已有前置图标，双标记会挤 */
-.rt-ContextMenuCheckboxItem[data-state="checked"] {
-  background-color: var(--bg-selected);
-}
-</style>

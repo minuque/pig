@@ -7,7 +7,6 @@
     aria-hidden="true"
     tabindex="-1"
     :data-inline-skeleton="asChild ? undefined : true"
-    class="rt-Skeleton"
     :class="props.class"
     :style="skeletonStyle"
     v-bind="$attrs"
@@ -29,7 +28,7 @@ defineOptions({ inheritAttrs: false })
 const props = withDefaults(
   defineProps<
     Pick<PrimitiveProps, "as" | "asChild"> & {
-      /** false 时直接渲染内容，rt 用它包住真实内容做加载占位 */
+      /** false 时直接渲染内容，用它包住真实内容做加载占位 */
       loading?: boolean
       /** 骨架尺寸；不传时按内容撑开 */
       width?: string
@@ -44,3 +43,37 @@ const skeletonStyle = computed(() => ({
   blockSize: props.height,
 }))
 </script>
+
+<style>
+:where([data-slot="skeleton"]) {
+  border-radius: calc(var(--radius-control) / 2);
+  background-color: var(--gray-a3);
+  animation: skeleton-pulse 1000ms infinite alternate-reverse;
+  background-image: none;
+  background-clip: border-box;
+  border: 0;
+  box-shadow: none;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  color: transparent;
+  outline: none;
+  pointer-events: none;
+  user-select: none;
+  cursor: default;
+}
+
+:where([data-slot="skeleton"][data-inline-skeleton]) {
+  line-height: 0;
+}
+
+:where([data-slot="skeleton"]:empty) {
+  display: block;
+  height: var(--space-sm);
+}
+
+:where([data-slot="skeleton"]) > *,
+:where([data-slot="skeleton"])::after,
+:where([data-slot="skeleton"])::before {
+  visibility: hidden;
+}
+</style>
