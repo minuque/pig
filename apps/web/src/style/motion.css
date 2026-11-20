@@ -42,8 +42,8 @@
 
 .startup-logo {
   display: block;
-  width: var(--startup-logo-size, 88px);
-  height: var(--startup-logo-size, 88px);
+  width: 88px;
+  height: 88px;
   object-fit: contain;
   transform-origin: 30% 100%;
   pointer-events: none;
@@ -127,7 +127,7 @@
   display: grid;
   flex: none;
   place-items: center;
-  padding: var(--icon-button-pad);
+  padding: 2px;
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
@@ -177,8 +177,8 @@
 .dock-hero-enter-active,
 .dock-hero-appear-active {
   transition:
-    opacity var(--welcome-settle-duration) var(--ease-out) var(--duration-fast),
-    translate var(--welcome-settle-duration) var(--ease-out) var(--duration-fast);
+    opacity 500ms var(--ease-out) var(--duration-fast),
+    translate 500ms var(--ease-out) var(--duration-fast);
 }
 
 .dock-hero-enter-from,
@@ -190,8 +190,7 @@
 /* 首屏挂载时输入条与 Hero 同拍落位。fill 只能用 backwards：both/forwards 会把 translate 留在
    输入条外框上，外框成了 backdrop root，输入卡的毛玻璃就抽不到背后的正文。 */
 .settle-in {
-  animation: settle-down var(--welcome-settle-duration) var(--ease-out) var(--duration-fast)
-    backwards;
+  animation: settle-down 500ms var(--ease-out) var(--duration-fast) backwards;
 }
 
 @keyframes settle-down {
@@ -387,7 +386,7 @@
 /* ------ 欢迎页字符背景：Hero 落位后慢慢浮现；离开首屏与 Hero 同拍淡出 ------ */
 .welcome-field-enter-active,
 .welcome-field-appear-active {
-  transition: opacity var(--welcome-reveal-duration) var(--ease-out) var(--welcome-settle-duration);
+  transition: opacity 1200ms var(--ease-out) 500ms;
 }
 
 .welcome-field-leave-active {
@@ -414,14 +413,14 @@
 /* ------ 输入卡 @// 菜单：与浮层同一组时长与曲线 ------ */
 .menu-reveal-enter-active {
   transition:
-    opacity var(--duration-fast) var(--menu-ease),
-    translate var(--duration-fast) var(--menu-ease);
+    opacity var(--duration-fast) cubic-bezier(0.25, 0.1, 0.25, 1),
+    translate var(--duration-fast) cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .menu-reveal-leave-active {
   transition:
-    opacity var(--menu-duration-out) var(--menu-ease),
-    translate var(--menu-duration-out) var(--menu-ease);
+    opacity 100ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    translate 100ms cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .menu-reveal-enter-from {
@@ -434,9 +433,9 @@
   translate: 0 calc(var(--space-xs) / 2);
 }
 
-/* ------ 主题切换 view-transition ------ */
+/* ------ 主题切换 view-transition：柔和 cross-fade ------ */
 ::view-transition-group(root) {
-  animation-duration: var(--theme-switch-duration);
+  animation-duration: var(--duration-normal);
   animation-timing-function: var(--ease-out);
 }
 
@@ -446,33 +445,15 @@
 }
 
 ::view-transition-new(root) {
-  animation-name: reveal-light-theme;
+  animation-name: theme-cross-fade;
 }
 
-.dark::view-transition-new(root) {
-  animation-name: reveal-dark-theme;
-}
-
-@keyframes reveal-dark-theme {
+@keyframes theme-cross-fade {
   from {
-    clip-path: polygon(50% -71%, -50% 71%, -50% 71%, 50% -71%);
-    opacity: 0.5;
+    opacity: 0;
   }
 
   to {
-    clip-path: polygon(50% -71%, -50% 71%, 50% 171%, 171% 50%);
-    opacity: 1;
-  }
-}
-
-@keyframes reveal-light-theme {
-  from {
-    clip-path: polygon(171% 50%, 50% 171%, 50% 171%, 171% 50%);
-    opacity: 0.5;
-  }
-
-  to {
-    clip-path: polygon(171% 50%, 50% 171%, -50% 71%, 50% -71%);
     opacity: 1;
   }
 }
@@ -516,7 +497,7 @@
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
-  animation: shimmer var(--shimmer-duration) infinite;
+  animation: shimmer 3400ms infinite;
 }
 
 .motion-nudge {
@@ -547,6 +528,20 @@
   70% {
     box-shadow: 0 0 0 8px transparent;
   }
+}
+
+.status-pulse {
+  position: relative;
+}
+
+.status-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 40%, transparent);
+  animation: motion-pulse-ring 2s var(--ease-out) infinite;
+  pointer-events: none;
 }
 
 @keyframes motion-spin {
@@ -616,8 +611,8 @@
   opacity: 0.3;
   translate: var(--menu-shift-x) var(--menu-shift-y);
   transition:
-    opacity var(--duration-fast) var(--menu-ease),
-    translate var(--duration-fast) var(--menu-ease);
+    opacity var(--duration-fast) cubic-bezier(0.25, 0.1, 0.25, 1),
+    translate var(--duration-fast) cubic-bezier(0.25, 0.1, 0.25, 1);
 }
 
 .reveal-menu[data-side="top"] {
@@ -657,7 +652,7 @@
 }
 
 .reveal-menu[data-state="closed"] {
-  animation: menu-retreat var(--menu-duration-out) var(--menu-ease) forwards;
+  animation: menu-retreat 100ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
 }
 
 @keyframes menu-retreat {
@@ -686,20 +681,41 @@
   animation: overlay-out var(--duration-fast) var(--ease-out) forwards;
 }
 
-/* ------ 统一焦点环：让 :focus-visible 的环淡入而非瞬现，配合 --focus-ring ------ */
-.ring-focus {
-  outline: none;
-  box-shadow: none;
-  transition: box-shadow var(--duration-fast) var(--ease-out);
+/* ------ 折叠面板：跟 Reka 内容测量高度平滑展开/收起 ------ */
+.collapsible-content {
+  overflow: hidden;
 }
 
-.ring-focus:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
+.collapsible-content[data-state="open"] {
+  animation: collapsible-down var(--duration-normal) var(--ease-out);
 }
 
-.ring-focus[data-tone="destructive"]:focus-visible {
-  box-shadow: var(--focus-ring-danger);
+.collapsible-content[data-state="closed"] {
+  animation: collapsible-up var(--duration-fast) var(--ease-out);
+}
+
+@keyframes collapsible-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+
+  to {
+    height: var(--reka-collapsible-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes collapsible-up {
+  from {
+    height: var(--reka-collapsible-content-height);
+    opacity: 1;
+  }
+
+  to {
+    height: 0;
+    opacity: 0;
+  }
 }
 
 /* ------ 滚动边缘渐隐：列表与正文用贴边渐变层，避免 mask 压住吸顶元素和滚动条 ------ */
@@ -761,9 +777,49 @@
   }
 }
 
+@keyframes skeleton-pulse {
+  from {
+    background-color: var(--gray-a3);
+  }
+
+  to {
+    background-color: var(--gray-a4);
+  }
+}
+
+@keyframes spinner-leaf-fade {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0.25;
+  }
+}
+
+@keyframes scroll-area-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scroll-area-fade-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
 /* 浮层没有吸顶元素，仍用 mask；右侧一列保持不透明，滚动条不跟着淡 */
 .edge-fade-menu {
-  --edge-fade-band: var(--edge-fade-menu-band);
+  --edge-fade-band: var(--space-sm);
   -webkit-mask-image:
     linear-gradient(
       to bottom,
@@ -931,7 +987,13 @@
 
   .motion-nudge,
   .motion-pulse::after,
+  .status-pulse::after,
   .is-spinning {
+    animation: none;
+  }
+
+  .collapsible-content[data-state="open"],
+  .collapsible-content[data-state="closed"] {
     animation: none;
   }
 
@@ -952,6 +1014,11 @@
   }
 
   .glass-backdrop[data-state="open"] {
+    animation: none;
+  }
+
+  [data-slot="skeleton"],
+  [data-slot="scroll-area-scrollbar"] {
     animation: none;
   }
 }

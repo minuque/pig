@@ -107,7 +107,7 @@
     margin-inline: 0.2em;
     padding: 0.1em 0.35em;
     border-radius: calc(var(--radius-control) / 2);
-    background: var(--code-inline-bg);
+    background: color-mix(in srgb, var(--fg) 10%, transparent);
     color: inherit;
     font-family: var(--font-mono);
     font-size: 0.85em;
@@ -121,6 +121,7 @@
 
   input[type="checkbox"] {
     margin-inline-end: var(--space-xs);
+    accent-color: var(--accent-solid);
     vertical-align: middle;
   }
 }

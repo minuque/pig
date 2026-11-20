@@ -1,6 +1,29 @@
 /* 全局基线：字体文件、文档底色与字色、原生元素行为、焦点环默认与滚动条。
    这些规则不分层，而且排在所有分片之后，才压得住库的默认值；其余样式归各自的分片。 */
 
+/* ------ Inter Variable（v4 / fontsource 5.3.0，OFL 1.1）：西文与数字默认无衬线，含光学尺寸轴 ------ */
+@font-face {
+  font-family: "Inter Variable";
+  src: url("../assets/fonts/InterVariable-Latin.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Inter Variable";
+  src: url("../assets/fonts/InterVariable-Latin-Italic.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
 /* ------ JetBrains Mono（v2.304，OFL 1.1）：代码默认字体，按用到的字重各一份 ------ */
 @font-face {
   font-family: "JetBrains Mono";
@@ -47,6 +70,17 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-sans);
+  font-optical-sizing: auto;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* 等宽内容恢复默认 OpenType 特征，避免继承正文的 Inter 变体 */
+code,
+kbd,
+samp,
+pre,
+.text-code {
+  font-feature-settings: normal;
 }
 
 /* 原生 button 只做 reset；带 data-slot 的组件按钮自带样式 */
@@ -64,11 +98,6 @@ button:not(:where([data-slot])) {
 
 button:disabled {
   cursor: default;
-}
-
-/* 焦点环统一由 --focus-ring 与 .ring-focus 画，不叠浏览器与库的默认描边 */
-:focus-visible {
-  outline: none;
 }
 
 h1,
