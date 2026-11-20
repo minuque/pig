@@ -1,5 +1,5 @@
 import { inject, provide, ref, type InjectionKey, type Ref } from "vue"
-import type { Size } from "@components/ui/rt/size.js"
+import type { Size } from "@components/ui/size.js"
 
 /** Root 下发的尺寸档：触发器的类名与内容的内边距都按它算。 */
 const selectSizeKey: InjectionKey<Ref<Size>> = Symbol("select-size")

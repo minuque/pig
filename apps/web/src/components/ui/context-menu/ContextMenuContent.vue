@@ -29,7 +29,7 @@ import { ref, toRef } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { ContextMenuPortal, injectContextMenuRootContext, useForwardPropsEmits } from "reka-ui"
 import { MenuContent } from "reka-ui/internal"
-import { provideMenuContent, type MenuSize } from "@components/ui/rt/menu-context.js"
+import { provideMenuContent, type MenuSize } from "@components/ui/menu-context.js"
 
 defineOptions({
   inheritAttrs: false,

@@ -12,7 +12,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { Spinner } from "@components/ui/spinner/index.js"
-import type { Size } from "@components/ui/rt/size.js"
+import type { Size } from "@components/ui/size.js"
 
 const props = withDefaults(defineProps<{ loading?: boolean; size?: Size }>(), {
   loading: false,

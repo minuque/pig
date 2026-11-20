@@ -22,7 +22,7 @@
 import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { Primitive } from "reka-ui"
-import type { Size } from "@components/ui/rt/size.js"
+import type { Size } from "@components/ui/size.js"
 import type { ButtonVariant, Radius } from "./index.js"
 import ButtonContent from "./ButtonContent.vue"
 

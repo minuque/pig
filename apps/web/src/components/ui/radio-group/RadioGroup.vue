@@ -10,7 +10,7 @@ import type { ComputedRef, HTMLAttributes } from "vue"
 import { computed, provide } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { RadioGroupRoot, useForwardProps } from "reka-ui"
-import type { Size } from "@components/ui/rt/size.js"
+import type { Size } from "@components/ui/size.js"
 import { RADIO_GROUP_KEY } from "./type.js"
 
 const props = withDefaults(

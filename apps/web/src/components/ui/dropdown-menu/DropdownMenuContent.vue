@@ -22,7 +22,7 @@ import type { DropdownMenuContentEmits, DropdownMenuContentProps } from "reka-ui
 import { computed, toRef, type ComputedRef, type HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { DropdownMenuContent, DropdownMenuPortal, useForwardPropsEmits } from "reka-ui"
-import { provideMenuContent, type MenuSize } from "@components/ui/rt/menu-context.js"
+import { provideMenuContent, type MenuSize } from "@components/ui/menu-context.js"
 import { usePopperAnchor } from "./popper-anchor.js"
 
 defineOptions({

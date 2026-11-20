@@ -20,7 +20,7 @@ import type { PopoverContentProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { PopoverContent as PopoverContentPrimitive, PopoverPortal, useForwardProps } from "reka-ui"
-import type { Size } from "@components/ui/rt/size.js"
+import type { Size } from "@components/ui/size.js"
 
 defineOptions({ inheritAttrs: false })
 

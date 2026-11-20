@@ -17,7 +17,7 @@ import type { SwitchRootEmits, SwitchRootProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { SwitchRoot, SwitchThumb, useForwardPropsEmits } from "reka-ui"
-import type { Size } from "@components/ui/rt/size.js"
+import type { Size } from "@components/ui/size.js"
 
 const props = withDefaults(
   defineProps<

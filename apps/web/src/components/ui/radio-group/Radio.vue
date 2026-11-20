@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-import type { Size } from "@components/ui/rt/size.js"
+import type { Size } from "@components/ui/size.js"
 
 const props = withDefaults(
   defineProps<{

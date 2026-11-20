@@ -48,9 +48,9 @@ apps/web/src/
 
 `components.css` 的原子类沿用 shadcn 与 Tailwind 的写法（`flex`、`items-center`、`truncate`、`w-full`、`text-body-md`、`rounded-md`），值只读 `tokens.css` 的 token。间距按 `--space-*` 命名（`gap-sm`、`p-md`）而不是数字刻度：项目已经把间距收进 `--space-*` 命名空间，再引入一套数字换算就是两套刻度并行。新增类名前先确认名字没有被任何 scoped 块当作业务类名用过。
 
-### components/ui/rt/
+### components/ui/ 根下的共用约定
 
-基础件共用的尺寸约定：`size.ts` 把对外的 s / m / l 映射到 1 / 2 / 3 档，`menu-context.ts` 给菜单传 s / m 两档。基础件的 props 照 Radix Themes 的语义（`size`、`variant`、`color`、`highContrast`、`radius`），尺寸档只有 s / m / l 三档。
+`size.ts` 定义基础件对外的 s / m / l 尺寸档，`menu-context.ts` 让下拉与右键菜单的子菜单跟随父内容的 s / m 尺寸与颜色。基础件的 props 照 Radix Themes 的语义（`size`、`variant`、`color`、`highContrast`、`radius`），尺寸档只有 s / m / l 三档。
 
 `components/ui/` 只放基础件（Reka 的行为 + 自持外观），业务样式不回流到这里。
 

@@ -1,4 +1,4 @@
-import type { Size } from "@components/ui/rt/size.js"
+import type { Size } from "@components/ui/size.js"
 
 export { default as Button } from "./Button.vue"
 
