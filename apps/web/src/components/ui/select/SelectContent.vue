@@ -6,7 +6,6 @@
         :data-size="size"
         :data-variant="variant"
         :data-accent-color="color"
-        :data-high-contrast="highContrast || undefined"
         :data-position="position"
         :position="position"
         :side-offset="4"
@@ -39,13 +38,12 @@ const props = withDefaults(
       class?: HTMLAttributes["class"]
       variant?: "solid" | "soft"
       color?: string
-      highContrast?: boolean
     }
   >(),
-  { class: undefined, variant: "solid", position: "popper", highContrast: false },
+  { class: undefined, variant: "soft", position: "popper" },
 )
 const emits = defineEmits<SelectContentEmits>()
-const delegatedProps = reactiveOmit(props, "class", "variant", "color", "highContrast", "position")
+const delegatedProps = reactiveOmit(props, "class", "variant", "color", "position")
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<SelectContentProps>
 const size = useSelectSize()
 </script>
@@ -65,6 +63,11 @@ const size = useSelectSize()
 :where([data-slot="select-viewport"]) {
   box-sizing: border-box;
   padding: var(--space-xs);
+}
+
+/* 行距只有一条：视口里相邻的任意两行之间留一道 --menu-item-gap */
+:where([data-slot="select-viewport"]) > * + * {
+  margin-block-start: var(--menu-item-gap);
 }
 
 :where([data-slot="select-content"][data-size="s"]) {

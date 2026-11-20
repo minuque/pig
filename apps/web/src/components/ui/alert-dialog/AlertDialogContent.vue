@@ -46,6 +46,7 @@ const forwarded = useForwardPropsEmits(
 <style scoped>
 .viewport {
   position: fixed;
+  z-index: var(--z-modal);
   inset: 0;
   display: grid;
   grid-template-rows: 1fr auto 1fr;

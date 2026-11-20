@@ -10,8 +10,7 @@
         :collision-padding="10"
         data-menu-content
         :data-size="size"
-        :data-variant="variant"
-        :data-high-contrast="menu?.highContrast.value || undefined"
+        class="reveal-menu"
         :class="props.class"
       >
         <div data-menu-viewport>
@@ -37,7 +36,6 @@ const props = withDefaults(
 )
 const menu = useMenuContent()
 const size = computed(() => menu?.size.value ?? "m")
-const variant = computed(() => menu?.variant.value ?? "solid")
 const accentColor = computed(() => menu?.color.value)
 const alignOffset = computed(() => -Number(RT_SIZE[size.value]) * 4)
 const delegatedProps = reactiveOmit(props, "class")

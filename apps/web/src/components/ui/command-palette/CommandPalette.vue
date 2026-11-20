@@ -69,6 +69,7 @@ watch(
 <style scoped>
 .viewport {
   position: fixed;
+  z-index: var(--z-modal);
   inset: 0;
   display: flex;
   flex-direction: column;

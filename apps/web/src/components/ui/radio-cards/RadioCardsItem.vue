@@ -89,22 +89,4 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<RadioGroupItemP
     box-shadow: inset 0 0 0 var(--border-width) var(--border-strong);
   }
 }
-
-:where([data-slot="radio-cards"][data-variant="classic"]) :where([data-slot="radio-cards-item"]) {
-  background-color: var(--bg-raised);
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--border),
-    0 1px 2px var(--black-a1);
-  transition: box-shadow 120ms;
-}
-
-@media (hover: hover) {
-  :where([data-slot="radio-cards"][data-variant="classic"])
-    :where([data-slot="radio-cards-item"]:not(:disabled):not([data-state="checked"]):hover) {
-    box-shadow:
-      inset 0 0 0 var(--border-width) var(--border-strong),
-      0 2px 6px var(--black-a1);
-    transition-duration: 40ms;
-  }
-}
 </style>

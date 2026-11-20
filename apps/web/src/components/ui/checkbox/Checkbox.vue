@@ -6,7 +6,6 @@
     :data-accent-color="color"
     :data-size="size"
     :data-variant="variant"
-    :data-high-contrast="highContrast || undefined"
     :class="props.class"
   >
     <CheckboxIndicator data-slot="checkbox-indicator">
@@ -29,15 +28,14 @@ const props = withDefaults(
     CheckboxRootProps<boolean> & {
       class?: HTMLAttributes["class"] | undefined
       size?: Size | undefined
-      variant?: "classic" | "surface" | "soft" | undefined
+      variant?: "surface" | "soft" | undefined
       color?: string | undefined
-      highContrast?: boolean | undefined
     }
   >(),
-  { class: undefined, size: "m", variant: "surface", color: undefined, highContrast: false },
+  { class: undefined, size: "m", variant: "surface", color: undefined },
 )
 const emits = defineEmits<CheckboxRootEmits<boolean>>()
-const delegatedProps = reactiveOmit(props, "class", "size", "variant", "color", "highContrast")
+const delegatedProps = reactiveOmit(props, "class", "size", "variant", "color")
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
   CheckboxRootProps<boolean>
 >
@@ -81,6 +79,10 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
 
 :where([data-slot="checkbox"][data-size="l"])::before {
   border-radius: calc(var(--radius-control) / 2 * 1.25);
+}
+
+:where([data-slot="checkbox"]:focus-visible) {
+  outline: none;
 }
 
 :where([data-slot="checkbox"]:focus-visible)::before {
@@ -145,91 +147,12 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
   color: var(--accent-contrast);
 }
 
-:where(
-  [data-slot="checkbox"][data-variant="surface"]:is(
-      [data-state="checked"],
-      [data-state="indeterminate"]
-    )[data-high-contrast]
-)::before {
-  background-color: var(--accent-12);
-}
-
-:where(
-    [data-slot="checkbox"][data-variant="surface"]:is(
-        [data-state="checked"],
-        [data-state="indeterminate"]
-      )[data-high-contrast]
-  )
-  :where([data-slot="checkbox-indicator"]) {
-  color: var(--accent-1);
-}
-
 :where([data-slot="checkbox"][data-variant="surface"][data-disabled])::before {
   background-color: transparent;
   box-shadow: inset 0 0 0 var(--border-width) var(--gray-a6);
 }
 
 :where([data-slot="checkbox"][data-variant="surface"][data-disabled])
-  :where([data-slot="checkbox-indicator"]) {
-  color: var(--gray-a8);
-}
-
-:where([data-slot="checkbox"][data-variant="classic"][data-state="unchecked"])::before {
-  background-color: var(--bg-raised);
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--gray-a3),
-    0 1px 2px var(--black-a1);
-}
-
-:where(
-  [data-slot="checkbox"][data-variant="classic"]:is(
-      [data-state="checked"],
-      [data-state="indeterminate"]
-    )
-)::before {
-  background-color: var(--accent-indicator);
-  background-image: linear-gradient(to bottom, var(--white-a3), transparent, var(--black-a1));
-  box-shadow:
-    inset 0 0.5px 0.5px var(--white-a4),
-    inset 0 -0.5px 0.5px var(--black-a4);
-}
-
-:where(
-    [data-slot="checkbox"][data-variant="classic"]:is(
-        [data-state="checked"],
-        [data-state="indeterminate"]
-      )
-  )
-  :where([data-slot="checkbox-indicator"]) {
-  color: var(--accent-contrast);
-}
-
-:where(
-  [data-slot="checkbox"][data-variant="classic"]:is(
-      [data-state="checked"],
-      [data-state="indeterminate"]
-    )[data-high-contrast]
-)::before {
-  background-color: var(--accent-12);
-}
-
-:where(
-    [data-slot="checkbox"][data-variant="classic"]:is(
-        [data-state="checked"],
-        [data-state="indeterminate"]
-      )[data-high-contrast]
-  )
-  :where([data-slot="checkbox-indicator"]) {
-  color: var(--accent-1);
-}
-
-:where([data-slot="checkbox"][data-variant="classic"][data-disabled])::before {
-  background-color: transparent;
-  background-image: none;
-  box-shadow: 0 1px 2px var(--black-a1);
-}
-
-:where([data-slot="checkbox"][data-variant="classic"][data-disabled])
   :where([data-slot="checkbox-indicator"]) {
   color: var(--gray-a8);
 }
@@ -246,16 +169,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
   )
   :where([data-slot="checkbox-indicator"]) {
   color: var(--accent-a11);
-}
-
-:where(
-    [data-slot="checkbox"][data-variant="soft"]:is(
-        [data-state="checked"],
-        [data-state="indeterminate"]
-      )[data-high-contrast]
-  )
-  :where([data-slot="checkbox-indicator"]) {
-  color: var(--accent-12);
 }
 
 :where([data-slot="checkbox"][data-variant="soft"][data-disabled])::before {

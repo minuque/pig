@@ -21,9 +21,9 @@ const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DialogTitl
 :where([data-slot="dialog-title"]) {
   margin: 0;
   font-family: var(--font-sans);
-  font-size: 20px;
-  font-weight: var(--font-weight-bold);
-  line-height: 26px;
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--text-title--line-height);
   color: var(--fg);
 }
 </style>

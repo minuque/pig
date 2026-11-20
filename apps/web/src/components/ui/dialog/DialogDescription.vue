@@ -21,8 +21,8 @@ const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DialogDesc
 <style>
 :where([data-slot="dialog-description"]) {
   margin: 0;
-  font-size: var(--text-title);
-  line-height: var(--text-title--line-height);
-  color: var(--fg);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  color: var(--fg-secondary);
 }
 </style>

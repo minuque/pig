@@ -6,7 +6,7 @@
     :data-accent-color="color"
     :data-radius="radius"
     :class="props.class"
-    @pointer-down="onPointerDown"
+    @pointerdown="onPointerDown"
   >
     <input
       ref="inputRef"
@@ -33,7 +33,7 @@ const props = withDefaults(
   defineProps<{
     modelValue?: string | number
     size?: Size
-    variant?: "classic" | "surface" | "soft"
+    variant?: "surface" | "soft"
     color?: string
     radius?: Radius
     class?: HTMLAttributes["class"]
@@ -70,9 +70,7 @@ function onPointerDown(event: PointerEvent) {
   requestAnimationFrame(() => {
     try {
       input.setSelectionRange(caret, caret)
-    } catch {
-      // 部分 input type 不支持 setSelectionRange
-    }
+    } catch {}
 
     input.focus()
   })
@@ -98,10 +96,28 @@ function onPointerDown(event: PointerEvent) {
   outline-offset: -1px;
 }
 
-:where(
-  [data-slot="text-field-root"][data-variant="soft"]:has([data-slot="text-field-input"]:focus)
-) {
-  outline-color: var(--accent-8);
+:where([data-slot="text-field-input"]:focus-visible) {
+  outline: none;
+}
+
+:where([data-slot="text-field-root"][data-radius="none"]) {
+  border-radius: 0;
+}
+
+:where([data-slot="text-field-root"][data-radius="small"]) {
+  border-radius: calc(var(--radius-control) / 2);
+}
+
+:where([data-slot="text-field-root"][data-radius="medium"]) {
+  border-radius: var(--radius-control);
+}
+
+:where([data-slot="text-field-root"][data-radius="large"]) {
+  border-radius: var(--radius-card);
+}
+
+:where([data-slot="text-field-root"][data-radius="full"]) {
+  border-radius: var(--radius-pill);
 }
 
 :where([data-slot="text-field-root"]) ::selection {
@@ -158,7 +174,7 @@ function onPointerDown(event: PointerEvent) {
   align-items: center;
   inline-size: 100%;
   text-align: inherit;
-  border-radius: calc(var(--radius-control) - var(--border-width));
+  border-radius: inherit;
   background-color: transparent;
   color: inherit;
 }
@@ -229,25 +245,6 @@ function onPointerDown(event: PointerEvent) {
 ) {
   background-image: linear-gradient(var(--gray-a2), var(--gray-a2));
   box-shadow: inset 0 0 0 var(--border-width) var(--gray-a6);
-}
-
-:where([data-slot="text-field-root"][data-variant="classic"]) {
-  background-clip: content-box;
-  background-color: var(--bg-raised);
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--gray-a5),
-    0 1px 2px var(--black-a1);
-  color: var(--gray-12);
-}
-
-:where([data-slot="text-field-root"][data-variant="classic"]) ::placeholder {
-  color: var(--gray-a10);
-}
-
-:where([data-slot="text-field-root"][data-variant="classic"]):has(
-  [data-slot="text-field-input"]:where(:disabled, :read-only)
-) {
-  background-image: linear-gradient(var(--gray-a2), var(--gray-a2));
 }
 
 :where([data-slot="text-field-root"][data-variant="soft"]) {

@@ -2,7 +2,7 @@
   <Story title="Kbd">
     <Variant title="Variants">
       <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
-        <Kbd variant="classic">Classic</Kbd>
+        <Kbd variant="surface">Surface</Kbd>
         <Kbd variant="soft">Soft</Kbd>
       </div>
     </Variant>

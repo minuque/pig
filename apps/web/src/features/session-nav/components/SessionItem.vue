@@ -536,7 +536,7 @@ function confirmDelete() {
   padding-inline: 10px;
 }
 
-.session-item:hover .session-card {
+.session-item:hover :where(.session-card:not(.active, [data-state="open"])) {
   background: var(--bg-hover);
 }
 

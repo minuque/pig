@@ -7,9 +7,7 @@
         :data-accent-color="props.color"
         data-menu-content
         :data-size="size"
-        :data-variant="variant"
-        :data-high-contrast="highContrast || undefined"
-        :class="props.class"
+        :class="['reveal-menu', props.class]"
       >
         <div v-if="!bare" data-menu-viewport>
           <slot />
@@ -27,11 +25,7 @@ import { computed, toRef, type ComputedRef, type HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { DropdownMenuContent, DropdownMenuPortal, useForwardPropsEmits } from "reka-ui"
 import { ThemeRoot } from "@components/ui/rt/index.js"
-import {
-  provideMenuContent,
-  type MenuSize,
-  type MenuVariant,
-} from "@components/ui/rt/menu-context.js"
+import { provideMenuContent, type MenuSize } from "@components/ui/rt/menu-context.js"
 import { usePopperAnchor } from "./popper-anchor.js"
 
 defineOptions({
@@ -43,11 +37,8 @@ const props = withDefaults(
     DropdownMenuContentProps & {
       class?: HTMLAttributes["class"]
       bare?: boolean
-      /** Radix Themes 的菜单尺寸：s 紧凑、m 默认 */
       size?: MenuSize
-      variant?: MenuVariant
       color?: string
-      highContrast?: boolean
     }
   >(),
   {
@@ -57,23 +48,12 @@ const props = withDefaults(
     collisionPadding: 10,
     bare: false,
     size: "m",
-    variant: "soft",
-    highContrast: false,
   },
 )
 const emits = defineEmits<DropdownMenuContentEmits>()
-// 被 Tooltip 包住时 MenuAnchor 会注册到 Tooltip 的 PopperRoot，须显式传触发元素当锚点
 const anchor = usePopperAnchor()
 const reference = computed(() => props.reference ?? anchor?.value)
-const delegatedProps = reactiveOmit(
-  props,
-  "class",
-  "bare",
-  "size",
-  "variant",
-  "color",
-  "highContrast",
-)
+const delegatedProps = reactiveOmit(props, "class", "bare", "size", "color")
 // reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，cast 到组件 props 类型
 const forwarded = useForwardPropsEmits(
   delegatedProps,
@@ -82,8 +62,6 @@ const forwarded = useForwardPropsEmits(
 
 provideMenuContent({
   size: toRef(props, "size"),
-  variant: toRef(props, "variant"),
   color: toRef(props, "color"),
-  highContrast: toRef(props, "highContrast"),
 })
 </script>

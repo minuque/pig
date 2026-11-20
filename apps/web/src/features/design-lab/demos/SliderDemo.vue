@@ -10,7 +10,6 @@
 
     <Variant title="Variants">
       <div style="display: flex; flex-direction: column; gap: 24px; max-width: 320px">
-        <Slider v-model="value" variant="classic" aria-label="Classic slider" />
         <Slider v-model="value" variant="surface" aria-label="Surface slider" />
         <Slider v-model="value" variant="soft" aria-label="Soft slider" />
       </div>

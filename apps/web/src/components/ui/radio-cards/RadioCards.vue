@@ -29,7 +29,7 @@ const props = withDefaults(
     RadioGroupRootProps & {
       class?: HTMLAttributes["class"]
       size?: Size
-      variant?: "surface" | "classic"
+      variant?: "surface"
       color?: string
       disabled?: boolean
       columns?: string

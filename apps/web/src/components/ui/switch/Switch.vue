@@ -8,11 +8,7 @@
     :data-radius="radius"
     :class="props.class"
   >
-    <SwitchThumb
-      data-slot="switch-thumb"
-      :data-high-contrast="highContrast || undefined"
-      :data-state="forwarded.modelValue ? 'checked' : 'unchecked'"
-    />
+    <SwitchThumb data-slot="switch-thumb" />
   </SwitchRoot>
 </template>
 
@@ -28,24 +24,15 @@ const props = withDefaults(
     SwitchRootProps<boolean> & {
       class?: HTMLAttributes["class"]
       size?: Size
-      variant?: "classic" | "surface" | "soft"
+      variant?: "surface" | "soft"
       color?: string
       radius?: "none" | "small" | "medium" | "large" | "full"
-      highContrast?: boolean
     }
   >(),
-  { class: undefined, size: "m", variant: "surface", highContrast: false },
+  { class: undefined, size: "m", variant: "surface" },
 )
 const emits = defineEmits<SwitchRootEmits<boolean>>()
-const delegatedProps = reactiveOmit(
-  props,
-  "class",
-  "size",
-  "variant",
-  "color",
-  "radius",
-  "highContrast",
-)
+const delegatedProps = reactiveOmit(props, "class", "size", "variant", "color", "radius")
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
   SwitchRootProps<boolean>
 >
@@ -64,7 +51,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
 :where([data-slot="switch"])::before {
   content: "";
   display: block;
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-pill);
   background-repeat: no-repeat;
   transition:
     background-position 120ms linear,
@@ -80,7 +67,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
 :where([data-slot="switch"][data-size="s"])::before {
   width: calc(var(--space-md) * 1.75);
   height: var(--space-md);
-  border-radius: calc(var(--radius-control) / 2);
   background-size: calc(var(--space-md) * 4.5) 100%;
 }
 
@@ -116,6 +102,10 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
   transition-duration: 30ms;
 }
 
+:where([data-slot="switch"]:focus-visible) {
+  outline: none;
+}
+
 :where([data-slot="switch"]:focus-visible)::before {
   outline: 2px solid var(--focus-color);
   outline-offset: 2px;
@@ -128,7 +118,8 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
 :where([data-slot="switch-thumb"]) {
   position: absolute;
   inset-inline-start: 1px;
-  background-color: white;
+  border-radius: var(--radius-pill);
+  background-color: var(--fg-on-accent);
   transition:
     transform 140ms cubic-bezier(0.45, 0.05, 0.55, 0.95),
     box-shadow 140ms var(--ease-in-out);
@@ -137,7 +128,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
 :where([data-slot="switch"][data-size="s"]) :where([data-slot="switch-thumb"]) {
   width: calc(var(--space-md) - 2px);
   height: calc(var(--space-md) - 2px);
-  border-radius: calc(var(--radius-control) / 2 - 1px);
 }
 
 :where([data-slot="switch"][data-size="s"])
@@ -148,7 +138,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
 :where([data-slot="switch"][data-size="m"]) :where([data-slot="switch-thumb"]) {
   width: calc(var(--space-lg) * 5 / 6 - 2px);
   height: calc(var(--space-lg) * 5 / 6 - 2px);
-  border-radius: calc(var(--radius-control) - 1px);
 }
 
 :where([data-slot="switch"][data-size="m"])
@@ -159,7 +148,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
 :where([data-slot="switch"][data-size="l"]) :where([data-slot="switch-thumb"]) {
   width: calc(var(--space-lg) - 2px);
   height: calc(var(--space-lg) - 2px);
-  border-radius: calc(var(--radius-control) - 1px);
 }
 
 :where([data-slot="switch"][data-size="l"])
@@ -220,98 +208,6 @@ html.dark :where([data-slot="switch"][data-variant="surface"][data-disabled]) {
 }
 
 :where([data-slot="switch"][data-variant="surface"])
-  :where([data-slot="switch-thumb"][data-state="checked"][data-high-contrast]) {
-  box-shadow:
-    0 1px 3px var(--black-a2),
-    0 2px 4px -1px var(--black-a1),
-    0 0 0 1px var(--black-a2),
-    -1px 0 1px var(--black-a2);
-}
-
-:where([data-slot="switch"][data-variant="surface"])
-  :where([data-slot="switch-thumb"][data-disabled]) {
-  background-color: var(--gray-2);
-  box-shadow:
-    0 0 0 1px var(--gray-a2),
-    0 1px 3px var(--black-a1);
-  transition: none;
-}
-
-:where([data-slot="switch"][data-variant="classic"])::before {
-  background-color: var(--gray-a4);
-  background-image: linear-gradient(to right, var(--accent-track) 40%, transparent 60%);
-  box-shadow:
-    0 1px 2px var(--black-a1),
-    inset 0 0 0 1px var(--gray-a5);
-}
-
-:where([data-slot="switch"][data-variant="classic"][data-state="unchecked"]:active)::before {
-  background-color: var(--gray-a5);
-}
-
-:where([data-slot="switch"][data-variant="classic"][data-state="checked"])::before {
-  box-shadow:
-    inset 0 0 0 1px var(--gray-a3),
-    inset 0 0 0 1px var(--accent-a4),
-    inset 0 0 0 1px var(--black-a1),
-    inset 0 1.5px 2px 0 var(--black-a2);
-}
-
-:where([data-slot="switch"][data-variant="classic"][data-state="checked"]:active)::before {
-  filter: brightness(0.92) saturate(1.1);
-}
-
-html.dark
-  :where([data-slot="switch"][data-variant="classic"][data-state="checked"]:active)::before {
-  filter: brightness(1.08);
-}
-
-:where([data-slot="switch"][data-variant="classic"][data-disabled]) {
-  mix-blend-mode: multiply;
-}
-
-html.dark :where([data-slot="switch"][data-variant="classic"][data-disabled]) {
-  mix-blend-mode: screen;
-}
-
-:where([data-slot="switch"][data-variant="classic"][data-disabled])::before {
-  background-image: none;
-  background-color: var(--gray-a5);
-  box-shadow:
-    0 1px 2px var(--black-a1),
-    inset 0 0 0 1px var(--gray-a5);
-  opacity: 0.5;
-  filter: none;
-}
-
-:where([data-slot="switch"][data-variant="classic"])
-  :where([data-slot="switch-thumb"][data-state="unchecked"]) {
-  box-shadow:
-    0 1px 3px var(--black-a3),
-    0 2px 4px -1px var(--black-a1),
-    0 0 0 1px var(--black-a2);
-}
-
-:where([data-slot="switch"][data-variant="classic"])
-  :where([data-slot="switch-thumb"][data-state="checked"]) {
-  box-shadow:
-    0 1px 3px var(--black-a2),
-    0 2px 4px -1px var(--black-a1),
-    0 0 0 1px var(--black-a1),
-    0 0 0 1px var(--accent-a4),
-    -1px 0 1px var(--black-a2);
-}
-
-:where([data-slot="switch"][data-variant="classic"])
-  :where([data-slot="switch-thumb"][data-state="checked"][data-high-contrast]) {
-  box-shadow:
-    0 1px 3px var(--black-a2),
-    0 2px 4px -1px var(--black-a1),
-    0 0 0 1px var(--black-a2),
-    -1px 0 1px var(--black-a2);
-}
-
-:where([data-slot="switch"][data-variant="classic"])
   :where([data-slot="switch-thumb"][data-disabled]) {
   background-color: var(--gray-2);
   box-shadow:

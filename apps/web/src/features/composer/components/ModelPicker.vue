@@ -6,7 +6,6 @@
           <Button
             variant="ghost"
             color="gray"
-            high-contrast
             class="selector"
             :disabled="disabled"
             :aria-label="t('composer.selectModel', { model: triggerText })"
@@ -351,6 +350,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
   flex-shrink: 1;
   margin: 0;
   gap: var(--space-xs);
+  color: var(--fg);
   font-size: var(--text-body);
 }
 

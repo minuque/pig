@@ -25,10 +25,10 @@ const props = withDefaults(
     PrimitiveProps & {
       class?: HTMLAttributes["class"]
       size?: Size
-      variant?: "classic" | "soft"
+      variant?: "surface" | "soft"
     }
   >(),
-  { as: "kbd", asChild: false, size: "m", variant: "classic", class: undefined },
+  { as: "kbd", asChild: false, size: "m", variant: "surface", class: undefined },
 )
 </script>
 
@@ -71,30 +71,27 @@ const props = withDefaults(
   font-size: calc(var(--text-title) * 0.8);
 }
 
-:where([data-slot="kbd"][data-variant="classic"]) {
-  background-color: var(--gray-1);
-  box-shadow: var(--kbd-box-shadow);
+:where([data-slot="kbd"][data-variant="surface"]) {
+  background-color: var(--bg-raised);
+  box-shadow:
+    inset 0 0 0 var(--border-width) var(--border-strong),
+    inset 0 -1px 0 var(--border-strong);
   transition:
     box-shadow var(--duration-fast),
     background-color var(--duration-fast);
 }
 
-:where([data-slot="kbd"][data-variant="classic"]:is(:any-link, button):is([data-state="open"])) {
-  background-color: var(--bg);
-  box-shadow:
-    var(--kbd-box-shadow),
-    0 0 0 0.05em var(--gray-a5);
+:where([data-slot="kbd"][data-variant="surface"]:is(:any-link, button):is([data-state="open"])) {
+  background-color: var(--bg-surface);
 }
 
 :where(
-  [data-slot="kbd"][data-variant="classic"]:is(:any-link, button):active:not([data-state="open"])
+  [data-slot="kbd"][data-variant="surface"]:is(:any-link, button):active:not([data-state="open"])
 ) {
   padding-top: 0.05em;
   padding-bottom: 0;
-  background-color: var(--gray-2);
-  box-shadow:
-    inset 0 0.05em var(--black-a3),
-    0 0 0 0.05em var(--gray-a7);
+  background-color: var(--bg-hover);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-strong);
 }
 
 :where([data-slot="kbd"][data-variant="soft"]) {
@@ -116,11 +113,8 @@ const props = withDefaults(
 }
 
 @media (hover: hover) {
-  :where([data-slot="kbd"][data-variant="classic"]:is(:any-link, button):hover) {
-    background-color: var(--bg);
-    box-shadow:
-      var(--kbd-box-shadow),
-      0 0 0 0.05em var(--gray-a5);
+  :where([data-slot="kbd"][data-variant="surface"]:is(:any-link, button):hover) {
+    background-color: var(--bg-surface);
   }
 
   :where([data-slot="kbd"][data-variant="soft"]:is(:any-link, button):hover) {

@@ -18,14 +18,13 @@ const props = withDefaults(
     RadioGroupRootProps & {
       class?: HTMLAttributes["class"]
       size?: Size
-      variant?: "classic" | "surface" | "soft"
+      variant?: "surface" | "soft"
       color?: string
-      highContrast?: boolean
     }
   >(),
-  { class: undefined, size: "m", variant: "surface", highContrast: false },
+  { class: undefined, size: "m", variant: "surface" },
 )
-const delegatedProps = reactiveOmit(props, "class", "size", "variant", "color", "highContrast")
+const delegatedProps = reactiveOmit(props, "class", "size", "variant", "color")
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<RadioGroupRootProps>
 
 provide(
@@ -34,7 +33,6 @@ provide(
     size: props.size,
     variant: props.variant,
     color: props.color,
-    highContrast: props.highContrast,
   })),
 )
 </script>

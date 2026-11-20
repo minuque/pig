@@ -5,7 +5,6 @@
     :data-size="size"
     :data-variant="variant"
     :data-accent-color="accentColor"
-    :data-high-contrast="highContrast || undefined"
     :data-dismissible="dismissible || undefined"
     :data-has-icon="Boolean($slots.icon) || undefined"
     :as="as"
@@ -54,7 +53,6 @@ interface Props extends PrimitiveProps {
   variant?: BannerVariant
   color?: BannerColor
   size?: Size
-  highContrast?: boolean
   dismissible?: boolean
   floating?: boolean
   class?: HTMLAttributes["class"]
@@ -66,7 +64,6 @@ const props = withDefaults(defineProps<Props>(), {
   variant: "soft",
   color: "neutral",
   size: "m",
-  highContrast: false,
   dismissible: false,
   floating: false,
   class: undefined,
@@ -97,10 +94,6 @@ const accentColor = computed(() => ACCENT_BY_COLOR[props.color])
 
 :where([data-slot="banner"][data-has-icon]) {
   grid-template-columns: auto minmax(0, 1fr);
-}
-
-:where([data-slot="banner"][data-high-contrast]) {
-  color: var(--accent-12);
 }
 
 :where([data-slot="banner"][data-size="s"]) {

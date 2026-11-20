@@ -6,7 +6,6 @@
     :data-size="size"
     :data-underline="underline"
     :data-accent-color="color"
-    :data-high-contrast="highContrast || undefined"
     :class="[weightClass, truncate && 'truncate', props.class]"
     v-bind="$attrs"
   >
@@ -31,7 +30,6 @@ const props = withDefaults(
       weight?: "regular" | "medium" | "bold"
       underline?: "auto" | "always" | "hover" | "none"
       color?: string
-      highContrast?: boolean
       truncate?: boolean
     }
   >(),
@@ -39,7 +37,6 @@ const props = withDefaults(
     as: "a",
     asChild: false,
     underline: "auto",
-    highContrast: false,
     truncate: false,
     class: undefined,
   },
@@ -95,13 +92,7 @@ const weightClass = computed(() => (props.weight ? WEIGHT_CLASS[props.weight] : 
   text-decoration-color: var(--accent-a5);
 }
 
-:where([data-slot="link"][data-accent-color][data-high-contrast]) {
-  color: var(--accent-12);
-  text-decoration-color: var(--accent-a6);
-}
-
-:where([data-slot="link"][data-underline="always"]),
-:where([data-slot="link"][data-underline="auto"][data-high-contrast]) {
+:where([data-slot="link"][data-underline="always"]) {
   text-decoration-line: underline;
 }
 

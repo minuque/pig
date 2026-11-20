@@ -388,6 +388,7 @@
 /* 毛玻璃弹层：警告框与命令面板共用。弹层经 Portal 挂到 body，scoped 打不中，写在这里 */
 .glass-backdrop {
   position: fixed;
+  z-index: var(--z-modal);
   inset: 0;
   background: var(--glass-backdrop);
   backdrop-filter: var(--glass-backdrop-filter);
@@ -420,6 +421,17 @@
 
 :where([data-menu-content][data-size="s"]) {
   border-radius: var(--radius-control);
+}
+
+/* 弹层不超出视口：高度跟 reka 给的可用高度，缩放原点跟 reka 的 transform-origin */
+:where([data-slot="dropdown-menu-content"], [data-slot="dropdown-menu-sub-content"]) {
+  max-block-size: var(--reka-dropdown-menu-content-available-height);
+  transform-origin: var(--reka-dropdown-menu-content-transform-origin);
+}
+
+:where([data-slot="context-menu-content"], [data-slot="context-menu-sub-content"]) {
+  max-block-size: var(--reka-context-menu-content-available-height);
+  transform-origin: var(--reka-context-menu-content-transform-origin);
 }
 
 :where([data-menu-viewport]) {

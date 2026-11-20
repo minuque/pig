@@ -5,7 +5,6 @@
     :data-variant="variant"
     :data-accent-color="color"
     :data-radius="radius"
-    :data-high-contrast="highContrast || undefined"
     :as="as"
     :as-child="asChild"
     :class="props.class"
@@ -31,7 +30,6 @@ const props = withDefaults(
       variant?: "solid" | "soft" | "surface" | "outline"
       color?: string
       radius?: Radius
-      highContrast?: boolean
       class?: HTMLAttributes["class"]
     }
   >(),
@@ -40,7 +38,6 @@ const props = withDefaults(
     asChild: false,
     size: "s",
     variant: "soft",
-    highContrast: false,
     class: undefined,
   },
 )
@@ -109,11 +106,6 @@ const props = withDefaults(
   color: var(--accent-contrast);
 }
 
-:where([data-slot="badge"][data-variant="solid"][data-high-contrast]) {
-  background-color: var(--accent-12);
-  color: var(--accent-1);
-}
-
 :where([data-slot="badge"][data-variant="soft"]) {
   background-color: var(--accent-a3);
   color: var(--accent-a11);
@@ -129,18 +121,5 @@ const props = withDefaults(
   background-color: transparent;
   box-shadow: inset 0 0 0 var(--border-width) var(--accent-a8);
   color: var(--accent-a11);
-}
-
-:where(
-  [data-slot="badge"]:is([data-variant="soft"], [data-variant="surface"])[data-high-contrast]
-) {
-  color: var(--accent-12);
-}
-
-:where([data-slot="badge"][data-variant="outline"][data-high-contrast]) {
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--accent-a7),
-    inset 0 0 0 var(--border-width) var(--gray-a11);
-  color: var(--accent-12);
 }
 </style>

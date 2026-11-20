@@ -3,7 +3,6 @@
     side="bottom"
     align="start"
     :side-offset="4"
-    variant="soft"
     class="scope-menu"
     @open-auto-focus.prevent="openSearch"
   >

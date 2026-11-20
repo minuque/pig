@@ -10,7 +10,6 @@
 
     <Variant title="Variants">
       <div style="display: flex; flex-direction: column; gap: 12px; max-width: 320px">
-        <TextFieldRoot v-model="value" variant="classic" placeholder="Classic" />
         <TextFieldRoot v-model="value" variant="surface" placeholder="Surface" />
         <TextFieldRoot v-model="value" variant="soft" placeholder="Soft" />
       </div>

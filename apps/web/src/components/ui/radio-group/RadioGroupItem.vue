@@ -12,7 +12,6 @@
       :data-accent-color="group.color"
       :data-size="group.size"
       :data-variant="group.variant"
-      :data-high-contrast="group.highContrast || undefined"
     />
 
     <span data-slot="radio-group-item-inner"><slot /></span>
@@ -25,7 +24,6 @@
     :data-accent-color="group.color"
     :data-size="group.size"
     :data-variant="group.variant"
-    :data-high-contrast="group.highContrast || undefined"
     :class="props.class"
   />
 </template>
@@ -52,7 +50,6 @@ const group = inject(
         size: "m",
         variant: "surface",
         color: undefined,
-        highContrast: false,
       }) as const,
   ),
 )
@@ -126,6 +123,10 @@ const group = inject(
   content: none;
 }
 
+:where([data-slot="radio-group-item"]:focus-visible) {
+  outline: none;
+}
+
 :where([data-slot="radio-group-item"]:focus-visible)::before {
   outline: 2px solid var(--focus-color);
   outline-offset: 2px;
@@ -148,16 +149,6 @@ const group = inject(
   background-color: var(--accent-contrast);
 }
 
-:where(
-  [data-slot="radio-group-item"][data-variant="surface"][data-state="checked"][data-high-contrast]
-)::before {
-  background-color: var(--accent-12);
-}
-
-:where([data-slot="radio-group-item"][data-variant="surface"][data-high-contrast])::after {
-  background-color: var(--accent-1);
-}
-
 :where([data-slot="radio-group-item"][data-variant="surface"][data-disabled])::before {
   background-color: var(--gray-a3);
   box-shadow: inset 0 0 0 var(--border-width) var(--gray-a6);
@@ -167,58 +158,12 @@ const group = inject(
   background-color: var(--gray-a8);
 }
 
-:where([data-slot="radio-group-item"][data-variant="classic"]:not([data-state="checked"]))::before {
-  background-color: var(--bg-raised);
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--gray-7),
-    0 1px 2px var(--black-a1);
-}
-
-:where([data-slot="radio-group-item"][data-variant="classic"][data-state="checked"])::before {
-  background-color: var(--accent-indicator);
-  background-image: linear-gradient(to bottom, var(--white-a3), transparent, var(--black-a3));
-  box-shadow:
-    inset 0 0.5px 0.5px var(--white-a4),
-    inset 0 -0.5px 0.5px var(--black-a4);
-}
-
-:where([data-slot="radio-group-item"][data-variant="classic"])::after {
-  background-color: var(--accent-contrast);
-}
-
-:where(
-  [data-slot="radio-group-item"][data-variant="classic"][data-state="checked"][data-high-contrast]
-)::before {
-  background-color: var(--accent-12);
-}
-
-:where([data-slot="radio-group-item"][data-variant="classic"][data-high-contrast])::after {
-  background-color: var(--accent-1);
-}
-
-:where([data-slot="radio-group-item"][data-variant="classic"][data-disabled])::before {
-  background-color: var(--gray-a3);
-  background-image: none;
-}
-
-:where([data-slot="radio-group-item"][data-variant="classic"][data-disabled])::after {
-  background-color: var(--gray-a8);
-}
-
 :where([data-slot="radio-group-item"][data-variant="soft"])::before {
   background-color: var(--accent-a4);
 }
 
 :where([data-slot="radio-group-item"][data-variant="soft"])::after {
   background-color: var(--accent-a11);
-}
-
-:where([data-slot="radio-group-item"][data-variant="soft"][data-high-contrast])::after {
-  background-color: var(--accent-12);
-}
-
-:where([data-slot="radio-group-item"][data-variant="soft"]:focus-visible)::before {
-  outline-color: var(--accent-8);
 }
 
 :where([data-slot="radio-group-item"][data-variant="soft"][data-disabled])::before {

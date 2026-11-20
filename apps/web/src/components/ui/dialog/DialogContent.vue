@@ -78,8 +78,9 @@ const widthStyle = computed(() =>
   box-sizing: border-box;
   width: 100%;
   margin: auto;
+  overflow: auto;
   max-inline-size: var(--dialog-max-width, 600px);
-  padding: round(up, var(--radius-dialog), var(--spacing));
+  padding: var(--space-md);
   border-radius: var(--radius-dialog);
   background-color: var(--bg);
   box-shadow: var(--shadow-dialog);
@@ -88,12 +89,13 @@ const widthStyle = computed(() =>
 
 :where([data-slot="dialog-content"][data-size="s"]) {
   max-inline-size: var(--dialog-max-width, var(--dialog-width-sm));
-  padding: round(up, var(--radius-card), var(--spacing));
+  padding: var(--space-sm);
   border-radius: var(--radius-card);
 }
 
 :where([data-slot="dialog-content"][data-size="l"]) {
   max-inline-size: var(--dialog-max-width, 720px);
+  padding: var(--space-lg);
 }
 
 :where([data-slot="dialog-content"] [data-slot="dialog-title"]) {
@@ -104,20 +106,17 @@ const widthStyle = computed(() =>
 <style scoped>
 .dlg-close {
   position: absolute;
-  inset-block-start: calc(
-    round(up, var(--radius-dialog), var(--spacing)) - (var(--space-lg) - var(--icon-md)) / 2
-  );
-  inset-inline-end: calc(
-    round(up, var(--radius-dialog), var(--spacing)) - (var(--space-lg) - var(--icon-md)) / 2
-  );
+  inset-block-start: calc(var(--space-md) - (var(--space-lg) - var(--icon-md)) / 2);
+  inset-inline-end: calc(var(--space-md) - (var(--space-lg) - var(--icon-md)) / 2);
 }
 
 [data-size="s"] > .dlg-close {
-  inset-block-start: calc(
-    round(up, var(--radius-card), var(--spacing)) - (var(--space-lg) - var(--icon-md)) / 2
-  );
-  inset-inline-end: calc(
-    round(up, var(--radius-card), var(--spacing)) - (var(--space-lg) - var(--icon-md)) / 2
-  );
+  inset-block-start: calc(var(--space-sm) - (var(--space-lg) - var(--icon-md)) / 2);
+  inset-inline-end: calc(var(--space-sm) - (var(--space-lg) - var(--icon-md)) / 2);
+}
+
+[data-size="l"] > .dlg-close {
+  inset-block-start: calc(var(--space-lg) - (var(--space-lg) - var(--icon-md)) / 2);
+  inset-inline-end: calc(var(--space-lg) - (var(--space-lg) - var(--icon-md)) / 2);
 }
 </style>

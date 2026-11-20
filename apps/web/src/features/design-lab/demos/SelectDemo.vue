@@ -2,7 +2,7 @@
   <Story title="Select">
     <Variant title="Sizes">
       <div style="display: flex; flex-direction: column; gap: 12px; max-width: 240px">
-        <Select v-model="value" size="s">
+        <Select v-model="empty" size="s">
           <SelectTrigger placeholder="Small" aria-label="Small select" />
 
           <SelectContent>
@@ -38,15 +38,6 @@
       <div style="display: flex; flex-direction: column; gap: 12px; max-width: 240px">
         <Select v-model="value">
           <SelectTrigger variant="surface" placeholder="Surface" aria-label="Surface select" />
-
-          <SelectContent>
-            <SelectItem value="apple">Apple</SelectItem>
-            <SelectItem value="banana">Banana</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select v-model="value">
-          <SelectTrigger variant="classic" placeholder="Classic" aria-label="Classic select" />
 
           <SelectContent>
             <SelectItem value="apple">Apple</SelectItem>
@@ -115,4 +106,6 @@ import {
 } from "@components/ui/select/index.js"
 
 const value = ref("apple")
+/** 空值示例：只有值为空时才会出现占位文案 */
+const empty = ref("")
 </script>
