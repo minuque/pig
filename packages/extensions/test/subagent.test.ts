@@ -5,6 +5,7 @@ import { join } from "node:path"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 import { createSubagentTool, type SubagentDetails } from "../src/subagent/index.ts"
 import type { Task } from "@pig/protocol"
+import { BINDING_ENTRY } from "@pig/environment/source"
 import { childResourceLoader, type ChildRun, type StartChild } from "../src/subagent/run.ts"
 import { dropRegistry, registryFor } from "../src/tasks/registry.ts"
 
@@ -161,7 +162,7 @@ describe("subagent：派子任务、并行、中止", () => {
       return { output: "", usage: { input: 0, output: 0, cost: 0 } }
     }
     const binding = { environment: "ssh://devbox", path: "/srv/app" }
-    const entries = [{ type: "custom", customType: "pig.remote", data: binding }]
+    const entries = [{ type: "custom", customType: BINDING_ENTRY, data: binding }]
 
     await run({ agent: "scout", task: "a", cwd: "packages/api" }, startChild, undefined, entries)
     await run({ agent: "scout", task: "b" }, startChild, undefined, entries)
@@ -301,5 +302,19 @@ else if (args.includes("root")) console.log(${JSON.stringify(join(root, "npm-glo
 
     expect(existsSync(installMarker)).toBe(false)
     expect(loader.getSkills().skills.map((skill) => skill.name)).toContain("repo-skill")
+  })
+})
+
+describe("subagent：子会话不加载用户扩展", () => {
+  it("agentDir 里的用户扩展不进子会话的 loader：子任务无法再派子任务", async () => {
+    const cwd = join(root, "work")
+    const userExtension = join(root, "extensions", "delegator.ts")
+    await mkdir(join(root, "extensions"), { recursive: true })
+    await writeFile(userExtension, "export default () => undefined\n")
+    const loader = await childResourceLoader({ cwd, agent: { systemPrompt: "" } } as never)
+
+    expect(loader.getExtensions().extensions.map((extension) => extension.path)).not.toContain(
+      userExtension,
+    )
   })
 })

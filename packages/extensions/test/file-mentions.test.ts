@@ -9,7 +9,7 @@ import {
 import { BINDING_ENTRY, environmentFor } from "@pig/environment/source"
 import { afterAll, describe, expect, it, vi } from "vitest"
 import fileMentions from "../src/file-mentions/index.ts"
-import { expandFileMentions, mentionPaths } from "../src/file-mentions/expand.ts"
+import { expandFileMentions } from "../src/file-mentions/expand.ts"
 
 // 远端替身：只有 /srv/app/far.md 一个文件
 vi.mock("@pig/environment/source", async (original) => ({
@@ -37,20 +37,18 @@ afterAll(async () => {
   await rm(root, { recursive: true, force: true })
 })
 
-describe("mentionPaths", () => {
-  it("识别 token 级 @，含引号路径", () => {
-    expect(mentionPaths('看下 @src/a.ts 和 @"with space.md"')).toEqual([
-      "src/a.ts",
-      "with space.md",
-    ])
-  })
-
-  it("邮件、行内字符、绝对路径不算引用", () => {
-    expect(mentionPaths("mail me at a@b.com 或 /etc/passwd")).toEqual([])
-  })
-})
-
 describe("expandFileMentions", () => {
+  it("识别 token 级 @，引号路径一起展开", async () => {
+    const out = await expandFileMentions('看下 @src/a.ts 和 @"with space.md"', root)
+    expect(out).toContain("const a = 1")
+    expect(out).toContain("# 标题")
+  })
+
+  it("邮件、行内字符、绝对路径都不算引用，原文不动", async () => {
+    const text = "mail me at a@b.com 或 /etc/passwd"
+    expect(await expandFileMentions(text, root)).toBe(text)
+  })
+
   it("存在的文件展开为 <file> 块", async () => {
     const out = await expandFileMentions("看下 @src/a.ts", root)
     expect(out).toContain("看下 @src/a.ts")

@@ -48,23 +48,17 @@ interface MentionSource {
   read(path: string): Promise<string>
 }
 
-/**
- * 展开 prompt 中的 @ 引用。返回展开后的文本；
- * 引用不存在的路径、目录、二进制、超限文件都保留原文 token。
- * 零 mention 时同步短路：调用方可以把它当纯函数串在 prompt 链路里。
- * 给了环境时按该环境里的 POSIX 根解析（远程会话）。
- */
-export function expandFileMentions(
+/** 给了环境时按该环境里的 POSIX 根解析（远程会话）。 */
+export async function expandFileMentions(
   text: string,
   cwd: string,
   env?: Environment,
-): Promise<string> | string {
+): Promise<string> {
   const tokens = findMentionTokens(text)
 
   if (!tokens.length) return text
-  return (env ? Promise.resolve(remoteSource(env, cwd)) : localSource(cwd)).then((source) =>
-    source ? expandTokens(text, tokens, source) : text,
-  )
+  const source = env ? remoteSource(env, cwd) : await localSource(cwd)
+  return source ? expandTokens(text, tokens, source) : text
 }
 
 function insideRoot(root: string, target: string): boolean {
@@ -147,8 +141,4 @@ async function expandTokens(
 
   if (!blocks.length) return text
   return `${text}\n\n${blocks.join("\n")}`
-}
-
-export function mentionPaths(text: string): string[] {
-  return findMentionTokens(text).map((token) => token.path)
 }

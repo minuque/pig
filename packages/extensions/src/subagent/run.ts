@@ -90,10 +90,6 @@ export async function childResourceLoader(
   return loader
 }
 
-/**
- * 在同一进程里开子会话：不加载用户扩展（避免子任务再派子任务），系统提示追加 agent 定义。
- * 父会话在远程时只带上 remote-workspace，让子任务的工具也走同一环境。
- */
 export const startChild: StartChild = async (run) => {
   const loader = await childResourceLoader(run)
   const sessionManager = SessionManager.create(
