@@ -44,7 +44,6 @@
   /* 抬起的表面：卡片、输入卡、用户气泡、工具输入与思考内容共用 */
   --bg-surface: #f7f8f8;
   --bg-raised: #fbfbfc;
-  --scrim: rgba(0, 0, 0, 0.4);
   /* 反色按钮（发送、停止、滚动到底部）：中灰底，对比度压一档不抢正文 */
   --bg-inverse: #6b6b72;
   --bg-inverse-hover: #57575e;
@@ -143,8 +142,8 @@
 
   /* --- 阴影 --- */
   /* 阴影只给真正浮起来的层：下拉、菜单、提示用 popover，对话框与抽屉用 dialog */
-  --shadow-popover: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.08);
-  --shadow-dialog: 0 16px 48px rgba(0, 0, 0, 0.18);
+  --shadow-popover: 0 1px 2px var(--black-a1), 0 8px 24px var(--gray-a4);
+  --shadow-dialog: 0 16px 48px var(--black-a4);
 
   /* --- 动效 --- */
   --ease-out: cubic-bezier(0.17, 1, 0.32, 1);
@@ -215,9 +214,9 @@
   --composer-field-max: 208px;
   /* 连续曲率：输入卡与菜单浮层共用一套角部形状（比 squircle 关键字的 2 更克制） */
   --composer-corner-shape: superellipse(1.5);
-  --composer-shadow: 0 12px 28px -18px rgba(0, 0, 0, 0.4);
+  --composer-shadow: 0 12px 28px -18px var(--black-a6);
   /* 输入卡内侧淡阴影：顶边往里压一点，像卡片嵌进页面 */
-  --composer-inset: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+  --composer-inset: inset 0 1px 3px var(--black-a1);
   /* 输入卡停靠：首屏→会话 420ms，回首屏 470ms。名字由 use-composer-dock.ts 拼接，不是字面量。 */
   --composer-dock-in: 420ms;
   --composer-dock-out: 470ms;
@@ -230,7 +229,6 @@
   /* 毛玻璃弹层（警告框、命令面板）：半透明底加模糊，背后的遮罩也带轻模糊 */
   --glass-bg: color-mix(in srgb, var(--bg) 80%, transparent);
   --glass-filter: blur(12px) saturate(1.14);
-  --glass-border: rgba(0, 0, 0, 0.1);
   --glass-shadow: 0 24px 64px -24px rgba(0, 0, 0, 0.65);
   --glass-radius: 16px;
   /* 菜单、下拉、浮卡等贴着触发器的小浮层：同一块毛玻璃，阴影短一档 */
@@ -244,19 +242,21 @@
   /* 滚动边缘渐隐：类只选带宽，颜色由 mask 决定 */
   --edge-fade-band: 24px;
   --edge-fade-menu-band: 12px;
-  /* 强度滑条：外壳渐变 + 0.5px 描边，主题色渐变填充，白色胶囊滑块；深色在 .dark 覆盖 */
+  /* 强度滑条：外壳渐变 + 0.5px 描边，主题色渐变填充，白色胶囊滑块。
+     描边、刻度与文字直接取 rt 的色阶，深浅自动跟随；外壳与滑块阴影在 .dark 覆盖 */
   --effort-shell: rgba(230, 230, 232, 0.504);
   --effort-shell-2: rgba(232, 232, 233, 0.357);
-  --effort-line: rgba(0, 0, 0, 0.084);
-  --effort-label: #1d1d1d;
-  --effort-label-dim: rgba(29, 29, 29, 0.4);
-  --effort-tick: rgba(0, 0, 0, 0.176);
+  --effort-line: var(--gray-a4);
+  --effort-label: var(--gray-12);
+  /* 下一档是当前档压到 40% */
+  --effort-label-dim: color-mix(in srgb, var(--effort-label) 40%, transparent);
+  --effort-tick: var(--gray-a7);
   --effort-tick-active: var(--accent-8);
   --effort-tick-on-thumb: rgba(0, 0, 0, 0.45);
   --effort-fill: linear-gradient(90deg, var(--accent-9), var(--accent-10));
-  --effort-fill-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.16);
+  --effort-fill-highlight: inset 0 1px 1px var(--white-a3);
   --effort-thumb: linear-gradient(180deg, #ffffff, #f5f5f5);
-  --effort-thumb-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+  --effort-thumb-shadow: 0 1px 1px var(--black-a2);
   /* Files 面板的标签：basis 192、最窄 104、标签文字最宽 140、高 24 */
   --file-tab-width: 192px;
   --file-tab-min: 104px;
@@ -289,7 +289,7 @@
   --mascot-heat-snout: #e0735e;
   /* 吉祥物轻立体：身体下沿暗面与落地投影 */
   --mascot-shade: rgba(196, 128, 60, 0.32);
-  --mascot-shadow: rgba(0, 0, 0, 0.2);
+  --mascot-shadow: var(--black-a4);
   /* 小猪探头：开屏与侧栏品牌共用同一节奏 */
   --mascot-peek-duration: 640ms;
   --menu-item-gap: calc(var(--spacing) / 2);
@@ -309,7 +309,7 @@
   /* 分栏拖拽把手的胶囊：长 40、粗 3 */
   --resize-grip-length: 40px;
   --resize-grip-thickness: 3px;
-  --scrollbar-color: #d6d6d6;
+  --scrollbar-color: var(--gray-6);
   --settings-body-width: 56rem;
   --settings-dialog-width: 80rem;
   --settings-dialog-height: 60rem;
@@ -374,7 +374,6 @@ html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]
   --sidebar: #0d0d0e;
   --bg-surface: #17171a;
   --bg-raised: #1c1c1f;
-  --scrim: rgba(0, 0, 0, 0.55);
   --bg-inverse: #9da4ae;
   --bg-inverse-hover: #b8bdc5;
 
@@ -410,25 +409,20 @@ html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]
   --danger-subtle: #281518;
 
   /* --- 阴影 --- */
-  --shadow-popover: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 8px 24px rgba(0, 0, 0, 0.5);
-  --shadow-dialog: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 48px rgba(0, 0, 0, 0.6);
+  --shadow-popover: 0 0 0 1px var(--white-a1), 0 8px 24px var(--black-a7);
+  --shadow-dialog: 0 0 0 1px var(--white-a1), 0 16px 48px var(--black-a8);
 
   /* ====== 组件层：按组件前缀排列，只给单个组件或一类内容用 ====== */
   /* 写成透明零阴影而不是 none：它和内环拼在同一个 box-shadow 列表里，none 会让整条失效 */
   --composer-shadow: 0 0 transparent;
-  --composer-inset: inset 0 1px 0 rgba(255, 255, 255, 0.03), inset 0 1px 3px rgba(0, 0, 0, 0.2);
+  --composer-inset: inset 0 1px 0 rgba(255, 255, 255, 0.03), inset 0 1px 3px var(--black-a4);
   --glass-filter: blur(16px) saturate(1.08);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-shadow: inset 0 1px rgba(255, 255, 255, 0.04), 0 24px 72px -20px rgba(0, 0, 0, 0.9);
+  --glass-shadow: inset 0 1px var(--white-a1), 0 24px 72px -20px var(--black-a11);
   --glass-backdrop: color-mix(in srgb, var(--bg) 64%, transparent);
-  --glass-menu-shadow: 0 18px 44px -18px rgba(0, 0, 0, 0.8);
-  --effort-shell: rgba(255, 255, 255, 0.07);
-  --effort-shell-2: rgba(255, 255, 255, 0.1);
-  --effort-line: rgba(255, 255, 255, 0.08);
-  --effort-label: #ffffff;
-  --effort-label-dim: rgba(255, 255, 255, 0.4);
-  --effort-tick: rgba(255, 255, 255, 0.256);
-  --effort-thumb-shadow: 0 1px 1px rgba(0, 0, 0, 0.18);
+  --glass-menu-shadow: 0 18px 44px -18px var(--black-a10);
+  --effort-shell: var(--gray-a3);
+  --effort-shell-2: var(--gray-a4);
+  --effort-thumb-shadow: 0 1px 1px var(--black-a4);
   --language-gray: #adadb1;
   --language-red: #ff6762;
   --language-orange: #ffa359;
@@ -440,8 +434,8 @@ html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]
   --language-indigo: #9d6afb;
   --language-purple: #d568ea;
   --language-pink: #ff678d;
-  --mascot-shadow: rgba(0, 0, 0, 0.5);
-  --scrollbar-color: #2a2a2e;
+  --mascot-shadow: var(--black-a7);
+  --scrollbar-color: var(--gray-4);
 }
 
 /* 界面字号档：默认 M；S/L 缩放辅助、正文、标题三档，页面大标题不动。 */

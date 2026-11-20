@@ -75,7 +75,7 @@ spacing:
 
 1. **原色阶**：Radix indigo、gray、cyan 与状态色板由 rt 提供，`tokens.css` 不另写。
 2. **语义层**：全站共用，按「表面、前景、边与分割、交互、状态、字、间距、圆角、阴影、动效、图标与控件高、布局、层级」分组。命名一个概念一个词：前景 `fg`、底 `bg`、边 `border`、品牌色 `accent`、状态 `-text` / `-subtle`。
-3. **组件层**：只给单个组件或一类内容用，名字以组件开头（`--composer-*`、`--file-tab-*`、`--settings-*`、`--language-*`、`--mascot-*`）。能用语义档就不进这一层。
+3. **组件层**：只给单个组件或一类内容用，名字以组件开头（`--composer-*`、`--file-tab-*`、`--settings-*`、`--language-*`、`--mascot-*`）。能用语义档就不进这一层；颜色只在语义档与 rt 的色阶里取（`--gray-*`、`--gray-a*`、`--black-a*`、`--white-a*`），不写裸色值，插画与品牌色见「例外」。
 
 `/design` 页直接读这些分区注释分组，新增 token 时写进对应小标题下。
 
@@ -136,6 +136,8 @@ spacing:
 - `--language-*`：代码块语言图标，只在代码块里。
 - Mermaid 图：浅色用 pele 自带的默认配色；深色在 `mermaid.css` 接项目语义 token（底 `--bg`、填充 `--bg-surface`、线 `--border`）。
 - `--mascot-*`：吉祥物插画，深浅共用 logo 原色。
+- `--favorite`、`--brand-mark-bg`：收藏星标的琥珀与 logo 蓝底，色相和明度都对不上 rt 的档。
+- `--theme-wire-*`、强度滑条的外壳与滑块渐变：固定画浅色 / 深色的表面色，或手调的半透明白，rt 没有对应档。
 
 ## 字号
 

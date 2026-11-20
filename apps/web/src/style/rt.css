@@ -276,7 +276,7 @@
 ) {
   background-color: var(--glass-bg);
   box-shadow:
-    0 0 0 var(--border-width) var(--glass-border),
+    0 0 0 var(--border-width) var(--border),
     var(--glass-menu-shadow);
   backdrop-filter: var(--glass-filter);
 }

@@ -391,7 +391,7 @@
 }
 
 .glass-panel {
-  border: var(--border-width) solid var(--glass-border);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--glass-radius);
   background: var(--glass-bg);
   box-shadow: var(--glass-shadow);
