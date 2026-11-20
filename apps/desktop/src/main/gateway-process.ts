@@ -27,15 +27,18 @@ export function connectGateway(
   return new Promise((resolve, reject) => {
     child.on("message", (message) => {
       if (message.type === "select-directory") {
-        void pickDirectory()
-          .catch(() => undefined)
-          .then((path) => {
+        void pickDirectory().then(
+          (path) => {
             child.postMessage({
               type: "directory-selected",
               id: message.id,
               ...(path ? { path } : {}),
             })
-          })
+          },
+          () => {
+            child.postMessage({ type: "directory-failed", id: message.id })
+          },
+        )
       } else if (message.type === "ready" && state === "starting") {
         state = "running"
         resolve({

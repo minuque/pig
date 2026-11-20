@@ -57,8 +57,8 @@ async function stop(): Promise<void> {
 }
 
 parentPort.on("message", ({ data }: { data: ParentMessage }) => {
-  if (data.type === "directory-selected") directory?.settle(data)
-  else void stop()
+  if (data.type === "stop") void stop()
+  else directory?.settle(data)
 })
 
 try {

@@ -5,6 +5,9 @@ const SECURE_WEB_PREFERENCES = {
   nodeIntegration: false,
   sandbox: true,
 } as const
+const TITLEBAR_HEIGHT = 44
+const TRAFFIC_LIGHT_SIZE = 12
+const TRAFFIC_LIGHT_INSET = 16
 
 export function windowChromeFor(platform: string): BrowserWindowConstructorOptions {
   const webPreferences = { ...SECURE_WEB_PREFERENCES }
@@ -12,7 +15,10 @@ export function windowChromeFor(platform: string): BrowserWindowConstructorOptio
   if (platform === "darwin") {
     return {
       titleBarStyle: "hiddenInset",
-      trafficLightPosition: { x: 16, y: 16 },
+      trafficLightPosition: {
+        x: TRAFFIC_LIGHT_INSET,
+        y: (TITLEBAR_HEIGHT - TRAFFIC_LIGHT_SIZE) / 2,
+      },
       webPreferences,
     }
   }

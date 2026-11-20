@@ -5,7 +5,7 @@ import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 
 import { viteDevPort } from "./main/urls.js"
-import { isVitePortFree, killPortListeners } from "./main/vite-child.js"
+import { acquirePortLease } from "./main/vite-child.js"
 
 const desktopRoot = join(dirname(fileURLToPath(import.meta.url)), "..")
 const desktopRequire = createRequire(join(desktopRoot, "package.json"))
@@ -35,9 +35,9 @@ function killPidTree(pid: number): void {
 }
 
 const vitePort = viteDevPort()
-const ownsPort = isVitePortFree(vitePort)
+const lease = acquirePortLease(vitePort)
 
-if (ownsPort) {
+if (lease) {
   const watchdog = spawn(
     process.execPath,
     [join(desktopRoot, "scripts/dev-watchdog.mjs"), String(process.pid), String(vitePort)],
@@ -55,7 +55,7 @@ const electron = spawn(electronExecutable(), [".", "--", "--dev", ...process.arg
 let stopping = false
 
 function releasePort(): void {
-  if (ownsPort) killPortListeners(vitePort)
+  lease?.release()
 }
 
 function stop(exitCode = 0): void {

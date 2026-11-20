@@ -3,6 +3,8 @@ export type ChildMessage =
   | { type: "failed"; message: string }
   | { type: "select-directory"; id: number }
 
-export type DirectorySelected = { type: "directory-selected"; id: number; path?: string }
+export type DirectoryReply =
+  | { type: "directory-selected"; id: number; path?: string }
+  | { type: "directory-failed"; id: number }
 
-export type ParentMessage = DirectorySelected | { type: "stop" }
+export type ParentMessage = DirectoryReply | { type: "stop" }

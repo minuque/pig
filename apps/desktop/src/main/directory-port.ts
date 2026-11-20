@@ -1,6 +1,6 @@
 import { realpath } from "node:fs/promises"
 
-import type { ChildMessage, DirectorySelected } from "./gateway-messages.js"
+import type { ChildMessage, DirectoryReply } from "./gateway-messages.js"
 
 export type CanonicalizePath = (path: string) => string
 
@@ -14,7 +14,7 @@ export type DirectoryPort = {
 export function createMessageDirectoryPort(
   post: (message: ChildMessage) => void,
   canonicalizePath: CanonicalizePath,
-): { port: DirectoryPort; settle(message: DirectorySelected): void } {
+): { port: DirectoryPort; settle(reply: DirectoryReply): void } {
   const pending = new Map<number, (path: string | undefined) => void>()
   let nextId = 0
   return {
@@ -33,9 +33,9 @@ export function createMessageDirectoryPort(
         return canonicalizePath(await realpath(path))
       },
     },
-    settle(message) {
-      pending.get(message.id)?.(message.path)
-      pending.delete(message.id)
+    settle(reply) {
+      pending.get(reply.id)?.(reply.type === "directory-selected" ? reply.path : undefined)
+      pending.delete(reply.id)
     },
   }
 }

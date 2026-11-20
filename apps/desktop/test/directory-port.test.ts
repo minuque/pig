@@ -10,10 +10,12 @@ import type { ChildMessage, ParentMessage } from "../src/main/gateway-messages.j
 import { connectGateway } from "../src/main/gateway-process.js"
 
 /** 两端都是真实现，中间用 EventEmitter 代替 utilityProcess 的消息通道。 */
-async function selectThroughGateway(picked: string | undefined): Promise<string | undefined> {
+async function selectThroughGateway(
+  pickDirectory: () => Promise<string | undefined>,
+): Promise<string | undefined> {
   const child = Object.assign(new EventEmitter(), {
     postMessage: (message: ParentMessage) => {
-      if (message.type === "directory-selected") directory.settle(message)
+      if (message.type !== "stop") directory.settle(message)
     },
     kill: () => true,
   })
@@ -21,10 +23,7 @@ async function selectThroughGateway(picked: string | undefined): Promise<string 
     (message: ChildMessage) => child.emit("message", message),
     canonicalizePath,
   )
-  const connected = connectGateway(child, {
-    pickDirectory: async () => picked,
-    onUnexpectedExit: () => {},
-  })
+  const connected = connectGateway(child, { pickDirectory, onUnexpectedExit: () => {} })
 
   child.emit("message", { type: "ready", port: 1, launchToken: "t" })
   await connected
@@ -39,7 +38,13 @@ describe("选目录经主进程一去一回", () => {
   })
 
   it("取消返回 undefined", async () => {
-    expect(await selectThroughGateway(undefined)).toBeUndefined()
+    expect(await selectThroughGateway(async () => undefined)).toBeUndefined()
+  })
+
+  it("对话框出错也 settle，按取消返回 undefined", async () => {
+    expect(
+      await selectThroughGateway(() => Promise.reject(new Error("dialog failed"))),
+    ).toBeUndefined()
   })
 
   it("选中目录后在子进程做 realpath 规范化", async () => {
@@ -47,6 +52,8 @@ describe("选目录经主进程一去一回", () => {
     const selected = join(tempRoot, "workspace")
     await mkdir(selected)
 
-    expect(await selectThroughGateway(selected)).toBe(canonicalizePath(await realpath(selected)))
+    expect(await selectThroughGateway(async () => selected)).toBe(
+      canonicalizePath(await realpath(selected)),
+    )
   })
 })

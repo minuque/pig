@@ -69,7 +69,11 @@ export function viteLaunch(
 export function spawnVite(env: { GATEWAY_TARGET: string; GATEWAY_TOKEN: string }): ChildProcess {
   const port = viteDevPort()
 
-  assertVitePortFree(port)
+  if (!acquirePortLease(port)) {
+    throw new Error(
+      `Vite 端口 ${port} 已被占用，可能已有桌面实例在运行。请先关闭旧窗口，或用 --port 换一个端口。`,
+    )
+  }
 
   const launch = viteLaunch(["--port", String(port), "--strictPort"], {
     ...process.env,
@@ -161,24 +165,14 @@ export function killVite(child: ChildProcess): void {
   killPortListeners()
 }
 
-export function isVitePortFree(
+export type PortLease = { port: number; release(): void }
+
+export function acquirePortLease(
   port: number,
   list: (port: number) => number[] = listListeningPids,
-): boolean {
-  return list(port).length === 0
-}
-
-export function assertVitePortFree(
-  port: number,
-  list: (port: number) => number[] = listListeningPids,
-): void {
-  const pids = list(port)
-
-  if (pids.length) {
-    throw new Error(
-      `Vite 端口 ${port} 已被占用（PID ${pids.join(", ")}），可能已有桌面实例在运行。请先关闭旧窗口，或用 --port 换一个端口。`,
-    )
-  }
+): PortLease | undefined {
+  if (list(port).length) return undefined
+  return { port, release: () => killPortListeners(port) }
 }
 
 export async function waitForHttp(
