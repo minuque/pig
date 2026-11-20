@@ -13,9 +13,10 @@ import { gitIgnored, gitStatus, searchContents } from "./workspace-git.js"
 const TEXT_LIMIT = 1024 * 1024
 /** 与 git 的判定一致：前 8000 字节里有 NUL 就当二进制。 */
 const BINARY_PROBE = 8000
+export const HTML_MIME = "text/html; charset=utf-8"
 export const MIME: Record<string, string> = {
-  html: "text/html; charset=utf-8",
-  htm: "text/html; charset=utf-8",
+  html: HTML_MIME,
+  htm: HTML_MIME,
   css: "text/css; charset=utf-8",
   js: "text/javascript; charset=utf-8",
   mjs: "text/javascript; charset=utf-8",
@@ -173,7 +174,10 @@ async function listDirectory({ env, file, root, path }: Target) {
   const ignored = await gitIgnored(
     env,
     root,
-    items.map((item) => `${relative(item.name)}${item.kind === "directory" ? "/" : ""}`),
+    items.map((item) => ({
+      path: relative(item.name),
+      directory: item.kind === "directory",
+    })),
   )
   return {
     entries: items.map((item) => ({ ...item, ignored: ignored.has(relative(item.name)) })),
@@ -205,6 +209,18 @@ function parseRange(header: string | undefined, size: number) {
   return start <= end && start < size ? { start, end } : null
 }
 
+/** 打开 agent 写的文件不能以 pig 的源跑脚本；PDF 除外，Chromium 查看器在 sandbox 里不工作。 */
+export function fileResponseHeaders(type: string): Record<string, string> {
+  const sandbox = type === MIME.pdf ? {} : { "Content-Security-Policy": "sandbox" }
+  return {
+    "Content-Type": type,
+    "Cache-Control": "no-cache",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
+    ...sandbox,
+  }
+}
+
 export async function sendRaw(
   req: IncomingMessage,
   res: ServerResponse,
@@ -215,13 +231,8 @@ export async function sendRaw(
   const range = parseRange(req.headers.range, size)
   const type = MIME[ext] ?? "application/octet-stream"
   const headers = {
-    "Content-Type": type,
+    ...fileResponseHeaders(type),
     "Accept-Ranges": "bytes",
-    "Cache-Control": "no-cache",
-    // agent 写的文件打开时不能以 pig 的源跑脚本；PDF 除外，Chromium 的查看器在 sandbox 里不工作
-    ...(type === "application/pdf" ? {} : { "Content-Security-Policy": "sandbox" }),
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "no-referrer",
   }
 
   if (range === null) {

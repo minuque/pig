@@ -25,17 +25,18 @@ async function run(env: Environment, cwd: string, command: string, signal?: Abor
   return { exitCode, output: Buffer.concat(chunks).toString("utf8") }
 }
 
-/** 哪些路径被 .gitignore 命中；不是 git 仓库或没装 git 时一个都不算。目录要带尾斜杠。 */
-export async function gitIgnored(env: Environment, root: string, paths: readonly string[]) {
+/** 哪些路径被 .gitignore 命中；不是 git 仓库或没装 git 时一个都不算。 */
+export async function gitIgnored(
+  env: Environment,
+  root: string,
+  items: readonly { path: string; directory: boolean }[],
+) {
   const ignored = new Set<string>()
 
-  for (let at = 0; at < paths.length; at += IGNORE_BATCH) {
-    const batch = paths.slice(at, at + IGNORE_BATCH)
-    const { exitCode, output } = await run(
-      env,
-      root,
-      `git check-ignore -- ${batch.map(quote).join(" ")}`,
-    )
+  for (let at = 0; at < items.length; at += IGNORE_BATCH) {
+    const batch = items.slice(at, at + IGNORE_BATCH)
+    const paths = batch.map((item) => quote(item.directory ? `${item.path}/` : item.path))
+    const { exitCode, output } = await run(env, root, `git check-ignore -- ${paths.join(" ")}`)
 
     if (exitCode !== 0) {
       if (exitCode === 1) continue

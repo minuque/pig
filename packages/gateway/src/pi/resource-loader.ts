@@ -52,11 +52,20 @@ export async function createResourceLoader(
 }
 
 function settingsWithoutPackages(cwd: string, agentDir: string): SettingsManager {
-  const settings = SettingsManager.create(cwd, agentDir)
-  const global = settings.getGlobalSettings.bind(settings)
-  const project = settings.getProjectSettings.bind(settings)
-  // 只有 pi 的包增删会拿这两份去回写，pig 不调用它们
-  settings.getGlobalSettings = () => ({ ...global(), packages: [] })
-  settings.getProjectSettings = () => ({ ...project(), packages: [] })
-  return settings
+  const source = SettingsManager.create(cwd, agentDir)
+  const scopes: Record<"global" | "project", string> = {
+    global: withoutPackages(source.getGlobalSettings()),
+    project: withoutPackages(source.getProjectSettings()),
+  }
+  return SettingsManager.fromStorage({
+    withLock(scope, update) {
+      const next = update(scopes[scope])
+
+      if (next !== undefined) scopes[scope] = next
+    },
+  })
+}
+
+function withoutPackages(settings: object): string {
+  return JSON.stringify({ ...settings, packages: [] })
 }

@@ -5,6 +5,7 @@ import { isContextPreviewKey } from "../pi/context-usage.js"
 import { validateRemoteDirectory, workspaceEnvironment } from "../pi/remote-session.js"
 import { GatewayError, SessionNotFoundError } from "../pi/runtime-types.js"
 import type { PiHostService } from "../pi/service.js"
+import { decodeCursor } from "../pi/transcript-reader.js"
 import type { DirectoryPort } from "../system/directory.js"
 import { fsRoutes } from "./fs-routes.js"
 import {
@@ -109,7 +110,7 @@ const platformRoutes = {
 
     if (!sessionId) throw new HttpError(400, "INVALID_REQUEST")
     const known = url.searchParams.get("known") ?? undefined
-    const after = url.searchParams.get("after") ?? undefined
+    const after = decodeCursor(url.searchParams.get("after") ?? "")
     return deps.hostService.sessionTranscript(sessionId, { known, after })
   },
 

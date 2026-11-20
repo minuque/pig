@@ -4,7 +4,6 @@ import type {
   ExtensionUiResponse,
   ModelRef,
   SessionPhase,
-  SessionSnapshot,
   Task,
   TaskChannels,
   TaskStopEvent,
@@ -16,6 +15,7 @@ import { GatewayError, SessionBusyError } from "./runtime-types.js"
 import type {
   SessionRuntime,
   SessionRuntimeEvent,
+  SessionSnapshotDraft,
   PromptInput,
   SteerInput,
 } from "./runtime-types.js"
@@ -120,7 +120,7 @@ export class PiHostSession implements SessionRuntime {
     return { items: this.projection.transcript(entries), timings: readTurnTimings(entries) }
   }
 
-  snapshot(): SessionSnapshot {
+  snapshot(): SessionSnapshotDraft {
     const { session } = this
     const model = session.model
 
@@ -146,8 +146,6 @@ export class PiHostSession implements SessionRuntime {
       phase: this.getPhase(),
       model: { provider: model.provider, id: model.id },
       thinkingLevel: session.thinkingLevel,
-      attached: false, // 由协议层按连接状态覆盖
-      locked: false,
       revision: this.revision,
       transcript: inFlight ? [inFlight] : [],
       queuedSteer: steering.map((text, index) => ({

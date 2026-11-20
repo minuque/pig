@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { estimateContextUsage } from "../src/pi/context-usage.js"
+import { capVariable, estimateContextUsage } from "../src/pi/context-usage.js"
 
 function source(overrides: Record<string, unknown> = {}) {
   return {
@@ -155,5 +155,23 @@ describe("estimateContextUsage", () => {
       usage.used,
     )
     expect(idle).toBe(999)
+  })
+})
+
+describe("capVariable", () => {
+  it("超预算时三段合计不超过 budget，舍入余量归会话正文", () => {
+    const raw = { toolResults: 333, conversation: 7, mcpCalls: 417 }
+    const asked = raw.toolResults + raw.conversation + raw.mcpCalls
+
+    for (const budget of [0, 1, 7, 100, asked - 1, asked, 9000]) {
+      const capped = capVariable(raw, budget)
+      const total = capped.toolResults + capped.conversation + capped.mcpCalls
+
+      expect(total, `budget ${budget}`).toBeLessThanOrEqual(budget)
+      expect(capped.toolResults).toBeLessThanOrEqual(raw.toolResults)
+      expect(capped.mcpCalls).toBeLessThanOrEqual(raw.mcpCalls)
+
+      if (budget > 0 && budget < asked) expect(total, `budget ${budget}`).toBe(budget)
+    }
   })
 })

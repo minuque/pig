@@ -357,9 +357,9 @@ export class LiveSessions {
   }
 
   private async snapshotOf(live: LiveSession): Promise<SessionSnapshot> {
-    const snapshot = await live.runtime.snapshot()
+    const draft = await live.runtime.snapshot()
     return {
-      ...snapshot,
+      ...draft,
       phase: live.runtime.getPhase(),
       attached: live.connections.size > 0,
       locked: true,

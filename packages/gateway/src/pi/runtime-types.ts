@@ -35,6 +35,9 @@ export class SessionNotFoundError extends GatewayError {
   }
 }
 
+/** 运行时投影：attached 与 locked 由 Gateway 按连接状态补齐。 */
+export type SessionSnapshotDraft = Omit<SessionSnapshot, "attached" | "locked">
+
 export type PromptInput = { text: string; attachmentBatch?: string }
 
 export type SteerInput = { text: string }
@@ -54,7 +57,7 @@ export type SessionRuntimeEvent =
   | { type: "extension_ui"; request: ExtensionUiRequest }
 
 export interface SessionRuntime {
-  snapshot(): SessionSnapshot | Promise<SessionSnapshot>
+  snapshot(): SessionSnapshotDraft | Promise<SessionSnapshotDraft>
   getPhase(): SessionPhase
   prompt(input: PromptInput): Promise<void>
   steer(input: SteerInput): Promise<void>

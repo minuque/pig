@@ -11,7 +11,25 @@ interface TranscriptSource {
   findPath(sessionId: string): Promise<string | undefined>
 }
 
-export type TranscriptCursor = { known?: string | undefined; after?: string | undefined }
+declare const cursorBrand: unique symbol
+
+/** after 游标的正文形式 `<已收条目数>:<最后一条 id>`；只经 encodeCursor / decodeCursor 转换。 */
+export type TranscriptCursorToken = string & { readonly [cursorBrand]: true }
+
+export type TranscriptCursor = {
+  known?: string | undefined
+  after?: TranscriptCursorToken | undefined
+}
+
+export function encodeCursor(count: number, lastId: string): TranscriptCursorToken {
+  return `${count}:${lastId}` as TranscriptCursorToken
+}
+
+/** 形如 encodeCursor 产物的串才转成游标；其余当作没带 after。 */
+export function decodeCursor(raw: string): TranscriptCursorToken | undefined {
+  const { count } = splitCursor(raw)
+  return Number.isInteger(count) && count >= 1 ? (raw as TranscriptCursorToken) : undefined
+}
 
 export class TranscriptReader {
   private readonly disk = new DiskTranscripts()
@@ -59,19 +77,26 @@ type PageMeta = Omit<Extract<SessionTranscriptPage, { items: unknown }>, "items"
 
 function withItems(
   items: readonly TranscriptItem[],
-  after: string | undefined,
+  after: TranscriptCursorToken | undefined,
   meta: PageMeta,
 ): SessionTranscriptPage {
-  const count = after ? prefixLength(items, after) : undefined
+  const count = after === undefined ? undefined : prefixLength(items, after)
   return count === undefined
     ? { items: lightTranscript(items), ...meta }
     : { append: lightTranscript(items.slice(count)), ...meta }
 }
 
-function prefixLength(items: readonly TranscriptItem[], after: string): number | undefined {
-  const split = after.indexOf(":")
-  const count = Number(after.slice(0, split))
+function splitCursor(token: string): { count: number; lastId: string } {
+  const split = token.indexOf(":")
+  return { count: Number(token.slice(0, split)), lastId: token.slice(split + 1) }
+}
 
-  if (split < 1 || !Number.isInteger(count) || count < 1 || count > items.length) return undefined
-  return items[count - 1]?.id === after.slice(split + 1) ? count : undefined
+function prefixLength(
+  items: readonly TranscriptItem[],
+  after: TranscriptCursorToken,
+): number | undefined {
+  const { count, lastId } = splitCursor(after)
+
+  if (count > items.length) return undefined
+  return items[count - 1]?.id === lastId ? count : undefined
 }

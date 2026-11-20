@@ -315,7 +315,8 @@ function mcpScriptCallIds(entries: unknown[]): Set<string> {
 
 type VariableTokens = { toolResults: number; conversation: number; mcpCalls: number }
 
-function capVariable(raw: VariableTokens, budget: number): VariableTokens {
+/** 超预算时按估算比例分配，余数归会话正文，三段合计正好等于 budget。 */
+export function capVariable(raw: VariableTokens, budget: number): VariableTokens {
   const estimated = raw.toolResults + raw.conversation + raw.mcpCalls
   const counts = {
     toolResults: raw.toolResults,

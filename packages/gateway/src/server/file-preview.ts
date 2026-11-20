@@ -1,7 +1,7 @@
 import { randomBytes } from "node:crypto"
 import type { IncomingMessage, ServerResponse } from "node:http"
 
-import { MIME, resolveFile, sendRaw, type Target } from "./fs-routes.js"
+import { fileResponseHeaders, HTML_MIME, resolveFile, sendRaw, type Target } from "./fs-routes.js"
 import type { PlatformRequestDeps } from "./platform.js"
 
 const TOKEN_TTL_MS = 60 * 60 * 1000
@@ -62,14 +62,15 @@ async function sendPage(res: ServerResponse, target: Target) {
   const body = Buffer.from(injectLinkScript((await target.env.readFile(target.file)).toString()))
 
   res.writeHead(200, {
-    "Content-Type": MIME.html,
+    ...sandboxPageHeaders(),
     "Content-Length": String(body.length),
-    "Cache-Control": "no-cache",
-    "Content-Security-Policy": "sandbox allow-scripts",
-    "Referrer-Policy": "no-referrer",
-    "X-Content-Type-Options": "nosniff",
   })
   res.end(body)
+}
+
+/** 预览页自己注脚本，沙箱比直接看文件宽一档。 */
+function sandboxPageHeaders(): Record<string, string> {
+  return { ...fileResponseHeaders(HTML_MIME), "Content-Security-Policy": "sandbox allow-scripts" }
 }
 
 function injectLinkScript(html: string): string {

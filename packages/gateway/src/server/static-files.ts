@@ -76,6 +76,12 @@ function sendFile(
   res.end(gzip ? cached.gzip : cached.raw)
 }
 
+function resolveWithinRoot(root: string, requested: string): string | undefined {
+  const file = resolve(root, requested)
+  const fromRoot = relative(resolve(root), file)
+  return fromRoot.startsWith("..") || isAbsolute(fromRoot) ? undefined : file
+}
+
 export async function serveWebFile(
   root: string,
   pathname: string,
@@ -90,10 +96,9 @@ export async function serveWebFile(
     return false
   }
 
-  const file = resolve(root, requested)
-  const pathFromRoot = relative(resolve(root), file)
+  const file = resolveWithinRoot(root, requested)
 
-  if (pathFromRoot.startsWith("..") || isAbsolute(pathFromRoot)) return false
+  if (!file) return false
 
   try {
     const ext = extname(file).toLowerCase()
