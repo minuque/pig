@@ -12,7 +12,6 @@ import {
 
 type Source = { text: () => string; streaming: () => boolean; cacheKey: () => string }
 
-/** 正文 → Comark 节点。流式每帧最多解析一次，只重解析末段；终态按消息缓存。 */
 export function useMarkdownNodes(source: Source): ShallowRef<Node[]> {
   const parse = createStreamParser()
   const nodes = shallowRef<Node[]>(cachedFinalNodes(source.cacheKey(), source.text()) ?? [])
@@ -54,7 +53,6 @@ export function useMarkdownNodes(source: Source): ShallowRef<Node[]> {
     if (!disposed) nodes.value = parsed
   }
 
-  // 帧首个更新立即解析，同帧后续更新合并到下一帧首，不额外推迟一帧。
   function schedule() {
     if (!source.streaming()) {
       void run()

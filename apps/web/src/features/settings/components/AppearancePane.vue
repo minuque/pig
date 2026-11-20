@@ -171,7 +171,6 @@ import { CardList, CardRow } from "@components/ui/card/index.js"
 import PresetSwatches from "./PresetSwatches.vue"
 import SchemeCards from "./SchemeCards.vue"
 
-/** Select 的值不能是空串，默认字体用占位值。 */
 const DEFAULT = "__default__"
 const { t } = useI18n()
 const { chatWidth, setChatWidth } = useGeneralPrefs()
@@ -209,7 +208,6 @@ function quote(family: string): string {
   return JSON.stringify(family)
 }
 
-/** 已选字体不在本机列表里（换了电脑或还没读到）时也留在选项里，触发器才对得上。 */
 function fontList(list: readonly string[], current: string): string[] {
   return current && !list.includes(current) ? [current, ...list] : [...list]
 }
@@ -227,7 +225,6 @@ function onChatWidth(value: string) {
   setChatWidth(value as ChatWidth)
 }
 
-/* 列表文案随语言切换，必须走 computed */
 const fields = computed<{ id: WelcomeField; label: string }[]>(() => [
   { id: "mask", label: t("settings.welcomeFieldMask") },
   { id: "off", label: t("settings.welcomeFieldOff") },
@@ -237,7 +234,6 @@ const widths = computed<{ id: ChatWidth; label: string }[]>(() => [
   { id: "wide", label: t("settings.chatWidthWide") },
   { id: "full", label: t("settings.chatWidthFull") },
 ])
-/* 列表文案随语言切换，必须走 computed */
 const tiers = computed<{ id: SizeTier; label: string }[]>(() => [
   { id: "s", label: t("settings.sizeS") },
   { id: "m", label: t("settings.sizeM") },
@@ -260,7 +256,6 @@ const codeSizeLabel = computed(() => `${codeSize.value}px`)
 <style scoped src="./pane.css"></style>
 
 <style scoped>
-/* 下拉框定宽：不同选项文字长短不一，避免选中后触发器宽度跳动 */
 .setting-select {
   inline-size: 12rem;
 }

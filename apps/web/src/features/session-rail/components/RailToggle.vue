@@ -1,6 +1,5 @@
 <template>
   <div v-if="session.sessionId.value" class="rail-toggle">
-    <!-- 常驻：开关右侧的摘要卡 -->
     <Tooltip v-if="rail.mode.value === 'docked'">
       <TooltipTrigger as-child>
         <IconButton
@@ -28,7 +27,6 @@
       <TooltipContent>{{ label }}</TooltipContent>
     </Tooltip>
 
-    <!-- 放不下常驻宽度：点开浮层 -->
     <Popover v-else v-model:open="popoverOpen">
       <Tooltip>
         <PopoverTrigger as-child>
@@ -84,12 +82,10 @@ const { session, tasks, runningCount, cards, stopTask } = useRailCards()
 const popoverOpen = ref(false)
 const popoverButton = useTemplateRef<ComponentPublicInstance>("popoverButton")
 
-// 浮层里点开的条目进右侧面板，浮层让开
 watch(rail.pane, (pane) => {
   if (pane) popoverOpen.value = false
 })
 
-/** 提示里带上上下文用量与任务进度，收起时也能一眼看到。 */
 const label = computed(() => {
   const usage = session.contextUsage.value
   const parts = [t("rail.title"), ...(usage ? [`${usage.percent}%`] : [])]
@@ -116,13 +112,11 @@ const label = computed(() => {
   position: relative;
 }
 
-/* 按下态：面板开着（或浮层开着）时用项目统一的选中底色 */
 .rail-toggle [data-active] {
   color: var(--fg);
   background: var(--bg-selected);
 }
 
-/* 有子任务在跑时，图标右上角亮一个点 */
 .rail-toggle-dot {
   position: absolute;
   inset-block-start: var(--space-2xs);

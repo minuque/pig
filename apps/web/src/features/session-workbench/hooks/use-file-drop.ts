@@ -38,7 +38,6 @@ function stillInside(event: DragEvent): boolean {
   return x > box.left && x < box.right && y > box.top && y < box.bottom
 }
 
-/** 面板内拖文件：高亮与落点交回调用方，窗口级默认行为一律拦下。 */
 export function useFileDrop(addDropped: (data: DataTransfer | null) => void) {
   const dropActive = ref(false)
 

@@ -60,7 +60,6 @@ const props = defineProps<{
   running: boolean
   isExpand: (id: string) => boolean | undefined
   expandedTools: Map<string, boolean>
-  /** false 时先占位，滚到附近再挂载内容；挂过一次就一直保留。 */
   eager: boolean
 }>()
 const emit = defineEmits<{
@@ -83,7 +82,6 @@ const { stop } = useIntersectionObserver(
 
 if (shown.value) stop()
 
-/** 一轮的错误只保留一条：从末尾找最近一次带错误状态的助手行。 */
 const turnError = computed(() => {
   for (let index = props.turn.rows.length - 1; index >= 0; index -= 1) {
     const row = props.turn.rows[index]
@@ -110,12 +108,10 @@ const turnError = computed(() => {
   margin-block-start: var(--space-lg);
 }
 
-/* 还没挂载内容的回合按预估高度占位，滚动条长度接近真实 */
 .turn.is-deferred {
   min-block-size: 480px;
 }
 
-/* 屏外的已完成回合跳过排版与绘制；最后一轮在流式中，始终正常渲染 */
 .turn:not(:last-child) {
   content-visibility: auto;
   contain-intrinsic-size: auto 480px;

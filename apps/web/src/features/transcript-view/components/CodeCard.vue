@@ -7,7 +7,6 @@ import { Card } from "@components/ui/card/index.js"
 </script>
 
 <style scoped>
-/* 外观来自 Card；代码类卡片只把内边距交给内容 */
 .code-card {
   --card-padding: 0;
 

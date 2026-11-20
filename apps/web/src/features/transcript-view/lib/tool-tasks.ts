@@ -9,7 +9,6 @@ const text = (value: unknown) => (typeof value === "string" ? value : undefined)
 const number = (value: unknown) =>
   typeof value === "number" && Number.isFinite(value) ? value : undefined
 
-/** 把未知数据读成任务；形状不对返回 undefined。 */
 function parseTask(raw: unknown): Task | undefined {
   const item = record(raw)
   const id = text(item?.id)
@@ -58,13 +57,11 @@ function parseTask(raw: unknown): Task | undefined {
   return undefined
 }
 
-/** 读工具结果 details 里的任务；只认形状不认工具名，形状不对就当没有，不抛错。 */
 export function toolTasks(details: unknown): Task[] {
   const tasks = record(details)?.tasks
   return Array.isArray(tasks) ? tasks.flatMap((raw) => parseTask(raw) ?? []) : []
 }
 
-/** 当前会话里最近一次带任务的工具调用；摘要面板的 Task 块显示它。 */
 export function latestToolTasks(transcript: readonly TranscriptItem[]): Task[] {
   for (let index = transcript.length - 1; index >= 0; index -= 1) {
     const item = transcript[index]
@@ -76,7 +73,6 @@ export function latestToolTasks(transcript: readonly TranscriptItem[]): Task[] {
   return []
 }
 
-/** 任务行的副标题：出错信息，否则代理的最近一步或命令原文。 */
 export function taskDetail(task: Task): string {
   if (task.error) return task.error
   return task.kind === "agent" ? (task.steps.at(-1) ?? task.prompt) : task.command

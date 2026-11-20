@@ -100,7 +100,6 @@ function cancel() {
 </script>
 
 <style scoped>
-/* 面板不留内边距，标题区与按钮区各带自己的边距，中间内容对齐它们 */
 .extension-body {
   margin: 0 var(--space-lg) var(--space-lg);
 }
@@ -111,7 +110,6 @@ function cancel() {
   gap: var(--space-xs);
 }
 
-/* 多行输入与外框同 TextField 的 surface 档：实底、细环、同一档圆角与内边距 */
 .extension-editor-box {
   padding: var(--space-xs);
   border-radius: var(--radius-control);

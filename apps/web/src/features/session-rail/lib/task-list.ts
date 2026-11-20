@@ -3,19 +3,15 @@ import { formatElapsed } from "@utils/time.js"
 import type { Task } from "@/types/common-type.js"
 
 const DISMISSED_KEY = "pig.rail.dismissedTasks"
-/** 每个会话最多记这么多条已清除的任务 id；更早的会话整条丢掉。 */
 const MAX_IDS = 1000
 const MAX_SESSIONS = 100
-/** 终端控制序列：颜色、光标移动等。 */
 const ANSI = new RegExp(`${String.fromCharCode(27)}\\[[0-9;?]*[ -/]*[@-~]`, "g")
 
-/** 后台任务排在前，时间线工具里的任务补在后；同一个 id 只留后台那份。 */
 export function mergeTasks(background: readonly Task[], foreground: readonly Task[]): Task[] {
   const ids = new Set(background.map((task) => task.id))
   return [...background, ...foreground.filter((task) => !ids.has(task.id))]
 }
 
-/** 分两段：进行中按开始时间，已结束按结束时间倒序。 */
 export function taskSections(tasks: readonly Task[]) {
   const active = (task: Task) => task.status === "running" || task.status === "queued"
   return {
@@ -30,7 +26,6 @@ export function taskSections(tasks: readonly Task[]) {
 
 export type TaskSections = ReturnType<typeof taskSections>
 
-/** 去掉清除过的已结束任务再分段；清除过又跑起来的照常显示。 */
 export function visibleSections(
   tasks: readonly Task[],
   dismissed: readonly string[],
@@ -39,14 +34,12 @@ export function visibleSections(
   return taskSections(tasks.filter((task) => task.status === "running" || !hidden.has(task.id)))
 }
 
-/** 任务跑了多久：进行中算到 now，结束的算到结束时间；没有开始时间就空着。 */
 export function taskElapsed(task: Task, now: number): string {
   if (task.startedAt === undefined) return ""
   const end = task.status === "running" ? now : task.completedAt
   return end === undefined ? "" : formatElapsed(end - task.startedAt, { showMs: false })
 }
 
-/** 去掉终端颜色码，只留文字。 */
 export function plainOutput(output: string): string {
   return output.replace(ANSI, "")
 }
@@ -57,7 +50,6 @@ export function readDismissed(sessionId: string, storage?: PrefStorage): string[
   return Array.isArray(ids) ? ids.filter((id) => typeof id === "string") : []
 }
 
-/** 清除已结束的任务：只是界面上隐藏，按会话记在本地。 */
 export function dismissTasks(sessionId: string, ids: readonly string[], storage?: PrefStorage) {
   const map = readJson<Record<string, string[]>>(DISMISSED_KEY, storage) ?? {}
   const others = Object.entries(map)

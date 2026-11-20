@@ -117,7 +117,6 @@ const props = defineProps<{
   sections: TaskSections
   stoppable: ReadonlySet<string>
   stopping: ReadonlySet<string>
-  /** 从摘要卡点进来的那条任务：滚到它，命令任务顺带展开输出。 */
   focus?: string | undefined
 }>()
 const emit = defineEmits<{ open: [child: OpenChild]; stop: [taskId: string] }>()
@@ -133,7 +132,6 @@ const shown = computed(() =>
 )
 const isOpen = (id: string) => openIds.value.has(id)
 
-/** 命令任务展开看输出。 */
 function toggle(id: string) {
   const next = new Set(openIds.value)
 
@@ -156,12 +154,10 @@ watch(
   { immediate: true },
 )
 
-/** 离底部这么近算「在看最新」，新输出到来时跟到底部。 */
 const FOLLOW_SLACK_PX = 16
 const outputs = new Map<string, HTMLElement>()
 const toBottom = (el: HTMLElement) => void nextTick(() => (el.scrollTop = el.scrollHeight))
 
-/** 每次渲染都会调；只在第一次挂上时跳到底部。 */
 function bindOutput(id: string, el: Element | ComponentPublicInstance | null) {
   if (!(el instanceof HTMLElement)) return void outputs.delete(id)
 
@@ -169,7 +165,6 @@ function bindOutput(id: string, el: Element | ComponentPublicInstance | null) {
   outputs.set(id, el)
 }
 
-// 渲染前量位置：用户已经往上翻的输出不跟
 watch(
   () =>
     [...props.sections.running, ...props.sections.finished].map((task) =>
@@ -193,7 +188,6 @@ function statusText(task: Task): string {
 </script>
 
 <style scoped>
-/* 分段：段名在上，卡片在下；卡片铺浅底，正文三行：标题、类别与用时、细节 */
 .rail-tasks {
   display: flex;
   flex-direction: column;

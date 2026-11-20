@@ -13,7 +13,6 @@ const strictLinkify = defineComarkPlugin(() => ({
   name: "strict-linkify",
   markdownItPlugins: [looseDomainsOff],
 }))
-/** 不开 html / 组件语法 / frontmatter：助手正文里的 `<div>`、`std::vec`、开头的 `---` 都按原文显示。 */
 const plugins = [taskList(), strictLinkify()]
 const FINAL_CACHE_MAX = 200
 const finalCache = new Map<string, { text: string; nodes: Node[] }>()
@@ -26,7 +25,6 @@ export function createStreamParser(): ComarkParseFn {
   })
 }
 
-/** 终态解析结果按消息缓存，历史行重挂时同步取用，不再解析。 */
 export function cachedFinalNodes(key: string, text: string): Node[] | null {
   const hit = finalCache.get(key)
 

@@ -13,7 +13,6 @@ declare global {
 const families = shallowRef<string[]>([])
 let pending: Promise<void> | undefined
 
-/** 窄字和宽字量出来一样宽就算等宽字体。 */
 function isMonospace(ctx: CanvasRenderingContext2D, family: string): boolean {
   ctx.font = `16px ${JSON.stringify(family)}`
   return ctx.measureText("iiiiii").width === ctx.measureText("WWWWWW").width

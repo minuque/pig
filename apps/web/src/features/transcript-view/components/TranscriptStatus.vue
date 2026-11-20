@@ -9,7 +9,6 @@
   >
     <RunningPigGlyph class="turn-status-pig" :state="pigState" />
 
-    <!-- 时间与 token 定宽在前，长短不一的活动文字放最后，前面的数字不跟着横移 -->
     <span class="turn-status-label">
       <template v-if="elapsedLabel">
         <FlowNumber :text="elapsedLabel" />
@@ -46,7 +45,6 @@ const props = defineProps<{
   phase: SessionPhase | undefined
   sending: boolean
   stopping: boolean
-  /** 当前轮的毫秒时间戳；没有则不计时 */
   startedAt?: number | undefined
   rows?: readonly TimelineRow[] | undefined
   outputTokens?: number | null | undefined
@@ -75,7 +73,6 @@ const tick = useIntervalFn(
   1000,
   { immediate: false },
 )
-/** busy 起点：startedAt 缺省时以刚进入 busy 的 now 锁存。 */
 const busySince = shallowRef<number>()
 const elapsedStart = computed(() => props.startedAt ?? busySince.value)
 const elapsedSeconds = computed(() => {
@@ -136,7 +133,6 @@ onBeforeUnmount(() => {
 })
 
 const label = computed(() => displayedLabel.value)
-/** busy 结束后空闲猪常驻，直到下一轮 busy 顶替。 */
 const idleLinger = shallowRef(false)
 const shown = computed(() => label.value !== "" || idleLinger.value)
 
@@ -154,7 +150,6 @@ watch(
   ([visible, isBusy]) => {
     now.value = Date.now()
 
-    // 空闲猪常驻时不计时，停掉秒表免得每秒空转
     if (visible && isBusy) tick.resume()
     else tick.pause()
   },
@@ -167,7 +162,6 @@ const elapsedLabel = computed(() => {
   if (!busy.value || !shown.value || start === undefined) return ""
   return formatElapsed(now.value - start, { showMs: false })
 })
-/** 小猪状态：busy 5min → long，10min → xlong，否则 run；非 busy 一律 idle（睡觉猪）。 */
 const pigState = computed<"idle" | "run" | "long" | "xlong">(() => {
   if (busy.value) {
     const s = elapsedSeconds.value
@@ -201,7 +195,6 @@ const tokensLabel = computed(() => {
   line-height: var(--text-meta--line-height);
 }
 
-/* 小猪高度等于一行文本的行高，不撑开行距 */
 .turn-status-pig {
   flex: none;
   height: calc(var(--text-meta) * var(--text-meta--line-height));

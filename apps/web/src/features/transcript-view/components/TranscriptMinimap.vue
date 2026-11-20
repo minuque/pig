@@ -66,7 +66,6 @@
       </Tooltip>
     </div>
 
-    <!-- 预览贴在悬停的刻度旁，位置交给浮层自己算 -->
     <Popover :open="hoverIndex !== null" @update:open="onPreviewOpenChange">
       <PopoverAnchor :reference="anchorEl" />
 
@@ -147,7 +146,6 @@ const hoverItem = computed(() => {
 })
 const previousItem = computed(() => props.items[pinnedIndex.value - 1] ?? null)
 const nextItem = computed(() => props.items[pinnedIndex.value + 1] ?? null)
-/** 预览的锚点就是悬停的刻度，浮层据此自己定位。 */
 const anchorEl = computed<HTMLElement | null>(() => {
   const index = hoverIndex.value
 
@@ -157,7 +155,6 @@ const anchorEl = computed<HTMLElement | null>(() => {
 const hitAreaWidth = computed(() => (props.hitStripWidth > 0 ? `${MINIMAP_RAIL_WIDTH}px` : "0px"))
 const railHeight = computed(() => resolveMinimapHeightStyle(props.items.length))
 
-/** 刻度按钮的可访问名：回合序号 + 该回合提问摘要，无提问时用通用文案。 */
 function tickLabel(index: number, item: TranscriptMinimapItem): string {
   return t("transcript.minimapTick", {
     index: index + 1,
@@ -172,7 +169,6 @@ function tickStyle(index: number): { top: string; height: string } {
   }
 }
 
-/** 鱼眼：悬停那条最长，越远越短；不悬停时全部收到最短档。 */
 function stripScale(index: number): number {
   if (hoverIndex.value === null) return 0.333
   const distance = Math.abs(index - emphasizedIndex.value)
@@ -185,7 +181,6 @@ function stripScale(index: number): number {
   return 0.333
 }
 
-/** 上下键逐个回合走，Home/End 到两端；回车由按钮本身触发。 */
 function onStageKeydown(event: KeyboardEvent) {
   if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return
   const ticks = [...(stage.value?.querySelectorAll<HTMLButtonElement>(".minimap-tick") ?? [])]
@@ -220,7 +215,6 @@ function onStageMouseLeave(event: MouseEvent) {
   hoverIndex.value = null
 }
 
-/** 从卡上回到导轨时交给刻度的 mouseenter 接着开，其余情况先关掉。 */
 function onPreviewLeave(event: MouseEvent) {
   const next = event.relatedTarget
 
@@ -291,7 +285,6 @@ function onPreviewOpenChange(open: boolean) {
     scale var(--duration-slow) var(--ease-out);
 }
 
-/* 视口里的回合加深，正在看的那条最深 */
 .minimap-strip.strip-in-view {
   background: var(--fg-secondary);
 }
@@ -300,7 +293,6 @@ function onPreviewOpenChange(open: boolean) {
   background: var(--fg);
 }
 
-/* 上一个 / 下一个回合：圆角方块贴着导轨两端，悬停导轨时露出 */
 .minimap-nav {
   position: absolute;
   inset-inline-start: var(--space-2xs);
@@ -346,7 +338,6 @@ function onPreviewOpenChange(open: boolean) {
   top: calc(100% + var(--space-2xs));
 }
 
-/* 面板的底色、圆角、阴影、内边距由 popover-content 提供，这里只管排版 */
 .preview-user {
   display: block;
   overflow: hidden;

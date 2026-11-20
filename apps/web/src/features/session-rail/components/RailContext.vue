@@ -5,7 +5,6 @@
       <span class="ctx-percent">{{ usage.percent }}%</span>
     </div>
 
-    <!-- 分类堆叠的用量条：每段一个分类，底槽是剩余空间 -->
     <div
       class="ctx-meter"
       role="meter"
@@ -76,15 +75,12 @@ import RailContextPreview from "@features/session-rail/components/RailContextPre
 
 const props = defineProps<{ usage: ContextUsage; sessionId: string | undefined }>()
 const { t } = useI18n()
-/** 点开预览的分类；弹框关掉就清空。 */
 const previewing = shallowRef<ContextUsageSegment>()
-/** 已占用的分类按 token 从多到少排；剩余空间单列在最后。 */
 const used = computed(() =>
   props.usage.segments
     .filter((segment) => segment.id !== "idle" && segment.tokens > 0)
     .sort((a, b) => b.tokens - a.tokens),
 )
-/** MCP 工具全按需加载时不占上下文，有可用的就仍列一行，点开看有哪些。 */
 const mcpRow = computed(() =>
   props.usage.mcpToolCount > 0
     ? props.usage.segments.find((segment) => segment.id === "mcpTools" && segment.tokens === 0)
@@ -97,7 +93,6 @@ const rows = computed(() => [
 ])
 const share = (segment: ContextUsageSegment) =>
   props.usage.window > 0 ? `${segmentShare(segment.tokens, props.usage.window).toFixed(1)}%` : "—"
-/** MCP 一行在名称后带上可用工具数。 */
 const labelOf = (segment: ContextUsageSegment) =>
   segment.id === "mcpTools" && props.usage.mcpToolCount > 0
     ? t("rail.mcpLabel", { label: segment.label, count: props.usage.mcpToolCount })
@@ -148,7 +143,6 @@ const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && 
   list-style: none;
 }
 
-/* 一行：色块 · 分类名 · token 数 · 占比；能预览的分类名是链接，悬停出下划线 */
 .ctx-row {
   display: flex;
   align-items: center;
@@ -186,7 +180,6 @@ const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && 
 .ctx-share {
   flex: none;
   min-inline-size: 44px;
-  /* 占比是这一行的主数据，用一级文本色 */
   color: var(--fg);
   font-variant-numeric: tabular-nums;
   text-align: end;

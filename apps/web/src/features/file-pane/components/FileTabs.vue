@@ -87,7 +87,6 @@ function measure() {
 
 useResizeObserver(() => list.value?.$el, measure)
 
-// 新开或切换标签后滚到它，并重新判断是否放不下
 watch(
   () => [state.value.active, state.value.tabs.length],
   async () => {
@@ -118,7 +117,6 @@ watch(
   scrollbar-width: none;
 }
 
-/* 标签 basis 192，最窄 104，选中时字色转主色、底色用选中态 */
 .file-tab {
   position: relative;
   display: flex;
@@ -163,7 +161,6 @@ watch(
   outline: none;
 }
 
-/* 整个标签都是点击区 */
 .file-tab-trigger::before {
   content: "";
   position: absolute;

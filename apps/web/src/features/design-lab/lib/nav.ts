@@ -3,18 +3,14 @@ import CardTuner from "@features/design-lab/components/CardTuner.vue"
 import TokenCategory from "@features/design-lab/components/TokenCategory.vue"
 import { CATEGORIES } from "@features/design-lab/lib/tokens.js"
 
-/** 导航文案随界面语种切换；组件名两种语言相同。 */
 export type Label = { zh: string; en: string }
 
-/** path 是 /design/ 之后的地址段，也是页面的唯一标识。 */
 export type NavItem = { path: string; title: Label; view: Component }
 
 export type NavGroup = { id: string; title: Label; items: NavItem[] }
 
 const same = (name: string): Label => ({ zh: name, en: name })
-/** 组件示例按文件名自动收集：demos/ 里加一个 XxxDemo.vue 就多一页。 */
 const DEMOS = import.meta.glob<{ default: Component }>("../demos/*Demo.vue")
-/** 一级分组与组内顺序；没登记的示例落到「其他」，不会丢。 */
 const LAYOUT: { id: string; title: Label; items: (string | [string, Label])[] }[] = [
   {
     id: "actions",
@@ -77,7 +73,6 @@ function demo(name: string, title = same(name)): NavItem[] {
   return load ? [{ path, title, view: defineAsyncComponent(load) }] : []
 }
 
-/** 全部页面按总览顺序排好；上一页、下一页也按这个顺序走。 */
 export const NAV: NavGroup[] = [
   {
     id: "tokens",

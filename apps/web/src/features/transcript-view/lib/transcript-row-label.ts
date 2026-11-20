@@ -26,7 +26,6 @@ function capitalizeFirst(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1)
 }
 
-// 整行只大写首个片段的第一个字母
 function capitalizeParts(parts: ToolRowLabelPart[]): ToolRowLabelPart[] {
   const first = parts[0]
 
@@ -48,7 +47,6 @@ export function toolRowLabelParts(row: ToolRow): ToolRowLabelPart[] {
   const counts = new Map<ToolGroupKey, number>()
 
   for (const step of row.steps) {
-    // 思考不入标签；edit 与 write 合并记作 edit
     if (step.type === "thought") continue
     const key = step.key === "write" ? "edit" : step.key
     counts.set(key, (counts.get(key) ?? 0) + step.items.length)

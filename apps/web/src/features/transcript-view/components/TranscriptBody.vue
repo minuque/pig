@@ -20,7 +20,6 @@
     >
       <div class="transcript-edge-top edge-veil-top" aria-hidden="true"></div>
 
-      <!-- 正文与右侧摘要列并排：摘要在滚动区内，滚动条落在它右边 -->
       <div class="transcript-frame">
         <div v-if="rows.length || running" ref="column" class="transcript">
           <div ref="list" class="transcript-list">
@@ -38,13 +37,11 @@
                   @toggle-tool="onToggleTool"
                   @shown="shownTurns.add($event)"
                 >
-                  <!-- 指示器挂在本轮里：跑道留白落在它之后，贴底时指示器跟着用户消息留在顶部 -->
                   <TranscriptStatus v-if="turnIndex === turns.length - 1" v-bind="statusProps" />
                 </TurnRow>
               </template>
             </div>
 
-            <!-- 还没有轮时（发送中）指示器没有归属的轮，单独挂一份 -->
             <TranscriptStatus v-if="turns.length === 0" v-bind="statusProps" />
           </div>
         </div>
@@ -112,7 +109,6 @@ const turns = shallowRef<TimelineTurn[]>([])
 const shownTurns = computed(() => shownTurnsOf(props.sessionId))
 const rows = computed(() => turns.value.flatMap((turn) => turn.rows))
 const rowsBuilder = createTimelineRowsBuilder()
-/** 运行中轮的起点：turn.id 就是 user 条目 id，timing.userId 与之对应。 */
 const activeStartedAt = computed(() => {
   if (!props.running) return undefined
   const lastId = turns.value.at(-1)?.id
@@ -121,7 +117,6 @@ const activeStartedAt = computed(() => {
   )
   return timing?.startedAt
 })
-/** 当前轮的 output token 汇总；orphan 轮回退到行内最后一条 user。 */
 const activeOutputTokens = computed(() => {
   const turn = turns.value.at(-1)
 
@@ -152,7 +147,6 @@ watch(
   { flush: "sync", immediate: true },
 )
 
-/** 指示器有两个挂载点（末轮内 / 无轮时独立），props 走一份。 */
 const statusProps = computed(() => ({
   phase: props.phase,
   sending: props.sending,
@@ -186,7 +180,6 @@ const {
   scrollToLatest,
   scrollToElement,
 } = useTranscriptFollow(scrollerRoot)
-/** 切走的会话记住滚动位置，切回来先复位；没有记录才贴底。 */
 const scrollMemory = new Map<string, number>()
 let pendingRestore: number | undefined
 let historyPending = 0
@@ -283,7 +276,6 @@ function scrollToElementOffset(top: number) {
 }
 
 const { readyFrame } = useTranscriptReveal(rows, pinLatest)
-/** 刚发送的一轮：预留一屏高度，把新消息滚到视口顶部。 */
 const runwayId = shallowRef<string>()
 
 function userTurnAppended(previous: readonly TimelineTurn[], next: readonly TimelineTurn[]) {
@@ -298,7 +290,6 @@ function userTurnAppended(previous: readonly TimelineTurn[], next: readonly Time
 watch(turns, (next, prev) => {
   const previous = prev ?? []
 
-  /* 位置恢复等这一轮内容真正挂上再写，数据还没到时写 scrollTop 会被重置。 */
   if (pendingRestore !== undefined && next.length > 0) {
     const target = pendingRestore
     pendingRestore = undefined
@@ -360,7 +351,6 @@ watch(
       return
     }
 
-    // 行已就位时 turns 不会再变，这里补一次；还没到就交给 turns 的兜底分支
     const target = pendingRestore
 
     void nextTick(() => {
@@ -385,7 +375,6 @@ defineExpose({ showScrollToLatest, scrollToLatest })
 <style scoped>
 .transcript-shell {
   position: relative;
-  /* 内部 z-index 关进独立 stacking context，stage 层伪元素蒙层才能盖住 */
   isolation: isolate;
   min-height: 0;
   flex: 1;
@@ -402,21 +391,15 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   /* 补历史时按高度差手动补 scrollTop，浏览器锚定会再补一次 */
   overflow-anchor: none;
   scroll-padding-bottom: var(--composer-reserve, 0px);
-  /* 给 .turn-runway 的 cqh 提供视口高度 */
   container-type: size;
-  /* 滚动条常显两侧各一槽：内容相对列居中，不因溢出与否左右横移 */
   --scrollbar-thumb: var(--scrollbar-color);
   scrollbar-gutter: stable both-edges;
 }
 
-/* 顶部渐隐层压住普通行，工具行由 .row-tools 的 z-index 抬到它上面 */
 .transcript-edge-top {
-  /* 与正文同底：main 的底色 */
   background: linear-gradient(to bottom, var(--bg), transparent);
 }
 
-/* 最后一轮至少撑满可见区：贴底时这轮的用户消息落在顶部渐隐带下方，指示器跟在消息后。
-   跑道扣掉正文上下留白和渐隐带，消息才不会顶到视口上沿被盖住。 */
 .turn-runway {
   min-height: calc(100cqh - 48px - var(--edge-fade-band) - var(--composer-reserve, 0px));
 }
@@ -425,14 +408,12 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   z-index: var(--z-overlay);
 }
 
-/* 网格列：正文的百分比内边距只按自己那一列算，不把右侧摘要列算进去 */
 .transcript-frame {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
 }
 
-/* 摘要列贴顶不动，最高到可见区底 */
 .transcript-aside {
   position: sticky;
   inset-block-start: 0;
@@ -449,12 +430,9 @@ defineExpose({ showScrollToLatest, scrollToLatest })
   width: 100%;
   min-width: 0;
   padding-top: 48px;
-  /* 底部留白：正文留白 + 输入条占位 */
   padding-bottom: calc(48px + var(--composer-reserve, 0px));
-  /* 在正文列里居中；右侧面板占自己的列，不再叠进正文宽 */
   padding-inline-start: max(var(--space-2xl), calc((100% - var(--content-width)) / 2));
   padding-inline-end: max(var(--space-2xl), calc((100% - var(--content-width)) / 2));
-  /* 横向裁在列内，避免视口 overflow-x 裁掉竖条；内边距留给满宽卡片边框 */
   overflow-x: clip;
 }
 

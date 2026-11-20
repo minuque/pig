@@ -67,10 +67,8 @@ withDefaults(
   defineProps<{
     titleId: string
     workspaces: readonly string[]
-    /** 空 Session 已绑定 cwd，标题只展示不切换。 */
     selectable?: boolean
     adding?: boolean
-    /** 未就绪时不把缺目录画成引导。 */
     ready?: boolean
   }>(),
   { selectable: true, adding: false, ready: true },
@@ -113,7 +111,6 @@ const suffix = computed(() => t(workspaceId.value ? "hero.askSuffix" : "hero.pic
   text-align: center;
 }
 
-/* 项目名即选择器：外观交给 Link，这里只管限宽，行高字距跟标题走 */
 .hero-picker {
   display: inline-flex;
   max-width: min(100%, 16rem);
@@ -126,7 +123,6 @@ const suffix = computed(() => t(workspaceId.value ? "hero.askSuffix" : "hero.pic
   text-decoration-line: underline;
 }
 
-/* 项目名与句尾连成一块，换行时不拆开 */
 .hero-target {
   display: inline-flex;
   align-items: baseline;
@@ -134,7 +130,6 @@ const suffix = computed(() => t(workspaceId.value ? "hero.askSuffix" : "hero.pic
   max-width: 100%;
 }
 
-/* 句尾自带的前导空格要留住 */
 .hero-suffix {
   flex: none;
   white-space: pre;
@@ -147,7 +142,6 @@ const suffix = computed(() => t(workspaceId.value ? "hero.askSuffix" : "hero.pic
   white-space: nowrap;
 }
 
-/* 菜单排版对齐侧栏项目筛选：项目多时区内滚动，长名截断 */
 .hero-projects {
   max-block-size: calc(var(--control-sm) * 9);
   overflow-y: auto;

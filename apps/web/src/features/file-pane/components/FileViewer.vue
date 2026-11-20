@@ -86,7 +86,6 @@ import { locateLines } from "@features/file-pane/lib/paths.js"
 import { useFilePane } from "@features/file-pane/index.js"
 import type { FileTextResponse } from "@/types/common-type.js"
 
-/** 这些类型直接从字节地址加载，不读文本。 */
 const MEDIA = new Set(["image", "video", "audio", "pdf"])
 const props = defineProps<{ path: string }>()
 const { t } = useI18n()
@@ -97,7 +96,6 @@ const rawUrl = computed(() => (pane.cwd.value ? fileRawUrl(pane.cwd.value, props
 const loaded = shallowRef<FileTextResponse>()
 const loading = shallowRef(false)
 const failure = shallowRef("")
-/** Markdown 默认渲染；带行号打开时从源码开始。 */
 const source = shallowRef(false)
 const previewable = computed(() => ["markdown", "csv", "svg", "html"].includes(kind.value))
 const svgUrl = computed(
@@ -169,7 +167,6 @@ watch(
   { immediate: true },
 )
 
-// agent 改过这个文件就静默重读，滚动位置留在原处
 watch(
   () => pane.revisions.value[props.path],
   (next, prev) => {

@@ -31,7 +31,6 @@ const label = computed(() => {
 </script>
 
 <style scoped>
-/* 照 markdown 引用块排：左竖线加缩进；竖线与标题按状态染色，出错用危险色、中止用警示色 */
 .turn-error {
   padding-inline-start: var(--space-xs);
   color: var(--warning-text);

@@ -14,7 +14,6 @@ function parseUrl(raw: string): URL | null {
   }
 }
 
-/** 链接的显示文字：去掉协议头、www 和末尾斜杠。 */
 export function prettifyUrl(url: string): string {
   return url
     .replace(/^https?:\/\//i, "")
@@ -22,7 +21,6 @@ export function prettifyUrl(url: string): string {
     .replace(/\/$/, "")
 }
 
-/** 链接文字就是地址本身时用缩短标签，手写标签保留原文。 */
 export function linkChipLabel(href: string, text: string | undefined): string {
   const plain = (text ?? "").trim()
 
@@ -45,7 +43,6 @@ function splitUrlToken(raw: string): { url: string; rest: string } {
   return { url: raw.slice(0, -trailing[0].length), rest: trailing[0] }
 }
 
-/** 把纯文本里的 http(s) 地址切出来，其余空白原样保留。 */
 export function splitLinkText(text: string): LinkTextPart[] {
   const parts: LinkTextPart[] = []
   let cursor = 0

@@ -1,16 +1,13 @@
 export type Side = "left" | "right"
 
-/** 两侧各显示的会话；undefined 是新会话页。未分屏时只有 left。 */
 export interface SplitState {
   left: string | undefined
   right: string | undefined
   split: boolean
   focused: Side
-  /** 左侧占主区的比例。 */
   ratio: number
 }
 
-/** 分屏时每侧对话的最小宽度。 */
 export const SPLIT_CHAT_MIN = 480
 const RATIO_MIN = 0.2
 const RATIO_MAX = 0.8
@@ -23,7 +20,6 @@ export const emptySplit: SplitState = {
 }
 const other = (side: Side): Side => (side === "left" ? "right" : "left")
 
-/** 显示该会话的一侧；同一会话只在一侧出现。 */
 export function sideShowing(state: SplitState, id: string | undefined): Side | undefined {
   if (!id) return undefined
 
@@ -36,7 +32,6 @@ export function focusSide(state: SplitState, side: Side): SplitState {
   return { ...state, focused: side }
 }
 
-/** 在聚焦的一侧打开；已在另一侧就只改聚焦。 */
 export function openInFocused(state: SplitState, id: string | undefined): SplitState {
   const shown = sideShowing(state, id)
 
@@ -46,7 +41,6 @@ export function openInFocused(state: SplitState, id: string | undefined): SplitS
   return { ...state, [state.focused]: id }
 }
 
-/** 在另一侧打开：未分屏时开出右侧；已在某侧就只改聚焦。 */
 export function openToSide(state: SplitState, id: string | undefined): SplitState {
   const shown = sideShowing(state, id)
 
@@ -57,25 +51,21 @@ export function openToSide(state: SplitState, id: string | undefined): SplitStat
   return { ...state, [target]: id, focused: target }
 }
 
-/** 让显示该会话的一侧离开它，回到新会话页；聚焦不变。 */
 export function leaveSession(state: SplitState, id: string): SplitState {
   const side = sideShowing(state, id)
   return side ? { ...state, [side]: undefined } : state
 }
 
-/** 在右侧新建会话：右侧换成新会话页并聚焦，左侧不动。 */
 export function newOnRight(state: SplitState): SplitState {
   return { ...state, split: true, right: undefined, focused: "right" }
 }
 
-/** 关闭一侧：留下的一侧成为唯一的左侧。 */
 export function closeSide(state: SplitState, side: Side): SplitState {
   if (!state.split) return state
   const kept = side === "left" ? state.right : state.left
   return { ...state, left: kept, right: undefined, split: false, focused: "left" }
 }
 
-/** 给了主区宽度时，两侧对话都保住 SPLIT_CHAT_MIN；不给时按固定上下限。 */
 export function setRatio(state: SplitState, ratio: number, width?: number): SplitState {
   const floor = width && fitsSplit(width) ? SPLIT_CHAT_MIN / width : RATIO_MIN
   const min = Math.max(RATIO_MIN, floor)

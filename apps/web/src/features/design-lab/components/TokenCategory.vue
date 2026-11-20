@@ -158,9 +158,7 @@ const tokens = useTokens()
 const query = ref("")
 const PLACEHOLDER: Label = { zh: "筛选名称或值", en: "Filter name or value" }
 const EMPTY: Label = { zh: "没有匹配的变量", en: "No matching tokens" }
-// 字号、字体这几种样例要一行字，给宽一档
 const WIDE: Kind[] = ["text", "leading", "tracking", "font"]
-// 白字画在白底上看不见，铺一层它该出现的底
 const GROUND: Record<string, string> = {
   "--fg-on-accent": "var(--accent-solid)",
   "--fg-inverse": "var(--bg-inverse)",
@@ -174,7 +172,6 @@ const filtered = computed(() => {
     (token) => token.name.toLowerCase().includes(term) || token.value.toLowerCase().includes(term),
   )
 })
-// 按 tokens.css 里的出现顺序分组
 const groups = computed(() => {
   const byGroup = new Map<string, Token[]>()
 
@@ -203,7 +200,6 @@ function fontStyle(token: Token): Record<string, string> {
   return token.name.includes("weight") ? { fontWeight: css(token) } : { fontFamily: css(token) }
 }
 
-/** 缓动变量本身就是贝塞尔控制点，按原值画出曲线。 */
 function easePath(value: string): string {
   const match = /cubic-bezier\(\s*([\d.-]+),\s*([\d.-]+),\s*([\d.-]+),\s*([\d.-]+)\s*\)/.exec(value)
 
@@ -286,7 +282,6 @@ function easePath(value: string): string {
   grid-template-columns: min(38%, 152px) minmax(0, 1fr);
 }
 
-/* 宽屏一行内排开，名字列定宽对齐，值占剩余宽度 */
 @media (width >= 720px) {
   .token {
     grid-template-areas: "sample name value";

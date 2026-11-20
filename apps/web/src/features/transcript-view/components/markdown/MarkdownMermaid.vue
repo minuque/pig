@@ -1,6 +1,5 @@
 <template>
   <div class="diagram" :data-view="view">
-    <!-- 画好后不放按钮：点图进预览，复制源码在预览头部 -->
     <div v-if="!drawn" class="diagram-actions">
       <CopyButton :text="source" :label="t('transcript.copyCode')" />
     </div>
@@ -51,11 +50,9 @@ const previewOpen = ref(false)
 const preview = shallowRef<RenderResult | null>(null)
 const previewTitle = ref("")
 const drawn = ref(false)
-/** 从缓存贴上的定稿图；没有 pele 实例，预览直接用它。 */
 const pasted = shallowRef<RenderResult | null>(null)
 const view = computed(() => (drawn.value ? "diagram" : "source"))
 
-/** 只把能解析通过的源码交给 pele：图随内容逐步长出来，半截语法不闪错误层。 */
 async function draw(source: string, live: boolean) {
   const text = settledSource(source, live)
 
@@ -89,20 +86,17 @@ async function draw(source: string, live: boolean) {
       autoDirection: false,
       onRender: () => {
         drawn.value = true
-        // 回调挂在首次 mount 上，流式结束后的重绘也走这里：读当前源码与状态
         const current = mounted.value
 
         if (!props.live && current?.result) storeDiagram(current.source, current.result)
       },
     })
 
-  // 首次绘制可能在 mount 返回前同步完成，回调里还拿不到实例
   if (!live && mounted.value.result) storeDiagram(mounted.value.source, mounted.value.result)
 }
 
 let queue = Promise.resolve()
 
-// 串行绘制：pele 加载是异步的，避免两次绘制同时 mount。
 watch(
   [() => props.source, () => props.live],
   ([source, live]) => {
@@ -114,7 +108,6 @@ watch(
   },
 )
 
-/** 预览沿用正文里已排好的那张图，比例与所见一致，不再按弹框宽度重新排版。 */
 function openPreview() {
   preview.value = mounted.value?.result ?? pasted.value
   previewTitle.value = headingBefore(host.value) ?? "Mermaid"
@@ -130,7 +123,6 @@ onBeforeUnmount(() => mounted.value?.destroy())
   min-width: 0;
 }
 
-/* 控件浮在右上角，悬停或键盘聚焦时才出现，不顶动图的位置。 */
 .diagram-actions {
   position: absolute;
   z-index: var(--z-raise);

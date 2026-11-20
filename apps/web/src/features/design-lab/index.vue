@@ -1,6 +1,5 @@
 <template>
   <div class="lab">
-    <!-- 页头吸顶：标题回总览、当前位置、全局开关 -->
     <header class="lab-bar">
       <nav class="lab-crumbs">
         <RouterLink to="/design" class="lab-home">Design</RouterLink>
@@ -125,9 +124,7 @@ const { isDark, setScheme } = useColorScheme()
 const { locale, setLocale } = useGeneralPrefs()
 const search = useTemplateRef<{ open: () => void }>("search")
 const path = computed(() => [route.params.page ?? []].flat().join("/"))
-// 设计规范文档不进翻页顺序，单独一页
 const isGuide = computed(() => path.value === "guide")
-// 地址段对上某页就显示该页，对不上回总览
 const current = computed(() => {
   const index = PAGES.findIndex((page) => page.item.path === path.value)
 
@@ -152,7 +149,6 @@ watch(
   () => window.scrollTo(0, 0),
 )
 
-// 设计页不经过启动门，自己撤掉 index.html 里的启动画面
 onMounted(() => document.getElementById("startup-splash")?.remove())
 </script>
 

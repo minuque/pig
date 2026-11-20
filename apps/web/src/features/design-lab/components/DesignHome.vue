@@ -66,7 +66,6 @@ import { CATEGORIES, useTokens } from "@features/design-lab/lib/tokens.js"
 const { locale } = useGeneralPrefs()
 const tokens = useTokens()
 const PAGES = NAV.reduce((total, group) => total + group.items.length, 0)
-// 设计变量已经画成上面的卡片，列表只放组件与调节页；桌面用侧栏，窄屏才回到目录
 const sections = NAV.filter((group) => group.id !== "tokens")
 const counts = computed(() =>
   Object.fromEntries(

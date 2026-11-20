@@ -59,7 +59,6 @@ import { TextFieldRoot } from "@components/ui/text-field/index.js"
 
 const props = defineProps<{
   open: boolean
-  /** 校验并登记远程目录；返回 false 表示目录不存在或主机连不上。 */
   add: (environment: string, path: string) => Promise<boolean>
 }>()
 const emit = defineEmits<{ "update:open": [open: boolean] }>()
@@ -84,7 +83,6 @@ watch(
   { immediate: true },
 )
 
-// 换主机时带出它保存的默认目录
 watch(host, (id) => {
   const saved = hosts.value.find((item) => item.id === id)?.defaultPath
 

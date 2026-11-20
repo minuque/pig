@@ -4,13 +4,11 @@ import { warmWorkspace } from "@client/platform.js"
 interface WelcomeWorkspaceDeps {
   sessionId(): string | undefined
   sessionCwd(): string | undefined
-  /** 与侧栏同一份目录：已授权 local + 会话 cwd。 */
   workspaces(): readonly string[]
   lastCwd(): string | undefined
   connected(): boolean
 }
 
-/** 失效项兜底：手选的目录还在就保住，其次是侧栏最近一次点的。 */
 function nextWorkspaceId(
   items: readonly string[],
   current: string | undefined,
@@ -22,7 +20,6 @@ function nextWorkspaceId(
   return items[0]
 }
 
-/** 首屏 Hero 的目录：跟随侧栏选择、目录变化兜底，连上后预热同一目录的扩展与技能。 */
 export function useWelcomeWorkspace(deps: WelcomeWorkspaceDeps) {
   const welcomeWorkspaceId = shallowRef<string>()
   const heroWorkspaceId = computed({
@@ -35,7 +32,6 @@ export function useWelcomeWorkspace(deps: WelcomeWorkspaceDeps) {
     deps.sessionId() ? deps.sessionCwd() : welcomeWorkspaceId.value,
   )
 
-  // 侧栏点目录会写 lastCwd，Hero 跟随
   watch(
     () => deps.lastCwd(),
     (last) => {
@@ -51,7 +47,6 @@ export function useWelcomeWorkspace(deps: WelcomeWorkspaceDeps) {
     { immediate: true },
   )
 
-  // 第一条 Prompt 用这个目录建会话；连上后让 Host 后台预热同一目录的扩展与技能
   watch(
     [() => deps.connected(), welcomeWorkspaceId],
     ([live, id]) => {

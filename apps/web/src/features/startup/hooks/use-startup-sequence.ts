@@ -7,7 +7,6 @@ import { setStartupError } from "@features/startup/index.js"
 export interface StartupSequenceOptions {
   connect: () => Promise<unknown>
   initialize: () => Promise<unknown>
-  /** 连接网关超时，超时视为启动失败并进 `/error`。0 表示不等待超时。 */
   connectTimeoutMs?: number
 }
 
@@ -41,10 +40,6 @@ function routeHasSession(router: ReturnType<typeof useRouter>): boolean {
   return typeof raw === "string" && raw.length > 0
 }
 
-/**
- * 启动序列：connect 与 initialize 并行，与毛玻璃遮罩并行。
- * 有 sessionId 时 initialize 完成即可揭开；欢迎页等连接结束。失败进 `/error`。
- */
 export function useStartupSequence(options: StartupSequenceOptions) {
   const router = useRouter()
   const visible = shallowRef(true)
@@ -52,7 +47,6 @@ export function useStartupSequence(options: StartupSequenceOptions) {
   const ready = shallowRef(false)
   const failed = shallowRef(false)
 
-  /** 遮罩一拆就开锁；失败要等错误页路由落地，避免半初始化的主界面先露出来。 */
   function finish() {
     visible.value = false
   }
@@ -64,7 +58,6 @@ export function useStartupSequence(options: StartupSequenceOptions) {
       options.connectTimeoutMs ?? DEFAULT_CONNECT_TIMEOUT_MS,
     )
     const initializing = Promise.resolve(options.initialize()).then((value) => {
-      // 失败已改道错误页时，不在这里提前揭开
       if (!failed.value && sessionRoute) settled.value = true
       return value
     })

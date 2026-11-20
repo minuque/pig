@@ -94,7 +94,6 @@
       </ol>
     </nav>
 
-    <!-- 摘要在前、Files 在后：右侧按钮组从摘要开始数 -->
     <RailToggle v-if="rail" />
 
     <Tooltip v-if="rail && sessionId">
@@ -117,7 +116,6 @@
       <TooltipContent>{{ t("files.toggle") }}</TooltipContent>
     </Tooltip>
 
-    <!-- 分屏操作贴住头部右端：没有标题的新会话页也一样 -->
     <span v-if="split.split.value" class="split-actions">
       <Tooltip v-if="!split.fits.value">
         <TooltipTrigger as-child>
@@ -191,7 +189,6 @@ import {
   XIcon,
 } from "@components/icons/index.js"
 
-/** rail：右侧显示摘要面板开关（开场页不显示）。 */
 defineProps<{ rail?: boolean }>()
 
 const { t } = useI18n()
@@ -203,7 +200,6 @@ const sideBySide = computed(() => split.split.value && split.fits.value)
 const leftmost = computed(() => side === "left" || !sideBySide.value)
 /** 窗口最右边的 header：给 Windows 窗控让位。 */
 const rightmost = computed(() => side === "right" || !sideBySide.value)
-/** 分屏时没聚焦的一侧，标题退一档。 */
 const dimmed = computed(() => sideBySide.value && split.focused.value !== side)
 const { sbState, setSbState } = useLeftPanelToggle()
 const files = useFilePane()
@@ -216,10 +212,8 @@ const {
   renameSession,
   deleteSession,
 } = useNav()
-/** 当前会话 id：实时会话缺失时回落到高亮会话。 */
 const currentId = computed(() => sessionId.value ?? highlightedSessionId.value)
 const isPinned = computed(() => (currentId.value ? pinnedIds.value.has(currentId.value) : false))
-/** 顶栏标题：列表名优先（改名后随 listSessions 更新），否则 snapshot 名。 */
 const title = computed(() => {
   if (!sessionId.value) return ""
   const meta = listedSessions.value.find((session) => session.id === sessionId.value)
@@ -239,7 +233,6 @@ const titleWidth = computed(() => (sizerWidth.value > 0 ? `${sizerWidth.value}px
 const measureSizer = () => {
   sizerWidth.value = sizer.value?.getBoundingClientRect().width ?? 0
 }
-// 标题为空时 sizer 整块不渲染，挂载那一刻量不到；等它出现再挂观察器
 let sizerObserver: ResizeObserver | undefined
 
 watch(
@@ -287,7 +280,6 @@ function commit(): void {
   titleInput.value?.blur()
 }
 
-/** 文件面板被面板列收起时，点图标把它挪回最下面，而不是关掉。 */
 function toggleFiles(): void {
   if (panels?.hidden("files")) panels.raise("files")
   else files.toggle()
@@ -322,7 +314,6 @@ function confirmDelete(): void {
 </script>
 
 <style scoped>
-/* 与摘要面板开关同一选中态 */
 .files-toggle[data-active] {
   color: var(--fg);
   background: var(--bg-selected);
@@ -338,8 +329,6 @@ function confirmDelete(): void {
   height: var(--header-height);
   min-height: var(--header-height);
   padding: var(--space-2xs) var(--space-sm);
-  /* 自画窗控浮在整个窗口右上角，只有最右侧的头部让出这一块 */
-  /* 与下方正文同底色：头部不另起一层 */
   background: transparent;
   color: var(--fg);
 }
@@ -359,7 +348,6 @@ function confirmDelete(): void {
   color: var(--fg-secondary);
 }
 
-/* 欢迎页头部浮在背景上，不占高度；拖窗与侧栏入口照常可用 */
 .workbench-header.is-overlay {
   position: absolute;
   inset: 0 0 auto;
@@ -367,14 +355,12 @@ function confirmDelete(): void {
 
 .header-toggle {
   overflow: hidden;
-  /* 与侧栏同档 200ms；opacity 稍快进出，让形状先到位 */
   transition:
     width var(--duration-normal) var(--ease-out),
     margin var(--duration-normal) var(--ease-out),
     opacity var(--duration-fast) var(--ease-out);
 }
 
-/* 侧栏展开时收起入口：宽度归零并抵消 gap，图标同步形变 */
 .header-toggle.is-stowed {
   width: 0;
   margin-inline-end: calc(-1 * var(--space-xs));
@@ -382,7 +368,6 @@ function confirmDelete(): void {
   pointer-events: none;
 }
 
-/* 面包屑：目录名 + 分隔符 + 会话名，标题占剩余宽度并截断 */
 .header-crumbs {
   flex: 1;
   min-width: 0;
@@ -481,7 +466,6 @@ function confirmDelete(): void {
   box-shadow: inset 0 0 0 1px var(--accent-solid);
 }
 
-/* 操作入口：悬停或聚焦标题时出现 */
 .crumb-more {
   flex: none;
   opacity: 0;
@@ -501,7 +485,6 @@ html[data-pig-desktop-platform] .workbench-header {
   user-select: none;
 }
 
-/* 可交互内容与带 tooltip 的徽标从拖拽区里摘出来 */
 html[data-pig-desktop-platform]
   .workbench-header
   :deep(

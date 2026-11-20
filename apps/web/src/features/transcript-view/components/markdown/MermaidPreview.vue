@@ -46,7 +46,6 @@
       </Button>
     </template>
 
-    <!-- 视口固定大小：图从左上角起算，按起始平移居中；滚轮以指针为中心缩放，任意缩放下都能拖动 -->
     <div ref="viewport" class="preview-viewport">
       <!-- eslint-disable-next-line vue/no-v-html -- pele 由源码生成的 SVG -->
       <div ref="stage" class="preview-stage mermaid-diagram" :style="stageSize" v-html="svg" />
@@ -79,7 +78,6 @@ const viewport = useTemplateRef("viewport")
 const stage = useTemplateRef("stage")
 const scale = ref(1)
 const stageSize = computed(() => ({ width: `${props.width}px`, height: `${props.height}px` }))
-// 适应窗口时四周留白；小图最多放大到 2 倍，避免糊成一片
 const FIT_MARGIN = 0.92
 const FIT_MAX = 2
 let panzoom: PanzoomObject | null = null
@@ -103,7 +101,6 @@ function fitScale(box: HTMLElement): number {
   return Math.min(fit, FIT_MAX)
 }
 
-/** 变换原点在左上角，平移量按未缩放坐标算：居中即视口与缩放后图的差值一半。 */
 function centered(box: HTMLElement, s: number) {
   return {
     x: (box.clientWidth / s - props.width) / 2,
@@ -153,7 +150,6 @@ function teardown(box: HTMLElement | null, el: HTMLElement | null) {
   panzoom = null
 }
 
-// 弹框内容随打开挂载、随关闭卸载：视口出现时接上平移缩放，消失时拆掉
 watch(
   [viewport, stage],
   ([box, el], [oldBox, oldEl]) => {

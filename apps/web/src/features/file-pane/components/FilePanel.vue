@@ -39,7 +39,6 @@
 
       <FileTabs class="file-panel-tabs" />
 
-      <!-- 右上角控制：搜索、展开、关闭 -->
       <Tooltip v-for="action in actions" :key="action.key">
         <TooltipTrigger as-child>
           <IconButton
@@ -60,7 +59,6 @@
     </header>
 
     <div ref="body" class="file-panel-body">
-      <!-- 树在左定宽、查看器在右占满，中间可拖；面板变宽变窄只动查看器；没打开文件时右侧留空占位 -->
       <div v-if="pane.treeShown.value" class="file-panel-split">
         <div class="file-panel-col" :style="{ inlineSize: `${treeWidth}px` }">
           <FileSearch><FileTree /></FileSearch>
@@ -115,22 +113,18 @@ import FileViewer from "@features/file-pane/components/FileViewer.vue"
 import { useFilePane } from "@features/file-pane/index.js"
 import { usePanelHost } from "@features/split-view/index.js"
 
-/** 树列宽：默认 240，最窄 160；查看器至少留 200。 */
 const TREE_DEFAULT = 240
 const TREE_MIN = 160
 const VIEWER_MIN = 200
-/** covering：面板列盖住对话（窄屏或点了展开）。 */
 const props = defineProps<{ covering?: boolean }>()
 const { t } = useI18n()
 const pane = useFilePane()
 const host = usePanelHost()
 const active = computed(() => pane.tabs.value.active)
 const expanded = computed(() => host?.expanded.value ?? false)
-/** 窄屏放不下才盖住：头部给返回按钮，不给展开与关闭。 */
 const narrowCover = computed(() => props.covering && !expanded.value)
 const TREE_WIDTH_KEY = "pig.files.treeWidth"
 const savedTree = Number(readPref(TREE_WIDTH_KEY))
-/** 用户拖出来的树宽；面板宽度变化不改它，放不下时才临时收窄。 */
 const treePref = shallowRef(Number.isFinite(savedTree) && savedTree > 0 ? savedTree : TREE_DEFAULT)
 const bodyWidth = shallowRef(Number.POSITIVE_INFINITY)
 const treeMax = computed(() => Math.max(TREE_MIN, bodyWidth.value - VIEWER_MIN))
@@ -188,7 +182,6 @@ const actions = computed(() => [
 </script>
 
 <style scoped>
-/* 卡片外观来自 Card；面板自己排版，去掉卡片内边距、铺表面底 */
 .file-panel {
   display: flex;
   flex: 1;
@@ -236,7 +229,6 @@ const actions = computed(() => [
   flex: 1;
 }
 
-/* 树与查看器之间：1px 分割线，把手外观由 ResizeHandle 画 */
 .file-panel-handle {
   inline-size: var(--border-width);
   background: var(--border-subtle);

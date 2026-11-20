@@ -12,7 +12,6 @@
 
     <div v-else-if="variant === 'edit' && preview" class="edit-scroll">
       <CodeCard v-for="(hunk, index) in preview.hunks" :key="index" class="edit-hunk">
-        <!-- 头在 diff 滚动区之外：滚动条只出现在正文 -->
         <div class="edit-header">
           <span class="edit-path" :title="preview.path || preview.fileName">
             {{ preview.path || preview.fileName }}
@@ -94,9 +93,7 @@ const fallback = computed(
 )
 const diffOptions = computed(() => ({
   theme: codeBlockProps.value.theme,
-  /* 限高放在 diff 自身：滚动只发生在卡片里，头保持可见 */
   maxHeight: "var(--transcript-tool-max)",
-  /* 文件路径与复制按钮由卡片头给出，库自带的头不显示 */
   unsafeCSS: `[data-diffs-header] { display: none; }`,
 }))
 const tokens = shallowRef<CodeTokens>([])
@@ -156,7 +153,6 @@ watch(
   font-size: var(--text-meta);
 }
 
-/* 全局 `*` 会给每个元素写默认拇指色；滚动的那层单独提亮，与其它工具卡同档 */
 .edit-diff :deep(.stream-diffs-shell) {
   --scrollbar-thumb: var(--bg-emphasis);
 }

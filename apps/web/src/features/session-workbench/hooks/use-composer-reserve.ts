@@ -3,10 +3,6 @@ import { useResizeObserver } from "@vueuse/core"
 
 const RESERVE_DEBOUNCE_MS = 120
 
-/**
- * 输入条脱离文档流后，把占位高度写给对话列，转录和空态都靠它留白。
- * 动画逐帧回写会让转录列每帧重排，合到尾沿写一次；首屏没有转录，Hero 直接跟着输入卡长高。
- */
 export function useComposerReserve(
   bar: Readonly<Ref<HTMLElement | null>>,
   hero: () => boolean,

@@ -77,7 +77,6 @@ watch(
   min-width: 0;
 }
 
-/* 输入保留底色，和下方只描边的输出区分开 */
 .tool-input {
   --card-background-color: var(--bg-surface);
 

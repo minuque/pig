@@ -53,7 +53,6 @@ import { CardList, CardRow } from "@components/ui/card/index.js"
 const { t } = useI18n()
 const { locale, userName, setUserName, setLocale } = useGeneralPrefs()
 
-/** Select 只给字符串，转回联合类型 */
 function onLocale(value: string) {
   setLocale(value as UiLocale)
 }
@@ -71,7 +70,6 @@ const localeLabel = computed(
 <style scoped src="./pane.css"></style>
 
 <style scoped>
-/* 下拉框定宽：不同选项文字长短不一，避免选中后触发器宽度跳动 */
 .setting-select {
   inline-size: 10rem;
 }

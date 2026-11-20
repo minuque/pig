@@ -42,7 +42,6 @@ import { useI18n } from "@i18n/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import PreviewDialog, { type PreviewImage } from "@features/preview/index.vue"
 
-/** 行尾最多摆 3 张，其余收成「+N」，点开从第 4 张看起。 */
 const MAX = 3
 const props = defineProps<{ images: readonly PreviewImage[] }>()
 const shown = computed(() => props.images.slice(0, MAX))
@@ -84,7 +83,6 @@ function show(i: number) {
   color: var(--fg);
 }
 
-/* 缩略图不超出所在行的行高，避免把单行工具行撑高 */
 .tool-thumb {
   flex: none;
   height: calc(var(--text-meta) * var(--text-meta--line-height));

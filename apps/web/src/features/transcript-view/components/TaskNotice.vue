@@ -16,7 +16,6 @@ import type { Task } from "@/types/common-type.js"
 
 const props = defineProps<{ task: Task }>()
 const { t } = useI18n()
-/** 时间线末尾的一行：图标、「后台命令已完成 · 描述」、耗时。 */
 const label = computed(() => t(`taskNotice.${props.task.kind}.${props.task.status}`))
 const icon = computed(() =>
   props.task.status === "completed"

@@ -21,10 +21,6 @@ function userScrollBehavior(): TranscriptScrollBehavior {
   return prefersReducedMotion() ? "auto" : "smooth"
 }
 
-/**
- * 内容增高时每帧贴底到布局稳定；用户上翻立即停，程序化滚动有冷却。
- * 脱底/吸附带滞回，状态翻转等两个 rAF 确认。
- */
 export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   const atBottom = shallowRef(false)
   const visuallyAtBottom = shallowRef(false)
@@ -128,7 +124,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     navigating = false
   }
 
-  /** 用户接管：停自动滚动、停翻转、清冷却。 */
   function detachFollow() {
     stopSettle()
     stopFlip()
@@ -136,7 +131,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     cooldownUntil = 0
   }
 
-  /** 有界收敛：每帧贴底，布局签名连续不变或到帧数上限就停。 */
   function settle(maxFrames = SETTLE_MAX_FRAMES) {
     const root = getRoot()
 
@@ -238,7 +232,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     settle()
   }
 
-  /** DOM 变更的同一调用栈里贴底。settle 进行中 pinIfNeeded 不会写，这里写。 */
   function pinNow() {
     if (applying || !atBottom.value || pointerDown || userTookOver || navigating) return
     const root = getRoot()
@@ -260,7 +253,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     return () => observer.disconnect()
   }
 
-  /** 内容盒不含 padding；底部留白变化时补一次贴底。 */
   function observePadding(el: HTMLElement) {
     let last = Number.parseFloat(getComputedStyle(el).paddingBottom)
     const observer = new ResizeObserver(() => {
@@ -287,7 +279,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     settle()
   }
 
-  /** 回底滑动：每帧重读底部再用弹簧逼近，途中挂载的回合长高也不会在终点补跳。 */
   function glideToBottom() {
     stopNavigate()
     stopSettle()
@@ -335,7 +326,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
 
     if (navigating) return
 
-    // 越过上次程序化写入的位置就是用户接管，冷却也不拦
     if (cooldownUntil !== 0 && userScrolledUp(root)) detachFollow()
 
     if (pointerDown || userTookOver) return
@@ -371,7 +361,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     root.scrollTop += event.deltaY
   }
 
-  /** 按在滚动条热区立刻脱底，按下期间不重新吸附。 */
   function onPointerDown(event: PointerEvent) {
     pointerDown = true
     userTookOver = true

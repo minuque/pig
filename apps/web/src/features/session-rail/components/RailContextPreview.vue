@@ -55,7 +55,6 @@ const nodes = useMarkdownNodes({
   cacheKey: () => `context:${props.sessionId}/${props.segment.id}`,
 })
 
-/** 取这一类实际进上下文的内容；连点只认最后一次。 */
 watch(
   () => [props.sessionId, props.segment.id] as const,
   async ([sessionId, segmentId], _, onCleanup) => {

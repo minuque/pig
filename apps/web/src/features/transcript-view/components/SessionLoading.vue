@@ -15,7 +15,6 @@ import { Spinner } from "@components/ui/spinner/index.js"
   z-index: var(--z-overlay);
   display: grid;
   place-items: center;
-  /* 不再铺 surface：切换时下面有克隆层挡着，这里只留菊花 */
   background: transparent;
   pointer-events: none;
 }

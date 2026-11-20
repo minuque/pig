@@ -2,7 +2,6 @@ import { reactive, watch, type MaybeRefOrGetter, toValue } from "vue"
 
 const SESSION_SLOT_MAX = 5
 
-/** 展开态按会话留着，切走再切回不丢。 */
 export function useTranscriptExpand(sessionId: MaybeRefOrGetter<string>) {
   const expandedTools = reactive(new Map<string, boolean>())
   const expandedRows = reactive(new Map<string, boolean>())

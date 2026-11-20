@@ -14,7 +14,6 @@ import {
   type TabsState,
 } from "@features/file-pane/lib/tabs.js"
 
-/** 一次打开请求：查看器据此滚到行、标出范围；seq 让同一位置也能再跳一次。 */
 export interface FileRequest {
   path: string
   line?: number | undefined
@@ -40,20 +39,15 @@ type SessionSource = Pick<SessionContext, "sessionId" | "sessionCwd" | "transcri
 
 function useFilePaneState(session: SessionSource) {
   const savedPref = readPref(OPEN_KEY)
-  /** 用户开关过就照记住的来；没开关过时放得下才默认打开。 */
   const saved = shallowRef(savedPref === undefined ? undefined : savedPref !== "off")
   const fits = shallowRef(true)
   const open = computed(() => saved.value ?? fits.value)
   const tabs = shallowRef<TabsState>(emptyTabs())
   const request = shallowRef<FileRequest>()
-  /** 被 agent 改过的文件：计数变了查看器就重读。 */
   const revisions = shallowRef<Record<string, number>>({})
-  /** agent 每写完一个文件加一：树与改动标记据此刷新。 */
   const changes = shallowRef(0)
   const treeShown = shallowRef(readFlag(TREE_KEY))
-  /** 点一次头部的搜索按钮加一：搜索框据此聚焦。 */
   const searchRequest = shallowRef(0)
-  /** 树里展开的目录，按会话记住。 */
   const expanded = shallowRef<string[]>([])
   const cwd = computed(() => session.sessionCwd.value)
   let seq = 0
@@ -92,7 +86,6 @@ function useFilePaneState(session: SessionSource) {
     setOpen(true)
   }
 
-  // agent 写完一个已打开的文件就让查看器重读；进会话时已有的写入不算
   let seen = new Set<string>()
   let seenSession: string | undefined
 
@@ -138,7 +131,6 @@ function useFilePaneState(session: SessionSource) {
       writeFlag(TREE_KEY, treeShown.value)
     },
     searchRequest,
-    /** 搜索框在文件树顶上：树收着就先展开，等它挂上再聚焦。 */
     async focusSearch() {
       if (!treeShown.value) {
         treeShown.value = true

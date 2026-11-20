@@ -1,6 +1,5 @@
 <template>
   <div class="tuner">
-    <!-- 预览区：变量只写在这个子树上，用的是真实组件 -->
     <section class="tuner-preview" :style="previewVars">
       <CardList>
         <CardRow v-for="row in SETTINGS_ROWS" :key="row" class="demo-row">
@@ -115,7 +114,6 @@ const SURFACES: Record<string, string> = {
   a2: "var(--gray-a2)",
   surface: "var(--bg-surface)",
 }
-// 「当前」直接读样式源码，其余预设相对它挪一档，样式改了预设跟着走
 const CURRENT: Values = {
   border: declared(tokensCss, "--border", /--(?:black|white)-(a\d+)/) ?? "a2",
   divider: declared(tokensCss, "--border-subtle", /--(?:black|white)-(a\d+)/) ?? "a1",
@@ -159,7 +157,6 @@ const nodes = useMarkdownNodes({
 })
 const value = reactive<Values>({ ...PRESETS[0]! })
 const { isDark } = useColorScheme()
-// 描边在浅色取 black alpha、深色取 white alpha，跟着当前明暗选一套
 const neutral = (step: string) => `var(--${isDark.value ? "white" : "black"}-${step})`
 const radius = computed({
   get: () => [value.radius],
@@ -192,7 +189,6 @@ const output = computed(() =>
 const copied = ref(false)
 const { copy: write } = useClipboard({ legacy: true })
 
-/** 取样式源码里某个变量第一次声明的值，再用 pick 抠出要的那段。 */
 function declared(css: string, name: string, pick: RegExp): string | undefined {
   const line = new RegExp(`(?<![\\w-])${name}:\\s*([^;]+);`).exec(css)?.[1]
   return line ? pick.exec(line)?.[1] : undefined
@@ -286,7 +282,6 @@ async function copy() {
   justify-content: space-between;
 }
 
-/* 窄窗口上下排：调节区在上，预览在下 */
 @media (width < 760px) {
   .tuner {
     grid-template-columns: minmax(0, 1fr);

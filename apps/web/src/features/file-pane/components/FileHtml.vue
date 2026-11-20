@@ -75,7 +75,6 @@ watch(
   { immediate: true },
 )
 
-// 页面里点到外链时，注入的脚本把地址发上来，先问一句再打开
 useEventListener(window, "message", (event: MessageEvent) => {
   const data = event.data as { type?: unknown; href?: unknown } | null
 

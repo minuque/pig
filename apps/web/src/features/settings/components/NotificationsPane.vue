@@ -45,7 +45,6 @@ const { t } = useI18n()
 const { enabled: soundOn, toggle: toggleSound } = useSound()
 const { notifyOn, setNotify } = useGeneralPrefs()
 
-/** 开启系统通知前先要权限，拒绝就不落开关。 */
 async function onNotify(next: boolean) {
   if (next && typeof Notification !== "undefined" && Notification.permission === "default") {
     const result = await Notification.requestPermission()

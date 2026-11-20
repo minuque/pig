@@ -13,7 +13,6 @@ const USER_NAME_KEY = "pig.userName"
 const locale = shallowRef<UiLocale>("zh-CN")
 const chatWidth = shallowRef<ChatWidth>("comfortable")
 const notifyOn = shallowRef(true)
-/** 侧栏左下角显示的名字；空串表示没配，显示默认名。 */
 const userName = shallowRef("")
 let loaded = false
 
@@ -38,7 +37,6 @@ function load(): void {
   apply(locale.value, chatWidth.value)
 }
 
-/** 通用偏好：语言、对话宽度、回合完成系统通知。语言切到 vue-i18n。 */
 export function useGeneralPrefs() {
   load()
 
@@ -67,7 +65,6 @@ export function useGeneralPrefs() {
   }
 }
 
-/** 回合干净收尾时发一条系统通知；开关关闭、无权限或无 API 时不发。 */
 export async function notifyTurnDone(): Promise<void> {
   load()
 
@@ -82,7 +79,5 @@ export async function notifyTurnDone(): Promise<void> {
     new Notification(t("settings.notifyTurnDone"), {
       body: t("settings.notifyTurnDoneBody"),
     })
-  } catch {
-    /* 桌面壳拒绝通知时不打断回合收尾 */
-  }
+  } catch {}
 }

@@ -111,7 +111,6 @@ useResizeObserver(body, measure)
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-card);
   background: var(--bg-surface);
-  /* 1px 细环画在盒内：气泡贴着对话列右缘，画在盒外会被列的溢出裁掉 */
   box-shadow: inset 0 0 0 var(--border-width) var(--border);
   color: var(--fg);
   font-size: var(--text-body);
