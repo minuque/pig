@@ -6,7 +6,6 @@
     :data-variant="variant"
     :data-accent-color="color"
     :data-radius="radius"
-    :data-high-contrast="highContrast || undefined"
     :data-disabled="disabled || loading ? '' : undefined"
     :data-loading="loading || undefined"
     :disabled="disabled || loading"
@@ -24,7 +23,7 @@ import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { Primitive } from "reka-ui"
 import type { Size } from "@components/ui/rt/size.js"
-import type { ButtonVariant, HighContrast, Radius } from "./index.js"
+import type { ButtonVariant, Radius } from "./index.js"
 import ButtonContent from "./ButtonContent.vue"
 
 defineOptions({ inheritAttrs: false })
@@ -34,7 +33,6 @@ interface Props extends PrimitiveProps {
   size?: Size
   color?: string
   radius?: Radius
-  highContrast?: HighContrast
   loading?: boolean
   disabled?: boolean
   class?: HTMLAttributes["class"]
@@ -61,17 +59,38 @@ const props = withDefaults(defineProps<Props>(), {
     color var(--duration-fast) var(--ease-out);
 }
 
-:where([data-slot="icon-button"])[data-size="s"] {
+/* --- 圆角档 --- */
+:where([data-slot="icon-button"][data-radius="none"]) {
+  border-radius: 0;
+}
+
+:where([data-slot="icon-button"][data-radius="small"]) {
+  border-radius: calc(var(--radius-control) / 2);
+}
+
+:where([data-slot="icon-button"][data-radius="medium"]) {
+  border-radius: var(--radius-control);
+}
+
+:where([data-slot="icon-button"][data-radius="large"]) {
+  border-radius: var(--radius-card);
+}
+
+:where([data-slot="icon-button"][data-radius="full"]) {
+  border-radius: var(--radius-pill);
+}
+
+:where([data-slot="icon-button"][data-size="s"]) {
   height: var(--space-lg);
   inline-size: var(--space-lg);
 }
 
-:where([data-slot="icon-button"])[data-size="m"] {
+:where([data-slot="icon-button"][data-size="m"]) {
   height: var(--control-sm);
   inline-size: var(--control-sm);
 }
 
-:where([data-slot="icon-button"])[data-size="l"] {
+:where([data-slot="icon-button"][data-size="l"]) {
   height: var(--control-lg);
   inline-size: var(--control-lg);
 }

@@ -30,7 +30,7 @@ const props = withDefaults(
       class?: HTMLAttributes["class"]
       /** 尺寸档：s、m、l */
       size?: Size
-      variant?: "surface" | "classic"
+      variant?: "surface"
       /** accent 色：选中项描边与圆点跟随它 */
       color?: string
       disabled?: boolean

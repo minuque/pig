@@ -10,7 +10,6 @@
 
     <Variant title="Variants">
       <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
-        <Checkbox v-model="checked" variant="classic" aria-label="Classic checkbox" />
         <Checkbox v-model="checked" variant="surface" aria-label="Surface checkbox" />
         <Checkbox v-model="checked" variant="soft" aria-label="Soft checkbox" />
       </div>
@@ -23,13 +22,6 @@
         <Checkbox v-model="mixed" aria-label="Indeterminate" />
         <Checkbox v-model="checked" disabled aria-label="Disabled checked" />
         <Checkbox v-model="unchecked" disabled aria-label="Disabled unchecked" />
-      </div>
-    </Variant>
-
-    <Variant title="High contrast">
-      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
-        <Checkbox v-model="checked" high-contrast aria-label="High contrast checked" />
-        <Checkbox v-model="unchecked" high-contrast aria-label="High contrast unchecked" />
       </div>
     </Variant>
   </Story>

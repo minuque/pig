@@ -26,7 +26,7 @@ const props = withDefaults(
       class?: HTMLAttributes["class"]
       /** 尺寸档：s、m、l */
       size?: Size
-      variant?: "surface" | "classic" | "ghost"
+      variant?: "surface" | "ghost"
     }
   >(),
   { as: "div", asChild: false, size: "m", variant: "surface", class: undefined },
@@ -94,26 +94,6 @@ const props = withDefaults(
   box-shadow: inset 0 0 0 var(--border-width) var(--border);
 }
 
-:where([data-slot="card"][data-variant="classic"]) {
-  --card-background-color: var(--bg-raised);
-  background-color: var(--card-background-color);
-  transition: box-shadow var(--duration-fast);
-}
-
-:where([data-slot="card"][data-variant="classic"])::after {
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--border),
-    0 1px 2px var(--black-a1);
-}
-
-@media (hover: hover) {
-  :where([data-slot="card"][data-variant="classic"]:is(:any-link, button, label):hover)::after {
-    box-shadow:
-      inset 0 0 0 var(--border-width) var(--border-strong),
-      0 2px 6px var(--black-a1);
-  }
-}
-
 :where([data-slot="card"][data-variant="ghost"]) {
   margin: calc(var(--card-padding) * -1);
 }
@@ -126,7 +106,7 @@ const props = withDefaults(
   :where(
     [data-slot="card"][data-variant="ghost"]:is(:any-link, button, label):hover:focus-visible
   ) {
-    background-color: var(--focus-a2);
+    background-color: var(--accent-a2);
   }
 }
 </style>

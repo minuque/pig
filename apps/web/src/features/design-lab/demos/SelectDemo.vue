@@ -46,15 +46,6 @@
         </Select>
 
         <Select v-model="value">
-          <SelectTrigger variant="classic" placeholder="Classic" aria-label="Classic select" />
-
-          <SelectContent>
-            <SelectItem value="apple">Apple</SelectItem>
-            <SelectItem value="banana">Banana</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select v-model="value">
           <SelectTrigger variant="soft" placeholder="Soft" aria-label="Soft select" />
 
           <SelectContent>

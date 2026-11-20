@@ -10,7 +10,7 @@
     :class="props.class"
   >
     <SliderTrack data-slot="slider-track">
-      <SliderRange data-slot="slider-range" :data-high-contrast="highContrast || undefined" />
+      <SliderRange data-slot="slider-range" />
     </SliderTrack>
 
     <SliderThumb
@@ -37,24 +37,15 @@ const props = withDefaults(
       class?: HTMLAttributes["class"]
       /** 尺寸档：s、m、l */
       size?: Size
-      variant?: "classic" | "surface" | "soft"
+      variant?: "surface" | "soft"
       color?: string
       radius?: "none" | "small" | "medium" | "large" | "full"
-      highContrast?: boolean
     }
   >(),
-  { class: undefined, size: "m", variant: "surface", highContrast: false },
+  { class: undefined, size: "m", variant: "surface" },
 )
 const emits = defineEmits<SliderRootEmits>()
-const delegatedProps = reactiveOmit(
-  props,
-  "class",
-  "size",
-  "variant",
-  "color",
-  "radius",
-  "highContrast",
-)
+const delegatedProps = reactiveOmit(props, "class", "size", "variant", "color", "radius")
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<SliderRootProps>
 // reka 把 aria-* 留在根节点，而 role=slider 在滑块上，无障碍名要自己转过去
 const attrs = useAttrs()
@@ -85,6 +76,21 @@ const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | unde
   block-size: 100%;
 }
 
+:where([data-slot="slider-track"]) {
+  position: relative;
+  flex-grow: 1;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+:where([data-slot="slider"][data-orientation="horizontal"]) :where([data-slot="slider-track"]) {
+  block-size: var(--space-xs);
+}
+
+:where([data-slot="slider"][data-orientation="vertical"]) :where([data-slot="slider-track"]) {
+  inline-size: var(--space-xs);
+}
+
 :where([data-slot="slider"][data-size="s"][data-orientation="horizontal"]),
 :where([data-slot="slider"][data-size="s"][data-orientation="horizontal"])
   :where([data-slot="slider-track"]) {
@@ -107,21 +113,6 @@ const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | unde
 :where([data-slot="slider"][data-size="l"][data-orientation="vertical"])
   :where([data-slot="slider-track"]) {
   inline-size: calc(var(--space-xs) * 1.25);
-}
-
-:where([data-slot="slider-track"]) {
-  position: relative;
-  flex-grow: 1;
-  overflow: hidden;
-  border-radius: inherit;
-}
-
-:where([data-slot="slider"][data-orientation="horizontal"]) :where([data-slot="slider-track"]) {
-  block-size: var(--space-xs);
-}
-
-:where([data-slot="slider"][data-orientation="vertical"]) :where([data-slot="slider-track"]) {
-  inline-size: var(--space-xs);
 }
 
 :where([data-slot="slider-range"]) {
@@ -171,7 +162,7 @@ const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | unde
   content: "";
   position: absolute;
   inset: calc(var(--space-xs) * -0.25);
-  background-color: white;
+  background-color: var(--fg-on-accent);
   border-radius: var(--radius-pill);
   cursor: pointer;
 }
@@ -208,80 +199,11 @@ const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | unde
   box-shadow: inset 0 0 0 var(--border-width) var(--gray-a5);
 }
 
-:where([data-slot="slider"][data-variant="surface"])
-  :where([data-slot="slider-range"][data-high-contrast]) {
-  background-image: linear-gradient(var(--black-a8), var(--black-a8));
-}
-
-html.dark
-  :where([data-slot="slider"][data-variant="surface"])
-  :where([data-slot="slider-range"][data-high-contrast]) {
-  background-image: none;
-}
-
 :where([data-slot="slider"][data-variant="surface"]) :where([data-slot="slider-thumb"])::after {
   box-shadow: 0 0 0 1px var(--black-a4);
 }
 
 :where([data-slot="slider"][data-variant="surface"])
-  :where([data-slot="slider-thumb"][data-disabled])::after {
-  background-color: var(--gray-1);
-  box-shadow: 0 0 0 1px var(--gray-6);
-}
-
-/* --- classic --- */
-:where([data-slot="slider"][data-variant="classic"]) :where([data-slot="slider-track"]) {
-  position: relative;
-  background-color: var(--gray-a3);
-}
-
-:where([data-slot="slider"][data-variant="classic"]) :where([data-slot="slider-track"])::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--gray-a5),
-    0 1px 2px var(--black-a1);
-}
-
-:where([data-slot="slider"][data-variant="classic"])
-  :where([data-slot="slider-track"][data-disabled])::before {
-  opacity: 0.5;
-}
-
-:where([data-slot="slider"][data-variant="classic"]) :where([data-slot="slider-range"]) {
-  background-color: var(--accent-track);
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--gray-a3),
-    inset 0 0 0 var(--border-width) var(--accent-a4),
-    inset 0 0 0 var(--border-width) var(--black-a1),
-    inset 0 1.5px 2px 0 var(--black-a2);
-}
-
-:where([data-slot="slider"][data-variant="classic"])
-  :where([data-slot="slider-range"][data-high-contrast]) {
-  background-image: linear-gradient(var(--black-a8), var(--black-a8));
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--gray-a3),
-    inset 0 0 0 var(--border-width) var(--black-a2),
-    inset 0 1.5px 2px 0 var(--black-a2);
-}
-
-html.dark
-  :where([data-slot="slider"][data-variant="classic"])
-  :where([data-slot="slider-range"][data-high-contrast]) {
-  background-image: none;
-}
-
-:where([data-slot="slider"][data-variant="classic"]) :where([data-slot="slider-thumb"])::after {
-  box-shadow:
-    0 0 0 1px var(--black-a3),
-    0 1px 3px var(--black-a1),
-    0 2px 4px -1px var(--black-a1);
-}
-
-:where([data-slot="slider"][data-variant="classic"])
   :where([data-slot="slider-thumb"][data-disabled])::after {
   background-color: var(--gray-1);
   box-shadow: 0 0 0 1px var(--gray-6);

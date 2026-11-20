@@ -25,15 +25,6 @@
         <Badge color="red">Red</Badge>
       </div>
     </Variant>
-
-    <Variant title="High contrast">
-      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
-        <Badge variant="solid" high-contrast>Solid</Badge>
-        <Badge variant="soft" high-contrast>Soft</Badge>
-        <Badge variant="surface" high-contrast>Surface</Badge>
-        <Badge variant="outline" high-contrast>Outline</Badge>
-      </div>
-    </Variant>
   </Story>
 </template>
 

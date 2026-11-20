@@ -33,14 +33,14 @@ const props = withDefaults(
   defineProps<
     SelectTriggerProps & {
       class?: HTMLAttributes["class"]
-      variant?: "classic" | "surface" | "soft" | "ghost"
+      variant?: "surface" | "soft" | "ghost"
       color?: string
       radius?: Radius
       /** 未选中时显示的文案 */
       placeholder?: string
     }
   >(),
-  { class: undefined, variant: "classic", placeholder: "" },
+  { class: undefined, variant: "surface", placeholder: "" },
 )
 const delegatedProps = reactiveOmit(props, "class", "variant", "color", "radius", "placeholder")
 const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectTriggerProps>
@@ -87,6 +87,27 @@ const size = useSelectSize()
   padding-inline: var(--space-md);
   font-size: var(--text-title);
   line-height: var(--text-title--line-height);
+}
+
+/* --- 圆角档 --- */
+:where([data-slot="select-trigger"][data-radius="none"]) {
+  border-radius: 0;
+}
+
+:where([data-slot="select-trigger"][data-radius="small"]) {
+  border-radius: calc(var(--radius-control) / 2);
+}
+
+:where([data-slot="select-trigger"][data-radius="medium"]) {
+  border-radius: var(--radius-control);
+}
+
+:where([data-slot="select-trigger"][data-radius="large"]) {
+  border-radius: var(--radius-card);
+}
+
+:where([data-slot="select-trigger"][data-radius="full"]) {
+  border-radius: var(--radius-pill);
 }
 
 :where([data-slot="select-trigger"]:focus-visible) {
@@ -142,102 +163,6 @@ const size = useSelectSize()
   color: var(--gray-a11);
 }
 
-/* --- classic：凸起底，顶上亮、底下暗的一层内阴影 --- */
-:where([data-slot="select-trigger"][data-variant="classic"]) {
-  position: relative;
-  background-image: linear-gradient(var(--gray-2), var(--gray-1));
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--gray-a5),
-    inset 0 2px 1px var(--white-a11),
-    inset 0 -2px 1px var(--gray-a4);
-}
-
-:where([data-slot="select-trigger"][data-variant="classic"])::before {
-  content: "";
-  position: absolute;
-  z-index: var(--z-behind);
-  inset: 0;
-  border: 2px solid transparent;
-  border-radius: inherit;
-  background-clip: content-box;
-  background-image:
-    linear-gradient(var(--black-a1) -20%, transparent, var(--white-a1) 130%),
-    linear-gradient(var(--bg-raised), transparent);
-  pointer-events: none;
-}
-
-@media (hover: hover) {
-  :where([data-slot="select-trigger"][data-variant="classic"]:hover) {
-    box-shadow:
-      inset 0 0 0 var(--border-width) var(--gray-a3),
-      inset 0 2px 1px var(--white-a11),
-      inset 0 -2px 1px var(--gray-a4);
-  }
-
-  :where([data-slot="select-trigger"][data-variant="classic"]:hover)::before {
-    background-image:
-      linear-gradient(var(--black-a1) -15%, transparent, var(--white-a1) 120%),
-      linear-gradient(var(--gray-2), var(--gray-1));
-  }
-}
-
-:where([data-slot="select-trigger"][data-variant="classic"][data-state="open"]) {
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--gray-a3),
-    inset 0 2px 1px var(--white-a11),
-    inset 0 -2px 1px var(--gray-a4);
-}
-
-:where([data-slot="select-trigger"][data-variant="classic"][data-state="open"])::before {
-  background-image:
-    linear-gradient(var(--black-a1) -15%, transparent, var(--white-a1) 120%),
-    linear-gradient(var(--gray-2), var(--gray-1));
-}
-
-:where([data-slot="select-trigger"][data-variant="classic"]:disabled) {
-  background-color: var(--gray-2);
-  background-image: none;
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--gray-a4),
-    inset 0 -2px 1px var(--gray-a3);
-  color: var(--gray-a11);
-}
-
-:where([data-slot="select-trigger"][data-variant="classic"]:disabled)::before {
-  background-color: var(--gray-a2);
-  background-image: linear-gradient(var(--black-a1) -20%, transparent, var(--white-a1));
-}
-
-/* 深色下换成顶亮线更弱、底暗线更重的一套，避免 90% 白的高光 */
-html.dark :where([data-slot="select-trigger"][data-variant="classic"]) {
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--white-a4),
-    inset 0 1px 1px var(--white-a4),
-    inset 0 -1px 1px var(--black-a9);
-}
-
-html.dark :where([data-slot="select-trigger"][data-variant="classic"]:hover) {
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--gray-a3),
-    inset 0 1px 1px var(--white-a4),
-    inset 0 -1px 1px var(--black-a9);
-}
-
-html.dark :where([data-slot="select-trigger"][data-variant="classic"][data-state="open"]) {
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--gray-a3),
-    inset 0 1px 1px var(--white-a4),
-    inset 0 -1px 1px var(--black-a9);
-}
-
-html.dark :where([data-slot="select-trigger"][data-variant="classic"]:disabled) {
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--gray-a5),
-    inset 0 4px 2px -2px var(--gray-a2),
-    inset 0 1px 1px var(--gray-a5),
-    inset 0 -1px 1px var(--black-a3);
-}
-
 /* --- soft --- */
 :where([data-slot="select-trigger"][data-variant="soft"]) {
   background-color: var(--accent-a3);
@@ -252,10 +177,6 @@ html.dark :where([data-slot="select-trigger"][data-variant="classic"]:disabled) 
 
 :where([data-slot="select-trigger"][data-variant="soft"][data-state="open"]) {
   background-color: var(--accent-a4);
-}
-
-:where([data-slot="select-trigger"][data-variant="soft"]:focus-visible) {
-  outline-color: var(--accent-8);
 }
 
 :where([data-slot="select-trigger"][data-variant="soft"]:disabled) {
@@ -280,12 +201,7 @@ html.dark :where([data-slot="select-trigger"][data-variant="classic"]:disabled) 
 }
 
 /* 未选中时用占位灰；soft 与 ghost 退到半透明强调色 */
-:where(
-    [data-slot="select-trigger"]:is(
-        [data-variant="surface"],
-        [data-variant="classic"]
-      )[data-placeholder]
-  )
+:where([data-slot="select-trigger"][data-variant="surface"][data-placeholder])
   :where([data-slot="select-trigger-inner"]) {
   color: var(--gray-a10);
 }

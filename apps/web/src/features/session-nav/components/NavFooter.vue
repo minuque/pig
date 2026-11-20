@@ -18,7 +18,7 @@
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent side="top" align="start" :side-offset="4" variant="soft">
+      <DropdownMenuContent side="top" align="start" :side-offset="4">
         <DropdownMenuItem @select.prevent="toggle">
           <component :is="currentScheme.icon" :size="14" />
           {{ t("settings.appearance") }}

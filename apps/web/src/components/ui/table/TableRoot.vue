@@ -112,7 +112,7 @@ const props = withDefaults(
 }
 
 :where([data-slot="table-cell"][data-kind="column-header"]) {
-  font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-semibold);
 }
 
 :where([data-slot="table-cell"][data-kind="row-header"]) {

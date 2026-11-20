@@ -112,9 +112,8 @@ defineExpose({ viewport })
 }
 
 :where(
-  [data-slot="scroll-area-viewport"]:has(
-    [data-slot="scroll-area-scrollbar"][data-orientation="horizontal"]
-  )
+  [data-slot="scroll-area"]:has([data-slot="scroll-area-scrollbar"][data-orientation="horizontal"])
+    [data-slot="scroll-area-viewport"]
 ) {
   overscroll-behavior-x: contain;
 }

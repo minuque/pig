@@ -58,14 +58,8 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectItemProps
   color: var(--accent-contrast);
 }
 
-:where([data-slot="select-content"][data-variant="solid"][data-high-contrast])
-  :where([data-slot="select-item"][data-highlighted]) {
-  background-color: var(--accent-12);
-  color: var(--accent-1);
-}
-
 :where([data-slot="select-content"][data-variant="soft"])
   :where([data-slot="select-item"][data-highlighted]) {
-  background-color: var(--accent-a4);
+  background-color: var(--bg-hover);
 }
 </style>

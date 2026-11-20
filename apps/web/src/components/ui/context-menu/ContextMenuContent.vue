@@ -10,9 +10,7 @@
         :data-accent-color="props.color"
         data-menu-content
         :data-size="size"
-        :data-variant="variant"
-        :data-high-contrast="highContrast || undefined"
-        :class="props.class"
+        :class="['reveal-menu', props.class]"
         :style="contentStyle"
         @close-auto-focus="onCloseAutoFocus"
         @interact-outside="onInteractOutside"
@@ -34,11 +32,7 @@ import { reactiveOmit } from "@vueuse/core"
 import { ContextMenuPortal, injectContextMenuRootContext, useForwardPropsEmits } from "reka-ui"
 import { MenuContent } from "reka-ui/internal"
 import { ThemeRoot } from "@components/ui/rt/index.js"
-import {
-  provideMenuContent,
-  type MenuSize,
-  type MenuVariant,
-} from "@components/ui/rt/menu-context.js"
+import { provideMenuContent, type MenuSize } from "@components/ui/rt/menu-context.js"
 
 defineOptions({
   inheritAttrs: false,
@@ -49,21 +43,17 @@ const props = withDefaults(
     ContextMenuContentProps & {
       class?: HTMLAttributes["class"]
       size?: MenuSize
-      variant?: MenuVariant
       color?: string
-      highContrast?: boolean
     }
   >(),
   {
     class: undefined,
     collisionPadding: 10,
     size: "m",
-    variant: "soft",
-    highContrast: false,
   },
 )
 const emits = defineEmits<ContextMenuContentEmits>()
-const delegatedProps = reactiveOmit(props, "class", "size", "variant", "color", "highContrast")
+const delegatedProps = reactiveOmit(props, "class", "size", "color")
 const forwarded = useForwardPropsEmits(
   delegatedProps,
   emits,
@@ -80,9 +70,7 @@ const contentStyle = {
 
 provideMenuContent({
   size: toRef(props, "size"),
-  variant: toRef(props, "variant"),
   color: toRef(props, "color"),
-  highContrast: toRef(props, "highContrast"),
 })
 
 function onCloseAutoFocus(event: Event) {

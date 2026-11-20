@@ -10,7 +10,6 @@
 
     <Variant title="Variants">
       <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
-        <Switch v-model="on" variant="classic" aria-label="Classic switch" />
         <Switch v-model="on" variant="surface" aria-label="Surface switch" />
         <Switch v-model="on" variant="soft" aria-label="Soft switch" />
       </div>
@@ -22,13 +21,6 @@
         <Switch v-model="off" aria-label="Off switch" />
         <Switch v-model="on" disabled aria-label="Disabled on switch" />
         <Switch v-model="off" disabled aria-label="Disabled off switch" />
-      </div>
-    </Variant>
-
-    <Variant title="High contrast">
-      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
-        <Switch v-model="on" high-contrast aria-label="High contrast switch" />
-        <Switch v-model="off" high-contrast aria-label="High contrast off switch" />
       </div>
     </Variant>
   </Story>

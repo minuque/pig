@@ -21,11 +21,6 @@
 
     <Variant title="Variants">
       <div style="display: flex; flex-direction: column; gap: 16px">
-        <RadioGroup v-model="value" variant="classic">
-          <RadioGroupItem value="a">Classic A</RadioGroupItem>
-          <RadioGroupItem value="b">Classic B</RadioGroupItem>
-        </RadioGroup>
-
         <RadioGroup v-model="value" variant="surface">
           <RadioGroupItem value="a">Surface A</RadioGroupItem>
           <RadioGroupItem value="b">Surface B</RadioGroupItem>

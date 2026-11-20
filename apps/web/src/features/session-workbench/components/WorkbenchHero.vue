@@ -11,7 +11,7 @@
             </Link>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="center" :side-offset="6" variant="soft">
+          <DropdownMenuContent align="center" :side-offset="6">
             <DropdownMenuRadioGroup :model-value="workspaceId ?? ''" class="hero-projects">
               <DropdownMenuRadioItem
                 v-for="item in workspaces"

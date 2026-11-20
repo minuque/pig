@@ -11,16 +11,6 @@
             <div style="padding: 16px">Surface B</div>
           </RadioCardsItem>
         </RadioCards>
-
-        <RadioCards v-model="value" variant="classic">
-          <RadioCardsItem value="a">
-            <div style="padding: 16px">Classic A</div>
-          </RadioCardsItem>
-
-          <RadioCardsItem value="b">
-            <div style="padding: 16px">Classic B</div>
-          </RadioCardsItem>
-        </RadioCards>
       </div>
     </Variant>
 

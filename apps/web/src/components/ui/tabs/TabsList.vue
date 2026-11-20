@@ -4,7 +4,6 @@
     :data-variant="variant"
     :data-size="size"
     :data-accent-color="color"
-    :data-high-contrast="highContrast || undefined"
     :class="props.class"
   >
     <slot />
@@ -24,10 +23,9 @@ const props = withDefaults(
     variant?: TabsVariant
     size?: "s" | "m"
     color?: string | undefined
-    highContrast?: boolean
     class?: HTMLAttributes["class"] | undefined
   }>(),
-  { variant: "underline", size: "m", color: undefined, highContrast: false, class: undefined },
+  { variant: "underline", size: "m", color: undefined, class: undefined },
 )
 
 provide(TABS_VARIANT, toRef(props, "variant"))
@@ -100,6 +98,7 @@ provide(TABS_VARIANT, toRef(props, "variant"))
 :where([data-slot="tabs-list"][data-variant="underline"])
   :where([data-slot="tabs-trigger"][data-state="active"]) {
   color: var(--gray-12);
+  font-weight: var(--font-weight-medium);
 }
 
 :where([data-slot="tabs-list"][data-variant="underline"])
@@ -113,9 +112,9 @@ provide(TABS_VARIANT, toRef(props, "variant"))
   background-color: var(--accent-indicator);
 }
 
-:where([data-slot="tabs-list"][data-variant="underline"][data-high-contrast])
-  :where([data-slot="tabs-trigger"][data-state="active"])::before {
-  background-color: var(--accent-12);
+:where([data-slot="tabs-list"][data-variant="underline"])
+  :where([data-slot="tabs-trigger"]:focus-visible) {
+  outline: none;
 }
 
 :where([data-slot="tabs-list"][data-variant="underline"])

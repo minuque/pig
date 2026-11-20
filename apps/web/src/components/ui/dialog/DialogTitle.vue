@@ -18,13 +18,13 @@ const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DialogTitl
 </script>
 
 <style>
-/* 面板标题：20px 半粗，下边距由面板统一给 */
+/* 面板标题：与 AlertDialogTitle 同一套字阶，下边距由面板统一给 */
 :where([data-slot="dialog-title"]) {
   margin: 0;
   font-family: var(--font-sans);
-  font-size: 20px;
-  font-weight: var(--font-weight-bold);
-  line-height: 26px;
+  font-size: var(--text-title);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--text-title--line-height);
   color: var(--fg);
 }
 </style>

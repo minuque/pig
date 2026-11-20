@@ -71,6 +71,7 @@ watch(
 /* 面板贴在视口上方 10vh，不随结果数量上下跳 */
 .viewport {
   position: fixed;
+  z-index: var(--z-modal);
   inset: 0;
   display: flex;
   flex-direction: column;

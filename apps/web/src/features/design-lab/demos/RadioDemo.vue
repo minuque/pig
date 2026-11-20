@@ -22,11 +22,6 @@
     <Variant title="Variants">
       <div style="display: flex; flex-direction: column; gap: 12px">
         <label style="display: flex; align-items: center; gap: 8px">
-          <Radio value="classic" variant="classic" :checked="true" />
-          Classic
-        </label>
-
-        <label style="display: flex; align-items: center; gap: 8px">
           <Radio value="surface" variant="surface" :checked="true" />
           Surface
         </label>

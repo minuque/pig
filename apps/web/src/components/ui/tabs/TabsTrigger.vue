@@ -21,7 +21,7 @@ const variant = inject(TABS_VARIANT, ref("underline"))
 </script>
 
 <style>
-[data-slot="tabs-trigger"][data-variant="segmented"] {
+:where([data-slot="tabs-trigger"][data-variant="segmented"]) {
   display: flex;
   align-items: center;
   gap: var(--space-2xs);
@@ -34,25 +34,28 @@ const variant = inject(TABS_VARIANT, ref("underline"))
   cursor: pointer;
 }
 
-:where([data-slot="tabs-list"][data-size="s"])
-  > [data-slot="tabs-trigger"][data-variant="segmented"] {
+:where(
+  [data-slot="tabs-list"][data-size="s"] > [data-slot="tabs-trigger"][data-variant="segmented"]
+) {
   padding-inline: var(--space-xs);
   border-radius: calc(var(--radius-control) - 2px);
 }
 
-[data-slot="tabs-trigger"][data-variant="segmented"]:is(
-    [data-state="active"],
-    :not([data-disabled]):hover
-  ) {
+:where(
+  [data-slot="tabs-trigger"][data-variant="segmented"]:is(
+      [data-state="active"],
+      :not([data-disabled]):hover
+    )
+) {
   color: var(--fg);
 }
 
-[data-slot="tabs-trigger"][data-variant="segmented"][data-disabled] {
+:where([data-slot="tabs-trigger"][data-variant="segmented"][data-disabled]) {
   color: var(--fg-secondary);
   cursor: not-allowed;
 }
 
-[data-slot="tabs-trigger"][data-variant="segmented"]:focus-visible {
+:where([data-slot="tabs-trigger"][data-variant="segmented"]:focus-visible) {
   outline: none;
   box-shadow: var(--focus-ring);
 }
