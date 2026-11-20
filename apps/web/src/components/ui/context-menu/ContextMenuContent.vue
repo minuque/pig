@@ -6,7 +6,7 @@
       side="right"
       align="start"
       :side-offset="2"
-      :data-accent-color="props.color"
+      :data-tone="props.color"
       data-menu-content
       :data-size="size"
       :class="['reveal-menu', props.class]"
@@ -29,7 +29,7 @@ import { ref } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { ContextMenuPortal, injectContextMenuRootContext, useForwardPropsEmits } from "reka-ui"
 import { MenuContent } from "reka-ui/internal"
-import type { MenuSize } from "@/types/ui-type.js"
+import type { MenuSize, ToneColor } from "@/types/ui-type.js"
 
 defineOptions({
   inheritAttrs: false,
@@ -40,7 +40,7 @@ const props = withDefaults(
     ContextMenuContentProps & {
       class?: HTMLAttributes["class"]
       size?: MenuSize
-      color?: string
+      color?: ToneColor
     }
   >(),
   {

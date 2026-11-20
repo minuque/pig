@@ -22,6 +22,6 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectSeparator
   block-size: 1px;
   margin-block: var(--space-xs);
   margin-inline: var(--space-sm);
-  background-color: var(--gray-a6);
+  background-color: var(--bg-emphasis);
 }
 </style>

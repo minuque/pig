@@ -18,7 +18,7 @@
           v-for="option in pending.request.options"
           :key="option"
           variant="soft"
-          color="gray"
+          color="neutral"
           @click="reply({ id: pending.request.id, value: option })"
         >
           {{ option }}
@@ -116,7 +116,7 @@ function cancel() {
   padding: var(--space-xs);
   border-radius: var(--radius-control);
   background-color: var(--bg-raised);
-  box-shadow: inset 0 0 0 var(--border-width) var(--gray-a7);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-input);
 }
 
 .extension-editor-box:focus-within {

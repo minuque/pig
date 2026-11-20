@@ -35,11 +35,7 @@ const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DialogOver
   position: fixed;
   z-index: var(--z-modal);
   inset: 0;
-  background-color: var(--black-a6);
-}
-
-html.dark :where([data-slot="dialog-overlay"]) {
-  background-color: var(--black-a8);
+  background-color: var(--overlay);
 }
 
 :where([data-slot="dialog-scroll"]) {

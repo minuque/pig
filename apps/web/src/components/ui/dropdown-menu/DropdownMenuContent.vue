@@ -3,7 +3,7 @@
     <DropdownMenuContent
       data-slot="dropdown-menu-content"
       v-bind="{ ...$attrs, ...forwarded, ...(reference && { reference }) }"
-      :data-accent-color="props.color"
+      :data-tone="props.color"
       data-menu-content
       :data-size="size"
       :class="['reveal-menu', props.class]"
@@ -22,7 +22,7 @@ import type { DropdownMenuContentEmits, DropdownMenuContentProps } from "reka-ui
 import { computed, type ComputedRef, type HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { DropdownMenuContent, DropdownMenuPortal, useForwardPropsEmits } from "reka-ui"
-import type { MenuSize } from "@/types/ui-type.js"
+import type { MenuSize, ToneColor } from "@/types/ui-type.js"
 import { usePopperAnchor } from "./popper-anchor.js"
 
 defineOptions({
@@ -37,7 +37,7 @@ const props = withDefaults(
       bare?: boolean
       /** 菜单尺寸：s 紧凑、m 默认 */
       size?: MenuSize
-      color?: string
+      color?: ToneColor
     }
   >(),
   {

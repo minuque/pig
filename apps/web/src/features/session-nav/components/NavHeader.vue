@@ -25,7 +25,7 @@
         type="button"
         size="m"
         variant="ghost"
-        color="gray"
+        color="neutral"
         @click="emit('update:searchOpen', true)"
       >
         <SearchIcon class="size-icon-lg" />

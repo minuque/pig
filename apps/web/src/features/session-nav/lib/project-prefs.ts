@@ -1,7 +1,8 @@
 import { PROJECT_ICONS } from "@components/icons/project-icons.js"
 import { workspaceName } from "@features/session-nav/lib/format.js"
+import type { ToneColor } from "@/types/ui-type.js"
 
-/** 复用 app.css 已引入的 rt 色板；gray 即 Radix 纯灰色阶。 */
+/** 存进偏好的取值；gray 显示为中性色调，其余是同名标识色。 */
 export const PROJECT_ICON_COLORS = [
   "gray",
   "indigo",
@@ -14,6 +15,10 @@ export const PROJECT_ICON_COLORS = [
 ] as const
 
 export type ProjectIconColor = (typeof PROJECT_ICON_COLORS)[number]
+
+export function projectIconTone(color: ProjectIconColor): ToneColor {
+  return color === "gray" ? "neutral" : color
+}
 
 export interface ProjectIconChoice {
   name: string

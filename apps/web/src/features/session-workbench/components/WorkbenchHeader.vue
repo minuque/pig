@@ -103,7 +103,7 @@
           class="files-toggle"
           type="button"
           size="m"
-          color="gray"
+          color="neutral"
           variant="ghost"
           :data-active="files.open.value || undefined"
           :aria-pressed="files.open.value"
@@ -124,7 +124,7 @@
           <IconButton
             type="button"
             size="m"
-            color="gray"
+            color="neutral"
             variant="ghost"
             :aria-label="t('split.switchSide')"
             @click="split.focusSide(side === 'left' ? 'right' : 'left')"
@@ -141,7 +141,7 @@
           <IconButton
             type="button"
             size="m"
-            color="gray"
+            color="neutral"
             variant="ghost"
             :aria-label="t('split.close')"
             @click="split.closeSide(side)"

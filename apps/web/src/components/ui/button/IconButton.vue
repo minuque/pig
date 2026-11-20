@@ -4,7 +4,7 @@
     data-slot="icon-button"
     :data-size="size"
     :data-variant="variant"
-    :data-accent-color="color"
+    :data-tone="color"
     :data-radius="radius"
     :data-disabled="disabled || loading ? '' : undefined"
     :data-loading="loading || undefined"
@@ -22,7 +22,7 @@
 import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { Primitive } from "reka-ui"
-import type { Size } from "@/types/ui-type.js"
+import type { Size, ToneColor } from "@/types/ui-type.js"
 import type { ButtonVariant, Radius } from "./index.js"
 import ButtonContent from "./ButtonContent.vue"
 
@@ -31,7 +31,7 @@ defineOptions({ inheritAttrs: false })
 interface Props extends PrimitiveProps {
   variant?: ButtonVariant
   size?: Size
-  color?: string
+  color?: ToneColor
   radius?: Radius
   loading?: boolean
   disabled?: boolean

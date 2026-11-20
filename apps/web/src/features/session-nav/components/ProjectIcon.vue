@@ -3,7 +3,7 @@
     :is="PROJECT_ICONS[choice.name]"
     v-if="choice"
     class="project-glyph"
-    :data-accent-color="choice.color"
+    :data-tone="projectIconTone(choice.color)"
     aria-hidden="true"
   />
 
@@ -20,7 +20,7 @@ import { Badge } from "@components/ui/badge/index.js"
 import { FolderIcon } from "@components/icons/index.js"
 import { PROJECT_ICONS } from "@components/icons/project-icons.js"
 import { projectMonogram, workspaceName } from "@features/session-nav/lib/format.js"
-import { projectIconColorOf } from "@features/session-nav/lib/project-prefs.js"
+import { projectIconColorOf, projectIconTone } from "@features/session-nav/lib/project-prefs.js"
 import { useProjectPrefs } from "@features/session-nav/hooks/use-project-prefs.js"
 
 const props = withDefaults(
@@ -33,11 +33,11 @@ const props = withDefaults(
 )
 const { iconOf } = useProjectPrefs()
 const choice = computed(() => iconOf(props.path))
-const monogramColor = computed(() => projectIconColorOf(props.path ?? ""))
+const monogramColor = computed(() => projectIconTone(projectIconColorOf(props.path ?? "")))
 </script>
 
 <style scoped>
-.project-glyph[data-accent-color] {
+.project-glyph[data-tone] {
   color: var(--tint);
 }
 </style>

@@ -69,7 +69,7 @@
                   class="scroll-latest-button"
                   type="button"
                   variant="solid"
-                  color="gray"
+                  color="neutral"
                   size="s"
                   radius="full"
                   @click="scrollToLatest('smooth')"
@@ -438,6 +438,7 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
 
 .scroll-latest-button:hover {
   background-color: var(--bg-inverse-hover);
+  background-image: none;
 }
 
 @media (max-width: 900px) {

@@ -216,7 +216,7 @@ defineExpose({ viewport })
 
 @media (hover: hover) {
   :where([data-slot="scroll-area-thumb"]:hover) {
-    background-color: var(--gray-a8);
+    background-color: var(--scrollbar-color-hover);
   }
 }
 </style>

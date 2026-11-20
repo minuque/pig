@@ -20,7 +20,7 @@
           :key="size"
           :size="size"
           variant="ghost"
-          color="gray"
+          color="neutral"
           :aria-label="size"
         >
           <CopyIcon class="size-icon" />

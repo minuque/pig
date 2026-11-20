@@ -96,17 +96,17 @@ const props = withDefaults(
 }
 
 :where([data-slot="kbd"][data-variant="soft"]) {
-  background-color: var(--gray-a3);
+  background-color: var(--bg-muted);
 }
 
 :where([data-slot="kbd"][data-variant="soft"]:is(:any-link, button):is([data-state="open"])) {
-  background-color: var(--gray-a4);
+  background-color: var(--bg-hover);
 }
 
 :where(
   [data-slot="kbd"][data-variant="soft"]:is(:any-link, button):active:not([data-state="open"])
 ) {
-  background-color: var(--gray-a5);
+  background-color: var(--bg-emphasis);
 }
 
 :where([data-slot="kbd"]:is(:any-link, button):focus-visible) {
@@ -119,7 +119,7 @@ const props = withDefaults(
   }
 
   :where([data-slot="kbd"][data-variant="soft"]:is(:any-link, button):hover) {
-    background-color: var(--gray-a4);
+    background-color: var(--bg-hover);
   }
 }
 </style>

@@ -37,7 +37,7 @@
           type="button"
           size="s"
           variant="ghost"
-          color="gray"
+          color="neutral"
           :aria-label="t('files.allTabs')"
         >
           <ChevronDownIcon class="size-icon" />

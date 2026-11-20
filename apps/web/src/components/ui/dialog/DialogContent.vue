@@ -15,7 +15,7 @@
           data-slot="icon-button"
           data-size="s"
           data-variant="ghost"
-          data-accent-color="gray"
+          data-tone="neutral"
           :aria-label="t('common.close')"
           class="dlg-close"
         >

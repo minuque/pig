@@ -34,7 +34,7 @@
                   type="button"
                   size="s"
                   variant="soft"
-                  color="gray"
+                  color="neutral"
                   :aria-label="t('rail.stopTask')"
                   :disabled="stopping.has(task.id)"
                   @click="emit('stop', task.id)"

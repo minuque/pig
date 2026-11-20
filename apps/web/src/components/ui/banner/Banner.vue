@@ -4,7 +4,7 @@
     :data-color="color"
     :data-size="size"
     :data-variant="variant"
-    :data-accent-color="accentColor"
+    :data-tone="tone"
     :data-dismissible="dismissible || undefined"
     :data-has-icon="Boolean($slots.icon) || undefined"
     :as="as"
@@ -44,7 +44,7 @@ import { computed } from "vue"
 import { Primitive } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
 import { XIcon } from "@components/icons/index.js"
-import type { Size } from "@/types/ui-type.js"
+import type { Size, Tone } from "@/types/ui-type.js"
 import { type BannerColor, type BannerVariant } from "./index.js"
 
 const { t } = useI18n()
@@ -69,15 +69,14 @@ const props = withDefaults(defineProps<Props>(), {
   class: undefined,
 })
 const emit = defineEmits<{ close: [] }>()
-/** 项目语义色 → rt 的 accent 族：info 跟随当前 accent，中性走 gray 族。 */
-const ACCENT_BY_COLOR: Record<BannerColor, string | undefined> = {
-  neutral: "gray",
-  info: "cyan",
-  success: "green",
-  warning: "orange",
-  destructive: "red",
+const TONE_BY_COLOR: Record<BannerColor, Tone> = {
+  neutral: "neutral",
+  info: "info",
+  success: "success",
+  warning: "warning",
+  destructive: "danger",
 }
-const accentColor = computed(() => ACCENT_BY_COLOR[props.color])
+const tone = computed(() => TONE_BY_COLOR[props.color])
 </script>
 
 <style>
@@ -89,7 +88,7 @@ const accentColor = computed(() => ACCENT_BY_COLOR[props.color])
   align-items: start;
   justify-content: start;
   text-align: left;
-  color: var(--accent-a11);
+  color: var(--tone-text);
 }
 
 :where([data-slot="banner"][data-has-icon]) {
@@ -118,16 +117,16 @@ const accentColor = computed(() => ACCENT_BY_COLOR[props.color])
 }
 
 :where([data-slot="banner"][data-variant="soft"]) {
-  background-color: var(--accent-a3);
+  background-color: var(--tone-subtle);
 }
 
 :where([data-slot="banner"][data-variant="surface"]) {
-  border: var(--border-width) solid var(--accent-a6);
-  background-color: var(--accent-a2);
+  border: var(--border-width) solid var(--tone-border);
+  background-color: var(--tone-subtle);
 }
 
 :where([data-slot="banner"][data-variant="outline"]) {
-  border: var(--border-width) solid var(--accent-a7);
+  border: var(--border-width) solid var(--tone-border);
 }
 
 :where([data-slot="banner-icon"]) {

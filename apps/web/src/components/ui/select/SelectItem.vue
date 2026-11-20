@@ -42,7 +42,7 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectItemProps
 }
 
 :where([data-slot="select-item"][data-disabled]) {
-  color: var(--gray-a8);
+  color: var(--fg-disabled);
   cursor: default;
 }
 
@@ -54,8 +54,8 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectItemProps
 /* solid 内容里悬停项取实心强调色 */
 :where([data-slot="select-content"][data-variant="solid"])
   :where([data-slot="select-item"][data-highlighted]) {
-  background-color: var(--accent-9);
-  color: var(--accent-contrast);
+  background-color: var(--tone);
+  color: var(--fg-on-accent);
 }
 
 :where([data-slot="select-content"][data-variant="soft"])

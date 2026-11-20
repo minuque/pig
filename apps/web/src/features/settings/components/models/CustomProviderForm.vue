@@ -110,7 +110,7 @@
     </section>
 
     <div class="actions">
-      <Button v-if="isEdit" size="s" variant="surface" color="red" @click="confirmDelete = true">
+      <Button v-if="isEdit" size="s" variant="surface" color="danger" @click="confirmDelete = true">
         {{ t("settings.models.deleteProvider") }}
       </Button>
 

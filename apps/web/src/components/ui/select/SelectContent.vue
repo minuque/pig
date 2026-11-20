@@ -4,7 +4,7 @@
       data-slot="select-content"
       :data-size="size"
       :data-variant="variant"
-      :data-accent-color="color"
+      :data-tone="color"
       :data-position="position"
       :position="position"
       :side-offset="4"
@@ -21,6 +21,7 @@
 </template>
 
 <script setup lang="ts">
+import type { ToneColor } from "@/types/ui-type.js"
 import type { SelectContentEmits, SelectContentProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
@@ -34,7 +35,7 @@ const props = withDefaults(
     SelectContentProps & {
       class?: HTMLAttributes["class"]
       variant?: "solid" | "soft"
-      color?: string
+      color?: ToneColor
     }
   >(),
   { class: undefined, variant: "soft", position: "popper" },

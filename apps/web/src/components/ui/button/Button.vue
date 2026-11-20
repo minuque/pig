@@ -4,7 +4,7 @@
     data-slot="button"
     :data-size="size"
     :data-variant="variant"
-    :data-accent-color="color"
+    :data-tone="color"
     :data-radius="radius"
     :data-disabled="disabled || loading ? '' : undefined"
     :data-loading="loading || undefined"
@@ -23,7 +23,7 @@
 import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { Primitive } from "reka-ui"
-import type { Size } from "@/types/ui-type.js"
+import type { Size, ToneColor } from "@/types/ui-type.js"
 import type { ButtonVariant, Radius } from "./index.js"
 import ButtonContent from "./ButtonContent.vue"
 
@@ -32,7 +32,7 @@ defineOptions({ inheritAttrs: false })
 interface Props extends PrimitiveProps {
   variant?: ButtonVariant
   size?: Size
-  color?: string
+  color?: ToneColor
   radius?: Radius
   loading?: boolean
   disabled?: boolean
@@ -52,7 +52,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 <style>
 /* 按钮：尺寸档 s/m/l 对应 24/32/40 的控件高，外观全在 data 属性上。
-   底色与文字色读 rt 的色阶变量（`--accent-*`、`--gray-*`），换 accent 时整组跟随。 */
+   底色与文字色读 `--tone-*` 槽位，换 color 时整组跟随。 */
 :where([data-button]) {
   box-sizing: border-box;
   display: inline-flex;
@@ -135,7 +135,7 @@ const props = withDefaults(defineProps<Props>(), {
   padding-block: var(--space-2xs);
   padding-inline: var(--space-xs);
   margin: calc(var(--space-2xs) * -1);
-  color: var(--accent-a11);
+  color: var(--tone-text);
 }
 
 :where([data-button]:not([data-slot="icon-button"])[data-variant="ghost"][data-size="l"]) {
@@ -146,22 +146,22 @@ const props = withDefaults(defineProps<Props>(), {
 
 /* --- solid --- */
 :where([data-button][data-variant="solid"]) {
-  background-color: var(--accent-9);
-  color: var(--accent-contrast);
+  background-color: var(--tone);
+  color: var(--fg-on-accent);
 }
 
 @media (hover: hover) {
   :where([data-button][data-variant="solid"]:hover) {
-    background-color: var(--accent-10);
+    background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
   }
 }
 
 :where([data-button][data-variant="solid"][data-state="open"]) {
-  background-color: var(--accent-10);
+  background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
 }
 
 :where([data-button][data-variant="solid"]:active:not([data-state="open"])) {
-  background-color: var(--accent-10);
+  background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
   filter: brightness(0.92) saturate(1.1);
 }
 
@@ -171,29 +171,30 @@ const props = withDefaults(defineProps<Props>(), {
 }
 
 :where([data-button][data-variant="solid"][data-disabled]) {
-  background-color: var(--gray-a3);
-  color: var(--gray-a8);
+  background-color: var(--bg-muted);
+  background-image: none;
+  color: var(--fg-disabled);
   filter: none;
 }
 
 /* --- soft --- */
 :where([data-button][data-variant="soft"]) {
-  background-color: var(--accent-a3);
-  color: var(--accent-a11);
+  background-color: var(--tone-subtle);
+  color: var(--tone-text);
 }
 
 @media (hover: hover) {
   :where([data-button][data-variant="soft"]:hover) {
-    background-color: var(--accent-a4);
+    background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
   }
 }
 
 :where([data-button][data-variant="soft"][data-state="open"]) {
-  background-color: var(--accent-a4);
+  background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
 }
 
 :where([data-button][data-variant="soft"]:active:not([data-state="open"])) {
-  background-color: var(--accent-a5);
+  background-image: linear-gradient(var(--bg-emphasis), var(--bg-emphasis));
 }
 
 :where([data-button][data-variant="soft"]:focus-visible) {
@@ -202,30 +203,30 @@ const props = withDefaults(defineProps<Props>(), {
 }
 
 :where([data-button][data-variant="soft"][data-disabled]) {
-  background-color: var(--gray-a3);
-  color: var(--gray-a8);
+  background-color: var(--bg-muted);
+  background-image: none;
+  color: var(--fg-disabled);
 }
 
 /* --- surface --- */
 :where([data-button][data-variant="surface"]) {
-  background-color: var(--accent-a2);
-  box-shadow: inset 0 0 0 var(--border-width) var(--accent-a7);
-  color: var(--accent-a11);
+  background-color: var(--tone-subtle);
+  box-shadow: inset 0 0 0 var(--border-width) var(--tone-border);
+  color: var(--tone-text);
 }
 
 @media (hover: hover) {
   :where([data-button][data-variant="surface"]:hover) {
-    box-shadow: inset 0 0 0 var(--border-width) var(--accent-a8);
+    background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
   }
 }
 
 :where([data-button][data-variant="surface"][data-state="open"]) {
-  box-shadow: inset 0 0 0 var(--border-width) var(--accent-a8);
+  background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
 }
 
 :where([data-button][data-variant="surface"]:active:not([data-state="open"])) {
-  background-color: var(--accent-a3);
-  box-shadow: inset 0 0 0 var(--border-width) var(--accent-a8);
+  background-image: linear-gradient(var(--bg-emphasis), var(--bg-emphasis));
 }
 
 :where([data-button][data-variant="surface"]:focus-visible) {
@@ -234,29 +235,30 @@ const props = withDefaults(defineProps<Props>(), {
 }
 
 :where([data-button][data-variant="surface"][data-disabled]) {
-  background-color: var(--gray-a2);
-  box-shadow: inset 0 0 0 var(--border-width) var(--gray-a6);
-  color: var(--gray-a8);
+  background-color: var(--bg-muted);
+  background-image: none;
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-strong);
+  color: var(--fg-disabled);
 }
 
 /* --- outline --- */
 :where([data-button][data-variant="outline"]) {
-  box-shadow: inset 0 0 0 var(--border-width) var(--accent-a8);
-  color: var(--accent-a11);
+  box-shadow: inset 0 0 0 var(--border-width) var(--tone-border);
+  color: var(--tone-text);
 }
 
 @media (hover: hover) {
   :where([data-button][data-variant="outline"]:hover) {
-    background-color: var(--accent-a2);
+    background-color: var(--tone-subtle);
   }
 }
 
 :where([data-button][data-variant="outline"][data-state="open"]) {
-  background-color: var(--accent-a2);
+  background-color: var(--tone-subtle);
 }
 
 :where([data-button][data-variant="outline"]:active:not([data-state="open"])) {
-  background-color: var(--accent-a3);
+  background-color: var(--tone-subtle);
 }
 
 :where([data-button][data-variant="outline"]:focus-visible) {
@@ -265,8 +267,8 @@ const props = withDefaults(defineProps<Props>(), {
 }
 
 :where([data-button][data-variant="outline"][data-disabled]) {
-  box-shadow: inset 0 0 0 var(--border-width) var(--gray-a7);
-  color: var(--gray-a8);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-input);
+  color: var(--fg-disabled);
 }
 
 /* --- ghost --- */
@@ -281,7 +283,7 @@ const props = withDefaults(defineProps<Props>(), {
 }
 
 :where([data-button][data-variant="ghost"]:active:not([data-state="open"])) {
-  background-color: var(--accent-a4);
+  background-color: var(--bg-emphasis);
 }
 
 :where([data-button][data-variant="ghost"]:focus-visible) {
@@ -291,11 +293,11 @@ const props = withDefaults(defineProps<Props>(), {
 
 :where([data-button][data-variant="ghost"][data-disabled]) {
   background-color: transparent;
-  color: var(--gray-a8);
+  color: var(--fg-disabled);
 }
 
 /* 危险色按钮的焦点环跟文字档同色，灰底上更清楚 */
-:where([data-button]:focus-visible[data-accent-color="red"]) {
+:where([data-button]:focus-visible[data-tone="danger"]) {
   outline-color: var(--danger-text);
 }
 

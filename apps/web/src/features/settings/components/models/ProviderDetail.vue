@@ -118,7 +118,7 @@
             v-if="canLogout"
             size="s"
             variant="surface"
-            color="red"
+            color="danger"
             :disabled="loginState.phase === 'running'"
             @click="confirmLogout = true"
           >

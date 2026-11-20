@@ -506,12 +506,12 @@
 }
 
 :where([data-menu-item][data-disabled]) {
-  color: var(--gray-a8);
+  color: var(--fg-disabled);
   cursor: default;
 }
 
-:where([data-menu-item][data-accent-color]:not([data-disabled])) {
-  color: var(--accent-a11);
+:where([data-menu-item][data-tone]:not([data-disabled])) {
+  color: var(--tone-text);
 }
 
 :where([data-menu-item]:is([data-highlighted], [data-state="open"])) {
@@ -520,7 +520,7 @@
 
 /* 破坏性项悬停取同一档的红色：底不同色相，文字仍走 danger */
 :where([data-menu-item][data-variant="destructive"][data-highlighted]) {
-  background-color: var(--red-a3);
+  background-color: var(--danger-subtle);
 }
 
 :where([data-menu-item][data-state="checked"]) {
@@ -538,7 +538,7 @@
   box-sizing: border-box;
   block-size: var(--control-md);
   padding-inline: var(--space-xs);
-  color: var(--gray-a10);
+  color: var(--fg-muted);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
   user-select: none;
@@ -560,7 +560,7 @@
   align-items: center;
   margin-inline-start: auto;
   padding-inline-start: var(--space-md);
-  color: var(--gray-a11);
+  color: var(--fg-secondary);
 }
 
 :where([data-menu-item]):is([data-highlighted], [data-disabled]) :where([data-menu-shortcut]) {
@@ -572,7 +572,7 @@
   block-size: 1px;
   margin-block: var(--space-2xs);
   margin-inline: var(--space-xs);
-  background-color: var(--gray-a6);
+  background-color: var(--bg-emphasis);
 }
 
 :where([data-menu-viewport]) > :where([data-menu-separator]) {

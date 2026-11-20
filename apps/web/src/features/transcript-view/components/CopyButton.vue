@@ -5,7 +5,7 @@
         type="button"
         size="s"
         variant="ghost"
-        :color="status === 'error' ? 'red' : 'gray'"
+        :color="status === 'error' ? 'danger' : 'neutral'"
         class="copy-button"
         :aria-label="copyLabel"
         @click.stop="copy"

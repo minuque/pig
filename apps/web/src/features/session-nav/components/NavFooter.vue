@@ -7,7 +7,7 @@
           type="button"
           size="m"
           variant="ghost"
-          color="gray"
+          color="neutral"
           :aria-label="t('nav.profileMenu')"
         >
           <span class="footer-mark" aria-hidden="true">
@@ -99,7 +99,7 @@ function toggleLocale() {
 }
 
 /* 撑满左侧：logo 与名字靠左，长名截断。抵消 rt ghost 档的负外边距 */
-.footer-profile[data-accent-color] {
+.footer-profile[data-tone] {
   flex: 1;
   justify-content: flex-start;
   gap: var(--space-xs);
@@ -112,8 +112,8 @@ function toggleLocale() {
 }
 
 /* 名字是次级信息：常态弱一档，悬停或菜单打开时回到正文色 */
-.footer-profile[data-accent-color]:hover,
-.footer-profile[data-accent-color][data-state="open"] {
+.footer-profile[data-tone]:hover,
+.footer-profile[data-tone][data-state="open"] {
   color: var(--fg);
 }
 

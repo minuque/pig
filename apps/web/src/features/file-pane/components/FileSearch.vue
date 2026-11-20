@@ -6,7 +6,7 @@
       class="file-search-field"
       size="s"
       variant="soft"
-      color="gray"
+      color="neutral"
       :placeholder="t('files.search')"
       :aria-label="t('files.search')"
       @keydown.escape="query = ''"

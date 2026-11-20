@@ -22,31 +22,26 @@ export const DEFAULT_THEME_PRESET_ID: ThemePresetId = "linear"
 export const THEME_PRESETS: readonly ThemePreset[] = [
   {
     id: "linear",
-    radixAccent: "indigo",
     light: { canvas: "#ffffff", accent: "#5e6ad2" },
     dark: { canvas: "#101012", accent: "#6672dc" },
   },
   {
     id: "paper",
-    radixAccent: "orange",
     light: { canvas: "#fbf9f5", accent: "#b55d35" },
     dark: { canvas: "#141210", accent: "#d17a4f" },
   },
   {
     id: "ocean",
-    radixAccent: "blue",
     light: { canvas: "#f8fafc", accent: "#2563eb" },
     dark: { canvas: "#0e131b", accent: "#4d8bf5" },
   },
   {
     id: "grove",
-    radixAccent: "green",
     light: { canvas: "#f8faf8", accent: "#247a57" },
     dark: { canvas: "#0f1412", accent: "#3da379" },
   },
   {
     id: "iris",
-    radixAccent: "violet",
     light: { canvas: "#faf9fc", accent: "#6d4ad6" },
     dark: { canvas: "#121017", accent: "#896be6" },
   },

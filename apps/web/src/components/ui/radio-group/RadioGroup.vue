@@ -10,7 +10,7 @@ import type { ComputedRef, HTMLAttributes } from "vue"
 import { computed, provide } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { RadioGroupRoot, useForwardProps } from "reka-ui"
-import type { Size } from "@/types/ui-type.js"
+import type { Size, ToneColor } from "@/types/ui-type.js"
 import { RADIO_GROUP_KEY } from "./type.js"
 
 const props = withDefaults(
@@ -20,7 +20,7 @@ const props = withDefaults(
       /** 尺寸档：s、m、l */
       size?: Size
       variant?: "surface" | "soft"
-      color?: string
+      color?: ToneColor
     }
   >(),
   { class: undefined, size: "m", variant: "surface" },

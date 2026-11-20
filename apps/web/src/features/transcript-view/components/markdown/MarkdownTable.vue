@@ -8,7 +8,7 @@
           type="button"
           size="s"
           variant="ghost"
-          color="gray"
+          color="neutral"
           class="md-table-zoom"
           :aria-label="previewLabel"
           @click.stop="openPreview"

@@ -12,7 +12,7 @@
         <path
           :d="view.path"
           :fill="`url(#${gradId})`"
-          stroke="var(--gray-a4)"
+          stroke="var(--border)"
           stroke-width="0.5"
           stroke-linejoin="round"
           vector-effect="non-scaling-stroke"
@@ -327,7 +327,7 @@ function onKeyDown(event: KeyboardEvent) {
 }
 
 .current {
-  color: var(--gray-12);
+  color: var(--fg);
 }
 
 .next {
@@ -355,7 +355,7 @@ function onKeyDown(event: KeyboardEvent) {
   left: 0;
   border-radius: var(--radius-pill);
   background: linear-gradient(90deg, var(--accent-solid), var(--accent-solid-hover));
-  box-shadow: inset 0 1px 1px var(--white-a3);
+  box-shadow: var(--effort-fill-highlight);
   pointer-events: none;
 }
 
@@ -376,13 +376,13 @@ function onKeyDown(event: KeyboardEvent) {
   width: 1.5px;
   margin-left: -0.75px;
   border-radius: 1px;
-  background: var(--gray-a7);
+  background: var(--border-input);
   transform: translateY(-50%);
   pointer-events: none;
 }
 
 .tick[data-active="true"] {
-  background: var(--accent-8);
+  background: var(--tone-border);
 }
 
 .tick[data-on-thumb="true"] {

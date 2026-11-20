@@ -1,53 +1,8 @@
 /* 全局样式入口：只引分片，规则写在各分片里。
-   顺序有讲究：重置进 base 层，色板与 token 先落，
+   顺序有讲究：重置进 base 层，token 先落，
    最后是 globals.css —— 它不分层，靠排在最后压住库的默认值。 */
 
 @import "./reset.css" layer(base);
-
-/* 色板：主题色 indigo、中性色 gray；其余几套给语义色与项目色。每套按浅、浅 alpha、深、深 alpha 依次引入，深色须排在后面。 */
-@import "@radix-ui/colors/indigo.css";
-@import "@radix-ui/colors/indigo-alpha.css";
-@import "@radix-ui/colors/indigo-dark.css";
-@import "@radix-ui/colors/indigo-dark-alpha.css";
-@import "@radix-ui/colors/green.css";
-@import "@radix-ui/colors/green-alpha.css";
-@import "@radix-ui/colors/green-dark.css";
-@import "@radix-ui/colors/green-dark-alpha.css";
-@import "@radix-ui/colors/orange.css";
-@import "@radix-ui/colors/orange-alpha.css";
-@import "@radix-ui/colors/orange-dark.css";
-@import "@radix-ui/colors/orange-dark-alpha.css";
-@import "@radix-ui/colors/red.css";
-@import "@radix-ui/colors/red-alpha.css";
-@import "@radix-ui/colors/red-dark.css";
-@import "@radix-ui/colors/red-dark-alpha.css";
-@import "@radix-ui/colors/gray.css";
-@import "@radix-ui/colors/gray-alpha.css";
-@import "@radix-ui/colors/gray-dark.css";
-@import "@radix-ui/colors/gray-dark-alpha.css";
-/* 上下文分类图表用：与上面几套一起拉开色相 */
-@import "@radix-ui/colors/violet.css";
-@import "@radix-ui/colors/violet-alpha.css";
-@import "@radix-ui/colors/violet-dark.css";
-@import "@radix-ui/colors/violet-dark-alpha.css";
-@import "@radix-ui/colors/cyan.css";
-@import "@radix-ui/colors/cyan-alpha.css";
-@import "@radix-ui/colors/cyan-dark.css";
-@import "@radix-ui/colors/cyan-dark-alpha.css";
-@import "@radix-ui/colors/pink.css";
-@import "@radix-ui/colors/pink-alpha.css";
-@import "@radix-ui/colors/pink-dark.css";
-@import "@radix-ui/colors/pink-dark-alpha.css";
-@import "@radix-ui/colors/amber.css";
-@import "@radix-ui/colors/amber-alpha.css";
-@import "@radix-ui/colors/amber-dark.css";
-@import "@radix-ui/colors/amber-dark-alpha.css";
-@import "@radix-ui/colors/blue.css";
-@import "@radix-ui/colors/blue-alpha.css";
-@import "@radix-ui/colors/blue-dark.css";
-@import "@radix-ui/colors/blue-dark-alpha.css";
-@import "@radix-ui/colors/black-alpha.css";
-@import "@radix-ui/colors/white-alpha.css";
 @import "./tokens.css";
 @import "./motion.css";
 @import "./markdown.css";

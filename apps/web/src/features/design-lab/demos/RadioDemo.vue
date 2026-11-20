@@ -55,17 +55,17 @@
     <Variant title="Colors">
       <div style="display: flex; flex-direction: column; gap: 12px">
         <label style="display: flex; align-items: center; gap: 8px">
-          <Radio value="gray" color="gray" :checked="true" />
+          <Radio value="gray" color="neutral" :checked="true" />
           Gray
         </label>
 
         <label style="display: flex; align-items: center; gap: 8px">
-          <Radio value="green" color="green" :checked="true" />
+          <Radio value="green" color="success" :checked="true" />
           Green
         </label>
 
         <label style="display: flex; align-items: center; gap: 8px">
-          <Radio value="red" color="red" :checked="true" />
+          <Radio value="red" color="danger" :checked="true" />
           Red
         </label>
       </div>

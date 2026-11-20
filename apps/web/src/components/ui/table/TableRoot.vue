@@ -91,7 +91,7 @@ const props = withDefaults(
 
 :where([data-slot="table-cell"]) {
   background-color: transparent;
-  box-shadow: inset 0 -1px var(--gray-a5);
+  box-shadow: inset 0 -1px var(--border-strong);
   box-sizing: border-box;
   vertical-align: inherit;
 }

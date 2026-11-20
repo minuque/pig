@@ -5,7 +5,7 @@
     :as-child="asChild"
     :data-size="size"
     :data-underline="underline"
-    :data-accent-color="color"
+    :data-tone="color"
     :class="[weightClass, truncate && 'truncate', props.class]"
     v-bind="$attrs"
   >
@@ -18,7 +18,7 @@ import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { computed } from "vue"
 import { Primitive } from "reka-ui"
-import type { Size } from "@/types/ui-type.js"
+import type { Size, ToneColor } from "@/types/ui-type.js"
 
 defineOptions({ inheritAttrs: false })
 
@@ -32,7 +32,7 @@ const props = withDefaults(
       /** auto 只在 hover 时出下划线；always 常驻；none 不出 */
       underline?: "auto" | "always" | "hover" | "none"
       /** accent 色：不传取 --link */
-      color?: string
+      color?: ToneColor
       truncate?: boolean
     }
   >(),
@@ -90,9 +90,9 @@ const weightClass = computed(() => (props.weight ? WEIGHT_CLASS[props.weight] : 
   cursor: default;
 }
 
-:where([data-slot="link"][data-accent-color]) {
-  color: var(--accent-a11);
-  text-decoration-color: var(--accent-a5);
+:where([data-slot="link"][data-tone]) {
+  color: var(--tone-text);
+  text-decoration-color: var(--tone-border);
 }
 
 :where([data-slot="link"][data-underline="always"]) {

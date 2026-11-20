@@ -1,58 +1,21 @@
-/* 架构看板样式：消费 tokens.css 与 Radix 色板，补齐语义边并把中性色换成 slate */
+/* 架构看板样式：只消费 tokens.css，补齐看板自己的状态色 */
 
 :root {
-  --gray-1: var(--slate-1);
-  --gray-2: var(--slate-2);
-  --gray-3: var(--slate-3);
-  --gray-4: var(--slate-4);
-  --gray-5: var(--slate-5);
-  --gray-6: var(--slate-6);
-  --gray-7: var(--slate-7);
-  --gray-8: var(--slate-8);
-  --gray-9: var(--slate-9);
-  --gray-10: var(--slate-10);
-  --gray-11: var(--slate-11);
-  --gray-12: var(--slate-12);
-  --gray-a1: var(--slate-a1);
-  --gray-a2: var(--slate-a2);
-  --gray-a3: var(--slate-a3);
-  --gray-a4: var(--slate-a4);
-  --gray-a5: var(--slate-a5);
-  --gray-a6: var(--slate-a6);
-  --gray-a7: var(--slate-a7);
-  --gray-a8: var(--slate-a8);
-  --gray-a9: var(--slate-a9);
-  --gray-a10: var(--slate-a10);
-  --gray-a11: var(--slate-a11);
-  --gray-a12: var(--slate-a12);
-  --border: var(--gray-a4);
-  --border-subtle: var(--gray-a3);
-  --border-strong: var(--gray-a5);
-  --separator-top: inset 0 var(--border-width) 0 var(--border-subtle);
   --arch-up-bg: var(--warning-subtle);
   --arch-up-fg: var(--warning-text);
-  --arch-up-border: var(--amber-7);
-  --arch-down-bg: var(--green-a3);
-  --arch-down-fg: var(--green-12);
-  --arch-down-border: var(--green-7);
+  --arch-up-border: color-mix(in srgb, var(--warning-solid) 40%, transparent);
+  --arch-down-bg: var(--success-subtle);
+  --arch-down-fg: var(--success-text);
+  --arch-down-border: color-mix(in srgb, var(--success-solid) 40%, transparent);
   --arch-bad-bg: var(--danger-subtle);
   --arch-bad-fg: var(--danger-text);
-  --arch-bad-border: var(--red-7);
+  --arch-bad-border: color-mix(in srgb, var(--danger-solid) 40%, transparent);
   --arch-info-bg: var(--info-subtle);
   --arch-info-fg: var(--info-text);
 }
 
-html.dark:root {
-  --arch-down-fg: var(--green-11);
-}
-
-:root[data-accent-color="cyan"] {
-  --accent-11: var(--accent-text);
-  --accent-a11: var(--accent-text);
-}
-
 ::selection {
-  background-color: var(--accent-a5);
+  background-color: var(--bg-selected);
 }
 
 .mermaid-diagram {
@@ -61,7 +24,7 @@ html.dark:root {
   --pele-surface-alt: var(--bg-surface);
   --pele-fg: var(--fg);
   --pele-muted: var(--fg-secondary);
-  --pele-line: var(--slate-9);
+  --pele-line: var(--fg-muted);
   --pele-border: var(--border-strong);
   --pele-accent: var(--accent-text);
 }

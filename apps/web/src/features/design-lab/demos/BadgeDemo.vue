@@ -19,10 +19,10 @@
 
     <Variant title="Colors">
       <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
-        <Badge color="gray">Gray</Badge>
-        <Badge color="green">Green</Badge>
-        <Badge color="orange">Orange</Badge>
-        <Badge color="red">Red</Badge>
+        <Badge color="neutral">Gray</Badge>
+        <Badge color="success">Green</Badge>
+        <Badge color="warning">Orange</Badge>
+        <Badge color="danger">Red</Badge>
       </div>
     </Variant>
   </Story>

@@ -779,11 +779,11 @@
 
 @keyframes skeleton-pulse {
   from {
-    background-color: var(--gray-a3);
+    background-color: var(--bg-muted);
   }
 
   to {
-    background-color: var(--gray-a4);
+    background-color: var(--bg-hover);
   }
 }
 

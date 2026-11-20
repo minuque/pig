@@ -25,7 +25,7 @@
           :key="preset.name"
           size="s"
           :variant="isPreset(preset) ? 'soft' : 'surface'"
-          color="gray"
+          color="neutral"
           @click="apply(preset)"
         >
           {{ preset.name }}
@@ -81,7 +81,7 @@
         <div class="tuner-output-head">
           <span class="tuner-label">粘回 tokens.css</span>
 
-          <Button size="s" variant="ghost" color="gray" @click="copy">
+          <Button size="s" variant="ghost" color="neutral" @click="copy">
             {{ copied ? "已复制" : "复制" }}
           </Button>
         </div>
@@ -109,16 +109,19 @@ import { useColorScheme } from "@features/theme/index.js"
 
 type Values = { border: string; divider: string; radius: number; surface: string }
 
+const ALPHA_RE = /rgba\(0, 0, 0, ([\d.]+)\)/
 const STEPS = ["a1", "a2", "a3", "a4"]
+// 每档对应的描边不透明度
+const ALPHA: Record<string, number> = { a1: 0.05, a2: 0.1, a3: 0.15, a4: 0.2 }
 const SURFACES: Record<string, string> = {
   none: "transparent",
-  a2: "var(--gray-a2)",
+  a2: "var(--bg-muted)",
   surface: "var(--bg-surface)",
 }
 // 「当前」直接读样式源码，其余预设相对它挪一档，样式改了预设跟着走
 const CURRENT: Values = {
-  border: declared(tokensCss, "--border", /--(?:black|white)-(a\d+)/) ?? "a2",
-  divider: declared(tokensCss, "--border-subtle", /--(?:black|white)-(a\d+)/) ?? "a1",
+  border: stepOf(declared(tokensCss, "--border", ALPHA_RE)) ?? "a2",
+  divider: stepOf(declared(tokensCss, "--border-subtle", ALPHA_RE)) ?? "a1",
   radius: Number(declared(tokensCss, "--radius-card", /([\d.]+)px/) ?? 8),
   surface: declared(tokensCss, "--card-surface", /(transparent)/) ? "none" : "surface",
 }
@@ -159,8 +162,10 @@ const nodes = useMarkdownNodes({
 })
 const value = reactive<Values>({ ...PRESETS[0]! })
 const { isDark } = useColorScheme()
-// 描边在浅色取 black alpha、深色取 white alpha，跟着当前明暗选一套
-const neutral = (step: string) => `var(--${isDark.value ? "white" : "black"}-${step})`
+// 描边在浅色取黑色 alpha、深色取白色 alpha，跟着当前明暗选一套
+const ink = (step: string, dark: boolean) =>
+  `rgba(${dark ? "255, 255, 255" : "0, 0, 0"}, ${ALPHA[step]})`
+const neutral = (step: string) => ink(step, isDark.value)
 const radius = computed({
   get: () => [value.radius],
   set: ([next]) => (value.radius = next ?? value.radius),
@@ -175,12 +180,12 @@ const previewVars = computed(() => ({
 const output = computed(() =>
   [
     "/* style/tokens.css → :root */",
-    `--border: var(--black-${value.border});`,
-    `--border-subtle: var(--black-${value.divider});`,
+    `--border: ${ink(value.border, false)};`,
+    `--border-subtle: ${ink(value.divider, false)};`,
     "",
     "/* style/tokens.css → html.dark */",
-    `--border: var(--white-${value.border});`,
-    `--border-subtle: var(--white-${value.divider});`,
+    `--border: ${ink(value.border, true)};`,
+    `--border-subtle: ${ink(value.divider, true)};`,
     "",
     "/* style/tokens.css → :root */",
     `--card-surface: ${SURFACES[value.surface]};`,
@@ -196,6 +201,12 @@ const { copy: write } = useClipboard({ legacy: true })
 function declared(css: string, name: string, pick: RegExp): string | undefined {
   const line = new RegExp(`(?<![\\w-])${name}:\\s*([^;]+);`).exec(css)?.[1]
   return line ? pick.exec(line)?.[1] : undefined
+}
+
+/** 把样式源码里的不透明度对回最近的一档。 */
+function stepOf(alpha: string | undefined): string | undefined {
+  if (alpha === undefined) return undefined
+  return STEPS.find((key) => ALPHA[key] === Number(alpha))
 }
 
 function step(current: string, by: number): string {

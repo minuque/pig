@@ -2,7 +2,7 @@
   <div class="file-notice">
     <p class="file-notice-text">{{ text }}</p>
 
-    <Button v-if="action" size="s" variant="soft" color="gray" @click="emit('action')">
+    <Button v-if="action" size="s" variant="soft" color="neutral" @click="emit('action')">
       {{ action }}
     </Button>
   </div>

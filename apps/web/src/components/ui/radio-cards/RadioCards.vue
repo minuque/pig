@@ -1,7 +1,7 @@
 <template>
   <RadioGroupRoot
     data-slot="radio-cards"
-    :data-accent-color="color"
+    :data-tone="color"
     :data-size="size"
     :data-variant="variant"
     :disabled="disabled"
@@ -20,7 +20,7 @@ import type { ComputedRef, HTMLAttributes } from "vue"
 import { computed } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { RadioGroupRoot, useForwardPropsEmits } from "reka-ui"
-import type { Size } from "@/types/ui-type.js"
+import type { Size, ToneColor } from "@/types/ui-type.js"
 
 defineOptions({ inheritAttrs: false })
 
@@ -32,7 +32,7 @@ const props = withDefaults(
       size?: Size
       variant?: "surface"
       /** accent 色：选中项描边与圆点跟随它 */
-      color?: string
+      color?: ToneColor
       disabled?: boolean
       /** 列宽规则，直接落成 grid-template-columns */
       columns?: string

@@ -3,7 +3,7 @@
     data-slot="select-trigger"
     :data-size="size"
     :data-variant="variant"
-    :data-accent-color="color"
+    :data-tone="color"
     :data-radius="radius"
     v-bind="{ ...forwarded, ...$attrs }"
     :class="props.class"
@@ -19,6 +19,7 @@
 </template>
 
 <script setup lang="ts">
+import type { ToneColor } from "@/types/ui-type.js"
 import type { SelectTriggerProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
@@ -34,7 +35,7 @@ const props = withDefaults(
     SelectTriggerProps & {
       class?: HTMLAttributes["class"]
       variant?: "surface" | "soft" | "ghost"
-      color?: string
+      color?: ToneColor
       radius?: Radius
       /** 未选中时显示的文案 */
       placeholder?: string
@@ -67,7 +68,7 @@ const size = useSelectSize()
   text-align: start;
   white-space: nowrap;
   vertical-align: top;
-  color: var(--gray-12);
+  color: var(--fg);
   user-select: none;
   cursor: pointer;
 }
@@ -132,7 +133,7 @@ const size = useSelectSize()
   padding-block: var(--space-2xs);
   padding-inline: var(--space-xs);
   margin: calc(var(--space-2xs) * -1);
-  color: var(--accent-12);
+  color: var(--fg);
 }
 
 :where([data-slot="select-trigger"][data-variant="ghost"][data-size="l"]) {
@@ -144,78 +145,80 @@ const size = useSelectSize()
 /* --- surface --- */
 :where([data-slot="select-trigger"][data-variant="surface"]) {
   background-color: var(--bg-raised);
-  box-shadow: inset 0 0 0 var(--border-width) var(--gray-a7);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-input);
 }
 
 @media (hover: hover) {
   :where([data-slot="select-trigger"][data-variant="surface"]:hover) {
-    box-shadow: inset 0 0 0 var(--border-width) var(--gray-a8);
+    background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
   }
 }
 
 :where([data-slot="select-trigger"][data-variant="surface"][data-state="open"]) {
-  box-shadow: inset 0 0 0 var(--border-width) var(--gray-a8);
+  background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
 }
 
 :where([data-slot="select-trigger"][data-variant="surface"]:disabled) {
-  background-color: var(--gray-a2);
-  box-shadow: inset 0 0 0 var(--border-width) var(--gray-a6);
-  color: var(--gray-a11);
+  background-color: var(--bg-muted);
+  background-image: none;
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-strong);
+  color: var(--fg-secondary);
 }
 
 /* --- soft --- */
 :where([data-slot="select-trigger"][data-variant="soft"]) {
-  background-color: var(--accent-a3);
-  color: var(--accent-12);
+  background-color: var(--tone-subtle);
+  color: var(--fg);
 }
 
 @media (hover: hover) {
   :where([data-slot="select-trigger"][data-variant="soft"]:hover) {
-    background-color: var(--accent-a4);
+    background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
   }
 }
 
 :where([data-slot="select-trigger"][data-variant="soft"][data-state="open"]) {
-  background-color: var(--accent-a4);
+  background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
 }
 
 :where([data-slot="select-trigger"][data-variant="soft"]:disabled) {
-  background-color: var(--gray-a3);
-  color: var(--gray-a11);
+  background-color: var(--bg-muted);
+  background-image: none;
+  color: var(--fg-secondary);
 }
 
 /* --- ghost --- */
 @media (hover: hover) {
   :where([data-slot="select-trigger"][data-variant="ghost"]:hover) {
-    background-color: var(--accent-a3);
+    background-color: var(--tone-subtle);
   }
 }
 
 :where([data-slot="select-trigger"][data-variant="ghost"][data-state="open"]) {
-  background-color: var(--accent-a3);
+  background-color: var(--tone-subtle);
 }
 
 :where([data-slot="select-trigger"][data-variant="ghost"]:disabled) {
   background-color: transparent;
-  color: var(--gray-a11);
+  color: var(--fg-secondary);
 }
 
 /* 未选中时用占位灰；soft 与 ghost 退到半透明强调色 */
 :where([data-slot="select-trigger"][data-variant="surface"][data-placeholder])
   :where([data-slot="select-trigger-inner"]) {
-  color: var(--gray-a10);
+  color: var(--fg-muted);
 }
 
 :where(
     [data-slot="select-trigger"]:is([data-variant="soft"], [data-variant="ghost"])[data-placeholder]
   )
   :where([data-slot="select-trigger-inner"]) {
-  color: var(--accent-12);
+  color: var(--fg);
   opacity: 0.6;
 }
 
 :where([data-slot="select-trigger"]:disabled) :where([data-slot="select-icon"]) {
-  color: var(--gray-a9);
+  color: var(--fg-muted);
 }
 
 :where([data-slot="select-trigger"]:not([data-variant="ghost"])) :where([data-slot="select-icon"]) {

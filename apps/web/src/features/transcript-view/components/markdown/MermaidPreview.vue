@@ -16,7 +16,7 @@
                 type="button"
                 size="s"
                 variant="ghost"
-                color="gray"
+                color="neutral"
                 :aria-label="action.label"
                 @click="action.run"
               >
@@ -30,16 +30,16 @@
       </div>
 
       <div class="preview-group" data-kind="text">
-        <Button type="button" size="s" variant="ghost" color="gray" @click="fit">
+        <Button type="button" size="s" variant="ghost" color="neutral" @click="fit">
           {{ t("transcript.diagramFit") }}
         </Button>
 
-        <Button type="button" size="s" variant="ghost" color="gray" @click="actual">
+        <Button type="button" size="s" variant="ghost" color="neutral" @click="actual">
           {{ t("transcript.diagramActual") }}
         </Button>
       </div>
 
-      <Button type="button" size="s" variant="ghost" color="gray" @click="copy(source)">
+      <Button type="button" size="s" variant="ghost" color="neutral" @click="copy(source)">
         <CheckIcon v-if="copied" class="size-icon" />
         <CopyIcon v-else class="size-icon" />
         {{ t("transcript.diagramCopySource") }}

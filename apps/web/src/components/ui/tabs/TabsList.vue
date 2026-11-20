@@ -3,7 +3,7 @@
     data-slot="tabs-list"
     :data-variant="variant"
     :data-size="size"
-    :data-accent-color="color"
+    :data-tone="color"
     :class="props.class"
   >
     <slot />
@@ -12,6 +12,7 @@
 </template>
 
 <script setup lang="ts">
+import type { ToneColor } from "@/types/ui-type.js"
 import type { HTMLAttributes } from "vue"
 import { provide, toRef } from "vue"
 import { TabsIndicator, TabsList } from "reka-ui"
@@ -22,7 +23,7 @@ const props = withDefaults(
   defineProps<{
     variant?: TabsVariant
     size?: "s" | "m"
-    color?: string | undefined
+    color?: ToneColor | undefined
     class?: HTMLAttributes["class"] | undefined
   }>(),
   { variant: "underline", size: "m", color: undefined, class: undefined },
@@ -38,7 +39,7 @@ provide(TABS_VARIANT, toRef(props, "variant"))
   justify-content: flex-start;
   overflow-x: auto;
   white-space: nowrap;
-  box-shadow: inset 0 -1px 0 0 var(--gray-a5);
+  box-shadow: inset 0 -1px 0 0 var(--border-strong);
   font-family: var(--font-sans);
   font-style: normal;
   scrollbar-width: none;
@@ -68,7 +69,7 @@ provide(TABS_VARIANT, toRef(props, "variant"))
   box-sizing: border-box;
   padding-inline: var(--space-xs);
   user-select: none;
-  color: var(--gray-a11);
+  color: var(--fg-secondary);
 }
 
 :where([data-slot="tabs-list"][data-variant="underline"][data-size="s"])
@@ -85,19 +86,19 @@ provide(TABS_VARIANT, toRef(props, "variant"))
 @media (hover: hover) {
   :where([data-slot="tabs-list"][data-variant="underline"])
     :where([data-slot="tabs-trigger"]:hover) {
-    color: var(--gray-12);
+    color: var(--fg);
   }
 
   :where([data-slot="tabs-list"][data-variant="underline"])
     :where([data-slot="tabs-trigger"]:hover)
     :where([data-slot="tabs-trigger-inner"]) {
-    background-color: var(--gray-a3);
+    background-color: var(--bg-muted);
   }
 }
 
 :where([data-slot="tabs-list"][data-variant="underline"])
   :where([data-slot="tabs-trigger"][data-state="active"]) {
-  color: var(--gray-12);
+  color: var(--fg);
   font-weight: var(--font-weight-medium);
 }
 
@@ -109,7 +110,7 @@ provide(TABS_VARIANT, toRef(props, "variant"))
   inset-block-end: 0;
   box-sizing: border-box;
   height: 2px;
-  background-color: var(--accent-indicator);
+  background-color: var(--tone);
 }
 
 :where([data-slot="tabs-list"][data-variant="underline"])

@@ -61,7 +61,7 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<RadioGroupItemP
 }
 
 :where([data-slot="radio-cards-item"][data-state="checked"]) {
-  outline: 2px solid var(--accent-indicator);
+  outline: 2px solid var(--tone);
   outline-offset: -2px;
 }
 
@@ -71,12 +71,12 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<RadioGroupItemP
 
 :where([data-slot="radio-cards-item"]:disabled) {
   cursor: default;
-  color: var(--gray-a9);
-  background-image: linear-gradient(var(--gray-a2), var(--gray-a2));
+  color: var(--fg-muted);
+  background-image: linear-gradient(var(--bg-muted), var(--bg-muted));
 }
 
 :where([data-slot="radio-cards-item"]:disabled[data-state="checked"]) {
-  outline-color: var(--gray-8);
+  outline-color: var(--border-input);
 }
 
 /* --- surface --- */

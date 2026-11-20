@@ -10,7 +10,6 @@ import { scanGraph } from "./graph.mjs"
 import { analyzeLayers, loadLayers } from "./layers.mjs"
 
 const ARCH_DIR = import.meta.dirname
-const RADIX_COLORS = ["slate", "cyan", "green", "amber", "red"]
 const CLIENT_SCRIPTS = [
   "client/data.js",
   "client/diagrams.js",
@@ -51,13 +50,7 @@ export async function buildArchHtml(root) {
   }
 
   const webRequire = createRequire(join(root, "apps/web/package.json"))
-  const radix = pkgDir(webRequire, "@radix-ui/colors")
   const css = [
-    ...RADIX_COLORS.flatMap((c) =>
-      ["", "-alpha", "-dark", "-dark-alpha"].map((v) => join(radix, `${c}${v}.css`)),
-    ),
-    join(radix, "black-alpha.css"),
-    join(radix, "white-alpha.css"),
     join(root, "apps/web/src/style/tokens.css"),
     join(root, "apps/web/src/style/mermaid.css"),
     join(ARCH_DIR, "page.css"),

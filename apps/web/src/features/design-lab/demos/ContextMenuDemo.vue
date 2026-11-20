@@ -10,7 +10,7 @@
               justify-content: center;
               inline-size: 320px;
               block-size: 160px;
-              border: 1px dashed var(--gray-a7);
+              border: 1px dashed var(--border-input);
               border-radius: var(--radius-control);
             "
           >
@@ -34,7 +34,7 @@
       <div style="display: flex; flex-wrap: wrap; gap: 16px">
         <ContextMenu>
           <ContextMenuTrigger as-child>
-            <div style="padding: 24px; border: 1px dashed var(--gray-a7)">Small menu</div>
+            <div style="padding: 24px; border: 1px dashed var(--border-input)">Small menu</div>
           </ContextMenuTrigger>
 
           <ContextMenuContent size="s">
@@ -44,7 +44,7 @@
 
         <ContextMenu>
           <ContextMenuTrigger as-child>
-            <div style="padding: 24px; border: 1px dashed var(--gray-a7)">Medium menu</div>
+            <div style="padding: 24px; border: 1px dashed var(--border-input)">Medium menu</div>
           </ContextMenuTrigger>
 
           <ContextMenuContent size="m">

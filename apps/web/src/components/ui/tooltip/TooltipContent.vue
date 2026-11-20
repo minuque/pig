@@ -38,12 +38,12 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<Too
   box-sizing: border-box;
   padding: var(--space-2xs) var(--space-xs);
   border-radius: var(--radius-control);
-  background-color: var(--gray-12);
+  background-color: var(--fg);
   transform-origin: var(--reka-tooltip-content-transform-origin);
 }
 
 :where([data-slot="tooltip-text"]) {
-  color: var(--gray-1);
+  color: var(--bg);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   user-select: none;
@@ -51,6 +51,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<Too
 }
 
 :where([data-slot="tooltip-arrow"]) {
-  fill: var(--gray-12);
+  fill: var(--fg);
 }
 </style>

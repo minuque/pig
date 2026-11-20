@@ -3,7 +3,7 @@
     v-slot="{ modelValue }"
     data-slot="checkbox"
     v-bind="forwarded"
-    :data-accent-color="color"
+    :data-tone="color"
     :data-size="size"
     :data-variant="variant"
     :class="props.class"
@@ -21,7 +21,7 @@ import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { CheckboxIndicator, CheckboxRoot, useForwardPropsEmits } from "reka-ui"
 import { CheckIcon, MinusIcon } from "@components/icons/index.js"
-import type { Size } from "@/types/ui-type.js"
+import type { Size, ToneColor } from "@/types/ui-type.js"
 
 const props = withDefaults(
   defineProps<
@@ -30,7 +30,7 @@ const props = withDefaults(
       /** 尺寸档：s、m、l */
       size?: Size | undefined
       variant?: "surface" | "soft" | undefined
-      color?: string | undefined
+      color?: ToneColor | undefined
     }
   >(),
   { class: undefined, size: "m", variant: "surface", color: undefined },
@@ -128,7 +128,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
 /* --- surface --- */
 :where([data-slot="checkbox"][data-variant="surface"][data-state="unchecked"])::before {
   background-color: var(--bg-raised);
-  box-shadow: inset 0 0 0 var(--border-width) var(--gray-a7);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-input);
 }
 
 :where(
@@ -137,7 +137,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
       [data-state="indeterminate"]
     )
 )::before {
-  background-color: var(--accent-indicator);
+  background-color: var(--tone);
 }
 
 :where(
@@ -147,22 +147,22 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
       )
   )
   :where([data-slot="checkbox-indicator"]) {
-  color: var(--accent-contrast);
+  color: var(--fg-on-accent);
 }
 
 :where([data-slot="checkbox"][data-variant="surface"][data-disabled])::before {
   background-color: transparent;
-  box-shadow: inset 0 0 0 var(--border-width) var(--gray-a6);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-strong);
 }
 
 :where([data-slot="checkbox"][data-variant="surface"][data-disabled])
   :where([data-slot="checkbox-indicator"]) {
-  color: var(--gray-a8);
+  color: var(--fg-disabled);
 }
 
 /* --- soft --- */
 :where([data-slot="checkbox"][data-variant="soft"])::before {
-  background-color: var(--accent-a5);
+  background-color: var(--tone-subtle);
 }
 
 :where(
@@ -172,7 +172,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
       )
   )
   :where([data-slot="checkbox-indicator"]) {
-  color: var(--accent-a11);
+  color: var(--tone-text);
 }
 
 :where([data-slot="checkbox"][data-variant="soft"][data-disabled])::before {
@@ -181,6 +181,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
 
 :where([data-slot="checkbox"][data-variant="soft"][data-disabled])
   :where([data-slot="checkbox-indicator"]) {
-  color: var(--gray-a8);
+  color: var(--fg-disabled);
 }
 </style>

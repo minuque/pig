@@ -5,7 +5,7 @@
         <IconButton
           type="button"
           size="m"
-          color="gray"
+          color="neutral"
           variant="ghost"
           :data-window-control="control.id"
           :aria-label="control.label"

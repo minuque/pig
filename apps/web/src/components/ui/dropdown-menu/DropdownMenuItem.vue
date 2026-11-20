@@ -4,7 +4,7 @@
     :data-inset="inset ? '' : undefined"
     :data-variant="variant"
     v-bind="forwardedProps"
-    :data-accent-color="variant === 'destructive' ? 'red' : props.color"
+    :data-tone="variant === 'destructive' ? 'danger' : props.color"
     data-menu-item
     :class="props.class"
   >
@@ -14,6 +14,7 @@
 </template>
 
 <script setup lang="ts">
+import type { ToneColor } from "@/types/ui-type.js"
 import type { DropdownMenuItemProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
@@ -28,7 +29,7 @@ const props = withDefaults(
       /** 右对齐的快捷键提示，rt 在 Item 上提供同名属性 */
       shortcut?: string
       /** accent 色，Item 的文字色跟随它 */
-      color?: string
+      color?: ToneColor
     }
   >(),
   {

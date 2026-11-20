@@ -2,7 +2,7 @@
   <SwitchRoot
     data-slot="switch"
     v-bind="forwarded"
-    :data-accent-color="color"
+    :data-tone="color"
     :data-size="size"
     :data-variant="variant"
     :data-radius="radius"
@@ -17,7 +17,7 @@ import type { SwitchRootEmits, SwitchRootProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { SwitchRoot, SwitchThumb, useForwardPropsEmits } from "reka-ui"
-import type { Size } from "@/types/ui-type.js"
+import type { Size, ToneColor } from "@/types/ui-type.js"
 
 const props = withDefaults(
   defineProps<
@@ -26,7 +26,7 @@ const props = withDefaults(
       /** 尺寸档：s、m、l */
       size?: Size
       variant?: "surface" | "soft"
-      color?: string
+      color?: ToneColor
       radius?: "none" | "small" | "medium" | "large" | "full"
     }
   >(),
@@ -160,13 +160,13 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
 
 /* --- surface --- */
 :where([data-slot="switch"][data-variant="surface"])::before {
-  background-color: var(--gray-a3);
-  background-image: linear-gradient(to right, var(--accent-track) 40%, transparent 60%);
-  box-shadow: inset 0 0 0 1px var(--gray-a5);
+  background-color: var(--bg-muted);
+  background-image: linear-gradient(to right, var(--tone) 40%, transparent 60%);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
 }
 
 :where([data-slot="switch"][data-variant="surface"]:active)::before {
-  background-color: var(--gray-a4);
+  background-color: var(--bg-hover);
 }
 
 :where([data-slot="switch"][data-variant="surface"][data-state="checked"]:active)::before {
@@ -188,46 +188,46 @@ html.dark :where([data-slot="switch"][data-variant="surface"][data-disabled]) {
 
 :where([data-slot="switch"][data-variant="surface"][data-disabled])::before {
   background-image: none;
-  background-color: var(--gray-a3);
-  box-shadow: inset 0 0 0 1px var(--gray-a3);
+  background-color: var(--bg-muted);
+  box-shadow: inset 0 0 0 1px var(--border-subtle);
   filter: none;
 }
 
 :where([data-slot="switch"][data-variant="surface"])
   :where([data-slot="switch-thumb"][data-state="unchecked"]) {
   box-shadow:
-    0 0 1px 1px var(--black-a2),
-    0 1px 1px var(--black-a1),
-    0 2px 4px -1px var(--black-a1);
+    0 0 1px 1px var(--thumb-shadow),
+    0 1px 1px var(--thumb-shadow-subtle),
+    0 2px 4px -1px var(--thumb-shadow-subtle);
 }
 
 :where([data-slot="switch"][data-variant="surface"])
   :where([data-slot="switch-thumb"][data-state="checked"]) {
   box-shadow:
-    0 1px 3px var(--black-a2),
-    0 2px 4px -1px var(--black-a1),
-    0 0 0 1px var(--black-a1),
-    0 0 0 1px var(--accent-a4),
-    -1px 0 1px var(--black-a2);
+    0 1px 3px var(--thumb-shadow),
+    0 2px 4px -1px var(--thumb-shadow-subtle),
+    0 0 0 1px var(--thumb-shadow-subtle),
+    0 0 0 1px var(--tone-subtle),
+    -1px 0 1px var(--thumb-shadow);
 }
 
 :where([data-slot="switch"][data-variant="surface"])
   :where([data-slot="switch-thumb"][data-disabled]) {
-  background-color: var(--gray-2);
+  background-color: var(--bg);
   box-shadow:
-    0 0 0 1px var(--gray-a2),
-    0 1px 3px var(--black-a1);
+    0 0 0 1px var(--border-subtle),
+    0 1px 3px var(--thumb-shadow-subtle);
   transition: none;
 }
 
 /* --- soft --- */
 :where([data-slot="switch"][data-variant="soft"])::before {
-  background-color: var(--gray-a3);
-  background-image: linear-gradient(to right, var(--accent-a4) 40%, transparent 60%);
+  background-color: var(--bg-muted);
+  background-image: linear-gradient(to right, var(--tone-subtle) 40%, transparent 60%);
 }
 
 :where([data-slot="switch"][data-variant="soft"]:active)::before {
-  background-color: var(--gray-a4);
+  background-color: var(--bg-hover);
 }
 
 :where([data-slot="switch"][data-variant="soft"][data-disabled]) {
@@ -240,7 +240,7 @@ html.dark :where([data-slot="switch"][data-variant="soft"][data-disabled]) {
 
 :where([data-slot="switch"][data-variant="soft"][data-disabled])::before {
   background-image: none;
-  background-color: var(--gray-a4);
+  background-color: var(--bg-hover);
   filter: none;
 }
 
@@ -251,27 +251,27 @@ html.dark :where([data-slot="switch"][data-variant="soft"][data-disabled]) {
 :where([data-slot="switch"][data-variant="soft"])
   :where([data-slot="switch-thumb"][data-state="unchecked"]) {
   box-shadow:
-    0 0 0 1px var(--black-a1),
-    0 1px 3px var(--black-a1),
-    0 1px 3px var(--black-a1),
-    0 2px 4px -1px var(--black-a1);
+    0 0 0 1px var(--thumb-shadow-subtle),
+    0 1px 3px var(--thumb-shadow-subtle),
+    0 1px 3px var(--thumb-shadow-subtle),
+    0 2px 4px -1px var(--thumb-shadow-subtle);
 }
 
 :where([data-slot="switch"][data-variant="soft"])
   :where([data-slot="switch-thumb"][data-state="checked"]) {
   box-shadow:
-    0 0 0 1px var(--black-a1),
-    0 1px 3px var(--black-a2),
-    0 1px 3px var(--accent-a3),
-    0 2px 4px -1px var(--accent-a3);
+    0 0 0 1px var(--thumb-shadow-subtle),
+    0 1px 3px var(--thumb-shadow),
+    0 1px 3px var(--tone-subtle),
+    0 2px 4px -1px var(--tone-subtle);
 }
 
 :where([data-slot="switch"][data-variant="soft"])
   :where([data-slot="switch-thumb"][data-disabled]) {
-  background-color: var(--gray-2);
+  background-color: var(--bg);
   box-shadow:
-    0 0 0 1px var(--gray-a2),
-    0 1px 3px var(--black-a1);
+    0 0 0 1px var(--border-subtle),
+    0 1px 3px var(--thumb-shadow-subtle);
   filter: none;
   transition: none;
 }

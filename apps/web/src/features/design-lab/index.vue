@@ -22,7 +22,7 @@
         <Button
           size="s"
           variant="ghost"
-          color="gray"
+          color="neutral"
           :aria-label="text(SEARCH_PAGE)"
           @click="search?.open()"
         >
@@ -34,7 +34,7 @@
           :as="RouterLink"
           to="/design/guide"
           variant="soft"
-          color="gray"
+          color="neutral"
           size="s"
           aria-label="DESIGN.md 规范"
         >

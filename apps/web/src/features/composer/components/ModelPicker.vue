@@ -5,7 +5,7 @@
         <DropdownMenuTrigger as-child>
           <Button
             variant="ghost"
-            color="gray"
+            color="neutral"
             class="selector"
             :disabled="disabled"
             :aria-label="t('composer.selectModel', { model: triggerText })"

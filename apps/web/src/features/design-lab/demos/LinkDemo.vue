@@ -27,8 +27,8 @@
 
     <Variant title="Color and truncate">
       <div style="display: flex; flex-direction: column; gap: 8px">
-        <Link href="#" color="gray" @click.prevent>Gray</Link>
-        <Link href="#" color="red" @click.prevent>Red</Link>
+        <Link href="#" color="neutral" @click.prevent>Gray</Link>
+        <Link href="#" color="danger" @click.prevent>Red</Link>
 
         <div style="max-width: 200px">
           <Link href="#" truncate @click.prevent>

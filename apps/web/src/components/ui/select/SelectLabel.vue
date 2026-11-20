@@ -25,7 +25,7 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectLabelProp
   box-sizing: border-box;
   block-size: var(--control-md);
   padding-inline: var(--space-sm);
-  color: var(--gray-a10);
+  color: var(--fg-muted);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
   user-select: none;

@@ -9,7 +9,7 @@
     <RadioGroupItem
       data-slot="radio-group-item"
       v-bind="forwardedProps"
-      :data-accent-color="group.color"
+      :data-tone="group.color"
       :data-size="group.size"
       :data-variant="group.variant"
     />
@@ -21,7 +21,7 @@
     v-else
     data-slot="radio-group-item"
     v-bind="forwardedProps"
-    :data-accent-color="group.color"
+    :data-tone="group.color"
     :data-size="group.size"
     :data-variant="group.variant"
     :class="props.class"
@@ -141,40 +141,40 @@ const group = inject(
 /* --- surface --- */
 :where([data-slot="radio-group-item"][data-variant="surface"]:not([data-state="checked"]))::before {
   background-color: var(--bg-raised);
-  box-shadow: inset 0 0 0 var(--border-width) var(--gray-a7);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-input);
 }
 
 :where([data-slot="radio-group-item"][data-variant="surface"][data-state="checked"])::before {
-  background-color: var(--accent-indicator);
+  background-color: var(--tone);
 }
 
 :where([data-slot="radio-group-item"][data-variant="surface"])::after {
-  background-color: var(--accent-contrast);
+  background-color: var(--fg-on-accent);
 }
 
 :where([data-slot="radio-group-item"][data-variant="surface"][data-disabled])::before {
-  background-color: var(--gray-a3);
-  box-shadow: inset 0 0 0 var(--border-width) var(--gray-a6);
+  background-color: var(--bg-muted);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-strong);
 }
 
 :where([data-slot="radio-group-item"][data-variant="surface"][data-disabled])::after {
-  background-color: var(--gray-a8);
+  background-color: var(--fg-disabled);
 }
 
 /* --- soft --- */
 :where([data-slot="radio-group-item"][data-variant="soft"])::before {
-  background-color: var(--accent-a4);
+  background-color: var(--tone-subtle);
 }
 
 :where([data-slot="radio-group-item"][data-variant="soft"])::after {
-  background-color: var(--accent-a11);
+  background-color: var(--tone-text);
 }
 
 :where([data-slot="radio-group-item"][data-variant="soft"][data-disabled])::before {
-  background-color: var(--gray-a3);
+  background-color: var(--bg-muted);
 }
 
 :where([data-slot="radio-group-item"][data-variant="soft"][data-disabled])::after {
-  background-color: var(--gray-a8);
+  background-color: var(--fg-disabled);
 }
 </style>

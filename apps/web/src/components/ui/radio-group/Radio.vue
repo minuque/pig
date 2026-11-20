@@ -2,7 +2,7 @@
   <input
     type="radio"
     data-slot="radio"
-    :data-accent-color="color"
+    :data-tone="color"
     :data-size="size"
     :data-variant="variant"
     :value="value"
@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-import type { Size } from "@/types/ui-type.js"
+import type { Size, ToneColor } from "@/types/ui-type.js"
 
 const props = withDefaults(
   defineProps<{
@@ -25,7 +25,7 @@ const props = withDefaults(
     name?: string
     checked?: boolean
     disabled?: boolean
-    color?: string
+    color?: ToneColor
     size?: Size
     variant?: "surface" | "soft"
     class?: HTMLAttributes["class"]
@@ -75,41 +75,41 @@ function onChange(event: Event) {
 /* --- surface --- */
 :where([data-slot="radio"][data-variant="surface"]:not(:checked)) {
   background-color: var(--bg-raised);
-  box-shadow: inset 0 0 0 var(--border-width) var(--gray-a7);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-input);
 }
 
 :where([data-slot="radio"][data-variant="surface"]:checked) {
-  background-color: var(--accent-indicator);
-  background-image: radial-gradient(circle, var(--accent-contrast) 0 20%, transparent 21%);
+  background-color: var(--tone);
+  background-image: radial-gradient(circle, var(--fg-on-accent) 0 20%, transparent 21%);
 }
 
 :where([data-slot="radio"][data-variant="surface"]:disabled) {
-  background-color: var(--gray-a3);
+  background-color: var(--bg-muted);
   background-image: none;
-  box-shadow: inset 0 0 0 var(--border-width) var(--gray-a6);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-strong);
 }
 
 :where([data-slot="radio"][data-variant="surface"]:disabled:checked) {
-  background-image: radial-gradient(circle, var(--gray-a8) 0 20%, transparent 21%);
+  background-image: radial-gradient(circle, var(--fg-disabled) 0 20%, transparent 21%);
 }
 
 /* --- soft --- */
 :where([data-slot="radio"][data-variant="soft"]) {
-  background-color: var(--accent-a4);
+  background-color: var(--tone-subtle);
   background-image: none;
   box-shadow: none;
 }
 
 :where([data-slot="radio"][data-variant="soft"]:checked) {
-  background-image: radial-gradient(circle, var(--accent-a11) 0 20%, transparent 21%);
+  background-image: radial-gradient(circle, var(--tone-text) 0 20%, transparent 21%);
 }
 
 :where([data-slot="radio"][data-variant="soft"]:disabled) {
-  background-color: var(--gray-a3);
+  background-color: var(--bg-muted);
   background-image: none;
 }
 
 :where([data-slot="radio"][data-variant="soft"]:disabled:checked) {
-  background-image: radial-gradient(circle, var(--gray-a8) 0 20%, transparent 21%);
+  background-image: radial-gradient(circle, var(--fg-disabled) 0 20%, transparent 21%);
 }
 </style>

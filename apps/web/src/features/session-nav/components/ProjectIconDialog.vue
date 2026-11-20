@@ -11,12 +11,12 @@
           type="button"
           size="s"
           :variant="draft.color === color ? 'soft' : 'ghost'"
-          :color="color"
+          :color="projectIconTone(color)"
           :aria-label="color"
           :aria-pressed="draft.color === color"
           @click="pick({ ...draft, color })"
         >
-          <span class="swatch" :data-accent-color="color" />
+          <span class="swatch" :data-tone="projectIconTone(color)" />
         </IconButton>
       </div>
 
@@ -27,7 +27,7 @@
           type="button"
           size="m"
           :variant="current?.name === name ? 'soft' : 'ghost'"
-          :color="draft.color"
+          :color="projectIconTone(draft.color)"
           :aria-label="name"
           :aria-pressed="current?.name === name"
           @click="pick({ ...draft, name })"
@@ -37,7 +37,7 @@
       </div>
 
       <div class="icon-actions">
-        <Button variant="soft" color="gray" type="button" :disabled="!current" @click="reset">
+        <Button variant="soft" color="neutral" type="button" :disabled="!current" @click="reset">
           {{ t("session.resetIcon") }}
         </Button>
 
@@ -64,6 +64,7 @@ import { PROJECT_ICONS } from "@components/icons/project-icons.js"
 import { workspaceName } from "@features/session-nav/lib/format.js"
 import {
   PROJECT_ICON_COLORS,
+  projectIconTone,
   type ProjectIconChoice,
 } from "@features/session-nav/lib/project-prefs.js"
 import { useProjectPrefs } from "@features/session-nav/hooks/use-project-prefs.js"

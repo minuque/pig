@@ -37,7 +37,7 @@
           v-if="canPreview(segment)"
           as="button"
           type="button"
-          color="gray"
+          color="neutral"
           underline="hover"
           truncate
           class="ctx-label"

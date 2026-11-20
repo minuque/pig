@@ -614,7 +614,7 @@ function confirmDelete() {
 }
 
 /* 项目缩写：soft 徽标收成 16px 方块 */
-.project-mono[data-accent-color] {
+.project-mono[data-tone] {
   justify-content: center;
   width: 16px;
   height: 16px;

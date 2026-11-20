@@ -7,7 +7,7 @@
             type="button"
             size="s"
             variant="ghost"
-            color="gray"
+            color="neutral"
             :aria-label="toggleLabel"
             @click="source = !source"
           >

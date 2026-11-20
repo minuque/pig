@@ -12,7 +12,7 @@
             type="button"
             size="s"
             variant="ghost"
-            color="gray"
+            color="neutral"
             :aria-label="action.label"
             :disabled="action.disabled"
             @click="action.run"
