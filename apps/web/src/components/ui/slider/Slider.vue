@@ -63,7 +63,7 @@ const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | unde
 </script>
 
 <style>
-/* 滑杆：轨道高 6/8/10，滑块比轨道大 4px，圆角取轨道的三分之一 */
+/* 滑杆：轨道高 6/8/10，滑块比轨道大 4px，轨道与滑块都是胶囊 */
 :where([data-slot="slider"]) {
   position: relative;
   display: flex;
