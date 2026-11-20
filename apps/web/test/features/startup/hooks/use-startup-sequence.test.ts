@@ -68,7 +68,7 @@ describe("startup sequence", () => {
       releaseRoute = resolve
     })
     const starting = thrown.start()
-    await vi.waitFor(() => expect(thrown.failed.value).toBe(true))
+    await vi.waitFor(() => expect(thrown.failed.value).toBe(true), { interval: 1 })
     expect(thrown.settled.value).toBe(false)
     releaseRoute()
     await starting
@@ -108,7 +108,7 @@ describe("startup sequence", () => {
       connectTimeoutMs: 0,
     })
     const started = seq.start()
-    await vi.waitFor(() => expect(initializeDone).toBe(true))
+    await vi.waitFor(() => expect(initializeDone).toBe(true), { interval: 1 })
     expect(seq.settled.value).toBe(false)
     expect(seq.ready.value).toBe(false)
     releaseConnect()
@@ -129,7 +129,7 @@ describe("startup sequence", () => {
       connectTimeoutMs: 0,
     })
     const started = seq.start()
-    await vi.waitFor(() => expect(seq.settled.value).toBe(true))
+    await vi.waitFor(() => expect(seq.settled.value).toBe(true), { interval: 1 })
     expect(seq.ready.value).toBe(false)
     releaseConnect()
     await started

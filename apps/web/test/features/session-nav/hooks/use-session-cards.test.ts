@@ -47,7 +47,7 @@ describe("useSessionCards", () => {
     const scope = effectScope()
     const cards = scope.run(() => useSessionCards(ref(true)))!
 
-    await vi.waitFor(() => expect(cards.sessionCards.value.size).toBe(2))
+    await vi.waitFor(() => expect(cards.sessionCards.value.size).toBe(2), { interval: 1 })
 
     expect(cards.sessionCards.value.get("s1")).toEqual({
       messageCount: 5,
@@ -64,7 +64,7 @@ describe("useSessionCards", () => {
     const scope = effectScope()
     const cards = scope.run(() => useSessionCards(ref(true)))!
 
-    await vi.waitFor(() => expect(listSessionCardsMock).toHaveBeenCalledTimes(1))
+    await vi.waitFor(() => expect(listSessionCardsMock).toHaveBeenCalledTimes(1), { interval: 1 })
     await nextTick()
 
     expect(cards.sessionCards.value.size).toBe(0)

@@ -132,7 +132,7 @@ describe("后台泵队挂在 Hub 上", () => {
     ctx.paneQueue.setKey("a")
     ctx.paneQueue.enqueue("后台一条")
     a.emit(phase("idle", 2))
-    await vi.waitFor(() => expect(a.submitted).toEqual(["后台一条"]))
+    await vi.waitFor(() => expect(a.submitted).toEqual(["后台一条"]), { interval: 1 })
 
     expect(ctx.paneQueue.items.value).toEqual([])
     expect(ctx.sound.play).toHaveBeenCalledTimes(1)
@@ -177,7 +177,7 @@ describe("后台泵队挂在 Hub 上", () => {
     const a = await ctx.background("a")
 
     a.emit(phase("idle", 2))
-    await vi.waitFor(() => expect(ctx.sound.play).toHaveBeenCalledWith("done"))
+    await vi.waitFor(() => expect(ctx.sound.play).toHaveBeenCalledWith("done"), { interval: 1 })
     expect(a.submitted).toEqual([])
     ctx.scope.stop()
   })

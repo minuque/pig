@@ -58,14 +58,8 @@ export async function dragOntoPanel(page: Page, type: string, total = 2) {
   )
 }
 
-/** Chromium 拒直连这些端口（ERR_UNSAFE_PORT）；listen(0) 偶尔会抽到。 */
-const UNSAFE_PORTS = new Set([
-  1, 7, 9, 11, 13, 15, 17, 19, 20, 21, 22, 23, 25, 37, 42, 43, 53, 69, 77, 79, 87, 95, 101, 102,
-  103, 104, 109, 110, 111, 113, 115, 117, 119, 123, 135, 137, 139, 143, 161, 179, 389, 427, 465,
-  512, 513, 514, 515, 526, 530, 531, 532, 540, 548, 554, 556, 563, 587, 601, 636, 989, 990, 993,
-  995, 1719, 1720, 1723, 2049, 3659, 4045, 5060, 5061, 6000, 6566, 6665, 6666, 6667, 6668, 6669,
-  6697, 10080,
-])
+/** 高端口起步（Chromium 拒连部分低位端口），按进程错开，被占则递增。 */
+let nextPort = 41_000 + (process.pid % 500)
 
 export interface E2eGateway {
   readonly origin: string
@@ -100,26 +94,34 @@ async function startGateway(
 ) {
   const previousAgentDir = process.env.PI_CODING_AGENT_DIR
   process.env.PI_CODING_AGENT_DIR = options.agentDir
-  let gateway = new Gateway(options)
-  let port = await gateway.start()
+  let gateway: Gateway | undefined
+  let port = 0
 
-  // listen(0) 偶尔抽到 Chromium 的禁用端口，重起到能直连为止
-  for (let attempt = 0; attempt < 5 && UNSAFE_PORTS.has(port); attempt += 1) {
-    await gateway.stop()
-    gateway = new Gateway(options)
-    port = await gateway.start()
+  for (let attempt = 0; attempt < 20 && port === 0; attempt += 1) {
+    const candidate = new Gateway({ ...options, port: nextPort })
+
+    nextPort += 1
+
+    try {
+      port = await candidate.start()
+      gateway = candidate
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EADDRINUSE") throw error
+    }
   }
 
+  if (!gateway || port === 0) throw new Error("找不到空闲端口")
+  const started = gateway
   const stop = async () => {
     try {
-      await gateway.stop()
+      await started.stop()
     } finally {
       if (previousAgentDir === undefined) delete process.env.PI_CODING_AGENT_DIR
       else process.env.PI_CODING_AGENT_DIR = previousAgentDir
     }
   }
 
-  return { gateway, port, stop }
+  return { gateway: started, port, stop }
 }
 
 export async function withGateway(
@@ -154,7 +156,6 @@ export async function withGateway(
     sessionDir,
     cwd: workspaceDir,
     platformPort,
-    port: 0,
     agentDir,
     ...(extra ? await extra(temp) : {}),
   })
@@ -201,7 +202,6 @@ async function withTwoWorkspaces(use: (gateway: MultiE2eGateway) => Promise<void
     sessionDir,
     cwd: firstDir,
     platformPort,
-    port: 0,
     agentDir,
   })
 
@@ -340,7 +340,6 @@ async function withModelsGateway(
     sessionDir,
     cwd: workspaceDir,
     platformPort,
-    port: 0,
     agentDir,
     createRuntime: async () => runtime as never,
   })

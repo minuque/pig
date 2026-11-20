@@ -77,7 +77,9 @@ describe("前台轮次收尾", () => {
     await nextTick()
 
     expect(ctx.sound.play).not.toHaveBeenCalled()
-    await vi.waitFor(() => expect(ctx.sent).toEqual([{ id: "", text: "下一条" }]))
+    await vi.waitFor(() => expect(ctx.sent).toEqual([{ id: "", text: "下一条" }]), {
+      interval: 1,
+    })
     expect(ctx.queue.items.value).toEqual([])
   })
 

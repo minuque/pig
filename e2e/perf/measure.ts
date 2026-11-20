@@ -3,7 +3,13 @@ import { mkdir } from "node:fs/promises"
 import { dirname } from "node:path"
 
 import { seedWorkspace } from "../support/fixtures.js"
-import { armClickStamps, clickStamps, installPageWaitFor, waitInPage } from "./in-page.js"
+import {
+  armClickStamps,
+  clickStamps,
+  installPageWaitFor,
+  pageDelay,
+  waitInPage,
+} from "./in-page.js"
 import {
   SHORT_SESSION_NAME,
   sessionIdOf,
@@ -99,11 +105,6 @@ async function revealAllSessionCards(page: Page) {
   )
 }
 
-export async function nextPaint(page: Page) {
-  // 被遮住的页面不跑 rAF，等待用计时器
-  await page.evaluate(() => new Promise<void>((resolve) => setTimeout(resolve, 32)))
-}
-
 export async function newBenchContext(browser: Browser): Promise<BrowserContext> {
   return browser.newContext({
     viewport: { width: 1280, height: 800 },
@@ -173,12 +174,12 @@ export async function waitForWorkbench(page: Page) {
   })
 }
 
-/** Composer 按下一键到双 rAF。 */
-export async function keyToNextFrame(page: Page): Promise<number> {
+/** Composer 按下一键到下一帧的耗时；隐藏页面不跑 rAF，退回到一帧预算。 */
+export async function keyToComposerLatency(page: Page): Promise<number> {
   await composerInput(page).click()
   await page.evaluate(() => {
-    const slot = window as unknown as { __pigK2f: number | null }
-    slot.__pigK2f = null
+    const slot = window as unknown as { __pigKeyLatency: number | null }
+    slot.__pigKeyLatency = null
     const field = document.querySelector(".composer .field, .field")
 
     if (!field) throw new Error("Composer 不存在")
@@ -186,21 +187,24 @@ export async function keyToNextFrame(page: Page): Promise<number> {
       "keydown",
       () => {
         const start = performance.now()
-        // 被遮住的页面不跑 rAF，两帧改用计时器
-        setTimeout(() => {
-          slot.__pigK2f = performance.now() - start
-        }, 32)
+        const settle = () => {
+          slot.__pigKeyLatency = performance.now() - start
+        }
+
+        // 隐藏页面不出帧，用一帧预算的计时器代替；可见页面量真实的两帧
+        if (document.visibilityState === "hidden") setTimeout(settle, 32)
+        else requestAnimationFrame(() => requestAnimationFrame(settle))
       },
       { once: true },
     )
   })
   await page.keyboard.press("x")
   await page.waitForFunction(
-    () => (window as unknown as { __pigK2f: number | null }).__pigK2f != null,
+    () => (window as unknown as { __pigKeyLatency: number | null }).__pigKeyLatency != null,
     null,
     { timeout: 5_000 },
   )
-  return page.evaluate(() => (window as unknown as { __pigK2f: number }).__pigK2f)
+  return page.evaluate(() => (window as unknown as { __pigKeyLatency: number }).__pigKeyLatency)
 }
 
 export async function openSession(page: Page, name: BenchSessionName): Promise<number> {
@@ -217,10 +221,6 @@ export async function openSession(page: Page, name: BenchSessionName): Promise<n
     ;(node as HTMLElement).click()
   })
   return clickStamps(page, "ready")
-}
-
-async function waitMs(page: Page, ms: number) {
-  await page.evaluate((delay) => new Promise<void>((resolve) => setTimeout(resolve, delay)), ms)
 }
 
 type ScrollFrames = { __pigScrollFrames: number[]; __pigScrollStop: () => void }
@@ -300,13 +300,13 @@ async function scrollOverflowWorstFrame(
 
         if (remaining <= 1) break
         await page.mouse.wheel(0, direction * Math.max(1, Math.ceil(remaining / 20)))
-        await waitMs(page, 32)
+        await pageDelay(page, 32)
       }
 
       await root.evaluate((node, dir) => {
         node.scrollTop = dir < 0 ? 0 : node.scrollHeight
       }, direction)
-      await waitMs(page, 150)
+      await pageDelay(page, 150)
       await root.evaluate((node, dir) => {
         node.scrollTop = dir < 0 ? 0 : node.scrollHeight
       }, direction)
@@ -384,7 +384,7 @@ async function scrollTranscriptToTop(page: Page) {
 
     if (top <= 0) return
     await page.mouse.wheel(0, -Math.max(400, box.height))
-    await waitMs(page, 16)
+    await pageDelay(page, 16)
   }
 }
 

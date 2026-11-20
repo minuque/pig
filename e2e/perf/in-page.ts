@@ -90,24 +90,29 @@ const PAGE_WAIT_SOURCE = `(function () {
     win.dispatchEvent(new Event('scroll'));
     return win.scrollTop !== before;
   }
+  function hidden() {
+    return document.visibilityState === 'hidden';
+  }
+  function nextStep(fn, delayMs) {
+    if (hidden()) setTimeout(fn, delayMs);
+    else requestAnimationFrame(fn);
+  }
+  function afterNextFrame(fn) {
+    if (hidden()) fn();
+    else requestAnimationFrame(function () { requestAnimationFrame(fn); });
+  }
   function waitRaw(spec, timeoutMs) {
     var start = performance.now();
     return new Promise(function (resolve, reject) {
       var deadline = start + timeoutMs;
       var moreClicks = 0;
+      function settle() {
+        var at = performance.now();
+        resolve({ elapsed: at - start, at: at });
+      }
       function tick() {
         if (matches(spec)) {
-          // 被遮住的页面不跑 rAF，等两帧会饿死。条件已满足就直接放行。
-          if (document.visibilityState === 'hidden') {
-            resolve({ elapsed: performance.now() - start, at: performance.now() });
-            return;
-          }
-          requestAnimationFrame(function () {
-            requestAnimationFrame(function () {
-              var at = performance.now();
-              resolve({ elapsed: at - start, at: at });
-            });
-          });
+          afterNextFrame(settle);
           return;
         }
         if (spec.clickMore && moreClicks < 20 &&
@@ -125,11 +130,9 @@ const PAGE_WAIT_SOURCE = `(function () {
           reject(new Error("__pigWaitFor timeout " + timeoutMs + "ms " + JSON.stringify(spec)));
           return;
         }
-        // 被遮住的页面不跑帧，下一轮用计时器推进
-        if (document.visibilityState === 'hidden') setTimeout(tick, 8);
-        else requestAnimationFrame(tick);
+        nextStep(tick, 8);
       }
-      requestAnimationFrame(tick);
+      nextStep(tick, 8);
     });
   }
   function armSteps(steps, timeoutMs, mode) {
@@ -227,6 +230,11 @@ export async function clickStamps(page: Page, key?: string) {
     if (!pending) throw new Error(`未挂 step ${k}`)
     return pending
   }, key)
+}
+
+/** 页面内等待一律走计时器：隐藏的页面不跑 rAF。 */
+export async function pageDelay(page: Page, ms: number) {
+  await page.evaluate((delay) => new Promise<void>((resolve) => setTimeout(resolve, delay)), ms)
 }
 
 export async function pageClockOffset(page: Page) {

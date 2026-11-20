@@ -8,10 +8,11 @@ import {
   clearStamps,
   clickStamps,
   pageClockOffset,
+  pageDelay,
   startKeepAlive,
   stopKeepAlive,
 } from "./in-page.js"
-import { WORKBENCH_TIMEOUT_MS, composerInput, nextPaint, waitForWorkbench } from "./measure.js"
+import { WORKBENCH_TIMEOUT_MS, composerInput, waitForWorkbench } from "./measure.js"
 
 const FIRST_PROMPT = "基准首条提问"
 const FIRST_TOKEN = "基准首 token"
@@ -49,7 +50,7 @@ export async function runTurn(page: Page, origin: string) {
   const lags: number[] = []
 
   await startKeepAlive(page)
-  await nextPaint(page)
+  await pageDelay(page, 32)
 
   try {
     for (let index = 1; index <= STREAM_CHUNKS; index += 1) {

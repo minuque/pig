@@ -10,7 +10,7 @@ import { canonicalizeWorkspacePath } from "../support/fixtures.js"
 import { createDesktopHarness, createWebHarness, type BenchHarness } from "./harness.js"
 import {
   captureBenchFailure,
-  keyToNextFrame,
+  keyToComposerLatency,
   median,
   openSession,
   p90,
@@ -97,11 +97,11 @@ async function startGateway(workspaceDir: string, sessionDir: string) {
   }
 }
 
-async function composerLatency(page: Parameters<typeof keyToNextFrame>[0]) {
+async function composerLatency(page: Parameters<typeof keyToComposerLatency>[0]) {
   const values: number[] = []
 
   for (let index = 0; index < 8; index += 1) {
-    const ms = await keyToNextFrame(page)
+    const ms = await keyToComposerLatency(page)
 
     if (index > 0) values.push(ms)
   }
