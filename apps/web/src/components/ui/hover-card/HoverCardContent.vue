@@ -33,7 +33,6 @@ const props = withDefaults(
   defineProps<
     HoverCardContentProps & {
       class?: HTMLAttributes["class"]
-      /** 内边距档：s、m、l */
       size?: Size
       align?: "start" | "center" | "end"
       /** 面板最大宽度，默认沿用 rt 的 480px */
@@ -48,7 +47,6 @@ const widthStyle = computed(() => ({ maxInlineSize: props.maxWidth }))
 </script>
 
 <style>
-/* 悬停卡：与浮卡同一套实色底、细环与阴影 */
 :where([data-slot="hover-card-content"]) {
   box-sizing: border-box;
   position: relative;

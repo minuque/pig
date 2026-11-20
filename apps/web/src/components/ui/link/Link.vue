@@ -27,12 +27,9 @@ const props = withDefaults(
   defineProps<
     PrimitiveProps & {
       class?: HTMLAttributes["class"]
-      /** 字号档：s、m、l；不传跟父级字号走（正文内链不会跳出字号） */
       size?: Size
       weight?: "regular" | "medium" | "bold"
-      /** auto 只在 hover 时出下划线；always 常驻；none 不出 */
       underline?: "auto" | "always" | "hover" | "none"
-      /** accent 色：不传取 --link */
       color?: string
       highContrast?: boolean
       truncate?: boolean

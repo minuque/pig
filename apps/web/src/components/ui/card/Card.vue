@@ -24,7 +24,6 @@ const props = withDefaults(
   defineProps<
     PrimitiveProps & {
       class?: HTMLAttributes["class"]
-      /** 尺寸档：s、m、l */
       size?: Size
       variant?: "surface" | "classic" | "ghost"
     }

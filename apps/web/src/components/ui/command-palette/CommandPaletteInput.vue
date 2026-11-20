@@ -15,7 +15,6 @@ const model = defineModel<string>({ default: "" })
 </script>
 
 <style scoped>
-/* 输入框不画边框，和列表靠留白分开 */
 [data-slot="command-palette-input"] {
   display: flex;
   flex: none;

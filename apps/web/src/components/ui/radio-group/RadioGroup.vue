@@ -17,7 +17,6 @@ const props = withDefaults(
   defineProps<
     RadioGroupRootProps & {
       class?: HTMLAttributes["class"]
-      /** 尺寸档：s、m、l */
       size?: Size
       variant?: "classic" | "surface" | "soft"
       color?: string
@@ -29,7 +28,6 @@ const props = withDefaults(
 const delegatedProps = reactiveOmit(props, "class", "size", "variant", "color", "highContrast")
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<RadioGroupRootProps>
 
-// 尺寸、变体、color 与 highContrast 挂在每个 Radio 上，由 data 属性选样式
 provide(
   RADIO_GROUP_KEY,
   computed(() => ({

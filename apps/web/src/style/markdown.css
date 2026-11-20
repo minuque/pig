@@ -1,11 +1,9 @@
 /* 助手正文排版。每个根块包在 display:contents 的 .comark-content 里。 */
 
-/* ------ 字体与块间距 ------ */
 .prose {
   min-width: 0;
   color: var(--fg);
   font-size: var(--text-body);
-  /* 正文行距略高于基准，给行内码留出上下空隙 */
   line-height: 1.5;
   overflow-wrap: anywhere;
 
@@ -13,12 +11,10 @@
     margin: 0;
   }
 
-  /* 块间距的唯一来源：相邻根块之间 10px */
   > .comark-content + .comark-content > * {
     margin-top: 10px;
   }
 
-  /* 标题上方多留一档、下方收窄：标题领起下文，而不是等距浮在两段中间 */
   > .comark-content + .comark-content > :is(h1, h2, h3, h4, h5, h6) {
     margin-top: 20px;
   }
@@ -27,7 +23,6 @@
     margin-top: 6px;
   }
 
-  /* ------ 标题：整体降一档，h1=h2=+4、h3 回正文 ------ */
   :is(h1, h2) {
     font-size: 1.14286em;
     line-height: 1.25;
@@ -53,7 +48,6 @@
     font-weight: var(--font-weight-medium);
   }
 
-  /* ------ 列表 ------ */
   :is(ul, ol) {
     padding-inline-start: 20px;
   }
@@ -71,12 +65,10 @@
     margin-top: 6px;
   }
 
-  /* 任务项只去自己的圆点，复选框挂进圆点的位置：同一列表里普通项与任务项文字左缘对齐 */
   li.task-list-item {
     list-style: none;
   }
 
-  /* 13px 复选框 + 右距 + 源文里的一个空格，合起来正好占满 20px 圆点位 */
   li.task-list-item > input[type="checkbox"]:first-child {
     margin-inline: -20px 0.25em;
   }
@@ -85,7 +77,6 @@
     color: var(--fg-secondary);
   }
 
-  /* ------ 引用与分隔线 ------ */
   blockquote {
     padding-inline-start: 8px;
     border-inline-start: var(--quote-border-width) solid var(--border-subtle);
@@ -101,8 +92,6 @@
     border-top: var(--border-width) solid var(--border-subtle);
   }
 
-  /* ------ 行内码：字色随正文，浅底无描边，比正文小一档；折行时每段各自带圆角。
-     中文正文里反引号两侧通常不留空格，左右补一点外边距，不和前后文字贴住 ------ */
   code:not(.code-line) {
     margin-inline: 0.2em;
     padding: 0.1em 0.35em;
@@ -126,7 +115,6 @@
   }
 }
 
-/* ------ 工具卡 diffs ------ */
 /* pierre diffs 默认 13px，只吃 --diffs-* */
 .stream-diffs-vue-diff {
   --diffs-font-size: var(--text-code);

@@ -49,7 +49,6 @@ const emit = defineEmits<{ select: [] }>()
   opacity: var(--opacity-disabled);
 }
 
-/* 图标与首行文字对齐，两行时不居中到整行 */
 .icon {
   display: flex;
   height: 20px;

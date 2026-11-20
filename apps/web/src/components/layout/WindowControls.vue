@@ -79,7 +79,6 @@ const controls = computed(() => [
 </script>
 
 <style scoped>
-/* 与工作台头部同一行：高度取头部高，右侧留白与头部内边距一致 */
 .window-controls {
   position: absolute;
   inset-block-start: 0;
@@ -94,7 +93,6 @@ const controls = computed(() => [
   app-region: no-drag;
 }
 
-/* 关闭是危险操作：悬停与聚焦换成 danger 的字色与浅底 */
 [data-window-control="close"]:is(:hover, :focus-visible) {
   background-color: var(--danger-subtle);
   color: var(--danger-text);

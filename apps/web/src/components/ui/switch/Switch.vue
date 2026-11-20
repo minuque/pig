@@ -27,7 +27,6 @@ const props = withDefaults(
   defineProps<
     SwitchRootProps<boolean> & {
       class?: HTMLAttributes["class"]
-      /** 尺寸档：s、m、l */
       size?: Size
       variant?: "classic" | "surface" | "soft"
       color?: string
@@ -53,7 +52,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
 </script>
 
 <style>
-/* 开关：轨道宽度是高度的 1.75 倍，滑块内缩 1px，勾选时整体右移轨道与高度之差 */
 :where([data-slot="switch"]) {
   position: relative;
   display: inline-flex;
@@ -127,7 +125,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
   cursor: default;
 }
 
-/* 滑块：白底 + 描边式阴影，勾选时右移 */
 :where([data-slot="switch-thumb"]) {
   position: absolute;
   inset-inline-start: 1px;
@@ -170,7 +167,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
   transform: translateX(calc(var(--space-lg) * 0.75));
 }
 
-/* --- surface --- */
 :where([data-slot="switch"][data-variant="surface"])::before {
   background-color: var(--gray-a3);
   background-image: linear-gradient(to right, var(--accent-track) 40%, transparent 60%);
@@ -241,7 +237,6 @@ html.dark :where([data-slot="switch"][data-variant="surface"][data-disabled]) {
   transition: none;
 }
 
-/* --- classic --- */
 :where([data-slot="switch"][data-variant="classic"])::before {
   background-color: var(--gray-a4);
   background-image: linear-gradient(to right, var(--accent-track) 40%, transparent 60%);
@@ -325,7 +320,6 @@ html.dark :where([data-slot="switch"][data-variant="classic"][data-disabled]) {
   transition: none;
 }
 
-/* --- soft --- */
 :where([data-slot="switch"][data-variant="soft"])::before {
   background-color: var(--gray-a3);
   background-image: linear-gradient(to right, var(--accent-a4) 40%, transparent 60%);

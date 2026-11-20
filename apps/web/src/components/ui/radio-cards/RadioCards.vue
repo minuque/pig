@@ -28,13 +28,10 @@ const props = withDefaults(
   defineProps<
     RadioGroupRootProps & {
       class?: HTMLAttributes["class"]
-      /** 尺寸档：s、m、l */
       size?: Size
       variant?: "surface" | "classic"
-      /** accent 色：选中项描边与圆点跟随它 */
       color?: string
       disabled?: boolean
-      /** 列宽规则，直接落成 grid-template-columns */
       columns?: string
       /** rt 的间距档 1-9，默认 4 */
       gap?: string
@@ -69,7 +66,6 @@ const gridStyle = computed(() => ({
 </script>
 
 <style>
-/* 卡片式单选：网格由调用方的列宽规则决定，字号随尺寸档 */
 :where([data-slot="radio-cards"]) {
   display: grid;
   cursor: default;

@@ -9,12 +9,10 @@ export type ButtonSize = Size
 
 export type ButtonVariant = "classic" | "solid" | "soft" | "surface" | "outline" | "ghost"
 
-/** 圆角档：不传时跟随主题，传入只影响这一个按钮 */
 export type Radius = "none" | "small" | "medium" | "large" | "full"
 
 export type HighContrast = boolean
 
-/** 给不用 Button 组件、但要是同一种外观的元素（如 AlertDialog 的动作按钮）用 */
 export function buttonAttrs(variant: ButtonVariant = "solid", size: ButtonSize = "m") {
   return {
     "data-button": "",

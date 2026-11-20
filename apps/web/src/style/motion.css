@@ -1,7 +1,6 @@
 /* 工作台运动：token 在 tokens.css。此处只放可复用类与 Vue Transition 名。
    首屏与工作台动效集中维护，避免重复加载和减少动态效果规则分散，因此本文件保留超过 500 行。 */
 
-/* ------ 启动页 ------ */
 .startup-screen {
   position: fixed;
   z-index: var(--z-modal, 20);
@@ -15,7 +14,6 @@
   app-region: no-drag;
 }
 
-/* 离场：小猪歪头缩回，整屏随即淡出 */
 .startup-screen.leaving {
   pointer-events: none;
   animation: exit-fade var(--duration-normal) var(--ease-out) both;
@@ -66,7 +64,6 @@
   animation: startup-mark-enter var(--duration-normal) var(--ease-out) both;
 }
 
-/* 入场：蓝框先落位，小猪歪着头探出并摆正；不回弹，底边始终贴住框底 */
 #startup-splash .startup-logo {
   animation: pig-peek var(--mascot-peek-duration) both;
 }
@@ -90,7 +87,6 @@
   }
 }
 
-/* 侧栏头像悬停：小猪先缩下去，之后与开屏 pig-peek 同一段探头 */
 @keyframes brand-peek {
   0% {
     transform: none;
@@ -113,12 +109,10 @@
   }
 }
 
-/* ------ 微交互：按压缩放、箭头翻转 ------ */
 .press-scale:not(:disabled):active {
   scale: 0.96;
 }
 
-/* JS 驱动的高度形变：先写死旧高度，再改新高度，靠这条过渡出底锚增长的手感 */
 .morph-height {
   transition: height var(--duration-normal) var(--ease-out);
 }
@@ -158,7 +152,6 @@
   transform: rotate(90deg);
 }
 
-/* ------ 页面切换：首屏↔会话输入条与 Hero ------ */
 .dock-thread-enter-active {
   transition: opacity var(--duration-slow) var(--ease-out) var(--duration-fast);
 }
@@ -205,7 +198,6 @@
   }
 }
 
-/* 工具摘要标签换字：旧字上移淡出，新字自下移入 */
 .label-roll-enter-active,
 .label-roll-leave-active {
   transition:
@@ -223,7 +215,6 @@
   transform: translateY(-3px);
 }
 
-/* 无限旋转：加载状态用，减少动态效果时停下 */
 @keyframes spin {
   to {
     transform: rotate(1turn);
@@ -306,8 +297,6 @@
   }
 }
 
-/* 对话框的进出靠 scale/opacity 独立属性，pop-reveal-out 只动 transform，
-   打在对话框上是空转。这里给关闭态单独一条关键帧。 */
 :is(
   [data-slot="dialog-content"],
   [data-slot="alert-dialog-content"],
@@ -324,7 +313,6 @@
   }
 }
 
-/* 毛玻璃遮罩随弹层淡入淡出 */
 .glass-backdrop[data-state="open"] {
   animation: overlay-in var(--duration-normal) var(--ease-in-out);
 }
@@ -333,7 +321,6 @@
   animation: overlay-out var(--duration-normal) var(--ease-in-out) forwards;
 }
 
-/* ------ 面板与列表过渡 ------ */
 .panel-reveal-enter-active {
   transition:
     opacity var(--duration-normal) var(--ease-out),
@@ -356,7 +343,6 @@
   transform: translateY(-12px);
 }
 
-/* 行增删：高度随行一起收放，下方内容跟着滑，不瞬跳；负上边距抵掉 --space-2xs 行距 */
 .list-reveal-enter-active,
 .list-reveal-leave-active {
   overflow: hidden;
@@ -383,7 +369,6 @@
   transition: transform var(--duration-fast) var(--ease-out);
 }
 
-/* ------ 欢迎页字符背景：Hero 落位后慢慢浮现；离开首屏与 Hero 同拍淡出 ------ */
 .welcome-field-enter-active,
 .welcome-field-appear-active {
   transition: opacity 1200ms var(--ease-out) 500ms;
@@ -399,7 +384,6 @@
   opacity: 0;
 }
 
-/* ------ 淡入淡出 ------ */
 .fade-layer-enter-active,
 .fade-layer-leave-active {
   transition: opacity var(--duration-normal) var(--ease-out);
@@ -410,7 +394,6 @@
   opacity: 0;
 }
 
-/* ------ 输入卡 @// 菜单：与浮层同一组时长与曲线 ------ */
 .menu-reveal-enter-active {
   transition:
     opacity var(--duration-fast) cubic-bezier(0.25, 0.1, 0.25, 1),
@@ -433,7 +416,6 @@
   translate: 0 calc(var(--space-xs) / 2);
 }
 
-/* ------ 主题切换 view-transition：柔和 cross-fade ------ */
 ::view-transition-group(root) {
   animation-duration: var(--duration-normal);
   animation-timing-function: var(--ease-out);
@@ -458,7 +440,6 @@
   }
 }
 
-/* ------ 加载与点缀：shimmer / nudge / pulse / spin ------ */
 @keyframes shimmer {
   0%,
   15% {
@@ -554,7 +535,6 @@
   animation: motion-spin 1s linear infinite;
 }
 
-/* 文字换值：从轻微模糊淡入，用在强度档位等就地切换的标签 */
 @keyframes motion-blur-in {
   from {
     opacity: 0.35;
@@ -667,7 +647,6 @@
   }
 }
 
-/* 遮罩 */
 .reveal-overlay {
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
@@ -718,12 +697,10 @@
   }
 }
 
-/* ------ 滚动边缘渐隐：列表与正文用贴边渐变层，避免 mask 压住吸顶元素和滚动条 ------ */
 .edge-veil-top,
 .edge-veil-bottom {
   position: sticky;
   z-index: 1;
-  /* 滚动区常是纵向 flex：内容溢出时不许被压成 0 高 */
   flex: none;
   height: var(--edge-fade-band);
   pointer-events: none;
@@ -817,7 +794,6 @@
   }
 }
 
-/* 浮层没有吸顶元素，仍用 mask；右侧一列保持不透明，滚动条不跟着淡 */
 .edge-fade-menu {
   --edge-fade-band: var(--space-sm);
   -webkit-mask-image:
@@ -873,7 +849,6 @@
   }
 }
 
-/* ------ 助手正文按词分批淡入：延迟由组件按排期写入 ------ */
 .word-reveal {
   animation: word-reveal var(--duration-normal) linear backwards;
 }
@@ -884,7 +859,6 @@
   }
 }
 
-/* ------ 减弱动效：全局兜底，动画与过渡一次关掉 ------ */
 @media (prefers-reduced-motion: reduce) {
   #startup-splash .startup-mark,
   #startup-splash .startup-logo {

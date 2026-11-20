@@ -60,7 +60,6 @@ const emit = defineEmits<{ "update:open": [open: boolean] }>()
 const { t } = useI18n()
 const listbox = useTemplateRef<{ highlightFirstItem: () => void }>("listbox")
 
-// 打开时先高亮第一项，回车直接选中
 watch(
   () => props.open,
   (open) => open && nextTick(() => listbox.value?.highlightFirstItem()),
@@ -68,7 +67,6 @@ watch(
 </script>
 
 <style scoped>
-/* 面板贴在视口上方 10vh，不随结果数量上下跳 */
 .viewport {
   position: fixed;
   inset: 0;

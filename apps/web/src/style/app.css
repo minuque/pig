@@ -3,14 +3,11 @@
    最后是 globals.css —— 它不分层，靠排在最后压住库的默认值。 */
 
 @import "./reset.css" layer(base);
-
-/* 色板：主题色 indigo、中性色 gray（见 index.html 的 html 属性）；其余几套给语义色与项目色。 */
 @import "@radix-ui/themes/tokens/colors/indigo.css";
 @import "@radix-ui/themes/tokens/colors/green.css";
 @import "@radix-ui/themes/tokens/colors/orange.css";
 @import "@radix-ui/themes/tokens/colors/red.css";
 @import "@radix-ui/themes/tokens/colors/gray.css";
-/* 上下文分类图表用：与上面几套一起拉开色相 */
 @import "@radix-ui/themes/tokens/colors/violet.css";
 @import "@radix-ui/themes/tokens/colors/cyan.css";
 @import "@radix-ui/themes/tokens/colors/pink.css";

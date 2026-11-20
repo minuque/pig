@@ -31,7 +31,6 @@ const props = withDefaults(
   defineProps<
     PopoverContentProps & {
       class?: HTMLAttributes["class"]
-      /** 内边距与圆角档：s、m、l */
       size?: Size
       /** 面板最大宽度，默认沿用 rt 的 480px */
       maxWidth?: string
@@ -44,7 +43,6 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<PopoverContentP
 </script>
 
 <style>
-/* 浮卡：实色底 + 1px 环 + 精致阴影，宽度跟随触发器但不小于它 */
 :where([data-slot="popover-content"]) {
   box-sizing: border-box;
   position: relative;

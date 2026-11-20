@@ -22,7 +22,6 @@
   --radius-5: var(--radius-dialog);
   --radius-6: var(--radius-dialog);
 
-  /* --- 阴影 --- */
   /* 浮层阴影全用 rt 原值：带 1px 外环描边，自写浮层同样指回它 */
   --shadow-popover: var(--shadow-5);
   --shadow-dialog: var(--shadow-6);

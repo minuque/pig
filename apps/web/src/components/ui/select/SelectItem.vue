@@ -18,7 +18,6 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectItemProps
 </script>
 
 <style>
-/* 选项：不留勾选图标的槽位，左右内边距对称；选中项用高亮底标出 */
 :where([data-slot="select-item"]) {
   position: relative;
   display: flex;
@@ -51,7 +50,6 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectItemProps
   color: var(--fg);
 }
 
-/* solid 内容里悬停项取实心强调色 */
 :where([data-slot="select-content"][data-variant="solid"])
   :where([data-slot="select-item"][data-highlighted]) {
   background-color: var(--accent-9);

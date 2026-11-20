@@ -40,7 +40,6 @@ const LEVEL_COLOR: Record<NoticeLevel, BannerColor> = {
 </script>
 
 <style scoped>
-/* 顶部 banner：居中、宽度随窗口伸缩，从顶下滑；让开卡片头 */
 .banner-layer {
   position: fixed;
   inset-block-start: var(--header-height);

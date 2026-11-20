@@ -16,7 +16,6 @@
   cursor: ns-resize;
 }
 
-/* 命中区比视觉边界宽一档，落在两侧内容上 */
 .resize-handle::before {
   content: "";
   position: absolute;

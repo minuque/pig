@@ -8,11 +8,9 @@ export type PropDef = Readonly<{
   type: "enum" | "boolean" | "string"
   values?: readonly string[]
   default?: string | boolean
-  /** 枚举落成 `${className}-${value}`；布尔落成 className 本身 */
   className?: string
   /** 枚举值到 rt 档位的映射：本项目只对外给 s/m/l，rt 收数字档 */
   valueMap?: Readonly<Record<string, string>>
-  /** 字符串落成内联自定义属性 */
   customProperty?: string
 }>
 
@@ -24,10 +22,6 @@ export interface Extracted {
   attrs: Record<string, unknown>
 }
 
-/**
- * 把 props 拆成类名、内联变量与剩余属性。
- * omit 里的键只走 data 属性、不落回元素，避免 color / radius 这类被当成原生属性写进 DOM。
- */
 export function extractProps(
   props: Record<string, unknown>,
   defs: PropDefs,

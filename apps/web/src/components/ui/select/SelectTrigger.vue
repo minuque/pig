@@ -36,7 +36,6 @@ const props = withDefaults(
       variant?: "classic" | "surface" | "soft" | "ghost"
       color?: string
       radius?: Radius
-      /** 未选中时显示的文案 */
       placeholder?: string
     }
   >(),
@@ -48,7 +47,6 @@ const size = useSelectSize()
 </script>
 
 <style>
-/* 选择框触发器：固定高度 + 左右等宽内边距，文字超长省略 */
 :where([data-slot="select-trigger"]) {
   display: inline-flex;
   align-items: center;
@@ -104,7 +102,6 @@ const size = useSelectSize()
   flex-shrink: 0;
 }
 
-/* 幽灵触发器不占盒：内边距撑高，负外边距抵回视觉对齐 */
 :where([data-slot="select-trigger"][data-variant="ghost"]) {
   box-sizing: content-box;
   height: fit-content;
@@ -120,7 +117,6 @@ const size = useSelectSize()
   margin: calc(var(--space-2xs) * -1.5) calc(var(--space-sm) * -1);
 }
 
-/* --- surface --- */
 :where([data-slot="select-trigger"][data-variant="surface"]) {
   background-color: var(--bg-raised);
   box-shadow: inset 0 0 0 var(--border-width) var(--gray-a7);
@@ -142,7 +138,6 @@ const size = useSelectSize()
   color: var(--gray-a11);
 }
 
-/* --- classic：凸起底，顶上亮、底下暗的一层内阴影 --- */
 :where([data-slot="select-trigger"][data-variant="classic"]) {
   position: relative;
   background-image: linear-gradient(var(--gray-2), var(--gray-1));
@@ -208,7 +203,6 @@ const size = useSelectSize()
   background-image: linear-gradient(var(--black-a1) -20%, transparent, var(--white-a1));
 }
 
-/* --- soft --- */
 :where([data-slot="select-trigger"][data-variant="soft"]) {
   background-color: var(--accent-a3);
   color: var(--accent-12);
@@ -233,7 +227,6 @@ const size = useSelectSize()
   color: var(--gray-a11);
 }
 
-/* --- ghost --- */
 @media (hover: hover) {
   :where([data-slot="select-trigger"][data-variant="ghost"]:hover) {
     background-color: var(--accent-a3);
@@ -249,7 +242,6 @@ const size = useSelectSize()
   color: var(--gray-a11);
 }
 
-/* 未选中时用占位灰；soft 与 ghost 退到半透明强调色 */
 :where(
     [data-slot="select-trigger"]:is(
         [data-variant="surface"],

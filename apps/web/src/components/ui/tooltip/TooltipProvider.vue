@@ -9,7 +9,6 @@ import type { TooltipProviderProps } from "reka-ui"
 import type { ComputedRef } from "vue"
 import { TooltipProvider, useForwardProps } from "reka-ui"
 
-// 只对键盘焦点弹提示：弹框打开时自动聚焦首个按钮，不该把它的提示带出来
 const props = withDefaults(defineProps<TooltipProviderProps>(), {
   delayDuration: 400,
   ignoreNonKeyboardFocus: true,

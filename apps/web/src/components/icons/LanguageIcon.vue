@@ -1,5 +1,4 @@
 <template>
-  <!-- 图标包自带的静态 SVG -->
   <!-- eslint-disable vue/no-v-html -->
   <span
     class="language-icon"

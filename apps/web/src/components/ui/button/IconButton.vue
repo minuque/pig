@@ -52,7 +52,6 @@ const props = withDefaults(defineProps<Props>(), {
 </script>
 
 <style>
-/* 图标按钮：固定方框 + 统一圆角，尺寸档 s=24、m=28、l=40 */
 :where([data-slot="icon-button"]) {
   padding: 0;
   border-radius: var(--radius-control);
@@ -76,7 +75,6 @@ const props = withDefaults(defineProps<Props>(), {
   inline-size: var(--control-lg);
 }
 
-/* 幽灵图标按钮同样接收固定方框，靠图标居中，不参与负外边距对齐 */
 :where([data-slot="icon-button"][data-variant="ghost"]) {
   box-sizing: border-box;
   margin: 0;

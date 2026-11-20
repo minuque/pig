@@ -7,7 +7,6 @@
 <script setup lang="ts">
 import { computed } from "vue"
 
-/** Cell / ColumnHeaderCell / RowHeaderCell 合成一个，用 kind 区分 */
 const props = withDefaults(defineProps<{ kind?: "cell" | "column-header" | "row-header" }>(), {
   kind: "cell",
 })

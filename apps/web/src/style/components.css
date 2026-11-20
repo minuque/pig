@@ -1,12 +1,3 @@
-/* 组件样式：布局、排版、颜色与圆角的原子类。类名沿用 shadcn 与 Tailwind 的写法，
-   值只读 tokens.css 的 token。间距按 --space-* 命名（gap-sm 而不是 gap-3）：项目已把
-   间距刻度收进 --space-* 命名空间，再引数字刻度会多出一套并行换算。
-   原先这些类由 Tailwind 的 @theme 生成，删依赖时改成手写，SFC 里的写法保持不变。
-   只登记用得到的，新增一档先在这里补。 */
-
-/* ------ 布局 ------ */
-
-/* ------ 显示 ------ */
 .flex {
   display: flex;
 }
@@ -27,7 +18,6 @@
   display: none;
 }
 
-/* ------ 定位 ------ */
 .relative {
   position: relative;
 }
@@ -48,7 +38,6 @@
   inset: 0;
 }
 
-/* ------ 主轴与对齐 ------ */
 .flex-col {
   flex-direction: column;
 }
@@ -93,8 +82,6 @@
   justify-content: flex-end;
 }
 
-/* ------ 尺寸 ------ */
-/* 描边宽度单列一条：颜色由 .border-* 给，和 shadcn 的 border + border-border 写法对齐 */
 .border {
   border-width: var(--border-width);
 }
@@ -115,7 +102,6 @@
   min-inline-size: 0;
 }
 
-/* ------ 溢出与文本 ------ */
 .overflow-hidden {
   overflow: hidden;
 }
@@ -142,7 +128,6 @@
   text-align: center;
 }
 
-/* 只读给读屏：视觉隐藏但保留可访问性树 */
 .sr-only {
   position: absolute;
   overflow: hidden;
@@ -152,7 +137,6 @@
   white-space: nowrap;
 }
 
-/* ------ 间距 ------ */
 .gap-xxs {
   gap: var(--space-2xs);
 }
@@ -237,7 +221,6 @@
   margin-block: var(--space-xs);
 }
 
-/* ------ 层序：只认 token ------ */
 .z-menu {
   z-index: var(--z-menu);
 }
@@ -250,7 +233,6 @@
   z-index: var(--z-modal);
 }
 
-/* 高度取控件档；py-0 用于压掉基础件的默认内边距 */
 .h-control {
   block-size: var(--control-lg);
 }
@@ -258,8 +240,6 @@
 .py-0 {
   padding-block: 0;
 }
-
-/* ------ 排版 ------ */
 
 .text-heading {
   font-size: var(--text-heading);
@@ -312,9 +292,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ------ 颜色与圆角 ------ */
-
-/* ------ 文字 ------ */
 .text-foreground {
   color: var(--fg);
 }
@@ -339,7 +316,6 @@
   color: var(--danger-text);
 }
 
-/* ------ 背景 ------ */
 .bg-card {
   background-color: var(--bg-surface);
 }
@@ -356,12 +332,10 @@
   background-color: transparent;
 }
 
-/* ------ 边框 ------ */
 .border-border {
   border-color: var(--border);
 }
 
-/* ------ 圆角 ------ */
 .rounded-xs {
   border-radius: calc(var(--radius-control) / 2);
 }
@@ -386,9 +360,6 @@
   border-radius: var(--radius-pill);
 }
 
-/* ------ 图标 ------ */
-
-/* Lucide 图标基座：零特异性，调用方的 size-* 类和 scoped 样式可覆盖 */
 :where(.lucide) {
   flex: none;
   inline-size: var(--icon-md);
@@ -411,9 +382,6 @@
   block-size: var(--icon-lg);
 }
 
-/* ------ 共用组件 ------ */
-
-/* 浮层统一底：实色，不透明；写在颜色原子类之后，同一元素上的时候取它 */
 .surface-float {
   background-color: var(--bg-raised);
 }
@@ -434,8 +402,6 @@
   color: var(--fg);
   outline: none;
 }
-
-/* ------ 菜单 ------ */
 
 /* 下拉与右键菜单共用一套外观：内容壳、视口、行、标签、分割线与快捷键都由 data-menu-* 标记驱动。
    弹层经 Portal 挂到 body，scoped 打不中，写在这里。 */
@@ -465,7 +431,6 @@
   padding: var(--space-2xs);
 }
 
-/* 行距只有一条：视口里相邻的任意两行之间留一道 --menu-item-gap */
 :where([data-menu-viewport]) > * + * {
   margin-block-start: var(--menu-item-gap);
 }
@@ -506,7 +471,6 @@
   background-color: var(--bg-hover);
 }
 
-/* 破坏性项悬停取同一档的红色：底不同色相，文字仍走 danger */
 :where([data-menu-item][data-variant="destructive"][data-highlighted]) {
   background-color: var(--red-a3);
 }
@@ -515,7 +479,6 @@
   background-color: var(--bg-selected);
 }
 
-/* 选中态比悬停深一档；勾与点都靠前置图标，不在左侧留白 */
 :where([data-menu-item][data-state="checked"][data-highlighted]) {
   background-color: var(--bg-selected);
 }
@@ -562,7 +525,6 @@
   color: var(--gray-12);
 }
 
-/* 分割线上下取弹窗内边距，与内边距到首行的距离对齐；挨着分割线的一侧不再加缝 */
 :where([data-menu-separator]) {
   block-size: 1px;
   margin-block: var(--space-2xs);
@@ -578,9 +540,6 @@
   margin-block-start: 0;
 }
 
-/* ------ 触屏 ------ */
-
-/* 触屏上把菜单行高抬到可点击尺寸 */
 @media (pointer: coarse) {
   :where([data-menu-item]) {
     min-block-size: calc(var(--control-lg) + var(--space-2xs));

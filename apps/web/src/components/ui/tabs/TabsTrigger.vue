@@ -4,7 +4,6 @@
 
     <template v-else>
       <span data-slot="tabs-trigger-inner"><slot /></span>
-      <!-- 隐藏的加粗副本占位，切换选中时宽度不跳 -->
       <span data-slot="tabs-trigger-inner-hidden"><slot /></span>
     </template>
   </TabsTrigger>

@@ -51,7 +51,6 @@ const size = useSelectSize()
 </script>
 
 <style>
-/* 选择框内容：与菜单同一套实底、细环与阴影；popper 位置时跟随触发器宽度 */
 :where([data-slot="select-content"]) {
   position: relative;
   overflow: hidden;

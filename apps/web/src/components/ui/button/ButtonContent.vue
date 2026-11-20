@@ -23,13 +23,11 @@ const spinnerSize = computed(() => (props.size === "s" ? 12 : 16))
 </script>
 
 <style scoped>
-/* display: contents 保留按钮的 flex 布局；visibility 藏内容但留占位 */
 .button-label {
   display: contents;
   visibility: hidden;
 }
 
-/* [data-loading] 已给按钮 position: relative */
 .button-spinner {
   position: absolute;
   inset: 0;

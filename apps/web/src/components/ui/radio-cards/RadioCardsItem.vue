@@ -19,7 +19,6 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<RadioGroupItemP
 </script>
 
 <style>
-/* 卡片项：内容居中、内部元素不参与指针事件；选中与焦点都画在同一圈描边上 */
 :where([data-slot="radio-cards-item"]) {
   position: relative;
   display: flex;
@@ -79,7 +78,6 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<RadioGroupItemP
   outline-color: var(--gray-8);
 }
 
-/* --- surface --- */
 :where([data-slot="radio-cards"][data-variant="surface"]) :where([data-slot="radio-cards-item"]) {
   background-color: var(--bg-raised);
   box-shadow: inset 0 0 0 var(--border-width) var(--border);
@@ -92,7 +90,6 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<RadioGroupItemP
   }
 }
 
-/* --- classic --- */
 :where([data-slot="radio-cards"][data-variant="classic"]) :where([data-slot="radio-cards-item"]) {
   background-color: var(--bg-raised);
   box-shadow:

@@ -15,9 +15,7 @@ import { computed, type HTMLAttributes } from "vue"
 
 const props = withDefaults(
   defineProps<{
-    /** 期望的像素尺寸，就近落到三档（12 / 16 / 20） */
     size?: number
-    /** 读屏名称 */
     label?: string
     class?: HTMLAttributes["class"]
   }>(),

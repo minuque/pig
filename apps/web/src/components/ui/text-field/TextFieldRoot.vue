@@ -32,7 +32,6 @@ defineOptions({ inheritAttrs: false })
 const props = withDefaults(
   defineProps<{
     modelValue?: string | number
-    /** 尺寸档：s、m、l */
     size?: Size
     variant?: "classic" | "surface" | "soft"
     color?: string
@@ -81,7 +80,6 @@ function onPointerDown(event: PointerEvent) {
 </script>
 
 <style>
-/* 输入框：外框负责高度、底色与描边，输入元素自己只管文字与圆角 */
 :where([data-slot="text-field-root"]) {
   box-sizing: border-box;
   display: flex;
@@ -110,7 +108,6 @@ function onPointerDown(event: PointerEvent) {
   background-color: var(--accent-a5);
 }
 
-/* --- 尺寸 --- */
 :where([data-slot="text-field-root"][data-size="s"]) {
   height: var(--space-lg);
   font-size: var(--text-meta);
@@ -156,7 +153,6 @@ function onPointerDown(event: PointerEvent) {
   padding-inline: var(--space-sm);
 }
 
-/* --- 输入元素 --- */
 :where([data-slot="text-field-input"]) {
   display: flex;
   align-items: center;
@@ -167,7 +163,6 @@ function onPointerDown(event: PointerEvent) {
   color: inherit;
 }
 
-/* 左侧有插槽：文字让出插槽，左圆角交给插槽 */
 :where(
   [data-slot="text-field-input"]:has(~ [data-slot="text-field-slot"]:not([data-side="right"]))
 ) {
@@ -177,7 +172,6 @@ function onPointerDown(event: PointerEvent) {
   border-end-start-radius: 0;
 }
 
-/* 右侧有插槽：文字贴住右侧插槽，右圆角交给插槽 */
 :where(
   [data-slot="text-field-input"]:has(
     ~ [data-slot="text-field-slot"][data-side="right"],
@@ -190,7 +184,6 @@ function onPointerDown(event: PointerEvent) {
   border-end-end-radius: 0;
 }
 
-/* --- 插槽 --- */
 :where([data-slot="text-field-slot"]) {
   box-sizing: border-box;
   display: flex;
@@ -220,7 +213,6 @@ function onPointerDown(event: PointerEvent) {
   margin-inline-end: calc(var(--border-width) * -1);
 }
 
-/* --- surface --- */
 :where([data-slot="text-field-root"][data-variant="surface"]) {
   background-clip: content-box;
   background-color: var(--bg-raised);
@@ -239,7 +231,6 @@ function onPointerDown(event: PointerEvent) {
   box-shadow: inset 0 0 0 var(--border-width) var(--gray-a6);
 }
 
-/* --- classic --- */
 :where([data-slot="text-field-root"][data-variant="classic"]) {
   background-clip: content-box;
   background-color: var(--bg-raised);
@@ -259,7 +250,6 @@ function onPointerDown(event: PointerEvent) {
   background-image: linear-gradient(var(--gray-a2), var(--gray-a2));
 }
 
-/* --- soft --- */
 :where([data-slot="text-field-root"][data-variant="soft"]) {
   background-color: var(--accent-a3);
   color: var(--accent-12);
@@ -276,7 +266,6 @@ function onPointerDown(event: PointerEvent) {
   background-color: var(--gray-a3);
 }
 
-/* 禁用与只读共用一档：文字退一格灰，光标交给外层 */
 :where([data-slot="text-field-input"]:where(:disabled, :read-only)) {
   cursor: text;
   color: var(--gray-a11);

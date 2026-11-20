@@ -79,12 +79,10 @@ const props = withDefaults(defineProps<Props>(), {
   font-weight: var(--font-weight-medium);
 }
 
-/* 实心按钮的图标压一档透明度，与文字对齐观感 */
 :where([data-button]:not([data-variant="ghost"])) :where(svg) {
   opacity: 0.9;
 }
 
-/* --- 尺寸 --- */
 :where([data-button][data-size="s"]) {
   height: var(--space-lg);
   gap: var(--space-2xs);
@@ -126,7 +124,6 @@ const props = withDefaults(defineProps<Props>(), {
   margin: calc(var(--space-2xs) * -1.5) calc(var(--space-sm) * -1);
 }
 
-/* --- solid --- */
 :where([data-button][data-variant="solid"]) {
   background-color: var(--accent-9);
   color: var(--accent-contrast);
@@ -175,7 +172,6 @@ const props = withDefaults(defineProps<Props>(), {
   filter: none;
 }
 
-/* --- soft --- */
 :where([data-button][data-variant="soft"]) {
   background-color: var(--accent-a3);
   color: var(--accent-a11);
@@ -209,7 +205,6 @@ const props = withDefaults(defineProps<Props>(), {
   color: var(--gray-a8);
 }
 
-/* --- surface --- */
 :where([data-button][data-variant="surface"]) {
   background-color: var(--accent-surface);
   box-shadow: inset 0 0 0 var(--border-width) var(--accent-a7);
@@ -246,7 +241,6 @@ const props = withDefaults(defineProps<Props>(), {
   color: var(--gray-a8);
 }
 
-/* --- outline --- */
 :where([data-button][data-variant="outline"]) {
   box-shadow: inset 0 0 0 var(--border-width) var(--accent-a8);
   color: var(--accent-a11);
@@ -283,7 +277,6 @@ const props = withDefaults(defineProps<Props>(), {
   color: var(--gray-a8);
 }
 
-/* --- ghost --- */
 @media (hover: hover) {
   :where([data-button][data-variant="ghost"]:hover) {
     background-color: var(--bg-hover);
@@ -312,12 +305,10 @@ const props = withDefaults(defineProps<Props>(), {
   color: var(--gray-a8);
 }
 
-/* 危险色按钮的焦点环跟文字档同色，灰底上更清楚 */
 :where([data-button]:focus-visible[data-accent-color="red"]) {
   outline-color: var(--danger-text);
 }
 
-/* --- classic：凸起实心，顶底各一层内阴影 + 半高渐变 --- */
 :where([data-button][data-variant="classic"]) {
   position: relative;
   z-index: 0;

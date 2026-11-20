@@ -36,7 +36,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<Too
 </script>
 
 <style>
-/* 提示气泡：反色底 + 反色字，字号取最小档 */
 :where([data-slot="tooltip-content"]) {
   box-sizing: border-box;
   padding: var(--space-2xs) var(--space-xs);

@@ -1,4 +1,3 @@
-/** 供应商品牌展示：Pi provider id → 显示名 / LobeHub 图标。未知供应商回退到原 id。 */
 import antgroupColor from "@lobehub/icons-static-svg/icons/antgroup-color.svg?url"
 import azureColor from "@lobehub/icons-static-svg/icons/azure-color.svg?url"
 import baseten from "@lobehub/icons-static-svg/icons/baseten.svg?url"
@@ -33,7 +32,6 @@ import zhipuColor from "@lobehub/icons-static-svg/icons/zhipu-color.svg?url"
 
 export interface VendorIcon {
   src: string
-  /** true：单色 SVG，用 currentColor 上色；false：品牌彩色。 */
   tinted: boolean
 }
 

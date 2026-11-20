@@ -42,11 +42,9 @@ const props = withDefaults(
   defineProps<
     DropdownMenuContentProps & {
       class?: HTMLAttributes["class"]
-      /** 大面板自管内边距，不套菜单视口壳 */
       bare?: boolean
       /** Radix Themes 的菜单尺寸：s 紧凑、m 默认 */
       size?: MenuSize
-      /** 默认与 ContextMenu 一致走 soft：悬停与选中都取 --bg-hover，不走 accent 实底 */
       variant?: MenuVariant
       color?: string
       highContrast?: boolean

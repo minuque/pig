@@ -59,7 +59,6 @@ const group = inject(
 </script>
 
 <style>
-/* 带文字的单选项：label 撑行高，圆点按钮与文字间距固定 0.5em */
 :where([data-slot="radio-group-item-label"]) {
   display: flex;
   gap: 0.5em;
@@ -83,7 +82,6 @@ const group = inject(
   min-width: 0;
 }
 
-/* 圆点：外环画在 ::before，勾选的实心点画在 ::after，靠缩放而不是改尺寸 */
 :where([data-slot="radio-group-item"]) {
   position: relative;
   display: inline-flex;
@@ -137,7 +135,6 @@ const group = inject(
   cursor: default;
 }
 
-/* --- surface --- */
 :where([data-slot="radio-group-item"][data-variant="surface"]:not([data-state="checked"]))::before {
   background-color: var(--bg-raised);
   box-shadow: inset 0 0 0 var(--border-width) var(--gray-a7);
@@ -170,7 +167,6 @@ const group = inject(
   background-color: var(--gray-a8);
 }
 
-/* --- classic --- */
 :where([data-slot="radio-group-item"][data-variant="classic"]:not([data-state="checked"]))::before {
   background-color: var(--bg-raised);
   box-shadow:
@@ -209,7 +205,6 @@ const group = inject(
   background-color: var(--gray-a8);
 }
 
-/* --- soft --- */
 :where([data-slot="radio-group-item"][data-variant="soft"])::before {
   background-color: var(--accent-a4);
 }

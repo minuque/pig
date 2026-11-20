@@ -35,7 +35,6 @@ const props = withDefaults(
   defineProps<
     SliderRootProps & {
       class?: HTMLAttributes["class"]
-      /** 尺寸档：s、m、l */
       size?: Size
       variant?: "classic" | "surface" | "soft"
       color?: string
@@ -63,7 +62,6 @@ const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | unde
 </script>
 
 <style>
-/* 滑杆：轨道高 6/8/10，滑块比轨道大 4px，圆角取轨道的三分之一 */
 :where([data-slot="slider"]) {
   position: relative;
   display: flex;
@@ -145,7 +143,6 @@ const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | unde
   inline-size: 100%;
 }
 
-/* 滑块：可点区域是可见尺寸的三倍，视觉部分画在 ::after 上 */
 :where([data-slot="slider-thumb"]) {
   position: relative;
   display: block;
@@ -200,7 +197,6 @@ const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | unde
   cursor: default;
 }
 
-/* --- surface --- */
 :where([data-slot="slider"][data-variant="surface"]) :where([data-slot="slider-track"]) {
   background-color: var(--gray-a3);
   box-shadow: inset 0 0 0 var(--border-width) var(--gray-a5);
@@ -237,7 +233,6 @@ html.dark
   box-shadow: 0 0 0 1px var(--gray-6);
 }
 
-/* --- classic --- */
 :where([data-slot="slider"][data-variant="classic"]) :where([data-slot="slider-track"]) {
   position: relative;
   background-color: var(--gray-a3);
@@ -295,7 +290,6 @@ html.dark
   box-shadow: 0 0 0 1px var(--gray-6);
 }
 
-/* --- soft --- */
 :where([data-slot="slider"][data-variant="soft"]) :where([data-slot="slider-track"]) {
   background-color: var(--gray-a4);
   background-image: linear-gradient(var(--white-a1), var(--white-a1));
@@ -327,7 +321,6 @@ html.dark
   box-shadow: 0 0 0 1px var(--gray-5);
 }
 
-/* 焦点环叠在滑块阴影外：一档浅强调底 + 一档前景焦点环 */
 :where([data-slot="slider-thumb"]:focus-visible)::after {
   outline: none;
   box-shadow:
@@ -336,7 +329,6 @@ html.dark
     0 0 0 5px var(--focus-color);
 }
 
-/* --- 禁用 --- */
 :where([data-slot="slider"][data-disabled]) {
   cursor: default;
   mix-blend-mode: multiply;

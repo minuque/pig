@@ -1,6 +1,3 @@
-/* 全局基线：字体文件、文档底色与字色、原生元素行为、焦点环默认与滚动条。
-   这些规则不分层，而且排在所有分片之后，才压得住库的默认值；其余样式归各自的分片。 */
-
 /* ------ Inter Variable（v4 / fontsource 5.3.0，OFL 1.1）：西文与数字默认无衬线，含光学尺寸轴 ------ */
 @font-face {
   font-family: "Inter Variable";
@@ -65,7 +62,6 @@
   font-display: swap;
 }
 
-/* ------ 文档基线 ------ */
 body {
   background: var(--bg);
   color: var(--fg);
@@ -74,7 +70,6 @@ body {
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
-/* 等宽内容恢复默认 OpenType 特征，避免继承正文的 Inter 变体 */
 code,
 kbd,
 samp,
@@ -83,7 +78,6 @@ pre,
   font-feature-settings: normal;
 }
 
-/* 原生 button 只做 reset；带 data-slot 的组件按钮自带样式 */
 button:not(:where([data-slot])) {
   appearance: none;
   margin: 0;
@@ -106,7 +100,6 @@ p {
   overflow-wrap: anywhere;
 }
 
-/* ------ 滚动条：原生 thin 规格；侧栏列表内另行隐藏，元素可自写 --scrollbar-thumb ------ */
 * {
   --scrollbar-thumb: var(--scrollbar-color);
   scrollbar-width: thin;

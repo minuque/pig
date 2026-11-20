@@ -17,7 +17,6 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectSeparator
 </script>
 
 <style>
-/* 分割线上下取弹窗内边距，左右与选项同宽 */
 :where([data-slot="select-separator"]) {
   block-size: 1px;
   margin-block: var(--space-xs);

@@ -18,7 +18,6 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectLabelProp
 </script>
 
 <style>
-/* 与选项同一组左右边距：选项不再留勾选图标的槽位 */
 :where([data-slot="select-label"]) {
   display: flex;
   align-items: center;
