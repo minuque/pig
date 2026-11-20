@@ -20,7 +20,7 @@
 
 ## 文档
 
-- 代码库结构与领域边界：[`docs/codebase.md`](docs/codebase.md)
+- 代码库结构与领域边界：[`docs/CODEBASE.md`](docs/CODEBASE.md)
 - 设计规则：[`docs/DESIGN.md`](docs/DESIGN.md)
 - 产品定位与约束：[`docs/PRODUCT.md`](docs/PRODUCT.md)
 
