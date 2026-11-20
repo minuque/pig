@@ -33,7 +33,7 @@ pnpm dev:desktop    # Electron 桌面开发
 ## 文档
 
 - [`ROADMAP.md`](ROADMAP.md) — 架构路线与边界原则
-- [`docs/directory-structure.md`](docs/directory-structure.md) — 目录与模块规范
+- [`docs/codebase.md`](docs/codebase.md) — 代码库结构与模块规范
 
 ## 开发
 

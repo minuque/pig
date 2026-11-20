@@ -80,7 +80,7 @@ describe("classifyTouched", () => {
     // e2e 自身改动不按范围判断，交给全量
     assert.deepEqual(classifyTouched(["e2e/support/fixtures.ts"]).specs, [])
     // 纯文档改动不挑 e2e
-    assert.deepEqual(classifyTouched(["docs/directory-structure.md"]).specs, [])
+    assert.deepEqual(classifyTouched(["docs/codebase.md"]).specs, [])
   })
 
   it("波及所有旅程的改动要全量 e2e，只动某块界面的按映射跑", () => {
@@ -93,7 +93,7 @@ describe("classifyTouched", () => {
     ])
       assert.equal(classifyTouched([file]).e2eAll, true, file)
 
-    for (const file of ["apps/web/src/features/composer/index.vue", "docs/directory-structure.md"])
+    for (const file of ["apps/web/src/features/composer/index.vue", "docs/codebase.md"])
       assert.equal(classifyTouched([file]).e2eAll, false, file)
   })
 

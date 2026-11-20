@@ -20,7 +20,7 @@
 
 ## 文档
 
-- 目录或领域边界：[`docs/directory-structure.md`](docs/directory-structure.md)
+- 代码库结构与领域边界：[`docs/codebase.md`](docs/codebase.md)
 
 ## worktree
 

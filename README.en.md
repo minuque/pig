@@ -33,7 +33,7 @@ pnpm dev:desktop    # Electron desktop development
 ## Docs
 
 - [`ROADMAP.md`](ROADMAP.md) — architecture and boundary principles
-- [`docs/directory-structure.md`](docs/directory-structure.md) — directory and module conventions
+- [`docs/codebase.md`](docs/codebase.md) — codebase structure and module conventions
 
 ## Development
 

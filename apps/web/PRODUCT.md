@@ -39,7 +39,7 @@ web
 
 - 名称 `pig`，logo 与 PWA 图标在 `apps/web/public/`。
 - MIT 许可。
-- 定位叙述、快速开始与配置项以 `README.md` / `README.en.md` 为准，架构边界以 `ROADMAP.md`、`docs/directory-structure.md` 为准。
+- 定位叙述、快速开始与配置项以 `README.md` / `README.en.md` 为准，架构边界以 `ROADMAP.md`、`docs/codebase.md` 为准。
 - 界面文案以中文为主，英文为对等翻译；改动文案要两边同时成立。
 
 ## Evidence on Hand
