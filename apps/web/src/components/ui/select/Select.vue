@@ -7,7 +7,7 @@
 <script setup lang="ts">
 import { toRef } from "vue"
 import { SelectRoot } from "reka-ui"
-import type { Size } from "@components/ui/size.js"
+import type { Size } from "@/types/ui-type.js"
 import { provideSelectSize } from "@components/ui/select/select-context.js"
 
 defineOptions({ inheritAttrs: false })

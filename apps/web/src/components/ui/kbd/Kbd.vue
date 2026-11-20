@@ -16,7 +16,7 @@
 import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { Primitive } from "reka-ui"
-import type { Size } from "@components/ui/size.js"
+import type { Size } from "@/types/ui-type.js"
 
 defineOptions({ inheritAttrs: false })
 

@@ -19,10 +19,10 @@
 
 <script setup lang="ts">
 import type { DropdownMenuContentEmits, DropdownMenuContentProps } from "reka-ui"
-import { computed, toRef, type ComputedRef, type HTMLAttributes } from "vue"
+import { computed, type ComputedRef, type HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { DropdownMenuContent, DropdownMenuPortal, useForwardPropsEmits } from "reka-ui"
-import { provideMenuContent, type MenuSize } from "@components/ui/menu-context.js"
+import type { MenuSize } from "@/types/ui-type.js"
 import { usePopperAnchor } from "./popper-anchor.js"
 
 defineOptions({
@@ -59,9 +59,4 @@ const forwarded = useForwardPropsEmits(
   delegatedProps,
   emits,
 ) as ComputedRef<DropdownMenuContentProps>
-
-provideMenuContent({
-  size: toRef(props, "size"),
-  color: toRef(props, "color"),
-})
 </script>

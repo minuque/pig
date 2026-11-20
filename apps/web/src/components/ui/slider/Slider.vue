@@ -29,7 +29,7 @@ import type { ComputedRef, HTMLAttributes } from "vue"
 import { computed, useAttrs } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { SliderRange, SliderRoot, SliderThumb, SliderTrack, useForwardPropsEmits } from "reka-ui"
-import type { Size } from "@components/ui/size.js"
+import type { Size } from "@/types/ui-type.js"
 
 const props = withDefaults(
   defineProps<

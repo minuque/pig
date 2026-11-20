@@ -25,11 +25,11 @@
 import type { ContextMenuContentEmits, ContextMenuContentProps } from "reka-ui"
 import type { ComputedRef } from "vue"
 import type { HTMLAttributes } from "vue"
-import { ref, toRef } from "vue"
+import { ref } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { ContextMenuPortal, injectContextMenuRootContext, useForwardPropsEmits } from "reka-ui"
 import { MenuContent } from "reka-ui/internal"
-import { provideMenuContent, type MenuSize } from "@components/ui/menu-context.js"
+import type { MenuSize } from "@/types/ui-type.js"
 
 defineOptions({
   inheritAttrs: false,
@@ -64,11 +64,6 @@ const contentStyle = {
   "--reka-context-menu-trigger-width": "var(--reka-popper-anchor-width)",
   "--reka-context-menu-trigger-height": "var(--reka-popper-anchor-height)",
 }
-
-provideMenuContent({
-  size: toRef(props, "size"),
-  color: toRef(props, "color"),
-})
 
 function onCloseAutoFocus(event: Event) {
   if (!event.defaultPrevented && interactedOutside.value) event.preventDefault()

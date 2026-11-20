@@ -50,7 +50,7 @@ import {
   useForwardProps,
 } from "reka-ui"
 import type { Radius } from "@components/ui/button/index.js"
-import type { Size } from "@components/ui/size.js"
+import type { Size } from "@/types/ui-type.js"
 
 const props = withDefaults(
   defineProps<

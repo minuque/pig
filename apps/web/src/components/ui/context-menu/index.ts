@@ -16,10 +16,4 @@ export { default as ContextMenuRadioItem } from "@components/ui/context-menu/Con
 
 export { default as ContextMenuSeparator } from "@components/ui/context-menu/ContextMenuSeparator.vue"
 
-export { default as ContextMenuSub } from "@components/ui/context-menu/ContextMenuSub.vue"
-
-export { default as ContextMenuSubContent } from "@components/ui/context-menu/ContextMenuSubContent.vue"
-
-export { default as ContextMenuSubTrigger } from "@components/ui/context-menu/ContextMenuSubTrigger.vue"
-
 export { default as ContextMenuTrigger } from "@components/ui/context-menu/ContextMenuTrigger.vue"

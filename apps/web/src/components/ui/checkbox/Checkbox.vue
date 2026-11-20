@@ -21,7 +21,7 @@ import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { CheckboxIndicator, CheckboxRoot, useForwardPropsEmits } from "reka-ui"
 import { CheckIcon, MinusIcon } from "@components/icons/index.js"
-import type { Size } from "@components/ui/size.js"
+import type { Size } from "@/types/ui-type.js"
 
 const props = withDefaults(
   defineProps<

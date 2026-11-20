@@ -44,7 +44,7 @@ import { computed } from "vue"
 import { Primitive } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
 import { XIcon } from "@components/icons/index.js"
-import type { Size } from "@components/ui/size.js"
+import type { Size } from "@/types/ui-type.js"
 import { type BannerColor, type BannerVariant } from "./index.js"
 
 const { t } = useI18n()

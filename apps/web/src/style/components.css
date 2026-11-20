@@ -458,12 +458,12 @@
 }
 
 /* 弹层不超出视口：高度跟 reka 给的可用高度，缩放原点跟 reka 的 transform-origin */
-:where([data-slot="dropdown-menu-content"], [data-slot="dropdown-menu-sub-content"]) {
+:where([data-slot="dropdown-menu-content"]) {
   max-block-size: var(--reka-dropdown-menu-content-available-height);
   transform-origin: var(--reka-dropdown-menu-content-transform-origin);
 }
 
-:where([data-slot="context-menu-content"], [data-slot="context-menu-sub-content"]) {
+:where([data-slot="context-menu-content"]) {
   max-block-size: var(--reka-context-menu-content-available-height);
   transform-origin: var(--reka-context-menu-content-transform-origin);
 }
@@ -565,13 +565,6 @@
 
 :where([data-menu-item]):is([data-highlighted], [data-disabled]) :where([data-menu-shortcut]) {
   color: inherit;
-}
-
-:where([data-menu-sub-trigger-icon]) {
-  inline-size: 10px;
-  block-size: 10px;
-  margin-inline-end: -2px;
-  color: var(--gray-12);
 }
 
 /* 分割线上下取弹窗内边距，与内边距到首行的距离对齐；挨着分割线的一侧不再加缝 */

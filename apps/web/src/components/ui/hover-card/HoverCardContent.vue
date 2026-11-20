@@ -22,7 +22,7 @@ import type { ComputedRef, HTMLAttributes } from "vue"
 import { computed } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { HoverCardContent, HoverCardPortal, useForwardProps } from "reka-ui"
-import type { Size } from "@components/ui/size.js"
+import type { Size } from "@/types/ui-type.js"
 
 defineOptions({ inheritAttrs: false })
 

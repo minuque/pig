@@ -1,5 +1,5 @@
 import type { ComputedRef, InjectionKey } from "vue"
-import type { Size } from "@components/ui/size.js"
+import type { Size } from "@/types/ui-type.js"
 
 /** 单选组的跨文件契约。注入键与类型同源，一起放这里，不再单开 context.ts。 */
 export interface RadioGroupContext {
