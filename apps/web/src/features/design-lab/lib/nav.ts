@@ -24,19 +24,32 @@ const LAYOUT: { id: string; title: Label; items: (string | [string, Label])[] }[
   {
     id: "forms",
     title: { zh: "表单", en: "Forms" },
-    items: ["TextField", "Select", "Switch", "Slider", "RadioGroup", "Radio", "RadioCards"],
+    items: [
+      "TextField",
+      "Select",
+      "Checkbox",
+      "Switch",
+      "Slider",
+      "RadioGroup",
+      "Radio",
+      "RadioCards",
+    ],
   },
   {
     id: "feedback",
     title: { zh: "反馈", en: "Feedback" },
-    items: ["Banner", "Badge", "Spinner", "Skeleton", "Tooltip"],
+    items: ["Banner", "Badge", "StatusIndicator", "Spinner", "Skeleton", "Tooltip"],
   },
   {
     id: "overlays",
     title: { zh: "弹层", en: "Overlays" },
     items: ["Dialog", "AlertDialog", "CommandPalette", "DropdownMenu", "ContextMenu", "HoverCard"],
   },
-  { id: "layout", title: { zh: "布局", en: "Layout" }, items: ["Card", "Table", "Tabs"] },
+  {
+    id: "layout",
+    title: { zh: "布局", en: "Layout" },
+    items: ["Card", "Collapsible", "ScrollArea", "Table", "Tabs"],
+  },
   {
     id: "business",
     title: { zh: "业务", en: "Product" },

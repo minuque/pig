@@ -1,5 +1,5 @@
 <template>
-  <SelectItem data-slot="select-item" v-bind="forwarded" class="rt-SelectItem" :class="props.class">
+  <SelectItem data-slot="select-item" v-bind="forwarded" :class="props.class">
     <SelectItemText><slot /></SelectItemText>
   </SelectItem>
 </template>
@@ -17,14 +17,55 @@ const delegatedProps = reactiveOmit(props, "class")
 const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectItemProps>
 </script>
 
-<style scoped>
-/* 选中项用高亮底标出，不留勾选图标的槽位，左右内边距对称 */
-.rt-SelectItem[data-slot="select-item"] {
+<style>
+/* 选项：不留勾选图标的槽位，左右内边距对称；选中项用高亮底标出 */
+:where([data-slot="select-item"]) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  block-size: var(--control-md);
   padding-inline: var(--space-sm);
+  border-radius: var(--radius-control);
+  outline: none;
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  user-select: none;
+  cursor: pointer;
 }
 
-.rt-SelectItem[data-state="checked"]:not([data-highlighted]) {
-  background: var(--bg-selected);
+:where([data-slot="select-content"][data-size="s"]) :where([data-slot="select-item"]) {
+  block-size: var(--space-lg);
+  border-radius: calc(var(--radius-control) / 2);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+}
+
+:where([data-slot="select-item"][data-disabled]) {
+  color: var(--gray-a8);
+  cursor: default;
+}
+
+:where([data-slot="select-item"][data-state="checked"]:not([data-highlighted])) {
+  background-color: var(--bg-selected);
   color: var(--fg);
+}
+
+/* solid 内容里悬停项取实心强调色 */
+:where([data-slot="select-content"][data-variant="solid"])
+  :where([data-slot="select-item"][data-highlighted]) {
+  background-color: var(--accent-9);
+  color: var(--accent-contrast);
+}
+
+:where([data-slot="select-content"][data-variant="solid"][data-high-contrast])
+  :where([data-slot="select-item"][data-highlighted]) {
+  background-color: var(--accent-12);
+  color: var(--accent-1);
+}
+
+:where([data-slot="select-content"][data-variant="soft"])
+  :where([data-slot="select-item"][data-highlighted]) {
+  background-color: var(--accent-a4);
 }
 </style>

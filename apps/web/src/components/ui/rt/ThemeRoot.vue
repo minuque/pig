@@ -2,7 +2,7 @@
   <div
     class="radix-themes"
     :class="{ dark: isDark }"
-    data-accent-color="indigo"
+    :data-accent-color="preset.radixAccent"
     data-gray-color="gray"
     :data-is-root-theme="root ? 'true' : undefined"
     data-has-background="false"
@@ -16,6 +16,7 @@
 
 <script setup lang="ts">
 import { useIsDark } from "@utils/theme-mode.js"
+import { useThemePreset } from "@utils/theme-preset.js"
 
 /**
  * Radix Themes 的作用域容器：rt 的面板、阴影、间距与圆角 token 都挂在 .radix-themes 上。
@@ -24,4 +25,5 @@ import { useIsDark } from "@utils/theme-mode.js"
  */
 const props = withDefaults(defineProps<{ root?: boolean }>(), { root: false })
 const isDark = useIsDark()
+const { preset } = useThemePreset()
 </script>

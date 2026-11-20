@@ -1,6 +1,6 @@
 <template>
   <!-- as-child 时不要把 data-slot 写在触发元素上：会覆盖子元素自己的标记 -->
-  <PopoverTriggerPrimitive as-child class="rt-PopoverTrigger">
+  <PopoverTriggerPrimitive as-child>
     <slot />
   </PopoverTriggerPrimitive>
 </template>

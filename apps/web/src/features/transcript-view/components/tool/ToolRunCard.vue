@@ -50,7 +50,7 @@ const entries = computed<RunEntry[]>(() =>
 
 <style scoped>
 .tool-run-card {
-  --card-padding: var(--transcript-row-pad);
+  --card-padding: 10px;
   --card-border-radius: var(--radius-card);
 
   min-width: 0;

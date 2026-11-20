@@ -308,6 +308,10 @@
   line-height: 1;
 }
 
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
 /* ------ 颜色与圆角 ------ */
 
 /* ------ 文字 ------ */
@@ -315,12 +319,12 @@
   color: var(--fg);
 }
 
-.text-foreground-muted {
+.text-secondary {
   color: var(--fg-secondary);
 }
 
-.text-muted-foreground {
-  color: var(--fg-secondary);
+.text-muted {
+  color: var(--fg-muted);
 }
 
 .text-primary {
@@ -392,17 +396,17 @@
   stroke-width: var(--icon-stroke);
 }
 
+.size-icon-sm {
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
+}
+
 .size-icon {
   inline-size: var(--icon-md);
   block-size: var(--icon-md);
 }
 
-.size-icon-xs {
-  inline-size: var(--icon-sm);
-  block-size: var(--icon-sm);
-}
-
-.size-icon-2xs {
+.size-icon-lg {
   inline-size: var(--icon-lg);
   block-size: var(--icon-lg);
 }
@@ -423,7 +427,7 @@
 
 .glass-panel {
   border: var(--border-width) solid var(--border);
-  border-radius: var(--glass-radius);
+  border-radius: 16px;
   background: var(--glass-bg);
   box-shadow: var(--glass-shadow);
   backdrop-filter: var(--glass-filter);
@@ -431,11 +435,154 @@
   outline: none;
 }
 
+/* ------ 菜单 ------ */
+
+/* 下拉与右键菜单共用一套外观：内容壳、视口、行、标签、分割线与快捷键都由 data-menu-* 标记驱动。
+   弹层经 Portal 挂到 body，scoped 打不中，写在这里。 */
+:where([data-menu-content]) {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--radius-card);
+  background-color: var(--bg-raised);
+  box-shadow:
+    0 0 0 var(--border-width) var(--border),
+    var(--menu-shadow);
+  color: var(--fg);
+}
+
+:where([data-menu-content][data-size="s"]) {
+  border-radius: var(--radius-control);
+}
+
+:where([data-menu-viewport]) {
+  display: flex;
+  flex: 1 1 0%;
+  flex-direction: column;
+  overflow: auto;
+  box-sizing: border-box;
+  padding: var(--space-2xs);
+}
+
+/* 行距只有一条：视口里相邻的任意两行之间留一道 --menu-item-gap */
+:where([data-menu-viewport]) > * + * {
+  margin-block-start: var(--menu-item-gap);
+}
+
+:where([data-menu-item]) {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  box-sizing: border-box;
+  block-size: var(--control-md);
+  padding-inline: var(--space-xs);
+  border-radius: var(--radius-control);
+  outline: none;
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  user-select: none;
+  cursor: pointer;
+}
+
+:where([data-menu-content][data-size="s"]) :where([data-menu-item]) {
+  block-size: var(--space-lg);
+  border-radius: calc(var(--radius-control) / 2);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+}
+
+:where([data-menu-item][data-disabled]) {
+  color: var(--gray-a8);
+  cursor: default;
+}
+
+:where([data-menu-item][data-accent-color]:not([data-disabled])) {
+  color: var(--accent-a11);
+}
+
+:where([data-menu-item]:is([data-highlighted], [data-state="open"])) {
+  background-color: var(--bg-hover);
+}
+
+/* 破坏性项悬停取同一档的红色：底不同色相，文字仍走 danger */
+:where([data-menu-item][data-variant="destructive"][data-highlighted]) {
+  background-color: var(--red-a3);
+}
+
+:where([data-menu-item][data-state="checked"]) {
+  background-color: var(--bg-selected);
+}
+
+/* 选中态比悬停深一档；勾与点都靠前置图标，不在左侧留白 */
+:where([data-menu-item][data-state="checked"][data-highlighted]) {
+  background-color: var(--bg-selected);
+}
+
+:where([data-menu-label]) {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  block-size: var(--control-md);
+  padding-inline: var(--space-xs);
+  color: var(--gray-a10);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  user-select: none;
+  cursor: default;
+}
+
+:where([data-menu-content][data-size="s"]) :where([data-menu-label]) {
+  block-size: var(--space-lg);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+}
+
+:where([data-menu-item]) + :where([data-menu-label]) {
+  margin-block-start: var(--space-xs);
+}
+
+:where([data-menu-shortcut]) {
+  display: flex;
+  align-items: center;
+  margin-inline-start: auto;
+  padding-inline-start: var(--space-md);
+  color: var(--gray-a11);
+}
+
+:where([data-menu-item]):is([data-highlighted], [data-disabled]) :where([data-menu-shortcut]) {
+  color: inherit;
+}
+
+:where([data-menu-sub-trigger-icon]) {
+  inline-size: 10px;
+  block-size: 10px;
+  margin-inline-end: -2px;
+  color: var(--gray-12);
+}
+
+/* 分割线上下取弹窗内边距，与内边距到首行的距离对齐；挨着分割线的一侧不再加缝 */
+:where([data-menu-separator]) {
+  block-size: 1px;
+  margin-block: var(--space-2xs);
+  margin-inline: var(--space-xs);
+  background-color: var(--gray-a6);
+}
+
+:where([data-menu-viewport]) > :where([data-menu-separator]) {
+  margin-block: var(--space-2xs);
+}
+
+:where([data-menu-viewport]) > :where([data-menu-separator]) + * {
+  margin-block-start: 0;
+}
+
 /* ------ 触屏 ------ */
 
 /* 触屏上把菜单行高抬到可点击尺寸 */
 @media (pointer: coarse) {
-  :is([data-slot="dropdown-menu-item"], [data-slot="context-menu-item"]) {
-    min-height: calc(var(--control-lg) + var(--space-2xs));
+  :where([data-menu-item]) {
+    min-block-size: calc(var(--control-lg) + var(--space-2xs));
   }
 }

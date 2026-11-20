@@ -104,28 +104,23 @@ const { t } = useI18n()
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--fg-secondary);
-  opacity: 0.6;
+  color: var(--fg-muted);
   cursor: pointer;
-  transition:
-    color var(--duration-fast) var(--ease-out),
-    opacity var(--duration-fast) var(--ease-out);
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 .fav:hover {
   background: var(--bg-hover);
   color: var(--fg);
-  opacity: 1;
 }
 
 .fav.on,
 .fav.on:hover {
   color: var(--favorite);
-  opacity: 1;
 }
 
 .fav:focus-visible {
-  outline: var(--border-width) solid var(--accent-solid);
+  outline: 2px solid var(--focus-color);
   outline-offset: -2px;
 }
 </style>

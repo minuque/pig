@@ -6,49 +6,54 @@
     :aria-label="ariaLabel"
     @mousedown.prevent
   >
-    <template v-if="groups.length">
-      <div v-for="group in groups" :key="group.id" class="command-group">
-        <p v-if="group.label" class="command-label">{{ group.label }}</p>
+    <ScrollArea scrollbars="vertical" class="command-scroll">
+      <div class="command-body">
+        <template v-if="groups.length">
+          <div v-for="group in groups" :key="group.id" class="command-group">
+            <p v-if="group.label" class="command-label">{{ group.label }}</p>
 
-        <div
-          v-for="row in group.rows"
-          :key="row.id"
-          :id="`${menuId}-row-${encodeRowId(row.id)}`"
-          :ref="(el) => setRowRef(row.id, el)"
-          role="option"
-          class="command-row"
-          :aria-selected="row.id === activeId"
-          :data-active="row.id === activeId ? '' : undefined"
-          @mousemove="emit('highlight', row.id)"
-          @mousedown.prevent
-          @click="emit('select', row.id)"
-        >
-          <span class="command-icon" aria-hidden="true">
-            <component :is="row.icon" v-if="row.icon" />
-            <BlocksIcon v-else-if="row.kind === 'skill'" class="command-glyph" />
-            <FileTextIcon v-else-if="row.kind === 'template'" class="command-glyph" />
-            <SquareCodeIcon v-else-if="row.kind === 'builtin'" class="command-glyph" />
-            <FolderIcon v-else-if="row.directory" class="command-glyph" />
-            <FileTextIcon v-else class="command-glyph" />
-          </span>
+            <div
+              v-for="row in group.rows"
+              :key="row.id"
+              :id="`${menuId}-row-${encodeRowId(row.id)}`"
+              :ref="(el) => setRowRef(row.id, el)"
+              role="option"
+              class="command-row"
+              :aria-selected="row.id === activeId"
+              :data-active="row.id === activeId ? '' : undefined"
+              @mousemove="emit('highlight', row.id)"
+              @mousedown.prevent
+              @click="emit('select', row.id)"
+            >
+              <span class="command-icon" aria-hidden="true">
+                <component :is="row.icon" v-if="row.icon" />
+                <BlocksIcon v-else-if="row.kind === 'skill'" class="command-glyph" />
+                <FileTextIcon v-else-if="row.kind === 'template'" class="command-glyph" />
+                <SquareCodeIcon v-else-if="row.kind === 'builtin'" class="command-glyph" />
+                <FolderIcon v-else-if="row.directory" class="command-glyph" />
+                <FileTextIcon v-else class="command-glyph" />
+              </span>
 
-          <span class="command-main">
-            <span class="command-title">{{ row.title }}</span>
-            <span v-if="row.secondary" class="command-secondary">{{ row.secondary }}</span>
-          </span>
+              <span class="command-main">
+                <span class="command-title">{{ row.title }}</span>
+                <span v-if="row.secondary" class="command-secondary">{{ row.secondary }}</span>
+              </span>
 
-          <span v-if="row.trailing" class="command-trailing">{{ row.trailing }}</span>
-        </div>
+              <span v-if="row.trailing" class="command-trailing">{{ row.trailing }}</span>
+            </div>
+          </div>
+        </template>
+
+        <p v-else class="command-status" :data-loading="loading || undefined">{{ statusText }}</p>
       </div>
-    </template>
-
-    <p v-else class="command-status" :data-loading="loading || undefined">{{ statusText }}</p>
+    </ScrollArea>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, watch, type Component } from "vue"
 import { SquareCodeIcon, FileTextIcon, FolderIcon, BlocksIcon } from "@components/icons/index.js"
+import { ScrollArea } from "@components/ui/scroll-area/index.js"
 
 export type CommandMenuRowKind = "skill" | "template" | "builtin" | "file" | "directory"
 
@@ -124,21 +129,30 @@ watch(
   inset-inline: 0;
   bottom: calc(100% + var(--space-xs));
   z-index: var(--z-drawer);
+  display: flex;
+  flex-direction: column;
   max-height: 280px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: var(--space-2xs);
+  overflow: hidden;
   border: var(--border-width) solid var(--border);
   border-radius: var(--radius-card);
   corner-shape: var(--composer-corner-shape);
-  box-shadow: var(--shadow-popover);
-  scrollbar-width: none;
+  box-shadow: var(--menu-shadow);
+}
+
+.command-scroll {
+  height: auto;
+  min-height: 0;
+  max-height: inherit;
+}
+
+.command-body {
+  padding: var(--space-2xs);
 }
 
 .command-label {
   margin: 0;
   padding: var(--space-2xs) var(--space-xs) var(--space-2xs);
-  color: var(--fg-secondary);
+  color: var(--fg-muted);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-meta--line-height);
@@ -180,7 +194,7 @@ watch(
   flex: none;
   width: 16px;
   height: 16px;
-  color: var(--fg-secondary);
+  color: var(--fg-muted);
 }
 
 .command-glyph,
@@ -214,7 +228,7 @@ watch(
   flex: none;
   margin-inline-start: auto;
   padding-inline-start: var(--space-xs);
-  color: var(--fg-secondary);
+  color: var(--fg-muted);
   font-size: var(--text-meta);
 }
 

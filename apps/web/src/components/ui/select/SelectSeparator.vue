@@ -1,10 +1,5 @@
 <template>
-  <SelectSeparator
-    data-slot="select-separator"
-    v-bind="forwarded"
-    class="rt-SelectSeparator"
-    :class="props.class"
-  />
+  <SelectSeparator data-slot="select-separator" v-bind="forwarded" :class="props.class" />
 </template>
 
 <script setup lang="ts">
@@ -21,9 +16,12 @@ const delegatedProps = reactiveOmit(props, "class")
 const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectSeparatorProps>
 </script>
 
-<style scoped>
-/* 与选项同一组左右边距：选项不再留勾选图标的槽位 */
-.rt-SelectSeparator[data-slot="select-separator"] {
+<style>
+/* 分割线上下取弹窗内边距，左右与选项同宽 */
+:where([data-slot="select-separator"]) {
+  block-size: 1px;
+  margin-block: var(--space-xs);
   margin-inline: var(--space-sm);
+  background-color: var(--gray-a6);
 }
 </style>

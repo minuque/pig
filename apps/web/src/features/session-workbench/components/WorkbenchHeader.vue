@@ -15,7 +15,7 @@
           :aria-label="t('nav.openSidebar')"
           @click="setSbState('expanded')"
         >
-          <PanelRightOpenIcon class="size-icon-2xs" />
+          <PanelRightOpenIcon class="size-icon-lg" />
         </IconButton>
       </TooltipTrigger>
 
@@ -110,7 +110,7 @@
           :aria-label="t('files.toggle')"
           @click="toggleFiles"
         >
-          <FoldersIcon class="size-icon-2xs" />
+          <FoldersIcon class="size-icon-lg" />
         </IconButton>
       </TooltipTrigger>
 
@@ -129,7 +129,7 @@
             :aria-label="t('split.switchSide')"
             @click="split.focusSide(side === 'left' ? 'right' : 'left')"
           >
-            <ArrowLeftRightIcon class="size-icon-2xs" />
+            <ArrowLeftRightIcon class="size-icon-lg" />
           </IconButton>
         </TooltipTrigger>
 
@@ -146,7 +146,7 @@
             :aria-label="t('split.close')"
             @click="split.closeSide(side)"
           >
-            <XIcon class="size-icon-2xs" />
+            <XIcon class="size-icon-lg" />
           </IconButton>
         </TooltipTrigger>
 
@@ -330,7 +330,7 @@ function confirmDelete(): void {
 
 .workbench-header {
   position: relative;
-  z-index: 2;
+  z-index: var(--z-sticky);
   display: flex;
   align-items: center;
   gap: var(--space-xs);
@@ -430,7 +430,7 @@ function confirmDelete(): void {
 
 .crumb-separator {
   flex: none;
-  color: var(--fg-secondary);
+  color: var(--fg-muted);
   font-size: var(--text-body);
 }
 

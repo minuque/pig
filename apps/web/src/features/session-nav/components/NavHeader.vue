@@ -11,7 +11,7 @@
             :aria-label="t('nav.collapseSidebar')"
             @click="emit('toggleSidebar')"
           >
-            <PanelLeftIcon class="size-icon-2xs" />
+            <PanelLeftIcon class="size-icon-lg" />
           </IconButton>
         </TooltipTrigger>
 
@@ -28,7 +28,7 @@
         color="gray"
         @click="emit('update:searchOpen', true)"
       >
-        <SearchIcon class="size-icon-2xs" />
+        <SearchIcon class="size-icon-lg" />
         <span>{{ t("nav.search") }}</span>
       </Button>
 
@@ -43,7 +43,7 @@
                 variant="ghost"
                 :aria-label="t('session.filterByWorkspace')"
               >
-                <ListFilterIcon class="size-icon-2xs" />
+                <ListFilterIcon class="size-icon-lg" />
               </IconButton>
             </DropdownMenuTrigger>
           </TooltipTrigger>
@@ -69,7 +69,7 @@
             :aria-label="t('session.addFolder')"
             @click="emit('addProject')"
           >
-            <FolderPlusIcon class="size-icon-2xs" />
+            <FolderPlusIcon class="size-icon-lg" />
           </IconButton>
         </TooltipTrigger>
 
@@ -86,7 +86,7 @@
             :aria-label="t('session.newSession')"
             @click="emit('create')"
           >
-            <MessageCirclePlusIcon class="size-icon-2xs" />
+            <MessageCirclePlusIcon class="size-icon-lg" />
           </IconButton>
         </TooltipTrigger>
 

@@ -54,7 +54,7 @@
               <span v-if="!renaming" class="state-slot">
                 <span class="state-mark" aria-hidden="true">
                   <span v-if="startedAt !== undefined" class="working-status">
-                    <CircleDashedIcon class="size-icon-2xs working-icon" />
+                    <CircleDashedIcon class="size-icon-lg working-icon" />
                     <span>{{ t("session.sectionWorking") }}</span>
                     <span class="working-elapsed">{{ elapsed }}</span>
                   </span>
@@ -525,7 +525,9 @@ function confirmDelete() {
   color: inherit;
   text-decoration: none;
   cursor: default;
-  transition: background-color var(--duration-fast) var(--ease-out);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
 }
 
 .session-card.card {
@@ -550,6 +552,10 @@ function confirmDelete() {
 .session-card[data-state="open"],
 .session-card.active {
   background: var(--bg-selected);
+}
+
+.session-card.active {
+  box-shadow: var(--session-active-shadow);
 }
 
 /* 还没发首条消息的新会话：警示浅底，悬停与选中都不换底 */
@@ -614,7 +620,7 @@ function confirmDelete() {
   height: 16px;
   padding: 0;
   border-radius: calc(var(--radius-control) / 2);
-  font-size: var(--monogram-size);
+  font-size: calc(var(--text-body) - 5px);
   font-weight: var(--font-weight-bold);
   line-height: 1;
   letter-spacing: 0;
@@ -689,7 +695,7 @@ function confirmDelete() {
 }
 
 .time-label {
-  color: var(--fg-secondary);
+  color: var(--fg-muted);
   font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
   line-height: var(--text-meta--line-height);
@@ -740,7 +746,7 @@ function confirmDelete() {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2xs);
-  padding-block: var(--icon-button-pad);
+  padding-block: 2px;
   padding-inline: var(--space-xs);
   border: 0;
   border-radius: var(--radius-control);
@@ -758,7 +764,7 @@ function confirmDelete() {
 }
 
 .session-card.slim .row-action {
-  padding-inline: var(--icon-button-pad);
+  padding-inline: 2px;
 }
 
 .session-item:hover .row-action,

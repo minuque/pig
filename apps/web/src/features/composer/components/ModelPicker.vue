@@ -57,8 +57,8 @@
                   :data-current="scope === FAVORITES_SCOPE ? '' : undefined"
                   @click="selectScope(FAVORITES_SCOPE)"
                 >
-                  <StarFilledIcon class="size-icon-2xs" v-if="scope === FAVORITES_SCOPE" />
-                  <StarIcon class="size-icon-2xs" v-else />
+                  <StarFilledIcon class="size-icon-lg" v-if="scope === FAVORITES_SCOPE" />
+                  <StarIcon class="size-icon-lg" v-else />
                 </IconButton>
               </TooltipTrigger>
 
@@ -351,8 +351,8 @@ function onSelectModel(event: Event, provider: string, id: string) {
 </script>
 
 <style scoped>
-/* 触发器：rt ghost 按钮，取消 ghost 的负外边距，宽度随标签收缩；data-slot 会被 Tooltip 改写，按 rt 类匹配 */
-.selector.rt-Button {
+/* 触发器：ghost 按钮，取消 ghost 的负外边距，宽度随标签收缩；data-slot 会被 Tooltip 改写，按 data-button 匹配 */
+.selector[data-button] {
   min-width: 0;
   flex-shrink: 1;
   margin: 0;
@@ -360,8 +360,8 @@ function onSelectModel(event: Event, provider: string, id: string) {
   font-size: var(--text-body);
 }
 
-.selector.rt-Button:not(:disabled):hover,
-.selector.rt-Button[data-state="open"] {
+.selector[data-button]:not(:disabled):hover,
+.selector[data-button][data-state="open"] {
   background-color: var(--bg-selected);
 }
 
@@ -386,10 +386,9 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 /* 固定宽度：不随模型名和厂商数伸缩。菜单根节点经 Portal 挂到 body，scoped 属性打不到，用 :global */
 :global(.picker-menu) {
-  --picker-w: min(var(--model-picker-width), calc(100vw - var(--space-lg)));
-  inline-size: var(--picker-w);
-  min-inline-size: var(--picker-w);
-  max-inline-size: var(--picker-w);
+  inline-size: min(320px, calc(100vw - var(--space-lg)));
+  min-inline-size: min(320px, calc(100vw - var(--space-lg)));
+  max-inline-size: min(320px, calc(100vw - var(--space-lg)));
   overflow: hidden;
 }
 
@@ -469,7 +468,7 @@ function onSelectModel(event: Event, provider: string, id: string) {
 
 .search-icon {
   flex: none;
-  color: var(--fg-secondary);
+  color: var(--fg-muted);
 }
 
 .search input {
@@ -484,13 +483,13 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .search input::placeholder {
-  color: var(--fg-secondary);
+  color: var(--fg-muted);
 }
 
 .groups {
   flex: 0 1 auto;
   min-height: 80px;
-  max-height: min(var(--model-picker-list-height), 40vh);
+  max-height: min(200px, 40vh);
   padding: var(--space-2xs);
   overflow-y: auto;
   overscroll-behavior: contain;

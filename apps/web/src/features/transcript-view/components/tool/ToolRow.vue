@@ -219,7 +219,7 @@ const images = computed(() => toolCallImages(props.call))
 /* 与缩略图一样浮在整行伪元素之上，才点得到 */
 .tool-row-target.is-openable {
   position: relative;
-  z-index: 1;
+  z-index: var(--z-raise);
   cursor: pointer;
 }
 
@@ -240,7 +240,7 @@ const images = computed(() => toolCallImages(props.call))
 /* 缩略图在左、计时在右，紧挨箭头；只有缩略图接收点击 */
 .tool-row-meta {
   position: relative;
-  z-index: 1;
+  z-index: var(--z-raise);
   display: flex;
   flex: none;
   align-items: center;

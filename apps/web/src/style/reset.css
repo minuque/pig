@@ -135,3 +135,9 @@ summary {
 [hidden]:where(:not([hidden="until-found"])) {
   display: none !important;
 }
+
+/* 默认键盘焦点环留在 base 层，组件与库自带样式优先级更高、不会叠出双框 */
+:focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+}

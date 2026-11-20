@@ -92,14 +92,16 @@
             </DialogClose>
           </header>
 
-          <div ref="scroller" class="settings-scroll">
-            <div class="settings-body">
-              <GeneralPane v-if="active === 'general'" />
-              <AppearancePane v-else-if="active === 'appearance'" />
-              <NotificationsPane v-else-if="active === 'notifications'" />
-              <ModelsPane v-else :refresh-models="refreshModels" />
+          <ScrollArea ref="scroller" scrollbars="vertical" class="settings-scroll">
+            <div class="settings-scroll-content">
+              <div class="settings-body">
+                <GeneralPane v-if="active === 'general'" />
+                <AppearancePane v-else-if="active === 'appearance'" />
+                <NotificationsPane v-else-if="active === 'notifications'" />
+                <ModelsPane v-else :refresh-models="refreshModels" />
+              </div>
             </div>
-          </div>
+          </ScrollArea>
         </div>
       </div>
     </DialogContent>
@@ -107,9 +109,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, provide, ref, watch } from "vue"
+import { computed, nextTick, provide, ref, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
+import { ScrollArea } from "@components/ui/scroll-area/index.js"
 import {
   BellIcon,
   XIcon,
@@ -141,7 +144,7 @@ const props = defineProps<{
 const emit = defineEmits<{ "update:open": [open: boolean] }>()
 const { t } = useI18n()
 const active = ref<Pane>(props.initialPane ?? "general")
-const scroller = ref<HTMLElement>()
+const scroller = useTemplateRef<InstanceType<typeof ScrollArea>>("scroller")
 const trail = ref<SettingsCrumb[]>([])
 
 provide(SETTINGS_TRAIL, trail)
@@ -185,6 +188,12 @@ const searchEntries = computed<SettingsSearchEntry[]>(() => [
     id: "setting-theme",
     pane: "appearance",
     title: t("settings.theme"),
+    section: t("settings.appearance"),
+  },
+  {
+    id: "setting-theme-preset",
+    pane: "appearance",
+    title: t("settings.themePreset"),
     section: t("settings.appearance"),
   },
   {
@@ -292,7 +301,7 @@ async function openResult(item: SettingsSearchEntry) {
   query.value = ""
   activeResult.value = 0
   await nextTick()
-  const root = scroller.value
+  const root = scroller.value?.viewport
 
   if (!root) return
 
@@ -329,7 +338,7 @@ function select(pane: Pane) {
 }
 
 function resetScroll() {
-  scroller.value?.scrollTo({ top: 0 })
+  scroller.value?.viewport?.scrollTo({ top: 0 })
 }
 
 /** 每次打开回到 initialPane（默认 General），切分区回到顶部。 */
@@ -362,9 +371,9 @@ watch(active, async () => {
 /* 内容经 Portal 挂到 body，scoped 打不中，选择器统一挂在 .settings-dialog 前缀下。 */
 .settings-dialog {
   display: flex;
-  width: min(88vw, var(--settings-dialog-width));
-  max-width: min(88vw, var(--settings-dialog-width));
-  height: clamp(var(--settings-dialog-height-min), 85vh, var(--settings-dialog-height));
+  width: min(88vw, var(--dialog-width-lg));
+  max-width: min(88vw, var(--dialog-width-lg));
+  height: clamp(var(--dialog-height-lg-min), 85vh, var(--dialog-height-lg));
   padding: 0;
   gap: 0;
   border-radius: var(--radius-dialog);
@@ -382,7 +391,7 @@ watch(active, async () => {
   flex: none;
   flex-direction: column;
   gap: var(--space-2xs);
-  width: var(--settings-nav-width);
+  width: 15rem;
   padding: var(--space-sm) var(--space-xs);
   border-inline-end: var(--border-width) solid var(--border-subtle);
   background: var(--sidebar);
@@ -451,7 +460,7 @@ watch(active, async () => {
 }
 
 .settings-dialog .search-input::placeholder {
-  color: var(--fg-secondary);
+  color: var(--fg-muted);
 }
 
 .settings-dialog .search-clear {
@@ -577,7 +586,7 @@ watch(active, async () => {
 }
 
 .settings-dialog .crumb-sep {
-  color: var(--fg-secondary);
+  color: var(--fg-muted);
   user-select: none;
 }
 
@@ -603,14 +612,16 @@ watch(active, async () => {
 .settings-dialog .settings-scroll {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  height: auto;
+}
+
+.settings-dialog .settings-scroll-content {
   padding: var(--space-lg) var(--space-lg) calc(var(--space-2xl) + var(--space-md));
 }
 
 .settings-dialog .settings-body {
   width: 100%;
-  max-width: var(--settings-body-width);
+  max-width: 56rem;
   margin-inline: auto;
 }
 
@@ -621,7 +632,7 @@ watch(active, async () => {
 
   .settings-dialog .settings-nav {
     align-items: center;
-    width: var(--settings-nav-width-narrow);
+    width: 2.75rem;
     padding-inline: var(--space-2xs);
   }
 

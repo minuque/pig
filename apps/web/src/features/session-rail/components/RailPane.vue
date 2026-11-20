@@ -25,18 +25,21 @@
       </Tooltip>
     </header>
 
-    <div class="rail-pane-body" :data-kind="pane.kind">
-      <RailTasks
-        v-if="pane.kind === 'tasks'"
-        :sections="sections"
-        :stoppable="stoppable"
-        :stopping="stopping"
-        :focus="pane.focus"
-        @open="rail.openChild"
-        @stop="emit('stop', $event)"
-      />
+    <ScrollArea v-if="pane.kind === 'tasks'" scrollbars="vertical" class="rail-pane-scroll">
+      <div class="rail-pane-body" data-kind="tasks">
+        <RailTasks
+          :sections="sections"
+          :stoppable="stoppable"
+          :stopping="stopping"
+          :focus="pane.focus"
+          @open="rail.openChild"
+          @stop="emit('stop', $event)"
+        />
+      </div>
+    </ScrollArea>
 
-      <RailChild v-else :child="pane.child" :progress="progress" />
+    <div v-else class="rail-pane-body" data-kind="child">
+      <RailChild :child="pane.child" :progress="progress" />
     </div>
   </Card>
 </template>
@@ -46,6 +49,7 @@ import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Card } from "@components/ui/card/index.js"
+import { ScrollArea } from "@components/ui/scroll-area/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { XIcon, TrashIcon } from "@components/icons/index.js"
 import RailChild from "@features/session-rail/components/RailChild.vue"
@@ -138,13 +142,18 @@ function clearFinished() {
   font-weight: var(--font-weight-normal);
 }
 
+.rail-pane-scroll {
+  flex: 1;
+  min-block-size: 0;
+  block-size: auto;
+}
+
 .rail-pane-body {
   display: flex;
   flex: 1;
   flex-direction: column;
   min-block-size: 0;
   padding: 0 var(--space-md) var(--space-md);
-  overflow-y: auto;
 }
 
 /* 子会话的时间线自带滚动与边距 */

@@ -2,7 +2,7 @@
   <ContextMenuLabel
     data-slot="context-menu-label"
     v-bind="forwardedProps"
-    class="rt-BaseMenuLabel rt-ContextMenuLabel"
+    data-menu-label
     :class="props.class"
   >
     <slot />

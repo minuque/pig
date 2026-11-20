@@ -1,9 +1,5 @@
 <template>
-  <ContextMenuRadioGroup
-    v-bind="forwardedProps"
-    class="rt-BaseMenuRadioGroup rt-ContextMenuRadioGroup"
-    :class="props.class"
-  >
+  <ContextMenuRadioGroup v-bind="forwardedProps" data-menu-group :class="props.class">
     <slot />
   </ContextMenuRadioGroup>
 </template>

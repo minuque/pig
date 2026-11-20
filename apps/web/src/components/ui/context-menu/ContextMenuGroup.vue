@@ -1,5 +1,5 @@
 <template>
-  <ContextMenuGroup v-bind="forwardedProps" class="rt-BaseMenuGroup rt-ContextMenuGroup">
+  <ContextMenuGroup v-bind="forwardedProps" data-menu-group>
     <slot />
   </ContextMenuGroup>
 </template>

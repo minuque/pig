@@ -4,14 +4,14 @@
       <TooltipContent
         data-slot="tooltip-content"
         v-bind="{ ...$attrs, ...forwarded }"
-        class="rt-TooltipContent"
+        class="reveal-menu"
         :class="props.class"
       >
-        <p class="rt-Text rt-TooltipText rt-r-size-1">
+        <p data-slot="tooltip-text">
           <slot />
         </p>
 
-        <TooltipArrow class="rt-TooltipArrow" />
+        <TooltipArrow data-slot="tooltip-arrow" />
       </TooltipContent>
     </ThemeRoot>
   </TooltipPortal>
@@ -34,3 +34,26 @@ const emits = defineEmits<TooltipContentEmits>()
 const delegatedProps = reactiveOmit(props, "class")
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<TooltipContentProps>
 </script>
+
+<style>
+/* 提示气泡：反色底 + 反色字，字号取最小档 */
+:where([data-slot="tooltip-content"]) {
+  box-sizing: border-box;
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--radius-control);
+  background-color: var(--gray-12);
+  transform-origin: var(--reka-tooltip-content-transform-origin);
+}
+
+:where([data-slot="tooltip-text"]) {
+  color: var(--gray-1);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+  user-select: none;
+  cursor: default;
+}
+
+:where([data-slot="tooltip-arrow"]) {
+  fill: var(--gray-12);
+}
+</style>

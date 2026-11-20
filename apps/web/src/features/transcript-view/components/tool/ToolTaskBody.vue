@@ -7,7 +7,7 @@
         :disabled="task.kind !== 'agent' || !task.sessionId || !openSession"
         @click="open(task)"
       >
-        <span class="task-dot" :data-status="task.status" />
+        <StatusIndicator :status="TASK_STATUS_TONE[task.status] ?? 'idle'" size="m" />
         <span class="task-name">{{ task.description }}</span>
         <span class="task-step">{{ taskDetail(task) }}</span>
       </button>
@@ -17,9 +17,18 @@
 
 <script setup lang="ts">
 import { inject } from "vue"
+import { StatusIndicator, type StatusTone } from "@components/ui/status-indicator/index.js"
 import { openTaskSessionKey } from "@features/transcript-view/index.js"
 import { taskDetail } from "@features/transcript-view/lib/tool-tasks.js"
 import type { Task } from "@/types/common-type.js"
+
+const TASK_STATUS_TONE: Record<Task["status"], StatusTone> = {
+  running: "running",
+  queued: "waiting",
+  completed: "success",
+  failed: "error",
+  stopped: "idle",
+}
 
 defineProps<{ tasks: readonly Task[] }>()
 
@@ -61,25 +70,6 @@ function open(task: Task) {
 
 .task-row:disabled {
   cursor: default;
-}
-
-.task-dot {
-  inline-size: var(--space-xs);
-  block-size: var(--space-xs);
-  background: var(--fg-secondary);
-  border-radius: var(--radius-pill);
-}
-
-.task-dot[data-status="running"] {
-  background: var(--info-solid);
-}
-
-.task-dot[data-status="completed"] {
-  background: var(--success-text);
-}
-
-.task-dot[data-status="failed"] {
-  background: var(--danger-text);
 }
 
 .task-name {

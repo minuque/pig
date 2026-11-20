@@ -1,5 +1,5 @@
 <template>
-  <TabsRoot data-slot="tabs" class="rt-TabsRoot" v-bind="forwarded">
+  <TabsRoot data-slot="tabs" v-bind="forwarded">
     <slot />
   </TabsRoot>
 </template>

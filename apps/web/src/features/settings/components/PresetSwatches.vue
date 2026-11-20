@@ -1,0 +1,110 @@
+<template>
+  <div class="preset-swatches" role="radiogroup" :aria-label="t('settings.themePreset')">
+    <button
+      v-for="option in options"
+      :key="option.id"
+      type="button"
+      class="preset-chip"
+      role="radio"
+      :aria-checked="presetId === option.id"
+      @click="setPreset(option.id)"
+    >
+      <span class="preset-dot" :style="{ background: swatchGradient(option) }" aria-hidden="true" />
+      <span class="preset-label">{{ option.label }}</span>
+    </button>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed } from "vue"
+import type { ThemePreset, ThemePresetId } from "@/types/theme-type.js"
+import { useI18n } from "@i18n/index.js"
+import { useColorScheme } from "@features/theme/index.js"
+
+const LABEL_KEYS: Record<ThemePresetId, string> = {
+  linear: "settings.presetLinear",
+  paper: "settings.presetPaper",
+  ocean: "settings.presetOcean",
+  grove: "settings.presetGrove",
+  iris: "settings.presetIris",
+}
+const { t } = useI18n()
+const { isDark, presetId, presets, setPreset } = useColorScheme()
+const options = computed(() =>
+  presets.map((preset) => ({
+    ...preset,
+    label: t(LABEL_KEYS[preset.id]),
+  })),
+)
+
+function swatchGradient(preset: ThemePreset): string {
+  const seed = isDark.value ? preset.dark : preset.light
+  return `linear-gradient(135deg, ${seed.canvas} 48%, ${seed.accent} 48%)`
+}
+</script>
+
+<style scoped>
+.preset-swatches {
+  display: grid;
+  gap: var(--space-xs);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.preset-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  min-inline-size: 0;
+  min-block-size: var(--control-md);
+  padding: 0 var(--space-sm);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--bg-surface);
+  color: var(--fg-secondary);
+  font-size: var(--text-meta);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-meta--line-height);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.preset-chip:hover {
+  background: var(--bg-hover);
+  color: var(--fg);
+}
+
+.preset-chip[aria-checked="true"] {
+  border-color: var(--accent-solid);
+  background: var(--bg-selected);
+  color: var(--fg);
+}
+
+.preset-dot {
+  flex: none;
+  inline-size: var(--icon-md);
+  block-size: var(--icon-md);
+  border-radius: var(--radius-pill);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-strong);
+}
+
+.preset-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .preset-chip {
+    transition: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .preset-swatches {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+</style>

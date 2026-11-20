@@ -6,8 +6,3 @@ export type Size = "s" | "m" | "l"
 
 /** 档位到 rt 数字档的映射：s=24/28px、m=32px、l=40px（按钮） */
 export const RT_SIZE = { s: "1", m: "2", l: "3" } as const
-
-/** rt 的尺寸类名；不传按 m */
-export function sizeClass(size: Size = "m"): string {
-  return `rt-r-size-${RT_SIZE[size]}`
-}

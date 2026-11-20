@@ -3,30 +3,25 @@
     data-slot="banner"
     :data-color="color"
     :data-size="size"
+    :data-variant="variant"
     :data-accent-color="accentColor"
+    :data-high-contrast="highContrast || undefined"
+    :data-dismissible="dismissible || undefined"
+    :data-has-icon="Boolean($slots.icon) || undefined"
     :as="as"
     :as-child="asChild"
-    :class="[
-      'rt-CalloutRoot',
-      `rt-r-size-${rtSize}`,
-      `rt-variant-${variant}`,
-      highContrast && 'rt-high-contrast',
-      'banner',
-      dismissible && 'banner-dismissible',
-      floating && 'surface-float',
-      props.class,
-    ]"
+    :class="[floating && 'surface-float', props.class]"
   >
-    <div class="rt-CalloutIcon banner-icon">
+    <div v-if="$slots.icon" data-slot="banner-icon">
       <slot name="icon" />
     </div>
 
-    <div class="banner-content">
-      <div v-if="$slots.title" class="rt-Text banner-title" :class="textSizeClass">
+    <div data-slot="banner-content">
+      <div v-if="$slots.title" data-slot="banner-title">
         <slot name="title" />
       </div>
 
-      <div class="rt-Text banner-body" :class="textSizeClass">
+      <div data-slot="banner-body">
         <slot />
       </div>
     </div>
@@ -34,7 +29,7 @@
     <button
       v-if="dismissible"
       type="button"
-      class="banner-action"
+      data-slot="banner-action"
       :aria-label="t('common.close')"
       @click="emit('close')"
     >
@@ -50,7 +45,7 @@ import { computed } from "vue"
 import { Primitive } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
 import { XIcon } from "@components/icons/index.js"
-import { RT_SIZE, type Size } from "@components/ui/rt/size.js"
+import type { Size } from "@components/ui/rt/size.js"
 import { type BannerColor, type BannerVariant } from "./index.js"
 
 const { t } = useI18n()
@@ -85,37 +80,119 @@ const ACCENT_BY_COLOR: Record<BannerColor, string | undefined> = {
   warning: "orange",
   destructive: "red",
 }
-const rtSize = computed(() => RT_SIZE[props.size])
 const accentColor = computed(() => ACCENT_BY_COLOR[props.color])
-/** 照 rt 的 Banner.Text：1、2 档落到 text 2，3 档落到 text 3。 */
-const textSizeClass = computed(() => `rt-r-size-${props.size === "l" ? "3" : "2"}`)
 </script>
 
-<style scoped>
-/* 标题、正文、关闭键是项目扩展；底色、描边、尺寸由 rt 的 CalloutRoot 负责。 */
-.banner {
+<style>
+:where([data-slot="banner"]) {
+  box-sizing: border-box;
   position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  justify-content: start;
+  text-align: left;
+  color: var(--accent-a11);
 }
 
-.banner-content {
+:where([data-slot="banner"][data-has-icon]) {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+:where([data-slot="banner"][data-high-contrast]) {
+  color: var(--accent-12);
+}
+
+:where([data-slot="banner"][data-size="s"]) {
+  row-gap: var(--space-xs);
+  column-gap: var(--space-xs);
+  padding: var(--space-sm);
+  border-radius: var(--radius-control);
+}
+
+:where([data-slot="banner"][data-size="m"]) {
+  row-gap: var(--space-xs);
+  column-gap: var(--space-sm);
+  padding: var(--space-md);
+  border-radius: var(--radius-card);
+}
+
+:where([data-slot="banner"][data-size="l"]) {
+  row-gap: var(--space-sm);
+  column-gap: var(--space-md);
+  padding: var(--space-lg);
+  border-radius: var(--radius-dialog);
+}
+
+:where([data-slot="banner"][data-variant="soft"]) {
+  background-color: var(--accent-a3);
+}
+
+:where([data-slot="banner"][data-variant="surface"]) {
+  border: var(--border-width) solid var(--accent-a6);
+  background-color: var(--accent-a2);
+}
+
+:where([data-slot="banner"][data-variant="outline"]) {
+  border: var(--border-width) solid var(--accent-a7);
+}
+
+:where([data-slot="banner-icon"]) {
+  display: flex;
+  align-items: center;
+}
+
+:where([data-slot="banner"][data-size="s"] [data-slot="banner-icon"]),
+:where([data-slot="banner"][data-size="m"] [data-slot="banner-icon"]) {
+  block-size: calc(var(--text-body) * var(--text-body--line-height));
+}
+
+:where([data-slot="banner"][data-size="l"] [data-slot="banner-icon"]) {
+  block-size: calc(var(--text-title) * var(--text-title--line-height));
+}
+
+:where([data-slot="banner"][data-size="s"] [data-slot="banner-icon"] svg),
+:where([data-slot="banner"][data-size="m"] [data-slot="banner-icon"] svg) {
+  inline-size: var(--icon-md);
+  block-size: var(--icon-md);
+}
+
+:where([data-slot="banner"][data-size="l"] [data-slot="banner-icon"] svg) {
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
+}
+
+:where([data-slot="banner-content"]) {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-2xs);
   min-inline-size: 0;
 }
 
-.banner-dismissible .banner-content {
-  padding-inline-end: var(--space-5);
+:where([data-slot="banner"][data-dismissible] [data-slot="banner-content"]) {
+  padding-inline-end: var(--space-lg);
 }
 
-.banner-title {
+:where([data-slot="banner-title"]) {
   font-weight: var(--font-weight-medium);
 }
 
-.banner-action {
+:where([data-slot="banner"]:is([data-size="s"], [data-size="m"]) [data-slot="banner-title"]),
+:where([data-slot="banner"]:is([data-size="s"], [data-size="m"]) [data-slot="banner-body"]) {
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+}
+
+:where([data-slot="banner"][data-size="l"] [data-slot="banner-title"]),
+:where([data-slot="banner"][data-size="l"] [data-slot="banner-body"]) {
+  font-size: var(--text-title);
+  line-height: var(--text-title--line-height);
+}
+
+:where([data-slot="banner-action"]) {
   position: absolute;
-  inset-block-start: var(--space-2);
-  inset-inline-end: var(--space-2);
+  inset-block-start: var(--space-xs);
+  inset-inline-end: var(--space-xs);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -128,18 +205,11 @@ const textSizeClass = computed(() => `rt-r-size-${props.size === "l" ? "3" : "2"
   cursor: pointer;
 }
 
-.banner-action:hover {
+:where([data-slot="banner-action"]:hover) {
   background: var(--bg-hover);
 }
 
-.banner[data-size="s"] .banner-icon :deep(svg),
-.banner[data-size="m"] .banner-icon :deep(svg) {
-  inline-size: var(--icon-md);
-  block-size: var(--icon-md);
-}
-
-.banner[data-size="l"] .banner-icon :deep(svg) {
-  inline-size: var(--icon-lg);
-  block-size: var(--icon-lg);
+:where([data-slot="banner-action"]:focus-visible) {
+  outline: 2px solid var(--focus-color);
 }
 </style>

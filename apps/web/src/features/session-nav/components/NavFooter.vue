@@ -43,7 +43,7 @@
           :aria-label="t('nav.settings')"
           @click="emit('settings')"
         >
-          <SettingsIcon class="size-icon-2xs" />
+          <SettingsIcon class="size-icon-lg" />
         </IconButton>
       </TooltipTrigger>
 
@@ -122,8 +122,8 @@ function toggleLocale() {
   display: block;
   flex: none;
   overflow: hidden;
-  width: var(--user-avatar-size);
-  height: var(--user-avatar-size);
+  width: 20px;
+  height: 20px;
   border-radius: calc(var(--radius-control) / 2);
   background: var(--brand-mark-bg);
 }

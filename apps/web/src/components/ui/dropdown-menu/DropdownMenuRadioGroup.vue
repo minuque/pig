@@ -1,9 +1,5 @@
 <template>
-  <DropdownMenuRadioGroup
-    v-bind="forwardedProps"
-    class="rt-BaseMenuRadioGroup rt-DropdownMenuRadioGroup"
-    :class="props.class"
-  >
+  <DropdownMenuRadioGroup v-bind="forwardedProps" data-menu-group :class="props.class">
     <slot />
   </DropdownMenuRadioGroup>
 </template>

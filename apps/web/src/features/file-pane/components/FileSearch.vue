@@ -191,7 +191,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
 }
 
 .file-search-row:focus-visible {
-  outline: var(--focus-ring);
+  outline: 2px solid var(--focus-color);
   outline-offset: -2px;
 }
 

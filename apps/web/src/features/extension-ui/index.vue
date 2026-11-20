@@ -36,9 +36,9 @@
 
       <div
         v-else-if="pending.request.method === 'editor'"
-        class="rt-TextAreaRoot rt-variant-surface extension-body"
+        class="extension-body extension-editor-box"
       >
-        <textarea v-model="text" class="rt-reset rt-TextAreaInput extension-editor" autofocus />
+        <textarea v-model="text" class="extension-editor" autofocus />
       </div>
 
       <AlertDialogFooter>
@@ -111,7 +111,31 @@ function cancel() {
   gap: var(--space-xs);
 }
 
+/* 多行输入与外框同 TextField 的 surface 档：实底、细环、同一档圆角与内边距 */
+.extension-editor-box {
+  padding: var(--space-xs);
+  border-radius: var(--radius-control);
+  background-color: var(--bg-raised);
+  box-shadow: inset 0 0 0 var(--border-width) var(--gray-a7);
+}
+
+.extension-editor-box:focus-within {
+  outline: 2px solid var(--focus-color);
+  outline-offset: -1px;
+}
+
 .extension-editor {
+  display: block;
+  inline-size: 100%;
   min-block-size: var(--composer-field-max);
+  border-radius: calc(var(--radius-control) - var(--border-width));
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+}
+
+.extension-editor:focus-visible {
+  outline: none;
 }
 </style>

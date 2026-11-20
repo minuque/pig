@@ -20,7 +20,7 @@
                 :title="item"
                 @select="workspaceId = item"
               >
-                <ProjectIcon class="size-icon-xs" :path="item" />
+                <ProjectIcon class="size-icon-sm" :path="item" />
                 <span class="hero-option">{{ workspaceName(item) }}</span>
               </DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
@@ -28,12 +28,12 @@
             <DropdownMenuSeparator v-if="workspaces.length" />
 
             <DropdownMenuItem :disabled="adding" @select="emit('add')">
-              <FolderPlusIcon class="size-icon-xs" />
+              <FolderPlusIcon class="size-icon-sm" />
               {{ t("hero.addDir") }}
             </DropdownMenuItem>
 
             <DropdownMenuItem @select="emit('addRemote')">
-              <FolderPlusIcon class="size-icon-xs" />
+              <FolderPlusIcon class="size-icon-sm" />
               {{ t("hero.addRemote") }}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -113,7 +113,7 @@ const suffix = computed(() => t(workspaceId.value ? "hero.askSuffix" : "hero.pic
   text-align: center;
 }
 
-/* 项目名即选择器：外观交给 rt-Link，这里只管限宽，行高字距跟标题走 */
+/* 项目名即选择器：外观交给 Link，这里只管限宽，行高字距跟标题走 */
 .hero-picker {
   display: inline-flex;
   max-width: min(100%, 16rem);

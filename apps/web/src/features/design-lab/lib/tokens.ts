@@ -82,8 +82,9 @@ export function groupTitle(group: string): Label {
   return { zh: group, en: GROUP_EN[group] ?? group }
 }
 
-// rt 自己的旋钮（--space-1、--radius-2、--base-* 等）不是项目 token
-const KNOB = /^--(radix|reka|base-|card-|table-|radius-\d+$|space-\d+$|default-|dialog-content)/
+// rt 自己的旋钮（--space-1、--radius-2、--focus-8、--base-* 等）不是项目 token
+const KNOB =
+  /^--(radix|reka|base-|card-|table-|radius-\d+$|space-\d+$|focus-\d+$|default-|dialog-content)/
 const PLACES = [...placed(tokensCss), ...placed(rtCss, "边与分割")].filter(
   (place, index, all) => all.findIndex((other) => other.name === place.name) === index,
 )
@@ -157,9 +158,9 @@ export function kindOf(token: Token): Kind {
   return CSS.supports("color", value) ? "fill" : "none"
 }
 
-/** 实时读取全部 token 的计算值，切换明暗后重读。 */
+/** 实时读取全部 token 的计算值，切换明暗与配色后重读。 */
 export function useTokens() {
-  const { isDark } = useColorScheme()
+  const { isDark, presetId } = useColorScheme()
   const tokens = ref<Token[]>([])
 
   function read() {
@@ -172,6 +173,6 @@ export function useTokens() {
   }
 
   onMounted(read)
-  watch(isDark, () => nextTick(read))
+  watch([isDark, presetId], () => nextTick(read))
   return tokens
 }

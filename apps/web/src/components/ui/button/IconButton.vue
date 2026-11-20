@@ -1,15 +1,19 @@
 <template>
   <Primitive
+    data-button
     data-slot="icon-button"
+    :data-size="size"
+    :data-variant="variant"
     :data-accent-color="color"
     :data-radius="radius"
+    :data-high-contrast="highContrast || undefined"
     :data-disabled="disabled || loading ? '' : undefined"
+    :data-loading="loading || undefined"
     :disabled="disabled || loading"
     :as="as"
     :as-child="asChild"
-    :class="['rt-reset', 'rt-BaseButton', 'rt-IconButton', extracted.class, props.class]"
-    :style="extracted.style"
-    v-bind="{ ...extracted.attrs, ...$attrs }"
+    :class="props.class"
+    v-bind="$attrs"
   >
     <ButtonContent :loading="loading" :size="size"><slot /></ButtonContent>
   </Primitive>
@@ -18,12 +22,12 @@
 <script setup lang="ts">
 import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
-import { computed } from "vue"
 import { Primitive } from "reka-ui"
-import { extractProps, type PropDefs } from "@components/ui/rt/props.js"
-import { RT_SIZE, type Size } from "@components/ui/rt/size.js"
+import type { Size } from "@components/ui/rt/size.js"
 import type { ButtonVariant, HighContrast, Radius } from "./index.js"
 import ButtonContent from "./ButtonContent.vue"
+
+defineOptions({ inheritAttrs: false })
 
 interface Props extends PrimitiveProps {
   variant?: ButtonVariant
@@ -43,25 +47,45 @@ const props = withDefaults(defineProps<Props>(), {
   size: "m",
   loading: false,
   disabled: false,
+  class: undefined,
 })
-const DEFS: PropDefs = {
-  size: {
-    type: "enum",
-    values: ["s", "m", "l"],
-    default: "m",
-    className: "rt-r-size",
-    valueMap: RT_SIZE,
-  },
-  variant: {
-    type: "enum",
-    values: ["classic", "solid", "soft", "surface", "outline", "ghost"],
-    default: "solid",
-    className: "rt-variant",
-  },
-  highContrast: { type: "boolean", className: "rt-high-contrast" },
-  loading: { type: "boolean", className: "rt-loading" },
-}
-const extracted = computed(() =>
-  extractProps(props as Record<string, unknown>, DEFS, ["color", "radius", "disabled"]),
-)
 </script>
+
+<style>
+/* 图标按钮：固定方框 + 统一圆角，尺寸档 s=24、m=28、l=40 */
+:where([data-slot="icon-button"]) {
+  padding: 0;
+  border-radius: var(--radius-control);
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+:where([data-slot="icon-button"])[data-size="s"] {
+  height: var(--space-lg);
+  inline-size: var(--space-lg);
+}
+
+:where([data-slot="icon-button"])[data-size="m"] {
+  height: var(--control-sm);
+  inline-size: var(--control-sm);
+}
+
+:where([data-slot="icon-button"])[data-size="l"] {
+  height: var(--control-lg);
+  inline-size: var(--control-lg);
+}
+
+/* 幽灵图标按钮同样接收固定方框，靠图标居中，不参与负外边距对齐 */
+:where([data-slot="icon-button"][data-variant="ghost"]) {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  color: var(--fg);
+}
+
+:where([data-slot="icon-button"][data-variant="ghost"]:hover) {
+  background-color: var(--bg-hover);
+  color: var(--fg);
+}
+</style>

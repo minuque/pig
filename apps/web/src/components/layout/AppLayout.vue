@@ -186,7 +186,7 @@ main {
     z-index: var(--z-drawer);
     inset-block: 0;
     inset-inline-start: 0;
-    width: min(88vw, var(--drawer-width));
+    width: min(88vw, 360px);
     visibility: hidden;
     transform: translateX(-105%);
     transition:

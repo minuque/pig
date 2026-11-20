@@ -26,7 +26,7 @@ test("subagent 子任务：时间线卡片与摘要面板都列出进展，点�
 
   const toggle = page.locator(".rail-toggle-popover")
   await toggle.hover()
-  await expect(page.locator(".rt-TooltipContent")).toContainText("1/2")
+  await expect(page.locator('[data-slot="tooltip-content"]')).toContainText("1/2")
   await toggle.click()
   const popover = page.locator(".rail-popover")
   await expect(popover.getByText("planner")).toBeVisible()

@@ -46,7 +46,7 @@
           class="row"
         >
           {{ text(item.title) }}
-          <ChevronRightIcon class="row-icon size-icon-xs" />
+          <ChevronRightIcon class="row-icon size-icon-sm" />
         </RouterLink>
       </Card>
     </section>

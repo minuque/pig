@@ -161,14 +161,14 @@ function measure(event: Event) {
 
 <style>
 /* 面板经 Portal 挂到 body，scoped 打不中；面板自身不滚动，滚动只在正文 */
-.preview-dialog.rt-DialogContent {
+.preview-dialog[data-slot="dialog-content"] {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
   overflow: hidden;
 }
 
-.preview-dialog.rt-DialogContent[data-kind="image"] {
+.preview-dialog[data-slot="dialog-content"][data-kind="image"] {
   inline-size: fit-content;
   max-inline-size: calc(100vw - 2rem);
   max-block-size: 90vh;

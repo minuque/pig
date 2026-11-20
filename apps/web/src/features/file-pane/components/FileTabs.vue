@@ -26,7 +26,7 @@
           :aria-label="t('files.closeTab')"
           @click="pane.close(tab.path)"
         >
-          <XIcon class="size-icon-xs" />
+          <XIcon class="size-icon-sm" />
         </button>
       </div>
     </TabsList>
@@ -122,12 +122,12 @@ watch(
 .file-tab {
   position: relative;
   display: flex;
-  flex: 0 1 var(--file-tab-width);
+  flex: 0 1 192px;
   align-items: center;
   gap: var(--space-2xs);
-  min-inline-size: var(--file-tab-min);
+  min-inline-size: 104px;
   max-inline-size: max-content;
-  block-size: var(--file-tab-height);
+  block-size: 24px;
   padding: 2px;
   border-radius: var(--radius-control);
   color: var(--fg-secondary);
@@ -145,7 +145,8 @@ watch(
 }
 
 .file-tab:has(:focus-visible) {
-  outline: var(--focus-ring);
+  outline: 2px solid var(--focus-color);
+  outline-offset: -2px;
 }
 
 .file-tab-trigger {
@@ -171,7 +172,7 @@ watch(
 
 .file-tab-label {
   overflow: hidden;
-  max-inline-size: var(--file-tab-label);
+  max-inline-size: 140px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -186,8 +187,8 @@ watch(
   display: grid;
   flex-shrink: 0;
   place-items: center;
-  inline-size: var(--file-tab-close);
-  block-size: var(--file-tab-close);
+  inline-size: 20px;
+  block-size: 20px;
   padding: 0;
   border: 0;
   border-radius: calc(var(--radius-control) - 2px);

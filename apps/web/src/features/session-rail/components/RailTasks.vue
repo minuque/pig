@@ -3,88 +3,95 @@
     <section v-for="section in shown" :key="section.id" class="rail-tasks-section">
       <h3 class="rail-tasks-head">{{ section.title }}</h3>
 
-      <article
+      <Collapsible
         v-for="task in section.tasks"
         :key="task.id"
-        class="rail-task"
-        :data-task-id="task.id"
-        :data-status="task.status"
-        :data-kind="task.kind"
+        as-child
+        :open="task.kind === 'bash' && isOpen(task.id)"
       >
-        <div class="rail-task-top">
-          <component
-            :is="task.kind === 'bash' ? 'button' : 'span'"
-            :type="task.kind === 'bash' ? 'button' : undefined"
-            class="rail-task-title"
-            :aria-expanded="task.kind === 'bash' ? isOpen(task.id) : undefined"
-            @click="task.kind === 'bash' && toggle(task.id)"
-          >
-            <span class="rail-task-name" :class="{ shimmer: task.status === 'running' }">
-              {{ task.description }}
+        <article
+          class="rail-task"
+          :data-task-id="task.id"
+          :data-status="task.status"
+          :data-kind="task.kind"
+        >
+          <div class="rail-task-top">
+            <component
+              :is="task.kind === 'bash' ? 'button' : 'span'"
+              :type="task.kind === 'bash' ? 'button' : undefined"
+              class="rail-task-title"
+              :aria-expanded="task.kind === 'bash' ? isOpen(task.id) : undefined"
+              @click="task.kind === 'bash' && toggle(task.id)"
+            >
+              <span class="rail-task-name" :class="{ shimmer: task.status === 'running' }">
+                {{ task.description }}
+              </span>
+            </component>
+
+            <Tooltip v-if="stoppable.has(task.id)">
+              <TooltipTrigger as-child>
+                <IconButton
+                  type="button"
+                  size="s"
+                  variant="soft"
+                  color="gray"
+                  :aria-label="t('rail.stopTask')"
+                  :disabled="stopping.has(task.id)"
+                  @click="emit('stop', task.id)"
+                >
+                  <SquareIcon class="size-icon" />
+                </IconButton>
+              </TooltipTrigger>
+
+              <TooltipContent>{{ t("rail.stopTask") }}</TooltipContent>
+            </Tooltip>
+          </div>
+
+          <div class="rail-task-meta">
+            <span class="rail-task-value">{{ t(`rail.taskKind.${task.kind}`) }}</span>
+
+            <span v-if="statusText(task)" :class="{ 'rail-task-failed': task.status === 'failed' }">
+              {{ statusText(task) }}
             </span>
-          </component>
 
-          <Tooltip v-if="stoppable.has(task.id)">
-            <TooltipTrigger as-child>
-              <IconButton
-                type="button"
-                size="s"
-                variant="soft"
-                color="gray"
-                :aria-label="t('rail.stopTask')"
-                :disabled="stopping.has(task.id)"
-                @click="emit('stop', task.id)"
-              >
-                <SquareIcon class="size-icon" />
-              </IconButton>
-            </TooltipTrigger>
+            <span class="rail-task-time">{{ taskElapsed(task, now.getTime()) }}</span>
+          </div>
 
-            <TooltipContent>{{ t("rail.stopTask") }}</TooltipContent>
-          </Tooltip>
-        </div>
+          <div v-if="task.kind === 'agent'" class="rail-task-meta">
+            <span v-if="task.tokens > 0">
+              <span class="rail-task-value">{{ formatTokenCount(task.tokens) }}</span>
+              {{ t("rail.tokens") }}
+            </span>
 
-        <div class="rail-task-meta">
-          <span class="rail-task-value">{{ t(`rail.taskKind.${task.kind}`) }}</span>
+            <span v-if="task.status === 'running' && task.steps.length" class="rail-task-step">
+              {{ task.steps.at(-1) }}
+            </span>
 
-          <span v-if="statusText(task)" :class="{ 'rail-task-failed': task.status === 'failed' }">
-            {{ statusText(task) }}
-          </span>
+            <button
+              v-if="task.sessionId"
+              type="button"
+              class="rail-task-link"
+              @click="emit('open', { sessionId: task.sessionId, agent: task.description })"
+            >
+              {{ t("rail.viewTranscript") }}
+            </button>
+          </div>
 
-          <span class="rail-task-time">{{ taskElapsed(task, now.getTime()) }}</span>
-        </div>
+          <CollapsibleContent v-if="task.kind === 'bash'">
+            <div class="rail-task-output">
+              <div class="rail-task-command">{{ task.command }}</div>
 
-        <div v-if="task.kind === 'agent'" class="rail-task-meta">
-          <span v-if="task.tokens > 0">
-            <span class="rail-task-value">{{ formatTokenCount(task.tokens) }}</span>
-            {{ t("rail.tokens") }}
-          </span>
+              <pre v-if="task.output" :ref="(el) => bindOutput(task.id, el)">{{
+                plainOutput(task.output)
+              }}</pre>
 
-          <span v-if="task.status === 'running' && task.steps.length" class="rail-task-step">
-            {{ task.steps.at(-1) }}
-          </span>
-
-          <button
-            v-if="task.sessionId"
-            type="button"
-            class="rail-task-link"
-            @click="emit('open', { sessionId: task.sessionId, agent: task.description })"
-          >
-            {{ t("rail.viewTranscript") }}
-          </button>
-        </div>
-
-        <div v-if="task.kind === 'bash' && isOpen(task.id)" class="rail-task-output">
-          <div class="rail-task-command">{{ task.command }}</div>
-
-          <pre v-if="task.output" :ref="(el) => bindOutput(task.id, el)">{{
-            plainOutput(task.output)
-          }}</pre>
-
-          <span v-else>
-            {{ task.status === "running" ? t("rail.noOutputYet") : t("rail.noOutput") }}
-          </span>
-        </div>
-      </article>
+              <span v-else>
+                {{ task.status === "running" ? t("rail.noOutputYet") : t("rail.noOutput") }}
+              </span>
+            </div>
+          </CollapsibleContent>
+        </article>
+      </Collapsible>
     </section>
   </div>
 </template>
@@ -94,6 +101,7 @@ import { computed, nextTick, ref, useTemplateRef, watch, type ComponentPublicIns
 import { useNow } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
+import { Collapsible, CollapsibleContent } from "@components/ui/collapsible/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { SquareIcon } from "@components/icons/index.js"
 import { formatTokenCount } from "@features/composer/lib/context-usage.js"
@@ -300,7 +308,7 @@ button.rail-task-title:hover .rail-task-name {
 }
 
 .rail-task-command {
-  max-block-size: var(--task-output-max);
+  max-block-size: 200px;
   overflow: auto;
   color: var(--fg-secondary);
   white-space: pre-wrap;
@@ -308,7 +316,7 @@ button.rail-task-title:hover .rail-task-name {
 }
 
 .rail-task-output pre {
-  max-block-size: var(--task-output-max);
+  max-block-size: 200px;
   margin: 0;
   padding: var(--space-xs);
   overflow: auto;

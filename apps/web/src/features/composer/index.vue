@@ -360,7 +360,7 @@ function onAbortHotkey(event: KeyboardEvent) {
 
 .attach:disabled {
   cursor: default;
-  opacity: 0.3;
+  opacity: var(--opacity-disabled);
 }
 
 .send {
@@ -411,7 +411,7 @@ function onAbortHotkey(event: KeyboardEvent) {
 }
 
 .send--abort:disabled {
-  opacity: 0.5;
+  opacity: var(--opacity-disabled);
 }
 
 .stop-square {
@@ -439,12 +439,12 @@ function onAbortHotkey(event: KeyboardEvent) {
 }
 
 .send:focus-visible {
-  outline: 2px solid var(--accent-solid);
+  outline: 2px solid var(--focus-color);
   outline-offset: 2px;
 }
 
 .attach:focus-visible {
-  outline: 2px solid var(--accent-solid);
+  outline: 2px solid var(--focus-color);
   outline-offset: 2px;
 }
 

@@ -8,13 +8,16 @@
         align="start"
         :side-offset="2"
         :data-accent-color="props.color"
-        class="rt-PopperContent rt-BaseMenuContent rt-ContextMenuContent"
-        :class="[sizeClass, variantClass, highContrastClass, props.class]"
+        data-menu-content
+        :data-size="size"
+        :data-variant="variant"
+        :data-high-contrast="highContrast || undefined"
+        :class="props.class"
         :style="contentStyle"
         @close-auto-focus="onCloseAutoFocus"
         @interact-outside="onInteractOutside"
       >
-        <div class="rt-BaseMenuViewport rt-ContextMenuViewport">
+        <div data-menu-viewport>
           <slot />
         </div>
       </MenuContent>
@@ -26,12 +29,11 @@
 import type { ContextMenuContentEmits, ContextMenuContentProps } from "reka-ui"
 import type { ComputedRef } from "vue"
 import type { HTMLAttributes } from "vue"
-import { computed, ref, toRef } from "vue"
+import { ref, toRef } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { ContextMenuPortal, injectContextMenuRootContext, useForwardPropsEmits } from "reka-ui"
 import { MenuContent } from "reka-ui/internal"
 import { ThemeRoot } from "@components/ui/rt/index.js"
-import { sizeClass as rtSizeClass } from "@components/ui/rt/size.js"
 import {
   provideMenuContent,
   type MenuSize,
@@ -75,9 +77,6 @@ const contentStyle = {
   "--reka-context-menu-trigger-width": "var(--reka-popper-anchor-width)",
   "--reka-context-menu-trigger-height": "var(--reka-popper-anchor-height)",
 }
-const sizeClass = computed(() => rtSizeClass(props.size))
-const variantClass = computed(() => `rt-variant-${props.variant}`)
-const highContrastClass = computed(() => (props.highContrast ? "rt-high-contrast" : undefined))
 
 provideMenuContent({
   size: toRef(props, "size"),

@@ -16,7 +16,7 @@
         <span class="section-label">{{ section.label }}</span>
         <span class="section-rule" aria-hidden="true"></span>
         <span class="section-count">{{ section.total }}</span>
-        <ChevronDownIcon class="size-icon-xs section-chevron" :class="{ 'is-collapsed': !open }" />
+        <ChevronDownIcon class="size-icon-sm section-chevron" :class="{ 'is-collapsed': !open }" />
       </button>
     </div>
 
@@ -65,7 +65,7 @@
             type="button"
             @click="emit('revealMore', section.key)"
           >
-            <ChevronDownIcon class="size-icon-2xs more-icon" />
+            <ChevronDownIcon class="size-icon-lg more-icon" />
             {{ t("common.showMore") }}
           </button>
 
@@ -75,7 +75,7 @@
             type="button"
             @click="emit('collapseGroup', section.key)"
           >
-            <ChevronDownIcon class="size-icon-2xs more-icon is-up" />
+            <ChevronDownIcon class="size-icon-lg more-icon is-up" />
             {{ t("common.collapse") }}
           </button>
         </li>
@@ -153,7 +153,7 @@ function itemBind(session: SidebarSession) {
 
 .section-head {
   position: relative;
-  z-index: 2;
+  z-index: var(--z-sticky);
   display: flex;
   align-items: center;
   min-width: 0;
@@ -179,7 +179,7 @@ function itemBind(session: SidebarSession) {
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--fg-secondary);
+  color: var(--fg-muted);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-meta--line-height);

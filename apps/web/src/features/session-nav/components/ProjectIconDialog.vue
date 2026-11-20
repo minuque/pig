@@ -32,7 +32,7 @@
           :aria-pressed="current?.name === name"
           @click="pick({ ...draft, name })"
         >
-          <component :is="icon" class="size-icon-2xs" />
+          <component :is="icon" class="size-icon-lg" />
         </IconButton>
       </div>
 
@@ -86,7 +86,7 @@ function reset(): void {
 
 <style>
 /* 内容经 Portal 挂到 body，scoped 打不中，选择器统一挂在 .project-icon-dialog 前缀下。 */
-.project-icon-dialog.rt-DialogContent {
+.project-icon-dialog[data-slot="dialog-content"] {
   max-inline-size: var(--dialog-width-sm);
 }
 

@@ -12,7 +12,7 @@
         <path
           :d="view.path"
           :fill="`url(#${gradId})`"
-          stroke="var(--effort-line)"
+          stroke="var(--gray-a4)"
           stroke-width="0.5"
           stroke-linejoin="round"
           vector-effect="non-scaling-stroke"
@@ -309,7 +309,7 @@ function onKeyDown(event: KeyboardEvent) {
 .label {
   position: absolute;
   top: 0;
-  z-index: 2;
+  z-index: var(--z-sticky);
   display: flex;
   align-items: center;
   height: var(--effort-bump-h);
@@ -327,7 +327,7 @@ function onKeyDown(event: KeyboardEvent) {
 }
 
 .current {
-  color: var(--effort-label);
+  color: var(--gray-12);
 }
 
 .next {
@@ -354,15 +354,15 @@ function onKeyDown(event: KeyboardEvent) {
   bottom: 0;
   left: 0;
   border-radius: var(--radius-pill);
-  background: var(--effort-fill);
-  box-shadow: var(--effort-fill-highlight);
+  background: linear-gradient(90deg, var(--accent-solid), var(--accent-solid-hover));
+  box-shadow: inset 0 1px 1px var(--white-a3);
   pointer-events: none;
 }
 
 .thumb {
   position: absolute;
   top: 50%;
-  z-index: 2;
+  z-index: var(--z-sticky);
   border-radius: var(--radius-pill);
   background: var(--effort-thumb);
   box-shadow: var(--effort-thumb-shadow);
@@ -372,17 +372,17 @@ function onKeyDown(event: KeyboardEvent) {
 .tick {
   position: absolute;
   top: 50%;
-  z-index: 3;
+  z-index: var(--z-overlay);
   width: 1.5px;
   margin-left: -0.75px;
   border-radius: 1px;
-  background: var(--effort-tick);
+  background: var(--gray-a7);
   transform: translateY(-50%);
   pointer-events: none;
 }
 
 .tick[data-active="true"] {
-  background: var(--effort-tick-active);
+  background: var(--accent-8);
 }
 
 .tick[data-on-thumb="true"] {
@@ -390,7 +390,7 @@ function onKeyDown(event: KeyboardEvent) {
 }
 
 .track:focus-visible {
-  outline: 2px solid var(--accent-solid);
+  outline: 2px solid var(--focus-color);
   outline-offset: 3px;
 }
 </style>

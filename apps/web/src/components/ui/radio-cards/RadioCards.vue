@@ -2,10 +2,11 @@
   <RadioGroupRoot
     data-slot="radio-cards"
     :data-accent-color="color"
+    :data-size="size"
+    :data-variant="variant"
     :disabled="disabled"
     :data-disabled="disabled || undefined"
-    class="rt-Grid rt-RadioCardsRoot"
-    :class="[sizeClass, variantClass, props.class]"
+    :class="props.class"
     :style="gridStyle"
     v-bind="forwarded"
   >
@@ -19,7 +20,7 @@ import type { ComputedRef, HTMLAttributes } from "vue"
 import { computed } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { RadioGroupRoot, useForwardPropsEmits } from "reka-ui"
-import { sizeClass as rtSizeClass, type Size } from "@components/ui/rt/size.js"
+import type { Size } from "@components/ui/rt/size.js"
 
 defineOptions({ inheritAttrs: false })
 
@@ -60,12 +61,24 @@ const delegatedProps = reactiveOmit(
   "gap",
 )
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<RadioGroupRootProps>
-const sizeClass = computed(() => rtSizeClass(props.size))
-const variantClass = computed(() => `rt-variant-${props.variant}`)
-/** rt 的 Grid 工具类（rt-r-cols / rt-r-gap）在 utilities.css 里，本项目没引那层；
-   直接落成内联属性，间距仍取 rt 的 --space-N 刻度。 */
+/** 列宽与间距直接落成内联属性：rt 的 Grid 工具类在 utilities.css 里，本项目没引那层 */
 const gridStyle = computed(() => ({
   gridTemplateColumns: props.columns,
   gap: `var(--space-${props.gap})`,
 }))
 </script>
+
+<style>
+/* 卡片式单选：网格由调用方的列宽规则决定，字号随尺寸档 */
+:where([data-slot="radio-cards"]) {
+  display: grid;
+  cursor: default;
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+}
+
+:where([data-slot="radio-cards"][data-size="l"]) {
+  font-size: var(--text-title);
+  line-height: var(--text-title--line-height);
+}
+</style>

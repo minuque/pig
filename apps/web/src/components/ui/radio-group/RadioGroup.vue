@@ -1,10 +1,5 @@
 <template>
-  <RadioGroupRoot
-    data-slot="radio-group"
-    v-bind="forwardedProps"
-    class="rt-RadioGroupRoot"
-    :class="props.class"
-  >
+  <RadioGroupRoot data-slot="radio-group" v-bind="forwardedProps" :class="props.class">
     <slot />
   </RadioGroupRoot>
 </template>
@@ -34,7 +29,7 @@ const props = withDefaults(
 const delegatedProps = reactiveOmit(props, "class", "size", "variant", "color", "highContrast")
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<RadioGroupRootProps>
 
-// 尺寸、变体、color 与 highContrast 挂在每个 Radio 上（rt 的 .rt-BaseRadioRoot:where(.rt-r-size-N) 就是这么选的）
+// 尺寸、变体、color 与 highContrast 挂在每个 Radio 上，由 data 属性选样式
 provide(
   RADIO_GROUP_KEY,
   computed(() => ({
@@ -45,3 +40,11 @@ provide(
   })),
 )
 </script>
+
+<style>
+:where([data-slot="radio-group"]) {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+</style>

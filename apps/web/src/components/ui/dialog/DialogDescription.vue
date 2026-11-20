@@ -1,10 +1,5 @@
 <template>
-  <DialogDescription
-    data-slot="dialog-description"
-    v-bind="forwardedProps"
-    class="rt-Text rt-r-size-3"
-    :class="props.class"
-  >
+  <DialogDescription data-slot="dialog-description" v-bind="forwardedProps" :class="props.class">
     <slot />
   </DialogDescription>
 </template>
@@ -22,3 +17,12 @@ const props = withDefaults(
 const delegatedProps = reactiveOmit(props, "class")
 const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DialogDescriptionProps>
 </script>
+
+<style>
+:where([data-slot="dialog-description"]) {
+  margin: 0;
+  font-size: var(--text-title);
+  line-height: var(--text-title--line-height);
+  color: var(--fg);
+}
+</style>

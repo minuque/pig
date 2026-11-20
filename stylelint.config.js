@@ -57,6 +57,20 @@ export default {
       rules: {
         // SFC 只消费 token，色值写在 app.css
         "color-no-hex": true,
+        // SFC 不声明新 --* 变量；仅放行 Radix 卡片/弹窗与全局滚动条的覆写槽
+        "property-disallowed-list": [
+          [
+            "/^--(?!card-(?:surface|padding|border-radius|background-color)$|dialog-max-width$|scrollbar-thumb$)/",
+          ],
+          {
+            message:
+              "SFC 不声明新 --* 变量；请写进 tokens.css，仅允许覆写 --card-* / --dialog-max-width / --scrollbar-thumb",
+          },
+        ],
+        // 局部隔离允许 0 / auto，其余层序一律读 tokens.css 的 --z-*
+        "declaration-property-value-disallowed-list": {
+          "z-index": ["/^-?[1-9]\\d*$/"],
+        },
         "function-disallowed-list": [
           "rgb",
           "rgba",

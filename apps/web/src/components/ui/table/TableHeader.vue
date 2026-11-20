@@ -1,3 +1,3 @@
 <template>
-  <thead data-slot="table-header" class="rt-TableHeader"><slot /></thead>
+  <thead data-slot="table-header"><slot /></thead>
 </template>

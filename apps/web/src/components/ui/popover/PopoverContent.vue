@@ -5,9 +5,10 @@
         data-slot="popover-content"
         :side-offset="8"
         :collision-padding="10"
+        :data-size="size"
         v-bind="{ ...$attrs, ...forwarded }"
-        class="rt-PopperContent rt-PopoverContent"
-        :class="[sizeClass, props.class]"
+        class="reveal-menu"
+        :class="props.class"
         :style="{ maxInlineSize: props.maxWidth }"
       >
         <slot />
@@ -19,11 +20,10 @@
 <script setup lang="ts">
 import type { PopoverContentProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
-import { computed } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { PopoverContent as PopoverContentPrimitive, PopoverPortal, useForwardProps } from "reka-ui"
 import { ThemeRoot } from "@components/ui/rt/index.js"
-import { sizeClass as rtSizeClass, type Size } from "@components/ui/rt/size.js"
+import type { Size } from "@components/ui/rt/size.js"
 
 defineOptions({ inheritAttrs: false })
 
@@ -41,5 +41,35 @@ const props = withDefaults(
 )
 const delegatedProps = reactiveOmit(props, "class", "size", "maxWidth")
 const forwarded = useForwardProps(delegatedProps) as ComputedRef<PopoverContentProps>
-const sizeClass = computed(() => rtSizeClass(props.size))
 </script>
+
+<style>
+/* 浮卡：实色底 + 1px 环 + 精致阴影，宽度跟随触发器但不小于它 */
+:where([data-slot="popover-content"]) {
+  box-sizing: border-box;
+  position: relative;
+  overflow: auto;
+  min-inline-size: var(--reka-popover-trigger-width);
+  background-color: var(--bg-raised);
+  box-shadow:
+    0 0 0 var(--border-width) var(--border),
+    var(--menu-shadow);
+  outline: 0;
+  transform-origin: var(--reka-popover-content-transform-origin);
+}
+
+:where([data-slot="popover-content"][data-size="s"]) {
+  padding: var(--space-sm);
+  border-radius: var(--radius-card);
+}
+
+:where([data-slot="popover-content"][data-size="m"]) {
+  padding: var(--space-md);
+  border-radius: var(--radius-card);
+}
+
+:where([data-slot="popover-content"][data-size="l"]) {
+  padding: var(--space-lg);
+  border-radius: var(--radius-dialog);
+}
+</style>

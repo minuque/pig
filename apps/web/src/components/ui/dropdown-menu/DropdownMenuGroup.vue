@@ -1,5 +1,5 @@
 <template>
-  <DropdownMenuGroup v-bind="forwardedProps" class="rt-BaseMenuGroup rt-DropdownMenuGroup">
+  <DropdownMenuGroup v-bind="forwardedProps" data-menu-group>
     <slot />
   </DropdownMenuGroup>
 </template>

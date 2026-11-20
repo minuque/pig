@@ -8,7 +8,7 @@
         :placeholder="text(PLACEHOLDER)"
         :aria-label="text(PLACEHOLDER)"
       >
-        <TextFieldSlot side="left"><SearchIcon class="size-icon-xs" /></TextFieldSlot>
+        <TextFieldSlot side="left"><SearchIcon class="size-icon-sm" /></TextFieldSlot>
       </TextFieldRoot>
 
       <span class="filter-count">{{ filtered.length }} / {{ all.length }}</span>
