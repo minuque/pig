@@ -3,6 +3,7 @@
     <section id="setting-theme" class="group">
       <h2 class="group-title">{{ t("settings.theme") }}</h2>
       <SchemeCards />
+      <PresetSwatches id="setting-theme-preset" />
     </section>
 
     <section class="group">
@@ -167,6 +168,7 @@ import {
 import { useLocalFonts } from "@features/settings/hooks/use-local-fonts.js"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@components/ui/select/index.js"
 import { CardList, CardRow } from "@components/ui/card/index.js"
+import PresetSwatches from "./PresetSwatches.vue"
 import SchemeCards from "./SchemeCards.vue"
 
 /** Select 的值不能是空串，默认字体用占位值。 */

@@ -1,13 +1,18 @@
-/** 主题控制器：深浅色切换、外观视图与代码块配色。状态本身在 `utils/theme-mode`。 */
-import { computed, effectScope, type ComputedRef } from "vue"
-import type { ColorScheme } from "@/types/theme-type.js"
+/** 主题控制器：深浅色切换、配色预设、外观视图与代码块配色。 */
+import { computed, effectScope, nextTick, type ComputedRef } from "vue"
+import type { ColorScheme, ThemePreset, ThemePresetId } from "@/types/theme-type.js"
 import { useIsDark, useThemeMode } from "@utils/theme-mode.js"
+import { useThemePreset } from "@utils/theme-preset.js"
 
 type Theme = {
   isDark: ComputedRef<boolean>
   scheme: ComputedRef<ColorScheme>
+  presetId: ComputedRef<ThemePresetId>
+  preset: ComputedRef<ThemePreset>
+  presets: readonly ThemePreset[]
   codeBlockProps: ComputedRef<{ theme: "github-dark" | "github-light" }>
   setScheme: (next: ColorScheme) => void
+  setPreset: (next: ThemePresetId) => void
   toggle: () => void
 }
 
@@ -24,6 +29,7 @@ function theme(): Theme {
 function createTheme(): Theme {
   const mode = useThemeMode()
   const isDark = useIsDark()
+  const { presetId, preset, presets, setPreset } = useThemePreset()
   const scheme = computed<ColorScheme>(() =>
     mode.store.value === "auto" ? "auto" : mode.state.value,
   )
@@ -46,16 +52,16 @@ function createTheme(): Theme {
       return
     }
 
-    const transition = document.startViewTransition(() => {
+    const transition = document.startViewTransition(async () => {
       setScheme(next)
-      document.documentElement.classList.toggle("dark", next === "dark")
+      await nextTick()
     })
 
     transition.ready.catch(() => {})
     transition.finished.catch(() => {})
   }
 
-  return { isDark, scheme, codeBlockProps, setScheme, toggle }
+  return { isDark, scheme, presetId, preset, presets, codeBlockProps, setScheme, setPreset, toggle }
 }
 
 export function useColorScheme() {

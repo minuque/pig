@@ -40,14 +40,21 @@
 
         if (dark) document.documentElement.classList.add("dark")
 
-        /* 与 use-general-prefs 的 pig.glass 同键：默认开，只有显式 off 才关 */
-        var glassOn = true
         try {
-          glassOn = localStorage.getItem("pig.glass") !== "off"
-        } catch (e) {
-          /* localStorage 不可用时按默认开启 */
-        }
-        if (glassOn) document.documentElement.dataset.glass = "on"
+          var preset = localStorage.getItem("pig.themePreset")
+          var presets = {
+            paper: { accent: "orange", light: "#fbf9f5", dark: "#141210" },
+            ocean: { accent: "blue", light: "#f8fafc", dark: "#0e131b" },
+            grove: { accent: "green", light: "#f8faf8", dark: "#0f1412" },
+            iris: { accent: "violet", light: "#faf9fc", dark: "#121017" },
+          }
+          if (preset && presets[preset]) {
+            var item = presets[preset]
+            document.documentElement.dataset.themePreset = preset
+            document.documentElement.dataset.accentColor = item.accent
+            document.documentElement.style.setProperty("--bg", dark ? item.dark : item.light)
+          }
+        } catch (e) {}
       })()
     </script>
     <link rel="stylesheet" href="/src/style/app.css" />
