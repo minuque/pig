@@ -41,7 +41,6 @@
       class="picker-menu"
       @open-auto-focus.prevent="nextTick(focusSearch)"
       @pointer-down-outside="onPointerDownOutside"
-      @focus-outside="onFocusOutside"
       @close-auto-focus="onCloseAutoFocus"
     >
       <div class="picker" @keydown.capture="onPickerKeydown">
@@ -223,7 +222,6 @@ const {
   onPanelKeydown,
   onSearchKeydown: searchKeydown,
   onPointerDownOutside,
-  onFocusOutside,
   onCloseAutoFocus,
   focusSearch,
 } = useModelPickerPanel(

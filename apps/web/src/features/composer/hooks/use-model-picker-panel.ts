@@ -1,21 +1,7 @@
 import { nextTick, ref, watch, type Ref } from "vue"
 import { FAVORITES_SCOPE } from "@features/composer/lib/model-preset.js"
 
-function eventElement(target: EventTarget | null): Element | null {
-  if (target instanceof Element) return target
-
-  if (target instanceof Node) return target.parentElement
-  return null
-}
-
-/** 与思考档子菜单 content 的 data-model-effort-menu 对应。 */
-function isEffortMenuEvent(event: Event): boolean {
-  const detail = (event as CustomEvent<{ originalEvent?: Event }>).detail
-  const el = eventElement(detail?.originalEvent?.target ?? event.target)
-  return Boolean(el?.closest("[data-model-effort-menu]"))
-}
-
-/** 打开态：搜索、厂商轨、嵌套思考档菜单不关外层。 */
+/** 打开态：搜索、厂商轨不关外层。 */
 export function useModelPickerPanel(
   open: Ref<boolean>,
   currentVendorId: () => string | undefined,
@@ -58,17 +44,8 @@ export function useModelPickerPanel(
     query.value = ""
   }
 
-  function onPointerDownOutside(event: Event) {
-    if (isEffortMenuEvent(event)) {
-      event.preventDefault()
-      return
-    }
-
+  function onPointerDownOutside() {
     suppressRestore = true
-  }
-
-  function onFocusOutside(event: Event) {
-    if (isEffortMenuEvent(event)) event.preventDefault()
   }
 
   function onCloseAutoFocus(event: Event) {
@@ -83,7 +60,6 @@ export function useModelPickerPanel(
     onPanelKeydown,
     onSearchKeydown,
     onPointerDownOutside,
-    onFocusOutside,
     onCloseAutoFocus,
     focusSearch,
   }
