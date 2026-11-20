@@ -42,6 +42,14 @@
   --card-surface: transparent;
 }
 
+/* indigo 强调的实心档接到项目强调色，rt 的按钮、开关、滑条与自写组件同色 */
+[data-accent-color="indigo"] {
+  --accent-9: var(--accent-solid);
+  --accent-10: var(--accent-solid-hover);
+  --accent-indicator: var(--accent-solid);
+  --accent-track: var(--accent-solid);
+}
+
 /* 菜单尺寸：弹层用 rt 的 m 档字号，行高取 --control-md，内边距收到 s 档。
    项目不再用左侧留白放勾，左右内边距取同值，否则 rt 的 :has 会为勾多留一档。
    :where() 不抬特异性，靠写在 import 之后覆盖 rt 同名规则。 */
@@ -274,7 +282,7 @@
   .rt-PopoverContent,
   .rt-HoverCardContent
 ) {
-  background-color: var(--glass-bg);
+  background-color: var(--glass-menu-bg);
   box-shadow:
     0 0 0 var(--border-width) var(--border),
     var(--glass-menu-shadow);

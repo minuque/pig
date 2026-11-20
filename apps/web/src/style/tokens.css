@@ -50,9 +50,9 @@
 
   /* --- 前景 --- */
   --fg-on-accent: var(--accent-contrast);
-  /* 文字两级固定色：取 Radix 的 black alpha，与表面同一中性；深色镜像到 white alpha */
-  --fg: var(--black-a10);
-  --fg-secondary: var(--black-a8);
+  /* 文字两级实色，带冷调，与表面同一色系 */
+  --fg: #282a30;
+  --fg-secondary: #4c5159;
   --fg-inverse: #ffffff;
 
   /* --- 边与分割 --- */
@@ -63,13 +63,13 @@
   --border-strong: var(--black-a3);
 
   /* --- 交互 --- */
-  /* 主强调色 indigo：实心填充取 --accent-solid，文字与图标前景取 --accent-text */
-  --accent-solid: var(--indigo-9);
-  --accent-solid-hover: var(--indigo-10);
+  /* 主强调色：实心填充取 --accent-solid，文字与图标前景取 --accent-text */
+  --accent-solid: #5e6ad2;
+  --accent-solid-hover: #4c56b8;
   --accent-text: var(--indigo-11);
-  /* 按钮与可点行共用：浅色取 indigo 第 3 级 alpha 做悬停、第 4 级做选中；深色降一档，见 .dark */
-  --bg-hover: var(--indigo-a3);
-  --bg-selected: var(--indigo-a4);
+  /* 按钮与可点行共用：浅色悬停是中性灰，选中带一点强调色 */
+  --bg-hover: #f1f2f4;
+  --bg-selected: #edeff9;
   /* 中性填充两档：轻档给徽标、芯片底，重档给进度轨道与卡片内滚动条 */
   --bg-muted: color-mix(in srgb, var(--fg) 5%, transparent);
   --bg-emphasis: color-mix(in srgb, var(--fg) 12%, transparent);
@@ -88,6 +88,8 @@
   --info-solid: #0a7f9c;
   --warning-text: #8f5f13;
   --danger-text: #ae2e38;
+  /* 危险实心填充：停止按钮等，配白字 */
+  --danger-solid: #ae2e38;
   --success-subtle: var(--green-a3);
   --info-subtle: var(--cyan-a3);
   --warning-subtle: #f7efdd;
@@ -228,6 +230,8 @@
   --dialog-padding-compact: round(up, var(--radius-card), var(--spacing));
   /* 毛玻璃弹层（警告框、命令面板）：半透明底加模糊，背后的遮罩也带轻模糊 */
   --glass-bg: color-mix(in srgb, var(--bg) 80%, transparent);
+  /* 菜单、下拉等小浮层的底：浮层面 --bg-raised 压到 80% */
+  --glass-menu-bg: color-mix(in srgb, var(--bg-raised) 80%, transparent);
   --glass-filter: blur(12px) saturate(1.14);
   --glass-shadow: 0 24px 64px -24px rgba(0, 0, 0, 0.65);
   --glass-radius: 16px;
@@ -378,9 +382,8 @@ html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]
   --bg-inverse-hover: #b8bdc5;
 
   /* --- 前景 --- */
-  /* 与浅色对称，两级都取 white alpha */
-  --fg: var(--white-a11);
-  --fg-secondary: var(--white-a8);
+  --fg: #e8eaed;
+  --fg-secondary: #9da4ae;
   --fg-on-accent: var(--accent-contrast);
   --fg-inverse: #131316;
 
@@ -391,20 +394,20 @@ html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]
   --border-strong: var(--white-a3);
 
   /* --- 交互 --- */
-  /* 深色同样取 indigo 的 9/10/11 档 */
-  --accent-solid: var(--indigo-9);
-  --accent-solid-hover: var(--indigo-10);
+  --accent-solid: #5e6ad2;
+  --accent-solid-hover: #525dc0;
   --accent-text: var(--indigo-11);
   --focus-ring: 0 0 0 2px var(--accent-text);
-  /* indigo 的 alpha 在深色更重，悬停与选中回落到第 2、3 档，与浅色的 3、4 档体感一致 */
-  --bg-hover: var(--indigo-a2);
-  --bg-selected: var(--indigo-a3);
+  /* 深色悬停与选中都带一点强调色 */
+  --bg-hover: #121728;
+  --bg-selected: #1a2143;
 
   /* --- 状态 --- */
   --info-text: var(--cyan-11);
   --info-solid: var(--cyan-9);
   --warning-text: #e8a33d;
-  --danger-text: #ff7d88;
+  --danger-text: #e05c59;
+  --danger-solid: #c84646;
   --warning-subtle: #251b0d;
   --danger-subtle: #281518;
 

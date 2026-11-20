@@ -429,7 +429,7 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
   pointer-events: auto;
 }
 
-/* 反色胶囊浮在输入卡上方，与发送键同一组反色 */
+/* 反色胶囊浮在输入卡上方 */
 .scroll-latest {
   display: flex;
   align-self: flex-start;

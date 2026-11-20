@@ -2,9 +2,9 @@
 name: pig 工作台
 description: 本机 Pi agent 的多会话并行工作台界面
 colors:
-  primary: "#3E63DD"
-  primary-hover-light: "#3358D4"
-  primary-hover-dark: "#5472E4"
+  primary: "#5E6AD2"
+  primary-hover-light: "#4C56B8"
+  primary-hover-dark: "#525DC0"
   primary-on: "#FFFFFF"
   link-light: "#0B6F88"
   link-dark: "#4CCCE6"
@@ -15,10 +15,10 @@ colors:
   sidebar-dark: "#0D0D0E"
   card-dark: "#17171A"
   overlay-dark: "#1C1C1F"
-  ink-light: "#333333"
-  ink-secondary-light: "#666666"
-  ink-dark: "#CFCFD0"
-  ink-secondary-dark: "#9F9FA0"
+  ink-light: "#282A30"
+  ink-secondary-light: "#4C5159"
+  ink-dark: "#E8EAED"
+  ink-secondary-dark: "#9DA4AE"
 typography:
   heading:
     fontFamily: "-apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
@@ -65,7 +65,7 @@ spacing:
 
 ## 基调
 
-克制、安静、舒服，表面与文字取 Linear 的冷灰基调。主题色 Radix indigo，悬停与选中浅色取 indigo 的 alpha 3 / 4 级、深色取 2 / 3 级，描边取 black / white alpha，rt 组件的灰阶取 Radix 纯灰（`gray`）；链接与进行中的 cyan 只管活动态。
+克制、安静、舒服，表面、文字与强调色取 Linear 的冷灰与靛。强调色是 `#5E6AD2`；悬停走中性灰，选中铺极淡的一层靛；描边取 black / white alpha；rt 组件的灰阶取 Radix 纯灰（`gray`）；链接与进行中的 cyan 只管活动态。
 
 优先级：解决问题 > 易于使用 > 好看美观。界面靠布局和控件本身说话，不靠说明文字和装饰。
 
@@ -81,7 +81,7 @@ spacing:
 
 ## 七条规则
 
-1. **一页一个强调色。** 强调色（indigo）只用于主操作、焦点与悬停/选中底；活动态（链接、进行中、运行指示）另走 cyan。卡片、区块不铺强调色，悬停与选中只取 indigo 的 alpha（浅色 3 / 4 级、深色 2 / 3 级），不铺实色。
+1. **一页一个强调色。** 强调色（`#5E6AD2`）只用于主操作、焦点与选中底；活动态（链接、进行中、运行指示）另走 cyan。卡片、区块不铺强调色：悬停走中性灰，选中只铺极淡的靛，不铺成彩色块。
 2. **一页最多 4 种字号。** 全局只有 4 档，层级靠字重和两级文字色。
 3. **默认扁平。** 不叠阴影、不发光。阴影与毛玻璃只给真正浮起来的层：弹窗、命令面板、菜单、下拉、浮卡共用 `--glass-*` 一套。
 4. **不卡片套卡片。** 卡片里的分组用标题加分割线。
@@ -93,37 +93,37 @@ spacing:
 
 ### 强调色
 
-强调色用 Radix 的 `indigo`。`index.html` 与 `ThemeRoot` 的 `data-accent-color="indigo"` 把它映射到 `--accent-*`；indigo 的 9/10/11 档原生就过 AA（9 档配白字 5.2:1，11 档压灰底 5.6:1），不需要再校准。
+强调色取 Linear 的靛 `#5E6AD2`，悬停 `#4C56B8`（深色 `#525DC0`）。`index.html` 与 `ThemeRoot` 的 `data-accent-color="indigo"` 仍把 rt 接到 `--accent-*`，`rt.css` 再把 9/10 两档换回这两个实心值，rt 的按钮、开关、滑条与自写组件同色；文字档仍取 indigo 第 11 级（浅色 `#3A5BC7`，深色 `#9EB1FF`，压灰底 5.6:1）。
 
 强调色分两个角色，按用法取值，不混用：
 
-- `--accent-solid`：实心填充与描边，取 `indigo-9`（`#3E63DD`，配白字 5.2:1），悬停用 `indigo-10`。主按钮的底、指示器、焦点描边用它，文字用 `--fg-on-accent`（白）。
+- `--accent-solid`：实心填充与描边，`#5E6AD2`（配白字 4.7:1），悬停用 `#4C56B8`（深色 `#525DC0`）。主按钮的底、发送键、指示器与选中描边用它，文字用 `--fg-on-accent`（白）。
 - `--accent-text`：文字与图标前景，取 `indigo-11`（浅色 `#3A5BC7`，深色 `#9EB1FF`）。焦点环、`.text-primary` 与强调色文字用它。
 - 焦点环 `--focus-ring` = 2px 实色 `--accent-text`（indigo）。
 - 链接 `--link` 取 `--info-text`，与「进行中」同一种 cyan，不跟强调色走。
 - 「进行中」与强调色分开：运行状态、转圈、上下文进度条与用量环走 `--info-*`，文字取 `--info-text`（浅色 `#0B6F88`，深色 cyan-11），填充取 `--info-solid`（cyan-9），浅底取 cyan 第 3 级 alpha。
-- 悬停与选中跟随强调色：按钮、菜单项、侧栏行的 `--bg-hover` / `--bg-selected` 浅色取 indigo 第 3、4 级 alpha，深色降到第 2、3 级，只做极淡的底色，不铺成彩色块。
+- 悬停与选中分开：按钮、菜单项、侧栏行的 `--bg-hover` 浅色取中性灰 `#F1F2F4`、深色取带靛的深灰 `#121728`；`--bg-selected` 浅色 `#EDEFF9`、深色 `#1A2143`，只铺极淡的一层，不铺成彩色块。
 - 一页只出现一个 solid 主按钮，其余用 soft 或 ghost。
-- 输入卡的发送 / 停止键与「滚动到底部」用反色（`--bg-inverse` / `--fg-inverse`），不用强调色。反色取中灰（浅色 `#6B6B72` 配白字 5.3:1，深色 `#9DA4AE` 配深字 7.6:1），不用纯黑白。发送键不可用时换 `--bg-emphasis` 底配 `--fg-secondary` 图标，不靠降透明度。
+- 输入卡的发送键用强调色实心（`--accent-solid` 配 `--fg-on-accent`），停止键用危险色实心（`--danger-solid` 配白）。「滚动到底部」仍用反色（`--bg-inverse` / `--fg-inverse`）：中灰（浅色 `#6B6B72` 配白字 5.3:1，深色 `#9DA4AE` 配深字 7.4:1），不用纯黑白。发送键不可用时换 `--bg-emphasis` 底配 `--fg-secondary` 图标，不靠降透明度。
 
 ### 中性色
 
-表面、文字、悬停与描边都用 black / white alpha 与固定 hex，不带色相偏移。rt 组件的灰阶（`--gray-*`）取 Radix 纯灰（`data-gray-color="gray"`），即 `color="gray"` 的按钮、徽章、Kbd、表格行线与菜单分割线读的也是纯灰；图表里的中性档 `--chart-other` 取 `gray-8`。
+表面与描边用固定 hex 与 black / white alpha；文字用带冷调的实色，与表面同一色系。rt 组件的灰阶（`--gray-*`）取 Radix 纯灰（`data-gray-color="gray"`），即 `color="gray"` 的按钮、徽章、Kbd、表格行线与菜单分割线读的也是纯灰；图表里的中性档 `--chart-other` 取 `gray-8`。
 
-| 层                             | 浅色                          | 深色                          | token                         |
-| ------------------------------ | ----------------------------- | ----------------------------- | ----------------------------- |
-| 窗口、主区                     | `#FFFFFF`                     | `#101012`                     | `--bg`                        |
-| 侧栏（主侧栏、抽屉、设置导航） | `#F7F8F8`（比主区深半档）     | `#0D0D0E`（比主区暗半档）     | `--sidebar`                   |
-| 卡片、输入卡、气泡、工具输入   | `#F7F8F8`（与侧栏同一档）     | `#17171A`                     | `--bg-surface`                |
-| 浮起的实色表面                 | `#FBFBFC`                     | `#1C1C1F`                     | `--bg-raised`                 |
-| 按钮与行悬停 / 选中            | `--indigo-a3` / `--indigo-a4` | `--indigo-a2` / `--indigo-a3` | `--bg-hover`、`--bg-selected` |
+| 层                             | 浅色                      | 深色                      | token                         |
+| ------------------------------ | ------------------------- | ------------------------- | ----------------------------- |
+| 窗口、主区                     | `#FFFFFF`                 | `#101012`                 | `--bg`                        |
+| 侧栏（主侧栏、抽屉、设置导航） | `#F7F8F8`（比主区深半档） | `#0D0D0E`（比主区暗半档） | `--sidebar`                   |
+| 卡片、输入卡、气泡、工具输入   | `#F7F8F8`（与侧栏同一档） | `#17171A`                 | `--bg-surface`                |
+| 浮起的实色表面                 | `#FBFBFC`                 | `#1C1C1F`                 | `--bg-raised`                 |
+| 按钮与行悬停 / 选中            | `#F1F2F4` / `#EDEFF9`     | `#121728` / `#1A2143`     | `--bg-hover`、`--bg-selected` |
 
-文字两级，取 Radix 的 black / white alpha：浅色压 black alpha，深色压 white alpha，alpha 随底自适应，侧栏与卡片上不再单独调色：
+文字两级用实色，带一点冷调，与表面同一色系；深浅各一套，不再靠 alpha 随底自适应：
 
-| 级  | 浅色                    | 深色                    | 对主区      | 用途       |
-| --- | ----------------------- | ----------------------- | ----------- | ---------- |
-| 主  | `black-a10`（≈#333333） | `white-a11`（≈#E7E7E8） | 12.6 / 15.4 | 正文、标题 |
-| 次  | `black-a8`（≈#666666）  | `white-a8`（≈#9F9FA0）  | 5.7 / 7.2   | 次要信息   |
+| 级  | 浅色      | 深色      | 对主区      | 用途       |
+| --- | --------- | --------- | ----------- | ---------- |
+| 主  | `#282A30` | `#E8EAED` | 14.4 / 15.8 | 正文、标题 |
+| 次  | `#4C5159` | `#9DA4AE` | 8.0 / 7.6   | 次要信息   |
 
 描边只有 `--border`（alpha 第 2 档）、`--border-subtle`（第 1 档）与 `--border-strong`（第 3 档），都是 black / white alpha。分割线只用 1px `--border-subtle`。
 

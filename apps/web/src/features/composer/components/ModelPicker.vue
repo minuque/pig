@@ -362,8 +362,9 @@ function onSelectModel(event: Event, provider: string, id: string) {
   font-size: var(--text-body);
 }
 
+.selector.rt-Button:not(:disabled):hover,
 .selector.rt-Button[data-state="open"] {
-  background-color: var(--bg-hover);
+  background-color: var(--bg-selected);
 }
 
 .selector-labels {
