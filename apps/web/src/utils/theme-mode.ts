@@ -29,7 +29,7 @@ export function useThemeMode(): Mode {
   return state().mode
 }
 
-/** 只读外观：基础件和弹层包 `ThemeRoot` 时用它，不必认识主题控制器。 */
+/** 只读外观：不必认识主题控制器的调用方用它。 */
 export function useIsDark(): ComputedRef<boolean> {
   return state().isDark
 }

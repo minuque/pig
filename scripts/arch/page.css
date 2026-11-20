@@ -1,12 +1,34 @@
-/* 架构看板样式：消费 tokens.css 与 Radix 色板，补齐 rt.css 作用域内的语义边与校准强调色 */
+/* 架构看板样式：消费 tokens.css 与 Radix 色板，补齐语义边并把中性色换成 slate */
 
-.radix-themes {
+:root {
+  --gray-1: var(--slate-1);
+  --gray-2: var(--slate-2);
+  --gray-3: var(--slate-3);
+  --gray-4: var(--slate-4);
+  --gray-5: var(--slate-5);
+  --gray-6: var(--slate-6);
+  --gray-7: var(--slate-7);
+  --gray-8: var(--slate-8);
+  --gray-9: var(--slate-9);
+  --gray-10: var(--slate-10);
+  --gray-11: var(--slate-11);
+  --gray-12: var(--slate-12);
+  --gray-a1: var(--slate-a1);
+  --gray-a2: var(--slate-a2);
+  --gray-a3: var(--slate-a3);
+  --gray-a4: var(--slate-a4);
+  --gray-a5: var(--slate-a5);
+  --gray-a6: var(--slate-a6);
+  --gray-a7: var(--slate-a7);
+  --gray-a8: var(--slate-a8);
+  --gray-a9: var(--slate-a9);
+  --gray-a10: var(--slate-a10);
+  --gray-a11: var(--slate-a11);
+  --gray-a12: var(--slate-a12);
   --border: var(--gray-a4);
   --border-subtle: var(--gray-a3);
   --border-strong: var(--gray-a5);
   --separator-top: inset 0 var(--border-width) 0 var(--border-subtle);
-  --shadow-popover: var(--shadow-5);
-  --shadow-dialog: var(--shadow-6);
   --arch-up-bg: var(--warning-subtle);
   --arch-up-fg: var(--warning-text);
   --arch-up-border: var(--amber-7);
@@ -20,17 +42,17 @@
   --arch-info-fg: var(--info-text);
 }
 
-.dark.radix-themes {
+html.dark:root {
   --arch-down-fg: var(--green-11);
 }
 
-.radix-themes[data-accent-color="cyan"] {
-  --accent-9: var(--accent-solid);
-  --accent-10: var(--accent-solid-hover);
+:root[data-accent-color="cyan"] {
   --accent-11: var(--accent-text);
   --accent-a11: var(--accent-text);
-  --accent-indicator: var(--accent-solid);
-  --accent-track: var(--accent-solid);
+}
+
+::selection {
+  background-color: var(--accent-a5);
 }
 
 .mermaid-diagram {
@@ -74,6 +96,7 @@ body {
   font-family: var(--font-sans);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
+  overflow-wrap: break-word;
 }
 
 button,

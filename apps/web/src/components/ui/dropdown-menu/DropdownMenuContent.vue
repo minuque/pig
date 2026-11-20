@@ -1,21 +1,19 @@
 <template>
   <DropdownMenuPortal>
-    <ThemeRoot>
-      <DropdownMenuContent
-        data-slot="dropdown-menu-content"
-        v-bind="{ ...$attrs, ...forwarded, ...(reference && { reference }) }"
-        :data-accent-color="props.color"
-        data-menu-content
-        :data-size="size"
-        :class="['reveal-menu', props.class]"
-      >
-        <div v-if="!bare" data-menu-viewport>
-          <slot />
-        </div>
+    <DropdownMenuContent
+      data-slot="dropdown-menu-content"
+      v-bind="{ ...$attrs, ...forwarded, ...(reference && { reference }) }"
+      :data-accent-color="props.color"
+      data-menu-content
+      :data-size="size"
+      :class="['reveal-menu', props.class]"
+    >
+      <div v-if="!bare" data-menu-viewport>
+        <slot />
+      </div>
 
-        <slot v-else />
-      </DropdownMenuContent>
-    </ThemeRoot>
+      <slot v-else />
+    </DropdownMenuContent>
   </DropdownMenuPortal>
 </template>
 
@@ -24,7 +22,6 @@ import type { DropdownMenuContentEmits, DropdownMenuContentProps } from "reka-ui
 import { computed, toRef, type ComputedRef, type HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { DropdownMenuContent, DropdownMenuPortal, useForwardPropsEmits } from "reka-ui"
-import { ThemeRoot } from "@components/ui/rt/index.js"
 import { provideMenuContent, type MenuSize } from "@components/ui/rt/menu-context.js"
 import { usePopperAnchor } from "./popper-anchor.js"
 

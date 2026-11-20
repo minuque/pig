@@ -1,20 +1,18 @@
 <template>
   <HoverCardPortal>
-    <ThemeRoot>
-      <HoverCardContent
-        data-slot="hover-card-content"
-        :data-size="size"
-        :align="align"
-        :side-offset="8"
-        :collision-padding="10"
-        v-bind="forwarded"
-        class="reveal-menu"
-        :class="props.class"
-        :style="widthStyle"
-      >
-        <slot />
-      </HoverCardContent>
-    </ThemeRoot>
+    <HoverCardContent
+      data-slot="hover-card-content"
+      :data-size="size"
+      :align="align"
+      :side-offset="8"
+      :collision-padding="10"
+      v-bind="forwarded"
+      class="reveal-menu"
+      :class="props.class"
+      :style="widthStyle"
+    >
+      <slot />
+    </HoverCardContent>
   </HoverCardPortal>
 </template>
 
@@ -24,7 +22,6 @@ import type { ComputedRef, HTMLAttributes } from "vue"
 import { computed } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { HoverCardContent, HoverCardPortal, useForwardProps } from "reka-ui"
-import { ThemeRoot } from "@components/ui/rt/index.js"
 import type { Size } from "@components/ui/rt/size.js"
 
 defineOptions({ inheritAttrs: false })

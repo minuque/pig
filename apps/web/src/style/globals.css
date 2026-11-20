@@ -70,8 +70,16 @@ body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-sans);
+  font-size: var(--text-body);
   font-optical-sizing: auto;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background-color: var(--accent-a5);
 }
 
 /* 等宽内容恢复默认 OpenType 特征，避免继承正文的 Inter 变体 */

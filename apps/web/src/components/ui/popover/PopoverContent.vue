@@ -1,19 +1,17 @@
 <template>
   <PopoverPortal>
-    <ThemeRoot>
-      <PopoverContentPrimitive
-        data-slot="popover-content"
-        :side-offset="8"
-        :collision-padding="10"
-        :data-size="size"
-        v-bind="{ ...$attrs, ...forwarded }"
-        class="reveal-menu"
-        :class="props.class"
-        :style="{ maxInlineSize: props.maxWidth }"
-      >
-        <slot />
-      </PopoverContentPrimitive>
-    </ThemeRoot>
+    <PopoverContentPrimitive
+      data-slot="popover-content"
+      :side-offset="8"
+      :collision-padding="10"
+      :data-size="size"
+      v-bind="{ ...$attrs, ...forwarded }"
+      class="reveal-menu"
+      :class="props.class"
+      :style="{ maxInlineSize: props.maxWidth }"
+    >
+      <slot />
+    </PopoverContentPrimitive>
   </PopoverPortal>
 </template>
 
@@ -22,7 +20,6 @@ import type { PopoverContentProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { PopoverContent as PopoverContentPrimitive, PopoverPortal, useForwardProps } from "reka-ui"
-import { ThemeRoot } from "@components/ui/rt/index.js"
 import type { Size } from "@components/ui/rt/size.js"
 
 defineOptions({ inheritAttrs: false })

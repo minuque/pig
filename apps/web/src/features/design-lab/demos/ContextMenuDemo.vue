@@ -11,7 +11,7 @@
               inline-size: 320px;
               block-size: 160px;
               border: 1px dashed var(--gray-a7);
-              border-radius: var(--radius-3);
+              border-radius: var(--radius-control);
             "
           >
             Right-click this area

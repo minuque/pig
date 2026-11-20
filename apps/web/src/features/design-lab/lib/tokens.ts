@@ -1,5 +1,4 @@
 import { nextTick, onMounted, ref, watch } from "vue"
-import rtCss from "@style/rt.css?raw"
 import tokensCss from "@style/tokens.css?raw"
 import { useColorScheme } from "@features/theme/index.js"
 import type { Label } from "@features/design-lab/lib/nav.js"
@@ -82,21 +81,19 @@ export function groupTitle(group: string): Label {
   return { zh: group, en: GROUP_EN[group] ?? group }
 }
 
-// rt 自己的旋钮（--space-1、--radius-2、--focus-8、--base-* 等）不是项目 token
+// 库与组件自己的旋钮（--reka-*、--card-*、--table-* 等）不是项目 token
 const KNOB =
   /^--(radix|reka|base-|card-|table-|radius-\d+$|space-\d+$|focus-\d+$|default-|dialog-content)/
-const PLACES = [...placed(tokensCss), ...placed(rtCss, "边与分割")].filter(
-  (place, index, all) => all.findIndex((other) => other.name === place.name) === index,
-)
+const PLACES = placed(tokensCss)
 
-/** 读 :root 与 .radix-themes 块，按分区注释给每个声明记下层与组；同名只记第一次。 */
-function placed(css: string, fallback = ""): Omit<Token, "value">[] {
-  const blocks = css.match(/(?::root|\.radix-themes)\s*\{[^}]*\}/g) ?? []
+/** 读 :root 块，按分区注释给每个声明记下层与组；同名只记第一次。 */
+function placed(css: string): Omit<Token, "value">[] {
+  const blocks = css.match(/:root\s*\{[^}]*\}/g) ?? []
   const seen = new Map<string, Omit<Token, "value">>()
 
   for (const block of blocks) {
     let layer: Layer = "semantic"
-    let group = fallback
+    let group = ""
 
     for (const line of block.split("\n")) {
       const header = /\/\*\s*(=+|-+)\s*([^：:-]+?)[：:\s-]/.exec(line)
@@ -164,8 +161,7 @@ export function useTokens() {
   const tokens = ref<Token[]>([])
 
   function read() {
-    const root = document.querySelector("[data-is-root-theme]") ?? document.documentElement
-    const style = getComputedStyle(root)
+    const style = getComputedStyle(document.documentElement)
     tokens.value = PLACES.map((place) => ({
       ...place,
       value: style.getPropertyValue(place.name).trim(),

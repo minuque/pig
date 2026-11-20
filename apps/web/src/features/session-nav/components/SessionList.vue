@@ -65,7 +65,7 @@
 
     <!-- 拖起的行浮在两块滚动区之上，跨区时不被裁掉 -->
     <Teleport to="body">
-      <ThemeRoot v-if="overlay" class="session-drag-layer">
+      <div v-if="overlay" class="session-drag-layer">
         <div
           v-show="!outside"
           class="drag-overlay"
@@ -86,7 +86,7 @@
           <MessageSquareIcon class="size-icon" />
           <span class="drag-ghost-title">{{ overlay.props.session.title }}</span>
         </div>
-      </ThemeRoot>
+      </div>
     </Teleport>
   </nav>
 </template>
@@ -94,7 +94,6 @@
 <script setup lang="ts">
 import { computed, onUpdated, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { ThemeRoot } from "@components/ui/rt/index.js"
 import { MessageSquareIcon } from "@components/icons/index.js"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import SessionSection from "@features/session-nav/components/SessionSection.vue"

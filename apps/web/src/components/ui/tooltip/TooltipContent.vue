@@ -1,19 +1,17 @@
 <template>
   <TooltipPortal>
-    <ThemeRoot>
-      <TooltipContent
-        data-slot="tooltip-content"
-        v-bind="{ ...$attrs, ...forwarded }"
-        class="reveal-menu"
-        :class="props.class"
-      >
-        <p data-slot="tooltip-text">
-          <slot />
-        </p>
+    <TooltipContent
+      data-slot="tooltip-content"
+      v-bind="{ ...$attrs, ...forwarded }"
+      class="reveal-menu"
+      :class="props.class"
+    >
+      <p data-slot="tooltip-text">
+        <slot />
+      </p>
 
-        <TooltipArrow data-slot="tooltip-arrow" />
-      </TooltipContent>
-    </ThemeRoot>
+      <TooltipArrow data-slot="tooltip-arrow" />
+    </TooltipContent>
   </TooltipPortal>
 </template>
 
@@ -22,7 +20,6 @@ import type { TooltipContentEmits, TooltipContentProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { TooltipArrow, TooltipContent, TooltipPortal, useForwardPropsEmits } from "reka-ui"
-import { ThemeRoot } from "@components/ui/rt/index.js"
 
 defineOptions({ inheritAttrs: false })
 

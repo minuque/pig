@@ -1,24 +1,22 @@
 <template>
   <SelectPortal>
-    <ThemeRoot>
-      <SelectContent
-        data-slot="select-content"
-        :data-size="size"
-        :data-variant="variant"
-        :data-accent-color="color"
-        :data-position="position"
-        :position="position"
-        :side-offset="4"
-        :collision-padding="10"
-        v-bind="forwarded"
-        class="reveal-menu"
-        :class="props.class"
-      >
-        <SelectViewport data-slot="select-viewport">
-          <slot />
-        </SelectViewport>
-      </SelectContent>
-    </ThemeRoot>
+    <SelectContent
+      data-slot="select-content"
+      :data-size="size"
+      :data-variant="variant"
+      :data-accent-color="color"
+      :data-position="position"
+      :position="position"
+      :side-offset="4"
+      :collision-padding="10"
+      v-bind="forwarded"
+      class="reveal-menu"
+      :class="props.class"
+    >
+      <SelectViewport data-slot="select-viewport">
+        <slot />
+      </SelectViewport>
+    </SelectContent>
   </SelectPortal>
 </template>
 
@@ -27,7 +25,6 @@ import type { SelectContentEmits, SelectContentProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { SelectContent, SelectPortal, SelectViewport, useForwardPropsEmits } from "reka-ui"
-import { ThemeRoot } from "@components/ui/rt/index.js"
 import { useSelectSize } from "@components/ui/select/select-context.js"
 
 defineOptions({ inheritAttrs: false })

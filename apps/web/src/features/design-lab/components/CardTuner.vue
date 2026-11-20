@@ -79,7 +79,7 @@
 
       <div class="tuner-output">
         <div class="tuner-output-head">
-          <span class="tuner-label">粘回 style/rt.css 与 tokens.css</span>
+          <span class="tuner-label">粘回 tokens.css</span>
 
           <Button size="s" variant="ghost" color="gray" @click="copy">
             {{ copied ? "已复制" : "复制" }}

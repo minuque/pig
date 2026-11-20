@@ -1,30 +1,28 @@
 <template>
   <DialogPortal>
-    <ThemeRoot>
-      <DialogOverlay :align="align" :style="widthStyle">
-        <DialogContent
-          data-slot="dialog-content"
-          :data-size="size"
-          v-bind="{ ...$attrs, ...forwarded }"
-          :class="props.class"
-        >
-          <slot />
+    <DialogOverlay :align="align" :style="widthStyle">
+      <DialogContent
+        data-slot="dialog-content"
+        :data-size="size"
+        v-bind="{ ...$attrs, ...forwarded }"
+        :class="props.class"
+      >
+        <slot />
 
-          <DialogClose
-            v-if="showCloseButton"
-            data-button
-            data-slot="icon-button"
-            data-size="s"
-            data-variant="ghost"
-            data-accent-color="gray"
-            :aria-label="t('common.close')"
-            class="dlg-close"
-          >
-            <XIcon class="size-icon" />
-          </DialogClose>
-        </DialogContent>
-      </DialogOverlay>
-    </ThemeRoot>
+        <DialogClose
+          v-if="showCloseButton"
+          data-button
+          data-slot="icon-button"
+          data-size="s"
+          data-variant="ghost"
+          data-accent-color="gray"
+          :aria-label="t('common.close')"
+          class="dlg-close"
+        >
+          <XIcon class="size-icon" />
+        </DialogClose>
+      </DialogContent>
+    </DialogOverlay>
   </DialogPortal>
 </template>
 
@@ -35,7 +33,6 @@ import { computed } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { DialogClose, DialogContent, DialogPortal, useForwardPropsEmits } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
-import { ThemeRoot } from "@components/ui/rt/index.js"
 import type { Size } from "@components/ui/rt/size.js"
 import { XIcon } from "@components/icons/index.js"
 import DialogOverlay from "./DialogOverlay.vue"

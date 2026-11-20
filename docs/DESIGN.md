@@ -68,7 +68,7 @@ spacing:
 
 ## 基调
 
-克制、安静、舒服，表面、文字与强调色取 Linear 的冷灰与靛。强调色是 `#5E6AD2`；悬停走中性灰，选中铺极淡的一层靛；描边取 black / white alpha；rt 组件的灰阶取 Radix 纯灰（`gray`）；链接与进行中的 cyan 只管活动态。
+克制、安静、舒服，表面、文字与强调色取 Linear 的冷灰与靛。强调色是 `#5E6AD2`；悬停走中性灰，选中铺极淡的一层靛；描边取 black / white alpha；基础件的灰阶取 Radix 纯灰（`gray`）；链接与进行中的 cyan 只管活动态。
 
 优先级：解决问题 > 易于使用 > 好看美观。界面靠布局和控件本身说话，不靠说明文字和装饰。
 
@@ -76,9 +76,9 @@ spacing:
 
 `apps/web/src/style/tokens.css` 分三层，组件只读语义层和组件层：
 
-1. **原色阶**：Radix indigo、gray、cyan 与状态色板由 rt 提供，`tokens.css` 不另写。
+1. **原色阶**：Radix indigo、gray、cyan 与状态色板由 `@radix-ui/colors` 提供（`app.css` 引入），`tokens.css` 不另写。
 2. **语义层**：全站共用，按「表面、前景、边与分割、交互、状态、字、间距、圆角、阴影、动效、图标与控件高、布局、层级」分组。命名一个概念一个词：前景 `fg`、底 `bg`、边 `border`、品牌色 `accent`、状态 `-text` / `-subtle`。
-3. **组件层**：只给单个组件或一类内容用，名字以组件开头（`--composer-*`、`--glass-*`、`--language-*`、`--mascot-*`）。单文件私有的静态几何尺寸直接写在各自组件样式中，能用语义档就不进这一层；颜色只在语义档与 rt 的色阶里取（`--gray-*`、`--gray-a*`、`--black-a*`、`--white-a*`），不写裸色值，插画与品牌色见「例外」。
+3. **组件层**：只给单个组件或一类内容用，名字以组件开头（`--composer-*`、`--glass-*`、`--language-*`、`--mascot-*`）。单文件私有的静态几何尺寸直接写在各自组件样式中，能用语义档就不进这一层；颜色只在语义档与 Radix 色阶里取（`--gray-*`、`--gray-a*`、`--black-a*`、`--white-a*`），不写裸色值，插画与品牌色见「例外」。
 
 `/design` 页直接读这些分区注释分组，新增 token 时写进对应小标题下。
 
@@ -96,7 +96,7 @@ spacing:
 
 ### 强调色
 
-默认强调色取 Linear 的靛（浅色 `#5E6AD2`、悬停 `#4C56B8`；深色提亮到 `#6672DC`、悬停 `#747FE5`，保证深底清晰度）。外观设置另提供 `paper` / `ocean` / `grove` / `iris` 四套精选预设，由 `utils/theme-palette.ts` 从 `canvas + accent` 双种子经 OKLCH 推导出表面阶梯、前景三级灰与强调色阶并兜底 WCAG 对比度。`index.html` 与 `ThemeRoot` 的 `data-accent-color` 同步切换对应的 Radix 色板，`rt.css` 再通过 `.radix-themes[data-accent-color]` 把第 9/10 档、指示器与对比字色接回项目语义层，子组件显式传入 `color` 时仍保留独立色板。
+默认强调色取 Linear 的靛（浅色 `#5E6AD2`、悬停 `#4C56B8`；深色提亮到 `#6672DC`、悬停 `#747FE5`，保证深底清晰度）。外观设置另提供 `paper` / `ocean` / `grove` / `iris` 四套精选预设，由 `utils/theme-palette.ts` 从 `canvas + accent` 双种子经 OKLCH 推导出表面阶梯、前景三级灰与强调色阶并兜底 WCAG 对比度。文档根的 `data-accent-color` 切换对应的 Radix 色板，`tokens.css` 再通过 `:root[data-accent-color]` 把第 9/10 档、指示器与对比字色接回项目语义层，子组件显式传入 `color` 时仍保留独立色板。
 
 强调色分两个角色，按用法取值，不混用：
 
@@ -111,7 +111,7 @@ spacing:
 
 ### 中性色
 
-表面与描边用固定 hex 与 black / white alpha；文字用带冷调的实色，与表面同一色系。rt 组件的灰阶（`--gray-*`）取 Radix 纯灰（`data-gray-color="gray"`），即 `color="gray"` 的按钮、徽章、Kbd、表格行线与菜单分割线读的也是纯灰；图表里的中性档 `--chart-other` 取 `gray-8`。
+表面与描边用固定 hex 与 black / white alpha；文字用带冷调的实色，与表面同一色系。基础件的灰阶（`--gray-*`）取 Radix 纯灰，即 `color="gray"` 的按钮、徽章、Kbd、表格行线与菜单分割线读的也是纯灰；图表里的中性档 `--chart-other` 取 `gray-8`。
 
 | 层                             | 浅色                      | 深色                      | token                         |
 | ------------------------------ | ------------------------- | ------------------------- | ----------------------------- |
@@ -145,8 +145,8 @@ spacing:
 - `--language-*`：代码块语言图标，只在代码块里。
 - Mermaid 图：浅色用 pele 自带的默认配色；深色在 `mermaid.css` 接项目语义 token（底 `--bg`、填充 `--bg-surface`、线 `--border`）。
 - `--mascot-*`：吉祥物插画，深浅共用 logo 原色。
-- `--favorite`、`--brand-mark-bg`：收藏星标的琥珀与 logo 蓝底，色相和明度都对不上 rt 的档。
-- `--theme-wire-*`、强度滑条的外壳与滑块渐变：固定画浅色 / 深色的表面色，或手调的半透明白，rt 没有对应档。
+- `--favorite`、`--brand-mark-bg`：收藏星标的琥珀与 logo 蓝底，色相和明度都对不上 Radix 色阶。
+- `--theme-wire-*`、强度滑条的外壳与滑块渐变：固定画浅色 / 深色的表面色，或手调的半透明白，Radix 色阶没有对应档。
 
 ## 字号
 
@@ -173,8 +173,7 @@ spacing:
 | `--composer-radius` | 18   | 输入卡                               |
 | `--radius-pill`     | 9999 | 胶囊、圆形按钮                       |
 
-- rt 的 `--radius-1..6` 在 `rt.css` 接到这三档。
-- 嵌套写 `calc(外层 - 内边距)`；结果太小时用 `max()` 兜到 `--radius-control` 的一半。rt 菜单：外 8、内边距 4、项取 `--radius-control` 6，比同心值 4 大 2px。
+- 嵌套写 `calc(外层 - 内边距)`；结果太小时用 `max()` 兜到 `--radius-control` 的一半。菜单：外 8、内边距 4、项取 `--radius-control` 6，比同心值 4 大 2px。
 
 ## 阴影与层级
 
@@ -184,7 +183,7 @@ spacing:
 | `--shadow-dialog`   | 对话框、抽屉、图片预览                                                     |
 | `--composer-shadow` | 输入卡：轻描边加顶边微高光与柔投影，聚焦输入时抬升投影                               |
 
-- 浮层与对话框阴影全用 rt 原值（自带 1px 外环）：`.radix-themes` 内 `--shadow-popover` 指向 rt `--shadow-5`，`--shadow-dialog` 指向 `--shadow-6`。
+- 浮层与对话框阴影取 Radix Themes 第 5、6 档的原值（自带 1px 外环），写在 `tokens.css` 的 `--shadow-popover`、`--shadow-dialog`，深浅各一套。
 - 居中模态浮层（命令面板、警告框）用 `--glass-*` 毛玻璃面板；菜单、下拉与浮卡用高不透明实底 `--bg-raised` 配 `--menu-shadow`（深色加顶部 1px 微高光），避免底层代码干扰阅读；需要实色底的卡片用 `--bg-surface`。
 - 卡片用 1px `--border` 描边、不铺底；描边与底色差只用一种。
 - 分行卡片一律用 `CardList` + `CardRow`（`@components/ui/card`），不自写行线与内边距：12 圆角，行左右 16、上下 12，行线贴边；`interactive` 加悬停底；`bleed` 不带左右内边距，内容自己读 `--card-padding`。对话里的工具卡片留 8 圆角，与代码卡一致。

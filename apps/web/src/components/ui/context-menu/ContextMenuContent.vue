@@ -1,25 +1,23 @@
 <template>
   <ContextMenuPortal>
-    <ThemeRoot>
-      <MenuContent
-        data-slot="context-menu-content"
-        v-bind="forwarded"
-        side="right"
-        align="start"
-        :side-offset="2"
-        :data-accent-color="props.color"
-        data-menu-content
-        :data-size="size"
-        :class="['reveal-menu', props.class]"
-        :style="contentStyle"
-        @close-auto-focus="onCloseAutoFocus"
-        @interact-outside="onInteractOutside"
-      >
-        <div data-menu-viewport>
-          <slot />
-        </div>
-      </MenuContent>
-    </ThemeRoot>
+    <MenuContent
+      data-slot="context-menu-content"
+      v-bind="forwarded"
+      side="right"
+      align="start"
+      :side-offset="2"
+      :data-accent-color="props.color"
+      data-menu-content
+      :data-size="size"
+      :class="['reveal-menu', props.class]"
+      :style="contentStyle"
+      @close-auto-focus="onCloseAutoFocus"
+      @interact-outside="onInteractOutside"
+    >
+      <div data-menu-viewport>
+        <slot />
+      </div>
+    </MenuContent>
   </ContextMenuPortal>
 </template>
 
@@ -31,7 +29,6 @@ import { ref, toRef } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { ContextMenuPortal, injectContextMenuRootContext, useForwardPropsEmits } from "reka-ui"
 import { MenuContent } from "reka-ui/internal"
-import { ThemeRoot } from "@components/ui/rt/index.js"
 import { provideMenuContent, type MenuSize } from "@components/ui/rt/menu-context.js"
 
 defineOptions({

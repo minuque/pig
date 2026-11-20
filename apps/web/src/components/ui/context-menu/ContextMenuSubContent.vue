@@ -1,23 +1,21 @@
 <template>
   <ContextMenuPortal>
-    <ThemeRoot>
-      <ContextMenuSubContent
-        data-slot="context-menu-sub-content"
-        v-bind="forwardedProps"
-        :data-accent-color="accentColor"
-        :align-offset="alignOffset"
-        :side-offset="1"
-        :collision-padding="10"
-        data-menu-content
-        :data-size="size"
-        class="reveal-menu"
-        :class="props.class"
-      >
-        <div data-menu-viewport>
-          <slot />
-        </div>
-      </ContextMenuSubContent>
-    </ThemeRoot>
+    <ContextMenuSubContent
+      data-slot="context-menu-sub-content"
+      v-bind="forwardedProps"
+      :data-accent-color="accentColor"
+      :align-offset="alignOffset"
+      :side-offset="1"
+      :collision-padding="10"
+      data-menu-content
+      :data-size="size"
+      class="reveal-menu"
+      :class="props.class"
+    >
+      <div data-menu-viewport>
+        <slot />
+      </div>
+    </ContextMenuSubContent>
   </ContextMenuPortal>
 </template>
 
@@ -26,7 +24,6 @@ import type { ContextMenuSubContentProps } from "reka-ui"
 import { computed, type ComputedRef, type HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { ContextMenuPortal, ContextMenuSubContent, useForwardProps } from "reka-ui"
-import { ThemeRoot } from "@components/ui/rt/index.js"
 import { RT_SIZE } from "@components/ui/rt/size.js"
 import { useMenuContent } from "@components/ui/rt/menu-context.js"
 

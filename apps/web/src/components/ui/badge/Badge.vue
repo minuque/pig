@@ -113,7 +113,7 @@ const props = withDefaults(
 }
 
 :where([data-slot="badge"][data-variant="surface"]) {
-  background-color: var(--accent-surface);
+  background-color: var(--accent-a2);
   box-shadow: inset 0 0 0 var(--border-width) var(--accent-a6);
   color: var(--accent-a11);
 }

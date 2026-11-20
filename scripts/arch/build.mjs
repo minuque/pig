@@ -51,10 +51,13 @@ export async function buildArchHtml(root) {
   }
 
   const webRequire = createRequire(join(root, "apps/web/package.json"))
-  const radix = pkgDir(webRequire, "@radix-ui/themes")
+  const radix = pkgDir(webRequire, "@radix-ui/colors")
   const css = [
-    join(radix, "tokens/base.css"),
-    ...RADIX_COLORS.map((c) => join(radix, `tokens/colors/${c}.css`)),
+    ...RADIX_COLORS.flatMap((c) =>
+      ["", "-alpha", "-dark", "-dark-alpha"].map((v) => join(radix, `${c}${v}.css`)),
+    ),
+    join(radix, "black-alpha.css"),
+    join(radix, "white-alpha.css"),
     join(root, "apps/web/src/style/tokens.css"),
     join(root, "apps/web/src/style/mermaid.css"),
     join(ARCH_DIR, "page.css"),
