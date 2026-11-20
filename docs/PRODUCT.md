@@ -39,7 +39,7 @@ web
 
 - 名称 `pig`，logo 与 PWA 图标在 `apps/web/public/`。
 - MIT 许可。
-- 定位叙述以本文为准，设计规则见 `DESIGN.md`，架构边界与运行配置见 `docs/codebase.md`。
+- 定位叙述以本文为准，设计规则见 `docs/DESIGN.md`，架构边界与运行配置见 `docs/codebase.md`。
 - 界面文案以中文为主，英文为对等翻译；改动文案要两边同时成立。
 
 ## Evidence on Hand
