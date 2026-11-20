@@ -12,10 +12,8 @@ import {
   type ComposerTrigger,
 } from "@features/composer/lib/composer-trigger.js"
 
-/** 目录候选行的 id 前缀；选中目录不插文本，改为把查询推进到该前缀继续搜。 */
 const DIR_PREFIX = "dir:"
 const FILE_PREFIX = "file:"
-/** 技能插入 /skill:name（Pi 的显式调用形式）；模板插入 /name。 */
 const SKILL_PREFIX = "skill:"
 const TEMPLATE_PREFIX = "template:"
 const BUILTIN_PREFIX = "builtin:"
@@ -27,24 +25,17 @@ export interface CommandMenuApi {
   activeId: Ref<string | null>
   loading: Ref<boolean>
   emptyText: Ref<string>
-  /** PromptEditor keydown 先交给菜单：返回 true 表示已消费。 */
   onKeydown(event: KeyboardEvent): boolean
-  /** 行点击提交；chip 行由宿主接管 DOM 插入，目录下钻仍走 prompt 改写。 */
   select(id: string): void
-  /** 面板开着时吃掉 keydown 的关闭路径（Esc）。 */
   close(): void
 }
 
-/** 选中后宿主要插入的 chip：kind 决定图标与色，token 是发送时展开的原始文本。 */
 export interface ChipInsert {
   kind: "skill" | "template" | "builtin" | "file"
   label: string
   token: string
-  /** 触发 token 起点；chip 落在这里，原 token 移除。 */
   start: number
-  /** 原触发 token 在纯文本里的长度。 */
   triggerLength: number
-  /** 插入后光标落在 chip 之后 + 一个空格。 */
   caret: number
 }
 
@@ -52,7 +43,6 @@ export function useCommandMenu(
   prompt: Ref<string>,
   caret: Ref<number>,
   cwd: () => string | undefined,
-  /** 选中命令/技能/文件行：宿主把 chip 插到 DOM；目录下钻与 /clear 仍在 hook 内改 prompt。 */
   onChip: (chip: ChipInsert) => void,
 ): CommandMenuApi {
   const open = ref(false)
@@ -62,7 +52,6 @@ export function useCommandMenu(
   const prompts = ref<ComposerCommand[]>([])
   const loading = ref(false)
   const activeId = ref<string | null>(null)
-  /** 每次查询递增，丢弃过期响应。 */
   let fetchSeq = 0
   let skillsFor = ""
   const fileRows = computed<CommandMenuRow[]>(() =>
@@ -75,7 +64,6 @@ export function useCommandMenu(
       trailing: entry.kind === "directory" ? "目录" : undefined,
     })),
   )
-  /** /clear 的适用条件：整份草稿只有光标处的这个 token。 */
   const clearApplicable = computed(() => {
     const start = trigger.value?.start
 
@@ -84,17 +72,14 @@ export function useCommandMenu(
   })
   const commandRows = computed<CommandMenuRow[]>(() => {
     const query = trigger.value?.kind === "command" ? trigger.value.query.toLowerCase() : ""
-    // 同名时模板优先于内置命令：模板是 Pi 的实际展开目标，内置项让位避免截胡
     const templateNames = new Set(prompts.value.map((prompt) => prompt.name))
     const commands: Array<{
       key: string
       name: string
       description: string
-      /** 模板用法提示，优先于 description。 */
       hint?: string | undefined
       kind: CommandMenuRowKind
     }> = [
-      // /clear 只在草稿只剩这个 token 时执行，其他情形不显示，避免选中后无反馈
       ...BUILTIN_COMMANDS.filter(
         (command) => clearApplicable.value && !templateNames.has(command.name),
       ).map((command) => ({
@@ -143,7 +128,6 @@ export function useCommandMenu(
 
       if (builtin.length) next.push({ id: "builtin", label: "内置", rows: builtin })
 
-      // 模板排技能前：模板名与技能名同名时，Enter 先选中标题与输入完全一致的那个
       if (template.length) next.push({ id: "templates", label: "模板", rows: template })
 
       if (skill.length) next.push({ id: "skills", label: "技能", rows: skill })
@@ -159,7 +143,6 @@ export function useCommandMenu(
 
   watch([prompt, caret, () => cwd()], () => void refresh(), { flush: "post" })
 
-  /** 文件搜索防抖：高频键入只发末次请求；旧请求 Abort。 */
   let debounce: ReturnType<typeof setTimeout> | undefined
   let fetchController: AbortController | undefined
 
@@ -178,7 +161,6 @@ export function useCommandMenu(
     const next = composerTriggerAt(prompt.value, caret.value)
     const dir = cwd()
 
-    // 无触发或没有工作目录：收敛面板
     if (!next || !dir) {
       open.value = false
       trigger.value = null
@@ -232,11 +214,9 @@ export function useCommandMenu(
         skills.value = loaded.skills
         prompts.value = loaded.prompts
 
-        // 空列表可能是 slot 被淘汰的瞬时结果，不写缓存，下次打开重拉
         if (loaded.skills.length || loaded.prompts.length) skillsFor = dir
       }
     } catch {
-      // 失败不写 skillsFor：下一次打开再拉
       if (seq === fetchSeq) {
         skills.value = []
         prompts.value = []
@@ -264,7 +244,6 @@ export function useCommandMenu(
   }
 
   function onKeydown(event: KeyboardEvent): boolean {
-    // 输入法组字期间的按键不属于菜单；isComposing 返回 false 让编辑器按原语义处理
     if (event.isComposing) return false
 
     if (!open.value) return false
@@ -307,7 +286,6 @@ export function useCommandMenu(
     if (id.startsWith(DIR_PREFIX)) {
       const prefix = id.slice(DIR_PREFIX.length)
 
-      // 目录下钻：触发 token 的查询换成该前缀，watch 会再拉起一次搜索
       prompt.value = `${prompt.value.slice(0, start)}@${prefix}${prompt.value.slice(caret.value)}`
       void nextTick(() => {
         caret.value = start + prefix.length + 1
@@ -322,7 +300,6 @@ export function useCommandMenu(
       return
     }
 
-    // chip 化：token 记发送时展开的原始文本，label 是显示名
     const triggerLength = caret.value - start
     const base = { start, triggerLength }
 

@@ -44,7 +44,6 @@ export function optimisticUserMessage(
   }
 }
 
-/** 欢迎页建出会话：草稿、本地句与在飞的发送整体交给新会话，欢迎页回到空白。 */
 export function handOffIdle(
   states: Map<string, SessionClientState>,
   sessionId: string,
@@ -75,7 +74,6 @@ export function projectSessionSnapshot(snapshot: SessionSnapshot): SessionProjec
   }
 }
 
-/** phase 文案：对齐官方 SessionPhase。 */
 export function phaseLabel(phase: SessionPhase): string {
   switch (phase) {
     case "turn":

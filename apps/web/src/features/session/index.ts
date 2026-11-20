@@ -5,7 +5,6 @@ export type SessionContext = ReturnType<typeof useSessionLifecycle>
 
 export const sessionKey: InjectionKey<SessionContext> = Symbol("session")
 
-/** 把一侧 workbench 的会话交给子树；子树里的 useSession() 拿到的就是这一侧。 */
 export function provideSession(session: SessionContext) {
   provide(sessionKey, session)
   return session

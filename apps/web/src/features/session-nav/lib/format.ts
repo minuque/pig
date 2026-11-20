@@ -1,7 +1,6 @@
 import type { SessionMetadata } from "@/types/common-type.js"
 import { t } from "@i18n/index.js"
 
-/** 取路径最后一段作为展示名；远程 workspace 显示「主机 / 目录」。 */
 export function workspaceName(path: string): string {
   const remote = /^ssh:\/\/([^/]+)(\/.*)?$/.exec(path)
 
@@ -10,7 +9,6 @@ export function workspaceName(path: string): string {
   return segments[segments.length - 1] ?? path
 }
 
-/** 项目缩写：多词取前两词首字母，单词取首字母加其后第一个辅音。 */
 export function projectMonogram(name: string): string {
   const words = name.match(/\p{Lu}?\p{Ll}+|\p{Lu}+(?!\p{Ll})|\d+|\p{Script=Han}/gu) ?? []
   const [first = "", second] = words
@@ -20,7 +18,6 @@ export function projectMonogram(name: string): string {
   return (first.slice(0, 1) + consonant).toUpperCase()
 }
 
-/** 最近活动时刻：优先 updatedAt。 */
 export function sessionRecency(session: Pick<SessionMetadata, "createdAt" | "updatedAt">): number {
   return session.updatedAt ?? session.createdAt
 }
@@ -29,7 +26,6 @@ const MINUTE = 60_000
 const HOUR = 60 * MINUTE
 const DAY = 24 * HOUR
 
-/** 侧栏相对时间：刚刚，否则四舍五入到分钟、小时、天、周、月、年。 */
 export function formatRelativeTime(timestamp: number, now = Date.now()): string {
   if (!Number.isFinite(timestamp) || timestamp <= 0) return ""
   const delta = Math.max(0, now - timestamp)

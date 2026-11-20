@@ -5,7 +5,6 @@
     :class="{ 'is-dragging': !!drag, 'is-scrolled': scrolled }"
   >
     <div v-if="sections.length" ref="windowEl" class="session-window" @scroll.passive="onScroll">
-      <!-- 拖拽时撑开的段名：置顶在上，收件箱在置顶段下沿；跨过收件箱那条才算换段 -->
       <div
         v-if="sorting"
         class="drag-label"
@@ -53,7 +52,6 @@
 
     <div v-else class="session-empty">{{ t("session.empty") }}</div>
 
-    <!-- 架子固定在页脚上方，不随收件箱滚动；展开超出高度时自己滚。 -->
     <div v-if="shelfSections.length" ref="shelvesEl" class="session-shelves">
       <SessionSection
         v-for="section in shelfSections"
@@ -63,7 +61,6 @@
       />
     </div>
 
-    <!-- 拖起的行浮在两块滚动区之上，跨区时不被裁掉 -->
     <Teleport to="body">
       <ThemeRoot v-if="overlay" class="session-drag-layer">
         <div
@@ -111,7 +108,6 @@ const props = defineProps<{
   highlightedSessionId: string | undefined
   expandedSections: ReadonlySet<string>
   moreBySection: Record<string, number>
-  /** 在跑的会话从什么时候开始跑，秒表用。 */
   runningSince: Record<string, number>
 }>()
 const emit = defineEmits<{
@@ -133,7 +129,6 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const pinnedSection = computed(() => props.sections.find((section) => section.kind === "pinned"))
 const activeSection = computed(() => props.sections.find((section) => section.kind === "active"))
-/** 收件箱住滚动区，架子固定在页脚上方。 */
 const shelfSections = computed(() =>
   props.sections.filter((section) => section.kind === "working" || section.kind === "settled"),
 )
@@ -185,7 +180,6 @@ const overlay = computed(() => {
     ? { left: d.left, width: d.width, props: sidebarItemProps(d.section, d.session, props) }
     : undefined
 })
-/** 空置顶段的虚线框：撑到被拖行那么高。 */
 const slotBoxStyle = computed(() => ({ height: `${(drag.value?.height ?? 0) - 4}px` }))
 const sectionOn = {
   navigate: (cwd: string | undefined) => emit("navigate", cwd),
@@ -227,7 +221,6 @@ function sectionBind(section: SidebarSection) {
   }
 }
 
-/** 滚到接近底部再放一页：收件箱不一次建完所有历史会话。 */
 function onScroll(): void {
   const el = windowEl.value
 
@@ -237,7 +230,6 @@ function onScroll(): void {
   revealNextPage()
 }
 
-/** 内容不够高时直接补页：没有滚动条就等不到 scroll 事件。 */
 function revealNextPage(): void {
   const active = activeSection.value
 
@@ -245,7 +237,6 @@ function revealNextPage(): void {
   emit("revealMore", active.key)
 }
 
-// 只按分段内容判断：流式更新等无关重渲染不读布局
 let lastSections: readonly SidebarSection[] | undefined
 
 onUpdated(() => {
@@ -270,7 +261,6 @@ onUpdated(() => {
   padding-inline-start: calc(var(--nav-inline) - var(--space-2xs));
 }
 
-/* 渐隐带挂在滚动区顶上：内容滚出视口才显示 */
 .nav-body::before {
   content: "";
   position: absolute;
@@ -288,7 +278,6 @@ onUpdated(() => {
   opacity: 1;
 }
 
-/* 两块滚动区都当 offsetParent：拖拽按静止位置算落点 */
 .session-window {
   position: relative;
   display: flex;
@@ -297,7 +286,6 @@ onUpdated(() => {
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  /* 滚动条只在悬停时显形：槽位常驻，滑块平时透明，内容宽度不跳 */
   scrollbar-width: thin;
   scrollbar-gutter: stable;
   scrollbar-color: transparent transparent;
@@ -314,7 +302,6 @@ onUpdated(() => {
   background: linear-gradient(to top, var(--sidebar), transparent);
 }
 
-/* 架子贴底：收件箱再长也不挤出视口，展开超过半屏时在区内滚动。 */
 .session-shelves {
   position: relative;
   display: flex;
@@ -332,14 +319,12 @@ onUpdated(() => {
   scrollbar-color: transparent transparent;
 }
 
-/* 区内滚动时，组头钉在架上沿 */
 .session-shelves :deep(.section-head) {
   position: sticky;
   top: 0;
   background: var(--sidebar);
 }
 
-/* 没有置顶段时的落点：0 高占位，落点在置顶时撑出虚线框，下面的行让位 */
 .drop-slot {
   position: relative;
   height: 0;
@@ -368,7 +353,6 @@ onUpdated(() => {
   opacity: 1;
 }
 
-/* 拖拽段名：0 高，靠投影让出一条，落点在这一段时变主色 */
 .drag-label {
   position: relative;
   z-index: var(--z-sticky);
@@ -404,7 +388,6 @@ onUpdated(() => {
   background: var(--border-subtle);
 }
 
-/* 拖出列表时段名收起，免得压在首行上 */
 .drag-label.is-hidden {
   opacity: 0;
 }
@@ -417,7 +400,6 @@ onUpdated(() => {
   background: var(--accent-solid);
 }
 
-/* 拖动中列表不接指针：指针下的行不出悬停态，浮层也不会被当成悬停 */
 .session-list.is-dragging .session-window,
 .session-list.is-dragging .session-shelves {
   pointer-events: none;
@@ -440,7 +422,6 @@ onUpdated(() => {
   padding-block: 2px;
 }
 
-/* 拖出列表时跟着指针的小标签：松手会把这个会话带过去 */
 .drag-ghost {
   position: fixed;
   top: 0;

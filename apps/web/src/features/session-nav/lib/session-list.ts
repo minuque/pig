@@ -14,13 +14,9 @@ import type {
 import { sessionRecency, workspaceName } from "@features/session-nav/lib/format.js"
 import { sessionTitle } from "@features/session/index.js"
 
-/** 首屏一次建多少行；够填满侧栏，剩下的滚到底再补。 */
 const SECTION_PAGE = 10
-/** 收件箱首屏比已归档宽一档：它是主视图，一进来就该能滚。 */
 const ACTIVE_PAGE = 25
-/** 每次「再放一页」多建的行数。 */
 const SECTION_STEP = 25
-/** 临时新会话占位行的 id 前缀。 */
 export const DRAFT_SESSION_PREFIX = "draft:"
 
 export function draftSessionId(canonicalPath: string): string {
@@ -35,7 +31,6 @@ function sessionCwd(session: Pick<SessionMetadata, "cwd">): string | undefined {
   return session.cwd ? canonicalizeWorkspacePath(session.cwd) : undefined
 }
 
-/** 侧栏会话序：最近活动新→旧，同分按 id。 */
 export function sortSessionsForSidebar(sessions: readonly SessionMetadata[]): SessionMetadata[] {
   return [...sessions].sort(
     (left, right) =>
@@ -43,12 +38,10 @@ export function sortSessionsForSidebar(sessions: readonly SessionMetadata[]): Se
   )
 }
 
-/** 会话维列表：无 cwd 的 Session 不进侧栏。 */
 export function listSessionsForSidebar(sessions: readonly SessionMetadata[]): SessionMetadata[] {
   return sortSessionsForSidebar(sessions.filter((session) => sessionCwd(session) !== undefined))
 }
 
-/** 按标题或目录名过滤侧栏会话，空查询原样返回。 */
 export function filterSessionsForSearch(
   sessions: readonly SessionMetadata[],
   query: string,
@@ -63,13 +56,11 @@ export function filterSessionsForSearch(
   })
 }
 
-/** 项目多选筛选：空集合等于不筛选；按 canonical 路径比对，同名目录不串。 */
 export function sessionInProjects(cwd: string | undefined, projects: ReadonlySet<string>): boolean {
   if (projects.size === 0) return true
   return projects.has(canonicalizeWorkspacePath(cwd ?? ""))
 }
 
-/** 把 id 移到 slot：slot 按移动前的列表计，拖到原位置下方时不越过目标之后的项。 */
 export function moveSessionId(ids: readonly string[], id: string, slot: number): string[] {
   const rest = ids.filter((item) => item !== id)
   let at = Math.min(Math.max(slot, 0), ids.length)
@@ -79,7 +70,6 @@ export function moveSessionId(ids: readonly string[], id: string, slot: number):
   return rest
 }
 
-/** 项目筛选用：按 cwd 归拢会话，本地目录排在前面。 */
 export function groupSessionsByProject(
   sessions: readonly SessionMetadata[],
   localWorkspaces: readonly string[],
@@ -127,7 +117,6 @@ function toSection(
   label: string,
   sessions: readonly SessionMetadata[],
   moreBySection: Readonly<Record<string, number>>,
-  /** 首屏行数；不传就一次全建。 */
   initial?: number,
 ): SidebarSection {
   const extra = moreBySection[kind] ?? 0
@@ -145,7 +134,6 @@ function toSection(
   }
 }
 
-/** 侧栏分段：已归档收走会话，置顶、工作中、收件箱依次分剩下的。 */
 export function sidebarSections(input: {
   sessions: readonly SessionMetadata[]
   pinnedOrder?: readonly string[]
@@ -211,7 +199,6 @@ export function sidebarSections(input: {
   ]
 }
 
-/** 一行 SessionItem 的展示属性：段内行与拖起的浮层共用。 */
 export function sidebarItemProps(
   section: SidebarSection,
   session: SidebarSession,
@@ -261,7 +248,6 @@ function isRetryErrorItem(item: TranscriptItem): boolean {
   return transcriptText(item).length === 0
 }
 
-/** 侧栏一条：User / Assistant / Tool Call；空失败助手句不计。 */
 export function conversationItemCount(items: readonly TranscriptItem[]): number {
   let count = 0
 
@@ -275,7 +261,6 @@ export function conversationItemCount(items: readonly TranscriptItem[]): number 
   return count
 }
 
-/** 当前分支最后一条助手消息的结果，供打开中的会话即时覆盖磁盘卡片。 */
 export function sessionOutcome(items: readonly TranscriptItem[]): "complete" | "error" | undefined {
   for (let index = items.length - 1; index >= 0; index -= 1) {
     const item = items[index]

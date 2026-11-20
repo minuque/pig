@@ -1,4 +1,3 @@
-<!-- 模型标签右侧的上下文占用圆环：轨道整圈，弧长即占比，按用量分档变色。 -->
 <template>
   <svg
     class="context-ring"

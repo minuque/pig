@@ -35,7 +35,6 @@ function isIconChoice(value: unknown): value is ProjectIconChoice {
   )
 }
 
-/** 读存储里的项目偏好：不认识的项丢掉，损坏时回落空配置。 */
 export function parseProjectPrefs(raw: unknown): ProjectPrefs {
   if (typeof raw !== "object" || raw === null) return { pinned: [], icons: {} }
   const { pinned, icons } = raw as Record<string, unknown>
@@ -50,7 +49,6 @@ export function parseProjectPrefs(raw: unknown): ProjectPrefs {
   }
 }
 
-/** 没配图标时按项目名散列挑色：名字不变颜色不变。 */
 export function projectIconColorOf(path: string): ProjectIconColor {
   const seed = workspaceName(path).normalize("NFKC").trim().toLocaleLowerCase("en-US") || "project"
   let index = 0
@@ -62,7 +60,6 @@ export function projectIconColorOf(path: string): ProjectIconColor {
   return PROJECT_ICON_COLORS[index]!
 }
 
-/** 置顶项目按置顶顺序排前，其余保持原序。 */
 export function orderPinnedFirst<T extends { canonicalPath: string }>(
   groups: readonly T[],
   pinned: readonly string[],

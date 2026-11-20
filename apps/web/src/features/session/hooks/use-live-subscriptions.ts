@@ -5,8 +5,6 @@ import type { HistoryStore } from "@features/session/hooks/use-session-history.j
 import { coalesceByFrame } from "@features/session/lib/coalesce-by-frame.js"
 import { NO_TOOL_STARTS, recordToolStartedAt } from "@features/session/lib/transcript-timeline.js"
 
-/** 一条 Session 的 live 订阅：前台写 state，后台只覆盖 live 与拉历史，发布逻辑两处共用。 */
-/** 挂着这条订阅的前台：每侧 workbench 一个，收状态与 revision 变化。 */
 export interface ForegroundOwner {
   state(next: SessionState): void
   revision(id: string): void
@@ -17,20 +15,16 @@ export interface LiveSubscription {
   foreground: boolean
   owner: ForegroundOwner | undefined
   running: boolean
-  /** 后台空闲正在交给接管者（泵队/收尾），期间重复的空闲快照不重复触发。 */
   idlePending: boolean
   usageRevision: number | undefined
   lastState: SessionState | undefined
   liveItems: Map<string, TranscriptItem>
-  /** toolCallId → 工具真正开始的时刻：完成条目到达后拿不到，只能从 running 占位记下。 */
   toolStartedAt: Map<string, number>
   stop: () => void
 }
 
-/** 后台空闲接管结果：sent 表示已泵出一条留在池里，done 表示可以出池收尾。 */
 export type BackgroundIdleResult = "sent" | "done"
 
-/** 会话里还有后台任务在跑或排队：这样的连接切走时不放掉。 */
 export function hasRunningTasks(sub: LiveSubscription): boolean {
   return (
     sub.lastState?.snapshot?.tasks.some(
@@ -44,16 +38,13 @@ interface LiveDeps {
   discard(session: GatewaySession): Promise<void>
 }
 
-/** 运行中的 Session 继续订阅：切走不停订，跑完或断线才放连接。两侧前台共用一个池。 */
 export function useLiveSubscriptions(deps: LiveDeps) {
   const { history, discard } = deps
   const background = new Map<string, LiveSubscription>()
-  /** 所有在订阅的会话（含前台那一份）：工具开始时刻表与时间线投影都按 id 取。 */
   const subscriptions = new Map<string, LiveSubscription>()
   const backgroundRunningIds = shallowRef<ReadonlySet<string>>(new Set())
   let backgroundIdleHandler: ((id: string) => Promise<BackgroundIdleResult>) | undefined
 
-  /** 接管后台会话空闲后的泵队与收尾；不注册就直接出池。 */
   function setBackgroundIdle(fn?: (id: string) => Promise<BackgroundIdleResult>) {
     backgroundIdleHandler = fn
   }
@@ -68,7 +59,6 @@ export function useLiveSubscriptions(deps: LiveDeps) {
       backgroundRunningIds.value = next
   }
 
-  /** 摘出后台池并作废其临时 live 覆盖：连接不可续，切回时靠重拉对齐。 */
   function takeBackground() {
     const pooled = [...background.values()]
 
@@ -85,16 +75,13 @@ export function useLiveSubscriptions(deps: LiveDeps) {
     return pooled
   }
 
-  /** 断线：清掉后台连接，切回时重新 open。 */
   function dropBackground() {
     for (const sub of takeBackground()) void discard(sub.session)
   }
 
-  /** 后台会话跑完：临时 id 作废并补一次历史收尾，然后放掉连接出池。 */
   function retireBackground(sub: LiveSubscription) {
     const id = sub.session.id
 
-    // 还有后台任务在跑：留在池里继续收它的状态，任务结束后的快照再来收尾
     if (!id || background.get(id) !== sub || hasRunningTasks(sub)) return
     background.delete(id)
     history.releaseLive(id)
@@ -103,7 +90,6 @@ export function useLiveSubscriptions(deps: LiveDeps) {
     syncBackgroundRunning()
   }
 
-  /** 订阅 Session：live 覆盖缓存、revision 重拉历史；前台写 state 与用量，后台跑完就出池。 */
   function subscribeLive(session: GatewaySession, owner?: ForegroundOwner): LiveSubscription {
     const sub: LiveSubscription = {
       session,
@@ -166,11 +152,8 @@ export function useLiveSubscriptions(deps: LiveDeps) {
         let handed = true
 
         try {
-          // 先等磁盘 id 就位，泵出的乐观句锚点才对得上历史
           if (!reloaded) await history.loadHistory(id, { force: true })
 
-          // submit 要等整轮才 resolve，期间到达的 idle 快照会被 idlePending 丢掉：
-          // 每泵出一条就重拉历史再跑一轮，直到队列空（done）或会话重新 running
           while (handed && background.get(id) === sub && !sub.running) {
             handed = (await handler(id)) === "sent"
 
@@ -178,12 +161,10 @@ export function useLiveSubscriptions(deps: LiveDeps) {
               await history.loadHistory(id, { force: true })
           }
         } catch {
-          /* 接管失败按收尾处理，队列回滚由接管者负责 */
         } finally {
           sub.idlePending = false
         }
 
-        // 还在池里且彻底空闲才收尾；重新 running 的会话等下一个 idle 快照
         if (background.get(id) === sub && !sub.running) retireBackground(sub)
       })()
     }
@@ -213,17 +194,14 @@ export function useLiveSubscriptions(deps: LiveDeps) {
     return sub
   }
 
-  /** 该会话 live 订阅记下的工具开始时刻；时间线投影回填用。 */
   function toolStartedAtFor(id: string): ReadonlyMap<string, number> {
     return subscriptions.get(id)?.toolStartedAt ?? NO_TOOL_STARTS
   }
 
-  /** 后台池里该会话的订阅；后台泵队与接管前核对连接用。 */
   function backgroundSubscription(id: string) {
     return background.get(id)
   }
 
-  /** 切走前台：还在运行就转后台继续订阅。 */
   function moveToBackground(sub: LiveSubscription) {
     const id = sub.session.id
 
@@ -234,7 +212,6 @@ export function useLiveSubscriptions(deps: LiveDeps) {
     syncBackgroundRunning()
   }
 
-  /** 后台池里有该会话就挂回前台，复用同一条连接。 */
   function promoteBackground(id: string, owner: ForegroundOwner) {
     const sub = background.get(id)
 

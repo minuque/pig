@@ -1,4 +1,3 @@
-/** 时间线投影：磁盘底稿、live 覆盖、工具开始时刻、乐观用户句与 pending 占位一次算完，叠加规则只在本文件。 */
 import type {
   AssistantTranscriptItem,
   ToolTranscriptItem,
@@ -8,26 +7,18 @@ import type {
 import type { OptimisticUserMessage } from "@features/session/type.js"
 import { userMessageText } from "@features/session/lib/transcript-text.js"
 
-/** 工具条目挂上客户端观测的开始时刻；只是本地附加字段，不进协议。 */
 export type TimedToolItem = ToolTranscriptItem & { startedAt: number }
 
-/** 还没有任何工具开始时刻。 */
 export const NO_TOOL_STARTS: ReadonlyMap<string, number> = new Map()
 
 export interface TimelineInput {
-  /** 磁盘底稿：已加载窗口里网关给过的条目。 */
   persisted: readonly TranscriptItem[]
-  /** 本次连接收到的 live 条目，按 id 存的最新版。 */
   liveOverlay: readonly TranscriptItem[]
-  /** 发送时定死 id 的本地用户句，等服务端确认。 */
   optimisticSends: readonly OptimisticUserMessage[]
-  /** 回合在跑：末尾留一行待写助手。 */
   turnPending: boolean
-  /** toolCallId → 工具真正开始的时刻。 */
   toolStartedAt: ReadonlyMap<string, number>
 }
 
-/** 唯一入口：底稿 → live 对齐 → 工具开始时刻回填 → 乐观句对账 → pending 占位。 */
 export function projectTranscriptTimeline(input: TimelineInput): readonly TranscriptItem[] {
   const aligned = withToolStarts(
     mergeLiveTranscript(input.persisted, input.liveOverlay),
@@ -39,7 +30,6 @@ export function projectTranscriptTimeline(input: TimelineInput): readonly Transc
   )
 }
 
-/** 记下工具条目的最早时间戳：完成条目到达时拿不到开始时刻，只能从 running 占位学。 */
 export function recordToolStartedAt(times: Map<string, number>, item: TranscriptItem): void {
   if (item.role !== "tool") return
   const seen = times.get(item.id)
@@ -47,7 +37,6 @@ export function recordToolStartedAt(times: Map<string, number>, item: Transcript
   if (seen === undefined || item.timestamp < seen) times.set(item.id, item.timestamp)
 }
 
-/** 磁盘历史为底，live 按 id 覆盖；当前回合的临时 id 对齐历史后缀，只追加还没落盘的尾巴。 */
 function mergeLiveTranscript(
   persisted: readonly TranscriptItem[],
   live: readonly TranscriptItem[],
@@ -94,7 +83,6 @@ function withToolStarts(
   })
 }
 
-/** 对账用展示文本：剥离网关追加的 @ 文件块，与服务端落盘条目一致比较。 */
 function userText(item: TranscriptItem): string {
   return item.role === "user" ? userMessageText(item) : ""
 }
@@ -117,7 +105,6 @@ function sendAnchor(
   return { confirmedIndex, insertionIndex }
 }
 
-/** 本地用户句 id 发送时定死；未确认则插入，确认后只换服务端条目的渲染 id。 */
 function projectClientTranscript(
   items: readonly TranscriptItem[],
   sends: readonly OptimisticUserMessage[],
@@ -174,7 +161,6 @@ function pendingAssistant(timestamp: number): AssistantTranscriptItem {
   }
 }
 
-/** 发送后、首条助手未到时占一行，避免时间线空一拍。 */
 function withPendingAssistant(
   items: readonly TranscriptItem[],
   pending: boolean,
@@ -192,7 +178,6 @@ type HistorySlice = {
   hasMore: boolean
 }
 
-/** 已加载窗口只增不缩：最新页接到尾巴；空页不冲掉；hasMore 跟窗口第一条走。 */
 export function absorbTranscriptPage(loaded: HistorySlice | undefined, page: HistorySlice) {
   const base = loaded?.items.length ? loaded : { items: [], timings: [], hasMore: page.hasMore }
   return {

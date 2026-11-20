@@ -40,7 +40,6 @@ export function useWorkspaceNav(
   error: Ref<string>,
   admin: {
     sessionId: Ref<string | undefined>
-    /** 两侧正在显示的会话。 */
     shownIds: Ref<readonly (string | undefined)[]>
     isRunning(id: string): boolean
     leave(id: string): void
@@ -50,9 +49,7 @@ export function useWorkspaceNav(
   const addingWorkspace = ref(false)
   const titleById = shallowRef<Record<string, string>>({})
   const workspaces = local.workspaces
-  /** 已确认删除、等落地的会话：先隐藏，失败再恢复。 */
   const deletingIds = shallowRef<ReadonlySet<string>>(new Set())
-  /** 未发送首条 Prompt 的临时新会话占位目录。 */
   const draftSessionPath = shallowRef<string>()
   const draftSessionIdRef = computed(() =>
     draftSessionPath.value ? draftSessionId(draftSessionPath.value) : undefined,
@@ -127,7 +124,6 @@ export function useWorkspaceNav(
     moreBySection.value = next
   }
 
-  /** 已展开的架子：三个架子默认收起，改动持久化。 */
   const EXPANDED_KEY = "pig.sidebarShelfExpanded"
   const SECTION_KEYS = new Set(["pinned", "active", "working", "settled"])
   const expandedSections = shallowRef<ReadonlySet<string>>(loadExpandedSections())
@@ -158,7 +154,6 @@ export function useWorkspaceNav(
     writePref(EXPANDED_KEY, JSON.stringify([...next]))
   }
 
-  /** 只展开不收起：新会话落进架子时用，别把用户自己展开的状态翻掉。 */
   function expandSection(key: string): void {
     if (expandedSections.value.has(key)) return
     toggleSection(key)
@@ -207,7 +202,6 @@ export function useWorkspaceNav(
     }
   }
 
-  /** 远程目录：主机上存在才登记并选中；返回 false 交给对话框提示。 */
   async function addRemoteWorkspace(environment: string, path: string): Promise<boolean> {
     const result = await selectDirectory(path, environment).catch(() => undefined)
 
@@ -236,7 +230,6 @@ export function useWorkspaceNav(
     })
   }
 
-  /** 先离开再删：服务端仍有活 runtime 时回 BUSY，等 detach 落地后重试一次。 */
   async function deleteSession(id: string) {
     error.value = ""
 
@@ -248,7 +241,6 @@ export function useWorkspaceNav(
     setDeleting(id, true)
 
     try {
-      // 两侧哪边开着它就先离开，等前台连接放下再删
       if (admin.shownIds.value.includes(id)) {
         admin.leave(id)
         await nextTick()
@@ -263,7 +255,6 @@ export function useWorkspaceNav(
     } catch (cause) {
       error.value = isBusy(cause) ? t("session.stopRunningBeforeDelete") : errorMessage(cause)
     } finally {
-      // 成功时列表已刷新、该会话已不在，移除不会闪回；失败则用进场动画回到原位
       setDeleting(id, false)
     }
   }

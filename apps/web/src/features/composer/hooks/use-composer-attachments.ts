@@ -9,7 +9,6 @@ import type { ComposerAttachment, ComposerAttachmentBatch } from "@/types/attach
 import { t } from "@i18n/index.js"
 import { useSessionBuckets } from "@features/composer/hooks/use-session-buckets.js"
 
-/** 输入卡自己的叫法；上限与网关共用 @pig/protocol 的一份。 */
 export const MAX_COMPOSER_ATTACHMENTS = MAX_BATCH_ITEMS
 
 export { MAX_FILE_BYTES, MAX_IMAGE_BYTES }
@@ -18,32 +17,23 @@ const MEGABYTE = 1024 * 1024
 
 export interface ComposerAttachmentsApi {
   files: Ref<ComposerAttachment[]>
-  /** 发送中各附件的上传进度 0–100；无此项即未在上传/已落地。 */
   progress: Ref<ReadonlyMap<string, number>>
-  /** 上一次附加被跳过的文件与原因；空串表示没有。 */
   error: Ref<string>
   addFiles(input: FileList | File[] | null | undefined): void
-  /** 拖入的文件：文件夹跳过并提示，其余走 addFiles。 */
   addDropped(data: DataTransfer | null | undefined): void
   remove(id: string): void
-  /** 本次发送要上传的批次；没有附件返回 undefined。成功后由调用方 settle()。 */
   consumeForSend(): ComposerAttachmentBatch | undefined
-  /** 从批次来源的桶里只移走这批文件，期间新加的留着。 */
   settle(batch: ComposerAttachmentBatch): void
-  /** 附件暂存按会话分桶（welcome 传 undefined），切走再回来还在。 */
   setKey(sessionId: string | undefined): void
-  /** 欢迎页的附件暂存交给刚建出的会话，在传的批次跟着过去。 */
   handOff(sessionId: string): void
 }
 
 interface AttachmentStash {
   files: Ref<ComposerAttachment[]>
   error: Ref<string>
-  /** 发送时真实 stage 回写的上传进度 0–100；落地即删键。 */
   progress: Ref<Map<string, number>>
 }
 
-/** 去重键：同名同大小同类型视为同一个文件。 */
 function attachmentKey(file: File): string {
   return `${file.name}\0${file.size}\0${file.type}`
 }
@@ -52,7 +42,6 @@ function displayName(file: File): string {
   return file.name || "attachment"
 }
 
-/** 剪贴板两路（files / items）收集后按去重键合并；没有文件返回空。 */
 export function clipboardFiles(data: DataTransfer | null | undefined): File[] {
   if (!data) return []
   const seen = new Set<string>()
@@ -72,12 +61,7 @@ export function clipboardFiles(data: DataTransfer | null | undefined): File[] {
   return picked
 }
 
-/**
- * 输入卡本地附件：白名单图片走 blob URL 预览，其余只留文件卡片。
- * 附件按会话暂存在内存，发送时由 sendPrompt 逐个 stage，batch 随 prompt 提交。
- */
 export function useComposerAttachments(): ComposerAttachmentsApi {
-  // 附件按会话暂存；卸载时释放 blob URL
   const buckets = useSessionBuckets<AttachmentStash>(
     () => ({
       files: shallowRef([]),
@@ -88,7 +72,6 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     "attachments",
   )
   const bucket = buckets.current
-  // 批次记住来源桶：欢迎页发送后路由已切到新会话，仍要清欢迎页那桶
   const sources = new WeakMap<ComposerAttachmentBatch, AttachmentStash>()
   const files = computed(() => bucket().files.value)
   const error = computed(() => bucket().error.value)
@@ -98,7 +81,6 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     if (item.url) URL.revokeObjectURL(item.url)
   }
 
-  /** 统一写某个桶的进度；Map 整体换引用才能过 shallowRef。 */
   function writeProgress(stash: AttachmentStash, id: string, value: number | undefined) {
     const next = new Map(stash.progress.value)
 
@@ -215,7 +197,6 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
 
     if (!stash.files.value.length) return undefined
 
-    // 每次发送换新 batch：重试不会往上次的批次里追加，去重移除也真的生效
     const batch: ComposerAttachmentBatch = {
       batch: crypto.randomUUID(),
       files: [...stash.files.value],
@@ -244,7 +225,6 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     stash.progress.value = new Map()
   }
 
-  // 共用的桶归壳层所有，一侧卸下时不清
   if (getCurrentInstance() && !buckets.shared) onUnmounted(() => buckets.clearAll())
   return {
     files,

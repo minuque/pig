@@ -24,9 +24,7 @@ import {
 import type { SidebarSection, SidebarSession } from "@features/session-nav/type.js"
 
 const DRAG_DISTANCE = 6
-/** 拖起时「置顶」「收件箱」两条段名各撑开的高度。 */
 const LABEL_HEIGHT = 24
-/** 指针离滚动区上下沿多近开始自动滚，以及每帧最多滚多少。 */
 const SCROLL_EDGE = 56
 const SCROLL_MAX = 14
 
@@ -34,7 +32,6 @@ interface DragState {
   id: string
   session: SidebarSession
   section: SidebarSection
-  /** 抽走这一行时下面的行要补的高度：行高 + 行间距。 */
   size: number
   height: number
   grab: number
@@ -51,7 +48,6 @@ function cssValue(name: string, fallback: string): string {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback
 }
 
-/** 不受位移影响的视口坐标：沿 offsetParent 累加到滚动容器，再扣掉滚动量。 */
 function staticTop(el: HTMLElement, container: HTMLElement): number {
   let top = 0
   let node: HTMLElement | null = el
@@ -85,10 +81,8 @@ export function useSessionDrag(options: {
   const zone = shallowRef<DropZone | null>(null)
   const offsets = shallowRef<ReadonlyMap<string, number>>(new Map())
   const overlayTop = shallowRef(0)
-  /** 指针离开列表左右边：改成把会话当引用拖到别处。 */
   const outside = shallowRef(false)
   const ghost = shallowRef<PointerPoint | null>(null)
-  /** 松手那一拍：段内进出场动画让给落位动画。 */
   const releasing = shallowRef(false)
   const sorting = computed(() => drag.value !== null && drag.value.section.kind !== "working")
   const verb = computed(() =>
@@ -145,7 +139,6 @@ export function useSessionDrag(options: {
     projected = ""
     last = origin
     raf = requestAnimationFrame(autoScroll)
-    // 段名与空段占位要先渲染出来，投影才量得到
     await nextTick()
     update(last, true)
   }
@@ -196,7 +189,6 @@ export function useSessionDrag(options: {
       return settled && point.y >= settled.getBoundingClientRect().top ? "settled" : null
     }
 
-    // 段名带位移一起量：跨过它才换段，停在段名上保持原段，免得来回闪
     const divider = options.window.value
       ?.querySelector<HTMLElement>('[data-drag-key="pinned-divider"] .drag-label-inner')
       ?.getBoundingClientRect()
@@ -228,7 +220,6 @@ export function useSessionDrag(options: {
     return !!options.list.value?.querySelector(`[data-key="${key}"] .session-row[data-id]`)
   }
 
-  /** 置顶段按被拖行中心越过了几行定位；量的是抽走被拖行、撑开段名后的静止位置。 */
   function pinnedInsert(d: DragState): string {
     const win = options.window.value!
     const rows = [...win.querySelectorAll<HTMLElement>('[data-key="pinned"] .session-row[data-id]')]
@@ -332,7 +323,6 @@ export function useSessionDrag(options: {
     )
   }
 
-  /** 记下松手时各行所在，提交后从那里滑到新位置；被拖行从浮层的位置落下去。 */
   async function release(plan: DropPlan): Promise<void> {
     const d = drag.value
 

@@ -39,7 +39,6 @@ export function useSessionOpen(
     void router.push({ name: "session", params: { sessionId: id } })
   }
 
-  /** 按下即拉历史，与双 rAF 空窗重叠；fresh 不发网，同 id 在飞共用请求。 */
   function primeSession(id: string) {
     if (id === sessionId.value || !loadHistory) return
     void loadHistory(id)
@@ -71,7 +70,6 @@ export function useSessionOpen(
     if (!pending) return
     const current = sessionId.value
 
-    // 再 push 当前路由以取消未完成跳转
     if (current) pushSession(current)
     else void router.push("/")
   }

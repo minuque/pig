@@ -145,7 +145,6 @@ const modKey = isMac ? "⌘" : "Ctrl"
 const scopeOpen = shallowRef(false)
 const iconPath = shallowRef<string>()
 
-/** 先收起筛选菜单，再开图标弹框，免得两层焦点互抢。 */
 async function openIconDialog(canonicalPath: string): Promise<void> {
   scopeOpen.value = false
   await nextTick()
@@ -160,11 +159,9 @@ async function openIconDialog(canonicalPath: string): Promise<void> {
   flex-direction: column;
   gap: var(--space-xs);
   min-width: 0;
-  /* 上边不内缩：首行与工作台头部内元素落在同一条横线上 */
   padding-block: 0 var(--space-2xs);
 }
 
-/* 首行与工作台头部同高：两栏首行共用一条横向基线 */
 .nav-titlebar {
   display: flex;
   align-items: center;
@@ -173,7 +170,6 @@ async function openIconDialog(canonicalPath: string): Promise<void> {
   padding-inline: var(--nav-inline);
 }
 
-/* 图标按钮贴左；拖窗豁免由这一处给 */
 .nav-btn {
   -webkit-app-region: no-drag;
   app-region: no-drag;
@@ -190,7 +186,6 @@ html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]
   app-region: drag;
 }
 
-/* 工具行：搜索占满左侧，视图与命令图标靠右 */
 .nav-toolbar {
   display: flex;
   align-items: center;
@@ -210,7 +205,6 @@ html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]
   font-weight: 400;
 }
 
-/* 工具行图标常态弱一档，悬停、聚焦或菜单打开时回到正文色 */
 .nav-tool[data-slot] {
   color: var(--fg-secondary);
   transition: color var(--duration-fast) var(--ease-out);

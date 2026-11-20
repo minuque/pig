@@ -202,7 +202,6 @@ const emit = defineEmits<{
 const open = defineModel<boolean>("open", { default: false })
 const searchRef = useTemplateRef<HTMLInputElement>("searchRef")
 const labelsRef = useTemplateRef<HTMLElement>("labelsRef")
-// 触发器文字被截断时才用 tooltip 补全，完整可见时不重复
 const labelsOverflow = shallowRef(false)
 
 function measureLabels() {
@@ -258,7 +257,6 @@ const effortIsDefault = computed(
   () => displayThinkingLevel(props.level, current.value.levels) === current.value.levels[0],
 )
 
-/** 恢复默认：回到该模型的第一档。 */
 function resetEffort() {
   const first = current.value.levels[0]
 
@@ -268,7 +266,6 @@ function resetEffort() {
 const triggerText = computed(() =>
   pickerTriggerText(label.value, props.level, current.value.levels),
 )
-/** Tab / Shift+Tab 在厂商轨与收藏间循环，不把焦点弹出菜单。 */
 const scopeOrder = computed(() => [FAVORITES_SCOPE, ...props.catalog.map((vendor) => vendor.id)])
 
 function cycleScope(event: KeyboardEvent) {
@@ -289,7 +286,6 @@ function isCurrent(provider: string, id: string) {
   return sameModel(props.model, { provider, id })
 }
 
-/** 空态直达设置模型页。 */
 function configureModels() {
   open.value = false
   openSettings("models")
@@ -316,7 +312,6 @@ function onPickerKeydown(event: KeyboardEvent) {
 }
 
 function onSearchKeydown(event: KeyboardEvent) {
-  // 输入法上屏 Enter 不直达选择，让编辑器按原语义处理
   if (event.isComposing) return
 
   if (event.key === "Tab") {
@@ -326,7 +321,6 @@ function onSearchKeydown(event: KeyboardEvent) {
   }
 
   if (event.key === "Enter") {
-    // 焦点还在搜索框：无高亮行，直达第一个结果（不是虚拟列表可视首项）
     event.preventDefault()
     const first = items.value[0]
 
@@ -398,8 +392,6 @@ function onSelectModel(event: Event, provider: string, id: string) {
   max-height: var(--reka-dropdown-menu-content-available-height, 70vh);
 }
 
-/* 厂商轨：28px 方钮，非当前项弱化，当前项提亮并带下划线 */
-/* 顶栏：左侧厂商轨可横滑，右侧恢复默认按钮固定；厂商轨右缘渐隐，滑到按钮下面不叠字 */
 .tabs-bar {
   display: flex;
   flex: none;
@@ -419,7 +411,6 @@ function onSelectModel(event: Event, provider: string, id: string) {
 }
 
 .tabs-bar:has(.effort-reset) .tabs {
-  /* 末尾留出渐隐带宽度，滑到底时最后一个图标能完全露出 */
   padding-inline-end: var(--space-lg);
   mask-image: linear-gradient(to left, transparent, black var(--space-lg));
 }
@@ -455,7 +446,6 @@ function onSelectModel(event: Event, provider: string, id: string) {
   opacity: 1;
 }
 
-/* 搜索：不铺底框，只用下边线和列表隔开 */
 .search {
   display: flex;
   flex: none;

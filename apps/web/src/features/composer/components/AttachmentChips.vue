@@ -69,17 +69,12 @@ import { XIcon, FileTextIcon } from "@components/icons/index.js"
 const { t } = useI18n()
 const props = defineProps<{
   files: ComposerAttachment[]
-  /** 发送中各附件的上传进度 0–100；无此项即未在上传。 */
   progress?: ReadonlyMap<string, number> | undefined
 }>()
 const emit = defineEmits<{
   remove: [id: string]
   preview: [item: ComposerAttachment]
 }>()
-/**
- * 56×56 tile 的描边路径，与 tile 同位同圆角（radius-md=8，边距 1px 让 2px
- * 描边中线压 tile 边缘）。pathLength=100 让 dasharray 一段即进度。
- */
 const ringPath = [
   "M 28 1",
   "H 47",
@@ -97,7 +92,6 @@ function arc(x: number, y: number): string {
   return `A 8 8 0 0 1 ${x} ${y}`
 }
 
-/** 扩展名单独一段，截断只吃主名，扩展名始终可见。 */
 const rows = computed(() =>
   props.files.map((item) => {
     const dot = item.name.lastIndexOf(".")
@@ -122,7 +116,6 @@ const rows = computed(() =>
   min-width: 0;
 }
 
-/* 所有附件统一 56px tile：环才能贴边描圆角 */
 .chip {
   position: relative;
   flex: none;
@@ -155,13 +148,11 @@ const rows = computed(() =>
   outline-offset: -1px;
 }
 
-/* 上传中内容压低，让环突出 */
 .chip--uploading .thumb-btn,
 .chip--uploading .file {
   opacity: 0.6;
 }
 
-/* 图片环压边时撤掉缩略图自身描边，避免与环叠成双线（文件卡无描边，底色保留） */
 .chip--uploading .thumb {
   outline: none;
 }
@@ -206,8 +197,6 @@ const rows = computed(() =>
   color: var(--fg-secondary);
 }
 
-/* 进度环与 tile 同位：描边中线压 tile 边缘，不再外扩出第二道框。
-   类名不用 ring：Tailwind v4 的 ring 工具类会给 svg 加直角 box-shadow。 */
 .upload-ring {
   position: absolute;
   inset: 0;
@@ -222,7 +211,6 @@ const rows = computed(() =>
   transition: stroke-dasharray 120ms linear;
 }
 
-/* 上传中右上角百分比；非图片 tile 用主题色，图片 tile 白字压图 */
 .pct {
   position: absolute;
   inset-block-start: 3px;
@@ -235,7 +223,6 @@ const rows = computed(() =>
   pointer-events: none;
 }
 
-/* 图片 tile：磨砂墨底 + 反差字，压得住任意缩略图 */
 .chip:not(.chip--file) .pct {
   padding: 0 3px;
   border-radius: var(--radius-pill);
@@ -243,7 +230,6 @@ const rows = computed(() =>
   color: var(--fg-inverse);
 }
 
-/* 删除钮与百分比占同一角，做 opacity+blur 交叉切换 */
 .remove {
   position: absolute;
   inset-block-start: 3px;
@@ -268,7 +254,6 @@ const rows = computed(() =>
     filter var(--duration-fast) var(--ease-out);
 }
 
-/* hover / 键盘焦点时浮出；上传中让位给百分比 */
 .chip:hover .remove,
 .chip:focus-within .remove {
   opacity: 1;
@@ -294,7 +279,6 @@ const rows = computed(() =>
   stroke-width: 2.5px;
 }
 
-/* 入场 / 退场：scale + blur，与 BoardUI tile 同一手感 */
 .chip-enter-active,
 .chip-leave-active {
   transition:

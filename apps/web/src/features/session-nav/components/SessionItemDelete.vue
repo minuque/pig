@@ -42,7 +42,6 @@ const emit = defineEmits<{
 </script>
 
 <style scoped>
-/* 比默认弹层窄一档，宽屏下也不会拉成整行 */
 @media (min-width: 640px) {
   .delete-dialog {
     max-inline-size: 28rem;

@@ -1,4 +1,3 @@
-<!-- 会话状态图标：侧栏行右侧与页脚计数共用。 -->
 <template>
   <StatusIndicator
     class="state-icon"

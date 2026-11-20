@@ -95,7 +95,6 @@ function createNav(
 
     return feet
   })
-  /** 在跑的会话集合：直接看实时状态，不穿过转录内容，流式更新不带动侧栏重算。 */
   const runningIds = computed(() => {
     const ids = new Set(session.backgroundRunningIds.value)
     const liveId = session.sessionId.value
@@ -103,7 +102,6 @@ function createNav(
     if (liveId && activeSessionRunning.value) ids.add(liveId)
     return ids
   })
-  /** 分段只看这两件事：在跑、已归档。 */
   const placements = computed(() => {
     const running = runningIds.value
     const settled = markers.settledIds.value
@@ -122,7 +120,6 @@ function createNav(
 
   useRevealNewSessions(nav.listedSessions, placements, nav.expandSection)
 
-  /** 每个在跑的会话从什么时候开始跑：本地记，协议列表不带开始时间。 */
   const runningSince = shallowRef<Record<string, number>>({})
 
   watch(
@@ -142,7 +139,6 @@ function createNav(
     { immediate: true },
   )
 
-  /** 页签全部关掉后回欢迎页。 */
   function closeSession(): void {
     cancelPendingOpen()
     void router.replace("/")

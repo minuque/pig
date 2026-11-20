@@ -1,4 +1,3 @@
-/** 模型选择目录的本地 UI 类型：由官方 ModelMetadata 投影。 */
 export interface ComposerModelInfo {
   id: string
   name: string
@@ -17,7 +16,6 @@ export interface ComposerModel {
   id: string
 }
 
-/** 输入卡执行档：本地模型引用与思考档位。 */
 export interface ComposerPreset {
   model: ComposerModel
   thinkingLevel: string

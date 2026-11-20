@@ -1,7 +1,6 @@
 import { nextTick, ref, watch, type Ref } from "vue"
 import { FAVORITES_SCOPE } from "@features/composer/lib/model-preset.js"
 
-/** 打开态：搜索、厂商轨不关外层。 */
 export function useModelPickerPanel(
   open: Ref<boolean>,
   currentVendorId: () => string | undefined,

@@ -26,13 +26,10 @@ import type { PresetPort, SessionClientState } from "@features/session/type.js"
 
 export interface SessionLifecycleOptions {
   hub: SessionHub
-  /** 这一侧显示的会话；由分屏状态给出。 */
   sessionId: ComputedRef<string | undefined>
-  /** 新建出会话后让这一侧显示它。 */
   navigate(id: string): void | Promise<unknown>
 }
 
-/** 一侧 workbench 的 GatewaySession、历史合并、草稿与提交。不接管卡片，切 Session 不滚动。 */
 export function useSessionLifecycle(
   pi: ReturnType<typeof useGatewayClient>,
   cwd: ReturnType<typeof useLocalWorkspaces>,
@@ -63,10 +60,6 @@ export function useSessionLifecycle(
     await remote.value?.submit(text, attachmentBatch ? { attachmentBatch } : undefined)
   }
 
-  /**
-   * 顺序暂存每个文件字节；batch 随这次 prompt 一起提交，由 Gateway 按 batch 消费。
-   * 每次 await 后查 epoch：被中止或切走就返回 false，由调用方丢弃这个批次。
-   */
   async function stageAttachments(
     batch: ComposerAttachmentBatch,
     thread: SessionClientState,
@@ -132,14 +125,12 @@ export function useSessionLifecycle(
   const { states } = hub
   const idleState = emptyClientState()
   const creatingCwd = ref<string>()
-  /** 会话已建、路由未落位的窗口里用它指向新会话状态，transcript 不出现空档 */
   const pendingSessionId = ref<string>()
   let welcomeHandoff: ((id: string) => void) | undefined
   const clientState = computed(() => {
     const id = sessionId.value ?? pendingSessionId.value
     return id ? sessionState(states, id) : idleState
   })
-  /** 提交与中止状态跟着会话走：别的会话在跑不挡这里。 */
   const submitting = computed(() => clientState.value.submitting)
   const aborting = computed(() => clientState.value.aborting)
   const prompt = computed({
@@ -149,12 +140,10 @@ export function useSessionLifecycle(
     },
   })
 
-  /** 输入卡注册「用户选了什么」；没注册时建会话不带模型，发送前不改模型。 */
   function setPresetPort(port?: PresetPort) {
     presetPort = port
   }
 
-  /** 欢迎页建出会话时，让队列、附件等外部暂存跟着交接。 */
   function setWelcomeHandoff(fn?: (id: string) => void) {
     welcomeHandoff = fn
   }
@@ -200,11 +189,6 @@ export function useSessionLifecycle(
     }
   }
 
-  /**
-   * 附件随这次提交走：先确保 Session 存在，再 stage 文件，prompt 带 batch 提交。
-   * 只有真正提交成功才返回 true；被中止、切走或提前退出都返回 false。
-   * 状态记在发起它的会话上；欢迎页建出会话后改记到新会话。
-   */
   async function sendPrompt(
     text: string,
     cwd?: string,
@@ -278,7 +262,6 @@ export function useSessionLifecycle(
 
       if (index >= 0) thread.sends.splice(index, 1)
 
-      // 会话在别处有更新：网关已释放运行时，放掉连接重拉历史；草稿已还原，再点发送会重新挂上
       if (isChangedElsewhere(error) && sessionId.value) {
         dropChanged(sessionId.value)
         notify(t("session.changedElsewhere"), "info")
@@ -304,13 +287,11 @@ export function useSessionLifecycle(
     try {
       await abortRemote()
     } catch {
-      /* abort 失败不挡停止态 */
     } finally {
       thread.aborting = false
     }
   }
 
-  /** 会话里的后台任务；只有挂着连接时才有。 */
   const tasks = computed(() => snapshot.value?.tasks ?? [])
 
   async function stopTask(taskId: string) {
@@ -318,7 +299,6 @@ export function useSessionLifecycle(
   }
 
   const turnPending = computed(() => submitting.value || running.value)
-  /** 一条时间线：磁盘底稿 + live 对齐 + 工具开始时刻 + 乐观句 + pending 占位，纯函数一次算完。 */
   const transcript = computed(() => {
     const id = history.activeId.value
     return projectTranscriptTimeline({
@@ -334,7 +314,6 @@ export function useSessionLifecycle(
       pi.sessions.value.find((item) => item.id === sessionId.value)?.cwd ??
       (sessionId.value ? undefined : cwd.lastCwd.value),
   )
-  /** 开场页：没有正文也没有在跑；已有会话但历史还没落地时不当作开场页。 */
   const welcome = computed(() => {
     if (transcript.value.length > 0 || running.value) return false
 
