@@ -4,7 +4,6 @@ import { expect, seedWorkspace, type E2eGateway } from "./fixtures.js"
 import { CHILD_SESSION_ID, FILLER_PREFIX } from "./prebuild-session.js"
 import { installTurnBridge } from "./sim-turn.js"
 
-/** 打开普通会话，发一句，再推一条带两个子任务的 subagent 工具条目。 */
 export async function startSubagentTurn(page: Page, subagentGateway: E2eGateway) {
   await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, subagentGateway.workspaceId)

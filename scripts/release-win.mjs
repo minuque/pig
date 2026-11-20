@@ -31,7 +31,6 @@ async function syncInjectedGateway() {
   }
 }
 
-/** 对即将打进安装包的 Gateway 做握手：未认证必须 401，带通行证后升级必须成功。 */
 async function assertDesktopGatewaySurface() {
   if (!existsSync(join(webRoot, "index.html"))) {
     throw new Error("缺少 apps/web/dist，无法写入 extraResources")

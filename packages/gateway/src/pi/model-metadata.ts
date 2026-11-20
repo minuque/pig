@@ -3,7 +3,6 @@ import type { ModelMetadata } from "@pig/protocol"
 
 const nonNegative = (value: number) => (Number.isFinite(value) && value > 0 ? value : 0)
 
-/** pi 模型 → 界面用的模型目录项；数值钳到合法范围。 */
 export function toModelMetadata(model: Model<Api>, authenticated: boolean): ModelMetadata {
   return {
     provider: model.provider,

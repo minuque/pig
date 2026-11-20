@@ -20,7 +20,6 @@ export type CreateMainWindowOptions = {
   persistState?: (state: WindowState) => void
 }
 
-/** 创建主窗口：底色对齐开屏 surface 并立即显示，开屏入场动画在可见后才开始。 */
 export function createMainWindow(
   preloadPath: string,
   options: CreateMainWindowOptions = {},
@@ -52,7 +51,6 @@ export function createMainWindow(
     void shell.openExternal(url)
   })
 
-  // 自画窗控跟着最大化状态换图标
   const sendMaximized = (): void => {
     window.webContents.send("pig:window:maximized", window.isMaximized())
   }
@@ -75,7 +73,6 @@ export function createMainWindow(
   return window
 }
 
-/** resize/move 节流写入；close 再刷一次。 */
 function persistWindowState(
   window: BrowserWindow,
   persistState: (state: WindowState) => void,

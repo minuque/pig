@@ -37,7 +37,6 @@ function killPidTree(pid: number): void {
 }
 
 const vitePort = viteDevPort()
-// 端口开跑前就被占着，说明旧实例还在；本进程退出时别按端口把它的 Vite 杀掉
 const ownsPort = isVitePortFree(vitePort)
 
 if (ownsPort) {

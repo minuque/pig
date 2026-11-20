@@ -4,7 +4,6 @@ import type { DefaultModelView } from "./provider.js"
 import type { Task } from "./task.js"
 import type { TranscriptItem, TranscriptProgress, UserTranscriptItem } from "./transcript.js"
 
-/** 协议版本；两端写字面量 1，类型保证一致。 */
 export type ProtocolVersion = 1
 
 export type SessionPhase = "idle" | "turn" | "compaction" | "branch_summary" | "retry"

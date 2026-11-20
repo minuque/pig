@@ -21,11 +21,9 @@ test("subagent 子任务：时间线卡片与摘要面板都列出进展，点�
   page,
   subagentGateway,
 }) => {
-  // 会话面板窄于 1012px：摘要面板收成头部按钮加浮层
   await page.setViewportSize({ width: 1000, height: 800 })
   await startSubagentTurn(page, subagentGateway)
 
-  // 窄于常驻宽度：头部图标按钮，悬停提示带进度，点开浮层看 Task 块
   const toggle = page.locator(".rail-toggle-popover")
   await toggle.hover()
   await expect(page.locator(".rt-TooltipContent")).toContainText("1/2")
@@ -33,13 +31,11 @@ test("subagent 子任务：时间线卡片与摘要面板都列出进展，点�
   const popover = page.locator(".rail-popover")
   await expect(popover.getByText("planner")).toBeVisible()
 
-  // 卡片里点任务：右侧面板列出全部任务与进展，浮层让开
   await popover.locator(".task-row-open").first().click()
   await expect(popover).toBeHidden()
   const pane = page.locator(".rail-pane")
   await expect(pane.getByText("read service.ts")).toBeVisible()
 
-  // 查看过程：同一个面板换成子会话，只读
   await pane
     .locator(".rail-task", { hasText: "scout" })
     .getByRole("button", { name: "查看过程" })
@@ -57,13 +53,11 @@ test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({
   await expect(titles.first()).toHaveText("环境")
   await expect(titles.last()).toHaveText("后台任务")
 
-  // 头部横跨整个工作区，右侧按钮贴窗口右边
   const headerBox = (await page.locator(".workbench-header").boundingBox())!
   const mainBox = (await page.locator(".shell > main").boundingBox())!
   expect(headerBox.x).toBeCloseTo(mainBox.x, 0)
   expect(headerBox.x + headerBox.width).toBeCloseTo(mainBox.x + mainBox.width, 0)
 
-  // 摘要卡浮在正文右上角，不占正文的列；输入条在它左侧结束
   const railBox = (await rail.boundingBox())!
   const composerBox = (await page.locator(".composer-stack").boundingBox())!
   expect(composerBox.x + composerBox.width).toBeLessThanOrEqual(railBox.x)
@@ -71,7 +65,6 @@ test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({
   expect(viewportBox.x + viewportBox.width).toBeGreaterThan(railBox.x)
   expect(railBox.x + railBox.width).toBeLessThanOrEqual(viewportBox.x + viewportBox.width + 1)
 
-  // 上下文展开：按分类列 token 与占比，点分类在弹框里看实际进上下文的内容，可切源码
   const contextCard = rail.locator(".rail-card", { hasText: "上下文" })
   await contextCard.locator(".ctx-row button").first().click()
   const preview = page.getByRole("dialog")
@@ -84,14 +77,12 @@ test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({
   await preview.getByRole("button", { name: "关闭" }).last().click()
   await expect(preview).toBeHidden()
 
-  // 收起环境：正文收起，标题行显示摘要
   const env = rail.locator(".rail-card").first()
   const envHead = env.locator(".rail-head")
   await envHead.click()
   await expect(envHead).toHaveAttribute("aria-expanded", "false")
   await expect(env.locator(".rail-summary")).toHaveText("本机")
 
-  // 按住任务卡标题直接拖到最上方，松手不算点击，开合不变
   const tasks = rail.locator(".rail-card").last()
   const tasksHead = tasks.locator(".rail-head")
   const expanded = await tasksHead.getAttribute("aria-expanded")
@@ -104,7 +95,6 @@ test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({
   await expect(titles.first()).toHaveText("后台任务")
   await expect(rail.locator(".rail-head").first()).toHaveAttribute("aria-expanded", expanded!)
 
-  // 排列与开合记在本地，刷新后仍是这样
   await page.reload()
   await page.locator(".session-card").first().click()
   await expect(rail.locator(".rail-head", { hasText: "环境" })).toHaveAttribute(
@@ -117,7 +107,6 @@ test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({
   const order = await page.evaluate(() => localStorage.getItem("pig.rail.layout"))
   expect(JSON.parse(order ?? "{}").order[0]).toBe("tasks")
 
-  // 头部按钮收起常驻面板，刷新后仍收起
   const toggle = page.locator(".rail-toggle-docked")
   await expect(toggle).toHaveAttribute("aria-pressed", "true")
   await toggle.click()

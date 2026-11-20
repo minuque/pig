@@ -35,7 +35,6 @@ export interface Environment {
   exec(command: string, options: ExecOptions): Promise<{ exitCode: number | null }>
   readFile(path: string): Promise<Buffer>
   writeFile(path: string, content: string | Buffer): Promise<void>
-  /** 递归建目录，已存在不报错。 */
   mkdir(path: string): Promise<void>
   /** 不存在返回 undefined，其他错误照抛。 */
   stat(path: string): Promise<FileStat | undefined>
@@ -49,7 +48,6 @@ export interface Environment {
     query: string,
     options?: { limit?: number; signal?: AbortSignal | undefined },
   ): Promise<SearchEntry[]>
-  /** 登录用户的主目录（该环境里的绝对路径）。 */
   home(): Promise<string>
   close(): Promise<void>
 }

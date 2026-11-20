@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/** 新 worktree 初始化：装依赖 → 构建 gateway → 补齐 electron path.txt → 校验并提示下一步。 */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import { join, resolve } from "node:path"
 

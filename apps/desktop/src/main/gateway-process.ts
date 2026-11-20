@@ -1,6 +1,5 @@
 import type { ChildMessage, ParentMessage } from "./gateway-messages.js"
 
-/** utilityProcess 里本模块用到的部分；单测用假的。 */
 export type GatewayChild = {
   postMessage(message: ParentMessage): void
   on(event: "message", listener: (message: ChildMessage) => void): unknown
@@ -19,7 +18,6 @@ export type GatewayProcessOptions = {
   onUnexpectedExit(code: number): void
 }
 
-/** 等子进程 ready；之后代主进程弹选目录对话框，并把意外退出报给调用方。 */
 export function connectGateway(
   child: GatewayChild,
   { pickDirectory, onUnexpectedExit }: GatewayProcessOptions,
@@ -29,7 +27,6 @@ export function connectGateway(
   return new Promise((resolve, reject) => {
     child.on("message", (message) => {
       if (message.type === "select-directory") {
-        // 对话框出错按取消回复，否则子进程那边一直等
         void pickDirectory()
           .catch(() => undefined)
           .then((path) => {

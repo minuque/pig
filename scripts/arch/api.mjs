@@ -1,4 +1,3 @@
-/** 从 gateway 路由与 protocol 联合类型里取接口：HTTP 端点、WS 命令与事件。 */
 import { readdirSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import ts from "typescript"
@@ -6,7 +5,6 @@ import ts from "typescript"
 const SERVER_DIR = "packages/gateway/src/server"
 const WIRE = "packages/protocol/src/wire.ts"
 const METHOD = /method\s*[!=]==\s*"([A-Z]+)"/g
-/** 声明式路由的键："POST /api/v1/platform/rename-session"。 */
 const ROUTE_KEY = /^(?:GET|POST|PUT|PATCH|DELETE|HEAD) (\/api\/\S+)$/
 const parse = (root, id) =>
   ts.createSourceFile(id, readFileSync(join(root, id), "utf8"), ts.ScriptTarget.Latest, true)
@@ -70,7 +68,6 @@ function splitTop(text) {
   return parts
 }
 
-/** 一个 server 文件里的路由：pathname 字面量比较、正则 exec、前缀常量 startsWith。 */
 function fileRoutes(root, id) {
   const file = parse(root, id)
   const consts = new Map()
@@ -108,7 +105,6 @@ function fileRoutes(root, id) {
   }
 
   visit(file, (node) => {
-    // 声明式注册：路由键本身就是方法加路径
     if (ts.isStringLiteral(node)) {
       const key = ROUTE_KEY.exec(node.text)
 
@@ -151,7 +147,6 @@ function fileRoutes(root, id) {
   return routes
 }
 
-/** web 源码里出现的 /api/ 路径，模板插值写成占位、去掉查询串。 */
 function webCallSites(root) {
   const sites = []
   const walk = (dir) => {
@@ -162,7 +157,6 @@ function webCallSites(root) {
       else if (/\.(?:ts|vue)$/.test(entry.name)) {
         const text = readFileSync(join(root, id), "utf8").replace(/\$\{[^}]*\}/g, "\0")
 
-        // 声明式调用写的是 "GET /api/..."，方法前缀可有可无
         for (const m of text.matchAll(/["'`](?:[A-Z]+ )?(\/api\/[^"'`?]*)/g))
           sites.push({ id, url: m[1] })
       }

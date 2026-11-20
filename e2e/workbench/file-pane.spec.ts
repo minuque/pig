@@ -43,13 +43,11 @@ test("点工具行里的文件名，Files 面板打开这个文件并标出读�
   await expect(pane.locator(".file-code-line[data-hl]").first()).toContainText(
     "export const fromWorkspace = 42",
   )
-  // 树里展开到这个文件并标为当前
   await expect(
     pane.locator('.file-tree-row[data-active][data-path="src/example.ts"]'),
   ).toBeVisible()
   await checkpoint(page, "file-pane-open")
 
-  // 头部按钮收起面板，再打开时标签还在
   const toggle = page.getByRole("button", { name: "开关文件面板" })
 
   await toggle.click()
@@ -78,7 +76,6 @@ test("从头部打开 Files，在树里展开目录、搜索内容并跳到命�
   await page.getByRole("button", { name: "开关文件面板" }).click()
   const pane = page.getByRole("region", { name: "文件" })
   const tree = pane.getByRole("tree")
-  // 头部横跨整个工作区：Files 列也在头部之下
   const headerBox = (await page.locator(".workbench-header").boundingBox())!
   const mainBox = (await page.locator(".shell > main").boundingBox())!
   expect(headerBox.x + headerBox.width).toBeCloseTo(mainBox.x + mainBox.width, 0)
@@ -97,7 +94,6 @@ test("从头部打开 Files，在树里展开目录、搜索内容并跳到命�
   await expect(hit).toBeVisible()
   await hit.click()
   await expect(pane.getByRole("tab", { name: "notes.md" })).toHaveAttribute("aria-selected", "true")
-  // 临时标签被替换，带行号打开的 Markdown 从源码开始并标出那一行
   await expect(pane.getByRole("tab", { name: "example.ts" })).toHaveCount(0)
   await expect(pane.locator(".file-code-line[data-hl]")).toContainText("needle-in-notes")
   await checkpoint(page, "file-pane-search")
@@ -136,7 +132,6 @@ test("上千个文件的目录与数千行的文件只渲染看得见的行，�
 
   await search.fill("file-990")
   await pane.locator('button[title="many/file-990.ts"]').click()
-  // 清空搜索回到树：它展开到这个文件并滚到看得见的地方
   await search.fill("")
   const row = pane.locator('.file-tree-row[data-active][data-path="many/file-990.ts"]')
 
@@ -181,7 +176,6 @@ test("HTML 在沙箱里跑脚本、加载同目录资源，外链先确认；PDF
 
   const frame = pane.frameLocator("iframe.file-html")
 
-  // 相对路径的 app.js 加载并执行，且页面读不到 pig 的 cookie
   await expect(frame.locator("#out")).toHaveText("脚本已运行:true")
   await frame.locator("#ext").click()
   await expect(page.getByRole("alertdialog")).toContainText("https://example.com/docs")

@@ -145,7 +145,6 @@ function seedListSessions(sessionDir: string, cwd: string) {
   }
 }
 
-/** 在 sessionDir 写入短/长会话和侧栏列表填充，供打开、切换、滚动测量。 */
 export function seedBenchSessions(sessionDir: string, cwd: string) {
   seedListSessions(sessionDir, cwd)
   seedConversation(sessionDir, cwd, SHORT_SESSION_ID, SHORT_SESSION_NAME, SHORT_TURNS, "已记录。")

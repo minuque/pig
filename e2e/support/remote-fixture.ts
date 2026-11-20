@@ -16,7 +16,6 @@ export const remotePathOf = (dir: string) => {
 }
 const local = (path: string) => path.replace(/^\/(?=[A-Za-z]:)/, "")
 
-/** 用本机目录充当 SSH 主机：路径换回本机拼写后交给本机环境。 */
 class StandInHost implements Environment {
   readonly id = `ssh://${REMOTE_HOST}`
   private readonly env = new LocalEnvironment()
@@ -39,7 +38,6 @@ class StandInHost implements Environment {
   close = () => this.env.close()
 }
 
-/** 登记替身主机，并写一份只含它的 ssh config 给环境列表用。 */
 export async function prepareRemote(temp: string) {
   registerEnvironment(`ssh://${REMOTE_HOST}`, new StandInHost())
   const sshConfigPath = join(temp, "ssh-config")

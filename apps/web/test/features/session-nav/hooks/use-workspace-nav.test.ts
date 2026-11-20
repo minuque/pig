@@ -78,7 +78,6 @@ describe("useWorkspaceNav", () => {
       return { cards: [] }
     })
     const adm = admin()
-    // 服务端删完后刷新会拿不到这条会话
     adm.refreshSessions = vi.fn(async () => {
       sessions.value = sessions.value.filter((session) => session.id !== "s2")
     })

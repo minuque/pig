@@ -9,7 +9,6 @@ function noProxy(): string {
   return [fromEnv, LOOPBACK_NO_PROXY].filter((item) => item.length > 0).join(",")
 }
 
-/** 与 Pi CLI 一样走 HTTPS_PROXY；直连 api.x.ai 在污染 DNS 上会 10s 连超时。 */
 export function installProviderHttp(cwd = process.cwd()): void {
   if (installed) return
 

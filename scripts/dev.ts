@@ -21,7 +21,6 @@ if (process.env.MSYSTEM && !process.env[WRAPPED] && process.stdin.isTTY) {
     console.warn("[dev] 未找到 winpty,Ctrl+C 可能无法停止进程。")
     void main()
   })
-  // 启动即失败(非零)时回退到直接运行,避免 dev 起不来
   winpty.on("exit", (code) => {
     if (code && Date.now() - startedAt < 2000) {
       console.warn("[dev] winpty 启动失败,改用直接运行,Ctrl+C 可能无法停止。")
@@ -42,7 +41,6 @@ async function main() {
   console.info(`[dev] http://127.0.0.1:${webPort}`)
   console.info(`[dev] ${gateway.authenticatedUrl(gatewayOrigin)}`)
 
-  // 直接用本进程的 Node 跑 Vite：不向启动器要 npm_execpath，pnpm / npx / IDE 直跑都一样。
   // Vite 的 exports 不包含 bin，先解析 package.json 再拼。
   const webRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "apps", "web")
   const webRequire = createRequire(join(webRoot, "package.json"))

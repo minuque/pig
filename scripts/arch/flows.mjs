@@ -11,7 +11,6 @@ export async function loadFlows(root) {
   return flows
 }
 
-/** 顶层声明名 → 节点；只认带 export 的。 */
 function exportedDeclarations(file) {
   const out = new Map()
   const exported = (node) =>

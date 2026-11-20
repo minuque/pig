@@ -7,7 +7,6 @@ import type { ComposerCommand } from "@pig/protocol"
 /** Pi 的展开正则用 [^\s]+ 抓名字，含空白就截断，参数会错位。 */
 const INVOKABLE_TEMPLATE_NAME = /^\S+$/
 
-/** 取菜单里可用的模板：名字可展开，且不被同名扩展命令截胡。 */
 export function selectComposerPrompts(
   prompts: readonly ComposerCommand[],
   reservedNames: ReadonlySet<string>,

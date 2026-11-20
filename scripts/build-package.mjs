@@ -28,7 +28,6 @@ try {
         outDir: posix(join(gateway, "dist")),
         // 临时 tsconfig 在系统临时目录，types 按配置所在目录解析，指回仓库根的 @types
         typeRoots: [posix(join(root, "node_modules/@types"))],
-        // 发布 exports 指向 dist 的 .d.ts，声明必须生成
         declaration: true,
         declarationMap: false,
         sourceMap: false,

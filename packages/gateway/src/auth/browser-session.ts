@@ -149,13 +149,11 @@ export class BrowserSession {
     return url.href
   }
 
-  /** 本机回环且不是跨站请求。未带通行证时返回 401。 */
   rejection(headers: IncomingMessage["headers"]): 401 | 403 | undefined {
     const host = header(headers, "host")
 
     if (!host || !loopbackHost(host)) return 403
 
-    // 桌面壳的页面来源是 pig://app，凭证由壳按进程注入，带 Bearer 就不再按来源拦
     if (this.bearerValid(headers)) return undefined
 
     if (header(headers, "sec-fetch-site") === "cross-site") return 403
@@ -183,7 +181,6 @@ export class BrowserSession {
     return Boolean(bearer && sameBytes(bearer, this.authorizationHeader()))
   }
 
-  /** 根路径上的 token 换成 cookie 并跳回干净地址。已有 cookie 则可以返回页面。 */
   authorizeIndex(req: IncomingMessage, res: ServerResponse): boolean {
     const url = new URL(req.url ?? "/", "http://127.0.0.1")
     const tokens = url.searchParams.getAll("token")

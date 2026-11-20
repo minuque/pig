@@ -5,11 +5,9 @@ type Outcome = Exclude<TurnTiming["outcome"], "running">
 
 type Turn = { startedAt: number; userTimestamp: number; userId?: string; outcome?: Outcome }
 
-/** 回合计时：从收到用户输入到回合完全结束，先写一条 running，结束再写终态。 */
 export default function turnTiming(pi: ExtensionAPI) {
   let inputAt: number | undefined
   let turn: Turn | undefined
-  /** 用户消息落盘后才有条目 id；找到就写 running。 */
   const persistStart = (ctx: ExtensionContext) => {
     const current = turn
 

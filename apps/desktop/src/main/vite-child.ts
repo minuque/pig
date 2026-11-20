@@ -22,9 +22,7 @@ export function prepareInheritedConsoleChunk(raw: string | Buffer): string {
 function prepareWindowsConsole(): void {
   try {
     spawnSync("chcp.com", ["65001"], { stdio: "ignore", windowsHide: true })
-  } catch {
-    // 字符串写入仍走宽字符 API
-  }
+  } catch {}
 }
 
 function attachWindowsConsole(child: ChildProcess): void {
@@ -165,7 +163,6 @@ export function killVite(child: ChildProcess): void {
   killPortListeners()
 }
 
-/** 端口空着才轮得到本实例收尾时按端口清理；否则那可能是别人的 Vite。 */
 export function isVitePortFree(
   port: number,
   list: (port: number) => number[] = listListeningPids,
@@ -173,7 +170,6 @@ export function isVitePortFree(
   return list(port).length === 0
 }
 
-/** 端口必须先空着：占用中的端口多半是另一个实例的 Vite，借来用会被对方退出时连坐。 */
 export function assertVitePortFree(
   port: number,
   list: (port: number) => number[] = listListeningPids,
@@ -187,7 +183,6 @@ export function assertVitePortFree(
   }
 }
 
-/** 等到 Vite 真的能给出 200；子进程先退出就立刻报错，别空等超时。 */
 export async function waitForHttp(
   url: string,
   timeoutMs = 60_000,

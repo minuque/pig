@@ -18,7 +18,6 @@ export class ExtensionUiBridge {
 
   constructor(private readonly send: (request: ExtensionUiRequest) => void) {}
 
-  /** 还在等回答的对话框；客户端重连或新挂上时补发。 */
   dialogs(): ExtensionUiDialog[] {
     return [...this.pending.values()].map((entry) => entry.request)
   }
@@ -27,7 +26,6 @@ export class ExtensionUiBridge {
     this.pending.get(response.id)?.resolve(response)
   }
 
-  /** 会话释放：所有未答的对话框按取消处理，扩展拿到默认值。 */
   cancelAll() {
     for (const [id, entry] of this.pending) entry.resolve({ id, cancelled: true })
   }
@@ -59,7 +57,6 @@ export class ExtensionUiBridge {
       this.emit({ method: "notify", message, ...(type ? { notifyType: type } : {}) }),
     setStatus: (key, text) => this.emit({ method: "setStatus", statusKey: key, statusText: text }),
     setWidget: (key: string, content: unknown, options?: { placement?: string }) => {
-      // 只支持文本行；组件工厂需要终端，按 RPC 模式忽略
       if (content !== undefined && !Array.isArray(content)) return
       const placement = options?.placement
       this.emit({

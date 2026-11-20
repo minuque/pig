@@ -7,7 +7,6 @@ import { run } from "../scripts/run.mjs"
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const webRoot = join(root, "apps/web")
 const distEntry = join(webRoot, "dist/index.html")
-/** 参与 web 构建的输入；任一文件比 dist 新就得重建。 */
 const INPUTS = ["src", "public", "index.html", "vite.config.ts", "package.json"]
 
 function newestMtime(path: string): number {
@@ -32,7 +31,6 @@ function distIsFresh(): boolean {
 }
 
 export default function globalSetup() {
-  // 重跑单个用例时不值得重建
   if (process.env.PIG_E2E_SKIP_BUILD) return
 
   if (distIsFresh()) {

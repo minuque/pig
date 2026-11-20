@@ -8,7 +8,6 @@
 
 import { spawn, spawnSync } from "node:child_process"
 
-/** cmd 的元字符与空白：出现其一就得整段加引号。 */
 const NEEDS_QUOTE = /[\s"&|<>^%]/
 const JS_ENTRY = /\.[cm]?js$/
 const SHELL_COMMAND = /\.(cmd|bat)$/i

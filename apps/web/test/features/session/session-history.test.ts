@@ -6,7 +6,6 @@ let gatewayKnowsAfter = true
 let appended = 0
 const text = (id: string, role: "user" | "assistant", body: string) =>
   ({ id, role, content: [{ type: "text", text: body }], timestamp: 1 }) as TranscriptItem
-/** 替身网关：照协议回 append 或全文；gatewayKnowsAfter 为假时像旧网关一样无视 after。 */
 const transcript = vi.fn(async (_id: string, cursor?: { after?: string }) => {
   const timings = server
     .filter((item) => item.role === "user")
@@ -27,7 +26,6 @@ vi.mock("@client/platform.js", () => ({ sessionTranscript: transcript }))
 
 const { createHistoryStore } = await import("@features/session/hooks/use-session-history.js")
 
-/** 一段会话的生命周期：首拉、live 覆盖后落盘、切分支、再追加；每步记下界面看到的转录与计时。 */
 async function replay(knowsAfter: boolean) {
   gatewayKnowsAfter = knowsAfter
   const store = createHistoryStore()

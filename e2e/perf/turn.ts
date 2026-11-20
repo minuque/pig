@@ -17,7 +17,6 @@ const FIRST_PROMPT = "基准首条提问"
 const FIRST_TOKEN = "基准首 token"
 const STREAM_CHUNKS = 6
 
-/** 欢迎页发一句：量点发送到首条助手上屏，再量保活下流式增量的最慢显示延迟。 */
 export async function runTurn(page: Page, origin: string) {
   const bridge = await installTurnBridge(page)
 
@@ -50,7 +49,6 @@ export async function runTurn(page: Page, origin: string) {
   const lags: number[] = []
 
   await startKeepAlive(page)
-  // 先让保活跑起来，量的是稳态而不是唤醒
   await nextPaint(page)
 
   try {

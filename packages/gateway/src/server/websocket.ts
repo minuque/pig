@@ -8,15 +8,12 @@ import { GatewayError, type SessionService } from "../pi/runtime-types.js"
 import { LiveSessions, type ClientConnection } from "./live-sessions.js"
 
 const MAX_MESSAGE_BYTES = 16 * 1024 * 1024
-/** 慢客户端积压超过上限就断开，免得把内存压给一个卡住的标签页。 */
 const MAX_PENDING_BYTES = 16 * 1024 * 1024
 const HANDSHAKE_TIMEOUT_MS = 30_000
 
 export interface ProtocolServerOptions {
-  /** 承载升级的 HTTP server（只绑定 127.0.0.1）。 */
   server: Server
   service: SessionService
-  /** 升级前的本机通行证检查。返回 401 或 403 时拒绝。 */
   allow(req: IncomingMessage): 401 | 403 | undefined
   onError(error: unknown): void
 }
@@ -65,7 +62,6 @@ function toProtocolError(error: unknown) {
   return { code: "internal_error" as const, message: "Internal server error" }
 }
 
-/** pig 协议的 WebSocket 端：握手、命令分发、服务级快照广播。 */
 export class ProtocolServer {
   private readonly wss = new WebSocketServer({
     noServer: true,
@@ -100,7 +96,6 @@ export class ProtocolServer {
     await this.sessions.close()
   }
 
-  /** 会话目录或模型目录变了：给所有已握手连接推新的服务快照。 */
   broadcastServerSnapshot() {
     const run = this.broadcastQueue.then(async () => {
       const ready = [...this.connections].filter((connection) => connection.ready)
@@ -201,7 +196,6 @@ export class ProtocolServer {
     }
 
     try {
-      // 握手前的请求也要回应，否则客户端那条请求会一直挂着
       if (!connection.ready) throw new GatewayError("invalid_request", "Handshake required")
       const result = await this.sessions.execute(connection, message.command)
       connection.send({ type: "response", id: message.id, ok: true, result })

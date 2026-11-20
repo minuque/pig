@@ -23,7 +23,6 @@ export async function installTurnBridge(page: Page, options: { holdPromptReply?:
   let resolvePrompt: ((id: string) => void) | undefined
   const snapshots = new Map<string, SessionSnapshot>()
   const prompted: string[] = []
-  /** 每条 prompt 带来的附件 batch；没带附件的是 undefined。 */
   const promptBatches: (string | undefined)[] = []
   const heldReplies = new Map<string, string>()
 
@@ -135,7 +134,6 @@ export async function installTurnBridge(page: Page, options: { holdPromptReply?:
   })
   return {
     snapshots,
-    /** 收到过 prompt 的会话 id，按到达顺序。 */
     prompted,
     promptBatches,
     connections: () => connections,

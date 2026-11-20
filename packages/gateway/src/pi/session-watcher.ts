@@ -1,7 +1,6 @@
 import { watch, type FSWatcher } from "node:fs"
 import { basename, dirname } from "node:path"
 
-/** 同一份文件的一串 fs 事件合并成一次通知的窗口。 */
 const DEFAULT_DEBOUNCE_MS = 80
 
 interface WatchedFile {
@@ -10,12 +9,10 @@ interface WatchedFile {
 }
 
 export interface SessionFileWatcherOptions {
-  /** sessionId → 会话文件路径；找不到就当没这个会话，不监听。 */
   resolvePath(sessionId: string): Promise<string | undefined>
   debounceMs?: number
 }
 
-/** 按需盯住会话文件：有订阅者才开 fs.watch，同一会话共用一份，退订到零就关；盯目录按文件名过滤以兼容原子替换。 */
 export class SessionFileWatcher {
   private readonly listeners = new Map<string, Set<() => void>>()
   private readonly files = new Map<string, WatchedFile>()
@@ -27,7 +24,6 @@ export class SessionFileWatcher {
     this.debounceMs = options.debounceMs ?? DEFAULT_DEBOUNCE_MS
   }
 
-  /** 订阅一个会话文件的变化；返回退订函数。 */
   subscribe(sessionId: string, listener: () => void): () => void {
     if (this.closed) return () => {}
 
@@ -39,7 +35,6 @@ export class SessionFileWatcher {
     return () => this.unsubscribe(sessionId, listener)
   }
 
-  /** 停服：关掉全部 watcher，不留文件句柄。 */
   close() {
     this.closed = true
 
@@ -55,7 +50,6 @@ export class SessionFileWatcher {
     this.closeFile(sessionId)
   }
 
-  /** 解析路径是异步的：期间退订过就不再建 watcher，同一会话的并发订阅共用一次解析。 */
   private open(sessionId: string): Promise<void> {
     const pending = this.resolving.get(sessionId)
 
@@ -80,7 +74,6 @@ export class SessionFileWatcher {
   private watchFile(sessionId: string, path: string): WatchedFile | undefined {
     const name = basename(path).toLowerCase()
     const dir = dirname(path)
-    // 目录刚被删或无权限：静默跳过，避免未捕获异常
     let watcher: FSWatcher
 
     try {

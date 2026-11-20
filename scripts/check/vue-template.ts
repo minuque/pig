@@ -35,7 +35,6 @@ function checkRefNames(
   return messages
 }
 
-/** 语法树取第一个字符串参数。类型参数再复杂也不影响名字。 */
 function templateRefKeysOf(script: string): string[] {
   const file = ts.createSourceFile(
     "check.ts",

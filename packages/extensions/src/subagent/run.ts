@@ -26,10 +26,8 @@ export interface ChildRun {
   cwd: string
   model: Model
   thinkingLevel: ThinkingLevel
-  /** 父会话文件与会话目录：子会话落盘在同一目录，并记下父会话。 */
   parentSessionFile: string | undefined
   sessionDir: string
-  /** 父会话绑定的远程 workspace：子会话的工具也在那里跑。 */
   remote: RemoteBinding | undefined
   signal: AbortSignal | undefined
   onSession(sessionId: string): void
@@ -41,7 +39,6 @@ export interface ChildResult {
   usage: { input: number; output: number; cost: number }
 }
 
-/** 开一个子会话跑完一个任务；可替换，测试用它注入替身。 */
 export type StartChild = (run: ChildRun) => Promise<ChildResult>
 
 let runtime: Promise<ModelRuntime> | undefined
@@ -52,7 +49,6 @@ function sharedRuntime() {
   return runtime
 }
 
-/** 宿主改过供应商、凭据或模型目录：丢掉缓存，下次开子会话时重新读盘。 */
 export function resetSharedRuntime(): void {
   runtime = undefined
 }
@@ -62,14 +58,12 @@ const brief = (value: unknown) => {
   return text.length > 80 ? `${text.slice(0, 80)}…` : text
 }
 
-/** 一步工具调用的单行摘要，给卡片与 TUI 显示最近进展。 */
 function stepOf(event: Extract<AgentSessionEvent, { type: "tool_execution_start" }>): string {
   const args = event.args as Record<string, unknown> | undefined
   const target = args?.path ?? args?.command ?? args?.pattern ?? args
   return `${event.toolName} ${brief(target)}`
 }
 
-/** 与网关 resource-loader 同一规则：设置里的 packages 对 pi 藏起，不加载也不替用户安装。 */
 function settingsWithoutPackages(cwd: string, agentDir: string): SettingsManager {
   const settings = SettingsManager.create(cwd, agentDir)
   const global = settings.getGlobalSettings.bind(settings)
@@ -79,7 +73,6 @@ function settingsWithoutPackages(cwd: string, agentDir: string): SettingsManager
   return settings
 }
 
-/** 子会话的资源：不加载用户扩展（避免子任务再派子任务），系统提示追加 agent 定义。 */
 export async function childResourceLoader(
   run: Pick<ChildRun, "cwd" | "remote" | "agent">,
 ): Promise<DefaultResourceLoader> {
@@ -145,7 +138,6 @@ export const startChild: StartChild = async (run) => {
   run.signal?.addEventListener("abort", abort, { once: true })
 
   try {
-    // 加载资源与建会话期间就已中止时，监听器来不及收到
     if (run.signal?.aborted) throw new Error("Subagent aborted")
     await session.prompt(run.task)
     await session.waitForIdle()

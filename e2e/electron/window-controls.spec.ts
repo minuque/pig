@@ -8,7 +8,6 @@ import { expect, test, _electron as electron } from "@playwright/test"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..")
 const desktopRoot = join(root, "apps/desktop")
-/** 避开 dev:desktop 的 5555：窗控用例自己起一份 Vite。 */
 const VITE_PORT = 5598
 const desktopRequire = createRequire(join(desktopRoot, "package.json"))
 

@@ -13,7 +13,6 @@ function file(name: string, type: string, size = 4): File {
   return created
 }
 
-/** 拖拽替身：items 与 files 同源，webkitGetAsEntry 决定是否文件夹。 */
 function transfer(files: File[], folders: string[] = []): DataTransfer {
   const entry = (name: string, isDirectory: boolean) => ({
     isDirectory,

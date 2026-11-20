@@ -19,7 +19,6 @@ const CLIENT_SCRIPTS = [
   "client/views.js",
 ]
 
-/** 包根目录：从入口文件往上找到 package.json。 */
 function pkgDir(webRequire, name) {
   let dir = dirname(webRequire.resolve(name))
 
@@ -31,7 +30,6 @@ const read = (path) => readFileSync(path, "utf8")
 /** 内联进 <script> 的文本不能出现结束标签。 */
 const inlineJs = (text) => text.replaceAll("</script", "<\\/script")
 
-/** 扫描仓库并生成单文件架构看板 HTML。 */
 export async function buildArchHtml(root) {
   const flows = await loadFlows(root)
   const errors = validateFlows(root, flows)

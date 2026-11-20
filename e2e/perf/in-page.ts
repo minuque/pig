@@ -176,7 +176,6 @@ export async function waitInPage(page: Page, spec: PageWaitSpec, timeout = DEFAU
   )
 }
 
-/** 点击瞬间起步，记录各 step 从点击到命中的页面毫秒。 */
 export async function armClickStamps(
   _page: Page,
   locator: Locator,
@@ -194,7 +193,6 @@ export async function armClickStamps(
   )
 }
 
-/** 立刻并行起步，记录命中时的页面时刻。 */
 export async function armStamps(
   page: Page,
   steps: Record<string, PageWaitSpec>,
@@ -272,7 +270,6 @@ export async function stopKeepAlive(page: Page) {
   }, KEEP_ALIVE_KEY)
 }
 
-/** 清掉页面内计时句柄，上一遍的等待不再悬着。 */
 export async function clearStamps(page: Page) {
   await page.evaluate(() => {
     Reflect.deleteProperty(window, "__pigArmSteps")

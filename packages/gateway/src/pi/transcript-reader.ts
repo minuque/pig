@@ -11,10 +11,8 @@ interface TranscriptSource {
   findPath(sessionId: string): Promise<string | undefined>
 }
 
-/** known：客户端手里的文件版本；after：客户端手里投影的 `<条目数>:<最后一条 id>`。 */
 export type TranscriptCursor = { known?: string | undefined; after?: string | undefined }
 
-/** 历史读取：活会话读运行时，其余读磁盘（按文件版本缓存）。 */
 export class TranscriptReader {
   private readonly disk = new DiskTranscripts()
 
@@ -23,7 +21,6 @@ export class TranscriptReader {
   async page(sessionId: string, cursor: TranscriptCursor = {}): Promise<SessionTranscriptPage> {
     const live = this.source.live(sessionId)
 
-    // 空闲的活会话先核对文件：被别处追加过就释放运行时，改读盘
     if (live && !(live.getPhase() === "idle" && (await live.releaseIfAppended()))) {
       const full = live.historyTranscript()
       return withItems(full.items, cursor.after, {
@@ -60,7 +57,6 @@ export class TranscriptReader {
 
 type PageMeta = Omit<Extract<SessionTranscriptPage, { items: unknown }>, "items">
 
-/** 客户端手里的前缀对得上就只回尾巴，否则回全文。 */
 function withItems(
   items: readonly TranscriptItem[],
   after: string | undefined,

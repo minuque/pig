@@ -42,7 +42,6 @@ void (() => {
   const short = (key, focus) => tail(key, focus).replace(/^src\//, "")
   const depLink = (id, text = id) => `<a class="mono" href="#dep/${esc(id)}">${esc(text)}</a>`
 
-  /** 拆分路径前缀与末段核心名，便于瓦片与列表弱显前缀。 */
   function splitName(text) {
     const at = text.lastIndexOf("/") + 1
     return { prefix: text.slice(0, at), main: text.slice(at) }

@@ -10,7 +10,6 @@ export type MetricRow = {
   value: number | null
   p90?: number | null
   previous?: number | null
-  /** 值是最长帧，帧率列显示换算后的 fps */
   frame?: boolean
   unit?: "ms" | "cls"
 }
@@ -22,7 +21,6 @@ function paint(text: string, color: "green" | "red" | null) {
   return text
 }
 
-/** 全角占两格的码点。制表符、破折号按终端的单格宽算。 */
 function isWide(code: number): boolean {
   return (
     (code >= 0x1100 && code <= 0x115f) ||
@@ -101,7 +99,6 @@ function rowLine(
   return `│${inner}│`
 }
 
-/** 分组分隔线：标题居中夹在横线里，同时充当前一段的收尾线。 */
 function sectionLine(label: string, innerWidth: number) {
   const text = `${BOLD}${label}${RESET}`
   const rest = Math.max(0, innerWidth - displayWidth(text) - 2)
@@ -111,14 +108,12 @@ function sectionLine(label: string, innerWidth: number) {
 
 type CellKey = "label" | "now" | "p90" | "prev" | "fps" | "change"
 
-/** 比上次慢超过阈值的指标，供调用方决定要不要失败。 */
 const regressions: string[] = []
 
 export function regressionsSoFar(): readonly string[] {
   return regressions
 }
 
-/** 一张带边框的表。变快为绿，变慢超过 10% 为红，整列都是「—」的列不打印。 */
 export function reportTable(rows: readonly MetricRow[]) {
   const visible = rows.filter((row) => row.value != null && Number.isFinite(row.value))
 
@@ -137,9 +132,7 @@ export function reportTable(rows: readonly MetricRow[]) {
       now: paint(formatMetric(row.value, unit), color),
       p90: formatMetric(row.p90 ?? null, unit),
       prev: formatMetric(row.previous ?? null, unit),
-      // fps 是派生量，单独成列，不塞进毫秒列
       fps: row.frame ? formatFps(row.value) : "—",
-      // 帧指标的差值换算 fps 无意义，变化列只显示 ms
       change: paint(changeText(row.value, row.previous ?? null, unit), color),
     }
   })
@@ -148,7 +141,6 @@ export function reportTable(rows: readonly MetricRow[]) {
     { key: "now", title: "本次", align: "right" },
     { key: "p90", title: "p90", align: "right" },
   ]
-  // 整列都没有值就整列不打印：没可比数据时只有 runs>1 才有上次
   const comparable = visible.some((row) => row.previous != null && Number.isFinite(row.previous))
 
   if (comparable) cols.push({ key: "prev", title: "上次", align: "right" })
@@ -179,7 +171,6 @@ export function reportTable(rows: readonly MetricRow[]) {
   for (const cell of cells) {
     if (cell.group && cell.group !== group) {
       group = cell.group
-      // 分组线同时充当前面内容的收尾线，所以表头后不再单独打一条
       console.log(sectionLine(group, innerWidth))
     } else if (!started) console.log(rule(widths, "├", "┼", "┤"))
 

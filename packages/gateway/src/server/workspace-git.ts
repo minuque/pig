@@ -8,7 +8,6 @@ import type {
 
 /** 一次命令行最多带多少个路径：Windows 命令行有长度上限。 */
 const IGNORE_BATCH = 200
-/** 内容搜索的上限：命中、单文件、总字节、耗时都封顶。 */
 const MAX_MATCHES = 241
 const MAX_FILES = 5_000
 const MAX_FILE_BYTES = 2 * 1024 * 1024
@@ -58,7 +57,6 @@ function statusLetter(code: string): GitFileStatus["status"] {
   return code[0] === "A" ? "A" : "M"
 }
 
-/** 工作区里改动过的文件；路径相对工作区，不是仓库时 repo 为 false。 */
 export async function gitStatus(env: Environment, root: string) {
   const { exitCode, output } = await run(
     env,
@@ -108,7 +106,6 @@ async function candidates(env: Environment, root: string, signal: AbortSignal) {
   return { paths: paths.slice(0, MAX_FILES), capped: paths.length > MAX_FILES }
 }
 
-/** 逐个文件找包含 query 的行，大小写不敏感；跳过二进制与过大的文件。 */
 export async function searchContents(
   env: Environment,
   root: string,
@@ -174,7 +171,6 @@ export async function searchContents(
 
       matches.push({ path, line: index + 1, text: line.trim().slice(0, MAX_LINE_CHARS) })
 
-      // 上限在这个文件里填满，后面的行没再看
       if (matches.length >= MAX_MATCHES && index < lines.length - 1) reasons.add("result-limit")
     }
   }

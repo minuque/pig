@@ -1,4 +1,3 @@
-/** 按手写分层归类模块，找出循环引用和下层引用上层。 */
 import { join } from "node:path"
 import { pathToFileURL } from "node:url"
 
@@ -9,7 +8,6 @@ export async function loadLayers(root) {
   return layers
 }
 
-/** 互相能到达的模块（强连通分量里不止一个的）。 */
 function cyclesOf(nodes, links) {
   const out = new Map(nodes.map((n) => [n, new Set()]))
   const index = new Map()

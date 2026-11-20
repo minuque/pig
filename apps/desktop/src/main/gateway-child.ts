@@ -1,4 +1,3 @@
-/** utilityProcess 入口：在独立进程里跑 gateway，经 parentPort 与主进程通信。 */
 import { resolve } from "node:path"
 import { parseArgs } from "node:util"
 

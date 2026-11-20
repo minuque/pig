@@ -88,7 +88,6 @@ function syntheticReply(turn: number): string {
   return paragraphs.join("\n\n")
 }
 
-/** 合成的多轮历史：结构仿真实会话（思考、多种工具、表格、代码、Mermaid、一条长输出），内容是编的，各环境一致。 */
 function appendSyntheticHistory(manager: SessionManager, start: number) {
   let time = start
   let call = 0
@@ -164,10 +163,8 @@ function appendMarkerTurn(manager: SessionManager, timestamp: number) {
   )
 }
 
-/** 侧栏分页用例的会话名前缀。 */
 export const FILLER_PREFIX = "批量会话"
 
-/** 造 count 个同 cwd、同一天更新的会话，用来触发侧栏分页。 */
 export function prebuildFillerSessions(
   sessionDir: string,
   cwd: string,
@@ -179,7 +176,6 @@ export function prebuildFillerSessions(
   for (let i = 0; i < count; i += 1) {
     const id = `${idPrefix}-${i}`
     const name = `${FILLER_PREFIX} ${i + 1}`
-    // 落到过去，别让首帧把会话判成未读（runStartAt 按消息时间比较）
     const timestamp = Date.now() - 60_000 + i * 1_000
     const manager = SessionManager.create(cwd, sessionDir, { id })
 
@@ -197,7 +193,6 @@ export function prebuildFillerSessions(
   return made
 }
 
-/** 合成多轮历史，再写标记回合。用完由调用方删目录。 */
 export function prebuildComplexSession(
   sessionDir: string,
   cwd: string,
@@ -218,7 +213,6 @@ export const EXTERNAL_SESSION_NAME = "外部回合会话"
 export const EXTERNAL_PENDING_PROMPT = "e2e 别处正在跑的提问"
 export const EXTERNAL_REPLY = "e2e 别处写入的回答"
 
-/** 一个完整回合后再多一条用户消息：像 TUI 正跑到一半。返回会话文件路径。 */
 export function prebuildExternalTurnSession(sessionDir: string, cwd: string): string {
   const manager = SessionManager.create(cwd, sessionDir, { id: EXTERNAL_SESSION_ID })
   const timestamp = Date.now() - 60_000
@@ -239,7 +233,6 @@ export function prebuildExternalTurnSession(sessionDir: string, cwd: string): st
   return file
 }
 
-/** 另开一个 SessionManager 追加一条收尾的助手消息：这就是外部写入方。 */
 export function appendExternalReply(file: string) {
   SessionManager.open(file).appendMessage(
     assistantMessage([{ type: "text", text: EXTERNAL_REPLY }], Date.now()),
@@ -251,7 +244,6 @@ export const APPEND_SESSION_NAME = "外部追加会话"
 export const APPEND_EXTERNAL_PROMPT = "e2e TUI 里的提问"
 export const APPEND_EXTERNAL_REPLY = "e2e TUI 里的回答"
 
-/** 一个回合已结束、模型指向替身的会话：pig 挂上后能真的跑回合。返回会话文件路径。 */
 export function prebuildAppendSession(
   sessionDir: string,
   cwd: string,
@@ -272,7 +264,6 @@ export function prebuildAppendSession(
   return file
 }
 
-/** 另开一个 SessionManager 追加一整轮：这就是 TUI。返回 TUI 那条回答的条目 id。 */
 export function appendExternalTurn(file: string, model?: { provider: string; id: string }) {
   const manager = SessionManager.open(file)
 
@@ -285,7 +276,6 @@ export function appendExternalTurn(file: string, model?: { provider: string; id:
 export const CHILD_SESSION_ID = "e2e-child"
 export const CHILD_MARKER = "子任务里读到了协议层"
 
-/** subagent 开出的子会话：带 pig.subagent 标记，侧栏不列，只能从子任务卡片点开。 */
 export function prebuildChildSession(sessionDir: string, cwd: string) {
   const manager = SessionManager.create(cwd, sessionDir, { id: CHILD_SESSION_ID })
   const timestamp = Date.now() - 30_000

@@ -42,7 +42,6 @@ export type RemoteOps = {
   ls: LsOperations
 }
 
-/** pi 四个内置工具的 operations，底层走环境。 */
 export function remoteOperations(
   env: Environment,
   localCwd: string,

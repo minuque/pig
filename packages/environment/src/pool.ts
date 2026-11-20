@@ -6,12 +6,10 @@ import type { Environment } from "./types.js"
 const POOL = Symbol.for("pig.environment.pool")
 const pool = ((globalThis as { [POOL]?: Map<string, Environment> })[POOL] ??= new Map())
 
-/** 登记一个环境：测试与 e2e 用本机环境替身充当某台 SSH 主机。 */
 export function registerEnvironment(id: string, env: Environment) {
   pool.set(id, env)
 }
 
-/** 停服：断开全部长连接；之后再用会按需重连。 */
 export async function closeEnvironments() {
   await Promise.allSettled([...pool.values()].map((env) => env.close()))
 }

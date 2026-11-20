@@ -27,7 +27,6 @@ if (!("localStorage" in globalThis)) {
   Object.defineProperty(globalThis, "localStorage", { value: memoryStorage, configurable: true })
 }
 
-/* vi.waitFor 默认 50ms 轮询一次，多数用例首轮就该过；降到 1ms 省掉每次空等。 */
 const originalWaitFor = vi.waitFor.bind(vi)
 
 vi.waitFor = ((callback: Parameters<typeof originalWaitFor>[0], options?: object | number) =>

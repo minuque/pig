@@ -51,7 +51,6 @@ const fileListeners = new Map<string, Set<() => void>>()
 const watchSession = vi.fn(async (_id: string) => undefined)
 const unwatchSession = vi.fn(async (_id: string) => undefined)
 
-/** 替身 Gateway 推一次“会话文件变了”。 */
 function fileChanged(id: string) {
   for (const listener of fileListeners.get(id) ?? []) listener()
 }

@@ -65,7 +65,6 @@ test("一轮工作：工具步骤状态实时、历史重拉不重复", async ({
   test.setTimeout(120_000)
   await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, complexGateway.workspaceId)
-  // 历史页可控：先只给旧回合，回合结束后再把同一条落盘内容喂回来
   let persisted: TranscriptItem[] = HISTORY
   await page.route("**/api/v1/platform/transcript**", (route) =>
     route.fulfill({
@@ -107,13 +106,11 @@ test("一轮工作：工具步骤状态实时、历史重拉不重复", async ({
   const toolRowOf = (file: string) => page.locator(".row-tools .tool-row").filter({ hasText: file })
   const toolRun = page.locator(".row-tools .tool-run")
 
-  // 助手发起 t1，t1 开始执行
   emit({
     type: "item_started",
     item: assistant(snapshot, "m2", [textBlock(TEXT_A), toolCallBlock("t1")]),
   })
   emit({ type: "item_started", item: tool("t1", "running") })
-  // 单个调用也收在卡片里，先展开才能看到行
   await page.locator(".row-tools .tool-run-summary").click()
   await expect(toolRowOf("t1.ts")).toHaveClass(/is-running/)
 
@@ -121,7 +118,6 @@ test("一轮工作：工具步骤状态实时、历史重拉不重复", async ({
   emitFinished(tool("t1", "complete"))
   await expect(toolRowOf("t1.ts")).not.toHaveClass(/is-running/)
 
-  // 助手发起 t2，t2 开始执行：两个调用合成一组，摘要行显示运行中的那条
   emit({
     type: "item_updated",
     item: assistant(snapshot, "m2", [textBlock(TEXT_A), toolCallBlock("t1"), toolCallBlock("t2")]),
@@ -129,7 +125,6 @@ test("一轮工作：工具步骤状态实时、历史重拉不重复", async ({
   emit({ type: "item_started", item: tool("t2", "running") })
   await expect(toolRun.locator(".tool-run-summary")).toContainText("t2.ts")
 
-  // 收尾：同一帧里先到工具完成、再到空快照，界面不得回退到旧状态
   emitFinished(tool("t2", "complete"))
   emitFinished(
     assistant(
@@ -147,7 +142,6 @@ test("一轮工作：工具步骤状态实时、历史重拉不重复", async ({
   await expect(page.getByText(TEXT_B, { exact: true })).toBeVisible()
   await expect(toolRun.locator(".tool-run-summary")).not.toContainText("t2.ts")
 
-  // 历史页重拉带回已落盘的同一条回合，消息不得重复
   persisted = [
     ...HISTORY,
     { id: "u-new", role: "user", content: [textBlock(PROMPT)], timestamp: 10 },

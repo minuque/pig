@@ -14,7 +14,6 @@ import type { DirEntry, Environment, ExecOptions, FileStat, SearchEntry } from "
 
 type Connection = { client: Client; sftp: SFTPWrapper }
 
-/** SFTP 的「文件不存在」状态码。 */
 const NO_SUCH_FILE = 2
 /** POSIX shell 单引号转义。 */
 export const quote = (value: string) => `'${value.replaceAll("'", String.raw`'\''`)}'`
@@ -41,7 +40,6 @@ const call = <T>(run: (done: (error: Error | null | undefined, value: T) => void
     run((error, value) => (error ? reject(error) : resolve(value))),
   )
 
-/** 一台 SSH 主机：一条长连接，命令走 exec，文件走 SFTP；断开后下次调用自动重连。 */
 export class SshEnvironment implements Environment {
   readonly id: string
   private connection: Promise<Connection> | undefined
@@ -62,7 +60,6 @@ export class SshEnvironment implements Environment {
     )
     let timedOut = false
     const kill = () => {
-      // 杀完再关通道；开不了杀进程的通道就直接关
       client.exec(remoteKill(pidFile), (error, killer) => {
         if (error) channel.close()
         else killer.on("close", () => channel.close()).resume()
@@ -148,7 +145,6 @@ export class SshEnvironment implements Environment {
     return sftp.createReadStream(path, range)
   }
 
-  /** 远端一次 find 列出候选，本地打分；逐目录走 SFTP 每层都要一次往返。 */
   async search(
     root: string,
     query: string,

@@ -21,7 +21,6 @@ export interface ComposerCommand {
   argumentHint?: string
 }
 
-/** 工作区里一个路径的元信息。 */
 export interface FileStatResponse {
   kind: "file" | "directory" | "other"
   size: number

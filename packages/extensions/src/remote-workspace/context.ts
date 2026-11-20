@@ -34,7 +34,6 @@ export async function readRemoteContext(env: Environment, root: string) {
   return files
 }
 
-/** 把远端项目 skills 拷到本地缓存目录，返回 pi 能加载的目录；远端没有 skills 返回空。 */
 export async function syncRemoteSkills(env: Environment, root: string, cacheDir: string) {
   await rm(cacheDir, { recursive: true, force: true })
   const synced: string[] = []

@@ -45,7 +45,6 @@ test("删除会话后从侧栏消失", async ({ page, navGateway }) => {
 
   await dialog.getByRole("button", { name: "删除会话" }).click()
 
-  // 收件箱平铺，删掉一条就少一条
   await expect(
     page.locator(".session-card", { has: page.getByText(`${FILLER_PREFIX} 6`, { exact: true }) }),
   ).toHaveCount(0)

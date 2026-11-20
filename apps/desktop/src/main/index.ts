@@ -78,7 +78,6 @@ async function pickDirectory(): Promise<string | undefined> {
   return result.canceled ? undefined : result.filePaths[0]
 }
 
-/** gateway 跑在 utilityProcess：扩展卡住或崩溃不拖垮窗口。开发态经 .mjs 入口注册 tsx。 */
 function startGateway(isPackaged: boolean, webRoot: string | undefined): Promise<GatewayProcess> {
   const entry = new URL(
     isPackaged ? "./gateway-child.js" : "../../gateway-child.mjs",
@@ -138,7 +137,6 @@ process.once("exit", () => {
 })
 
 app.on("window-all-closed", () => {
-  // 单窗口本地工具：关窗必须释放端口，darwin 也退出
   void shutdown()
 })
 
@@ -204,7 +202,6 @@ void app.whenReady().then(async () => {
     const origin = isDev ? viteDevOrigin() : pigAppUrl()
     process.env.PIG_GATEWAY_ORIGIN = origin
     const window = mainWindow
-    // 开发服务的首帧可能撞上 Vite 重启，重试几次再判失败
     await loadWithRetry(() => window.loadURL(isDesktopBench() ? "about:blank" : origin))
   } catch (error) {
     dialog.showErrorBox("无法启动", error instanceof Error ? error.message : String(error))

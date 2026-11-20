@@ -193,7 +193,6 @@ describe("两侧共用会话后台池", () => {
     b.emit(running(5))
     await new Promise((resolve) => setTimeout(resolve, 20))
 
-    // 两侧的 watcher 按创建顺序跑：左侧先换到 b，右侧随后清空
     left.showHistory("b")
     right.leaveForeground()
 

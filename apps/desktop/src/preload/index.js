@@ -1,7 +1,6 @@
 // preload 以 sandbox 脚本加载，没有 ESM 加载器，只能 require。
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { contextBridge, ipcRenderer } = require("electron")
-// 渲染进程可用的桌面能力：上报窗口底色、驱动自画窗控。
 const GATEWAY_ORIGIN_ARG_PREFIX = "--pig-gateway-origin="
 
 function stampDesktopPlatform() {

@@ -13,20 +13,16 @@ import type { Environment } from "@pig/environment/source"
 
 const MENTION_PATTERN = /(^|\s)@(?:"((?:\\.|[^"\\])*)"|([^\s@]+))/g
 const MAX_MENTION_FILES = 16
-/** 单文件内联上限 512KB；图片等二进制不内联，只留路径让 agent 自取。 */
 const MAX_INLINE_BYTES = 512 * 1024
-/** 一次 prompt 内联总量上限，防长文本撑爆上下文。 */
 const MAX_TOTAL_INLINE_BYTES = 2 * 1024 * 1024
 const BINARY_BYTES = /[\u0000-\u0008\u000e-\u001f]/
 
 interface MentionToken {
   start: number
   end: number
-  /** @"..." 里的转义还原后的路径。 */
   path: string
 }
 
-/** token 边界：@前必须是行首或空白（已含在捕获组1），token 后到空白/结尾。 */
 function findMentionTokens(text: string): MentionToken[] {
   const tokens: MentionToken[] = []
 
@@ -35,7 +31,6 @@ function findMentionTokens(text: string): MentionToken[] {
     const raw = match[2] !== undefined ? match[2] : (match[3] ?? "")
     const tail = match.index + match[0].length
 
-    // token 后面必须是空白或结尾；@x,y 之类不展
     if (tail < text.length && !/\s/.test(text[tail]!)) continue
     const path = match[2] !== undefined ? raw.replace(/\\(["\\])/g, "$1") : raw
 
@@ -46,7 +41,6 @@ function findMentionTokens(text: string): MentionToken[] {
   return tokens
 }
 
-/** name 属性里路径的 " 会破坏属性边界；& 与 < 顺手转义，内容不受影响。 */
 function escapeFileName(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")
 }
@@ -56,11 +50,8 @@ function escapeFileContent(value: string): string {
   return value.replace(/<\/(file)/gi, "<\\/$1")
 }
 
-/** 引用从哪读：把 token 路径解析成根内的真实路径，再取大小与内容。 */
 interface MentionSource {
-  /** 越界返回 undefined；不存在时抛错。 */
   locate(path: string): Promise<string | undefined>
-  /** 不是普通文件返回 undefined。 */
   size(path: string): Promise<number | undefined>
   read(path: string): Promise<string>
 }
@@ -84,13 +75,11 @@ export function expandFileMentions(
   )
 }
 
-/** 真实路径是否在 root 之内（含 root 自身）。相对结果是空，或在 root 下的非 .. 路径才算。 */
 function insideRoot(root: string, target: string): boolean {
   const rel = relative(root, target)
   return rel === "" || (rel !== ".." && !rel.startsWith(`..${sep}`) && !isAbsolute(rel))
 }
 
-/** 本机：realpath 解析 symlink/junction，越界目标不展开。 */
 async function localSource(cwd: string): Promise<MentionSource | undefined> {
   const root = await realpath(cwd).catch(() => undefined)
 
@@ -162,16 +151,13 @@ async function expandTokens(
 
       inlineBytes += size
       blocks.push(`<file name="${escapeFileName(target)}">\n${escapeFileContent(content)}\n</file>`)
-    } catch {
-      // 读不到的路径保留原 token，agent 可自行 read 或澄清
-    }
+    } catch {}
   }
 
   if (!blocks.length) return text
   return `${text}\n\n${blocks.join("\n")}`
 }
 
-/** 供单测与将来调试：只解析不读盘。 */
 export function mentionPaths(text: string): string[] {
   return findMentionTokens(text).map((token) => token.path)
 }
