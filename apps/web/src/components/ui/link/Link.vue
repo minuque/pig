@@ -5,6 +5,7 @@
     :as-child="asChild"
     :data-size="size"
     :data-underline="underline"
+    :data-underline-style="underlineStyle"
     :data-tone="color"
     :class="[weightClass, truncate && 'truncate', props.class]"
     v-bind="$attrs"
@@ -29,6 +30,7 @@ const props = withDefaults(
       size?: Size
       weight?: "regular" | "medium" | "bold"
       underline?: "auto" | "always" | "hover" | "none"
+      underlineStyle?: "solid" | "dashed"
       color?: ToneColor
       truncate?: boolean
     }
@@ -37,6 +39,7 @@ const props = withDefaults(
     as: "a",
     asChild: false,
     underline: "auto",
+    underlineStyle: "solid",
     truncate: false,
     class: undefined,
   },
@@ -90,6 +93,10 @@ const weightClass = computed(() => (props.weight ? WEIGHT_CLASS[props.weight] : 
 :where([data-slot="link"][data-tone]) {
   color: var(--tone-text);
   text-decoration-color: var(--tone-border);
+}
+
+:where([data-slot="link"][data-underline-style="dashed"]) {
+  text-decoration-style: dashed;
 }
 
 :where([data-slot="link"][data-underline="always"]) {

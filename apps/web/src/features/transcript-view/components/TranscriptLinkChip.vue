@@ -6,9 +6,12 @@
         :href="url"
         target="_blank"
         rel="noopener noreferrer"
+        color="accent"
         weight="medium"
         underline="hover"
+        underline-style="dashed"
       >
+        <LinkIcon class="icon" />
         <span class="label">{{ text }}</span>
       </Link>
     </TooltipTrigger>
@@ -19,6 +22,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
+import { LinkIcon } from "@components/icons/index.js"
 import { Link } from "@components/ui/link/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { prettifyUrl } from "@features/transcript-view/lib/link-chip.js"
@@ -38,6 +42,14 @@ const text = computed(() => props.label ?? prettifyUrl(props.url))
   margin-inline: 0.15em;
   line-height: inherit;
   vertical-align: baseline;
+}
+
+.icon {
+  flex: none;
+  align-self: center;
+  width: 1em;
+  height: 1em;
+  margin-inline-end: 0.2em;
 }
 
 .label {
