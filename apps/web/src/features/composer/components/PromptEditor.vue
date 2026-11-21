@@ -1,18 +1,16 @@
 <template>
   <div class="composer" @mousedown="onComposerMousedown">
-    <Transition name="menu-reveal">
-      <CommandMenu
-        v-if="commandMenu.open.value"
-        class="command-menu-float"
-        :groups="commandMenu.groups.value"
-        :active-id="commandMenu.activeId.value"
-        :loading="commandMenu.loading.value"
-        :empty-text="commandMenu.emptyText.value"
-        :aria-label="commandMenuAriaLabel"
-        @select="commandMenu.select"
-        @highlight="(id) => (commandMenu.activeId.value = id)"
-      />
-    </Transition>
+    <CommandMenu
+      v-if="commandMenu.open.value"
+      class="command-menu-float"
+      :groups="commandMenu.groups.value"
+      :active-id="commandMenu.activeId.value"
+      :loading="commandMenu.loading.value"
+      :empty-text="commandMenu.emptyText.value"
+      :aria-label="commandMenuAriaLabel"
+      @select="commandMenu.select"
+      @highlight="(id) => (commandMenu.activeId.value = id)"
+    />
 
     <div class="composer-card">
       <div class="body">

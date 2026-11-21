@@ -1,6 +1,6 @@
 <template>
   <AlertDialogPortal>
-    <AlertDialogOverlay class="glass-backdrop" />
+    <AlertDialogOverlay data-slot="alert-dialog-overlay" class="glass-backdrop" />
 
     <div class="viewport">
       <AlertDialogContent
