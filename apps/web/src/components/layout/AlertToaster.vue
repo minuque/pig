@@ -3,7 +3,7 @@
     <ToastRoot
       v-for="item in noticeQueue"
       :key="item.id"
-      class="banner-item"
+      class="toast-item"
       :open="item.open"
       :type="item.level === 'error' ? 'foreground' : 'background'"
       :duration="item.level === 'error' && !item.transient ? Infinity : PASSING_MS"
@@ -36,7 +36,9 @@
       </Banner>
     </ToastRoot>
 
-    <ToastViewport class="banner-layer" />
+    <ToastPortal>
+      <ToastViewport class="toast-viewport" />
+    </ToastPortal>
   </ToastProvider>
 </template>
 
@@ -44,6 +46,7 @@
 import {
   ToastAction,
   ToastDescription,
+  ToastPortal,
   ToastProvider,
   ToastRoot,
   ToastTitle,
@@ -65,36 +68,6 @@ const LEVEL_COLOR: Record<NoticeLevel, BannerColor> = {
 </script>
 
 <style scoped>
-.banner-layer {
-  position: fixed;
-  inset-block-start: var(--header-height);
-  inset-inline: 0;
-  z-index: var(--z-modal);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--space-2xs);
-  margin: 0;
-  padding: var(--space-xs) var(--space-md);
-  list-style: none;
-  pointer-events: none;
-  outline: none;
-}
-
-.banner-item {
-  inline-size: min(100%, var(--banner-width));
-  pointer-events: auto;
-}
-
-.banner-item[data-swipe="move"] {
-  transform: translateY(var(--reka-toast-swipe-move-y));
-}
-
-.banner-item[data-swipe="cancel"] {
-  transform: translateY(0);
-  transition: transform var(--duration-fast) var(--ease-out);
-}
-
 .banner-alert {
   background-image: linear-gradient(var(--tone-subtle), var(--tone-subtle));
   box-shadow: var(--shadow-popover);
@@ -110,13 +83,45 @@ const LEVEL_COLOR: Record<NoticeLevel, BannerColor> = {
   flex: 1;
   min-inline-size: 0;
 }
+</style>
+
+<style>
+.toast-viewport {
+  position: fixed;
+  inset-block-start: var(--header-height);
+  inset-inline: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2xs);
+  margin: 0;
+  padding: var(--space-xs) var(--space-md);
+  list-style: none;
+  pointer-events: none;
+  outline: none;
+}
+
+.toast-item {
+  inline-size: min(100%, var(--banner-width));
+  pointer-events: auto;
+}
+
+.toast-item[data-swipe="move"] {
+  transform: translateY(var(--reka-toast-swipe-move-y));
+}
+
+.toast-item[data-swipe="cancel"] {
+  transform: translateY(0);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
 
 @media (prefers-reduced-motion: no-preference) {
-  .banner-item[data-state="open"] {
+  .toast-item[data-state="open"] {
     animation: settle-down var(--duration-normal) var(--ease-out);
   }
 
-  .banner-item[data-state="closed"] {
+  .toast-item[data-state="closed"] {
     animation: overlay-out var(--duration-fast) var(--ease-out) forwards;
   }
 }
