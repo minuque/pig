@@ -98,17 +98,11 @@ const props = defineProps<{
   expandedSections: ReadonlySet<string>
   cardFootById: ReadonlyMap<string, SidebarRowFoot>
   pinnedIds: ReadonlySet<string>
-  /** 在跑的会话从什么时候开始跑，秒表用。 */
   runningSince: Record<string, number>
-  /** 被拖起、由浮层代替显示的那一行。 */
   dragId: string | undefined
-  /** 拖拽预演：各行相对静止布局的纵向位移。 */
   offsets: ReadonlyMap<string, number>
-  /** 拖拽中：段头提亮，位移带过渡。 */
   sorting: boolean
-  /** 拖着的行落在本段。 */
   dropTarget: boolean
-  /** 关掉时行增删不做进出场动画：松手落位由列表自己做。 */
   motion: boolean
   swept: ReadonlySet<string>
   moreBySection: Record<string, number>
@@ -131,7 +125,6 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const isShelf = computed(() => props.section.kind === "working" || props.section.kind === "settled")
 const open = computed(() => (isShelf.value ? props.expandedSections.has(props.section.key) : true))
-/** 收起的架子不建行，展开后再补。 */
 const rows = computed<readonly SidebarSession[]>(() => (open.value ? props.section.sessions : []))
 
 function shiftStyle(key: string): Record<string, string> | undefined {
@@ -145,7 +138,6 @@ function itemBind(session: SidebarSession) {
 </script>
 
 <style scoped>
-/* 段落按内容定高，外层列表整体滚动 */
 .session-section {
   flex: none;
   min-width: 0;
@@ -174,7 +166,6 @@ function itemBind(session: SidebarSession) {
   width: 100%;
   height: 32px;
   min-width: 0;
-  /* 与会话卡同一档左右内边距：标题与卡内文字左对齐，箭头与时间右对齐 */
   padding-inline: 10px;
   border: 0;
   border-radius: var(--radius-control);
@@ -193,7 +184,6 @@ function itemBind(session: SidebarSession) {
   white-space: nowrap;
 }
 
-/* 占位分隔线：有计数时不画线，但要让计数与箭头停在右缘。 */
 .section-rule {
   flex: 1;
   height: 1px;
@@ -207,7 +197,6 @@ function itemBind(session: SidebarSession) {
   font-variant-numeric: tabular-nums;
 }
 
-/* 箭头贴着计数：收起时朝右，展开时朝下 */
 .section-chevron {
   flex: none;
   transition: rotate var(--duration-fast) var(--ease-out);
@@ -222,7 +211,6 @@ function itemBind(session: SidebarSession) {
   flex-direction: column;
   gap: 1px;
   margin: 0;
-  /* 行底与高亮要贴到组宽右缘，右侧不再留内边距 */
   padding: 0;
   list-style: none;
 }
@@ -237,13 +225,11 @@ function itemBind(session: SidebarSession) {
   padding-block: 2px;
 }
 
-/* 拖拽中让位带过渡；松手那一拍去掉过渡，落位交给列表的位移动画 */
 .session-section.is-sorting .session-row,
 .section-head.is-sorting {
   transition: transform var(--duration-fast) var(--ease-out);
 }
 
-/* 拖起的那一行由浮层代替，原处留位给投影计算 */
 .session-row.is-drag-source {
   visibility: hidden;
 }

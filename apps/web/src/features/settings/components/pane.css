@@ -1,4 +1,3 @@
-/* 设置分区共用的分组与行样式：各分区共用。 */
 .pane {
   display: flex;
   flex-direction: column;

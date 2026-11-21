@@ -4,7 +4,6 @@ import type {
   SidebarStateGlyph,
 } from "@features/session-nav/type.js"
 
-/** 行内图标：运行中 > 未读 > 草稿 > 错误。 */
 export function sessionGlyph(
   session: Pick<SidebarSession, "draft">,
   state: SidebarSessionState | undefined,

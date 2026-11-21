@@ -1,7 +1,6 @@
 <template>
   <CollapsibleTrigger
-    :data-slot="props.asChild ? undefined : 'collapsible-trigger'"
-    v-bind="forwarded"
+    v-bind="props.asChild ? forwarded : { ...forwarded, 'data-slot': 'collapsible-trigger' }"
   >
     <slot />
   </CollapsibleTrigger>

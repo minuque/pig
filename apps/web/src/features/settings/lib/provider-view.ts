@@ -1,4 +1,3 @@
-/** 供应商列表的纯展示数据：分组、搜索、来源文案与状态徽标。 */
 import type {
   CustomModelInput,
   CustomProviderInput,
@@ -15,7 +14,6 @@ import type {
 
 const GROUP_ORDER = ["connected", "builtin", "custom"] as const
 
-/** 已连接优先，其余按内置/自定义拆分；空组不返回。 */
 export function groupProviders(providers: ProviderView[], query: string): ProviderGroup[] {
   const q = query.trim().toLowerCase()
   const matched = q
@@ -42,7 +40,6 @@ export function groupProviders(providers: ProviderView[], query: string): Provid
   }))
 }
 
-/** 连接来源文案：应用内 / 环境变量 / models.json / 未连接。 */
 export function providerSourceText(
   status: Pick<ProviderView["status"], "configured" | "source">,
 ): ProviderSourceText {
@@ -60,13 +57,11 @@ export function providerSourceText(
   }
 }
 
-/** 详情徽标：等待授权优先，其次已连接/未连接。 */
 export function providerStatusBadge(provider: ProviderView, authorizing: boolean): ProviderBadge {
   if (authorizing) return "authorizing"
   return provider.status.configured ? "connected" : "disconnected"
 }
 
-/** 模型行副标题：上下文规模 + 推理标记。 */
 export function modelMeta(model: ProviderModelView): string {
   const context =
     model.contextWindow >= 10_000
@@ -82,7 +77,6 @@ export interface CustomModelDraft {
   maxTokens: string
   reasoning: boolean
   image: boolean
-  /** 表单不编辑，保存时原样带回。 */
   samplingParams?: Record<string, unknown>
 }
 
@@ -98,7 +92,6 @@ export interface CustomProviderDraft {
 export type CustomProviderPayload =
   { ok: true; payload: CustomProviderInput } | { ok: false; field: "id" | "baseUrl" }
 
-/** 表单草稿 → 接口载荷：必填校验、空 Key 不发、模型去重。 */
 export function customProviderPayload(draft: CustomProviderDraft): CustomProviderPayload {
   const id = draft.id.trim()
   const baseUrl = draft.baseUrl.trim()
@@ -148,7 +141,6 @@ function positiveInteger(value: string): number | undefined {
   return value.trim() && Number.isInteger(parsed) && parsed > 0 ? parsed : undefined
 }
 
-/** samplingParams 的值按 JSON 标量解析；对象与数组视为无效。 */
 export function parseSamplingParam(value: string): unknown {
   const text = value.trim()
 
@@ -166,7 +158,6 @@ export type ParamsPatchResult =
   | { ok: true; patch: ModelParamsPatch }
   | { ok: false; fields: Array<"maxTokens" | "contextWindow"> }
 
-/** 参数表单 → 接口 patch：空值显式给 null，非法数字整单拒绝。 */
 export function paramsPatchFrom(form: ModelParamsFormState): ParamsPatchResult {
   const fields: Array<"maxTokens" | "contextWindow"> = []
   const maxTokens = limitValue(form.maxTokens, 1, 1_000_000)
@@ -200,7 +191,6 @@ export function paramsPatchFrom(form: ModelParamsFormState): ParamsPatchResult {
   }
 }
 
-/** 空串表示删除（null），非法值返回 undefined。 */
 function limitValue(value: string, min: number, max: number): number | null | undefined {
   if (!value.trim()) return null
 

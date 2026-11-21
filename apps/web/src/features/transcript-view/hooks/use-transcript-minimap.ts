@@ -25,7 +25,6 @@ export function useTranscriptMinimap(
   const viewportWidth = shallowRef(0)
   const contentWidth = shallowRef(0)
   const inViewIds = shallowRef<readonly string[]>([])
-  /** 当前所在回合：可见的首条用户句；都不在视口时取刚滚过去的那条。 */
   const currentId = shallowRef<string | null>(null)
   const items = computed(() => deriveTranscriptMinimapItems(toValue(rows)))
   const hitStripWidth = computed(() =>
@@ -33,7 +32,6 @@ export function useTranscriptMinimap(
   )
   let sizeObserver: ResizeObserver | undefined
   let rowObserver: IntersectionObserver | undefined
-  /** IO 回调无序且只在变化时来，可见/已滚过按 id 记账，顺序从数据恢复。 */
   const visibleIds = new Set<string>()
   const aboveIds = new Set<string>()
   const observedRows = new Map<string, Element>()
@@ -75,7 +73,6 @@ export function useTranscriptMinimap(
 
       visibleIds.delete(id)
 
-      // 滚出根的上沿才记「刚过去的那条」，下沿之外不记
       if (entry.boundingClientRect.bottom <= (entry.rootBounds?.top ?? 0)) aboveIds.add(id)
       else aboveIds.delete(id)
     }
@@ -83,7 +80,6 @@ export function useTranscriptMinimap(
     publish()
   }
 
-  /** 视口里的元素会随虚拟窗口增减，观察集跟着 mountedKeys 对齐。 */
   function observeRows() {
     const port = toValue(layout.viewport)
     const observer = rowObserver
@@ -161,7 +157,6 @@ export function useTranscriptMinimap(
     { flush: "post" },
   )
 
-  // 多源 watch 逐项 Object.is 比较，行键内容不变时不重复挂观察
   watch(
     () => toValue(mountedKeys).join("\0"),
     () => {

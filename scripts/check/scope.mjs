@@ -1,13 +1,9 @@
-/** 把 git 脏路径映射到 check:touched 该跑的步骤。 */
-
 export const PACKAGES = [
   { id: "@pig/web", prefix: "apps/web/" },
   { id: "@pig/desktop", prefix: "apps/desktop/" },
   { id: "@pig/gateway", prefix: "packages/gateway/" },
 ]
-/** gateway 被 desktop 直接引用，改前者要连带检查后者的类型。 */
 const PACKAGE_DEPENDENTS = { "@pig/gateway": ["@pig/desktop"] }
-/** 路径前缀 → 该跑的 e2e（文件或整个目录）；未命中的 web 改动回落到新建会话旅程。 */
 const NEW_SESSION = "e2e/conversation/new-session.spec.ts"
 const SPLIT_VIEW = "e2e/workbench/split-view.spec.ts"
 const E2E_BY_AREA = [
@@ -50,7 +46,6 @@ const E2E_BY_AREA = [
   { prefix: "apps/web/src/shell/", specs: [SPLIT_VIEW, NEW_SESSION] },
   { prefix: "apps/web/src/features/settings/", specs: ["e2e/settings/"] },
   { prefix: "apps/web/src/features/startup/", specs: [NEW_SESSION, "e2e/startup/"] },
-  // 布局、样式、主题、共享 UI 影响所有页面，跑新建会话旅程兜底
   { prefix: "apps/web/src/components/layout/", specs: [NEW_SESSION] },
   { prefix: "apps/web/src/style/", specs: [NEW_SESSION] },
   { prefix: "apps/web/src/features/theme/", specs: [NEW_SESSION] },
@@ -59,7 +54,6 @@ const E2E_BY_AREA = [
 const WEB_FALLBACK_SPECS = [NEW_SESSION]
 const ROOT_TOOLING =
   /^(eslint\.config\.|stylelint\.config\.|scripts\/check\/lint-ignores\.mjs$|package\.json$|pnpm-workspace\.yaml$|pnpm-lock\.yaml$|tsconfig\.base\.json$|\.prettierrc|\.prettierignore$|prettier\.config)/
-/** 改了就可能波及所有旅程：e2e 自身、各包源码、web 构建配置。 */
 const E2E_ALL =
   /^(e2e\/|packages\/|apps\/web\/(vite\.config\.|index\.html$|package\.json$|public\/))/
 const LINTABLE = /\.(?:[cm]?[jt]sx?|vue)$/
@@ -71,8 +65,6 @@ export function normalizeRepoPath(path) {
 }
 
 /**
- * 把脏路径翻译成该跑的 e2e 用例。e2e 自身改动没法按范围判断，返回空交给全量。
- *
  * @param {readonly string[]} files
  * @param {readonly string[]} packages
  * @param {boolean} e2e
@@ -94,9 +86,7 @@ function e2eSpecs(files, packages, e2e) {
   return [...specs]
 }
 
-/**
- * @param {readonly string[]} files
- */
+/** @param {readonly string[]} files */
 export function classifyTouched(files) {
   const normalized = files.map(normalizeRepoPath).filter(Boolean)
   const packages = []
@@ -119,7 +109,6 @@ export function classifyTouched(files) {
   const lintFiles = normalized.filter((file) => LINTABLE.test(file))
   const stylelintFiles = normalized.filter((file) => STYLELINTABLE.test(file))
   const vueFiles = normalized.filter((file) => file.endsWith(".vue"))
-  // UI 改动：模板与样式。只动数据、类型、测试时不算，避免每次都拉 e2e。
   const ui = normalized.some(
     (file) => file.startsWith("apps/web/src/") && (file.endsWith(".vue") || file.endsWith(".css")),
   )

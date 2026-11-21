@@ -8,6 +8,7 @@ import pluginVue from "eslint-plugin-vue"
 import tseslint from "typescript-eslint"
 
 import { lintIgnores } from "./scripts/check/lint-ignores.mjs"
+import { eslintPlugin as noComments } from "./scripts/check/no-comments.mjs"
 
 export default defineConfig(
   globalIgnores(lintIgnores, "pig/ignores"),
@@ -24,31 +25,39 @@ export default defineConfig(
 
   js.configs.recommended,
   tseslint.configs.recommended,
-  // 只要会出错的规则；recommended 里的 warn 惯例/Options API 本仓用不上
   pluginVue.configs["flat/essential"],
 
   {
     name: "pig/overrides",
     rules: {
-      "@typescript-eslint/no-explicit-any": "off", // 边界类型先 any，TS 收紧后再开
-      "@typescript-eslint/no-unused-vars": "off", // 与 Vue 宏、前缀参数误报重叠，交给 TS
-      "no-control-regex": "off", // ANSI/控制字符正则合法
-      "no-empty": "off", // 允许空 catch / 占位块
-      "no-empty-pattern": "off", // 允许空解构占位
-      "prefer-const": "off", // 后续会赋值的 let 不强制改 const
-      "preserve-caught-error": "off", // 不强制 catch 再抛时带 cause
-      // 共享状态对象：允许改 props 字段，禁止替换 props 本身
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "no-control-regex": "off",
+      "no-empty": "off",
+      "no-empty-pattern": "off",
+      "prefer-const": "off",
+      "preserve-caught-error": "off",
       "vue/no-mutating-props": ["error", { shallowOnly: true }],
-      // 对齐 SFC 顺序：template → script → style
       "vue/block-order": ["error", { order: ["template", "script", "style"] }],
-      "vue/no-v-html": "error", // 禁止未消毒 HTML，防 XSS
+      "vue/no-v-html": "error",
     },
+  },
+
+  {
+    name: "pig/no-comments",
+    plugins: { "pig-comments": noComments },
+    rules: { "pig-comments/no-comments": "error" },
+  },
+
+  {
+    name: "pig/no-comments-protocol",
+    files: ["packages/protocol/src/**"],
+    rules: { "pig-comments/no-comments": ["error", { contractDocs: true }] },
   },
 
   {
     name: "pig/vue-filenames",
     files: ["**/components/ui/**/*.vue", "**/features/*/index.vue"],
-    // shadcn-vue 单字名；feature 入口按目录必须是 index.vue
     rules: {
       "vue/multi-word-component-names": "off",
     },
@@ -57,7 +66,6 @@ export default defineConfig(
   {
     name: "pig/session-state-layer",
     files: ["apps/web/src/features/session/**"],
-    // 会话状态是底层：别的 feature 引它，它不引别的 feature
     rules: {
       "no-restricted-imports": [
         "error",
@@ -83,7 +91,6 @@ export default defineConfig(
     },
   },
 
-  // 关掉与 Prettier 冲突的格式规则；分号由 Prettier 管
   eslintConfigPrettier,
 
   {
@@ -92,7 +99,6 @@ export default defineConfig(
     plugins: {
       pig: {
         rules: {
-          // 多条语句经 Prettier 丢分号后，Vue 模板编译失败
           "vue-event-single-statement": {
             meta: {
               type: "problem",
@@ -116,7 +122,6 @@ export default defineConfig(
     },
     rules: {
       "pig/vue-event-single-statement": "error",
-      // 兄弟标签空行：多行块前后空一行，相邻单行标签不空
       "vue/padding-line-between-tags": [
         "error",
         [
@@ -126,7 +131,6 @@ export default defineConfig(
         ],
       ],
 
-      // SFC 块之间空一行：<template> / <script> / <style>
       "vue/padding-line-between-blocks": ["error", "always"],
     },
   },
@@ -140,24 +144,20 @@ export default defineConfig(
       "@stylistic/padding-line-between-statements": [
         "error",
 
-        // 顶层非 import 前空一行（含 import 块之后）
         {
           blankLine: "always",
           prev: "*",
           next: { selector: "Program > :not(ImportDeclaration)" },
         },
 
-        // 块内 function / class / interface / type 前
         {
           blankLine: "always",
           prev: "*",
           next: ["function", "class", "interface", "type"],
         },
 
-        // type 别名不是 block-like，块后规则盖不住
         { blankLine: "always", prev: "type", next: "*" },
 
-        // 多行绑定前后；函数里相邻短 const/let 仍可挤在一起
         {
           blankLine: "always",
           prev: "*",
@@ -169,21 +169,16 @@ export default defineConfig(
           next: "*",
         },
 
-        // 控制流前
         {
           blankLine: "always",
           prev: "*",
           next: ["if", "switch", "try", "for", "while", "do"],
         },
 
-        // return 前不空行；下一条块后规则盖住 if/for 块后面的 return
         { blankLine: "never", prev: "*", next: "return" },
 
-        // 块状语句后
         { blankLine: "always", prev: "block-like", next: "*" },
 
-        // —— 例外放最后 ——
-        // 相邻 const/let/var（含 export）不空行
         {
           blankLine: "never",
           prev: {

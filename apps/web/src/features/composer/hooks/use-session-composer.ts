@@ -24,7 +24,6 @@ interface SessionComposerOptions {
   setThinking(level: ThinkingLevel): Promise<void>
 }
 
-/** 目录与执行档。Session 只提供快照和写入。 */
 export function useSessionComposer(options: SessionComposerOptions) {
   const catalog = computed(() => catalogFromModels(options.models.value))
   const { preset, consumeDetachedEdit } = useComposerBinding({

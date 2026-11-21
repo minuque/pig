@@ -196,7 +196,6 @@ export function editDiffPreview(input: unknown): EditDiffPreview | null {
   }
 }
 
-/** write 没有旧文本，整份 content 当作新增。 */
 export function writeDiffPreview(input: unknown): EditDiffPreview | null {
   if (!isRecord(input) || typeof input.content !== "string") return null
   const path = toolPath(input)
@@ -211,7 +210,6 @@ export function writeDiffPreview(input: unknown): EditDiffPreview | null {
   }
 }
 
-/** 单个调用的行变更；非 write/edit 返回 0。 */
 export function itemLineChange(
   toolName: string,
   input: unknown,

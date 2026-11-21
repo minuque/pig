@@ -5,7 +5,6 @@ import {
   useComposerAttachments,
 } from "@features/composer/hooks/use-composer-attachments.js"
 
-/** 只改 size 的替身：造 25MB 真字节没必要。 */
 function file(name: string, type: string, size = 4): File {
   const created = new File([new Uint8Array(1)], name, { type })
 
@@ -13,7 +12,6 @@ function file(name: string, type: string, size = 4): File {
   return created
 }
 
-/** 拖拽替身：items 与 files 同源，webkitGetAsEntry 决定是否文件夹。 */
 function transfer(files: File[], folders: string[] = []): DataTransfer {
   const entry = (name: string, isDirectory: boolean) => ({
     isDirectory,

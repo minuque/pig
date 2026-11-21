@@ -9,7 +9,6 @@ async function enter(page: Page, gateway: E2eGateway) {
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
 }
 
-/** 收件箱没有段头：直接列出会话，架子靠段头收在列表底部。 */
 const section = (page: Page) => page.locator('.session-section[data-key="active"]')
 
 test("行尾归档按钮把会话收进已归档段", async ({ page, navGateway }) => {
@@ -56,7 +55,6 @@ test("搜索弹层过滤并跳到选中会话", async ({ page, navGateway }) => 
   await expect(page).toHaveURL(/\/sessions\/e2e-filler-2$/)
 })
 
-/** 用指针把一行拖到目标上的某一点（默认中心）：拖拽阈值为 6px，分步移动让 pointermove 生效。 */
 async function dragCard(page: Page, from: Locator, to: Locator, at: "center" | "below" = "center") {
   const start = await from.boundingBox()
   const end = await to.boundingBox()
@@ -65,7 +63,6 @@ async function dragCard(page: Page, from: Locator, to: Locator, at: "center" | "
   expect(end).not.toBeNull()
   await page.mouse.move(start!.x + start!.width / 2, start!.y + start!.height / 2)
   await page.mouse.down()
-  // 「below」落在目标行下沿往下一点：拖起后段名撑开，那里正好是目标行后面空出的一格
   const y = at === "below" ? end!.y + end!.height + 20 : end!.y + end!.height / 2
   await page.mouse.move(end!.x + end!.width / 2, y, { steps: 12 })
   await page.mouse.up()
@@ -83,13 +80,11 @@ test("拖拽会话进出置顶区：拖进置顶、拖出取消置顶", async ({
   const pinned = page.locator('.session-section[data-key="pinned"]')
   await expect(pinned.locator(".session-card")).toHaveCount(1)
 
-  // 未置顶行拖到置顶末行之后
   const source = page.locator(".session-card", { hasText: "批量会话 4" }).first()
   await dragCard(page, source, pinned.locator(".session-card").last(), "below")
   await expect(pinned.locator(".session-card")).toHaveCount(2)
   await expect(pinned.locator(".session-card").last()).toContainText("批量会话 4")
 
-  // 置顶行拖到收件箱首行：越过收件箱段名即取消置顶
   await dragCard(
     page,
     pinned.locator(".session-card").last(),

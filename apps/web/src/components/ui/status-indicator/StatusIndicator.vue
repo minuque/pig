@@ -48,7 +48,7 @@ import {
   CircleExclamationPointIcon,
   PenIcon,
 } from "@components/icons/index.js"
-import type { Size } from "@components/ui/rt/size.js"
+import type { Size } from "@/types/ui-type.js"
 
 export type StatusTone = "idle" | "running" | "waiting" | "success" | "warning" | "error" | "draft"
 

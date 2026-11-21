@@ -14,7 +14,6 @@ const stagedFile: StagedAttachment = {
   path: "/tmp/pig-attachments/b1/f1-note.md",
 }
 
-/** 内存版 sink：按 batch 记下 prompt 是否取走、失败是否放回。 */
 function memorySink(items: readonly StagedAttachment[] = [stagedFile]) {
   const batches = new Map<string, StagedAttachment[]>(items.length ? [["b1", [...items]]] : [])
   const calls: string[] = []

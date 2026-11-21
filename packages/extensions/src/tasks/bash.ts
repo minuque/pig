@@ -9,7 +9,6 @@ import type { BashTask } from "@pig/protocol"
 import type { TaskConfig } from "./config.ts"
 import type { TaskRegistry } from "./registry.ts"
 
-/** 只留末尾若干字符；被截过就从第一个换行之后开始，不从半行起。 */
 export function outputTail(text: string, limit: number): string {
   if (text.length <= limit) return text
   const cut = text.slice(-limit)
@@ -17,13 +16,12 @@ export function outputTail(text: string, limit: number): string {
   return newline >= 0 && newline < cut.length - 1 ? cut.slice(newline + 1) : cut
 }
 
-/** 完整输出写到日志文件；到上限后记一行说明并停止写入。 */
 function createLog(path: string, maxBytes: number) {
   mkdirSync(dirname(path), { recursive: true })
   let stream: WriteStream | undefined = createWriteStream(path)
   let written = 0
 
-  // 目录不可写或磁盘满：不再写日志，任务照常跑；不监听会让宿主进程崩溃
+  // 外部：写入流的 error 事件不监听会打到进程，目录不可写时任务照常跑
   stream.on("error", () => {
     stream = undefined
   })
@@ -53,11 +51,9 @@ export interface BashTaskInput {
   cwd: string
   command: string
   description: string
-  /** 秒；不给就不限时。 */
   timeout?: number
 }
 
-/** 启动一个后台命令并登记；立刻返回，命令的结束由登记表通知会话。 */
 export function startBashTask(
   registry: TaskRegistry,
   config: TaskConfig,
@@ -88,7 +84,6 @@ export function startBashTask(
       ...(input.timeout ? { timeout: input.timeout } : {}),
       onData: (chunk) => {
         log.write(chunk)
-        // 多留一倍再截，避免每块输出都整段重切
         output = (output + decoder.write(chunk)).slice(-config.outputTailChars * 2)
         registry.patch(id, { output: outputTail(output, config.outputTailChars) })
       },

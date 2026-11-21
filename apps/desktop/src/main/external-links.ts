@@ -1,5 +1,4 @@
-/** 外部链接交给系统浏览器：桌面壳里新开窗口会变成第二个 Electron 窗口。 */
-
+// 外部：桌面壳里新开窗口会变成第二个 Electron 窗口
 export type ExternalLinkContents = {
   setWindowOpenHandler(handler: (details: { url: string }) => { action: "deny" }): void
   on(

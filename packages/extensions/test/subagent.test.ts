@@ -28,7 +28,6 @@ afterEach(async () => {
   await rm(root, { recursive: true, force: true })
 })
 
-/** 父会话的上下文替身：只给子任务用得到的字段。 */
 const ctx = (entries: unknown[] = []) =>
   ({
     cwd: root,
@@ -104,7 +103,6 @@ describe("subagent：派子任务、并行、中止", () => {
       tokens: 3,
     })
     expect(peak).toBeLessThanOrEqual(4)
-    // 卡片实时进度：跑的过程中有「运行中 + 最近一步」的更新
     expect(
       updates.some((update) =>
         update.details.tasks.some(
@@ -176,7 +174,6 @@ describe("subagent：派子任务、并行、中止", () => {
 describe("subagent：后台派出", () => {
   afterEach(() => dropRegistry("parent"))
 
-  /** 接住登记表发出的任务列表与结束通知。 */
   const host = () => {
     const published: Task[][] = []
     const notified: Array<{ task: Task; wake: boolean }> = []
@@ -197,9 +194,7 @@ describe("subagent：后台派出", () => {
     const { result } = await run({ agent: "scout", task: "看协议", background: true }, startChild)
 
     expect(result.content[0]!.text).toContain("agent:call-1:0")
-    // 工具结果不带任务：状态只认登记表，落盘的结果不会留下永远排队的任务
     expect(result.details.tasks).toEqual([])
-    // 登记表把进行中的更新合并后再发
     await new Promise((resolve) => setTimeout(resolve, 150))
     expect(published.at(-1)?.[0]).toMatchObject({
       id: "agent:call-1:0",

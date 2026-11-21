@@ -136,9 +136,7 @@ import { SETTINGS_TRAIL } from "@features/settings/hooks/use-settings-dialog.js"
 
 const props = defineProps<{
   open: boolean
-  /** 打开时定位的分区，默认 General。 */
   initialPane?: Pane | undefined
-  /** 刷新模型后同步 Composer 的模型目录。 */
   refreshModels?: (() => Promise<void>) | undefined
 }>()
 const emit = defineEmits<{ "update:open": [open: boolean] }>()
@@ -159,7 +157,6 @@ const tabs = computed<{ id: Pane; label: string; icon: typeof SlidersHorizontalI
   { id: "models", label: t("settings.models.title"), icon: CloudIcon },
   { id: "notifications", label: t("settings.notifications"), icon: BellIcon },
 ])
-/** 头部路径：设置 + 分区自己的下钻层级，没有下钻就落到当前分区名。 */
 const crumbs = computed<SettingsCrumb[]>(() => {
   const base: SettingsCrumb[] = [{ label: t("settings.title") }]
   const items = trail.value.length
@@ -170,7 +167,6 @@ const crumbs = computed<SettingsCrumb[]>(() => {
 const query = ref("")
 const activeResult = ref(0)
 const searchInput = ref<HTMLInputElement>()
-/** 可搜的设置项：标题配所属分组，命中后按 id 滚动。 */
 const searchEntries = computed<SettingsSearchEntry[]>(() => [
   {
     id: "setting-user-name",
@@ -295,7 +291,6 @@ function onSearchKeydown(event: KeyboardEvent) {
   if (item) void openResult(item)
 }
 
-/** 打开结果：切分区、收起搜索结果，再滚到目标并闪一下。 */
 async function openResult(item: SettingsSearchEntry) {
   active.value = item.pane
   query.value = ""
@@ -317,7 +312,6 @@ async function openResult(item: SettingsSearchEntry) {
   window.setTimeout(() => target.classList.remove("is-settings-flash"), 1400)
 }
 
-/** 弹框里按 / 直接搜，输入框里不拦。 */
 function onShellKeydown(event: KeyboardEvent) {
   if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return
   const target = event.target
@@ -341,7 +335,6 @@ function resetScroll() {
   scroller.value?.viewport?.scrollTo({ top: 0 })
 }
 
-/** 每次打开回到 initialPane（默认 General），切分区回到顶部。 */
 watch(
   () => props.open,
   async (open) => {
@@ -353,7 +346,6 @@ watch(
   },
 )
 
-/** 弹框已开时再次 openSettings 也要切到新分区。 */
 watch(
   () => props.initialPane,
   (pane) => {
@@ -368,7 +360,6 @@ watch(active, async () => {
 </script>
 
 <style>
-/* 内容经 Portal 挂到 body，scoped 打不中，选择器统一挂在 .settings-dialog 前缀下。 */
 .settings-dialog {
   display: flex;
   width: min(88vw, var(--dialog-width-lg));
@@ -524,7 +515,6 @@ watch(active, async () => {
   white-space: nowrap;
 }
 
-/* 搜索结果命中的行：滚过去后闪一圈，再自己褪掉 */
 .settings-dialog .is-settings-flash {
   border-radius: var(--radius-card);
   animation: settings-flash 1.4s var(--ease-out);

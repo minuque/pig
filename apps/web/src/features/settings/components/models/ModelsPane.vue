@@ -47,7 +47,6 @@ const { t } = useI18n()
 const trail = inject(SETTINGS_TRAIL)
 const creating = ref(false)
 const editing = ref<string>()
-/** 头部面包屑：列表、详情、新建与编辑共用一条路径。 */
 const crumbs = computed<SettingsCrumb[]>(() => {
   const backToList = () => {
     creating.value = false
@@ -92,13 +91,11 @@ onUnmounted(() => {
   if (trail) trail.value = []
 })
 
-/** 先让 gateway 刷新 runtime 并换掉列表，再让 Composer 目录跟上。 */
 async function reloadModels() {
   await refreshCatalog()
   await props.refreshModels?.()
 }
 
-/** 连接、参数或开放状态变化后，供应商列表与 Composer 目录一起刷新。 */
 async function onChanged() {
   await refresh()
   await props.refreshModels?.()
@@ -111,7 +108,6 @@ async function onCreated(id: string) {
   select(id)
 }
 
-/** 保存自定义供应商后留在详情页。 */
 async function onSaved() {
   editing.value = undefined
   await refresh()

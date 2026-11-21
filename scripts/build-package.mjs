@@ -25,13 +25,11 @@ try {
         noEmit: false,
         rootDir: posix(join(gateway, "src")),
         outDir: posix(join(gateway, "dist")),
-        // 临时 tsconfig 在系统临时目录，types 按配置所在目录解析，指回仓库根的 @types
+        // 外部：TS 按 tsconfig 所在目录解析 types，临时配置要指回仓库根的 @types
         typeRoots: [posix(join(root, "node_modules/@types"))],
-        // 发布 exports 指向 dist 的 .d.ts，声明必须生成
         declaration: true,
         declarationMap: false,
         sourceMap: false,
-        // 工作区包按发布形态解析（dist 的声明），源码路径映射只给开发期
         paths: {},
       },
       include: [posix(join(gateway, "src/**/*.ts"))],

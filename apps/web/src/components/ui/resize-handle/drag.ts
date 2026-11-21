@@ -1,4 +1,3 @@
-/** 按住把手拖动：位移按帧合并回调，松手补一次终值；拖动期间整页光标不变、不选中文字。返回是否开始拖动。 */
 export function dragResize(
   event: PointerEvent,
   handlers: { move: (delta: number) => void; end: (delta: number) => void },

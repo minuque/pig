@@ -10,17 +10,15 @@ import {
 import { createRequire } from "node:module"
 import { dirname, join } from "node:path"
 
-/** pig 内置的 pi 包；和用户装的扩展一样由 pi 加载，pig 不给它开私有接口。 */
 const BUILTIN_PACKAGE = dirname(
   createRequire(import.meta.url).resolve("@pig/extensions/package.json"),
 )
 
 export interface ResourceLoaderOptions {
-  /** Pi 配置目录；缺省 ~/.pi/agent。 */
   agentDir?: string
 }
 
-/** 新建并 reload 一份 loader；同拼写下 SDK 复用扩展模块缓存，不重复转译。 */
+// 外部：同拼写下 SDK 复用扩展模块缓存，不重复转译
 export async function createResourceLoader(
   cwd: string,
   options: ResourceLoaderOptions = {},
@@ -32,9 +30,7 @@ export async function createResourceLoader(
     cwd,
     agentDir,
     settingsManager,
-    // 扩展间的公开事件总线；宿主也挂在上面收后台任务、发停止请求
     ...(eventBus ? { eventBus } : {}),
-    // 用户在 pi 里装的扩展一律不执行，只加回内置的
     noExtensions: true,
     additionalExtensionPaths: [
       "turn-timing",
@@ -43,7 +39,7 @@ export async function createResourceLoader(
       "remote-workspace",
       "tasks",
     ].map((name) => join(BUILTIN_PACKAGE, "src", name, "index.ts")),
-    // CLI 内置的这三个扩展 SDK 不会自带；照 CLI 加上，启用与否仍由用户的 pi 设置决定
+    // 外部：CLI 内置的这三个扩展 SDK 不会自带；照 CLI 加上，启用与否仍由用户的 pi 设置决定
     extensionFactories: [
       createCodemodeExtension(),
       createToolSearchExtension(),
@@ -55,12 +51,10 @@ export async function createResourceLoader(
   return loader
 }
 
-/** 本机与仓库设置都对 pi 藏起 packages：pi 看不到包，就不加载也不替用户安装；仓库的 skills、提示模板、MCP 照常。 */
 function settingsWithoutPackages(cwd: string, agentDir: string): SettingsManager {
   const settings = SettingsManager.create(cwd, agentDir)
   const global = settings.getGlobalSettings.bind(settings)
   const project = settings.getProjectSettings.bind(settings)
-  // 只有 pi 的包增删会拿这两份去回写，pig 不调用它们
   settings.getGlobalSettings = () => ({ ...global(), packages: [] })
   settings.getProjectSettings = () => ({ ...project(), packages: [] })
   return settings

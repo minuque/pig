@@ -1,6 +1,5 @@
 import { readPref, writePref, type PrefStorage } from "@utils/storage.js"
 
-/** 会话布局记忆的上限：超出时最久没写的先丢。 */
 const MAX_SESSIONS = 100
 
 function readAll(key: string, storage: PrefStorage): Record<string, unknown> {
@@ -14,7 +13,6 @@ function readAll(key: string, storage: PrefStorage): Record<string, unknown> {
   }
 }
 
-/** 按会话记的一份值；存储损坏或形状不对时返回 undefined。 */
 export function readSessionValue<T>(
   key: string,
   sessionId: string,
@@ -25,7 +23,6 @@ export function readSessionValue<T>(
   return valid(value) ? value : undefined
 }
 
-/** undefined 表示删掉这个会话的记录；最近写的会话排在最后。 */
 export function writeSessionValue(
   key: string,
   sessionId: string,

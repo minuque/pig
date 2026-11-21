@@ -1,8 +1,8 @@
 <template>
   <AlertDialogCancel
     data-slot="alert-dialog-cancel"
-    v-bind="{ ...forwardedProps, ...buttonAttrs('surface') }"
-    data-accent-color="gray"
+    v-bind="{ ...forwardedProps, ...buttonAttrs('outline') }"
+    data-tone="neutral"
     :class="props.class"
   >
     <slot />

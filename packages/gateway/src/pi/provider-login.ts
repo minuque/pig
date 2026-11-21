@@ -42,7 +42,6 @@ export interface LoginSession {
 
 const LOGIN_TTL_MS = 10 * 60 * 1000
 
-/** 一次供应商登录的事件缓冲：prompt 问答、取消与事件回放。 */
 export class LoginSessions {
   private readonly sessions = new Map<string, LoginSession>()
 
@@ -98,7 +97,6 @@ export class LoginSessions {
     this.close(loginId)
   }
 
-  /** 回放 after 之后的事件，再等新事件；会话结束即返回。 */
   async *stream(loginId: string, after = 0, signal?: AbortSignal): AsyncGenerator<LoginEventView> {
     const session = this.sessions.get(loginId)
 
@@ -127,7 +125,6 @@ export class LoginSessions {
     }
   }
 
-  /** 停服：中止全部登录并清掉过期定时器。 */
   dispose(): void {
     for (const id of [...this.sessions.keys()]) this.close(id)
   }

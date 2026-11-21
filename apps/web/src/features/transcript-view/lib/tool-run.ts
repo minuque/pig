@@ -52,7 +52,6 @@ export function toolCallVerb(call: ToolCallView): string {
   return t(VERB_KEYS[variant])
 }
 
-/** 运行中的动词用进行时，跑完再换成完成时，切换走 RollText 的上翻。 */
 export function toolCallLiveVerb(call: ToolCallView): string {
   const variant = toolCallVariant(call)
 
@@ -80,7 +79,6 @@ export function toolCallTarget(call: ToolCallView): ToolCallTarget {
   return { text: detail || call.toolName }
 }
 
-/** 摘要行的数据：类别片段、失败数、增删行数，都取自同一份 ToolRow。 */
 export function toolRunSummary(row: ToolRow) {
   return {
     parts: toolRowLabelParts(row),
@@ -89,7 +87,6 @@ export function toolRunSummary(row: ToolRow) {
   }
 }
 
-/** 运行中显示最后一个还在跑的工具；没有就退回整组摘要。 */
 export function runningToolLabel(row: ToolRow): string | null {
   if (row.mode !== "live") return null
 
@@ -102,7 +99,6 @@ export function runningToolLabel(row: ToolRow): string | null {
   return [toolCallLiveVerb(running), target.text].filter(Boolean).join(" ")
 }
 
-/** 工具输出的图片，标题取调用目标（文件名）。 */
 export function toolCallImages(call: ToolCallView): { src: string; title: string }[] {
   const title = toolCallTarget(call).text || t("transcript.image")
   return call.outputImages.map((image) => ({
@@ -111,7 +107,6 @@ export function toolCallImages(call: ToolCallView): { src: string; title: string
   }))
 }
 
-/** 一段工具里所有调用输出的图片，按调用顺序。 */
 export function toolRunImages(row: ToolRow): { src: string; title: string }[] {
   return toolCalls(row).flatMap(toolCallImages)
 }

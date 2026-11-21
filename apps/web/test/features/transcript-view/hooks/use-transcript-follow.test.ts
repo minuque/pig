@@ -31,7 +31,6 @@ function advance(count: number) {
   for (let index = 0; index < count; index += 1) frame()
 }
 
-/** 走完收敛循环：帧数够多时循环自己会停。 */
 function settleFully() {
   advance(8)
 }

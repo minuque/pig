@@ -17,8 +17,8 @@
         <Button
           v-for="option in pending.request.options"
           :key="option"
-          variant="soft"
-          color="gray"
+          variant="secondary"
+          color="neutral"
           @click="reply({ id: pending.request.id, value: option })"
         >
           {{ option }}
@@ -44,7 +44,7 @@
       <AlertDialogFooter>
         <AlertDialogCancel @click="cancel">{{ t("common.cancel") }}</AlertDialogCancel>
 
-        <!-- 不用 AlertDialogAction：它先触发关闭，关闭回调会把这次回答当成取消 -->
+        <!-- 外部：AlertDialogAction 先触发关闭，关闭回调会把这次回答当成取消 -->
         <Button
           v-if="pending.request.method === 'confirm'"
           @click="reply({ id: pending.request.id, confirmed: true })"
@@ -100,7 +100,6 @@ function cancel() {
 </script>
 
 <style scoped>
-/* 面板不留内边距，标题区与按钮区各带自己的边距，中间内容对齐它们 */
 .extension-body {
   margin: 0 var(--space-lg) var(--space-lg);
 }
@@ -111,12 +110,11 @@ function cancel() {
   gap: var(--space-xs);
 }
 
-/* 多行输入与外框同 TextField 的 surface 档：实底、细环、同一档圆角与内边距 */
 .extension-editor-box {
   padding: var(--space-xs);
   border-radius: var(--radius-control);
   background-color: var(--bg-raised);
-  box-shadow: inset 0 0 0 var(--border-width) var(--gray-a7);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-input);
 }
 
 .extension-editor-box:focus-within {

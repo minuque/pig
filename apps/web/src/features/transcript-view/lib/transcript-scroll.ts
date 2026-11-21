@@ -1,4 +1,3 @@
-/** 收起后把按钮留在点击时的视口位置，直到高度动画结束。 */
 export function holdClickedOffset(el: HTMLElement): void {
   const scroller = el.closest("#transcript-panel")
   const box = el.parentElement
@@ -17,20 +16,13 @@ export function transcriptFloorTop(scrollHeight: number, clientHeight: number): 
   return Math.max(0, scrollHeight - clientHeight)
 }
 
-/** 回底滑动离底超过这么多屏时先瞬移到这里，只滑最后一段。 */
 export const GLIDE_MAX_VIEWPORTS = 2.5
-/** 一帧最多补算的 60fps 帧数：卡顿后追赶，不瞬移。 */
 export const GLIDE_MAX_CATCHUP_FRAMES = 8
 
-/**
- * 回底弹簧：每帧重读目标，按速度逼近，
- * 目标在途中变高时用增长估计前馈追上；不越过目标，0.5px 内落定。
- */
 export function createGlideSpring() {
   let velocity = 0
   let targetVelocity = 0
   let lastTarget: number | null = null
-  /** pos/target 是 scrollTop，frames 是经过的 60fps 帧数。 */
   return function step(pos: number, target: number, frames: number): number {
     const grew = lastTarget === null ? 0 : target - lastTarget
     lastTarget = target
@@ -52,7 +44,6 @@ export function createGlideSpring() {
   }
 }
 
-/** 视觉贴底：48px 内仍算在底部，不弹出回底部按钮。 */
 export function isTranscriptVisuallyAtBottom(
   scrollHeight: number,
   scrollTop: number,
@@ -61,15 +52,12 @@ export function isTranscriptVisuallyAtBottom(
   return scrollHeight - scrollTop - clientHeight <= 48
 }
 
-/** 有内容且视觉上离开底部才显示回到底部按钮。 */
 export function shouldShowScrollToLatest(transcriptLength: number, atBottom: boolean): boolean {
   return transcriptLength > 0 && !atBottom
 }
 
-/** 距底 80px 内且继续下滚才重新吸附。 */
 export const FOLLOW_NEAR_BOTTOM_PX = 80
 
-/** 脱底/吸附滞回：离底超过半屏才脱底，中间不翻转。 */
 export function resolveFollowTarget(input: {
   atBottom: boolean
   distanceFromBottom: number
@@ -82,7 +70,6 @@ export function resolveFollowTarget(input: {
   return input.distanceFromBottom <= FOLLOW_NEAR_BOTTOM_PX && input.scrollingDown
 }
 
-/** 更长列表的前缀是新历史，prev 仍作为后缀出现。 */
 export function historyPrepended(
   prev: readonly { readonly id: string }[],
   next: readonly { readonly id: string }[],

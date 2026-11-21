@@ -46,15 +46,6 @@
         </Select>
 
         <Select v-model="value">
-          <SelectTrigger variant="soft" placeholder="Soft" aria-label="Soft select" />
-
-          <SelectContent>
-            <SelectItem value="apple">Apple</SelectItem>
-            <SelectItem value="banana">Banana</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select v-model="value">
           <SelectTrigger variant="ghost" placeholder="Ghost" aria-label="Ghost select" />
 
           <SelectContent>
@@ -106,6 +97,5 @@ import {
 } from "@components/ui/select/index.js"
 
 const value = ref("apple")
-/** 空值示例：只有值为空时才会出现占位文案 */
 const empty = ref("")
 </script>

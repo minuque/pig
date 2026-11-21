@@ -10,7 +10,6 @@ export function gatewayOrigin(port: number): string {
   return `http://127.0.0.1:${port}`
 }
 
-/** 凭证注入的匹配式：只认 Gateway 自己的回环端口，同机其它端口的服务收不到 Authorization。 */
 export function gatewayTrustUrls(port: number): string[] {
   return ["http", "ws"].map((scheme) => `${scheme}://127.0.0.1:${port}/*`)
 }
@@ -35,7 +34,6 @@ function parsePortNumber(raw: string | undefined): number | undefined {
   return port
 }
 
-/** `--port 5175` / `--port=5175`，其次 `PIG_VITE_PORT`，默认 5555。 */
 export function viteDevPort(
   argv: readonly string[] = process.argv,
   env: NodeJS.ProcessEnv = process.env,
@@ -72,7 +70,6 @@ export function viteDevOrigin(
 
 export const DESKTOP_CDP_PORT = "9999"
 
-/** `--dev` 默认 9999；`PIG_CDP` 覆盖，`0`/`off` 关闭。 */
 export function desktopCdpPort(
   argv: readonly string[] = process.argv,
   env: NodeJS.ProcessEnv = process.env,
@@ -87,12 +84,10 @@ export function desktopCdpPort(
   return undefined
 }
 
-/** 基准进程：窗口先空着，由 Playwright 注入观察器后再打开工作台。 */
 export function isDesktopBench(env: NodeJS.ProcessEnv = process.env): boolean {
   return env.PIG_BENCH === "1"
 }
 
-/** 只接受 Gateway 回环 HTTP 地址，拒绝路径、凭据和其它主机。 */
 export function isLoopbackHttpOrigin(value: string): boolean {
   try {
     const url = new URL(value)
@@ -144,7 +139,6 @@ export function isPigApiPath(pathname: string): boolean {
   return pathname === "/api" || pathname.startsWith("/api/")
 }
 
-/** pig://app/... → Gateway 同源路径；其它 host 一律拒绝。 */
 export function gatewayTargetUrl(requestUrl: string, httpOrigin: string): URL | undefined {
   const parsed = parsePigRequest(requestUrl)
 
@@ -152,7 +146,6 @@ export function gatewayTargetUrl(requestUrl: string, httpOrigin: string): URL | 
   return new URL(`${parsed.pathname}${parsed.search}`, httpOrigin)
 }
 
-/** 把 pig:// 路径落到 webRoot 内文件；穿越或坏编码返回 undefined。 */
 export function resolvePigWebFile(webRoot: string, pathname: string): string | undefined {
   let requested: string
 
@@ -183,7 +176,7 @@ export function injectGatewayOrigin(html: string, httpOrigin: string): string {
   return marked === html ? `${stamp}${html}` : marked
 }
 
-/** 模块脚本始终走 CORS；pig:// 响应必须带允许源，否则 Vite 产物无法执行。 */
+// 外部：模块脚本始终走 CORS，pig:// 响应必须带允许源，否则 Vite 产物无法执行
 export function pigCorsHeaders(headers: Headers): Headers {
   const next = new Headers(headers)
   next.set("Access-Control-Allow-Origin", PIG_APP_ORIGIN)
@@ -191,7 +184,6 @@ export function pigCorsHeaders(headers: Headers): Headers {
   return next
 }
 
-/** 测试与基准起的窗口不抢焦点：`PIG_NO_FOCUS=1`。 */
 export function isNoFocusWindow(env: NodeJS.ProcessEnv = process.env): boolean {
   return env.PIG_NO_FOCUS === "1"
 }

@@ -43,7 +43,6 @@ afterEach(async () => {
   root = undefined
 })
 
-/** 磁盘上一个停在用户消息上的会话：TUI 正在跑回合。 */
 async function start() {
   root = await mkdtemp(join(tmpdir(), "pig-external-"))
   const sessionDir = join(root, "sessions")
@@ -75,7 +74,6 @@ describe("别处正在跑回合：历史接口", () => {
     expect(first.version).toBeTruthy()
     expect(await transcript(first.version)).toEqual({ unchanged: true })
 
-    // 另一个 SessionManager 就是外部写入方
     SessionManager.open(path).appendMessage({
       role: "assistant",
       content: [{ type: "text", text: "回答" }],

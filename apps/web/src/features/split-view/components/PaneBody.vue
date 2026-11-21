@@ -22,7 +22,6 @@
       </template>
     </SplitterGroup>
 
-    <!-- 放不下对话最小宽度、或用户点了展开时，整列盖住对话 -->
     <div v-if="covering" class="pane-body-cover">
       <PanelColumn :host="host" />
     </div>
@@ -38,7 +37,6 @@ import PanelColumn from "@features/split-view/components/PanelColumn.vue"
 import { SPLIT_CHAT_MIN } from "@features/split-view/lib/split-state.js"
 import type { PanelHost } from "@features/split-view/index.js"
 
-/** 面板列默认与最窄宽度；对话最小宽度单个时 640，分屏时 480。 */
 const CHAT_MIN = 640
 const PANE_MIN = 320
 const PANE_DEFAULT = 560
@@ -56,7 +54,6 @@ watchEffect(() => {
   props.host.narrow.value = narrow.value
 })
 
-// 面板全关了，下次打开回到并排
 watch(shown, (open) => {
   if (!open) props.host.expanded.value = false
 })
@@ -86,16 +83,13 @@ useResizeObserver(root, ([entry]) => {
   min-width: 0;
 }
 
-/* 面板卡片在头部之下；左侧空隙由拖拽区给 */
 .pane-body-column {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  /* 右边距与左侧拖拽空隙一致，底边与输入条对齐 */
   padding: 0 var(--space-sm) calc(var(--space-sm) + env(safe-area-inset-bottom, 0px)) 0;
 }
 
-/* 拖拽区就是对话与面板卡片之间的空隙 */
 .pane-body-handle {
   inline-size: var(--space-sm);
 }
@@ -106,7 +100,6 @@ useResizeObserver(root, ([entry]) => {
   z-index: var(--z-overlay);
   display: flex;
   flex-direction: column;
-  /* 盖住对话时左右各留同样的边距，底边与输入条对齐 */
   padding: 0 var(--space-sm) calc(var(--space-sm) + env(safe-area-inset-bottom, 0px));
   background: var(--bg);
 }

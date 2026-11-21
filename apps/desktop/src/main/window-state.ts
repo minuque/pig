@@ -16,7 +16,6 @@ export type WindowState = WindowBounds & {
   isMaximized: boolean
 }
 
-/** 交给 BrowserWindow 的初始框；缺 x/y 时由 Electron 居中。 */
 export type WindowFrame = {
   width: number
   height: number
@@ -62,9 +61,7 @@ export function readWindowStateFile(file: string): WindowState | undefined {
 export function writeWindowStateFile(file: string, state: WindowState): void {
   try {
     writeFileSync(file, `${JSON.stringify(state)}\n`, "utf8")
-  } catch {
-    // 写失败不挡关窗
-  }
+  } catch {}
 }
 
 export function restoreWindowFrame(

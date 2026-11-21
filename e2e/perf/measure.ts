@@ -19,7 +19,6 @@ function listMoreButton(page: Page) {
   return page.locator("nav.session-list button.more-button", { hasText: "显示更多" })
 }
 
-/** 分区默认收起，「显示更多」按钮藏在收起的分组里：先逐个展开所有分区。 */
 async function expandAllSections(page: Page) {
   const collapsed = page.locator("nav.session-list .section-toggle[aria-expanded=false]")
 
@@ -31,7 +30,6 @@ async function expandAllSections(page: Page) {
   throw new Error("侧栏仍有未展开的分区")
 }
 
-/** 侧栏折叠时点「显示更多」，再从顶往下扫虚拟列表，返回窗口里的目标卡片。 */
 async function revealSessionCard(page: Page, name: BenchSessionName) {
   await expandAllSections(page)
   const more = listMoreButton(page)
@@ -87,7 +85,6 @@ async function revealAllSessionCards(page: Page) {
   }
 
   if ((await more.count()) > 0) throw new Error("侧栏仍有未展开的会话")
-  // 虚拟列表只挂窗口里的行，滚到底把剩余的种子会话带出来
   const window_ = page.locator(".session-window")
   await window_.evaluate((node) => {
     node.scrollTop = node.scrollHeight
@@ -103,7 +100,7 @@ async function revealAllSessionCards(page: Page) {
 }
 
 export async function nextPaint(page: Page) {
-  // 被遮住的页面不跑 rAF，等待用计时器
+  // 外部：被遮住的页面不跑 rAF，等待只能用计时器
   await page.evaluate(() => new Promise<void>((resolve) => setTimeout(resolve, 32)))
 }
 
@@ -117,7 +114,7 @@ export async function newBenchContext(browser: Browser): Promise<BrowserContext>
   })
 }
 
-/** tsx keepNames 会给函数包 __name，Playwright 把源码 eval 进页面后会找不到。 */
+// 外部：tsx keepNames 给函数包 __name，Playwright eval 源码后找不到
 function withNameShim(fn: unknown): unknown {
   if (typeof fn !== "function") return fn
   return new Function(
@@ -131,7 +128,6 @@ function shimPageFunctions(page: Page) {
   page.evaluate = ((fn: never, arg?: never) =>
     evaluate(withNameShim(fn) as never, arg)) as typeof page.evaluate
   const waitForFunction = page.waitForFunction.bind(page)
-  // 被遮住的页面不跑 rAF，waitForFunction 会一直等。计时器驱动才能推进。
   page.waitForFunction = ((fn: never, arg?: never, options?: never) => {
     const merged = {
       ...(typeof options === "object" && options !== null ? options : {}),
@@ -167,7 +163,6 @@ export async function captureBenchFailure(page: Page, path: string) {
   await page.screenshot({ path }).catch(() => undefined)
 }
 
-/** 侧栏列表与 Composer 可用，启动遮罩已离场。 */
 export async function waitForWorkbench(page: Page) {
   await waitInPage(page, {
     present: ["nav.session-list", ".composer .field, .field"],
@@ -177,7 +172,6 @@ export async function waitForWorkbench(page: Page) {
   })
 }
 
-/** Composer 按下一键到双 rAF。 */
 export async function keyToNextFrame(page: Page): Promise<number> {
   await composerInput(page).click()
   await page.evaluate(() => {
@@ -190,7 +184,6 @@ export async function keyToNextFrame(page: Page): Promise<number> {
       "keydown",
       () => {
         const start = performance.now()
-        // 被遮住的页面不跑 rAF，两帧改用计时器
         setTimeout(() => {
           slot.__pigK2f = performance.now() - start
         }, 32)
@@ -207,7 +200,6 @@ export async function keyToNextFrame(page: Page): Promise<number> {
   return page.evaluate(() => (window as unknown as { __pigK2f: number }).__pigK2f)
 }
 
-/** 点侧栏卡片到该会话历史就绪。 */
 export async function openSession(page: Page, name: BenchSessionName): Promise<number> {
   const turns = sessionTurns(name)
   const card = await revealSessionCard(page, name)
@@ -249,7 +241,6 @@ async function beginFrameSample(page: Page) {
       if (running) setTimeout(step, 1)
     }
 
-    // 被遮住的页面不跑 rAF，帧率采样改用计时器
     step()
   })
 }
@@ -268,7 +259,6 @@ async function endWorstFrameSample(page: Page): Promise<number> {
   return worst
 }
 
-/** 采样 action 期间的动画帧，返回最差帧长。 */
 async function worstFrameDuring(page: Page, action: () => Promise<void>): Promise<number> {
   await beginFrameSample(page)
 
@@ -331,7 +321,6 @@ async function scrollOverflowWorstFrame(
   })
 }
 
-/** 点顶上按钮直到服务端没有更早历史，按总高增长判断这一页落地。 */
 async function loadAllTranscriptPages(page: Page, pages: number) {
   const more = page.locator(".older-button")
   const root = page.locator(".transcript-viewport")
@@ -344,7 +333,6 @@ async function loadAllTranscriptPages(page: Page, pages: number) {
 
     if ((await more.count()) === 0) break
     const previous = await root.evaluate((node) => node.scrollHeight)
-    // 顶上按钮进视口会自己上翻；已 disabled 说明这一页已经在飞。
     await more.evaluate((node) => {
       if (!(node instanceof HTMLButtonElement) || node.disabled) return
       node.click()
@@ -363,7 +351,6 @@ async function loadAllTranscriptPages(page: Page, pages: number) {
   if ((await more.count()) > 0) throw new Error("长会话仍有更早历史未加载")
 }
 
-/** 分批渲染收尾前不采样：连续 8 帧帧长都在预算内。 */
 async function waitForSettledView(page: Page) {
   await page.waitForFunction(
     () => {
@@ -381,7 +368,6 @@ async function waitForSettledView(page: Page) {
   )
 }
 
-/** 滚轮上滚到顶；直写 scrollTop 会拉不回「跟随最新」的吸附。 */
 async function scrollTranscriptToTop(page: Page) {
   const root = page.locator(".transcript-viewport")
   const box = await root.boundingBox()
@@ -398,24 +384,19 @@ async function scrollTranscriptToTop(page: Page) {
   }
 }
 
-/** 分页拉完历史后，时间线滚到顶再到底，返回最差动画帧。 */
 export async function scrollTranscript(page: Page, name: BenchSessionName): Promise<number> {
   const turns = sessionTurns(name)
 
   if (turns === 0) throw new Error("空会话没有可滚动历史")
   await loadAllTranscriptPages(page, turns)
-  // 滚到顶才算最早一轮真的落地。
-  // 用滚轮而非直写 scrollTop：直写会被「跟随最新」立刻拉回底部。
   await scrollTranscriptToTop(page)
   await page
     .getByText(sessionPrompt(name, 1), { exact: true })
     .waitFor({ state: "attached", timeout: WORKBENCH_TIMEOUT_MS })
-  // 等补齐且安静下来再采样，量的是滚动本身
   await waitForSettledView(page)
   return scrollOverflowWorstFrame(page, ".transcript-viewport", "长会话未产生可滚动内容")
 }
 
-/** 展开侧栏全部会话后滚到顶再到底，返回最差动画帧。 */
 export async function scrollSessionList(page: Page): Promise<number> {
   await revealAllSessionCards(page)
   return scrollOverflowWorstFrame(page, ".session-window", "侧栏未产生可滚动内容")

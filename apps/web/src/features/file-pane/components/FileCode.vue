@@ -32,16 +32,13 @@ import {
 } from "@features/transcript-view/lib/code-highlight.js"
 import { fileLanguage } from "@features/transcript-view/lib/tool-summary.js"
 
-/** 高亮上限：超过就按纯文本显示，不分词。 */
 const MAX_CODE_UNITS = 100_000
 const MAX_LINES = 2_000
 const MAX_LINE_UNITS = 1_000
-/** 与 tokens.css 的 --text-code-line 一致：虚拟列表按它算每行的位置。 */
 const LINE_HEIGHT = 24.5
 const props = defineProps<{
   path: string
   text: string
-  /** 要滚到并标出的行范围；seq 变了就再跳一次。 */
   range?: { line: number; endLine: number; seq: number } | undefined
 }>()
 const { t } = useI18n()
@@ -49,7 +46,6 @@ const { codeBlockProps } = useColorScheme()
 const lines = computed(() => props.text.split(/\r\n|\n|\r/))
 const numberWidth = computed(() => Math.max(3, String(lines.value.length).length))
 const { list, containerProps, wrapperProps } = useVirtualList(lines, { itemHeight: LINE_HEIGHT })
-/** 只渲染看得见的行，宽度按最长的一行撑开，左右滚动时不跳。 */
 const linesStyle = computed(() => {
   const longest = lines.value.reduce(
     (max, line) => Math.max(max, line.replace(/\t/g, "  ").length),
@@ -90,7 +86,6 @@ watch(
   { immediate: true },
 )
 
-// 把要看的行滚到视口中间；没渲染的行靠位置算，不靠查 DOM。挂载后容器出现也算一次
 watch(
   () => [props.range?.seq, containerProps.ref.value] as const,
   ([, el]) => {

@@ -50,7 +50,7 @@ import {
   useForwardProps,
 } from "reka-ui"
 import type { Radius } from "@components/ui/button/index.js"
-import type { Size } from "@components/ui/rt/size.js"
+import type { Size } from "@/types/ui-type.js"
 
 const props = withDefaults(
   defineProps<
@@ -216,7 +216,7 @@ defineExpose({ viewport })
 
 @media (hover: hover) {
   :where([data-slot="scroll-area-thumb"]:hover) {
-    background-color: var(--gray-a8);
+    background-color: var(--scrollbar-color-hover);
   }
 }
 </style>

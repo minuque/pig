@@ -65,7 +65,6 @@ const phase = (next: "running" | "idle", revision: number) =>
   ({ snapshot: { phase: next, revision, tasks: [] }, transcript: [] }) as unknown as SessionState
 const settle = () => new Promise((resolve) => setTimeout(resolve, 20))
 
-/** 一座壳：一个 hub、一次泵队注册、一份两侧共用的队列。 */
 function setup() {
   const scope = effectScope()
   const pi = fakePi()
@@ -83,7 +82,6 @@ function setup() {
     hub.setBackgroundIdle(pump.onIdle)
     return { hub }
   })!
-  // 面板里的输入卡与泵队经同一个桶存：谁写谁读都是按会话分桶的那一份
   const paneQueue = useComposerQueue(buckets)
   const leftId = shallowRef<string>()
   const left = scope.run(() =>
@@ -94,7 +92,6 @@ function setup() {
     ),
   )!
 
-  /** 后台会话：这一侧挂上跑起来，再切走进共用后台池。 */
   async function background(id: string) {
     leftId.value = id
     left.showHistory(id)
@@ -118,7 +115,6 @@ describe("后台泵队挂在 Hub 上", () => {
     const ctx = setup()
     const a = await ctx.background("a")
     const rightScope = effectScope()
-    // 第二侧面板：挂上另一个会话，再整块卸掉
     const rightId = shallowRef<string>("b")
     const right = rightScope.run(() =>
       useForegroundSession(
@@ -138,7 +134,6 @@ describe("后台泵队挂在 Hub 上", () => {
     a.emit(phase("idle", 2))
     await vi.waitFor(() => expect(a.submitted).toEqual(["后台一条"]))
 
-    // 泵完一条就出池收尾：同一个空闲快照不会让队列再发一次
     expect(ctx.paneQueue.items.value).toEqual([])
     expect(ctx.sound.play).toHaveBeenCalledTimes(1)
     ctx.scope.stop()

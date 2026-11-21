@@ -12,7 +12,7 @@
             type="button"
             size="s"
             variant="ghost"
-            color="gray"
+            color="neutral"
             :aria-label="action.label"
             :disabled="action.disabled"
             @click="action.run"
@@ -63,7 +63,6 @@ const props = defineProps<{
   stoppable: ReadonlySet<string>
   stopping: ReadonlySet<string>
   sessionId: string | undefined
-  /** 面板里那个子任务的进展指纹。 */
   progress: string
 }>()
 const emit = defineEmits<{ stop: [taskId: string] }>()
@@ -98,8 +97,6 @@ function clearFinished() {
 </script>
 
 <style scoped>
-/* 会话面板的第三列：头部之下、贴右边，宽度两档；正文自己滚，头部不动 */
-/* 面板列里的一张 Card：宽高都随所在的挂载点，去掉卡片内边距，不铺底 */
 .rail-pane {
   display: flex;
   flex: 1;
@@ -156,7 +153,6 @@ function clearFinished() {
   padding: 0 var(--space-md) var(--space-md);
 }
 
-/* 子会话的时间线自带滚动与边距 */
 .rail-pane-body[data-kind="child"] {
   padding: 0;
   overflow: hidden;

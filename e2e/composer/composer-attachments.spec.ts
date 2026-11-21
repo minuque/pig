@@ -32,7 +32,6 @@ test("输入卡附件：拖入出现 chips，移除后消失", async ({ page, ga
   await expect(shot).toBeVisible()
   await expect(page.locator(".attach-tray .chip")).toHaveCount(1)
 
-  // 粘贴图片与拖入走同一条附加路径
   await page.getByRole("textbox", { name: "Prompt" }).evaluate((element) => {
     const data = new DataTransfer()
 
@@ -42,7 +41,6 @@ test("输入卡附件：拖入出现 chips，移除后消失", async ({ page, ga
   await expect(page.getByRole("button", { name: "移除 paste.png" })).toBeVisible()
   await expect(page.locator(".attach-tray .chip")).toHaveCount(2)
 
-  // 非白名单图片（svg）没有预览，走文件卡片
   await page.getByRole("textbox", { name: "Prompt" }).evaluate((element) => {
     const data = new DataTransfer()
 
@@ -114,7 +112,6 @@ test("发送中被中止：不再发 prompt，丢弃批次且保留 chips", asyn
   await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, complexGateway.workspaceId)
   const bridge = await installTurnBridge(page)
-  // 闸住 stage 请求，中止一定落在 stage 与提交之间，不靠固定延时抢窗口
   let releaseStage = () => {}
   const stageGate = new Promise<void>((resolve) => {
     releaseStage = resolve
@@ -146,7 +143,6 @@ test("发送中被中止：不再发 prompt，丢弃批次且保留 chips", asyn
   const stageRequest = await staged
 
   await page.keyboard.press("Escape")
-  // 中止已经落地，再放行 stage：客户端拿到响应后只能丢弃这个批次
   releaseStage()
 
   const discard = await discarded

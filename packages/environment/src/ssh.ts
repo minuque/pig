@@ -14,11 +14,10 @@ import type { DirEntry, Environment, ExecOptions, FileStat, SearchEntry } from "
 
 type Connection = { client: Client; sftp: SFTPWrapper }
 
-/** SFTP 的「文件不存在」状态码。 */
+// 外部：SFTP 的「文件不存在」状态码
 const NO_SUCH_FILE = 2
-/** POSIX shell 单引号转义。 */
 export const quote = (value: string) => `'${value.replaceAll("'", String.raw`'\''`)}'`
-/** 命令放进自己的进程组并记下组号；用远端登录 shell 跑，外层固定 POSIX sh，不受 zsh/fish 影响。 */
+// 外部：命令要用远端登录 shell 跑，外层固定 POSIX sh，不受 zsh/fish 影响
 const WRAPPER = [
   'cd "$1" || exit 1',
   "set -m",
@@ -33,7 +32,7 @@ const WRAPPER = [
 ].join("\n")
 const remoteCommand = (cwd: string, command: string, pidFile: string) =>
   `sh -c ${quote(WRAPPER)} sh ${quote(cwd)} ${quote(command)} ${quote(pidFile)}`
-/** 按组号杀整组：没分配 pty 时服务端常忽略 signal 请求，关通道也杀不掉子进程。 */
+// 外部：没分配 pty 时服务端常忽略 signal 请求，关通道也杀不掉子进程
 const remoteKill = (pidFile: string) =>
   `sh -c ${quote('kill -9 -"$(cat "$1")" 2>/dev/null; rm -f "$1"')} sh ${quote(pidFile)}`
 const call = <T>(run: (done: (error: Error | null | undefined, value: T) => void) => void) =>
@@ -41,7 +40,6 @@ const call = <T>(run: (done: (error: Error | null | undefined, value: T) => void
     run((error, value) => (error ? reject(error) : resolve(value))),
   )
 
-/** 一台 SSH 主机：一条长连接，命令走 exec，文件走 SFTP；断开后下次调用自动重连。 */
 export class SshEnvironment implements Environment {
   readonly id: string
   private connection: Promise<Connection> | undefined
@@ -62,7 +60,6 @@ export class SshEnvironment implements Environment {
     )
     let timedOut = false
     const kill = () => {
-      // 杀完再关通道；开不了杀进程的通道就直接关
       client.exec(remoteKill(pidFile), (error, killer) => {
         if (error) channel.close()
         else killer.on("close", () => channel.close()).resume()
@@ -79,7 +76,6 @@ export class SshEnvironment implements Environment {
     signal?.addEventListener("abort", kill, { once: true })
 
     try {
-      // 连接断开时 ssh2 会关闭全部通道，只是收不到退出码
       const exit = await new Promise<{ code: number | null } | undefined>((resolve) => {
         let status: { code: number | null } | undefined
         channel.on("data", onData)
@@ -148,7 +144,6 @@ export class SshEnvironment implements Environment {
     return sftp.createReadStream(path, range)
   }
 
-  /** 远端一次 find 列出候选，本地打分；逐目录走 SFTP 每层都要一次往返。 */
   async search(
     root: string,
     query: string,
@@ -170,7 +165,7 @@ export class SshEnvironment implements Environment {
     connection?.client.end()
   }
 
-  /** 跑一条命令并收集输出；退出码不看，搜索类命令被 head 截断时非零属正常。 */
+  // 外部：搜索类命令被 head 截断时退出码非零，属正常
   private async output(command: string, cwd: string, signal?: AbortSignal) {
     const chunks: Buffer[] = []
     await this.exec(command, {
@@ -201,7 +196,7 @@ export class SshEnvironment implements Environment {
       await new Promise<void>((resolve, reject) => {
         client.once("ready", resolve).once("error", reject).connect(config)
       })
-      // 连上之后的错误与断开只让下次调用重连，不能让未处理的 error 打死进程
+      // 外部：未处理的 error 事件会打死进程，只能让下次调用重连
       client.on("error", lost).on("close", lost)
       const sftp = await call<SFTPWrapper>((done) => client.sftp(done))
       return { client, sftp }
@@ -214,7 +209,6 @@ export class SshEnvironment implements Environment {
 }
 
 const prunedNames = [...SKIP_DIRS].map((name) => `-name ${quote(name)}`).join(" -o ")
-/** 与本机遍历同规则：根下隐藏项只留 .pi，SKIP_DIRS 列出但不下探，目录带尾斜杠。 */
 export const FIND_COMMAND = [
   `find . -mindepth 1 -maxdepth ${MAX_DEPTH + 1}`,
   String.raw`\( -path './.*' ! -path ./.pi ! -path './.pi/*' -prune \)`,
@@ -223,7 +217,6 @@ export const FIND_COMMAND = [
   String.raw`-o \( -type f -print \)`,
   `2>/dev/null | head -n ${MAX_VISITED}`,
 ].join(" ")
-/** find 输出转成相对路径条目。 */
 export const parseFindOutput = (text: string) =>
   text.split("\n").flatMap((line): SearchEntry[] => {
     const path = line.replace(/^\.\//, "")

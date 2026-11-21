@@ -4,7 +4,6 @@ import { errorMessage } from "@client/http.js"
 import { listProviders, refreshProviderCatalog } from "@client/platform.js"
 import type { ProviderView } from "@/types/common-type.js"
 
-/** 模型分区状态：供应商列表、下钻选中项与加载错误。 */
 export function useProviders() {
   const providers = ref<ProviderView[]>([])
   const loading = ref(false)
@@ -26,7 +25,6 @@ export function useProviders() {
     }
   }
 
-  /** 请求 gateway 全量刷新 runtime，用返回结果替换列表。 */
   async function refreshCatalog() {
     const result = await refreshProviderCatalog()
     providers.value = result.providers

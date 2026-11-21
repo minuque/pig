@@ -1,7 +1,6 @@
 import type { SessionMetadata } from "@pig/protocol"
 import type { SessionEntry } from "@earendil-works/pi-coding-agent"
 
-/** 当前分支第一条用户句正文，供未命名会话当列表名。 */
 export function firstUserMessageText(entries: readonly SessionEntry[]): string | undefined {
   for (const entry of entries) {
     if (entry.type !== "message" || entry.message.role !== "user") continue
@@ -31,7 +30,6 @@ function userContentText(content: unknown): string | undefined {
   return text || undefined
 }
 
-/** 列表展示名：用户命名优先，否则用首条消息截断。 */
 export function sessionListName(info: {
   name?: string | undefined
   firstMessage?: string | undefined
@@ -45,7 +43,6 @@ export function sessionListName(info: {
   return first.length > 48 ? `${first.slice(0, 48)}…` : first
 }
 
-/** 最近使用过的会话目录；网关启动时按它预热，与会话文件里存的是同一个目录。 */
 export function recentSessionCwd(sessions: readonly SessionMetadata[]): string | undefined {
   let latest: SessionMetadata | undefined
 

@@ -1,7 +1,6 @@
 import { onMounted, shallowRef, toValue, watch, type MaybeRefOrGetter } from "vue"
 import type { TimelineRow } from "@features/transcript-view/type.js"
 
-/** 行到了就贴底并揭开，不等 rAF。 */
 export function useTranscriptReveal(
   rows: MaybeRefOrGetter<readonly TimelineRow[]>,
   pinLatest: () => void,

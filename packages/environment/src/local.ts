@@ -10,7 +10,7 @@ import type { DirEntry, Environment, ExecOptions, FileStat, SearchEntry } from "
 
 const missing = (error: unknown) => (error as NodeJS.ErrnoException).code === "ENOENT"
 
-/** 本机：命令走 pi 自己的本地 shell（Windows 上是 Git Bash），文件走 node:fs。 */
+// 外部：pi 的本地 shell 在 Windows 上是 Git Bash
 export class LocalEnvironment implements Environment {
   readonly id = "local"
   private readonly shell = createLocalBashOperations()

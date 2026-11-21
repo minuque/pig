@@ -1,5 +1,7 @@
 <template>
-  <DialogTrigger data-slot="dialog-trigger" v-bind="forwardedProps">
+  <DialogTrigger
+    v-bind="props.asChild ? forwardedProps : { ...forwardedProps, 'data-slot': 'dialog-trigger' }"
+  >
     <slot />
   </DialogTrigger>
 </template>

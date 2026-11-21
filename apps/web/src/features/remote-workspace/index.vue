@@ -29,7 +29,9 @@
 
         <div class="remote-actions">
           <DialogClose as-child>
-            <Button variant="soft" color="gray" type="button">{{ t("common.cancel") }}</Button>
+            <Button variant="secondary" color="neutral" type="button">
+              {{ t("common.cancel") }}
+            </Button>
           </DialogClose>
 
           <Button type="submit" :loading="busy" :disabled="!host || !path.trim()">
@@ -59,7 +61,6 @@ import { TextFieldRoot } from "@components/ui/text-field/index.js"
 
 const props = defineProps<{
   open: boolean
-  /** 校验并登记远程目录；返回 false 表示目录不存在或主机连不上。 */
   add: (environment: string, path: string) => Promise<boolean>
 }>()
 const emit = defineEmits<{ "update:open": [open: boolean] }>()
@@ -84,7 +85,6 @@ watch(
   { immediate: true },
 )
 
-// 换主机时带出它保存的默认目录
 watch(host, (id) => {
   const saved = hosts.value.find((item) => item.id === id)?.defaultPath
 
@@ -108,7 +108,6 @@ async function submit() {
 </script>
 
 <style>
-/* 内容经 Portal 挂到 body，scoped 打不中，选择器统一挂在 .remote-dialog 前缀下。 */
 .remote-dialog[data-slot="dialog-content"] {
   max-inline-size: var(--dialog-width-sm);
 }

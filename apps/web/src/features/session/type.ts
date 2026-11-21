@@ -5,11 +5,8 @@ import type {
   UserTranscriptItem,
 } from "@/types/common-type.js"
 
-/** 建会话和发送前问输入卡「用户选了什么」；由 composer 一侧注册。 */
 export interface PresetPort {
-  /** 新建会话带的模型与档位；没选时为 undefined。 */
   createModel(): { model: ModelRef; thinkingLevel: ThinkingLevel } | undefined
-  /** 没打开会话时改过的选择，取一次即清；没改过时为 undefined。 */
   consumeDetachedEdit(): { model: ModelRef; thinkingLevel: string } | undefined
 }
 
@@ -18,19 +15,14 @@ export interface OptimisticUserMessage {
   knownItemIds: readonly string[]
 }
 
-/** 每 Session 的 UI 私有状态（草稿、本地用户句），不进入任何 Agent Domain。 */
 export interface SessionClientState {
   draft: string
-  /** 发送时定死 id；服务端确认后仍用这条渲染。 */
   sends: OptimisticUserMessage[]
-  /** 这条会话的提交在飞：真实 submit 等整轮才回，只挡本会话。 */
   submitting: boolean
   aborting: boolean
-  /** 每次发送或中止加一；在飞的发送靠它判断自己是否已被作废。 */
   epoch: number
 }
 
-/** SessionSnapshot 的 UI 展示投影：以快照为权威，重连后整体覆盖，不增量修补。 */
 export interface SessionProjection {
   id: string
   name: string

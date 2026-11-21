@@ -11,17 +11,13 @@ export function createSharedBuckets(): SharedBuckets {
   return new Map()
 }
 
-/** 两侧 workbench 共用同一份按会话分桶的暂存；返回同一份 store 给宿主组件自身复用。 */
 export function provideSharedBuckets(): SharedBuckets {
   const store = createSharedBuckets()
   provide(sharedKey, store)
   return store
 }
 
-/**
- * 按 sessionId 分桶的内存暂存（welcome 用这一侧的空闲键）。切走再回来还在。
- * 普通 Map 存显式 ref：嵌套在 reactive Map 里的数组不保证触发 computed。
- */
+// 外部：嵌套在 reactive Map 里的数组不保证触发 computed，桶里存显式 ref
 export function useSessionBuckets<T>(
   create: () => T,
   release?: (value: T) => void,
@@ -35,7 +31,6 @@ export function useSessionBuckets<T>(
 
   if (stores && !shared) stores.set(name!, (shared = new Map()))
   const buckets = shared ?? new Map<string, T>()
-  // 共用时新会话页的桶按这一侧单独起名，两侧的新会话页互不串
   const idle = shared ? `welcome-${++idleSeq}` : ""
   const key = ref(idle)
 
@@ -55,7 +50,6 @@ export function useSessionBuckets<T>(
     key.value = sessionId ?? idle
   }
 
-  /** 欢迎页建出会话：整桶改挂到新会话名下，目标已有内容就不动。 */
   function handOff(sessionId: string) {
     const value = buckets.get(idle)
 

@@ -1,30 +1,28 @@
 <template>
   <DialogPortal>
-    <ThemeRoot>
-      <DialogOverlay :align="align" :style="widthStyle">
-        <DialogContent
-          data-slot="dialog-content"
-          :data-size="size"
-          v-bind="{ ...$attrs, ...forwarded }"
-          :class="props.class"
-        >
-          <slot />
+    <DialogOverlay :align="align" :style="widthStyle">
+      <DialogContent
+        data-slot="dialog-content"
+        :data-size="size"
+        v-bind="{ ...$attrs, ...forwarded }"
+        :class="props.class"
+      >
+        <slot />
 
-          <DialogClose
-            v-if="showCloseButton"
-            data-button
-            data-slot="icon-button"
-            data-size="s"
-            data-variant="ghost"
-            data-accent-color="gray"
-            :aria-label="t('common.close')"
-            class="dlg-close"
-          >
-            <XIcon class="size-icon" />
-          </DialogClose>
-        </DialogContent>
-      </DialogOverlay>
-    </ThemeRoot>
+        <DialogClose
+          v-if="showCloseButton"
+          data-button
+          data-slot="icon-button"
+          data-size="s"
+          data-variant="ghost"
+          data-tone="neutral"
+          :aria-label="t('common.close')"
+          class="dlg-close"
+        >
+          <XIcon class="size-icon" />
+        </DialogClose>
+      </DialogContent>
+    </DialogOverlay>
   </DialogPortal>
 </template>
 
@@ -35,8 +33,7 @@ import { computed } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { DialogClose, DialogContent, DialogPortal, useForwardPropsEmits } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
-import { ThemeRoot } from "@components/ui/rt/index.js"
-import type { Size } from "@components/ui/rt/size.js"
+import type { Size } from "@/types/ui-type.js"
 import { XIcon } from "@components/icons/index.js"
 import DialogOverlay from "./DialogOverlay.vue"
 
@@ -49,9 +46,7 @@ const props = withDefaults(
     DialogContentProps & {
       class?: HTMLAttributes["class"]
       showCloseButton?: boolean
-      /** 面板宽度与内边距档：s / m / l */
       size?: Size
-      /** 面板最大宽度，默认沿用 rt 的 600px；调用方的 scoped 类仍可覆盖 */
       maxWidth?: string
       align?: "start" | "center"
     }
@@ -73,7 +68,6 @@ const widthStyle = computed(() =>
 </script>
 
 <style>
-/* 面板：主区底色与圆角同心，尺寸档只改内边距、圆角与最大宽度 */
 :where([data-slot="dialog-content"]) {
   position: relative;
   z-index: var(--z-raise);
@@ -106,7 +100,6 @@ const widthStyle = computed(() =>
 </style>
 
 <style scoped>
-/* 关闭按钮：图标边缘与内容边缘对齐，偏移 = 内边距 -（按钮宽 - 图标宽）/ 2 */
 .dlg-close {
   position: absolute;
   inset-block-start: calc(var(--space-md) - (var(--space-lg) - var(--icon-md)) / 2);

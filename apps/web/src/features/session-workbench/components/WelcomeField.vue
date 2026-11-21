@@ -8,7 +8,6 @@ import { useRafFn, useResizeObserver } from "@vueuse/core"
 import { prefersReducedMotion } from "@utils/motion.js"
 import { MASK_FRAG, MASK_VERT } from "@features/session-workbench/lib/mask-flow-shader.js"
 
-/** 格子边长（CSS px）。 */
 const CELL = 10
 const UNIFORMS = ["uResolution", "uTime", "uCell", "uGain", "uMask", "uLow", "uHigh"]
 const canvas = useTemplateRef<HTMLCanvasElement>("canvas")
@@ -48,7 +47,6 @@ function setup(el: HTMLCanvasElement) {
   gl = ctx
 }
 
-/** token 颜色经 2d 画布换成 0-1 的 RGB。 */
 function rgb(color: string): [number, number, number] {
   probe ??= document.createElement("canvas").getContext("2d", { willReadFrequently: true })!
   probe.fillStyle = color
@@ -104,7 +102,6 @@ onBeforeUnmount(() => gl?.getExtension("WEBGL_lose_context")?.loseContext())
 </script>
 
 <style scoped>
-/* 铺满欢迎页背景，不接点击 */
 .welcome-field {
   position: absolute;
   inset: 0;

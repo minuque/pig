@@ -9,7 +9,6 @@ vi.mock("../src/subagent/run.ts", async (importOriginal) => ({
 
 type Handler = (...args: never[]) => unknown
 
-/** pi 的替身：记下工具、事件处理器，总线按真件的方式挂上与摘掉监听。 */
 function setup() {
   const tools = new Set<string>()
   const handlers = new Map<string, Handler>()

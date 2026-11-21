@@ -279,7 +279,6 @@ async function restore() {
   gap: var(--space-sm);
 }
 
-/* rt 的 ghost 按钮默认带负外边距，会把间距吃掉 */
 .restore-params {
   margin: 0;
 }

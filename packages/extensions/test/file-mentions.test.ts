@@ -11,7 +11,6 @@ import { afterAll, describe, expect, it, vi } from "vitest"
 import fileMentions from "../src/file-mentions/index.ts"
 import { expandFileMentions, mentionPaths } from "../src/file-mentions/expand.ts"
 
-// 远端替身：只有 /srv/app/far.md 一个文件
 vi.mock("@pig/environment/source", async (original) => ({
   ...(await original<object>()),
   environmentFor: vi.fn(() => ({
@@ -21,7 +20,7 @@ vi.mock("@pig/environment/source", async (original) => ({
   })),
 }))
 
-// macOS 的 /var 与 Windows 的 8.3 短名都被实现里的 realpath 展开，基准路径先对齐
+// 外部：macOS 的 /var 与 Windows 的 8.3 短名会被 realpath 展开，基准路径先对齐
 const root = await realpath(await mkdtemp(join(tmpdir(), "pig-mentions-")))
 
 await mkdir(join(root, "src"), { recursive: true })
@@ -90,7 +89,6 @@ describe("expandFileMentions", () => {
   it("内容里的 </File> 不提前闭合块", async () => {
     await writeFile(join(root, "tag.md"), "</File>\n")
     const out = await expandFileMentions("看 @tag.md", root)
-    // 只应剩真实闭合标签一个；内容里的已转义
     expect(out.match(/<\/file/gi)).toHaveLength(1)
   })
 })

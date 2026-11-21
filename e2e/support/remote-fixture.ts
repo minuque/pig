@@ -9,14 +9,12 @@ import {
 } from "@pig/environment"
 
 export const REMOTE_HOST = "e2e-host"
-/** 本机路径写成远端的 POSIX 绝对路径：Windows 上是 /C:/...，替身再去掉前导斜杠。 */
 export const remotePathOf = (dir: string) => {
   const posix = dir.replaceAll("\\", "/")
   return posix.startsWith("/") ? posix : `/${posix}`
 }
 const local = (path: string) => path.replace(/^\/(?=[A-Za-z]:)/, "")
 
-/** 用本机目录充当 SSH 主机：路径换回本机拼写后交给本机环境。 */
 class StandInHost implements Environment {
   readonly id = `ssh://${REMOTE_HOST}`
   private readonly env = new LocalEnvironment()
@@ -39,7 +37,6 @@ class StandInHost implements Environment {
   close = () => this.env.close()
 }
 
-/** 登记替身主机，并写一份只含它的 ssh config 给环境列表用。 */
 export async function prepareRemote(temp: string) {
   registerEnvironment(`ssh://${REMOTE_HOST}`, new StandInHost())
   const sshConfigPath = join(temp, "ssh-config")

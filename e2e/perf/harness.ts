@@ -46,7 +46,7 @@ export type BenchHarness = {
 }
 
 const LIVE_DEV_ENV = new Set([
-  // 基准自己跑在 tsx --tsconfig e2e/tsconfig.json 下，这个相对路径传给桌面进程会按 apps/desktop 解析而崩
+  // 外部：tsx 的 --tsconfig 按子进程 cwd 解析相对路径，传给桌面进程会崩
   "TSX_TSCONFIG_PATH",
   "ELECTRON_RUN_AS_NODE",
   "PIG_CDP",

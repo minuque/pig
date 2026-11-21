@@ -44,7 +44,6 @@ import {
 import FileNotice from "@features/file-pane/components/FileNotice.vue"
 import { useFilePane } from "@features/file-pane/index.js"
 
-/** 沙箱里的页面没有 cookie：地址带上预览令牌，相对路径的资源也走同一前缀。 */
 const props = defineProps<{ path: string; revision: number }>()
 const { t } = useI18n()
 const pane = useFilePane()
@@ -75,7 +74,6 @@ watch(
   { immediate: true },
 )
 
-// 页面里点到外链时，注入的脚本把地址发上来，先问一句再打开
 useEventListener(window, "message", (event: MessageEvent) => {
   const data = event.data as { type?: unknown; href?: unknown } | null
 

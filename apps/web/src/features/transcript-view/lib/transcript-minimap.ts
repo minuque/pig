@@ -53,7 +53,6 @@ export function resolveMinimapHeightStyle(itemCount: number): string {
   return `min(${gaps * MINIMAP_RAIL_PITCH}px, calc((100% - var(--composer-reserve, 0px)) * 0.8))`
 }
 
-/** 首尾贴住导轨两端，刻度按固定间距排开。 */
 export function resolveMinimapTopPercent(index: number, itemCount: number): number {
   if (itemCount <= 1) return 0
   const clamped = Math.max(0, Math.min(index, itemCount - 1))

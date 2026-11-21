@@ -91,7 +91,7 @@
           </TooltipTrigger>
 
           <TooltipContent>
-            <!-- span 包住文案：两个元素间的换行空白会被编译器丢掉，间距只由 kbd 的 margin 决定 -->
+            <!-- 外部：元素间的换行空白会被编译器丢掉 -->
             <span>{{ primaryLabel }}</span>
             <kbd v-if="primaryMode !== 'stop'" class="tooltip-hint">↵</kbd>
           </TooltipContent>
@@ -139,17 +139,12 @@ const { t } = useI18n()
 const props = withDefaults(
   defineProps<{
     catalog: ComposerVendor[]
-    /** 附件状态由会话层持有，输入卡只消费 */
     attachments: ComposerAttachmentsApi
-    /** 运行中：有文本入队，空白只能停止 */
     running?: boolean
-    /** Abort 请求进行中：保持停止态并禁用重复点击 */
     aborting?: boolean
-    /** 外部禁用发送（如 welcome 的 workspace/预设/提交中守卫） */
     sendDisabled?: boolean
     sessionId?: string | undefined
     cwd?: string | undefined
-    /** 当前会话的上下文占用；新会话没有 */
     usage?: ContextUsage | undefined
     queue: ComposerQueueApi
   }>(),
@@ -182,7 +177,6 @@ const level = computed({
     if (preset.value) preset.value = { ...preset.value, thinkingLevel }
   },
 })
-// 附件不单独发送：正文非空才允许提交，附件随这次提交一起走
 const sendActive = computed(() => prompt.value.trim() !== "" && !props.sendDisabled)
 const modelPickerOpen = ref(false)
 const previewItem = ref<ComposerAttachment>()
@@ -194,10 +188,6 @@ const attachmentProgress = computed(() => props.attachments.progress.value)
 const attachmentError = computed(() => props.attachments.error.value)
 const attachmentsFull = computed(() => attachmentFiles.value.length >= MAX_COMPOSER_ATTACHMENTS)
 
-/**
- * 主钮三态：idle+文本 Send / running+文本 Queue / running+空 Stop。
- * 空白时 Enter 永不打断，Stop 只留在按钮和 Esc。
- */
 type PrimaryMode = "send" | "queue" | "stop"
 
 const primaryMode = computed<PrimaryMode>(() => {
@@ -228,7 +218,6 @@ watch(
 
 useEventListener(window, "keydown", onAbortHotkey, { capture: true })
 
-/** 空闲发送；忙时有文本入队，空白不响应。Enter 走同一条路。 */
 function submitIntent() {
   if (!sendActive.value) return
 
@@ -252,7 +241,6 @@ function onPrimaryAction() {
 function onQueueEdit(item: QueuedPrompt) {
   prompt.value = item.text
 
-  // 附件快照回填输入卡暂存；占位直接移除，不做租约
   if (item.attachments) props.attachments.addFiles(item.attachments.files.map((f) => f.file))
   props.queue.remove(item.id)
   editor.value?.focus()
@@ -262,7 +250,6 @@ function pickFiles() {
   fileInput.value?.click()
 }
 
-/** 选完立刻清空，同一个文件能再次选。 */
 function onFilesPicked(event: Event) {
   const input = event.target as HTMLInputElement
 
@@ -274,7 +261,6 @@ function onPreview(item: ComposerAttachment) {
   previewItem.value = item
 }
 
-// 关掉灯箱把焦点还给输入框
 watch(previewItem, (item, previous) => {
   if (previous && !item) editor.value?.focus()
 })
@@ -284,7 +270,6 @@ function onAbortHotkey(event: KeyboardEvent) {
 
   if (event.altKey || event.ctrlKey || event.metaKey) return
 
-  // 灯箱与菜单各自消费 Esc，不打断轮次
   if (previewItem.value || !props.running || props.aborting || modelPickerOpen.value) return
   const active = document.activeElement
 
@@ -308,7 +293,6 @@ function onAbortHotkey(event: KeyboardEvent) {
   position: relative;
   display: flex;
   flex-direction: column;
-  /* 整组封顶后由队列先让位，输入卡保持原高 */
   min-block-size: 0;
   width: 100%;
   margin-inline: auto;
@@ -380,7 +364,6 @@ function onAbortHotkey(event: KeyboardEvent) {
     background var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out),
     opacity var(--duration-fast) var(--ease-out);
-  /* 发送与排队：强调色实心圆 */
   background: var(--accent-solid);
   color: var(--fg-on-accent);
 }
@@ -389,7 +372,6 @@ function onAbortHotkey(event: KeyboardEvent) {
   background: var(--accent-solid-hover);
 }
 
-/* 停止态：危险色实心圆，内部换成圆角方块，hover 只降不透明度 */
 .send--abort,
 .send--abort:not(:disabled):hover {
   background: var(--danger-solid);
@@ -401,7 +383,6 @@ function onAbortHotkey(event: KeyboardEvent) {
   opacity: 0.85;
 }
 
-/* 不可发送：中性浅底配弱色箭头，和可发送的实心圆一眼分开 */
 .send:disabled {
   cursor: default;
   scale: 1;
@@ -448,7 +429,6 @@ function onAbortHotkey(event: KeyboardEvent) {
   outline-offset: 2px;
 }
 
-/* 回形针比正文图标大一档 */
 .attach-icon {
   inline-size: var(--icon-lg);
   block-size: var(--icon-lg);

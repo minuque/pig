@@ -32,7 +32,6 @@ import {
 } from "@components/ui/table/index.js"
 import { parseDelimited } from "@features/file-pane/lib/csv.js"
 
-/** 只画前这么多行；整份内容在源码视图里。 */
 const ROW_LIMIT = 1_000
 const props = defineProps<{ path: string; text: string }>()
 const { t } = useI18n()

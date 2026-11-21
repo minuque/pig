@@ -1,4 +1,3 @@
-/** 工作区内文件的只读接口：stat / text / raw / list / search、git 状态与预览令牌。 */
 import type { IncomingMessage, ServerResponse } from "node:http"
 import { posix, win32 } from "node:path"
 import { pipeline } from "node:stream/promises"
@@ -10,9 +9,7 @@ import { issuePreviewToken } from "./file-preview.js"
 import { HttpError, type HttpDeps, type HttpRouteTable } from "./router.js"
 import { gitIgnored, gitStatus, searchContents } from "./workspace-git.js"
 
-/** 预览上限：超过就不读文本。 */
 const TEXT_LIMIT = 1024 * 1024
-/** 与 git 的判定一致：前 8000 字节里有 NUL 就当二进制。 */
 const BINARY_PROBE = 8000
 export const MIME: Record<string, string> = {
   html: "text/html; charset=utf-8",
@@ -47,17 +44,14 @@ export const MIME: Record<string, string> = {
 
 type PathApi = typeof posix
 
-/** 解析后的目标：file 与 root 都是解开符号链接后的真实路径。 */
 export type Target = { env: Environment; file: string; root: string; path: PathApi }
 
 type Workspace = { env: Environment; root: string; path: PathApi }
 
-/** 文件路由只需要判定工作区是否授权过。 */
 export type FileDeps = HttpDeps & { hostService: Pick<PiHostService, "isKnownWorkspace"> }
 
 const cwd = (url: URL) => url.searchParams.get("cwd")?.trim() ?? ""
 
-/** 授权过的工作区：环境、根目录与该环境的路径规则。 */
 async function authorizedWorkspace(
   cwd: string,
   deps: Pick<FileDeps, "hostService">,
@@ -68,7 +62,6 @@ async function authorizedWorkspace(
   return { env, root, path: env.id === "local" && process.platform === "win32" ? win32 : posix }
 }
 
-/** 授权工作区 + 解开符号链接后仍在根内，才给出目标；否则返回状态码。 */
 export async function resolveFile(
   cwd: string,
   requested: string,
@@ -91,7 +84,6 @@ export async function resolveFile(
   }
 }
 
-/** 按 query 里的 cwd/path 定位文件；越界回 403，不存在回 404。 */
 async function openFile(url: URL, deps: FileDeps): Promise<Target> {
   const target = await resolveFile(cwd(url), url.searchParams.get("path") ?? "", deps)
 
@@ -99,7 +91,6 @@ async function openFile(url: URL, deps: FileDeps): Promise<Target> {
   throw new HttpError(target, target === 403 ? "FORBIDDEN" : "NOT_FOUND")
 }
 
-/** stat 之后再确认类型：文本与原始字节要文件，列表要目录。 */
 async function statFile(
   url: URL,
   deps: FileDeps,
@@ -169,7 +160,6 @@ export const fsRoutes = {
 } satisfies HttpRouteTable<FileDeps>
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" })
 
-/** 目录在前、名字按自然序；顺带标出被 .gitignore 命中的项。 */
 async function listDirectory({ env, file, root, path }: Target) {
   const items = (await env.readdir(file)).sort(
     (a, b) =>
@@ -203,7 +193,6 @@ async function readText(target: Target, size: number, force: boolean): Promise<F
   return { content: bytes.toString("utf8"), size, binary, tooLarge: false }
 }
 
-/** 单段 Range；多段或不认识的写法按整份返回。 */
 function parseRange(header: string | undefined, size: number) {
   const match = /^bytes=(\d*)-(\d*)$/.exec(header?.trim() ?? "")
 
@@ -227,10 +216,9 @@ export async function sendRaw(
     "Content-Type": type,
     "Accept-Ranges": "bytes",
     "Cache-Control": "no-cache",
-    // agent 写的文件打开时不能以 pig 的源跑脚本；PDF 除外，Chromium 的查看器在 sandbox 里不工作
+    // 外部：Chromium 的 PDF 查看器在 sandbox 里不工作
     ...(type === "application/pdf" ? {} : { "Content-Security-Policy": "sandbox" }),
     "X-Content-Type-Options": "nosniff",
-    // 预览地址里带令牌，PDF 里的外链不能经 Referer 带走
     "Referrer-Policy": "no-referrer",
   }
 
@@ -241,7 +229,6 @@ export async function sendRaw(
   }
 
   const { start, end } = range ?? { start: 0, end: size - 1 }
-  // 先拿到流再写头：连不上远端时还能回 500
   const stream = size > 0 ? await target.env.readStream(target.file, { start, end }) : undefined
 
   res.writeHead(range ? 206 : 200, {

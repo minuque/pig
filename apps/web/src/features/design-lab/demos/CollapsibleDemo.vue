@@ -6,7 +6,7 @@
           <span class="demo-title">Tool output (12 lines)</span>
 
           <CollapsibleTrigger as-child>
-            <Button variant="ghost" color="gray" size="s">
+            <Button variant="ghost" color="neutral" size="s">
               {{ open ? "Hide" : "Show" }}
             </Button>
           </CollapsibleTrigger>

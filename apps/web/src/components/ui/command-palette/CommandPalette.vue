@@ -1,41 +1,39 @@
 <template>
   <DialogRoot :open="open" @update:open="emit('update:open', $event)">
     <DialogPortal>
-      <ThemeRoot>
-        <DialogOverlay class="glass-backdrop" />
+      <DialogOverlay class="glass-backdrop" />
 
-        <div class="viewport">
-          <DialogContent
-            data-slot="command-palette"
-            class="glass-panel"
-            :aria-describedby="undefined"
-          >
-            <DialogTitle class="sr-only">{{ title }}</DialogTitle>
+      <div class="viewport">
+        <DialogContent
+          data-slot="command-palette"
+          class="glass-panel"
+          :aria-describedby="undefined"
+        >
+          <DialogTitle class="sr-only">{{ title }}</DialogTitle>
 
-            <ListboxRoot ref="listbox" class="body" highlight-on-hover>
-              <slot />
-            </ListboxRoot>
+          <ListboxRoot ref="listbox" class="body" highlight-on-hover>
+            <slot />
+          </ListboxRoot>
 
-            <footer class="footer">
-              <span class="hint">
-                <Kbd size="s"><ArrowUpIcon /></Kbd>
-                <Kbd size="s"><ArrowDownIcon /></Kbd>
-                {{ t("common.navigate") }}
-              </span>
+          <footer class="footer">
+            <span class="hint">
+              <Kbd size="s"><ArrowUpIcon /></Kbd>
+              <Kbd size="s"><ArrowDownIcon /></Kbd>
+              {{ t("common.navigate") }}
+            </span>
 
-              <span class="hint">
-                <Kbd size="s">Enter</Kbd>
-                {{ t("common.select") }}
-              </span>
+            <span class="hint">
+              <Kbd size="s">Enter</Kbd>
+              {{ t("common.select") }}
+            </span>
 
-              <span class="hint">
-                <Kbd size="s">Esc</Kbd>
-                {{ t("common.close") }}
-              </span>
-            </footer>
-          </DialogContent>
-        </div>
-      </ThemeRoot>
+            <span class="hint">
+              <Kbd size="s">Esc</Kbd>
+              {{ t("common.close") }}
+            </span>
+          </footer>
+        </DialogContent>
+      </div>
     </DialogPortal>
   </DialogRoot>
 </template>
@@ -51,7 +49,6 @@ import {
   ListboxRoot,
 } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
-import { ThemeRoot } from "@components/ui/rt/index.js"
 import { Kbd } from "@components/ui/kbd/index.js"
 import { ArrowDownIcon, ArrowUpIcon } from "@components/icons/index.js"
 
@@ -60,7 +57,6 @@ const emit = defineEmits<{ "update:open": [open: boolean] }>()
 const { t } = useI18n()
 const listbox = useTemplateRef<{ highlightFirstItem: () => void }>("listbox")
 
-// 打开时先高亮第一项，回车直接选中
 watch(
   () => props.open,
   (open) => open && nextTick(() => listbox.value?.highlightFirstItem()),
@@ -68,7 +64,6 @@ watch(
 </script>
 
 <style scoped>
-/* 面板贴在视口上方 10vh，不随结果数量上下跳 */
 .viewport {
   position: fixed;
   z-index: var(--z-modal);

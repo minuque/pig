@@ -1,7 +1,6 @@
 import type { TimelineRow, TimelineTurn } from "@features/transcript-view/type.js"
 import { reuseTimelineRows } from "@features/transcript-view/lib/transcript-rows.js"
 
-/** 按 user 行切开；无 user 前缀单独成一轮。不改传入的 rows 数组。 */
 export function groupTimelineTurns(rows: readonly TimelineRow[]): TimelineTurn[] {
   const turns: TimelineTurn[] = []
 
@@ -19,7 +18,6 @@ export function groupTimelineTurns(rows: readonly TimelineRow[]): TimelineTurn[]
   return turns
 }
 
-/** 轮对象可复用时保持同一引用；轮内行走 reuseTimelineRows。 */
 export function reuseTimelineTurns(
   previous: readonly TimelineTurn[],
   next: readonly TimelineTurn[],

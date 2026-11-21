@@ -24,29 +24,24 @@ test("running 时 Enter 入队，轮次结束自动发送队首", async ({ page,
 
   const prompt = page.getByRole("textbox", { name: "Prompt" })
 
-  // 第一条 prompt 让会话进入 turn
   await prompt.fill("第一轮")
   await page.locator("button.send").click()
   await expect(page.getByRole("button", { name: "停止当前 Turn" })).toBeVisible({
     timeout: 30_000,
   })
 
-  // running + 空白：Enter 不打断，按钮保持停止态
   await prompt.press("Enter")
   await expect(page.getByRole("button", { name: "停止当前 Turn" })).toBeVisible()
   await expect(page.locator(".queue-panel")).toHaveCount(0)
 
-  // running + 文本：Enter 入队而不是打断
   await prompt.fill("排队第二条")
   await prompt.press("Enter")
   const queue = page.getByRole("list", { name: "待发队列" })
 
   await expect(queue).toBeVisible()
   await expect(queue).toContainText("排队第二条")
-  // contenteditable 的 div 不是 input，读 textContent 而不是 value
   await expect(prompt).toHaveText("")
 
-  // 中止当前轮 → idle 自动泵队首，排队文本成为新的用户消息
   await page.keyboard.press("Escape")
   await expect(
     page.locator(".row-user").getByText("排队第二条", { exact: true }).first(),
@@ -101,7 +96,6 @@ test("队列拖拽排序：拖到队首换位", async ({ page, complexGateway })
 
   await expect(rows).toHaveCount(2)
 
-  // 拖拽只认把手。第二条拖到第一条上方（目标行中点之上）
   await rows
     .nth(1)
     .locator(".row-grip")

@@ -3,7 +3,7 @@
     data-slot="text-field-root"
     :data-size="size"
     :data-variant="variant"
-    :data-accent-color="color"
+    :data-tone="color"
     :data-radius="radius"
     :class="props.class"
     @pointerdown="onPointerDown"
@@ -24,7 +24,7 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
 import { ref } from "vue"
-import type { Size } from "@components/ui/rt/size.js"
+import type { Size, ToneColor } from "@/types/ui-type.js"
 import type { Radius } from "@components/ui/button/index.js"
 
 defineOptions({ inheritAttrs: false })
@@ -32,10 +32,9 @@ defineOptions({ inheritAttrs: false })
 const props = withDefaults(
   defineProps<{
     modelValue?: string | number
-    /** 尺寸档：s、m、l */
     size?: Size
     variant?: "surface" | "soft"
-    color?: string
+    color?: ToneColor
     radius?: Radius
     class?: HTMLAttributes["class"]
   }>(),
@@ -50,10 +49,6 @@ function onInput(event: Event) {
   emit("update:modelValue", (event.target as HTMLInputElement).value)
 }
 
-/**
- * 点根容器（含左右插槽）也要聚焦输入框，光标落在靠近的那一端。
- * 选择器与 rt 一致：右侧槽（含未标 side 的槽）当右端处理。
- */
 function onPointerDown(event: PointerEvent) {
   const target = event.target as HTMLElement
 
@@ -72,7 +67,7 @@ function onPointerDown(event: PointerEvent) {
     try {
       input.setSelectionRange(caret, caret)
     } catch {
-      // 部分 input type 不支持 setSelectionRange
+      // 外部：部分 input type 不支持 setSelectionRange
     }
 
     input.focus()
@@ -81,7 +76,6 @@ function onPointerDown(event: PointerEvent) {
 </script>
 
 <style>
-/* 输入框：外框负责高度、底色与描边，输入元素自己只管文字与圆角 */
 :where([data-slot="text-field-root"]) {
   box-sizing: border-box;
   display: flex;
@@ -100,12 +94,10 @@ function onPointerDown(event: PointerEvent) {
   outline-offset: -1px;
 }
 
-/* 焦点环只由外框画，输入元素自己不再画一层 */
 :where([data-slot="text-field-input"]:focus-visible) {
   outline: none;
 }
 
-/* --- 圆角档 --- */
 :where([data-slot="text-field-root"][data-radius="none"]) {
   border-radius: 0;
 }
@@ -127,10 +119,9 @@ function onPointerDown(event: PointerEvent) {
 }
 
 :where([data-slot="text-field-root"]) ::selection {
-  background-color: var(--accent-a5);
+  background-color: var(--bg-selected);
 }
 
-/* --- 尺寸 --- */
 :where([data-slot="text-field-root"][data-size="s"]) {
   height: var(--space-lg);
   font-size: var(--text-meta);
@@ -176,7 +167,6 @@ function onPointerDown(event: PointerEvent) {
   padding-inline: var(--space-sm);
 }
 
-/* --- 输入元素 --- */
 :where([data-slot="text-field-input"]) {
   display: flex;
   align-items: center;
@@ -187,7 +177,6 @@ function onPointerDown(event: PointerEvent) {
   color: inherit;
 }
 
-/* 左侧有插槽：文字让出插槽，左圆角交给插槽 */
 :where(
   [data-slot="text-field-input"]:has(~ [data-slot="text-field-slot"]:not([data-side="right"]))
 ) {
@@ -197,7 +186,6 @@ function onPointerDown(event: PointerEvent) {
   border-end-start-radius: 0;
 }
 
-/* 右侧有插槽：文字贴住右侧插槽，右圆角交给插槽 */
 :where(
   [data-slot="text-field-input"]:has(
     ~ [data-slot="text-field-slot"][data-side="right"],
@@ -210,18 +198,17 @@ function onPointerDown(event: PointerEvent) {
   border-end-end-radius: 0;
 }
 
-/* --- 插槽 --- */
 :where([data-slot="text-field-slot"]) {
   box-sizing: border-box;
   display: flex;
   flex-shrink: 0;
   align-items: center;
   cursor: text;
-  color: var(--gray-a11);
+  color: var(--fg-secondary);
 }
 
-:where([data-slot="text-field-slot"][data-accent-color]) {
-  color: var(--accent-a11);
+:where([data-slot="text-field-slot"][data-tone]) {
+  color: var(--tone-text);
 }
 
 :where([data-slot="text-field-slot"]:not([data-side="right"])) {
@@ -240,47 +227,44 @@ function onPointerDown(event: PointerEvent) {
   margin-inline-end: calc(var(--border-width) * -1);
 }
 
-/* --- surface --- */
 :where([data-slot="text-field-root"][data-variant="surface"]) {
   background-clip: content-box;
   background-color: var(--bg-raised);
-  box-shadow: inset 0 0 0 var(--border-width) var(--gray-a7);
-  color: var(--gray-12);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-input);
+  color: var(--fg);
 }
 
 :where([data-slot="text-field-root"][data-variant="surface"]) ::placeholder {
-  color: var(--gray-a10);
+  color: var(--fg-muted);
 }
 
 :where([data-slot="text-field-root"][data-variant="surface"]):has(
   [data-slot="text-field-input"]:where(:disabled, :read-only)
 ) {
-  background-image: linear-gradient(var(--gray-a2), var(--gray-a2));
-  box-shadow: inset 0 0 0 var(--border-width) var(--gray-a6);
+  background-image: linear-gradient(var(--bg-muted), var(--bg-muted));
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-strong);
 }
 
-/* --- soft --- */
 :where([data-slot="text-field-root"][data-variant="soft"]) {
-  background-color: var(--accent-a3);
-  color: var(--accent-12);
+  background-color: var(--tone-subtle);
+  color: var(--fg);
 }
 
 :where([data-slot="text-field-root"][data-variant="soft"]) ::placeholder {
-  color: var(--accent-12);
+  color: var(--fg);
   opacity: 0.6;
 }
 
 :where([data-slot="text-field-root"][data-variant="soft"]):has(
   [data-slot="text-field-input"]:where(:disabled, :read-only)
 ) {
-  background-color: var(--gray-a3);
+  background-color: var(--bg-muted);
 }
 
-/* 禁用与只读共用一档：文字退一格灰，光标交给外层 */
 :where([data-slot="text-field-input"]:where(:disabled, :read-only)) {
   cursor: text;
-  color: var(--gray-a11);
-  -webkit-text-fill-color: var(--gray-a11);
+  color: var(--fg-secondary);
+  -webkit-text-fill-color: var(--fg-secondary);
 }
 
 :where([data-slot="text-field-input"]:where(:disabled, :read-only))::placeholder {

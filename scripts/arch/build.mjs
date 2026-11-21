@@ -1,4 +1,3 @@
-/** pnpm arch：扫代码生成架构看板单文件 HTML，写到 docs/architecture/dist/ 并打开。 */
 import { execFileSync, spawn } from "node:child_process"
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs"
 import { createRequire } from "node:module"
@@ -10,7 +9,6 @@ import { scanGraph } from "./graph.mjs"
 import { analyzeLayers, loadLayers } from "./layers.mjs"
 
 const ARCH_DIR = import.meta.dirname
-const RADIX_COLORS = ["slate", "cyan", "green", "amber", "red"]
 const CLIENT_SCRIPTS = [
   "client/data.js",
   "client/diagrams.js",
@@ -19,7 +17,6 @@ const CLIENT_SCRIPTS = [
   "client/views.js",
 ]
 
-/** 包根目录：从入口文件往上找到 package.json。 */
 function pkgDir(webRequire, name) {
   let dir = dirname(webRequire.resolve(name))
 
@@ -28,10 +25,8 @@ function pkgDir(webRequire, name) {
 }
 
 const read = (path) => readFileSync(path, "utf8")
-/** 内联进 <script> 的文本不能出现结束标签。 */
 const inlineJs = (text) => text.replaceAll("</script", "<\\/script")
 
-/** 扫描仓库并生成单文件架构看板 HTML。 */
 export async function buildArchHtml(root) {
   const flows = await loadFlows(root)
   const errors = validateFlows(root, flows)
@@ -51,10 +46,7 @@ export async function buildArchHtml(root) {
   }
 
   const webRequire = createRequire(join(root, "apps/web/package.json"))
-  const radix = pkgDir(webRequire, "@radix-ui/themes")
   const css = [
-    join(radix, "tokens/base.css"),
-    ...RADIX_COLORS.map((c) => join(radix, `tokens/colors/${c}.css`)),
     join(root, "apps/web/src/style/tokens.css"),
     join(root, "apps/web/src/style/mermaid.css"),
     join(ARCH_DIR, "page.css"),

@@ -5,7 +5,7 @@
     <div class="external-turn-row">
       <span>{{ t("session.externalTurnNotice") }}</span>
 
-      <Button type="button" size="s" variant="soft" @click="confirming = true">
+      <Button type="button" size="s" variant="secondary" @click="confirming = true">
         {{ t("session.takeover") }}
       </Button>
     </div>

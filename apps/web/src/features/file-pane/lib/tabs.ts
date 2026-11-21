@@ -1,7 +1,6 @@
 import type { PrefStorage } from "@utils/storage.js"
 import { readSessionValue, writeSessionValue } from "@features/file-pane/lib/session-memory.js"
 
-/** 一个打开的文件；preview 是单击打开的临时标签，下一次单击会替换它。 */
 export interface FileTab {
   path: string
   preview: boolean
@@ -69,7 +68,6 @@ export function readSessionTabs(sessionId: string, storage: PrefStorage = localS
   return state?.tabs.length ? { tabs: state.tabs, active: state.active } : emptyTabs()
 }
 
-/** 只记路径与临时标记，不记内容。 */
 export function writeSessionTabs(
   sessionId: string,
   state: TabsState,

@@ -2,23 +2,19 @@ import { randomUUID } from "node:crypto"
 import type { ExtensionUIContext, Theme } from "@earendil-works/pi-coding-agent"
 import type { ExtensionUiDialog, ExtensionUiRequest, ExtensionUiResponse } from "@pig/protocol"
 
-/** pi 把当前主题挂在这个全局键上；RPC 模式的 ctx.ui.theme 也读它。 */
+// 外部：pi 把当前主题挂在这个全局键上；RPC 模式的 ctx.ui.theme 也读它
 const THEME_KEY = Symbol.for("@earendil-works/pi-coding-agent:theme")
 
 type Pending = { request: ExtensionUiDialog; resolve: (response: ExtensionUiResponse) => void }
 
 type DialogOptions = { signal?: AbortSignal; timeout?: number }
 
-/**
- * 扩展的 ctx.ui 在 web 上的实现，能力边界照 pi RPC 模式：对话框等客户端作答，
- * 通知类单向发出，终端专属能力（custom、footer、编辑器组件等）降级为空操作。
- */
+// 外部：能力边界照 pi RPC 模式，终端专属能力（custom、footer、编辑器组件等）降级为空操作
 export class ExtensionUiBridge {
   private readonly pending = new Map<string, Pending>()
 
   constructor(private readonly send: (request: ExtensionUiRequest) => void) {}
 
-  /** 还在等回答的对话框；客户端重连或新挂上时补发。 */
   dialogs(): ExtensionUiDialog[] {
     return [...this.pending.values()].map((entry) => entry.request)
   }
@@ -27,7 +23,6 @@ export class ExtensionUiBridge {
     this.pending.get(response.id)?.resolve(response)
   }
 
-  /** 会话释放：所有未答的对话框按取消处理，扩展拿到默认值。 */
   cancelAll() {
     for (const [id, entry] of this.pending) entry.resolve({ id, cancelled: true })
   }
@@ -59,7 +54,7 @@ export class ExtensionUiBridge {
       this.emit({ method: "notify", message, ...(type ? { notifyType: type } : {}) }),
     setStatus: (key, text) => this.emit({ method: "setStatus", statusKey: key, statusText: text }),
     setWidget: (key: string, content: unknown, options?: { placement?: string }) => {
-      // 只支持文本行；组件工厂需要终端，按 RPC 模式忽略
+      // 外部：组件工厂需要终端，只支持文本行，按 RPC 模式忽略
       if (content !== undefined && !Array.isArray(content)) return
       const placement = options?.placement
       this.emit({

@@ -88,7 +88,6 @@ watch(
   min-width: 0;
 }
 
-/* 输入保留底色，和下方只描边的输出区分开 */
 .command-block {
   --card-background-color: var(--bg-surface);
 
@@ -102,17 +101,14 @@ watch(
   line-height: var(--text-code-line);
 }
 
-/* 长命令只滚命令区，复制按钮留在卡片角上 */
 .command-scroll {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  /* 滚动条贴卡片右缘：右内边距放在滚动区里，只给内容让出复制按钮的位置 */
   padding-block: var(--space-xs);
   padding-inline-end: calc(var(--space-sm) + 22px);
   max-height: var(--transcript-tool-max);
   overflow: auto;
-  /* 卡片底比全局滚动条色深，滚动条会看不出，这里提到 ink 12% */
   --scrollbar-thumb: var(--bg-emphasis);
 }
 

@@ -5,7 +5,7 @@ import { promisify } from "node:util"
 
 const execFileAsync = promisify(execFile)
 const PICKER_TIMEOUT_MS = 60_000
-/** IFileOpenDialog + Per-Monitor V2：现代资源管理器对话框，避免 WinForms FolderBrowser 被系统拉伸发糊。 */
+// 外部：IFileOpenDialog + Per-Monitor V2 才是现代资源管理器对话框，WinForms FolderBrowser 会被系统拉伸发糊
 const folderPickerScript = `
 Add-Type -TypeDefinition @'
 using System;
@@ -124,17 +124,14 @@ export type DirectoryExecFile = (
   options: { encoding: "utf8"; windowsHide: boolean; timeout: number },
 ) => Promise<{ stdout: string }>
 
-// 与 web 端 apps/web/src/client/local-cwd.ts 的 canonicalizeWorkspacePath 是同一套
-// 规范化逻辑（分隔符/大小写/尾斜杠），跨包各自维护，修改时需两处同步。
 export function canonicalizePath(path: string): string {
-  // 远程 workspace 键不是本地路径，只去尾斜杠
   if (path.startsWith("ssh://")) {
     const key = path.replace(/\/+$/, "")
     return /^ssh:\/\/[^/]+$/.test(key) ? `${key}/` : key
   }
 
   const trimmed = resolve(path).replaceAll("\\", "/").replace(/\/+$/, "")
-  // 根路径保留尾斜杠：`c:` 是该盘当前目录，不是盘符根
+  // 外部：`c:` 是该盘当前目录，不是盘符根，根路径要保留尾斜杠
   const normalized = trimmed === "" || /^[a-zA-Z]:$/.test(trimmed) ? `${trimmed}/` : trimmed
 
   if (process.platform === "win32") return normalized.toLowerCase()

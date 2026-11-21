@@ -28,7 +28,6 @@ export function isToolRow(row: TimelineRow): row is ToolRow {
   return row.role === "tools"
 }
 
-/** live 工具条目由客户端附带真正开始时刻；历史条目没有就退回消息时间戳。 */
 function toolStartedAt(item: ToolTranscriptItem | undefined): number | undefined {
   if (!item) return undefined
   const value = (item as ToolTranscriptItem & { startedAt?: unknown }).startedAt
@@ -143,7 +142,6 @@ function appendTurn({
     segmentError ||= tool.isError
   }
 
-  // 预先一次算出各下标向后第一个 >= 自身时间戳的 timestamp，从右往左单调栈
   const nextTimestamps = new Array<number | undefined>(rest.length).fill(undefined)
   const candidates: number[] = []
 
@@ -282,10 +280,6 @@ interface TurnRowsEntry {
 
 const TURN_CACHE_LIMIT = 200
 
-/**
- * 增量时间线：按 turn 缓存 appendTurn 结果，输入条目引用没变就直接复用。
- * 合并层对未变条目保持对象同一性，所以引用比对等价于内容比对。
- */
 export function createTimelineRowsBuilder() {
   const cache = new Map<string, TurnRowsEntry>()
 
@@ -451,7 +445,6 @@ function sameRow(left: TimelineRow, right: TimelineRow) {
   return false
 }
 
-/** 正文增量只换变化的行，未变化行保持同一对象。 */
 export function reuseTimelineRows(
   previous: readonly TimelineRow[],
   next: readonly TimelineRow[],

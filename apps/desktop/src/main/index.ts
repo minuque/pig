@@ -42,7 +42,7 @@ registerPigScheme()
 const cdpPort = desktopCdpPort()
 
 if (cdpPort) {
-  // 命令行 --remote-debugging-port 在本壳无效，须 ready 前 appendSwitch。
+  // 外部：ready 前 appendSwitch 才生效，命令行 --remote-debugging-port 在本壳无效
   app.commandLine.appendSwitch("remote-debugging-port", cdpPort)
   app.commandLine.appendSwitch("remote-allow-origins", "*")
 }
@@ -78,14 +78,12 @@ async function pickDirectory(): Promise<string | undefined> {
   return result.canceled ? undefined : result.filePaths[0]
 }
 
-/** gateway 跑在 utilityProcess：扩展卡住或崩溃不拖垮窗口。开发态经 .mjs 入口注册 tsx。 */
 function startGateway(isPackaged: boolean, webRoot: string | undefined): Promise<GatewayProcess> {
   const entry = new URL(
     isPackaged ? "./gateway-child.js" : "../../gateway-child.mjs",
     import.meta.url,
   )
   const args = [...(webRoot ? ["--web-root", webRoot] : []), ...(isPackaged ? ["--packaged"] : [])]
-  // 主进程 stdout 是管道时，默认的 inherit 收不到子进程输出；扩展报错靠 console.error 露出来
   const child = utilityProcess.fork(fileURLToPath(entry), args, {
     serviceName: "pig-gateway",
     stdio: "pipe",
@@ -138,7 +136,6 @@ process.once("exit", () => {
 })
 
 app.on("window-all-closed", () => {
-  // 单窗口本地工具：关窗必须释放端口，darwin 也退出
   void shutdown()
 })
 
@@ -204,7 +201,6 @@ void app.whenReady().then(async () => {
     const origin = isDev ? viteDevOrigin() : pigAppUrl()
     process.env.PIG_GATEWAY_ORIGIN = origin
     const window = mainWindow
-    // 开发服务的首帧可能撞上 Vite 重启，重试几次再判失败
     await loadWithRetry(() => window.loadURL(isDesktopBench() ? "about:blank" : origin))
   } catch (error) {
     dialog.showErrorBox("无法启动", error instanceof Error ? error.message : String(error))

@@ -16,7 +16,7 @@
 import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { Primitive } from "reka-ui"
-import type { Size } from "@components/ui/rt/size.js"
+import type { Size } from "@/types/ui-type.js"
 
 defineOptions({ inheritAttrs: false })
 
@@ -24,7 +24,6 @@ const props = withDefaults(
   defineProps<
     PrimitiveProps & {
       class?: HTMLAttributes["class"]
-      /** 尺寸档：s、m、l */
       size?: Size
       variant?: "surface" | "ghost"
     }
@@ -100,13 +99,13 @@ const props = withDefaults(
 
 @media (hover: hover) {
   :where([data-slot="card"][data-variant="ghost"]:is(:any-link, button, label):hover) {
-    background-color: var(--gray-a3);
+    background-color: var(--bg-muted);
   }
 
   :where(
     [data-slot="card"][data-variant="ghost"]:is(:any-link, button, label):hover:focus-visible
   ) {
-    background-color: var(--accent-a2);
+    background-color: var(--tone-subtle);
   }
 }
 </style>

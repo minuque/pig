@@ -1,4 +1,3 @@
-// 项目图标可选集：手挑的 Lucide 子集，按需打包；键是存进偏好的稳定名
 import {
   Blocks,
   BookOpen,

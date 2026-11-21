@@ -2,7 +2,7 @@
   <ContextMenuCheckboxItem
     data-slot="context-menu-checkbox-item"
     v-bind="forwardedProps"
-    :data-accent-color="props.color"
+    :data-tone="props.color"
     data-menu-item
     :class="props.class"
   >
@@ -12,6 +12,7 @@
 </template>
 
 <script setup lang="ts">
+import type { ToneColor } from "@/types/ui-type.js"
 import type { ContextMenuCheckboxItemProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
@@ -22,7 +23,7 @@ const props = withDefaults(
     ContextMenuCheckboxItemProps & {
       class?: HTMLAttributes["class"]
       shortcut?: string
-      color?: string
+      color?: ToneColor
     }
   >(),
   { class: undefined },

@@ -8,7 +8,6 @@ import { expect, test, _electron as electron } from "@playwright/test"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..")
 const desktopRoot = join(root, "apps/desktop")
-/** 避开 dev:desktop 的 5555：冒烟自己起一份 Vite。 */
 const VITE_PORT = 5599
 const desktopRequire = createRequire(join(desktopRoot, "package.json"))
 
@@ -23,7 +22,6 @@ test("桌面壳启动：preload、网关与渲染进程都就位", async () => {
     env: {
       ...process.env,
       PIG_CDP: "0",
-      // 测试窗口不抢焦点，跑测试时不打断手头的工作
       PIG_NO_FOCUS: "1",
       PIG_VITE_PORT: String(VITE_PORT),
       PIG_SESSION_DIR: sessionDir,
@@ -36,7 +34,6 @@ test("桌面壳启动：preload、网关与渲染进程都就位", async () => {
 
     await expect(page).toHaveURL(new RegExp(`^http://127\\.0\\.0\\.1:${VITE_PORT}/`))
     await expect(page).toHaveTitle("pig")
-    // preload 注入的平台标记与 contextBridge，缺一个说明主进程链没接通
     expect(await page.evaluate(() => document.documentElement.dataset.pigDesktopPlatform)).toBe(
       process.platform,
     )
@@ -46,7 +43,6 @@ test("桌面壳启动：preload、网关与渲染进程都就位", async () => {
           typeof (window as unknown as { pigDesktop?: PreloadBridge }).pigDesktop?.setThemeColor,
       ),
     ).toBe("function")
-    // 渲染进程真的把界面画出来了，不只是空白外壳
     await expect(page.locator("#app")).not.toBeEmpty()
     expect(
       await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0]?.isFocused()),

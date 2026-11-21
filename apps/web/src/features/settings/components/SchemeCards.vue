@@ -1,15 +1,18 @@
 <template>
-  <div class="scheme-cards" role="radiogroup" :aria-label="t('settings.theme')">
-    <button
+  <RadioCards
+    class="scheme-cards"
+    :model-value="scheme"
+    columns="repeat(auto-fit, minmax(180px, 1fr))"
+    :aria-label="t('settings.theme')"
+    @update:model-value="(value) => setScheme(value as ColorScheme)"
+  >
+    <RadioCardsItem
       v-for="option in schemes"
       :key="option.id"
-      type="button"
+      :value="option.id"
       class="scheme-card"
-      role="radio"
-      :aria-checked="scheme === option.id"
-      @click="setScheme(option.id)"
     >
-      <span class="scheme-wire" :data-tone="wireTone(option.id)" aria-hidden="true">
+      <span class="scheme-wire" :data-wire="wireTone(option.id)" aria-hidden="true">
         <span class="wire-side" />
 
         <span class="wire-main">
@@ -24,8 +27,8 @@
       </span>
 
       <span class="scheme-label">{{ option.label }}</span>
-    </button>
-  </div>
+    </RadioCardsItem>
+  </RadioCards>
 </template>
 
 <script setup lang="ts">
@@ -33,6 +36,7 @@ import { computed } from "vue"
 import type { ColorScheme } from "@/types/theme-type.js"
 import { useI18n } from "@i18n/index.js"
 import { useColorScheme } from "@features/theme/index.js"
+import { RadioCards, RadioCardsItem } from "@components/ui/radio-cards/index.js"
 
 const { t } = useI18n()
 const { isDark, scheme, setScheme } = useColorScheme()
@@ -44,7 +48,6 @@ function wireTone(id: ColorScheme): "light" | "dark" | "split" {
   return isDark.value ? "split" : "light"
 }
 
-/* 列表文案随语言切换，必须走 computed；setup 里一次性求值会在切语言后停住 */
 const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
   { id: "auto", label: t("settings.schemeAuto") },
   { id: "light", label: t("settings.schemeLight") },
@@ -53,35 +56,15 @@ const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
 </script>
 
 <style scoped>
-.scheme-cards {
-  display: grid;
-  gap: var(--space-sm);
-  grid-template-columns: repeat(3, 1fr);
-}
-
-.scheme-card {
-  display: flex;
+.scheme-cards :deep(.scheme-card) {
   flex-direction: column;
   align-items: stretch;
   gap: var(--space-sm);
   padding: var(--space-sm);
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-card);
-  background: var(--bg-surface);
   color: var(--fg-secondary);
-  transition:
-    background-color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
 }
 
-.scheme-card:hover {
-  background: var(--bg-hover);
-  color: var(--fg);
-}
-
-.scheme-card[aria-checked="true"] {
-  border-color: var(--accent-solid);
+.scheme-cards :deep(.scheme-card[data-state="checked"]) {
   color: var(--fg);
 }
 
@@ -94,23 +77,22 @@ const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
   background: var(--theme-wire-light);
 }
 
-/* 线框默认画浅色界面；dark 画深色，split 只把侧栏画深色。 */
-.scheme-wire[data-tone="dark"] {
+.scheme-wire[data-wire="dark"] {
   background: var(--theme-wire-dark);
 }
 
-.scheme-wire[data-tone="dark"] .wire-side,
-.scheme-wire[data-tone="split"] .wire-side {
+.scheme-wire[data-wire="dark"] .wire-side,
+.scheme-wire[data-wire="split"] .wire-side {
   background: var(--theme-wire-dark-raised);
 }
 
-.scheme-wire[data-tone="dark"] .wire-line,
-.scheme-wire[data-tone="split"] .wire-side .wire-line {
+.scheme-wire[data-wire="dark"] .wire-line,
+.scheme-wire[data-wire="split"] .wire-side .wire-line {
   background: var(--white);
   opacity: var(--opacity-disabled);
 }
 
-.scheme-wire[data-tone="dark"] .wire-composer {
+.scheme-wire[data-wire="dark"] .wire-composer {
   background: var(--theme-wire-dark-raised);
 }
 
@@ -178,17 +160,5 @@ const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
   font-weight: var(--font-weight-medium);
   line-height: var(--text-meta--line-height);
   text-align: center;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .scheme-card {
-    transition: none;
-  }
-}
-
-@media (max-width: 720px) {
-  .scheme-cards {
-    grid-template-columns: 1fr;
-  }
 }
 </style>

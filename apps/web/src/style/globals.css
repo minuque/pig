@@ -1,7 +1,4 @@
-/* 全局基线：字体文件、文档底色与字色、原生元素行为、焦点环默认与滚动条。
-   这些规则不分层，而且排在所有分片之后，才压得住库的默认值；其余样式归各自的分片。 */
-
-/* ------ Inter Variable（v4 / fontsource 5.3.0，OFL 1.1）：西文与数字默认无衬线，含光学尺寸轴 ------ */
+/* 外部：Inter Variable v4（fontsource 5.3.0）与 JetBrains Mono v2.304 按 SIL OFL 1.1 随字体文件分发 */
 @font-face {
   font-family: "Inter Variable";
   src: url("../assets/fonts/InterVariable-Latin.woff2") format("woff2");
@@ -24,7 +21,6 @@
     U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* ------ JetBrains Mono（v2.304，OFL 1.1）：代码默认字体，按用到的字重各一份 ------ */
 @font-face {
   font-family: "JetBrains Mono";
   src: url("../assets/fonts/JetBrainsMono-Regular.woff2") format("woff2");
@@ -65,16 +61,22 @@
   font-display: swap;
 }
 
-/* ------ 文档基线 ------ */
 body {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font-sans);
+  font-size: var(--text-body);
   font-optical-sizing: auto;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* 等宽内容恢复默认 OpenType 特征，避免继承正文的 Inter 变体 */
+::selection {
+  background-color: var(--bg-selected);
+}
+
 code,
 kbd,
 samp,
@@ -83,7 +85,6 @@ pre,
   font-feature-settings: normal;
 }
 
-/* 原生 button 只做 reset；带 data-slot 的组件按钮自带样式 */
 button:not(:where([data-slot])) {
   appearance: none;
   margin: 0;
@@ -106,7 +107,6 @@ p {
   overflow-wrap: anywhere;
 }
 
-/* ------ 滚动条：原生 thin 规格；侧栏列表内另行隐藏，元素可自写 --scrollbar-thumb ------ */
 * {
   --scrollbar-thumb: var(--scrollbar-color);
   scrollbar-width: thin;

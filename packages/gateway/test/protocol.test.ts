@@ -36,7 +36,6 @@ afterEach(async () => {
   root = undefined
 })
 
-/** 一条已握手的连接：按 id 等响应，按谓词等事件。 */
 async function connect(port: number) {
   const socket = new WebSocket(`ws://127.0.0.1:${port}/api/v1/pi`, {
     headers: { authorization: gateway?.authorizationHeader() ?? "" },
@@ -145,7 +144,6 @@ describe("Pi 配置目录：给了 agentDir 就只读那里的模型与凭据", 
     else process.env.PI_CODING_AGENT_DIR = previousAgentDir
   })
 
-  /** 一份 Pi 配置：一个 provider、一个模型、一把 key。 */
   async function piConfig(dir: string, provider: string) {
     await mkdir(dir, { recursive: true })
     await writeFile(
@@ -166,7 +164,6 @@ describe("Pi 配置目录：给了 agentDir 就只读那里的模型与凭据", 
 
   it("新会话用 agentDir 里的模型，不用本机默认配置目录里的", async () => {
     root = await mkdtemp(join(tmpdir(), "pig-agent-dir-"))
-    // 本机默认目录里有另一份配置：不该被读到
     process.env.PI_CODING_AGENT_DIR = join(root, "home-pi")
     await piConfig(join(root, "home-pi"), "home")
     await piConfig(join(root, "agent"), "isolated")

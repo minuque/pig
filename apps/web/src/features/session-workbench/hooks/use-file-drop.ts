@@ -10,7 +10,7 @@ function looksLikeFileDrag(event: DragEvent): boolean {
   if (types.includes("Files") || types.includes("application/x-moz-file")) return true
 
   if (Array.from(data.items).some((item) => item.kind === "file")) return true
-  // Windows 资源管理器在进入窗口前 types 经常是空的
+  // 外部：Windows 资源管理器在进入窗口前 types 经常是空的
   return types.length === 0
 }
 
@@ -22,7 +22,7 @@ function claimFileDrag(event: DragEvent): boolean {
   return true
 }
 
-/** 指针仍在元素内：dragleave 在子元素之间穿梭时也会触发。 */
+// 外部：dragleave 在子元素之间穿梭时也会触发
 function stillInside(event: DragEvent): boolean {
   const node = event.currentTarget
 
@@ -38,7 +38,6 @@ function stillInside(event: DragEvent): boolean {
   return x > box.left && x < box.right && y > box.top && y < box.bottom
 }
 
-/** 面板内拖文件：高亮与落点交回调用方，窗口级默认行为一律拦下。 */
 export function useFileDrop(addDropped: (data: DataTransfer | null) => void) {
   const dropActive = ref(false)
 

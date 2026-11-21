@@ -30,16 +30,11 @@ const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DialogOver
 </script>
 
 <style>
-/* 遮罩铺满视口，内部滚动层撑满并居中；start 档贴顶对齐 */
 :where([data-slot="dialog-overlay"]) {
   position: fixed;
   z-index: var(--z-modal);
   inset: 0;
-  background-color: var(--black-a6);
-}
-
-html.dark :where([data-slot="dialog-overlay"]) {
-  background-color: var(--black-a8);
+  background-color: var(--overlay);
 }
 
 :where([data-slot="dialog-scroll"]) {

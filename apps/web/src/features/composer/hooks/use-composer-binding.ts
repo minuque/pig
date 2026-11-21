@@ -11,7 +11,6 @@ interface ComposerSnapshot {
 
 interface ComposerBindingOptions {
   catalog: Ref<ComposerVendor[]>
-  /** pi 设置里的默认模型；没配就不预选，不拿目录里别的模型顶上 */
   defaultModel: Ref<DefaultModelView | null>
   snapshot: Ref<ComposerSnapshot | undefined>
   phase: Ref<SessionPhase | undefined>
@@ -19,12 +18,9 @@ interface ComposerBindingOptions {
   setThinking(level: ThinkingLevel): Promise<void>
 }
 
-/** Session 快照与模型选择器之间唯一的双向同步点。 */
 export function useComposerBinding(options: ComposerBindingOptions) {
   const preset = ref<ComposerPreset>()
-  // 回声抑制：setModel 在途时快照仍是旧模型，不让快照回写覆盖用户刚选的值
   const pendingModel = ref(false)
-  // 未 attach 时用户改过的档位，打开会话前不能被快照盖掉
   const detachedEdit = ref(false)
   let suppress = 0
 
@@ -55,14 +51,12 @@ export function useComposerBinding(options: ComposerBindingOptions) {
     },
   )
 
-  // 切模型或目录变化后，当前 thinkingLevel 不在新档位里则回落到第一档
   watch([() => preset.value?.model, () => preset.value?.thinkingLevel, options.catalog], () => {
     const current = preset.value
 
     if (!current) return
     const levels = resolveModelInfo(options.catalog.value, current.model).levels
 
-    // 走 writePreset，否则自动回落会被当成用户改档位，打开会话时不再认快照模型
     if (levels.length && !levels.includes(current.thinkingLevel)) {
       writePreset({ ...current, thinkingLevel: levels[0]! })
     }
@@ -87,7 +81,6 @@ export function useComposerBinding(options: ComposerBindingOptions) {
           if (desired && desired !== options.snapshot.value?.thinkingLevel)
             await options.setThinking(thinkingLevelOf(desired))
         } catch {
-          /* 切模型失败不在输入卡展示 */
         } finally {
           pendingModel.value = false
         }
@@ -107,9 +100,7 @@ export function useComposerBinding(options: ComposerBindingOptions) {
       level === snapshot.thinkingLevel
     )
       return
-    void options.setThinking(thinkingLevelOf(level)).catch(() => {
-      /* 切档位失败不在输入卡展示 */
-    })
+    void options.setThinking(thinkingLevelOf(level)).catch(() => {})
   })
 
   watch(

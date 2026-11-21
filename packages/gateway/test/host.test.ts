@@ -164,7 +164,6 @@ describe("thin host HTTP shell", () => {
       await request(base, "/api/v1/platform/select-directory", { path: "C:/" }, "POST")
     ).json()
 
-    // 走系统对话框（假件）而不是采信请求体里的 C:/
     expect(result).toEqual({ path: "C:/projects/demo", requiresManualInput: false })
     expect(
       (await request(base, `/api/v1/platform/files?cwd=${encodeURIComponent("C:/")}`)).status,
@@ -188,10 +187,8 @@ describe("thin host HTTP shell", () => {
     expect(staged.status).toBe(200)
     await expect(staged.json()).resolves.toMatchObject({ id: expect.any(String) })
 
-    // batch 名带路径分隔符直接拒绝
     expect((await stage("batch=../escape&name=a&mimeType=text/plain", bytes("x"))).status).toBe(400)
 
-    // 超过 25MB：413 回给客户端，服务端不留半成品
     const oversized = await stage(
       "batch=big&name=big.bin&mimeType=application/octet-stream",
       new Uint8Array(25 * 1024 * 1024 + 1024),
@@ -200,13 +197,11 @@ describe("thin host HTTP shell", () => {
     expect(oversized.status).toBe(413)
     await expect(oversized.json()).resolves.toEqual({ code: "PAYLOAD_TOO_LARGE" })
 
-    // bind 已随协议简化下线：附件批随 WS prompt 提交，不靠 HTTP 绑定
     expect(
       (await request(base, "/api/v1/platform/attachments/bind", { sessionId: "s", batch: "b1" }))
         .status,
     ).toBe(404)
 
-    // discard：缺参数 400，未知 batch 幂等回 200
     expect((await request(base, "/api/v1/platform/attachments/discard", {})).status).toBe(400)
     expect(
       (await request(base, "/api/v1/platform/attachments/discard", { batch: "b1" })).status,
@@ -249,7 +244,7 @@ describe("thin host WebSocket", () => {
         resolve(res.statusCode ?? 0)
       })
       socket.once("error", () => {
-        // unexpected-response 后底层 socket 被销毁也会触发 error，忽略
+        // 外部：unexpected-response 后底层 socket 被销毁也会触发 error
       })
     })
 
@@ -265,7 +260,6 @@ describe("thin host WebSocket", () => {
       selectedDirectory = picked
       await request(base, "/api/v1/platform/select-directory", undefined, "POST")
 
-      // 选过的目录：可搜、可 warm
       expect(
         (await request(base, `/api/v1/platform/files?cwd=${encodeURIComponent(picked)}`)).status,
       ).toBe(200)
@@ -273,7 +267,6 @@ describe("thin host WebSocket", () => {
         (await request(base, "/api/v1/platform/warm-workspace", { path: picked }, "POST")).status,
       ).toBe(200)
 
-      // 未授权的目录：搜文件与 warm 都拒，warm 不能把自己变成授权来源
       expect(
         (await request(base, `/api/v1/platform/files?cwd=${encodeURIComponent(stranger)}`)).status,
       ).toBe(403)

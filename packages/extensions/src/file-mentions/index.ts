@@ -4,9 +4,8 @@ import { environmentFor } from "@pig/environment/source"
 import { fromEntries } from "../remote-workspace/index.ts"
 import { expandFileMentions } from "./expand.ts"
 
-/** @ 文件引用：交给模型前把 @path 展开成 <file> 块；远程会话读远端 workspace 里的文件。 */
 export default function fileMentions(pi: ExtensionAPI) {
-  // prompt 与运行中的 steer 都经过 input
+  // 外部：pi 的 input 事件同时覆盖 prompt 与运行中的 steer
   pi.on("input", async (event, ctx) => {
     const binding = fromEntries(ctx)
     const text = await (binding

@@ -1,6 +1,5 @@
 <template>
   <div class="tuner">
-    <!-- 预览区：变量只写在这个子树上，用的是真实组件 -->
     <section class="tuner-preview" :style="previewVars">
       <CardList>
         <CardRow v-for="row in SETTINGS_ROWS" :key="row" class="demo-row">
@@ -24,8 +23,8 @@
           v-for="preset in PRESETS"
           :key="preset.name"
           size="s"
-          :variant="isPreset(preset) ? 'soft' : 'surface'"
-          color="gray"
+          :variant="isPreset(preset) ? 'secondary' : 'outline'"
+          color="neutral"
           @click="apply(preset)"
         >
           {{ preset.name }}
@@ -38,7 +37,7 @@
         <TabsRoot v-model="value.border">
           <TabsList variant="segmented" size="s">
             <TabsTrigger v-for="step in STEPS" :key="step" :value="step">
-              {{ step }}
+              {{ step.replace("--border-", "").replace("--", "") }}
             </TabsTrigger>
           </TabsList>
         </TabsRoot>
@@ -50,7 +49,7 @@
         <TabsRoot v-model="value.divider">
           <TabsList variant="segmented" size="s">
             <TabsTrigger v-for="step in STEPS" :key="step" :value="step">
-              {{ step }}
+              {{ step.replace("--border-", "").replace("--", "") }}
             </TabsTrigger>
           </TabsList>
         </TabsRoot>
@@ -79,9 +78,9 @@
 
       <div class="tuner-output">
         <div class="tuner-output-head">
-          <span class="tuner-label">粘回 style/rt.css 与 tokens.css</span>
+          <span class="tuner-label">粘回 tokens.css</span>
 
-          <Button size="s" variant="ghost" color="gray" @click="copy">
+          <Button size="s" variant="ghost" color="neutral" @click="copy">
             {{ copied ? "已复制" : "复制" }}
           </Button>
         </div>
@@ -93,7 +92,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue"
+import { computed, reactive, ref, shallowRef, watch } from "vue"
 import { useClipboard } from "@vueuse/core"
 import { Button } from "@components/ui/button/index.js"
 import { Banner } from "@components/ui/banner/index.js"
@@ -109,16 +108,15 @@ import { useColorScheme } from "@features/theme/index.js"
 
 type Values = { border: string; divider: string; radius: number; surface: string }
 
-const STEPS = ["a1", "a2", "a3", "a4"]
+const STEPS = ["--border-subtle", "--border", "--border-strong", "--border-input"]
 const SURFACES: Record<string, string> = {
   none: "transparent",
-  a2: "var(--gray-a2)",
+  a2: "var(--bg-muted)",
   surface: "var(--bg-surface)",
 }
-// 「当前」直接读样式源码，其余预设相对它挪一档，样式改了预设跟着走
 const CURRENT: Values = {
-  border: declared(tokensCss, "--border", /--(?:black|white)-(a\d+)/) ?? "a2",
-  divider: declared(tokensCss, "--border-subtle", /--(?:black|white)-(a\d+)/) ?? "a1",
+  border: "--border",
+  divider: "--border-subtle",
   radius: Number(declared(tokensCss, "--radius-card", /([\d.]+)px/) ?? 8),
   surface: declared(tokensCss, "--card-surface", /(transparent)/) ? "none" : "surface",
 }
@@ -159,8 +157,20 @@ const nodes = useMarkdownNodes({
 })
 const value = reactive<Values>({ ...PRESETS[0]! })
 const { isDark } = useColorScheme()
-// 描边在浅色取 black alpha、深色取 white alpha，跟着当前明暗选一套
-const neutral = (step: string) => `var(--${isDark.value ? "white" : "black"}-${step})`
+const steps = shallowRef<Record<string, string>>({})
+
+watch(
+  isDark,
+  () => {
+    const root = getComputedStyle(document.documentElement)
+    steps.value = Object.fromEntries(
+      STEPS.map((name) => [name, root.getPropertyValue(name).trim()]),
+    )
+  },
+  { flush: "post", immediate: true },
+)
+
+const neutral = (step: string) => steps.value[step] ?? ""
 const radius = computed({
   get: () => [value.radius],
   set: ([next]) => (value.radius = next ?? value.radius),
@@ -174,13 +184,9 @@ const previewVars = computed(() => ({
 }))
 const output = computed(() =>
   [
-    "/* style/tokens.css → :root */",
-    `--border: var(--black-${value.border});`,
-    `--border-subtle: var(--black-${value.divider});`,
-    "",
-    "/* style/tokens.css → html.dark */",
-    `--border: var(--white-${value.border});`,
-    `--border-subtle: var(--white-${value.divider});`,
+    `/* style/tokens.css → ${isDark.value ? "html.dark" : ":root"} */`,
+    `--border: ${neutral(value.border)};`,
+    `--border-subtle: ${neutral(value.divider)};`,
     "",
     "/* style/tokens.css → :root */",
     `--card-surface: ${SURFACES[value.surface]};`,
@@ -192,7 +198,6 @@ const output = computed(() =>
 const copied = ref(false)
 const { copy: write } = useClipboard({ legacy: true })
 
-/** 取样式源码里某个变量第一次声明的值，再用 pick 抠出要的那段。 */
 function declared(css: string, name: string, pick: RegExp): string | undefined {
   const line = new RegExp(`(?<![\\w-])${name}:\\s*([^;]+);`).exec(css)?.[1]
   return line ? pick.exec(line)?.[1] : undefined
@@ -286,7 +291,6 @@ async function copy() {
   justify-content: space-between;
 }
 
-/* 窄窗口上下排：调节区在上，预览在下 */
 @media (width < 760px) {
   .tuner {
     grid-template-columns: minmax(0, 1fr);

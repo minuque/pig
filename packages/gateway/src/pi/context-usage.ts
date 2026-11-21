@@ -66,7 +66,6 @@ function countMessage(message: object): number {
   }
 }
 
-// ponytail: 预览截到 12 万字，全文塞进 JSON/DOM 会卡渲染线程。
 const PREVIEW_MAX_CHARS = 120_000
 
 function finishPreview(key: ContextPreviewKey, chunks: string[]): ContextUsagePreview {
@@ -92,16 +91,14 @@ function finishPreview(key: ContextPreviewKey, chunks: string[]): ContextUsagePr
   }
 }
 
-/** 只统计确实嵌进 system prompt 的片段，避免源文件预览把占用加两遍。 */
 function embeddedTokens(prompt: string, chunk: string): number {
   if (!chunk || !prompt.includes(chunk)) return 0
   return estimateText(chunk)
 }
 
-/** pi 给 MCP 服务器工具起名 `mcp__<server>__<tool>`。 */
+// 外部：pi 给 MCP 服务器工具起名 `mcp__<server>__<tool>`
 const MCP_TOOL_PREFIX = "mcp__"
 
-/** 只算声明给模型的工具；mcp 为真时只取 MCP 工具，否则只取其余工具。 */
 function collectTools(
   source: ContextUsageSource,
   preview: boolean,
@@ -128,7 +125,6 @@ function collectTools(
   return { tokens, chunks }
 }
 
-/** 模型可用的 MCP 工具总数；预览按服务器列出其中没声明、按需加载（不占上下文）的那些。 */
 function collectOnDemandMcp(
   source: ContextUsageSource,
   preview: boolean,
@@ -299,7 +295,7 @@ function walkEntries(
   return { toolResults, conversation, mcpCalls, toolChunks, contextChunks, mcpChunks }
 }
 
-/** 实际调用过 MCP 工具的脚本调用：codemode 在结果的 details.calls 里记下脚本调过的每个工具。 */
+// 外部：codemode 在结果的 details.calls 里记下脚本调过的每个工具
 function mcpScriptCallIds(entries: unknown[]): Set<string> {
   const ids = new Set<string>()
 
@@ -320,7 +316,6 @@ function mcpScriptCallIds(entries: unknown[]): Set<string> {
 
 type VariableTokens = { toolResults: number; conversation: number; mcpCalls: number }
 
-/** 可变项超出预算时按比例压缩，舍入差额落在会话上下文上。 */
 function capVariable(raw: VariableTokens, budget: number): VariableTokens {
   const estimated = raw.toolResults + raw.conversation + raw.mcpCalls
   const counts = {
@@ -333,7 +328,6 @@ function capVariable(raw: VariableTokens, budget: number): VariableTokens {
 
   if (budget === 0) return { toolResults: 0, conversation: 0, mcpCalls: 0 }
   const toolResults = Math.round((raw.toolResults / estimated) * budget)
-  // 两段分别四舍五入会各自进位，MCP 取余量保证合计不超预算
   const mcpCalls = Math.min(Math.round((raw.mcpCalls / estimated) * budget), budget - toolResults)
   return { toolResults, mcpCalls, conversation: budget - toolResults - mcpCalls }
 }
@@ -360,10 +354,6 @@ export function resolveUsedTokens(
   return Math.max(0, Math.round(resolved))
 }
 
-/**
- * 以 Pi 的总占用校准分段。系统提示词 / 记忆 / 技能 / 工具定义 / MCP 工具定义
- * 是固定项；工具结果、MCP 调用与会话上下文按比例压缩；差额归入「其他」。
- */
 export function estimateContextUsage(
   source: ContextUsageSource,
   previewKey?: ContextPreviewKey,

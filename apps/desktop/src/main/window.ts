@@ -11,7 +11,6 @@ import {
 } from "./window-state.js"
 
 const SAVE_DEBOUNCE_MS = 300
-/** 基准窗口坐标：落在屏幕内，保证页面 rAF 真实驱动、渲染管线全开。 */
 const BENCH_WINDOW_BOUND = 80
 
 export type CreateMainWindowOptions = {
@@ -20,7 +19,6 @@ export type CreateMainWindowOptions = {
   persistState?: (state: WindowState) => void
 }
 
-/** 创建主窗口：底色对齐开屏 surface 并立即显示，开屏入场动画在可见后才开始。 */
 export function createMainWindow(
   preloadPath: string,
   options: CreateMainWindowOptions = {},
@@ -52,7 +50,6 @@ export function createMainWindow(
     void shell.openExternal(url)
   })
 
-  // 自画窗控跟着最大化状态换图标
   const sendMaximized = (): void => {
     window.webContents.send("pig:window:maximized", window.isMaximized())
   }
@@ -60,7 +57,6 @@ export function createMainWindow(
   window.on("maximize", sendMaximized)
   window.on("unmaximize", sendMaximized)
 
-  // 基准档窗口放屏幕内并关后台节流，rAF 才能真实驱动
   if (options.persistState && !bench) persistWindowState(window, options.persistState)
 
   if (bench) {
@@ -75,7 +71,6 @@ export function createMainWindow(
   return window
 }
 
-/** resize/move 节流写入；close 再刷一次。 */
 function persistWindowState(
   window: BrowserWindow,
   persistState: (state: WindowState) => void,
@@ -98,7 +93,6 @@ function persistWindowState(
   window.on("close", flush)
 }
 
-/** F12 / Ctrl+Shift+I（macOS 为 Cmd+Option+I）开关 DevTools。 */
 function attachDevTools(window: BrowserWindow): void {
   window.webContents.on("before-input-event", (event, input) => {
     if (!isToggleDevToolsShortcut(input)) return
@@ -120,7 +114,7 @@ function isToggleDevToolsShortcut(input: Input): boolean {
 
 const DESKTOP_PLATFORMS = new Set(["darwin", "win32", "linux"])
 
-/** html 解析会掉 preload 先写的标记，dom-ready 再写一次。 */
+// 外部：html 解析会掉 preload 先写的标记，dom-ready 再写一次
 function stampDesktopPlatform(window: BrowserWindow): void {
   const platform = process.platform
 

@@ -1,33 +1,31 @@
 <template>
   <SelectPortal>
-    <ThemeRoot>
-      <SelectContent
-        data-slot="select-content"
-        :data-size="size"
-        :data-variant="variant"
-        :data-accent-color="color"
-        :data-position="position"
-        :position="position"
-        :side-offset="4"
-        :collision-padding="10"
-        v-bind="forwarded"
-        class="reveal-menu"
-        :class="props.class"
-      >
-        <SelectViewport data-slot="select-viewport">
-          <slot />
-        </SelectViewport>
-      </SelectContent>
-    </ThemeRoot>
+    <SelectContent
+      data-slot="select-content"
+      :data-size="size"
+      :data-variant="variant"
+      :data-tone="color"
+      :data-position="position"
+      :position="position"
+      :side-offset="4"
+      :collision-padding="10"
+      v-bind="forwarded"
+      class="reveal-menu"
+      :class="props.class"
+    >
+      <SelectViewport data-slot="select-viewport">
+        <slot />
+      </SelectViewport>
+    </SelectContent>
   </SelectPortal>
 </template>
 
 <script setup lang="ts">
+import type { ToneColor } from "@/types/ui-type.js"
 import type { SelectContentEmits, SelectContentProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { SelectContent, SelectPortal, SelectViewport, useForwardPropsEmits } from "reka-ui"
-import { ThemeRoot } from "@components/ui/rt/index.js"
 import { useSelectSize } from "@components/ui/select/select-context.js"
 
 defineOptions({ inheritAttrs: false })
@@ -37,7 +35,7 @@ const props = withDefaults(
     SelectContentProps & {
       class?: HTMLAttributes["class"]
       variant?: "solid" | "soft"
-      color?: string
+      color?: ToneColor
     }
   >(),
   { class: undefined, variant: "soft", position: "popper" },
@@ -49,15 +47,16 @@ const size = useSelectSize()
 </script>
 
 <style>
-/* 选择框内容：与菜单同一套实底、细环与阴影；popper 位置时跟随触发器宽度 */
 :where([data-slot="select-content"]) {
+  box-sizing: border-box;
   position: relative;
+  z-index: var(--z-popover);
   overflow: hidden;
   border-radius: var(--radius-card);
-  background-color: var(--bg-raised);
-  box-shadow:
-    0 0 0 var(--border-width) var(--border),
-    var(--menu-shadow);
+  border: var(--border-width) solid var(--float-border);
+  background-color: var(--float-bg);
+  box-shadow: var(--float-shadow);
+  backdrop-filter: var(--glass-filter);
   color: var(--fg);
 }
 
@@ -66,7 +65,6 @@ const size = useSelectSize()
   padding: var(--space-xs);
 }
 
-/* 行距只有一条：视口里相邻的任意两行之间留一道 --menu-item-gap */
 :where([data-slot="select-viewport"]) > * + * {
   margin-block-start: var(--menu-item-gap);
 }

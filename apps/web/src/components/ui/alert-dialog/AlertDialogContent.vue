@@ -1,19 +1,17 @@
 <template>
   <AlertDialogPortal>
-    <ThemeRoot>
-      <AlertDialogOverlay class="glass-backdrop" />
+    <AlertDialogOverlay class="glass-backdrop" />
 
-      <div class="viewport">
-        <AlertDialogContent
-          data-slot="alert-dialog-content"
-          v-bind="{ ...$attrs, ...forwarded }"
-          class="glass-panel"
-          :class="props.class"
-        >
-          <slot />
-        </AlertDialogContent>
-      </div>
-    </ThemeRoot>
+    <div class="viewport">
+      <AlertDialogContent
+        data-slot="alert-dialog-content"
+        v-bind="{ ...$attrs, ...forwarded }"
+        class="glass-panel"
+        :class="props.class"
+      >
+        <slot />
+      </AlertDialogContent>
+    </div>
   </AlertDialogPortal>
 </template>
 
@@ -27,7 +25,6 @@ import {
   AlertDialogPortal,
   useForwardPropsEmits,
 } from "reka-ui"
-import { ThemeRoot } from "@components/ui/rt/index.js"
 
 defineOptions({ inheritAttrs: false })
 
@@ -44,7 +41,6 @@ const forwarded = useForwardPropsEmits(
 </script>
 
 <style scoped>
-/* 上下各一份弹性空白，面板垂直居中且矮窗口里不顶出屏幕 */
 .viewport {
   position: fixed;
   z-index: var(--z-modal);

@@ -2,7 +2,7 @@
   <div class="file-notice">
     <p class="file-notice-text">{{ text }}</p>
 
-    <Button v-if="action" size="s" variant="soft" color="gray" @click="emit('action')">
+    <Button v-if="action" size="s" variant="secondary" color="neutral" @click="emit('action')">
       {{ action }}
     </Button>
   </div>
@@ -11,7 +11,6 @@
 <script setup lang="ts">
 import { Button } from "@components/ui/button/index.js"
 
-/** 打不开的文件：一行说明，必要时给一个动作。 */
 defineProps<{ text: string; action?: string | undefined }>()
 
 const emit = defineEmits<{ action: [] }>()

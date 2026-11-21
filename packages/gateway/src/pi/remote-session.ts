@@ -20,7 +20,6 @@ export { BINDING_ENTRY, parseRemoteKey, prepareRemoteCwd }
 
 type EntryReader = { getCwd(): string; getEntries(): ReadonlyArray<unknown> }
 
-/** 会话里最近一次写下的远程绑定。 */
 export function sessionBinding(entries: ReadonlyArray<unknown>): RemoteBinding | undefined {
   for (let index = entries.length - 1; index >= 0; index -= 1) {
     const entry = entries[index] as { type?: string; customType?: string; data?: unknown }
@@ -32,13 +31,11 @@ export function sessionBinding(entries: ReadonlyArray<unknown>): RemoteBinding |
   return undefined
 }
 
-/** 会话对外的 workspace 键：远程会话是 ssh://主机/路径，本地会话是规范化的 cwd。 */
 export function sessionWorkspace(manager: EntryReader): string {
   const binding = sessionBinding(manager.getEntries())
   return binding ? remoteWorkspaceKey(binding) : canonicalizePath(manager.getCwd())
 }
 
-/** 平台功能（搜文件、列目录）在哪个环境、哪个根目录下做。 */
 export function workspaceEnvironment(workspace: string): { env: Environment; root: string } {
   const binding = parseRemoteKey(workspace)
   return binding
@@ -46,7 +43,6 @@ export function workspaceEnvironment(workspace: string): { env: Environment; roo
     : { env: environmentFor("local"), root: workspace }
 }
 
-/** 远程目录校验：环境须在环境列表里，目录须在该环境里存在；返回规范的 workspace 键。 */
 export async function validateRemoteDirectory(
   environment: string,
   path: string,
@@ -62,7 +58,6 @@ export async function validateRemoteDirectory(
   return stat?.kind === "directory" ? canonicalizePath(remoteWorkspaceKey(binding)) : undefined
 }
 
-/** 远程会话的非图片附件传到远端用户目录下按会话分开的目录，提示里写远端路径；图片仍随消息内联。 */
 export async function uploadAttachments(
   binding: RemoteBinding,
   sessionId: string,

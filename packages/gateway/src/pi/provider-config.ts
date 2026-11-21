@@ -10,7 +10,6 @@ export interface StoredCredential {
 
 const MAX_ERROR_LENGTH = 500
 
-/** models.json 的条目是否定义了一个自定义供应商；只有 modelOverrides 的是内置覆盖。 */
 export function isCustomConfig(provider: Record<string, unknown>): boolean {
   return Array.isArray(provider.models)
 }

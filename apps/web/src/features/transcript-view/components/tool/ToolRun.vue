@@ -20,7 +20,6 @@
       </button>
 
       <ChevronRightIcon class="tool-run-caret" :class="{ 'is-open': open }" data-icon="inline" />
-      <!-- 缩略图靠整行最右，浮在触发器的伪元素之上，单独可点 -->
       <ToolThumbs class="tool-run-thumbs" :images="images" />
     </div>
 
@@ -60,7 +59,6 @@ const emit = defineEmits<{
   toggleTool: [id: string, open: boolean]
 }>()
 const { t } = useI18n()
-/** 本轮还在跑这一段：时长按秒走表，不等每一步结束才跳。 */
 const ticking = computed(() => props.row.mode === "live" && props.row.turnStreaming)
 const now = shallowRef(Date.now())
 const clock = useIntervalFn(
@@ -145,7 +143,6 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 
-/* 触发器用伪元素铺满整行，箭头点了也能展开 */
 .tool-run-head {
   position: relative;
   display: flex;

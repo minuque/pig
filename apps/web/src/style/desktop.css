@@ -1,6 +1,3 @@
-/* 桌面壳：弹层打开时撤掉拖拽区，免得在浮层上拖动窗口。
-   拖窗本身由侧栏标题条与工作台头部发起（macOS 的标题条是浮层）。 */
-
 html[data-pig-desktop-platform]:has([data-slot="dialog-content"])
   :is(.titlebar-drag, .drag-strip, .workbench-header, .header-title),
 html[data-pig-desktop-platform]:has([data-slot="alert-dialog-content"])

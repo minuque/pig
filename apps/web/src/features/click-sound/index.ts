@@ -3,19 +3,15 @@ import { readFlag, writeFlag } from "@utils/storage.js"
 
 const CLICK_SOUND_KEY = "pig.clickSound"
 
-/** 完成提示音。只在回合结束和设置开关里播放。 */
 export type SoundEvent = "done"
 
-/** 轮次完成提示音：两声圆润轻击接 F4 短尾音。 */
 const DONE = {
   seconds: 0.52,
   gain: 0.55,
-  // [中心 s, 幅度, 宽度 s]
   clicks: [
     [0.009, 0.18, 0.00052],
     [0.119, 0.21, 0.00085],
   ],
-  // [起点 s, 频率 Hz, 幅度, 衰减 s]
   tones: [[0.145, 349.23, 0.055, 0.1]],
   reflections: [0.024, 0.032],
 } as const
@@ -38,7 +34,6 @@ function load(): void {
   enabled.value = readEnabled()
 }
 
-/** 逐采样合成立体声：干声 + 两路小反射，尾部 75ms 线性淡出。 */
 function synthesizeDone(audio: AudioContext): AudioBuffer {
   const rate = audio.sampleRate
   const count = Math.round(rate * DONE.seconds)
@@ -107,7 +102,6 @@ function toggle(): void {
   if (enabled.value) void play("done")
 }
 
-/** 完成提示音开关。打开时试听与回合结束同一段。 */
 export function useSound() {
   load()
   return { enabled: readonly(enabled), toggle, play }

@@ -36,8 +36,6 @@ const toolResultMessage = (overrides: Record<string, unknown> = {}): TestMessage
     ...overrides,
   }) as TestMessage
 
-// --- TranscriptProjection --------------------------------------------------
-
 describe("TranscriptProjection", () => {
   it("maps assistant message events to streaming progress with a stable id", () => {
     const projection = new TranscriptProjection()

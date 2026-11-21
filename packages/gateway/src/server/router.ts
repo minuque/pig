@@ -1,4 +1,3 @@
-/** 极简声明式 HTTP 路由：按「方法 /路径」注册，:name 是路径参数，其余交给 handler。 */
 import type { IncomingMessage, ServerResponse } from "node:http"
 import type {
   PlatformHttpRouteKey,
@@ -6,13 +5,11 @@ import type {
   PlatformRouteResponse,
 } from "@pig/protocol"
 
-/** 路由需要的两项基础能力：写响应、读 JSON body。 */
 export type HttpDeps = {
   send(res: ServerResponse, status: number, body?: unknown): void
   body(req: IncomingMessage): Promise<Record<string, unknown>>
 }
 
-/** handler 主动结束本轮：router 原样发出 status 与 { code }。 */
 export class HttpError extends Error {
   constructor(
     readonly status: number,
@@ -28,7 +25,6 @@ export type HttpContext<D extends HttpDeps, K extends PlatformHttpRouteKey> = {
   url: URL
   params: PlatformRouteParams<K>
   deps: D
-  /** 读 JSON body；解析不出来抛 400 INVALID_REQUEST。 */
   json(): Promise<Record<string, unknown>>
 }
 
@@ -36,12 +32,10 @@ export type HttpHandler<D extends HttpDeps, K extends PlatformHttpRouteKey> = (
   ctx: HttpContext<D, K>,
 ) => Promise<PlatformRouteResponse<K>>
 
-/** 一个文件的分发表：键就是 PlatformHttpRoutes 的键，响应类型由契约约束。 */
 export type HttpRouteTable<D extends HttpDeps> = {
   readonly [K in PlatformHttpRouteKey]?: HttpHandler<D, K>
 }
 
-/** 把异常翻成要发出的错；未识别的写日志后回 500。 */
 export type MapError = (error: unknown, route: PlatformHttpRouteKey) => HttpError
 
 type Segment = { literal: string } | { param: string }
@@ -70,7 +64,6 @@ function compile(route: PlatformHttpRouteKey): Compiled {
   return entry
 }
 
-/** 先核对全部字面量段，再解参数段 URL 编码；坏编码抛 400。 */
 function match(route: Compiled, pathname: string): Record<string, string> | undefined {
   const parts = pathname.split("/")
 
@@ -115,7 +108,6 @@ type Entry<D extends HttpDeps> = {
   handler: (ctx: HttpContext<D, PlatformHttpRouteKey>) => Promise<unknown>
 }
 
-/** 声明式路由表；模块级构造一次，`handle` 未命中返回 false，交给下一个分发。 */
 export class HttpRouter<D extends HttpDeps> {
   private readonly entries: Entry<D>[] = []
 
@@ -127,13 +119,11 @@ export class HttpRouter<D extends HttpDeps> {
       const handler = table[route]
 
       if (!handler) continue
-      // 擦除只影响 router 内部：调用方拿到的仍是 table 逐键检查过的签名
       const erased = handler as (ctx: HttpContext<D, PlatformHttpRouteKey>) => Promise<unknown>
 
       this.entries.push({ route, path: compile(route), handler: erased })
     }
 
-    // 字面量多的先试，避免 :param 抢走同层级的固定路径
     this.entries.sort((a, b) => b.path.literals - a.path.literals)
   }
 
@@ -186,7 +176,6 @@ export class HttpRouter<D extends HttpDeps> {
     } catch (error) {
       const mapped = this.mapError(error, entry.route)
 
-      // handler 已经发过响应时，唯一能做的只有断掉连接
       if (res.headersSent) res.destroy()
       else deps.send(res, mapped.status, { code: mapped.code })
     }

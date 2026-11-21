@@ -1,8 +1,7 @@
 <template>
   <CollapsibleRoot
     v-slot="slotProps"
-    :data-slot="props.asChild ? undefined : 'collapsible'"
-    v-bind="forwarded"
+    v-bind="props.asChild ? forwarded : { ...forwarded, 'data-slot': 'collapsible' }"
   >
     <slot v-bind="slotProps" />
   </CollapsibleRoot>

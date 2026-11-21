@@ -3,7 +3,7 @@
     data-slot="badge"
     :data-size="size"
     :data-variant="variant"
-    :data-accent-color="color"
+    :data-tone="color"
     :data-radius="radius"
     :as="as"
     :as-child="asChild"
@@ -19,17 +19,16 @@ import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { Primitive } from "reka-ui"
 import type { Radius } from "@components/ui/button/index.js"
-import type { Size } from "@components/ui/rt/size.js"
+import type { Size, ToneColor } from "@/types/ui-type.js"
 
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
   defineProps<
     Pick<PrimitiveProps, "as" | "asChild"> & {
-      /** 尺寸档：s、m、l */
       size?: Size
       variant?: "solid" | "soft" | "surface" | "outline"
-      color?: string
+      color?: ToneColor
       radius?: Radius
       class?: HTMLAttributes["class"]
     }
@@ -103,24 +102,24 @@ const props = withDefaults(
 }
 
 :where([data-slot="badge"][data-variant="solid"]) {
-  background-color: var(--accent-9);
-  color: var(--accent-contrast);
+  background-color: var(--tone);
+  color: var(--fg-on-accent);
 }
 
 :where([data-slot="badge"][data-variant="soft"]) {
-  background-color: var(--accent-a3);
-  color: var(--accent-a11);
+  background-color: var(--tone-subtle);
+  color: var(--tone-text);
 }
 
 :where([data-slot="badge"][data-variant="surface"]) {
-  background-color: var(--accent-surface);
-  box-shadow: inset 0 0 0 var(--border-width) var(--accent-a6);
-  color: var(--accent-a11);
+  background-color: var(--tone-subtle);
+  box-shadow: inset 0 0 0 var(--border-width) var(--tone-border);
+  color: var(--tone-text);
 }
 
 :where([data-slot="badge"][data-variant="outline"]) {
   background-color: transparent;
-  box-shadow: inset 0 0 0 var(--border-width) var(--accent-a8);
-  color: var(--accent-a11);
+  box-shadow: inset 0 0 0 var(--border-width) var(--tone-border);
+  color: var(--tone-text);
 }
 </style>

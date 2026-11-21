@@ -43,7 +43,6 @@ function createSplitView(
   go: (id: string | undefined) => void,
 ) {
   const state = shallowRef<SplitState>(parseSplit(readPref(STORAGE_KEY)))
-  /** 主区宽度：放不下两侧时只显示聚焦的一侧。 */
   const width = shallowRef(Number.POSITIVE_INFINITY)
   const update = (next: (current: SplitState) => SplitState) => {
     state.value = next(state.value)
@@ -55,9 +54,7 @@ function createSplitView(
     state,
     split: computed(() => state.value.split),
     focused: computed(() => state.value.focused),
-    /** 两侧能并排放下。 */
     fits: computed(() => fitsSplit(width.value)),
-    /** 主区变窄时把已存的比例收回到两侧都放得下的范围。 */
     setWidth: (value: number) => {
       width.value = value
 
@@ -70,7 +67,6 @@ function createSplitView(
     newOnRight: () => update(newOnRight),
     leaveSession: (id: string) => update((s) => leaveSession(s, id)),
     setRatio: (ratio: number) => update((s) => setRatio(s, ratio, width.value)),
-    /** 这一侧建出新会话：显示它并聚焦这一侧。 */
     showIn: (side: Side, id: string) => update((s) => ({ ...s, [side]: id, focused: side })),
   }
 }
@@ -85,7 +81,6 @@ export function provideSplitView(...args: Parameters<typeof createSplitView>) {
   return split
 }
 
-/** 不在壳层里（如设计页）时拿不到分屏，返回 undefined。 */
 export function trySplitView(): SplitViewContext | undefined {
   return inject(key, undefined)
 }
@@ -97,8 +92,6 @@ export function useSplitView(): SplitViewContext {
   return split
 }
 
-/** 聚焦那一侧的会话视图：给 sidebar、扩展弹窗这些全局只认一个会话的地方用。
- * 在跑与在显示两件事要算上另一侧：另一侧的前台会话不在后台池里。 */
 export function focusedSession(
   read: () => SessionContext,
   readOther: () => SessionContext,
@@ -127,7 +120,6 @@ export function focusedSession(
       return new Set([...ids, id])
     }),
     shownIds: computed(() => [read().sessionId.value, otherId()]),
-    /** 哪一侧显示着这个会话，就让那一侧回到新会话页。 */
     leave,
     loadHistory: (id: string, options?: { force?: boolean }) => read().loadHistory(id, options),
   }
@@ -137,7 +129,6 @@ export type FocusedSession = ReturnType<typeof focusedSession>
 
 const sideKey: InjectionKey<Side> = Symbol("pane-side")
 
-/** 一侧 workbench 的子树知道自己在哪一侧。 */
 export function providePaneSide(side: Side) {
   provide(sideKey, side)
 }
@@ -146,16 +137,12 @@ export function usePaneSide(): Side {
   return inject(sideKey, "left")
 }
 
-/** 一侧 workbench 的面板列：各面板按打开顺序登记，列给每个放得下的面板一个挂载点。 */
 function createPanelHost() {
   const order = shallowRef<PanelKind[]>([])
   const height = shallowRef(Number.POSITIVE_INFINITY)
   const slots = shallowReactive(new Map<PanelKind, HTMLElement>())
-  /** 面板列宽度不够时整列盖住对话。 */
   const covering = shallowRef(false)
-  /** 这一侧放不下对话加面板列的最小宽度。 */
   const narrow = shallowRef(false)
-  /** 用户点了展开：面板列铺满这一侧，盖住对话。 */
   const expanded = shallowRef(false)
   const visible = computed(() => visiblePanels(order.value, height.value))
   return {
@@ -174,7 +161,6 @@ function createPanelHost() {
     close: (kind: PanelKind) => {
       order.value = closePanel(order.value, kind)
     },
-    /** 被收起的面板点回来：挪到最下面，成为最新打开的。 */
     raise: (kind: PanelKind) => {
       order.value = [...closePanel(order.value, kind), kind]
     },

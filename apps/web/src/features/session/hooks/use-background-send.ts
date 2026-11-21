@@ -5,21 +5,14 @@ import type { LiveSubscription } from "@features/session/hooks/use-live-subscrip
 import { optimisticUserMessage, sessionState } from "@features/session/lib/session-state.js"
 import type { SessionClientState } from "@features/session/type.js"
 
-/**
- * 逐个 stage 一个批次的文件字节；aborted() 为真则中止并返回 false。
- * 提交时把 batch 显式带给 prompt，由 Gateway 按 batch 消费。
- */
 export async function stageBatch(
   batch: ComposerAttachmentBatch,
   aborted: () => boolean,
 ): Promise<boolean> {
-  // 失败/中止时把整批进度清掉：这批文件留在暂存，环不能卡半空
   const resetAll = () => batch.files.forEach((item) => batch.reportProgress?.(item.id, undefined))
 
   try {
     for (const item of batch.files) {
-      // stage 是单请求拿不到逐字节进度：仿 BoardUI 用随机插值爬到 85，
-      // 真实 await 落定再顶到 100，环平滑又仍锚定真实完成
       batch.reportProgress?.(item.id, 0)
       let shown = 0
       const timer = globalThis.setInterval(() => {
@@ -53,27 +46,18 @@ export async function stageBatch(
   }
 }
 
-/** 丢弃批次：幂等清理，失败不挡主流程；成功路径不调用，Gateway 已消费。 */
 export function dropBatch(batch: string | undefined): Promise<void> {
   if (!batch) return Promise.resolve()
   return discardAttachments(batch).catch(() => undefined)
 }
 
 interface BackgroundSendDeps {
-  /** 每 Session 的 UI 私有状态（草稿、本地用户句）。 */
   states: Map<string, SessionClientState>
-  /** 后台池里该会话的订阅；不在池里（已切回前台）就不能后台发送。 */
   backgroundSubscription(id: string): LiveSubscription | undefined
-  /** 指定会话当前的合并转录，给乐观用户句定锚点。 */
   transcriptFor(id: string): readonly TranscriptItem[]
 }
 
-/** 后台泵队：对指定会话提交一条队列消息，复用池里那条连接。 */
 export function createBackgroundSender(deps: BackgroundSendDeps) {
-  /**
-   * 失败时不动队列（由接管者放回队首），也不碰前台的草稿与报错；
-   * 未被服务端接受的乐观用户句在 finally 撤掉。
-   */
   async function send(
     id: string,
     text: string,

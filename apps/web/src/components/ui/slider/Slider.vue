@@ -3,7 +3,7 @@
     v-slot="{ modelValue }"
     data-slot="slider"
     v-bind="forwarded"
-    :data-accent-color="color"
+    :data-tone="color"
     :data-size="size"
     :data-variant="variant"
     :data-radius="radius"
@@ -29,16 +29,15 @@ import type { ComputedRef, HTMLAttributes } from "vue"
 import { computed, useAttrs } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { SliderRange, SliderRoot, SliderThumb, SliderTrack, useForwardPropsEmits } from "reka-ui"
-import type { Size } from "@components/ui/rt/size.js"
+import type { Size, ToneColor } from "@/types/ui-type.js"
 
 const props = withDefaults(
   defineProps<
     SliderRootProps & {
       class?: HTMLAttributes["class"]
-      /** 尺寸档：s、m、l */
       size?: Size
       variant?: "surface" | "soft"
-      color?: string
+      color?: ToneColor
       radius?: "none" | "small" | "medium" | "large" | "full"
     }
   >(),
@@ -47,14 +46,13 @@ const props = withDefaults(
 const emits = defineEmits<SliderRootEmits>()
 const delegatedProps = reactiveOmit(props, "class", "size", "variant", "color", "radius")
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<SliderRootProps>
-// reka 把 aria-* 留在根节点，而 role=slider 在滑块上，无障碍名要自己转过去
+// 外部：reka 把 aria-* 留在根节点，而 role=slider 在滑块上，无障碍名要自己转过去
 const attrs = useAttrs()
 const thumbLabel = computed(() => attrs["aria-label"] as string | undefined)
 const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | undefined)
 </script>
 
 <style>
-/* 滑杆：轨道高 6/8/10，滑块比轨道大 4px，轨道与滑块都是胶囊 */
 :where([data-slot="slider"]) {
   position: relative;
   display: flex;
@@ -128,7 +126,6 @@ const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | unde
   inline-size: 100%;
 }
 
-/* 滑块：可点区域是可见尺寸的三倍，视觉部分画在 ::after 上 */
 :where([data-slot="slider-thumb"]) {
   position: relative;
   display: block;
@@ -183,74 +180,68 @@ const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | unde
   cursor: default;
 }
 
-/* --- surface --- */
 :where([data-slot="slider"][data-variant="surface"]) :where([data-slot="slider-track"]) {
-  background-color: var(--gray-a3);
-  box-shadow: inset 0 0 0 var(--border-width) var(--gray-a5);
+  background-color: var(--bg-muted);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-strong);
 }
 
 :where([data-slot="slider"][data-variant="surface"])
   :where([data-slot="slider-track"][data-disabled]) {
-  box-shadow: inset 0 0 0 var(--border-width) var(--gray-a4);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border);
 }
 
 :where([data-slot="slider"][data-variant="surface"]) :where([data-slot="slider-range"]) {
-  background-color: var(--accent-track);
-  box-shadow: inset 0 0 0 var(--border-width) var(--gray-a5);
+  background-color: var(--tone);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-strong);
 }
 
 :where([data-slot="slider"][data-variant="surface"]) :where([data-slot="slider-thumb"])::after {
-  box-shadow: 0 0 0 1px var(--black-a4);
+  box-shadow: 0 0 0 1px var(--thumb-ring);
 }
 
 :where([data-slot="slider"][data-variant="surface"])
   :where([data-slot="slider-thumb"][data-disabled])::after {
-  background-color: var(--gray-1);
-  box-shadow: 0 0 0 1px var(--gray-6);
+  background-color: var(--bg);
+  box-shadow: 0 0 0 1px var(--border-strong);
 }
 
-/* --- soft --- */
 :where([data-slot="slider"][data-variant="soft"]) :where([data-slot="slider-track"]) {
-  background-color: var(--gray-a4);
-  background-image: linear-gradient(var(--white-a1), var(--white-a1));
+  background-color: var(--bg-hover);
 }
 
 :where([data-slot="slider"][data-variant="soft"])
   :where([data-slot="slider-track"][data-disabled]) {
-  background-color: var(--gray-a4);
+  background-color: var(--bg-hover);
   background-image: none;
 }
 
 :where([data-slot="slider"][data-variant="soft"]) :where([data-slot="slider-range"]) {
-  background-color: var(--accent-6);
-  background-image: linear-gradient(var(--accent-a5), var(--accent-a5));
+  background-color: var(--tone-border);
 }
 
 :where([data-slot="slider"][data-variant="soft"]) :where([data-slot="slider-thumb"])::after {
   box-shadow:
-    0 0 0 1px var(--black-a3),
-    0 0 0 1px var(--gray-a2),
-    0 0 0 1px var(--accent-a2),
-    0 1px 2px var(--gray-a4),
-    0 1px 3px -0.5px var(--gray-a3);
+    0 0 0 1px var(--thumb-ring),
+    0 0 0 1px var(--border-subtle),
+    0 0 0 1px var(--tone-subtle),
+    0 1px 2px var(--border),
+    0 1px 3px -0.5px var(--border-subtle);
 }
 
 :where([data-slot="slider"][data-variant="soft"])
   :where([data-slot="slider-thumb"][data-disabled])::after {
-  background-color: var(--gray-1);
-  box-shadow: 0 0 0 1px var(--gray-5);
+  background-color: var(--bg);
+  box-shadow: 0 0 0 1px var(--border-strong);
 }
 
-/* 焦点环叠在滑块阴影外：一档浅强调底 + 一档前景焦点环 */
 :where([data-slot="slider-thumb"]:focus-visible)::after {
   outline: none;
   box-shadow:
-    0 0 0 1px var(--black-a4),
-    0 0 0 3px var(--accent-3),
+    0 0 0 1px var(--thumb-ring),
+    0 0 0 3px var(--tone-subtle),
     0 0 0 5px var(--focus-color);
 }
 
-/* --- 禁用 --- */
 :where([data-slot="slider"][data-disabled]) {
   cursor: default;
   mix-blend-mode: multiply;

@@ -1,7 +1,6 @@
 import { moveSessionId } from "@features/session-nav/lib/session-list.js"
 import type { SidebarSectionKind } from "@features/session-nav/type.js"
 
-/** 拖拽落点：置顶区、收件箱、已归档；工作中不收行。 */
 export type DropZone = "pinned" | "active" | "settled"
 
 export type DropVerb = "pin" | "unpin" | "settle" | "unsettle"
@@ -14,7 +13,6 @@ export type DropPlan =
   | { kind: "settle" }
   | { kind: "unsettle" }
 
-/** 落点上的动作提示：同段内换位不提示。 */
 export function dropVerb(from: SidebarSectionKind, zone: DropZone | null): DropVerb | null {
   if (zone === null || zone === from) return null
 
@@ -26,7 +24,6 @@ export function dropVerb(from: SidebarSectionKind, zone: DropZone | null): DropV
   return from === "settled" ? "unsettle" : null
 }
 
-/** 松手要做的事；slot 按移动前的置顶全表计，与 moveSessionId 同义。 */
 export function planDrop(input: {
   id: string
   from: SidebarSectionKind
@@ -51,7 +48,6 @@ export function planDrop(input: {
   return from === "settled" ? { kind: "unsettle" } : { kind: "none" }
 }
 
-/** 可见置顶行里的第 k 个空位换算成全表 slot：筛选态下可见行只是全表子集。 */
 export function pinnedSlot(
   order: readonly string[],
   visible: readonly string[],
@@ -64,16 +60,11 @@ export function pinnedSlot(
   return last === undefined ? 0 : order.indexOf(last) + 1
 }
 
-/** 一行投影里的条目：会话行、拖拽时才撑开的段名，或空段的占位。 */
 export interface LayoutItem {
   key: string
   kind: "row" | "label" | "slot"
 }
 
-/**
- * 拖拽预演：被拖行从原处抽走，在 insertAfter 之后空出一格，段名撑开 label 高。
- * 返回每项相对静止布局的纵向位移。
- */
 export function projectOffsets(input: {
   items: readonly LayoutItem[]
   activeKey?: string | undefined
@@ -100,7 +91,6 @@ export function projectOffsets(input: {
   return offsets
 }
 
-/** 按住行尾动作扫过的会话：起点到当前行之间，只留能做这个动作的。 */
 export function sweepIds(
   order: readonly string[],
   origin: string,
@@ -114,7 +104,6 @@ export function sweepIds(
   return order.slice(Math.min(from, to), Math.max(from, to) + 1).filter(canApply)
 }
 
-/** 按时间排的段里，被拖行该落在第几个：排序键大的在前，同分按 id。 */
 export function sortedSlot(
   rows: readonly { id: string; sortKey: number }[],
   active: { id: string; sortKey: number },

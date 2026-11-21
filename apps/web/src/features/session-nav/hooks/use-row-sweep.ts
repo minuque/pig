@@ -8,7 +8,6 @@ import type { SidebarSection } from "@features/session-nav/type.js"
 
 const SWEEP_DISTANCE = 6
 
-/** 按住行尾的归档/还原按钮上下扫：扫过的同段会话松手时一起处理。 */
 export function useRowSweep(options: {
   list: ShallowRef<HTMLElement | undefined>
   sections: () => readonly SidebarSection[]
@@ -31,7 +30,6 @@ export function useRowSweep(options: {
       swept.value = new Set(sweepIds(order, id, target, canApply))
     }
 
-    /** 指针所在的那一行：取顶边在指针之上的最后一行，超出两端就停在端点。 */
     function rowAt(y: number): string {
       const rows = options.list.value?.querySelectorAll<HTMLElement>(
         `.session-section[data-key="${sectionKey}"] .session-row[data-id]`,

@@ -33,7 +33,6 @@ export function transcriptImageSrc(data: string, mimeType: string): string {
   return `data:${mimeType};base64,${data}`
 }
 
-/** 用户句有字或图才占行；助手句只凭正文占行，仅思考不占行。 */
 export function isVisibleTranscriptItem(item: TranscriptItem): boolean {
   if (isUserItem(item)) return transcriptText(item).length > 0 || transcriptImages(item).length > 0
 
@@ -66,7 +65,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value)
 }
 
-/** 空对象 / 空数组不当作可展示入参，避免展开后出现无意义的 `{}`。 */
 function hasToolInput(input: unknown): boolean {
   if (input === undefined || input === null) return false
 
@@ -90,7 +88,6 @@ function hintFromKeys(input: unknown, keys: readonly string[]): string {
   return ""
 }
 
-/** 顶栏一句话：优先 path / query / cmd 等常用键，否则压成单行 JSON。 */
 export function toolInputHint(input: unknown): string {
   if (typeof input === "string") return input
 
@@ -128,7 +125,6 @@ export function toolCommand(input: unknown): string {
 const COMMAND_STATUS =
   /(?:^|\n\n)(Command exited with code (-?\d+)|Command aborted|Command timed out after \d+ seconds|Command terminated without an exit code)\s*$/
 
-/** 拆出 pi bash 追加在输出末尾的状态行；正常结束记为 exit 0。 */
 export function splitCommandStatus(
   output: string,
   status: "error" | "running" | "success",

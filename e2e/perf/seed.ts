@@ -145,7 +145,6 @@ function seedListSessions(sessionDir: string, cwd: string) {
   }
 }
 
-/** 在 sessionDir 写入短/长会话和侧栏列表填充，供打开、切换、滚动测量。 */
 export function seedBenchSessions(sessionDir: string, cwd: string) {
   seedListSessions(sessionDir, cwd)
   seedConversation(sessionDir, cwd, SHORT_SESSION_ID, SHORT_SESSION_NAME, SHORT_TURNS, "已记录。")
@@ -180,7 +179,7 @@ function seedConversation(
     const file = manager.getSessionFile()
 
     if (!file) throw new Error("空会话种子缺少文件路径")
-    // SDK 会延迟到首条助手消息才落盘，空历史夹具显式写入公开条目。
+    // 外部：SDK 延迟到首条助手消息才落盘，空历史夹具要显式写入
     writeFileSync(
       file,
       [manager.getHeader(), ...manager.getEntries()]

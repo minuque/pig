@@ -1,4 +1,3 @@
-/** 按命令行长度上限把文件拆成多条子命令，避开 Windows 的 8191 字符限制。 */
 export function splitCommandArgs(prefix, files, maxChars) {
   const base = prefix.join(" ").length + 1
   const chunks = []

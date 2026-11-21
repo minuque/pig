@@ -1,18 +1,23 @@
 <template>
-  <div class="preset-swatches" role="radiogroup" :aria-label="t('settings.themePreset')">
-    <button
+  <RadioCards
+    class="preset-swatches"
+    :model-value="presetId"
+    size="s"
+    columns="repeat(auto-fit, minmax(96px, 1fr))"
+    gap="xs"
+    :aria-label="t('settings.themePreset')"
+    @update:model-value="(value) => setPreset(value as ThemePresetId)"
+  >
+    <RadioCardsItem
       v-for="option in options"
       :key="option.id"
-      type="button"
+      :value="option.id"
       class="preset-chip"
-      role="radio"
-      :aria-checked="presetId === option.id"
-      @click="setPreset(option.id)"
     >
       <span class="preset-dot" :style="{ background: swatchGradient(option) }" aria-hidden="true" />
       <span class="preset-label">{{ option.label }}</span>
-    </button>
-  </div>
+    </RadioCardsItem>
+  </RadioCards>
 </template>
 
 <script setup lang="ts">
@@ -20,6 +25,7 @@ import { computed } from "vue"
 import type { ThemePreset, ThemePresetId } from "@/types/theme-type.js"
 import { useI18n } from "@i18n/index.js"
 import { useColorScheme } from "@features/theme/index.js"
+import { RadioCards, RadioCardsItem } from "@components/ui/radio-cards/index.js"
 
 const LABEL_KEYS: Record<ThemePresetId, string> = {
   linear: "settings.presetLinear",
@@ -44,41 +50,17 @@ function swatchGradient(preset: ThemePreset): string {
 </script>
 
 <style scoped>
-.preset-swatches {
-  display: grid;
-  gap: var(--space-xs);
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-}
-
-.preset-chip {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-xs);
+.preset-swatches :deep(.preset-chip) {
   min-inline-size: 0;
   min-block-size: var(--control-md);
-  padding: 0 var(--space-sm);
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-control);
-  background: var(--bg-surface);
+  padding-block: 0;
   color: var(--fg-secondary);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
   line-height: var(--text-meta--line-height);
-  transition:
-    background-color var(--duration-fast) var(--ease-out),
-    border-color var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
 }
 
-.preset-chip:hover {
-  background: var(--bg-hover);
-  color: var(--fg);
-}
-
-.preset-chip[aria-checked="true"] {
-  border-color: var(--accent-solid);
-  background: var(--bg-selected);
+.preset-swatches :deep(.preset-chip[data-state="checked"]) {
   color: var(--fg);
 }
 
@@ -94,17 +76,5 @@ function swatchGradient(preset: ThemePreset): string {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .preset-chip {
-    transition: none;
-  }
-}
-
-@media (max-width: 720px) {
-  .preset-swatches {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 </style>

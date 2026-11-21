@@ -52,7 +52,6 @@ const code = computed(() => textContent(props.__node))
 const lines = computed(() => code.value.split("\n"))
 const tokens = shallowRef<CodeTokens>([])
 
-// 写完才高亮：流式中的末块按纯文本长高，不和吐字抢主线程。
 watch(
   [code, live, () => fence.value.language, () => codeBlockProps.value.theme],
   async ([text, isLive, language, theme], _, onCleanup) => {
@@ -74,7 +73,6 @@ watch(
 </script>
 
 <style scoped>
-/* 代码块底色用 surface，从正文里托出来 */
 .code-block {
   --card-background-color: var(--bg-surface);
 }

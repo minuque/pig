@@ -6,7 +6,6 @@
     :class="props.class"
     v-bind="$attrs"
   >
-    <!-- 用原生滚动容器承担横向溢出 -->
     <div class="table-scroll">
       <table data-slot="table-element">
         <slot />
@@ -17,13 +16,12 @@
 
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-import type { Size } from "@components/ui/rt/size.js"
+import type { Size } from "@/types/ui-type.js"
 
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
   defineProps<{
-    /** 尺寸档：s、m、l */
     size?: Size
     variant?: "surface" | "ghost"
     class?: HTMLAttributes["class"]
@@ -91,7 +89,7 @@ const props = withDefaults(
 
 :where([data-slot="table-cell"]) {
   background-color: transparent;
-  box-shadow: inset 0 -1px var(--gray-a5);
+  box-shadow: inset 0 -1px var(--border-strong);
   box-sizing: border-box;
   vertical-align: inherit;
 }

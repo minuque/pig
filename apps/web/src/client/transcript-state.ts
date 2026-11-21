@@ -1,6 +1,5 @@
 import type { SessionSnapshot, TranscriptItem, TranscriptProgress } from "@pig/protocol"
 
-/** 快照 + 快照之后到达的增量；快照始终是权威，更新快照即丢弃旧增量。 */
 export interface TranscriptState {
   readonly snapshot: SessionSnapshot
   readonly progressItems: ReadonlyMap<string, TranscriptItem>
@@ -10,7 +9,6 @@ export interface TranscriptState {
 
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json }
 
-/** 流式中的工具参数是不完整 JSON：解析成功才换成对象，否则保留原文前缀。 */
 function parsePartialInput(value: string): Json {
   try {
     return JSON.parse(value) as Json
@@ -90,7 +88,6 @@ export function applyTranscriptProgress(
   return setProgressItem({ ...state, toolCallBuffers }, { ...item, content })
 }
 
-/** 快照条目被同 id 增量覆盖，新增量按到达顺序追加，最后补上排队中的 steer。 */
 export function selectTranscript(state: TranscriptState): readonly TranscriptItem[] {
   const transcript = state.snapshot.transcript.map(
     (item) => state.progressItems.get(item.id) ?? item,

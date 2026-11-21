@@ -1,5 +1,7 @@
 <template>
-  <TooltipTrigger data-slot="tooltip-trigger" v-bind="forwardedProps">
+  <TooltipTrigger
+    v-bind="props.asChild ? forwardedProps : { ...forwardedProps, 'data-slot': 'tooltip-trigger' }"
+  >
     <slot />
   </TooltipTrigger>
 </template>
@@ -10,6 +12,6 @@ import type { ComputedRef } from "vue"
 import { TooltipTrigger, useForwardProps } from "reka-ui"
 
 const props = defineProps<TooltipTriggerProps>()
-// reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，cast 到组件 props 类型
+// 外部：reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，须 cast 到组件 props 类型
 const forwardedProps = useForwardProps(props) as ComputedRef<TooltipTriggerProps>
 </script>

@@ -119,7 +119,6 @@ function resetWidth() {
     visibility 0s;
 }
 
-/* 把手不占位：贴着侧栏边界浮着；外观由 ResizeHandle 画 */
 .resizer {
   z-index: var(--z-resizer);
   align-self: stretch;
@@ -127,7 +126,6 @@ function resetWidth() {
 }
 
 html[data-pig-desktop-platform="darwin"] .resizer {
-  /* 把手只在标题条以下生效，顶部条带留给拖窗 */
   margin-block-start: var(--titlebar-inset);
 }
 
@@ -147,7 +145,6 @@ html[data-pig-desktop-platform="darwin"] .resizer {
 
 main {
   position: relative;
-  /* 困住栏内 z-index：用 z-index:0 而不是 isolation:isolate */
   z-index: 0;
   flex: 1;
   min-width: 0;
@@ -207,7 +204,6 @@ main {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* 置于末尾，覆盖上方 media 块内的 transition */
   .sidebar {
     transition: none;
     animation: none;

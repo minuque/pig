@@ -4,14 +4,10 @@ import { expect, seedWorkspace, test } from "../support/fixtures.js"
 async function readThemeSnapshot(page: Page) {
   return page.evaluate(() => {
     const html = document.documentElement
-    const rootTheme = document.querySelector("[data-is-root-theme]")
-
-    if (!rootTheme) throw new Error("missing [data-is-root-theme]")
-    const rootStyle = getComputedStyle(rootTheme)
+    const rootStyle = getComputedStyle(html)
     return {
       htmlDark: html.classList.contains("dark"),
       htmlLight: html.classList.contains("light"),
-      rootDark: rootTheme.classList.contains("dark"),
       preset: html.dataset.themePreset ?? "",
       inlineBg: html.style.getPropertyValue("--bg").trim().toLowerCase(),
       inlineAccent: html.style.getPropertyValue("--accent-solid").trim().toLowerCase(),
@@ -21,7 +17,7 @@ async function readThemeSnapshot(page: Page) {
   })
 }
 
-test("深浅模式与配色预设切换立即生效，不被 ThemeRoot 遮蔽", async ({ page, gateway }) => {
+test("深浅模式与配色预设切换立即生效", async ({ page, gateway }) => {
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
@@ -33,7 +29,6 @@ test("深浅模式与配色预设切换立即生效，不被 ThemeRoot 遮蔽", 
   await expect(async () => {
     const snap = await readThemeSnapshot(page)
     expect(snap.htmlDark).toBe(true)
-    expect(snap.rootDark).toBe(true)
     expect(snap.computedBg).toBe("#101012")
     expect(snap.computedAccent).toBe("#6672dc")
   }).toPass()
@@ -84,7 +79,6 @@ test("深浅模式与配色预设切换立即生效，不被 ThemeRoot 遮蔽", 
     const snap = await readThemeSnapshot(page)
     expect(snap.htmlDark).toBe(true)
     expect(snap.htmlLight).toBe(false)
-    expect(snap.rootDark).toBe(true)
     expect(snap.preset).toBe("ocean")
     expect(snap.computedBg).toBe(snap.inlineBg)
     expect(snap.computedBg).not.toBe(lightOceanBg)

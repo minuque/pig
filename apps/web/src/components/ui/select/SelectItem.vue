@@ -18,15 +18,14 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectItemProps
 </script>
 
 <style>
-/* 选项：不留勾选图标的槽位，左右内边距对称；选中项用高亮底标出 */
 :where([data-slot="select-item"]) {
   position: relative;
   display: flex;
   align-items: center;
   box-sizing: border-box;
-  block-size: var(--control-md);
-  padding-inline: var(--space-sm);
-  border-radius: var(--radius-control);
+  block-size: var(--control-sm);
+  padding-inline: var(--space-xs);
+  border-radius: calc(var(--radius-card) - var(--space-2xs));
   outline: none;
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
@@ -36,26 +35,22 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectItemProps
 
 :where([data-slot="select-content"][data-size="s"]) :where([data-slot="select-item"]) {
   block-size: var(--space-lg);
-  border-radius: calc(var(--radius-control) / 2);
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
 }
 
 :where([data-slot="select-item"][data-disabled]) {
-  color: var(--gray-a8);
+  color: var(--fg-disabled);
   cursor: default;
 }
 
 :where([data-slot="select-item"][data-state="checked"]:not([data-highlighted])) {
-  background-color: var(--bg-selected);
+  background-color: var(--bg-emphasis);
   color: var(--fg);
 }
 
-/* solid 内容里悬停项取实心强调色 */
 :where([data-slot="select-content"][data-variant="solid"])
   :where([data-slot="select-item"][data-highlighted]) {
-  background-color: var(--accent-9);
-  color: var(--accent-contrast);
+  background-color: var(--tone);
+  color: var(--fg-on-accent);
 }
 
 :where([data-slot="select-content"][data-variant="soft"])

@@ -1,4 +1,3 @@
-/** 挂在一个会话上的客户端句柄：维护快照 + 增量投影，下发会话命令。 */
 import type {
   ModelRef,
   SessionPhase,
@@ -96,7 +95,6 @@ export class GatewaySession {
     return () => this.#listeners.delete(listener)
   }
 
-  /** 空闲时发 prompt，回合中发 steer，与 TUI 的回车语义一致。 */
   async submit(text: string, options?: { attachmentBatch?: string }) {
     const message = text.trim()
 
@@ -108,7 +106,6 @@ export class GatewaySession {
     const batch = options?.attachmentBatch
     const idle = this.phase === "idle"
 
-    // steer 只带文本：附件进不了回合计入，交给调用方丢弃这批暂存
     if (!idle && batch) throw new Error("Attachments can only ride an idle prompt")
     await this.#run("submit", () =>
       this.client.requestSession(
@@ -131,7 +128,6 @@ export class GatewaySession {
     )
   }
 
-  /** 停止一个后台任务；不占会话的操作锁，回合进行中也能停。 */
   async stopTask(taskId: string) {
     await this.client.requestSession({ command: "stop_task", sessionId: this.#require(), taskId })
   }
@@ -150,7 +146,6 @@ export class GatewaySession {
     )
   }
 
-  /** 客户端重连后在新连接上重新挂上同一会话，拿新的权威快照；两侧共用一次重连。 */
   async reattach() {
     const sessionId = this.#require()
     await this.#bindWith("reconnect", () =>

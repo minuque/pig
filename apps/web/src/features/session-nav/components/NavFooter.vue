@@ -7,7 +7,7 @@
           type="button"
           size="m"
           variant="ghost"
-          color="gray"
+          color="neutral"
           :aria-label="t('nav.profileMenu')"
         >
           <span class="footer-mark" aria-hidden="true">
@@ -74,13 +74,11 @@ const { t } = useI18n()
 const { isDark, toggle } = useColorScheme()
 const { locale, userName, setLocale } = useGeneralPrefs()
 const displayName = computed(() => userName.value.trim() || "Pig")
-/** 外观只在浅色与深色之间切；跟随系统留给设置页 */
 const currentScheme = computed(() =>
   isDark.value
     ? { label: t("settings.schemeDark"), icon: MoonIcon }
     : { label: t("settings.schemeLight"), icon: SunIcon },
 )
-/** 语言名用它自己的写法，切到不认识的语言时也认得出 */
 const currentLocale = computed(() => (locale.value === "en" ? "English" : "中文"))
 
 function toggleLocale() {
@@ -98,8 +96,7 @@ function toggleLocale() {
   padding: var(--space-xs) var(--nav-inline, var(--space-xs));
 }
 
-/* 撑满左侧：logo 与名字靠左，长名截断。抵消 rt ghost 档的负外边距 */
-.footer-profile[data-accent-color] {
+.footer-profile[data-tone] {
   flex: 1;
   justify-content: flex-start;
   gap: var(--space-xs);
@@ -111,13 +108,11 @@ function toggleLocale() {
   font-weight: var(--font-weight-normal);
 }
 
-/* 名字是次级信息：常态弱一档，悬停或菜单打开时回到正文色 */
-.footer-profile[data-accent-color]:hover,
-.footer-profile[data-accent-color][data-state="open"] {
+.footer-profile[data-tone]:hover,
+.footer-profile[data-tone][data-state="open"] {
   color: var(--fg);
 }
 
-/* 蓝底方块里的小猪：悬停或键盘聚焦时缩下去再探头 */
 .footer-mark {
   display: block;
   flex: none;
@@ -140,7 +135,6 @@ function toggleLocale() {
   animation: brand-peek var(--mascot-peek-duration) both;
 }
 
-/* 当前值贴右、弱一档，像快捷键列 */
 .profile-value {
   margin-inline-start: auto;
   padding-inline-start: var(--space-md);

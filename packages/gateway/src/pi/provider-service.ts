@@ -41,17 +41,12 @@ type AuthType = Parameters<ModelRuntimeLike["login"]>[1]
 
 export interface ProviderServiceOptions {
   runtime: () => Promise<ModelRuntimeLike>
-  /** 供应商配置、凭据或模型目录变了以后调用：宿主据此通知扩展与协议端。 */
   onCatalogChange?: () => void
-  /** 凭据与配置目录；缺省 ~/.pi/agent。 */
   agentDir?: string
-  /** models.json 路径；缺省 agentDir/models.json。 */
   modelsPath?: string
-  /** 测试注入；缺省读 agentDir 的 settings.json。 */
   settings?: SettingsManager
 }
 
-/** 供应商列表、登录事件流、模型目录与配置写入共用的 runtime 门面。 */
 export class ProviderService {
   readonly agentDir: string
   readonly modelsPath: string
@@ -91,7 +86,6 @@ export class ProviderService {
     return { providers, defaultModel: defaultModelOf(settings) }
   }
 
-  /** 全量刷新 runtime，再返回刷新后的供应商目录。 */
   async refreshAll(): Promise<{
     providers: ProviderView[]
     defaultModel: DefaultModelView | null
@@ -113,7 +107,6 @@ export class ProviderService {
       .filter((model) => isModelEnabled(enabledModels, model.provider, model.id))
       .map((model) => toModelMetadata(model, runtime.hasConfiguredAuth(model.provider)))
     const configured = defaultModelOf(settings)
-    // 设置里的默认模型不在可用目录里就当没配，别让输入卡选中不存在的模型
     return {
       models: visible,
       defaultModel:
@@ -124,7 +117,6 @@ export class ProviderService {
     }
   }
 
-  /** 开始一次供应商登录；事件由 loginEvents 消费。 */
   async login(providerId: string, type: AuthType): Promise<{ loginId: string }> {
     const runtime = await this.runtime()
     const provider = runtime.getProvider(providerId)
@@ -142,7 +134,6 @@ export class ProviderService {
     }
   }
 
-  /** 最小请求验证凭据；失败不写配置。 */
   async testConnection(providerId: string, modelId?: string): Promise<ProviderTestResult> {
     const runtime = await this.runtime()
 
@@ -179,7 +170,6 @@ export class ProviderService {
     }
   }
 
-  /** 写模型参数：thinking 进 settings，其余进 models.json，成功后刷新。 */
   async updateModelParams(
     providerId: string,
     modelId: string,
@@ -215,7 +205,6 @@ export class ProviderService {
     await this.refreshProvider(providerId)
   }
 
-  /** 开关模型：写入 settings.enabledModels；全部开放时清空配置。 */
   async setModelEnabled(providerId: string, modelId: string, enabled: boolean): Promise<void> {
     const runtime = await this.runtime()
     const provider = runtime.getProvider(providerId)
@@ -242,7 +231,6 @@ export class ProviderService {
     this.catalogChanged()
   }
 
-  /** 写入自定义供应商；apiKey 留空保留旧值，成功后刷新 runtime。 */
   async saveCustom(input: CustomProviderInput): Promise<void> {
     await this.mutateCustom((config) => {
       const providers = objectOf(config.providers)
@@ -283,7 +271,6 @@ export class ProviderService {
     await this.refreshProvider(providerId)
   }
 
-  /** 复制操作：唯一一次携带明文，仅供前端直接写剪贴板。 */
   async copyKey(providerId: string): Promise<{ key: string }> {
     const credential = (await this.credentials())[providerId]
     const key = credential?.type === "api_key" ? credential.key : undefined
@@ -296,7 +283,6 @@ export class ProviderService {
     return this.logins.has(loginId)
   }
 
-  /** 回放 after 之后的事件，再等新事件；会话结束即返回。 */
   async *loginEvents(
     loginId: string,
     after = 0,
@@ -322,7 +308,6 @@ export class ProviderService {
     this.catalogChanged()
   }
 
-  /** 停服：中止全部登录并清掉过期定时器。 */
   dispose(): void {
     this.logins.dispose()
   }
@@ -347,7 +332,6 @@ export class ProviderService {
     }
   }
 
-  /** 只带 modelOverrides 的条目是内置供应商的覆盖，不是自定义供应商。 */
   private async isCustomProvider(providerId: string): Promise<boolean> {
     try {
       const config = await this.customStore.read()
@@ -378,7 +362,6 @@ export class ProviderService {
     this.catalogChanged()
   }
 
-  /** 登录完成、配置写入这类异步收尾也要通知，HTTP 响应早就发出去了。 */
   private catalogChanged(): void {
     this.options.onCatalogChange?.()
   }
@@ -395,7 +378,6 @@ export class ProviderService {
   }
 }
 
-/** pi 设置里的默认模型；供应商或模型没配就是 null，不拿别的模型顶上。 */
 function defaultModelOf(settings: {
   getDefaultProvider(): string | undefined
   getDefaultModel(): string | undefined

@@ -2,7 +2,6 @@ import { shallowRef, toValue, watch, type MaybeRefOrGetter } from "vue"
 import type { SessionCard } from "@/types/common-type.js"
 import { listSessionCards } from "@client/platform.js"
 
-/** 连上后全量拉一次卡片；按工作目录局部刷新另接。失败不挡列表。 */
 export function useSessionCards(connected: MaybeRefOrGetter<boolean>) {
   const sessionCards = shallowRef(new Map<string, Omit<SessionCard, "id">>())
 
@@ -19,9 +18,7 @@ export function useSessionCards(connected: MaybeRefOrGetter<boolean>) {
           },
         ]),
       )
-    } catch {
-      /* 卡片条数失败不挡会话主路径 */
-    }
+    } catch {}
   }
 
   watch(

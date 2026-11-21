@@ -1,25 +1,23 @@
 <template>
   <ContextMenuPortal>
-    <ThemeRoot>
-      <MenuContent
-        data-slot="context-menu-content"
-        v-bind="forwarded"
-        side="right"
-        align="start"
-        :side-offset="2"
-        :data-accent-color="props.color"
-        data-menu-content
-        :data-size="size"
-        :class="['reveal-menu', props.class]"
-        :style="contentStyle"
-        @close-auto-focus="onCloseAutoFocus"
-        @interact-outside="onInteractOutside"
-      >
-        <div data-menu-viewport>
-          <slot />
-        </div>
-      </MenuContent>
-    </ThemeRoot>
+    <MenuContent
+      data-slot="context-menu-content"
+      v-bind="forwarded"
+      side="right"
+      align="start"
+      :side-offset="2"
+      :data-tone="props.color"
+      data-menu-content
+      :data-size="size"
+      :class="['reveal-menu', props.class]"
+      :style="contentStyle"
+      @close-auto-focus="onCloseAutoFocus"
+      @interact-outside="onInteractOutside"
+    >
+      <div data-menu-viewport>
+        <slot />
+      </div>
+    </MenuContent>
   </ContextMenuPortal>
 </template>
 
@@ -27,12 +25,11 @@
 import type { ContextMenuContentEmits, ContextMenuContentProps } from "reka-ui"
 import type { ComputedRef } from "vue"
 import type { HTMLAttributes } from "vue"
-import { ref, toRef } from "vue"
+import { ref } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { ContextMenuPortal, injectContextMenuRootContext, useForwardPropsEmits } from "reka-ui"
 import { MenuContent } from "reka-ui/internal"
-import { ThemeRoot } from "@components/ui/rt/index.js"
-import { provideMenuContent, type MenuSize } from "@components/ui/rt/menu-context.js"
+import type { MenuSize, ToneColor } from "@/types/ui-type.js"
 
 defineOptions({
   inheritAttrs: false,
@@ -43,7 +40,7 @@ const props = withDefaults(
     ContextMenuContentProps & {
       class?: HTMLAttributes["class"]
       size?: MenuSize
-      color?: string
+      color?: ToneColor
     }
   >(),
   {
@@ -67,11 +64,6 @@ const contentStyle = {
   "--reka-context-menu-trigger-width": "var(--reka-popper-anchor-width)",
   "--reka-context-menu-trigger-height": "var(--reka-popper-anchor-height)",
 }
-
-provideMenuContent({
-  size: toRef(props, "size"),
-  color: toRef(props, "color"),
-})
 
 function onCloseAutoFocus(event: Event) {
   if (!event.defaultPrevented && interactedOutside.value) event.preventDefault()

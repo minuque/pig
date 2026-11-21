@@ -4,14 +4,11 @@ export interface PointerPoint {
 }
 
 export interface PointerDragOptions {
-  /** 超过这段位移才算拖起，之前的松手仍是点击。 */
   distance: number
   onStart(point: PointerPoint): void
   onMove(point: PointerPoint): void
   onDrop(point: PointerPoint): void
-  /** 拖起之后被取消：Esc、失焦、切走、窗口变化。 */
   onCancel(): void
-  /** 收尾总会调用；started 表示是否真的拖起过。 */
   onFinish?(started: boolean): void
 }
 
@@ -19,7 +16,6 @@ export interface PointerDragHandle {
   cancel(): void
 }
 
-/** 按下后跟踪同一指针：过阈值才拖起，拖起后吞掉随后的点击、选区与右键菜单。 */
 export function startPointerDrag(
   event: PointerEvent,
   options: PointerDragOptions,
@@ -45,7 +41,6 @@ export function startPointerDrag(
     if (phase === "finished" || e.pointerId !== pointerId) return
     const point = { x: e.clientX, y: e.clientY }
 
-    // 桌面端可能先报 buttons=0 再补 pointerup：拖着的直接按松手处理
     if ((e.buttons & 1) === 0) {
       if (phase === "dragging") return finish("drop", point)
       return finish("cancel")
@@ -102,7 +97,6 @@ export function startPointerDrag(
     doc.removeEventListener("selectionchange", clearSelection)
 
     if (started) {
-      // 松手后的那次 click 不能当成打开会话；在文档外松手时由下一次按下清掉
       doc.addEventListener("click", suppressClick, { capture: true })
       doc.addEventListener("pointerdown", clearClickSuppression, { capture: true })
     }

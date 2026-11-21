@@ -150,7 +150,7 @@ describe("fs routes", () => {
   })
 })
 
-// git 钩子里跑测试时会带上 GIT_DIR 等变量，不清掉的话 git 命令会落到真仓库上
+// 外部：git 钩子里跑测试会带上 GIT_DIR 等变量，不清掉就会落到真仓库上
 for (const key of Object.keys(process.env)) if (key.startsWith("GIT_")) delete process.env[key]
 
 describe("目录、git 状态与内容搜索", () => {
@@ -305,7 +305,6 @@ describe("HTML 预览的令牌地址", () => {
     expect(page.headers.get("content-type")).toBe("text/html; charset=utf-8")
     expect(page.headers.get("content-security-policy")).toBe("sandbox allow-scripts")
     expect(page.headers.get("referrer-policy")).toBe("no-referrer")
-    // 注入的脚本把外链交给外层确认
     expect(await page.text()).toContain("pig-preview-link")
 
     const asset = await fetch(`${base}/api/v1/preview/${value}/site/app.js`)

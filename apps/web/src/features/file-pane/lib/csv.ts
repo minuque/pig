@@ -1,4 +1,4 @@
-/** 按 RFC 4180 拆 CSV/TSV：引号包住的格可以带分隔符、换行与成对的双引号。 */
+// 外部：按 RFC 4180 拆 CSV/TSV，引号包住的格可以带分隔符、换行与成对的双引号。
 export function parseDelimited(text: string, delimiter: string): string[][] {
   const rows: string[][] = []
   let row: string[] = []

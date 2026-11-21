@@ -5,7 +5,7 @@
         type="button"
         size="s"
         variant="ghost"
-        :color="status === 'error' ? 'red' : 'gray'"
+        :color="status === 'error' ? 'danger' : 'neutral'"
         class="copy-button"
         :aria-label="copyLabel"
         @click.stop="copy"
@@ -55,7 +55,6 @@ async function copy() {
 </script>
 
 <style scoped>
-/* 默认贴在卡片右上角；放进工具条时由父级改回静态定位 */
 .copy-button {
   position: absolute;
   z-index: var(--z-raise);

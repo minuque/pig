@@ -77,9 +77,7 @@ describe("classifyTouched", () => {
     assert.deepEqual(classifyTouched(["apps/web/src/App.vue"]).specs, [
       "e2e/conversation/new-session.spec.ts",
     ])
-    // e2e 自身改动不按范围判断，交给全量
     assert.deepEqual(classifyTouched(["e2e/support/fixtures.ts"]).specs, [])
-    // 纯文档改动不挑 e2e
     assert.deepEqual(classifyTouched(["docs/CODEBASE.md"]).specs, [])
   })
 

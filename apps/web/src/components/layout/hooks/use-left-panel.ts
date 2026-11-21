@@ -19,12 +19,10 @@ export const leftPanelKey: InjectionKey<{
   toggle: () => void
   setSbState: (s: SidebarState) => void
   resizing: Readonly<Ref<boolean>>
-  /** 侧栏收展过渡进行中：宽度不是终值，依赖布局测量的代码本阶段冻结。 */
   sbAnimating: Readonly<Ref<boolean>>
   isNarrow: Readonly<Ref<boolean>>
 }> = Symbol("left-panel")
 
-/** 消费 AppLayout 提供的左栏开关，供主列顶栏切换抽屉。 */
 export function useLeftPanelToggle() {
   const ctx = inject(leftPanelKey)
 
@@ -34,10 +32,8 @@ export function useLeftPanelToggle() {
 
 export const LEFT_PANEL_WIDTH_KEY = "pig.leftPanelWidth"
 export const LEFT_PANEL_STATE_KEY = "pig.leftPanelState"
-/** 主内容区最小宽度（px）：侧栏调宽时始终为其保留的空间。 */
 export const CONTENT_MIN_WIDTH = 332
 
-/** 解析持久化的左栏宽度：非有限数字丢弃。 */
 export function parseLeftPanelWidth(raw: string | null): number | undefined {
   if (raw == null || raw.trim() === "") return undefined
   const n = Number(raw)
@@ -62,24 +58,20 @@ function persistWidth(width: number) {
 
 const clampPanelWidth = (width: number) => Math.min(420, Math.max(240, width))
 
-/** 期望宽度按侧栏上下限与视口可用空间裁剪。 */
 export function panelWidthFor(desired: number, viewportWidth: number): number {
   const room = viewportWidth - CONTENT_MIN_WIDTH
   return Math.min(clampPanelWidth(desired), Math.max(240, room))
 }
 
-/** 宽度超出可用空间时收缩到刚好放下，否则原样保留。 */
 export function fitPanelWidth(width: number, viewportWidth: number): number {
   const excess = width - (viewportWidth - CONTENT_MIN_WIDTH)
   return excess > 0 ? Math.max(240, width - excess) : width
 }
 
-/** 左栏（Workspace/Session 导航）面板：拖拽调宽、方向键调宽、移动端抽屉与视口适配。 */
 export function useLeftPanel() {
   const narrowViewport = matchMedia("(max-width: 900px)")
   const sbState = ref<SidebarState>(narrowViewport.matches ? "offcanvas" : loadStoredState())
   const leftOpen = computed(() => sbState.value !== "offcanvas")
-  /** 当前是否为 max-width: 900px 窄视口。 */
   const isNarrow = ref(narrowViewport.matches)
   const leftWidth = ref(
     panelWidthFor(
@@ -91,7 +83,6 @@ export function useLeftPanel() {
   const sbAnimating = ref(false)
   let sbAnimTimer = 0
 
-  /** 侧栏宽度过渡按 --duration-normal（200ms）计，收展期间冻结。 */
   function flagSbAnimating() {
     sbAnimating.value = true
     window.clearTimeout(sbAnimTimer)
@@ -131,7 +122,6 @@ export function useLeftPanel() {
     persistState(next)
   }
 
-  /** 进入窄屏前的状态，回宽屏恢复。 */
   let preNarrowState: SidebarState | undefined
 
   function closeMobilePanels() {

@@ -27,7 +27,6 @@ function applyPreset(preset: ThemePreset, isDark: boolean): void {
   if (typeof document === "undefined") return
   const root = document.documentElement
   root.dataset.themePreset = preset.id
-  root.dataset.accentColor = preset.radixAccent
 
   if (preset.id === DEFAULT_THEME_PRESET_ID) {
     for (const token of DERIVED_THEME_TOKENS) root.style.removeProperty(token)

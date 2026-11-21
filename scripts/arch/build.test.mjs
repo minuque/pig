@@ -10,10 +10,6 @@ describe("buildArchHtml", () => {
   it("生成的单文件包含主题基座、完整数据且无残留占位符", async () => {
     const html = await buildArchHtml(root)
 
-    assert.ok(html.includes('class="radix-themes"'))
-    assert.ok(html.includes('data-accent-color="cyan"'))
-    assert.ok(html.includes('data-gray-color="slate"'))
-
     for (const marker of ["/*__CSS__*/", "/*__PELE__*/", "__ICON__", "/*__DATA__*/", "/*__APP__*/"])
       assert.equal(html.includes(marker), false, `残留占位符 ${marker}`)
 

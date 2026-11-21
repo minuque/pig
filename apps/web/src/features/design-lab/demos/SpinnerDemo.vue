@@ -11,8 +11,8 @@
     <Variant title="Colors">
       <div style="display: flex; align-items: center; gap: 16px">
         <Spinner :size="20" label="Default loading" />
-        <Spinner :size="20" label="Indigo loading" style="color: var(--accent-9)" />
-        <Spinner :size="20" label="Red loading" style="color: var(--red-9)" />
+        <Spinner :size="20" label="Indigo loading" style="color: var(--tone)" />
+        <Spinner :size="20" label="Red loading" style="color: var(--danger-solid)" />
       </div>
     </Variant>
   </Story>

@@ -16,7 +16,7 @@
 import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { Primitive } from "reka-ui"
-import type { Size } from "@components/ui/rt/size.js"
+import type { Size } from "@/types/ui-type.js"
 
 defineOptions({ inheritAttrs: false })
 
@@ -24,7 +24,6 @@ const props = withDefaults(
   defineProps<
     PrimitiveProps & {
       class?: HTMLAttributes["class"]
-      /** 尺寸档：s、m、l */
       size?: Size
       variant?: "surface" | "soft"
     }
@@ -96,17 +95,17 @@ const props = withDefaults(
 }
 
 :where([data-slot="kbd"][data-variant="soft"]) {
-  background-color: var(--gray-a3);
+  background-color: var(--bg-muted);
 }
 
 :where([data-slot="kbd"][data-variant="soft"]:is(:any-link, button):is([data-state="open"])) {
-  background-color: var(--gray-a4);
+  background-color: var(--bg-hover);
 }
 
 :where(
   [data-slot="kbd"][data-variant="soft"]:is(:any-link, button):active:not([data-state="open"])
 ) {
-  background-color: var(--gray-a5);
+  background-color: var(--bg-emphasis);
 }
 
 :where([data-slot="kbd"]:is(:any-link, button):focus-visible) {
@@ -119,7 +118,7 @@ const props = withDefaults(
   }
 
   :where([data-slot="kbd"][data-variant="soft"]:is(:any-link, button):hover) {
-    background-color: var(--gray-a4);
+    background-color: var(--bg-hover);
   }
 }
 </style>

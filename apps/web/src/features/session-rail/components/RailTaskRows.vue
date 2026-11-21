@@ -21,7 +21,7 @@
         type="button"
         size="s"
         variant="ghost"
-        color="gray"
+        color="neutral"
         :aria-label="t('rail.stopTask')"
         :disabled="stopping.has(task.id)"
         @click="emit('stop', task.id)"
@@ -68,7 +68,6 @@ import {
 } from "@components/icons/index.js"
 import { taskElapsed, type TaskSections } from "@features/session-rail/lib/task-list.js"
 
-/** 卡片里最多列这么多条进行中的任务，其余进面板看。 */
 const LIMIT = 4
 const props = defineProps<{
   sections: TaskSections
@@ -95,7 +94,6 @@ const moreCount = computed(() => props.sections.running.length - shownRunning.va
   min-inline-size: 0;
 }
 
-/* 一行：图标 · 标题 · 用时；整行可点，悬停铺底 */
 .task-row-open {
   display: flex;
   flex: 1;

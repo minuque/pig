@@ -17,10 +17,7 @@ const IMAGE_TYPES: Record<string, string> = {
   webp: "image/webp",
 }
 
-/**
- * 工具按本地占位 cwd 解析路径，这里换成远端路径。
- * 占位目录下的相对路径拼到远端根；模型给的远端绝对路径在 Windows 上会被带上盘符，去掉即可。
- */
+// 外部：Windows 上模型给的远端绝对路径会被 path 模块加上盘符
 export function toRemotePath(localPath: string, localCwd: string, remoteRoot: string): string {
   const rel = relative(localCwd, localPath)
 
@@ -42,7 +39,6 @@ export type RemoteOps = {
   ls: LsOperations
 }
 
-/** pi 四个内置工具的 operations，底层走环境。 */
 export function remoteOperations(
   env: Environment,
   localCwd: string,

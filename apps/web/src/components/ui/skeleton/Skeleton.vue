@@ -28,9 +28,7 @@ defineOptions({ inheritAttrs: false })
 const props = withDefaults(
   defineProps<
     Pick<PrimitiveProps, "as" | "asChild"> & {
-      /** false 时直接渲染内容，用它包住真实内容做加载占位 */
       loading?: boolean
-      /** 骨架尺寸；不传时按内容撑开 */
       width?: string
       height?: string
       class?: HTMLAttributes["class"]
@@ -47,7 +45,7 @@ const skeletonStyle = computed(() => ({
 <style>
 :where([data-slot="skeleton"]) {
   border-radius: calc(var(--radius-control) / 2);
-  background-color: var(--gray-a3);
+  background-color: var(--bg-muted);
   animation: skeleton-pulse 1000ms infinite alternate-reverse;
   background-image: none;
   background-clip: border-box;

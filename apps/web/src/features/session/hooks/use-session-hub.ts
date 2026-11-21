@@ -10,14 +10,12 @@ import type { sessionState } from "@features/session/lib/session-state.js"
 
 export type SessionHub = ReturnType<typeof createSessionHub>
 
-/** 一侧的前台：当前挂着的连接，以及把它交给另一侧的办法。 */
 export interface ForegroundEntry {
   remote(): GatewaySession | undefined
   handOver(): void
   reattach(): Promise<void>
 }
 
-/** 两侧 workbench 共用的会话底座：历史缓存、后台池、在飞的 open、每会话的客户端状态。 */
 export function createSessionHub(
   pi: Pick<ReturnType<typeof useGatewayClient>, "client" | "connected" | "bindAttachedReconnect">,
 ) {
@@ -30,7 +28,6 @@ export function createSessionHub(
     backgroundSubscription: live.backgroundSubscription,
     transcriptFor: history.transcriptFor,
   })
-  /** 每侧挂着的前台连接；断线后客户端只重连一次，再把每侧的会话挂到新连接上。 */
   const foregrounds = new Set<ForegroundEntry>()
 
   pi.bindAttachedReconnect(async () => {
@@ -38,7 +35,6 @@ export function createSessionHub(
 
     let failure: unknown
 
-    // 逐侧重挂：一侧失败不挡另一侧
     for (const entry of foregrounds) {
       try {
         await entry.reattach()
@@ -62,12 +58,10 @@ export function createSessionHub(
     return () => foregrounds.delete(entry)
   }
 
-  /** 一侧要显示另一侧前台上的会话：那一侧先把连接交进池里，接手的一侧再从池里取。 */
   function claim(id: string, by: ForegroundEntry) {
     for (const entry of foregrounds) if (entry !== by && entry.remote()?.id === id) entry.handOver()
   }
 
-  /** 后台会话空闲的接管者由组合根挂一次：泵队与收尾不跟分屏面板的挂载走。 */
   function setBackgroundIdle(handler?: (id: string) => Promise<BackgroundIdleResult>) {
     live.setBackgroundIdle(handler)
   }

@@ -3,7 +3,7 @@
 ## 约束
 
 - 一个逻辑任务完成并通过检查后做一次原子 commit，不按单次编辑提交。
-- 注释默认不超过 1 行。功能代码文件（`.ts`、`.vue`）不超过 500 行；样式表、i18n 文案不限。
+- 不写注释：`pig-comments/no-comments` 与 `pig/no-comments` 只放行五类（见 `/delete-comment`），存量在 `*-suppressions.json` 里只减不增。功能代码文件（`.ts`、`.vue`）不超过 500 行；样式表、i18n 文案不限。
 - 导入能对上现有别名就写别名，不写相对路径。同目录引用可以保持 `./`。
 - 已有依赖能表达就复用，不自写组件和行为；不引入功能重复的依赖。
 - 依赖缺陷不用 `patchedDependencies`、`patch-package`、本地 vendor 补丁。
@@ -11,10 +11,9 @@
 
 ## UI
 
-- 基础件自持外观：每个组件用平铺、最小的 `:where([data-slot=…])` 样式按 `docs/DESIGN.md` 的取值表达，不走 Radix Themes 的 `rt-*` 类；`rt.css` 只保留仍在使用的 Radix token 映射。
+- 基础件自持外观：每个组件用平铺、最小的 `:where([data-slot=…])` 样式按 `docs/DESIGN.md` 的取值表达；颜色只来自 `tokens.css`，`color` 经 `data-tone` 映射到 `--tone-*` 槽位。
 - 外观微调写 SFC 的 scoped 样式：scoped 选择器带 data 属性，特异性高于 `:where()` 的组件默认样式，不需要 `!important`。不要在模板里堆工具类。
 - 组件样式只消费 `apps/web/src/style/tokens.css` 的 token。缺档先补 `tokens.css`，再写组件；SFC 不声明 `--*`，不写裸 hex/rgb/`color-mix`。
-- 弹层用 `<ThemeRoot>` 包住 teleport 内容：rt 的面板与阴影 token 挂在 `.radix-themes` 上，飞出文档流就取不到。
 - 动画复用 `apps/web/src/style/motion.css` 的类与 `@keyframes`。缺档先补 `motion.css`，再写组件。
 - 设计取值与规则见 [`docs/DESIGN.md`](docs/DESIGN.md)，改 UI 前读，守它的「七条规则」。
 

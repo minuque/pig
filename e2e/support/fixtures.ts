@@ -20,20 +20,17 @@ import {
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..")
 const webRoot = join(root, "apps/web/dist")
 
-/** 与 web canonicalizeWorkspacePath 对齐，供 localStorage 种子。 */
 export function canonicalizeWorkspacePath(path: string): string {
   const normalized = path.replaceAll("\\", "/").replace(/\/+$/, "")
   return /^[a-zA-Z]:/.test(normalized) ? normalized.toLowerCase() : normalized
 }
 
-/** 种子 localStorage 定位工作区；reducedMotion 由调用方按需 emulate（bench 要切两档）。 */
 export async function seedWorkspaces(page: Page, workspaceIds: readonly string[]) {
   await page.addInitScript(
     ({ ids }) => {
       localStorage.setItem("pig.localWorkspaces", JSON.stringify(ids))
       localStorage.setItem("pig.lastCwd", ids[0] ?? "")
       localStorage.setItem("npg-theme", "light")
-      // 用例按文件面板收起起步；默认打开另看宽度
       localStorage.setItem("pig.files.open", "off")
     },
     { ids: workspaceIds },
@@ -44,7 +41,7 @@ export async function seedWorkspace(page: Page, workspaceId: string) {
   await seedWorkspaces(page, [workspaceId])
 }
 
-/** DataTransfer 只能在页面里造，一次派发一个拖拽事件到 .session-panel。 */
+// 外部：DataTransfer 只能在页面里造
 export async function dragOntoPanel(page: Page, type: string, total = 2) {
   await page.locator(".session-panel").evaluate(
     (element, input) => {
@@ -63,7 +60,7 @@ export async function dragOntoPanel(page: Page, type: string, total = 2) {
   )
 }
 
-/** Chromium 拒直连这些端口（ERR_UNSAFE_PORT）；listen(0) 偶尔会抽到。 */
+// 外部：Chromium 拒直连这些端口（ERR_UNSAFE_PORT），listen(0) 偶尔会抽到
 const UNSAFE_PORTS = new Set([
   1, 7, 9, 11, 13, 15, 17, 19, 20, 21, 22, 23, 25, 37, 42, 43, 53, 69, 77, 79, 87, 95, 101, 102,
   103, 104, 109, 110, 111, 113, 115, 117, 119, 123, 135, 137, 139, 143, 161, 179, 389, 427, 465,
@@ -79,36 +76,26 @@ export interface E2eGateway {
   readonly workspaceId: string
 }
 
-/** 两个工作目录：验项目筛选多选。 */
 export interface MultiE2eGateway extends E2eGateway {
   readonly secondWorkspaceId: string
 }
 
-/** 会话文件路径：测试进程借它扮演外部写入方。 */
 export interface ExternalTurnGateway extends E2eGateway {
   readonly sessionFile: string
 }
 
 type TestFixtures = {
   gateway: E2eGateway
-  /** 一个末尾是用户消息的会话，像别处的 TUI 正跑到一半。 */
   externalTurnGateway: ExternalTurnGateway
   complexGateway: E2eGateway
-  /** 只装 6 个批量会话，用来验侧栏分组与分页。 */
   navGateway: E2eGateway
-  /** 两个项目各装若干会话，用来验多选筛选。 */
   multiGateway: MultiE2eGateway
-  /** 固定模型目录：已连接/未连接/自定义三组。 */
   modelsGateway: E2eGateway
-  /** 没有任何可用模型，用来验 Composer 空态。 */
   emptyModelsGateway: E2eGateway
-  /** 一个普通会话加一个 subagent 子会话，用来验摘要面板与子会话抽屉。 */
   subagentGateway: E2eGateway
-  /** 登记一台替身 SSH 主机（底下是本机目录），用来验远程 workspace。 */
   remoteGateway: E2eGateway
 }
 
-/** 起 Gateway 并躲开 Chromium 禁用端口；子代理等读 PI_CODING_AGENT_DIR 的地方也指向临时 agentDir。 */
 async function startGateway(
   options: ConstructorParameters<typeof Gateway>[0] & { agentDir: string },
 ) {
@@ -117,7 +104,6 @@ async function startGateway(
   let gateway = new Gateway(options)
   let port = await gateway.start()
 
-  // listen(0) 偶尔抽到 Chromium 的禁用端口，重起到能直连为止
   for (let attempt = 0; attempt < 5 && UNSAFE_PORTS.has(port); attempt += 1) {
     await gateway.stop()
     gateway = new Gateway(options)
@@ -139,9 +125,7 @@ async function startGateway(
 export async function withGateway(
   seed: (sessionDir: string, workspaceDir: string) => void,
   use: (gateway: E2eGateway) => Promise<void>,
-  /** 准备临时 agentDir；默认只放一个离线模型。始终隔离本机 ~/.pi，CI 上也有模型可选。 */
   prepareAgent: (agentDir: string) => Promise<void> = writeOfflineModel,
-  /** 额外的 Gateway 选项，按临时目录生成。 */
   extra?: (temp: string) => Promise<ConstructorParameters<typeof Gateway>[0]>,
 ) {
   const temp = await mkdtemp(join(tmpdir(), "pig-e2e-"))
@@ -235,7 +219,6 @@ async function withTwoWorkspaces(use: (gateway: MultiE2eGateway) => Promise<void
   }
 }
 
-/** 模型配置页：临时 agentDir + 假 runtime，隔离本机 ~/.pi。 */
 async function withModelsGateway(
   use: (gateway: E2eGateway) => Promise<void>,
   specs?: FakeProviderSpec[],
@@ -248,7 +231,6 @@ async function withModelsGateway(
   await mkdir(sessionDir)
   await mkdir(agentDir)
   await writeFile(join(workspaceDir, ".keep"), "")
-  // 已连接供应商的掩码提示来自 auth.json 的 Key 末四位。
   await writeFile(
     join(agentDir, "auth.json"),
     JSON.stringify({
@@ -456,7 +438,6 @@ export const test = base.extend<TestFixtures>({
   ],
 })
 
-/** 一个离线可选的本地模型，并设为默认：Prompt 由 sim-turn 拦下，不会真的请求它。 */
 async function writeOfflineModel(agentDir: string) {
   await writeFile(
     join(agentDir, "settings.json"),

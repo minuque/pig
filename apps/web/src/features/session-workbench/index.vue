@@ -69,7 +69,7 @@
                   class="scroll-latest-button"
                   type="button"
                   variant="solid"
-                  color="gray"
+                  color="neutral"
                   size="s"
                   radius="full"
                   @click="scrollToLatest('smooth')"
@@ -172,7 +172,6 @@ const { catalog, preset } = useComposerPreset()
 const { groups, lastCwd, addingWorkspace, addWorkspace, addRemoteWorkspace } = useNav()
 const remoteOpen = ref(false)
 const { welcomeField } = useAppearancePrefs()
-/** 与侧栏同一份目录：已授权 local + 会话 cwd。 */
 const workspaces = computed(() => groups.value.map((group) => group.canonicalPath))
 const pageError = computed(() => {
   if (connectionError.value && connected.value) {
@@ -181,9 +180,7 @@ const pageError = computed(() => {
 
   return route.name === "error" ? {} : null
 })
-/** 会话面板宽度写回 rail 状态：摘要在常驻与浮层之间切换靠它。 */
 const rail = useSessionRail()
-/** 摘要列占着正文右侧：输入条只在正文那一段居中。 */
 const railDocked = computed(
   () => !welcome.value && Boolean(sessionId.value) && rail?.dockedShown.value,
 )
@@ -212,7 +209,6 @@ type TranscriptViewRef = InstanceType<typeof TranscriptView>
 
 const transcriptView = useTemplateRef<TranscriptViewRef>("transcriptView")
 const composerBar = useTemplateRef("composerBar")
-/** 首屏挂载时输入条随 Hero 一起落位；之后的切换走停靠滑动。 */
 const settleIn = welcome.value
 
 useComposerDock(composerBar, welcome)
@@ -276,7 +272,6 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
 </script>
 
 <style scoped>
-/* 正文一列；摘要卡浮在右上角，右侧面板在 workbench 的面板列里 */
 .session-panel {
   position: relative;
   container-type: inline-size;
@@ -320,7 +315,6 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
   height: var(--icon-md);
 }
 
-/* 正文列：右侧面板占的列不跨进来，滚动条跟着正文列 */
 .conversation-column {
   grid-area: conversation;
   position: relative;
@@ -344,7 +338,6 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
   z-index: var(--z-sticky);
 }
 
-/* 首屏：Hero 贴在输入条上沿，两者作为一组略高于垂直中线 */
 .idle-hero {
   position: absolute;
   inset: 0 0 calc(55% + var(--composer-reserve) / 2 - 2rem);
@@ -354,7 +347,6 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
   padding-bottom: var(--space-xl);
 }
 
-/* 与常驻摘要面板同一组门槛（见 session-rail） */
 .composer-bar {
   position: absolute;
   inset-inline: 0;
@@ -372,8 +364,6 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
   bottom: calc(55% - var(--composer-reserve) / 2 - 2rem);
 }
 
-/* 输入条下方的渐隐直接淡出正文本身，不再叠一层底色，输入卡圆角和投影不受遮挡；
-   第二层让右侧滚动条一列保持不透明 */
 .session-stage :deep(.transcript-viewport) {
   mask-image:
     linear-gradient(
@@ -390,7 +380,6 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
   flex-direction: column;
   width: 100%;
   max-width: min(calc(var(--content-width) + var(--space-sm)), calc(100% - 2 * var(--space-md)));
-  /* 整组最高到头部下沿：队列再长也从这里让位，不压住头部与窗控 */
   max-block-size: calc(100dvh - var(--header-height) - 2 * var(--space-sm));
   margin-inline: auto;
   background: transparent;
@@ -400,7 +389,6 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
 .session-floating-controls {
   position: absolute;
   inset-block-start: 0;
-  /* composer-bar 已经让出侧栏，这里再让一次会偏左 */
   inset-inline: 0;
   z-index: var(--z-raise);
   display: flex;
@@ -424,7 +412,6 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
   pointer-events: auto;
 }
 
-/* 反色胶囊浮在输入卡上方 */
 .scroll-latest {
   display: flex;
   align-self: flex-start;
@@ -438,6 +425,7 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
 
 .scroll-latest-button:hover {
   background-color: var(--bg-inverse-hover);
+  background-image: none;
 }
 
 @media (max-width: 900px) {

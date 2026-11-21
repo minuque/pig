@@ -10,7 +10,7 @@ import type { ComputedRef } from "vue"
 import { TabsContent, useForwardProps } from "reka-ui"
 
 const props = defineProps<TabsContentProps>()
-// reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，cast 到组件 props 类型
+// 外部：reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，须 cast 到组件 props 类型
 const forwarded = useForwardProps(props) as ComputedRef<TabsContentProps>
 </script>
 

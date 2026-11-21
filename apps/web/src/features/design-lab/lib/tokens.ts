@@ -1,15 +1,12 @@
 import { nextTick, onMounted, ref, watch } from "vue"
-import rtCss from "@style/rt.css?raw"
 import tokensCss from "@style/tokens.css?raw"
 import { useColorScheme } from "@features/theme/index.js"
 import type { Label } from "@features/design-lab/lib/nav.js"
 
 export type Layer = "primitive" | "semantic" | "component"
 
-/** 分组取自 tokens.css 的分区注释：语义层是 `--- 表面 ---` 这类小标题，组件层是名字前缀。 */
 export type Token = { name: string; value: string; layer: Layer; group: string }
 
-/** 样例画法：按名字与值的类型决定怎么画。 */
 export type Kind =
   | "fill"
   | "fg"
@@ -36,7 +33,6 @@ const inGroups =
   (...groups: string[]) =>
   (token: Token) =>
     token.layer === "semantic" && groups.includes(token.group)
-/** 总览卡片的 9 类：前 8 类是语义层（颜色带上原色阶），最后一类是组件层。 */
 export const CATEGORIES: Category[] = [
   {
     id: "colors",
@@ -82,21 +78,17 @@ export function groupTitle(group: string): Label {
   return { zh: group, en: GROUP_EN[group] ?? group }
 }
 
-// rt 自己的旋钮（--space-1、--radius-2、--focus-8、--base-* 等）不是项目 token
 const KNOB =
   /^--(radix|reka|base-|card-|table-|radius-\d+$|space-\d+$|focus-\d+$|default-|dialog-content)/
-const PLACES = [...placed(tokensCss), ...placed(rtCss, "边与分割")].filter(
-  (place, index, all) => all.findIndex((other) => other.name === place.name) === index,
-)
+const PLACES = placed(tokensCss)
 
-/** 读 :root 与 .radix-themes 块，按分区注释给每个声明记下层与组；同名只记第一次。 */
-function placed(css: string, fallback = ""): Omit<Token, "value">[] {
-  const blocks = css.match(/(?::root|\.radix-themes)\s*\{[^}]*\}/g) ?? []
+function placed(css: string): Omit<Token, "value">[] {
+  const blocks = css.match(/:root\s*\{[^}]*\}/g) ?? []
   const seen = new Map<string, Omit<Token, "value">>()
 
   for (const block of blocks) {
     let layer: Layer = "semantic"
-    let group = fallback
+    let group = ""
 
     for (const line of block.split("\n")) {
       const header = /\/\*\s*(=+|-+)\s*([^：:-]+?)[：:\s-]/.exec(line)
@@ -122,7 +114,6 @@ const LENGTH = /^-?[\d.]+(px|rem|em|%|ch|vh|vw)$/
 export function kindOf(token: Token): Kind {
   const { name, value } = token
 
-  // 先认字号行高这类同族变量，避免按值误判成尺寸
   if (/line-height$|--text-[a-z]+-line$/.test(name)) return "leading"
 
   if (name.endsWith("--letter-spacing")) return "tracking"
@@ -151,21 +142,18 @@ export function kindOf(token: Token): Kind {
 
   if (LENGTH.test(value)) return "size"
 
-  // 文字色画一行字，表面色画色块；描边色只画环
   if (/^--(fg|link)/.test(name) || /-text$/.test(name)) return "fg"
 
   if (/^--border/.test(name)) return "border"
   return CSS.supports("color", value) ? "fill" : "none"
 }
 
-/** 实时读取全部 token 的计算值，切换明暗与配色后重读。 */
 export function useTokens() {
   const { isDark, presetId } = useColorScheme()
   const tokens = ref<Token[]>([])
 
   function read() {
-    const root = document.querySelector("[data-is-root-theme]") ?? document.documentElement
-    const style = getComputedStyle(root)
+    const style = getComputedStyle(document.documentElement)
     tokens.value = PLACES.map((place) => ({
       ...place,
       value: style.getPropertyValue(place.name).trim(),

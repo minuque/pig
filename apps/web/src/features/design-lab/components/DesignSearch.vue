@@ -41,7 +41,6 @@ const PLACEHOLDER: Label = { zh: "页面、分组或路径", en: "Page, group or
 const EMPTY: Label = { zh: "没有匹配的页面", en: "No matching pages" }
 const GUIDE: Label = { zh: "规范", en: "Spec" }
 const GUIDE_ITEM = { path: "guide", title: { zh: "DESIGN.md 规范", en: "DESIGN.md spec" } }
-// 分组顺序跟侧栏一致，DESIGN.md 自己一组
 const SECTIONS = [
   ...NAV.map((group) => ({ id: group.id, title: group.title, items: group.items })),
   { id: "guide", title: GUIDE, items: [GUIDE_ITEM] },
@@ -76,7 +75,6 @@ function go(path: string) {
   void router.push(`/design/${path}`)
 }
 
-// 输入框、正文里不抢 / 和 ⌘K
 function onKeydown(event: KeyboardEvent) {
   const target = event.target
 

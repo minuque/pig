@@ -1,4 +1,3 @@
-/** 脱离控制台的看门进程：父进程死后按端口杀掉残留 Vite。 */
 import { spawnSync } from "node:child_process"
 import { setTimeout as sleep } from "node:timers/promises"
 
@@ -69,7 +68,7 @@ function killPidTree(pid) {
   try {
     process.kill(pid, "SIGTERM")
   } catch {
-    // 已退出
+    // 外部：kill 目标已退出时抛 ESRCH
   }
 }
 

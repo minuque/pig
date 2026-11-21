@@ -1,7 +1,3 @@
-/**
- * Browser 平台 HTTP：JSON 请求与错误文案。
- */
-
 import { t } from "@i18n/index.js"
 
 export class PlatformRequestError extends Error {
@@ -13,7 +9,6 @@ export class PlatformRequestError extends Error {
   }
 }
 
-/** JSON 请求；非 2xx 时抛出 PlatformRequestError。 */
 export async function platformRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const requestId = crypto.randomUUID()
   const response = await fetch(path, {

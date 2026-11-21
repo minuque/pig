@@ -21,7 +21,6 @@ const stores: AttachmentStore[] = []
 const roots: string[] = []
 let rootDir = ""
 
-/** 每个用例一份隔离的临时根目录，避免跨用例/跨次运行互相干扰。 */
 async function makeStore(): Promise<AttachmentStore> {
   rootDir = await mkdtemp(join(tmpdir(), "pig-attach-test-"))
   roots.push(rootDir)
@@ -37,7 +36,6 @@ afterEach(async () => {
   roots.length = 0
 })
 
-/** 切成多段喂给 stage，模拟真实的分块上传。 */
 async function* chunks(bytes: Uint8Array, parts = 2): AsyncIterable<Uint8Array> {
   const step = Math.max(1, Math.ceil(bytes.length / parts))
 
@@ -54,7 +52,6 @@ async function stage(
   return store.stage({ batch, ...file, stream: chunks(bytes) })
 }
 
-/** 暂存后按 batch 取走，模拟 prompt 消费这一批。 */
 async function takeStaged(
   store: AttachmentStore,
   batch: string,
@@ -74,8 +71,6 @@ const exists = (path: string) =>
     .then(() => true)
     .catch(() => false)
 const batchDir = (batch: string) => join(rootDir, batch)
-
-// --- 暂存与限额 -------------------------------------------------------------
 
 describe("AttachmentStore.stage", () => {
   it("非图片落盘到 batch 目录，元数据与内容正确", async () => {
@@ -123,7 +118,6 @@ describe("AttachmentStore.stage", () => {
     await expect(stage(store, "batch-big", PDF, oversized)).rejects.toMatchObject({
       code: "PAYLOAD_TOO_LARGE",
     })
-    // 超限中断后不留文件（空目录也顺手收掉），batch 仍可继续暂存
     expect(await readdir(batchDir("batch-big")).catch(() => [])).toEqual([])
     await expect(stage(store, "batch-big", PDF, Buffer.from("ok"))).resolves.toHaveProperty("id")
   })
@@ -160,8 +154,6 @@ describe("AttachmentStore.stage", () => {
   })
 })
 
-// --- 按 batch 消费 ----------------------------------------------------------
-
 describe("AttachmentStore 按 batch 消费", () => {
   it("take 取走整个 batch，同一个 batch 再取回 undefined", async () => {
     const store = await makeStore()
@@ -194,8 +186,6 @@ describe("AttachmentStore 按 batch 消费", () => {
   })
 })
 
-// --- discard ----------------------------------------------------------------
-
 describe("AttachmentStore discard", () => {
   it("丢掉未消费的 batch 与它的文件", async () => {
     const store = await makeStore()
@@ -224,8 +214,6 @@ describe("AttachmentStore discard", () => {
     await expect(store.discard("nope")).resolves.toBeUndefined()
   })
 })
-
-// --- 纯逻辑 -----------------------------------------------------------------
 
 describe("sanitizeFileName", () => {
   it("去掉路径分隔符与保留字符，保留中文和空格", () => {

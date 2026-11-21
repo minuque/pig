@@ -1,4 +1,3 @@
-/** 主题控制器：深浅色切换、配色预设、外观视图与代码块配色。 */
 import { computed, effectScope, nextTick, type ComputedRef } from "vue"
 import type { ColorScheme, ThemePreset, ThemePresetId } from "@/types/theme-type.js"
 import { useIsDark, useThemeMode } from "@utils/theme-mode.js"
@@ -17,10 +16,8 @@ type Theme = {
 }
 
 let shared: Theme | undefined
-/** 分离 scope：主题控制器的 computed 跟模块同寿命，不随首个调用组件卸载。 */
 const scope = effectScope(true)
 
-/** 界面控制器只建一次，各处共享同两个 computed。 */
 function theme(): Theme {
   shared ??= scope.run(createTheme) as Theme
   return shared

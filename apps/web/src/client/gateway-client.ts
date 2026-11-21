@@ -1,4 +1,3 @@
-/** 与本机 Gateway 的一条 WebSocket 连接：握手、请求应答、服务快照与会话事件分发。 */
 import type {
   ClientMessage,
   Command,
@@ -22,7 +21,6 @@ type SessionEvent = Extract<ServerEvent, { type: "session_snapshot" | "session_p
 
 type ExtensionUiEvent = Extract<ServerEvent, { type: "extension_ui_request" }>
 
-/** Gateway 拒绝的命令；code 来自协议错误码。 */
 export class GatewayRequestError extends Error {
   constructor(
     readonly code: ProtocolErrorCode,
@@ -62,7 +60,6 @@ export class GatewayClient {
     return this.#snapshot
   }
 
-  /** 打开连接并完成握手，返回服务快照。 */
   connect(): Promise<ServerSnapshot> {
     if (this.#disposed) return Promise.reject(new Error(t("errors.wsTransportClosed")))
     this.#setState({ state: "connecting" })
@@ -102,7 +99,6 @@ export class GatewayClient {
     })
   }
 
-  /** 断开现有连接后重新握手；已挂的会话需要调用方重新 attach。 */
   async reconnect(): Promise<ServerSnapshot> {
     const socket = this.#socket
     this.#socket = undefined
@@ -130,7 +126,6 @@ export class GatewayClient {
     return () => this.#stateListeners.delete(listener)
   }
 
-  /** 连接断开时通知；会话据此把自己标成未挂载。 */
   onClose(listener: () => void): Unsubscribe {
     this.#closeListeners.add(listener)
     return () => this.#closeListeners.delete(listener)
@@ -147,13 +142,11 @@ export class GatewayClient {
     }
   }
 
-  /** 任一会话里扩展经 ctx.ui 发来的请求。 */
   onExtensionUi(listener: (event: ExtensionUiEvent) => void): Unsubscribe {
     this.#extensionListeners.add(listener)
     return () => this.#extensionListeners.delete(listener)
   }
 
-  /** 该会话文件变了：只通知为这个 sessionId 订阅过的调用方。 */
   onSessionFileChanged(sessionId: string, listener: () => void): Unsubscribe {
     const listeners = this.#fileListeners.get(sessionId) ?? new Set()
     listeners.add(listener)
@@ -165,7 +158,6 @@ export class GatewayClient {
     }
   }
 
-  /** 让 Gateway 按需盯住会话文件；没连上就跳过，重连后由调用方重发。 */
   watchSession(sessionId: string) {
     return this.#quiet({ command: "watch_session", sessionId })
   }
@@ -179,7 +171,6 @@ export class GatewayClient {
     return result.command === "list_sessions" ? result.sessions : []
   }
 
-  /** 发命令并等应答；会话类命令的应答带最新快照。 */
   request(command: Command): Promise<CommandResult> {
     const socket = this.#socket
 
@@ -203,7 +194,6 @@ export class GatewayClient {
     if (socket.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message))
   }
 
-  /** 只是通知 Gateway 改订阅，失败不影响界面。 */
   #quiet(command: Command) {
     return this.request(command).then(
       () => undefined,

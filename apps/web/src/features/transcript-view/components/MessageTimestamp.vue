@@ -31,15 +31,12 @@ const props = withDefaults(
   defineProps<{
     timestamp: number
     text?: string
-    /** 复制按钮放在时间后面（用户消息靠右，时间贴着气泡外侧）。 */
     copyBefore?: boolean
-    /** 常驻显示，不等悬停。 */
     pinned?: boolean
   }>(),
   { text: "", copyBefore: false, pinned: false },
 )
 const { t, locale } = useI18n()
-// 相对时间按分钟走
 const now = useNow({ interval: 60_000 })
 const valid = computed(() => Number.isFinite(props.timestamp) && props.timestamp > 0)
 const date = computed(() => new Date(props.timestamp))
@@ -62,7 +59,6 @@ const full = computed(() =>
 </script>
 
 <style scoped>
-/* 消息底栏：复制在前、时间在后，高度与图标按钮一致；时间不可聚焦，悬停看完整日期 */
 .stamp {
   display: flex;
   align-items: center;
@@ -84,7 +80,6 @@ const full = computed(() =>
   user-select: none;
 }
 
-/* 复用的复制按钮默认钉在卡片角上，这里回到时间条里随流排 */
 .stamp :deep(.copy-button) {
   position: static;
 }

@@ -71,7 +71,7 @@
       </p>
 
       <div class="login-actions">
-        <Button size="s" variant="surface" type="button" @click="emit('cancel')">
+        <Button size="s" variant="outline" type="button" @click="emit('cancel')">
           {{ t("common.cancel") }}
         </Button>
 
@@ -82,7 +82,7 @@
     </form>
 
     <div v-else class="login-actions">
-      <Button size="s" variant="surface" @click="emit('cancel')">{{ t("common.cancel") }}</Button>
+      <Button size="s" variant="outline" @click="emit('cancel')">{{ t("common.cancel") }}</Button>
     </div>
   </Card>
 </template>

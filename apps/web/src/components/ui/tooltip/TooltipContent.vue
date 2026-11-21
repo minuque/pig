@@ -1,19 +1,17 @@
 <template>
   <TooltipPortal>
-    <ThemeRoot>
-      <TooltipContent
-        data-slot="tooltip-content"
-        v-bind="{ ...$attrs, ...forwarded }"
-        class="reveal-menu"
-        :class="props.class"
-      >
-        <p data-slot="tooltip-text">
-          <slot />
-        </p>
+    <TooltipContent
+      data-slot="tooltip-content"
+      v-bind="{ ...$attrs, ...forwarded }"
+      class="reveal-menu"
+      :class="props.class"
+    >
+      <p data-slot="tooltip-text">
+        <slot />
+      </p>
 
-        <TooltipArrow data-slot="tooltip-arrow" />
-      </TooltipContent>
-    </ThemeRoot>
+      <TooltipArrow data-slot="tooltip-arrow" />
+    </TooltipContent>
   </TooltipPortal>
 </template>
 
@@ -22,7 +20,6 @@ import type { TooltipContentEmits, TooltipContentProps } from "reka-ui"
 import type { ComputedRef, HTMLAttributes } from "vue"
 import { reactiveOmit } from "@vueuse/core"
 import { TooltipArrow, TooltipContent, TooltipPortal, useForwardPropsEmits } from "reka-ui"
-import { ThemeRoot } from "@components/ui/rt/index.js"
 
 defineOptions({ inheritAttrs: false })
 
@@ -36,17 +33,17 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<Too
 </script>
 
 <style>
-/* 提示气泡：反色底 + 反色字，字号取最小档 */
 :where([data-slot="tooltip-content"]) {
   box-sizing: border-box;
+  z-index: var(--z-popover);
   padding: var(--space-2xs) var(--space-xs);
   border-radius: var(--radius-control);
-  background-color: var(--gray-12);
+  background-color: var(--fg);
   transform-origin: var(--reka-tooltip-content-transform-origin);
 }
 
 :where([data-slot="tooltip-text"]) {
-  color: var(--gray-1);
+  color: var(--bg);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   user-select: none;
@@ -54,6 +51,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<Too
 }
 
 :where([data-slot="tooltip-arrow"]) {
-  fill: var(--gray-12);
+  fill: var(--fg);
+  transform: translateY(-1px);
 }
 </style>

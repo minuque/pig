@@ -5,7 +5,7 @@ type KeyLike = Pick<
   "code" | "ctrlKey" | "metaKey" | "altKey" | "shiftKey" | "repeat" | "defaultPrevented"
 >
 
-/** 键位：macOS 用 ⌃⌘，其他平台 Ctrl+Win 被系统占用，改用 Ctrl+Alt。 */
+// 外部：Windows 上 Ctrl+Win 被系统占用，非 macOS 用 Ctrl+Alt
 export function splitShortcut(event: KeyLike, mac: boolean): SplitCommand | null {
   if (event.defaultPrevented || event.repeat || event.shiftKey || !event.ctrlKey) return null
 

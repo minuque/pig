@@ -10,13 +10,13 @@
           :key="color"
           type="button"
           size="s"
-          :variant="draft.color === color ? 'soft' : 'ghost'"
-          :color="color"
+          :variant="draft.color === color ? 'secondary' : 'ghost'"
+          :color="projectIconTone(color)"
           :aria-label="color"
           :aria-pressed="draft.color === color"
           @click="pick({ ...draft, color })"
         >
-          <span class="swatch" :data-accent-color="color" />
+          <span class="swatch" :data-tone="projectIconTone(color)" />
         </IconButton>
       </div>
 
@@ -26,8 +26,8 @@
           :key="name"
           type="button"
           size="m"
-          :variant="current?.name === name ? 'soft' : 'ghost'"
-          :color="draft.color"
+          :variant="current?.name === name ? 'secondary' : 'ghost'"
+          :color="projectIconTone(draft.color)"
           :aria-label="name"
           :aria-pressed="current?.name === name"
           @click="pick({ ...draft, name })"
@@ -37,7 +37,13 @@
       </div>
 
       <div class="icon-actions">
-        <Button variant="soft" color="gray" type="button" :disabled="!current" @click="reset">
+        <Button
+          variant="secondary"
+          color="neutral"
+          type="button"
+          :disabled="!current"
+          @click="reset"
+        >
           {{ t("session.resetIcon") }}
         </Button>
 
@@ -64,6 +70,7 @@ import { PROJECT_ICONS } from "@components/icons/project-icons.js"
 import { workspaceName } from "@features/session-nav/lib/format.js"
 import {
   PROJECT_ICON_COLORS,
+  projectIconTone,
   type ProjectIconChoice,
 } from "@features/session-nav/lib/project-prefs.js"
 import { useProjectPrefs } from "@features/session-nav/hooks/use-project-prefs.js"
@@ -85,7 +92,6 @@ function reset(): void {
 </script>
 
 <style>
-/* 内容经 Portal 挂到 body，scoped 打不中，选择器统一挂在 .project-icon-dialog 前缀下。 */
 .project-icon-dialog[data-slot="dialog-content"] {
   max-inline-size: var(--dialog-width-sm);
 }

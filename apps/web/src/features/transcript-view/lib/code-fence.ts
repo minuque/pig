@@ -72,7 +72,6 @@ function looksLikeFileName(info: string): boolean {
   return EXTENSION_LANGUAGE[ext] !== undefined
 }
 
-/** 识别 `起始行:结束行:路径`、带斜杠的路径，以及 `Foo.vue` 这种文件名。 */
 export function parseCodeFenceInfo(rawInfo: string): CodeFenceInfo {
   const info = rawInfo.trim()
   const reference = info.match(CODE_REFERENCE)
@@ -99,7 +98,6 @@ export function parseCodeFenceInfo(rawInfo: string): CodeFenceInfo {
   }
 }
 
-/** 文件围栏用扩展名做高亮语言，避免把整段路径交给语法高亮。 */
 export function fenceHighlightNode<T extends { language: string }>(
   node: T,
   fence: CodeFenceInfo,
