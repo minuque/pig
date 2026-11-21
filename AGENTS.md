@@ -20,7 +20,7 @@
 ## 文档
 
 - 代码库结构与领域边界：[`docs/CODEBASE.md`](docs/CODEBASE.md)
-- 设计规则：[`docs/DESIGN.md`](docs/DESIGN.md)
+- 设计规则：[`docs/DESIGN.md`](docs/DESIGN.md)。只记跨组件的取值与规则，改值只改表格；新规则须用户提出或确认，每条不超过两行，先合并已有条目。
 - 产品定位与约束：[`docs/PRODUCT.md`](docs/PRODUCT.md)
 
 ## worktree
