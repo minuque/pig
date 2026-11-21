@@ -12,6 +12,7 @@ export {
   ArrowLeftIcon,
   ArrowLeftRightIcon,
   ArrowUpIcon,
+  ArrowUpRightIcon,
   BellIcon,
   BlocksIcon,
   CheckIcon,

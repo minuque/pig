@@ -19,7 +19,7 @@
           color="neutral"
           :aria-label="t('common.close')"
         >
-          <XIcon />
+          <XIcon class="size-icon" />
         </IconButton>
       </ToastClose>
 
@@ -45,13 +45,8 @@
       </div>
 
       <ToastAction v-if="item.action" as-child :alt-text="item.action.label">
-        <Button
-          class="toast-action"
-          size="s"
-          variant="secondary"
-          color="neutral"
-          @click="item.action.run()"
-        >
+        <Button class="toast-action" size="s" variant="solid" @click="item.action.run()">
+          <ArrowUpRightIcon />
           {{ item.action.label }}
         </Button>
       </ToastAction>
@@ -79,6 +74,7 @@ import { useI18n } from "@i18n/index.js"
 import { Button, IconButton } from "@components/ui/button/index.js"
 import { dismissNotice, noticeQueue, type NoticeLevel } from "@components/layout/notify.js"
 import {
+  ArrowUpRightIcon,
   CircleCheckIcon,
   CircleExclamationPointIcon,
   InfoIcon,
@@ -126,7 +122,8 @@ const LEVEL_ICON: Record<NoticeLevel, Component> = {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  padding: var(--space-sm) var(--space-md) var(--space-sm) calc(var(--space-sm) + 2px);
+  padding: var(--space-sm) calc(var(--space-lg) + var(--space-xs)) var(--space-sm)
+    calc(var(--space-sm) + 2px);
   color: var(--fg);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
@@ -192,26 +189,8 @@ const LEVEL_ICON: Record<NoticeLevel, Component> = {
 
 .toast-item .toast-close {
   position: absolute;
-  inset-block-start: calc(var(--space-2xs) * -1.5);
-  inset-inline-end: calc(var(--space-2xs) * -1.5);
-  color: var(--fg-secondary);
-  background-color: var(--float-bg);
-  border: var(--border-width) solid var(--border);
-  border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-popover);
-  backdrop-filter: var(--glass-filter);
-}
-
-.toast-item .toast-close svg {
-  inline-size: var(--icon-sm);
-  block-size: var(--icon-sm);
-}
-
-@media (hover: hover) {
-  .toast-item .toast-close:hover {
-    color: var(--fg);
-    background-color: var(--bg-raised);
-  }
+  inset-block-start: var(--space-2xs);
+  inset-inline-end: var(--space-2xs);
 }
 
 .toast-item[data-swipe="move"] {
