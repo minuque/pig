@@ -21,6 +21,7 @@ export interface GatewayOptions {
   platformPort?: DirectoryPort
   port?: number
   createRuntime?: PiHostServiceOptions["createRuntime"]
+  createSession?: PiHostServiceOptions["createSession"]
   attachmentRootDir?: string
   browserSecretFile?: string
   agentDir?: string
@@ -56,6 +57,7 @@ export class Gateway {
       ...(options.agentDir ? { agentDir: options.agentDir } : {}),
       ...(options.remoteRoot ? { remoteRoot: options.remoteRoot } : {}),
       ...(options.createRuntime ? { createRuntime: options.createRuntime } : {}),
+      ...(options.createSession ? { createSession: options.createSession } : {}),
     })
     this.protocol = new ProtocolServer({
       server: this.server,

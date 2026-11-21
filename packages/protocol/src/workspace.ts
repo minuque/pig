@@ -33,26 +33,14 @@ export interface FileTextResponse {
   tooLarge: boolean
 }
 
-/** 目录里的一项；ignored 表示被 .gitignore 命中。 */
+/** 目录里的一项。 */
 export interface DirectoryEntry {
   name: string
   kind: "file" | "directory"
-  ignored: boolean
 }
 
 export interface DirectoryListResponse {
   entries: DirectoryEntry[]
-}
-
-/** 工作区里一个改动过的文件；U 是未跟踪。 */
-export interface GitFileStatus {
-  path: string
-  status: "M" | "A" | "D" | "R" | "U"
-}
-
-export interface GitStatusResponse {
-  repo: boolean
-  files: GitFileStatus[]
 }
 
 /** 内容搜索的一条命中：工作区相对路径、行号（从 1 起）与那一行。 */

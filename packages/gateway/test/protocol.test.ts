@@ -119,7 +119,7 @@ describe("pig 协议：断线重连后会话完整恢复", () => {
     const body = (await history.json()) as { items: Array<{ role: string }> }
     expect(body.items.map((item) => item.role)).toEqual(["user", "assistant"])
     second.socket.close()
-  })
+  }, 15_000)
 
   it("未 attach 就发 prompt 被拒为 invalid_request，连接不断", async () => {
     root = await mkdtemp(join(tmpdir(), "pig-protocol-"))

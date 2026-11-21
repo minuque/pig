@@ -310,10 +310,10 @@ export class PiHostService implements SessionService {
     this.catalogChanged()
   }
 
-  dispose(): Promise<void> {
+  async dispose(): Promise<void> {
     this.providers.dispose()
     this.fileWatcher.close()
-    return this.attachments.dispose()
+    await Promise.all([this.attachments.dispose(), this.resources.dispose()])
   }
 
   watchSession(sessionId: string, listener: () => void): () => void {

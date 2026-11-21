@@ -45,6 +45,9 @@ async function startGateway(options?: ConstructorParameters<typeof Gateway>[0]) 
   gateway = new Gateway({
     platformPort: directoryPort,
     createRuntime: async () => idleRuntime as never,
+    createSession: (async () => {
+      throw new Error("unexpected createSession")
+    }) as never,
     sessionDir,
     attachmentRootDir,
     ...options,

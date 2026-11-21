@@ -14,8 +14,6 @@ export type {
   FileSearchEntry,
   FileStatResponse,
   FileTextResponse,
-  GitFileStatus,
-  GitStatusResponse,
   LoginEvent,
   LoginPrompt,
   ModelMetadata,

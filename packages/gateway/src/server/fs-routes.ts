@@ -7,7 +7,7 @@ import { workspaceEnvironment } from "../pi/remote-session.js"
 import type { PiHostService } from "../pi/service.js"
 import { issuePreviewToken } from "./file-preview.js"
 import { HttpError, type HttpDeps, type HttpRouteTable } from "./router.js"
-import { gitIgnored, gitStatus, searchContents } from "./workspace-git.js"
+import { searchContents } from "./content-search.js"
 
 const TEXT_LIMIT = 1024 * 1024
 const BINARY_PROBE = 8000
@@ -144,13 +144,6 @@ export const fsRoutes = {
     return searchContents(env, root, path.join, url.searchParams.get("q") ?? "", controller.signal)
   },
 
-  "GET /api/v1/platform/git/status": async ({ url, deps }) => {
-    const workspace = await authorizedWorkspace(cwd(url), deps)
-
-    if (!workspace) throw new HttpError(403, "FORBIDDEN")
-    return gitStatus(workspace.env, workspace.root)
-  },
-
   "GET /api/v1/platform/fs/preview-token": async ({ url, deps }) => {
     const workspace = await authorizedWorkspace(cwd(url), deps)
 
@@ -160,22 +153,13 @@ export const fsRoutes = {
 } satisfies HttpRouteTable<FileDeps>
 const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" })
 
-async function listDirectory({ env, file, root, path }: Target) {
-  const items = (await env.readdir(file)).sort(
+async function listDirectory({ env, file }: Target) {
+  const entries = (await env.readdir(file)).sort(
     (a, b) =>
       Number(b.kind === "directory") - Number(a.kind === "directory") ||
       collator.compare(a.name, b.name),
   )
-  const dir = path.relative(root, file).split(path.sep).filter(Boolean).join("/")
-  const relative = (name: string) => (dir ? `${dir}/${name}` : name)
-  const ignored = await gitIgnored(
-    env,
-    root,
-    items.map((item) => `${relative(item.name)}${item.kind === "directory" ? "/" : ""}`),
-  )
-  return {
-    entries: items.map((item) => ({ ...item, ignored: ignored.has(relative(item.name)) })),
-  }
+  return { entries }
 }
 
 function inside(path: typeof posix, root: string, file: string) {
