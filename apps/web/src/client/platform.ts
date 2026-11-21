@@ -25,6 +25,8 @@ import type {
   SessionTranscriptPage,
   TranscriptItem,
   TurnTiming,
+  UserPreferences,
+  UserPreferencesPatch,
 } from "@/types/common-type.js"
 
 type HasOptions<K extends PlatformHttpRouteKey> = [PlatformRouteBody<K>] extends [never]
@@ -92,6 +94,15 @@ export async function selectDirectory(
 export async function listEnvironments(): Promise<EnvironmentInfo[]> {
   const { environments } = await request("GET /api/v1/platform/environments")
   return environments
+}
+
+export function getPreferences(): Promise<{ preferences: UserPreferences; exists: boolean }> {
+  return request("GET /api/v1/platform/preferences")
+}
+
+export async function patchPreferences(patch: UserPreferencesPatch): Promise<UserPreferences> {
+  const { preferences } = await request("PATCH /api/v1/platform/preferences", { body: patch })
+  return preferences
 }
 
 export async function warmWorkspace(path: string): Promise<void> {

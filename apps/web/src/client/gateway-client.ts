@@ -8,6 +8,7 @@ import type {
   ServerSnapshot,
   SessionMetadata,
   SessionSnapshot,
+  UserPreferences,
 } from "@pig/protocol"
 import { t } from "@i18n/index.js"
 
@@ -46,6 +47,7 @@ export class GatewayClient {
   readonly #fileListeners = new Map<string, Set<() => void>>()
   readonly #closeListeners = new Set<() => void>()
   readonly #extensionListeners = new Set<(event: ExtensionUiEvent) => void>()
+  readonly #preferencesListeners = new Set<(preferences: UserPreferences) => void>()
 
   constructor(
     private readonly url: string,
@@ -147,6 +149,11 @@ export class GatewayClient {
     return () => this.#extensionListeners.delete(listener)
   }
 
+  onPreferencesChanged(listener: (preferences: UserPreferences) => void): Unsubscribe {
+    this.#preferencesListeners.add(listener)
+    return () => this.#preferencesListeners.delete(listener)
+  }
+
   onSessionFileChanged(sessionId: string, listener: () => void): Unsubscribe {
     const listeners = this.#fileListeners.get(sessionId) ?? new Set()
     listeners.add(listener)
@@ -224,6 +231,11 @@ export class GatewayClient {
 
     if (event.type === "extension_ui_request") {
       this.#emit(this.#extensionListeners, event)
+      return
+    }
+
+    if (event.type === "preferences_changed") {
+      this.#emit(this.#preferencesListeners, event.preferences)
       return
     }
 

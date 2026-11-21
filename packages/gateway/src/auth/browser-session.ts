@@ -1,8 +1,8 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto"
 import { chmod, mkdir, readFile, writeFile } from "node:fs/promises"
 import type { IncomingMessage, ServerResponse } from "node:http"
-import { homedir } from "node:os"
 import { dirname, join } from "node:path"
+import { defaultPigHome } from "@pig/environment"
 
 const SECRET_BYTES = 32
 const COOKIE_DAYS = 30
@@ -16,9 +16,9 @@ interface CookiePayload {
   expiresAt: number
 }
 
-export function browserSecretFile(sessionDir?: string): string {
+export function browserSecretFile(sessionDir?: string, pigHome?: string): string {
   if (sessionDir) return join(sessionDir, "browser-session-secret")
-  return join(homedir(), ".pig", "browser-session-secret")
+  return join(pigHome ?? defaultPigHome(), "browser-session-secret")
 }
 
 function encode(value: Buffer): string {

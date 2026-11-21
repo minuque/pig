@@ -1,8 +1,9 @@
 import { readFile } from "node:fs/promises"
-import { homedir, hostname } from "node:os"
+import { hostname } from "node:os"
 import { join } from "node:path"
 
 import { readSshConfig, sshHosts } from "./ssh-config.js"
+import { defaultPigHome } from "./workspace.js"
 
 export interface EnvironmentInfo {
   id: string
@@ -14,7 +15,7 @@ export interface EnvironmentInfo {
 
 type SavedEnvironment = { host: string; path?: string }
 
-export const defaultEnvironmentsPath = () => join(homedir(), ".pig", "environments.json")
+export const defaultEnvironmentsPath = () => join(defaultPigHome(), "environments.json")
 
 async function readSaved(path: string): Promise<SavedEnvironment[]> {
   const raw: unknown = JSON.parse(await readFile(path, "utf8").catch(() => "[]"))

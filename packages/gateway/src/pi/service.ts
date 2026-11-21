@@ -46,6 +46,7 @@ const MODELS_CHANGED_CHANNEL = "pig:models:changed" satisfies keyof ModelChannel
 
 export interface PiHostServiceOptions {
   sessionDir?: string
+  pigHome?: string
   cwd?: string
   attachmentRootDir?: string
   agentDir?: string
@@ -150,13 +151,16 @@ export class PiHostService implements SessionService {
     const key = canonicalizePath(cwd)
     const authorized = await (this.authorizedLoad ??= loadAuthorizedWorkspaces(
       this.options.sessionDir,
+      this.options.pigHome,
     ).then((paths) => new Set(paths)))
 
     if (authorized.has(key)) return
     authorized.add(key)
     this.knownWorkspaces.add(key)
 
-    await saveAuthorizedWorkspaces(this.options.sessionDir, authorized).catch(() => undefined)
+    await saveAuthorizedWorkspaces(this.options.sessionDir, authorized, this.options.pigHome).catch(
+      () => undefined,
+    )
   }
 
   async isKnownWorkspace(cwd: string): Promise<boolean> {
@@ -166,6 +170,7 @@ export class PiHostService implements SessionService {
 
     const authorized = await (this.authorizedLoad ??= loadAuthorizedWorkspaces(
       this.options.sessionDir,
+      this.options.pigHome,
     ).then((paths) => new Set(paths)))
 
     if (authorized.has(key)) {
