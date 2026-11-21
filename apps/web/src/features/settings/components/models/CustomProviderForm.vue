@@ -10,7 +10,10 @@
 
         <div class="detail-sub">
           <span class="detail-id">{{ draft.id || t("settings.models.newProvider") }}</span>
-          <span class="provider-badge">{{ t("settings.models.group.custom") }}</span>
+
+          <Badge size="s" variant="soft" color="neutral">
+            {{ t("settings.models.group.custom") }}
+          </Badge>
         </div>
       </div>
     </header>
@@ -30,7 +33,7 @@
             size="s"
             class="field-input"
             :disabled="isEdit"
-            :data-invalid="errorField === 'id' ? '' : undefined"
+            :invalid="errorField === 'id'"
           />
         </label>
 
@@ -49,22 +52,30 @@
             v-model="draft.baseUrl"
             size="s"
             class="field-input"
-            :data-invalid="errorField === 'baseUrl' ? '' : undefined"
+            :invalid="errorField === 'baseUrl'"
           />
         </label>
 
-        <label class="field">
+        <div class="field">
           <span class="field-label">
             {{ t("settings.models.apiType") }}
             <span class="required">*</span>
           </span>
 
-          <select v-model="draft.api" class="select-input">
-            <option v-for="option in API_TYPES" :key="option.value" :value="option.value">
-              {{ option.label }}
-            </option>
-          </select>
-        </label>
+          <Select
+            size="s"
+            :model-value="draft.api"
+            @update:model-value="(v: unknown) => (draft.api = String(v))"
+          >
+            <SelectTrigger class="api-select" :aria-label="t('settings.models.apiType')" />
+
+            <SelectContent>
+              <SelectItem v-for="option in API_TYPES" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
         <label class="field span-2">
           <span class="field-label">{{ t("settings.models.apiKey") }}</span>
@@ -92,9 +103,16 @@
           {{ t("settings.models.modelCount", { count: draft.models.length }) }}
         </span>
 
-        <button type="button" class="add-model" @click="addModel">
+        <Button
+          type="button"
+          size="s"
+          variant="ghost"
+          color="accent"
+          class="add-model"
+          @click="addModel"
+        >
           + {{ t("settings.models.addModel") }}
-        </button>
+        </Button>
       </h3>
 
       <div class="model-cards">
@@ -155,6 +173,8 @@ import {
   AlertDialogTitle,
 } from "@components/ui/alert-dialog/index.js"
 import { Button } from "@components/ui/button/index.js"
+import { Badge } from "@components/ui/badge/index.js"
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@components/ui/select/index.js"
 import { TextFieldRoot } from "@components/ui/text-field/index.js"
 import VendorMark from "@components/icons/VendorMark.vue"
 import CustomModelCard from "@features/settings/components/models/CustomModelCard.vue"
@@ -307,18 +327,6 @@ async function remove() {
   font-size: var(--text-meta);
 }
 
-.provider-badge {
-  display: inline-flex;
-  align-items: center;
-  height: 18px;
-  padding-inline: 6px;
-  border: var(--border-width) solid var(--border-subtle);
-  border-radius: var(--radius-control);
-  background: var(--bg-muted);
-  color: var(--fg-secondary);
-  font-size: var(--text-meta);
-}
-
 .detail-sec {
   padding-block-start: var(--space-md);
 }
@@ -341,13 +349,6 @@ async function remove() {
 
 .add-model {
   margin-inline-start: auto;
-  color: var(--accent-text);
-  font-size: var(--text-meta);
-  font-weight: var(--font-weight-normal);
-}
-
-.add-model:hover {
-  opacity: 0.8;
 }
 
 .form-grid {
@@ -380,18 +381,8 @@ async function remove() {
   font-size: var(--text-meta);
 }
 
-.field-input[data-invalid] {
-  border-color: var(--danger-text);
-}
-
-.select-input {
-  height: 24px;
-  padding-inline: var(--space-xs);
-  border: var(--border-width) solid var(--border-subtle);
-  border-radius: var(--radius-control);
-  background: var(--bg);
-  color: var(--fg);
-  font-size: var(--text-meta);
+.api-select {
+  width: 100%;
 }
 
 .hint {
@@ -429,9 +420,5 @@ async function remove() {
   .form-grid {
     grid-template-columns: minmax(0, 1fr);
   }
-}
-
-:deep([data-button][data-size="s"]) {
-  font-size: var(--text-body);
 }
 </style>

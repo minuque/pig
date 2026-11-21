@@ -209,6 +209,7 @@ spacing:
 - 设置行由标题、一行简短说明与控件组成，不再堆叠多余提示。
 - 项目缩写用灰色 soft Badge。
 - AI 工作台与通用基础件收口到 `components/ui/`：`StatusIndicator` 统一圆点/图标状态表达（侧栏状态、子任务点、摘要角标），`Collapsible` 已接入 `RailCard`、`ProviderModelList`、`RailTasks`，`Checkbox` 补全表单复选能力并在 `/design` 提供示例。
+- `TextFieldRoot` 通过 `invalid` prop 表达校验错误态（危险色内环加危险色焦点环）；居中模态浮层（`Dialog`、`AlertDialog`、`CommandPalette`）统一使用 `--radius-dialog`（12px）圆角。
 
 ## 不要
 

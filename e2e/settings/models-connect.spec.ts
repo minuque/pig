@@ -13,7 +13,7 @@ test("填 Key 保存并连接，登出后回到未连接", async ({ page, models
   await expect(page.locator(".provider-detail-title")).toHaveText("OpenAI")
   await expect(page.locator(".provider-badge")).toHaveText("未连接")
 
-  await page.locator(".kvinput").fill("sk-openai-test")
+  await page.locator(".kvinput input").fill("sk-openai-test")
   await page.getByRole("button", { name: "保存并连接" }).click()
 
   await expect(page.locator(".provider-badge")).toHaveText("已连接")

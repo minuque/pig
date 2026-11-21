@@ -50,16 +50,30 @@
     <form v-if="state.prompt" class="login-form" @submit.prevent="submit">
       <label class="login-label" :for="state.prompt.id">{{ state.prompt.message }}</label>
 
-      <select v-if="state.prompt.type === 'select'" :id="state.prompt.id" v-model="value">
-        <option v-for="option in state.prompt.options" :key="option.id" :value="option.id">
-          {{ option.label }}
-        </option>
-      </select>
+      <Select
+        v-if="state.prompt.type === 'select'"
+        size="m"
+        :model-value="value"
+        @update:model-value="(v: unknown) => (value = String(v))"
+      >
+        <SelectTrigger
+          :id="state.prompt.id"
+          class="login-select"
+          :aria-label="state.prompt.message"
+        />
 
-      <input
+        <SelectContent>
+          <SelectItem v-for="option in state.prompt.options" :key="option.id" :value="option.id">
+            {{ option.label }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
+
+      <TextFieldRoot
         v-else
         :id="state.prompt.id"
         v-model="value"
+        size="m"
         class="login-input"
         :type="state.prompt.type === 'secret' ? 'password' : 'text'"
         :placeholder="state.prompt.placeholder ?? ''"
@@ -92,6 +106,8 @@ import { computed, ref, watch } from "vue"
 
 import { Button, IconButton } from "@components/ui/button/index.js"
 import { Link } from "@components/ui/link/index.js"
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@components/ui/select/index.js"
+import { TextFieldRoot } from "@components/ui/text-field/index.js"
 import {
   CheckIcon,
   CopyIcon,
@@ -228,15 +244,8 @@ async function copy(text: string) {
   font-size: var(--text-meta);
 }
 
-.login-input,
-.login-form select {
-  height: 30px;
-  padding-inline: var(--space-sm);
-  border: var(--border-width) solid var(--border-subtle);
-  border-radius: var(--radius-control);
-  background: var(--bg);
-  color: var(--fg);
-  font-size: var(--text-meta);
+.login-select {
+  width: 100%;
 }
 
 .login-actions {
@@ -244,9 +253,5 @@ async function copy(text: string) {
   justify-content: flex-end;
   gap: var(--space-xs);
   margin-block-start: var(--space-xs);
-}
-
-:deep([data-button][data-size="s"]) {
-  font-size: var(--text-body);
 }
 </style>

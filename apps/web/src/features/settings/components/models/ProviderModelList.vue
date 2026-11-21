@@ -27,15 +27,18 @@
             @update:model-value="toggleEnabled(model, $event)"
           />
 
-          <button
+          <IconButton
             type="button"
+            size="s"
+            variant="ghost"
+            color="neutral"
             class="chevron-button"
             :aria-expanded="expanded === model.id"
             :aria-label="t('settings.models.expandModel')"
             @click="toggle(model.id)"
           >
             <ChevronRightIcon class="chevron" :data-open="expanded === model.id ? '' : undefined" />
-          </button>
+          </IconButton>
         </div>
 
         <CollapsibleContent>
@@ -55,6 +58,7 @@
 import { ref } from "vue"
 
 import { ChevronRightIcon } from "@components/icons/index.js"
+import { IconButton } from "@components/ui/button/index.js"
 import { Switch } from "@components/ui/switch/index.js"
 import VendorMark from "@components/icons/VendorMark.vue"
 import ModelParamsForm from "@features/settings/components/models/ModelParamsForm.vue"
@@ -134,21 +138,6 @@ async function toggleEnabled(model: ProviderModelView, enabled: boolean) {
 
 .model-row:hover {
   background: var(--bg-hover);
-}
-
-.chevron-button {
-  display: grid;
-  place-items: center;
-  flex: none;
-  width: 22px;
-  height: 22px;
-  border-radius: var(--radius-control);
-  color: var(--fg-secondary);
-}
-
-.chevron-button:hover {
-  background: var(--bg-hover);
-  color: var(--fg);
 }
 
 .chevron {

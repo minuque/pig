@@ -24,9 +24,9 @@
     <div v-else-if="error" class="list-state">
       <span>{{ error }}</span>
 
-      <button type="button" class="retry" @click="emit('retry')">
+      <Button type="button" size="s" variant="ghost" color="info" @click="emit('retry')">
         {{ t("settings.models.retry") }}
-      </button>
+      </Button>
     </div>
 
     <div v-for="group in groups" :key="group.id" class="provider-group">
@@ -50,9 +50,10 @@
           <span class="provider-main">
             <span class="provider-name">
               {{ provider.name }}
-              <span v-if="sourceKind(provider) !== 'none'" class="provider-badge-soft">
+
+              <Badge v-if="sourceKind(provider) !== 'none'" size="s" variant="soft" color="neutral">
                 {{ t(`settings.models.source.${sourceKind(provider)}`) }}
-              </span>
+              </Badge>
             </span>
 
             <span class="provider-id">{{ provider.id }}</span>
@@ -79,6 +80,7 @@ import { computed, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { PlusIcon, ChevronRightIcon, SearchIcon } from "@components/icons/index.js"
 import { Button } from "@components/ui/button/index.js"
+import { Badge } from "@components/ui/badge/index.js"
 import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
 import VendorMark from "@components/icons/VendorMark.vue"
 import { groupProviders, providerSourceText } from "@features/settings/lib/provider-view.js"
@@ -166,19 +168,6 @@ function sourceKind(provider: ProviderView) {
   line-height: var(--text-body--line-height);
 }
 
-.provider-badge-soft {
-  display: inline-flex;
-  align-items: center;
-  height: 16px;
-  padding-inline: 5px;
-  border: var(--border-width) solid var(--border-subtle);
-  border-radius: var(--radius-control);
-  background: var(--bg-muted);
-  color: var(--fg-secondary);
-  font-size: 9px;
-  font-weight: var(--font-weight-medium);
-}
-
 .provider-id {
   color: var(--fg-secondary);
   font-size: var(--text-meta);
@@ -205,11 +194,6 @@ function sourceKind(provider: ProviderView) {
   margin: 0;
   padding-block: var(--space-xl);
   color: var(--fg-secondary);
-  font-size: var(--text-meta);
-}
-
-.retry {
-  color: var(--link);
   font-size: var(--text-meta);
 }
 

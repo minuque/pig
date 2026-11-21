@@ -37,6 +37,9 @@
             <IconButton
               type="button"
               size="s"
+              variant="ghost"
+              color="neutral"
+              radius="full"
               class="attach press-scale"
               :aria-label="t('composer.addAttachment')"
               :disabled="attachmentsFull"
@@ -77,6 +80,9 @@
             <IconButton
               type="button"
               size="s"
+              variant="solid"
+              radius="full"
+              :color="primaryMode === 'stop' ? 'danger' : 'accent'"
               class="send press-scale"
               :class="{ 'send--abort': primaryMode === 'stop' }"
               :aria-label="primaryLabel"
@@ -93,7 +99,7 @@
           <TooltipContent>
             <!-- 外部：元素间的换行空白会被编译器丢掉 -->
             <span>{{ primaryLabel }}</span>
-            <kbd v-if="primaryMode !== 'stop'" class="tooltip-hint">↵</kbd>
+            <Kbd v-if="primaryMode !== 'stop'" size="s" variant="soft" class="tooltip-hint">↵</Kbd>
           </TooltipContent>
         </Tooltip>
       </template>
@@ -114,6 +120,7 @@ import { computed, ref, useTemplateRef, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
+import { Kbd } from "@components/ui/kbd/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import AttachmentChips from "@features/composer/components/AttachmentChips.vue"
 import PreviewDialog from "@features/preview/index.vue"
@@ -318,77 +325,25 @@ function onAbortHotkey(event: KeyboardEvent) {
 }
 
 .attach {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  width: var(--control-md);
-  height: var(--control-md);
-  min-width: var(--control-md);
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: transparent;
+  inline-size: var(--control-md);
+  block-size: var(--control-md);
   color: var(--fg);
-  cursor: pointer;
-  transition:
-    background var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
-}
-
-.attach:not(:disabled):hover {
-  background: var(--bg-hover);
-  color: var(--fg);
-}
-
-.attach:disabled {
-  cursor: default;
-  opacity: var(--opacity-disabled);
 }
 
 .send {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  width: var(--control-md);
-  height: var(--control-md);
-  min-width: var(--control-md);
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-pill);
-  cursor: pointer;
-  transition:
-    background var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out),
-    opacity var(--duration-fast) var(--ease-out);
-  background: var(--accent-solid);
-  color: var(--fg-on-accent);
+  inline-size: var(--control-md);
+  block-size: var(--control-md);
 }
 
-.send:not(:disabled):hover {
-  background: var(--accent-solid-hover);
-}
-
-.send--abort,
-.send--abort:not(:disabled):hover {
-  background: var(--danger-solid);
-  color: var(--white);
+.send:disabled {
+  opacity: 1;
+  background: var(--bg-emphasis);
+  color: var(--fg-secondary);
   box-shadow: none;
 }
 
 .send--abort:not(:disabled):hover {
   opacity: 0.85;
-}
-
-.send:disabled {
-  cursor: default;
-  scale: 1;
-  background: var(--bg-emphasis);
-  color: var(--fg-secondary);
-  box-shadow: none;
 }
 
 .send--abort:disabled {
@@ -406,31 +361,20 @@ function onAbortHotkey(event: KeyboardEvent) {
   stroke-width: 2.5px;
 }
 
-.tooltip-hint {
+.tooltip-hint[data-slot="kbd"] {
+  top: 0;
+  min-inline-size: 0;
   margin-inline-start: var(--space-2xs);
+  padding: 0;
+  background: transparent;
+  color: inherit;
   font: inherit;
-  opacity: 0.55;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .send,
-  .attach {
-    transition: none;
-  }
-}
-
-.send:focus-visible {
-  outline: 2px solid var(--focus-color);
-  outline-offset: 2px;
-}
-
-.attach:focus-visible {
-  outline: 2px solid var(--focus-color);
-  outline-offset: 2px;
+  opacity: 0.65;
 }
 
 .attach-icon {
   inline-size: var(--icon-lg);
   block-size: var(--icon-lg);
+  color: currentColor;
 }
 </style>

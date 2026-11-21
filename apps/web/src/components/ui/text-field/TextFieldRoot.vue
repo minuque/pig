@@ -5,6 +5,7 @@
     :data-variant="variant"
     :data-tone="color"
     :data-radius="radius"
+    :data-invalid="invalid || undefined"
     :class="props.class"
     @pointerdown="onPointerDown"
   >
@@ -12,6 +13,7 @@
       ref="inputRef"
       data-slot="text-field-input"
       spellcheck="false"
+      :aria-invalid="invalid || undefined"
       :value="modelValue"
       v-bind="$attrs"
       @input="onInput"
@@ -36,9 +38,10 @@ const props = withDefaults(
     variant?: "surface" | "soft"
     color?: ToneColor
     radius?: Radius
+    invalid?: boolean
     class?: HTMLAttributes["class"]
   }>(),
-  { size: "m", variant: "surface", class: undefined },
+  { size: "m", variant: "surface", invalid: false, class: undefined },
 )
 const emit = defineEmits<{ "update:modelValue": [value: string] }>()
 const inputRef = ref<HTMLInputElement>()
@@ -273,5 +276,13 @@ function onPointerDown(event: PointerEvent) {
 
 :where([data-slot="text-field-input"]:where(:disabled, :read-only):placeholder-shown) {
   cursor: default;
+}
+
+:where([data-slot="text-field-root"][data-invalid]) {
+  box-shadow: inset 0 0 0 var(--border-width) var(--danger-text);
+}
+
+:where([data-slot="text-field-root"][data-invalid]:has([data-slot="text-field-input"]:focus)) {
+  outline-color: var(--danger-text);
 }
 </style>
