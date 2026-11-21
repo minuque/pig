@@ -9,7 +9,7 @@
         underline="hover"
         @click.prevent="folder ? fileOpener?.reveal(path) : fileOpener?.open({ path })"
       >
-        <FolderIcon v-if="folder" class="file-link-icon" />
+        <FolderIcon v-if="folder" class="file-link-icon is-folder" />
 
         <LanguageIcon
           v-else
@@ -62,5 +62,9 @@ const folder = computed(() => looksLikeFolder(props.path))
   height: 1em;
   margin-inline-end: 0.2em;
   vertical-align: -0.125em;
+}
+
+.file-link .file-link-icon.is-folder {
+  color: var(--fg-secondary);
 }
 </style>
