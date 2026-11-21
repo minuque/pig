@@ -146,7 +146,7 @@ function isSpacedAbsolutePath(text: string): boolean {
 export function inlineCodeFilePath(code: string): string | null {
   const trimmed = code.trim()
 
-  if (trimmed.length === 0 || trimmed.includes("`")) return null
+  if (trimmed.length === 0 || /[`*]/.test(trimmed)) return null
 
   if (WHITESPACE.test(trimmed) && !isSpacedAbsolutePath(trimmed)) return null
   const candidate = WINDOWS_ABSOLUTE.test(trimmed) ? trimmed : trimmed.replaceAll("\\", "/")
@@ -159,19 +159,21 @@ export function inlineCodeFilePath(code: string): string | null {
 
   if (SEPARATOR.test(bare.at(-1) ?? "")) return null
 
+  const basename = bare.split(SEPARATOR).at(-1) ?? ""
+  const named = FILE_EXTENSION.test(basename) || EXTENSIONLESS_FILES.has(basename)
+
   if (
     RELATIVE_PREFIX.test(candidate) ||
     candidate.startsWith("/") ||
     WINDOWS_ABSOLUTE.test(candidate)
   )
-    return candidate
+    return named || hasPosition ? candidate : null
 
   if (looksLikeHostname(bare.split("/")[0] ?? bare, hasPosition)) return null
-  const basename = bare.split(SEPARATOR).at(-1) ?? ""
 
   if (VERSION_SUFFIX.test(basename)) return null
 
-  if (FILE_EXTENSION.test(basename) || EXTENSIONLESS_FILES.has(basename)) return candidate
+  if (named) return candidate
   return hasPosition && ANY_FILE_EXTENSION.test(basename) ? candidate : null
 }
 
@@ -230,4 +232,14 @@ export function isFileLinkLabel(label: string, href: string): boolean {
 
   if (shownPath.length === 0) return true
   return targetPath === shownPath || targetPath.endsWith(`/${shownPath}`)
+}
+
+export function looksLikeFolder(raw: string): boolean {
+  const { path, line } = filePosition(raw)
+  const name = fileBasename(path)
+  return (
+    !line &&
+    (SEPARATOR.test(path.at(-1) ?? "") ||
+      (!FILE_EXTENSION.test(name) && !EXTENSIONLESS_FILES.has(name)))
+  )
 }

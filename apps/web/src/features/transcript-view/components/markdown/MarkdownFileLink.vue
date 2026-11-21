@@ -9,7 +9,14 @@
         underline="hover"
         @click.prevent="fileOpener?.open({ path })"
       >
-        <LanguageIcon class="file-link-icon" :language="fileExtension(target)" aria-hidden="true" />
+        <FolderIcon v-if="looksLikeFolder(path)" class="file-link-icon" />
+
+        <LanguageIcon
+          v-else
+          class="file-link-icon"
+          :language="fileExtension(target)"
+          aria-hidden="true"
+        />
         {{ fileLinkLabel(path) }}
       </Link>
     </TooltipTrigger>
@@ -20,6 +27,7 @@
 
 <script setup lang="ts">
 import { computed, inject } from "vue"
+import { FolderIcon } from "@components/icons/index.js"
 import LanguageIcon from "@components/icons/LanguageIcon.vue"
 import { Link } from "@components/ui/link/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
@@ -28,6 +36,7 @@ import {
   fileExtension,
   fileLinkLabel,
   filePosition,
+  looksLikeFolder,
 } from "@features/transcript-view/lib/file-link.js"
 
 const props = defineProps<{ path: string }>()

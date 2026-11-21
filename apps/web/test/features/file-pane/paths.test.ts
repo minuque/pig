@@ -29,6 +29,7 @@ describe("对话里的路径换成工作区内的文件", () => {
       "comark:incomplete-link",
       "/etc/passwd",
       "../other/a.md",
+      "~/.pi/agent/a.md",
       "",
     ])
       expect(workspacePath("/home/me/proj", raw)).toBeUndefined()

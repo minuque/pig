@@ -3,6 +3,7 @@ import {
   fileLinkLabel,
   inlineCodeFilePath,
   isFileLinkLabel,
+  looksLikeFolder,
 } from "@features/transcript-view/lib/file-link.js"
 
 describe("行内代码里的路径识别成文件", () => {
@@ -39,6 +40,11 @@ describe("行内代码里的路径识别成文件", () => {
     "./patches/",
     "G:/tmp/backup/",
     "subagent-notification:377",
+    "~/.pi/agent",
+    "~/.config/alma",
+    "/usr/local/share/app",
+    "~/.alma/**",
+    "~/ego*",
   ])("%s 不是文件", (code) => {
     expect(inlineCodeFilePath(code)).toBeNull()
   })
@@ -67,5 +73,17 @@ describe("markdown 文件链接的文字是路径时只显示文件，描述性�
     ["example.ts:12-20", "/repo/src/example.ts:12", false],
   ])("%s → %s", (label, href, expected) => {
     expect(isFileLinkLabel(label, href)).toBe(expected)
+  })
+})
+
+describe("指向目录的链接用文件夹图标", () => {
+  it.each([
+    ["apps/web", true],
+    ["docs/", true],
+    ["apps/web/main.ts", false],
+    ["docker/Dockerfile", false],
+    ["bin/run:12", false],
+  ])("%s → %s", (path, folder) => {
+    expect(looksLikeFolder(path)).toBe(folder)
   })
 })
