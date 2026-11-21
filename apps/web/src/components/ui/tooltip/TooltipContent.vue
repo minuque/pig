@@ -36,6 +36,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<Too
 /* 提示气泡：反色底 + 反色字，字号取最小档 */
 :where([data-slot="tooltip-content"]) {
   box-sizing: border-box;
+  z-index: var(--z-popover);
   padding: var(--space-2xs) var(--space-xs);
   border-radius: var(--radius-control);
   background-color: var(--fg);
@@ -50,7 +51,9 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<Too
   cursor: default;
 }
 
+/* 箭头往气泡里压 1px：两者对接在小数像素上时，两条抗锯齿边之间会透出一条底色细线 */
 :where([data-slot="tooltip-arrow"]) {
   fill: var(--fg);
+  transform: translateY(-1px);
 }
 </style>

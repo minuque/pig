@@ -1,7 +1,7 @@
 <template>
+  <!-- as-child 时不要把 data-slot 写在触发元素上：会覆盖子元素自己的标记 -->
   <CollapsibleTrigger
-    :data-slot="props.asChild ? undefined : 'collapsible-trigger'"
-    v-bind="forwarded"
+    v-bind="props.asChild ? forwarded : { ...forwarded, 'data-slot': 'collapsible-trigger' }"
   >
     <slot />
   </CollapsibleTrigger>

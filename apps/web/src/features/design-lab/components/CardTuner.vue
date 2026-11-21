@@ -24,7 +24,7 @@
           v-for="preset in PRESETS"
           :key="preset.name"
           size="s"
-          :variant="isPreset(preset) ? 'soft' : 'surface'"
+          :variant="isPreset(preset) ? 'secondary' : 'outline'"
           color="neutral"
           @click="apply(preset)"
         >

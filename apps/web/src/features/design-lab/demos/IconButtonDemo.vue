@@ -36,6 +36,6 @@ import Variant from "@features/design-lab/components/DemoVariant.vue"
 import { IconButton } from "@components/ui/button/index.js"
 import { CopyIcon } from "@components/icons/index.js"
 
-const VARIANTS = ["solid", "soft", "surface", "outline", "ghost"] as const
+const VARIANTS = ["solid", "secondary", "outline", "ghost"] as const
 const SIZES = ["s", "m", "l"] as const
 </script>

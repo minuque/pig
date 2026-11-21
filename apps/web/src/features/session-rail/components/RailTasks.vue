@@ -33,7 +33,7 @@
                 <IconButton
                   type="button"
                   size="s"
-                  variant="soft"
+                  variant="secondary"
                   color="neutral"
                   :aria-label="t('rail.stopTask')"
                   :disabled="stopping.has(task.id)"

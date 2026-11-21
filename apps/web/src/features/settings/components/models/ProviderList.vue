@@ -13,7 +13,7 @@
         </TextFieldSlot>
       </TextFieldRoot>
 
-      <Button type="button" size="m" variant="surface" @click="emit('add')">
+      <Button type="button" size="m" variant="outline" @click="emit('add')">
         <PlusIcon class="size-icon" />
         {{ t("settings.models.addProvider") }}
       </Button>

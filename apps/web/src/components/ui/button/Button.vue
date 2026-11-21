@@ -51,60 +51,73 @@ const props = withDefaults(defineProps<Props>(), {
 </script>
 
 <style>
-/* 按钮：尺寸档 s/m/l 对应 24/32/40 的控件高，外观全在 data 属性上。
-   底色与文字色读 `--tone-*` 槽位，换 color 时整组跟随。 */
+/* 按钮：s/m/l 对应 28/32/36 的控件高，外观全在 data 属性上；底色与文字色读 `--tone-*` 槽位 */
 :where([data-button]) {
   box-sizing: border-box;
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   vertical-align: top;
   appearance: none;
-  border-radius: var(--radius-control);
   padding: 0;
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-card);
+  background-color: transparent;
+  color: var(--fg);
   font-family: var(--font-sans);
+  font-size: var(--text-body);
   font-style: normal;
-  font-weight: var(--font-weight-normal);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--text-body--line-height);
   text-align: center;
   text-decoration: none;
   white-space: nowrap;
   user-select: none;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
 }
 
-:where([data-button]:not([data-variant="ghost"])) {
-  font-weight: var(--font-weight-medium);
+/* 按下微缩；会弹出菜单的按钮不缩，避免与浮层出现动画叠加 */
+:where([data-button]:active:not([aria-haspopup], [data-disabled])) {
+  transform: scale(0.97);
 }
 
-/* 实心按钮的图标压一档透明度，与文字对齐观感 */
-:where([data-button]:not([data-variant="ghost"])) :where(svg) {
-  opacity: 0.9;
+:where([data-button]:focus-visible) {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
 }
 
-/* --- 尺寸 --- */
+:where([data-button]:focus-visible[data-tone="danger"]) {
+  outline-color: var(--danger-text);
+}
+
+:where([data-button][data-disabled]) {
+  opacity: var(--opacity-disabled);
+  pointer-events: none;
+}
+
+/* --- 尺寸：内边距扣掉 1px 边框，与描边按钮的视觉宽度一致 --- */
 :where([data-button]:not([data-slot="icon-button"])[data-size="s"]) {
-  height: var(--space-lg);
-  gap: var(--space-2xs);
-  padding-inline: var(--space-xs);
-  border-radius: calc(var(--radius-control) / 2);
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
+  height: var(--control-sm);
+  gap: calc(var(--spacing) * 1.5);
+  padding-inline: calc(var(--spacing) * 2.5 - var(--border-width));
 }
 
 :where([data-button]:not([data-slot="icon-button"])[data-size="m"]) {
   height: var(--control-md);
   gap: var(--space-xs);
-  padding-inline: var(--space-sm);
-  font-size: var(--text-body);
-  line-height: var(--text-body--line-height);
+  padding-inline: calc(var(--spacing) * 3 - var(--border-width));
 }
 
 :where([data-button]:not([data-slot="icon-button"])[data-size="l"]) {
   height: var(--control-lg);
-  gap: var(--space-sm);
-  padding-inline: var(--space-md);
-  font-size: var(--text-title);
-  line-height: var(--text-title--line-height);
+  gap: var(--space-xs);
+  padding-inline: calc(var(--spacing) * 3.5 - var(--border-width));
 }
 
 /* --- 圆角档 --- */
@@ -128,150 +141,58 @@ const props = withDefaults(defineProps<Props>(), {
   border-radius: var(--radius-pill);
 }
 
-/* 幽灵按钮不占盒：内边距撑高，负外边距抵回视觉对齐（rt 的原样做法） */
-:where([data-button]:not([data-slot="icon-button"])[data-variant="ghost"]) {
-  box-sizing: content-box;
-  height: fit-content;
-  padding-block: var(--space-2xs);
-  padding-inline: var(--space-xs);
-  margin: calc(var(--space-2xs) * -1);
-  color: var(--tone-text);
-}
-
-:where([data-button]:not([data-slot="icon-button"])[data-variant="ghost"][data-size="l"]) {
-  padding-block: calc(var(--space-2xs) * 1.5);
-  padding-inline: var(--space-sm);
-  margin: calc(var(--space-2xs) * -1.5) calc(var(--space-sm) * -1);
-}
-
-/* --- solid --- */
+/* --- solid：实色底 + 顶部高光 + 同色淡投影，悬停降到 90% --- */
 :where([data-button][data-variant="solid"]) {
+  border-color: var(--tone);
   background-color: var(--tone);
+  box-shadow:
+    var(--button-highlight),
+    0 1px 2px var(--tone-shadow);
   color: var(--fg-on-accent);
 }
 
 @media (hover: hover) {
   :where([data-button][data-variant="solid"]:hover) {
-    background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
+    background-color: var(--tone-hover);
   }
 }
 
 :where([data-button][data-variant="solid"][data-state="open"]) {
-  background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
+  background-color: var(--tone-hover);
 }
 
-:where([data-button][data-variant="solid"]:active:not([data-state="open"])) {
-  background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
-  filter: brightness(0.92) saturate(1.1);
+:where([data-button][data-variant="solid"]:active) {
+  box-shadow: var(--button-pressed);
 }
 
-:where([data-button][data-variant="solid"]:focus-visible) {
-  outline: 2px solid var(--focus-color);
-  outline-offset: 2px;
-}
-
-:where([data-button][data-variant="solid"][data-disabled]) {
+/* --- secondary：中性浅底 --- */
+:where([data-button][data-variant="secondary"]) {
   background-color: var(--bg-muted);
-  background-image: none;
-  color: var(--fg-disabled);
-  filter: none;
 }
 
-/* --- soft --- */
-:where([data-button][data-variant="soft"]) {
-  background-color: var(--tone-subtle);
-  color: var(--tone-text);
-}
-
-@media (hover: hover) {
-  :where([data-button][data-variant="soft"]:hover) {
-    background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
-  }
-}
-
-:where([data-button][data-variant="soft"][data-state="open"]) {
-  background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
-}
-
-:where([data-button][data-variant="soft"]:active:not([data-state="open"])) {
-  background-image: linear-gradient(var(--bg-emphasis), var(--bg-emphasis));
-}
-
-:where([data-button][data-variant="soft"]:focus-visible) {
-  outline: 2px solid var(--focus-color);
-  outline-offset: -1px;
-}
-
-:where([data-button][data-variant="soft"][data-disabled]) {
-  background-color: var(--bg-muted);
-  background-image: none;
-  color: var(--fg-disabled);
-}
-
-/* --- surface --- */
-:where([data-button][data-variant="surface"]) {
-  background-color: var(--tone-subtle);
-  box-shadow: inset 0 0 0 var(--border-width) var(--tone-border);
-  color: var(--tone-text);
-}
-
-@media (hover: hover) {
-  :where([data-button][data-variant="surface"]:hover) {
-    background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
-  }
-}
-
-:where([data-button][data-variant="surface"][data-state="open"]) {
-  background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
-}
-
-:where([data-button][data-variant="surface"]:active:not([data-state="open"])) {
-  background-image: linear-gradient(var(--bg-emphasis), var(--bg-emphasis));
-}
-
-:where([data-button][data-variant="surface"]:focus-visible) {
-  outline: 2px solid var(--focus-color);
-  outline-offset: -1px;
-}
-
-:where([data-button][data-variant="surface"][data-disabled]) {
-  background-color: var(--bg-muted);
-  background-image: none;
-  box-shadow: inset 0 0 0 var(--border-width) var(--border-strong);
-  color: var(--fg-disabled);
-}
-
-/* --- outline --- */
+/* --- outline：输入框同款外框、浮层底与淡投影 --- */
 :where([data-button][data-variant="outline"]) {
-  box-shadow: inset 0 0 0 var(--border-width) var(--tone-border);
-  color: var(--tone-text);
+  border-color: var(--control-border);
+  background-color: var(--control-bg);
+  box-shadow: var(--control-shadow);
 }
 
+:where([data-button][data-variant="outline"]:active) {
+  box-shadow: none;
+}
+
+/* secondary、outline 悬停在原底色上叠一层中性 */
 @media (hover: hover) {
-  :where([data-button][data-variant="outline"]:hover) {
-    background-color: var(--tone-subtle);
+  :where([data-button]:is([data-variant="secondary"], [data-variant="outline"]):hover) {
+    background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
   }
 }
 
-:where([data-button][data-variant="outline"][data-state="open"]) {
-  background-color: var(--tone-subtle);
+:where([data-button]:is([data-variant="secondary"], [data-variant="outline"])[data-state="open"]) {
+  background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
 }
 
-:where([data-button][data-variant="outline"]:active:not([data-state="open"])) {
-  background-color: var(--tone-subtle);
-}
-
-:where([data-button][data-variant="outline"]:focus-visible) {
-  outline: 2px solid var(--focus-color);
-  outline-offset: -1px;
-}
-
-:where([data-button][data-variant="outline"][data-disabled]) {
-  box-shadow: inset 0 0 0 var(--border-width) var(--border-input);
-  color: var(--fg-disabled);
-}
-
-/* --- ghost --- */
+/* --- ghost：固定盒，悬停铺中性底 --- */
 @media (hover: hover) {
   :where([data-button][data-variant="ghost"]:hover) {
     background-color: var(--bg-hover);
@@ -282,27 +203,13 @@ const props = withDefaults(defineProps<Props>(), {
   background-color: var(--bg-hover);
 }
 
-:where([data-button][data-variant="ghost"]:active:not([data-state="open"])) {
-  background-color: var(--bg-emphasis);
+/* 描边与幽灵按钮的图标压到弱色 */
+:where([data-button]:is([data-variant="outline"], [data-variant="ghost"])) :where(svg) {
+  color: var(--fg-muted);
 }
 
-:where([data-button][data-variant="ghost"]:focus-visible) {
-  outline: 2px solid var(--focus-color);
-  outline-offset: -1px;
-}
-
-:where([data-button][data-variant="ghost"][data-disabled]) {
-  background-color: transparent;
-  color: var(--fg-disabled);
-}
-
-/* 危险色按钮的焦点环跟文字档同色，灰底上更清楚 */
-:where([data-button]:focus-visible[data-tone="danger"]) {
-  outline-color: var(--danger-text);
-}
-
-/* 加载态：spinner 绝对定位在按钮内，按钮自己提供定位上下文 */
-:where([data-button][data-loading]) {
-  position: relative;
+/* 非实心按钮显式给了色调（如 danger）时，文字取该色调 */
+:where([data-button][data-tone]:not([data-tone="neutral"], [data-variant="solid"])) {
+  color: var(--tone-text);
 }
 </style>

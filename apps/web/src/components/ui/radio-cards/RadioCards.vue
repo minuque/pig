@@ -8,7 +8,7 @@
     :data-disabled="disabled || undefined"
     :class="props.class"
     :style="gridStyle"
-    v-bind="forwarded"
+    v-bind="{ ...forwarded, ...$attrs }"
   >
     <slot />
   </RadioGroupRoot>
@@ -36,8 +36,8 @@ const props = withDefaults(
       disabled?: boolean
       /** 列宽规则，直接落成 grid-template-columns */
       columns?: string
-      /** rt 的间距档 1-9，默认 4 */
-      gap?: string
+      /** 卡片间距，取 --space-* 档 */
+      gap?: "2xs" | "xs" | "sm" | "md" | "lg"
     }
   >(),
   {
@@ -46,7 +46,7 @@ const props = withDefaults(
     variant: "surface",
     disabled: false,
     columns: "repeat(auto-fit, minmax(160px, 1fr))",
-    gap: "4",
+    gap: "sm",
   },
 )
 const emits = defineEmits<RadioGroupRootEmits>()
@@ -61,7 +61,7 @@ const delegatedProps = reactiveOmit(
   "gap",
 )
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<RadioGroupRootProps>
-/** 列宽与间距直接落成内联属性：rt 的 Grid 工具类在 utilities.css 里，本项目没引那层 */
+/** 列宽与间距随 props 变，直接落成内联属性 */
 const gridStyle = computed(() => ({
   gridTemplateColumns: props.columns,
   gap: `var(--space-${props.gap})`,

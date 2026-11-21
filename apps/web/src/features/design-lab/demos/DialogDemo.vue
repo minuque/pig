@@ -3,7 +3,7 @@
     <Variant title="Basic">
       <Dialog>
         <DialogTrigger as-child>
-          <Button variant="soft">Open dialog</Button>
+          <Button variant="secondary">Open dialog</Button>
         </DialogTrigger>
 
         <DialogContent>
@@ -15,7 +15,7 @@
 
           <div style="display: flex; justify-content: flex-end; gap: 8px; margin-block-start: 16px">
             <DialogClose as-child>
-              <Button variant="soft">Cancel</Button>
+              <Button variant="secondary">Cancel</Button>
             </DialogClose>
 
             <DialogClose as-child>
@@ -29,7 +29,7 @@
     <Variant title="Large">
       <Dialog>
         <DialogTrigger as-child>
-          <Button variant="soft">Open large dialog</Button>
+          <Button variant="secondary">Open large dialog</Button>
         </DialogTrigger>
 
         <DialogContent size="l">
@@ -41,7 +41,7 @@
 
           <div style="display: flex; justify-content: flex-end; gap: 8px; margin-block-start: 16px">
             <DialogClose as-child>
-              <Button variant="soft">Close</Button>
+              <Button variant="secondary">Close</Button>
             </DialogClose>
           </div>
         </DialogContent>
@@ -51,7 +51,7 @@
     <Variant title="Without close button">
       <Dialog>
         <DialogTrigger as-child>
-          <Button variant="soft">Open dialog</Button>
+          <Button variant="secondary">Open dialog</Button>
         </DialogTrigger>
 
         <DialogContent :show-close-button="false">

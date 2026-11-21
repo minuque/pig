@@ -4,8 +4,6 @@
     v-bind="forwarded"
     :data-tone="color"
     :data-size="size"
-    :data-variant="variant"
-    :data-radius="radius"
     :class="props.class"
   >
     <SwitchThumb data-slot="switch-thumb" />
@@ -25,254 +23,130 @@ const props = withDefaults(
       class?: HTMLAttributes["class"]
       /** 尺寸档：s、m、l */
       size?: Size
-      variant?: "surface" | "soft"
       color?: ToneColor
-      radius?: "none" | "small" | "medium" | "large" | "full"
     }
   >(),
-  { class: undefined, size: "m", variant: "surface" },
+  { class: undefined, size: "m" },
 )
 const emits = defineEmits<SwitchRootEmits<boolean>>()
-const delegatedProps = reactiveOmit(props, "class", "size", "variant", "color", "radius")
+const delegatedProps = reactiveOmit(props, "class", "size", "color")
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
   SwitchRootProps<boolean>
 >
 </script>
 
 <style>
-/* 开关：轨道宽度是高度的 1.75 倍，滑块内缩 1px，勾选时整体右移轨道与高度之差 */
+/* 开关：轨道即根元素，内边距 2px；滑块边长比档位小 2px，勾选时右移「档位 - 4px」，按下横向拉长 */
 :where([data-slot="switch"]) {
-  position: relative;
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
   vertical-align: top;
-  cursor: pointer;
-}
-
-:where([data-slot="switch"])::before {
-  content: "";
-  display: block;
+  padding: 2px;
   border-radius: var(--radius-pill);
-  background-repeat: no-repeat;
+  background-color: var(--border-input);
+  cursor: pointer;
   transition:
-    background-position 120ms linear,
-    background-color 140ms var(--ease-in-out),
-    box-shadow 140ms var(--ease-in-out),
-    filter 140ms var(--ease-in-out);
+    background-color var(--duration-normal) var(--ease-out),
+    box-shadow var(--duration-normal) var(--ease-out);
 }
 
-:where([data-slot="switch"][data-size="s"]) {
-  height: var(--space-md);
-}
-
-:where([data-slot="switch"][data-size="s"])::before {
-  width: calc(var(--space-md) * 1.75);
-  height: var(--space-md);
-  background-size: calc(var(--space-md) * 4.5) 100%;
-}
-
-:where([data-slot="switch"][data-size="m"]) {
-  height: calc(var(--space-lg) * 5 / 6);
-}
-
-:where([data-slot="switch"][data-size="m"])::before {
-  width: calc(var(--space-lg) * 5 / 6 * 1.75);
-  height: calc(var(--space-lg) * 5 / 6);
-  background-size: calc(var(--space-lg) * 5 / 6 * 4.5) 100%;
-}
-
-:where([data-slot="switch"][data-size="l"]) {
-  height: var(--space-lg);
-}
-
-:where([data-slot="switch"][data-size="l"])::before {
-  width: calc(var(--space-lg) * 1.75);
-  height: var(--space-lg);
-  background-size: calc(var(--space-lg) * 4.5) 100%;
-}
-
-:where([data-slot="switch"][data-state="unchecked"])::before {
-  background-position-x: 100%;
-}
-
-:where([data-slot="switch"][data-state="checked"])::before {
-  background-position-x: 0;
-}
-
-:where([data-slot="switch"]:active)::before {
-  transition-duration: 30ms;
+:where([data-slot="switch"][data-state="checked"]) {
+  background-color: var(--tone);
 }
 
 :where([data-slot="switch"]:focus-visible) {
-  outline: none;
-}
-
-:where([data-slot="switch"]:focus-visible)::before {
   outline: 2px solid var(--focus-color);
   outline-offset: 2px;
 }
 
 :where([data-slot="switch"][data-disabled]) {
-  cursor: default;
+  opacity: var(--opacity-disabled);
+  cursor: not-allowed;
 }
 
-/* 滑块：白底 + 描边式阴影，勾选时右移 */
 :where([data-slot="switch-thumb"]) {
-  position: absolute;
-  inset-inline-start: 1px;
+  display: block;
+  flex-shrink: 0;
   border-radius: var(--radius-pill);
-  background-color: var(--fg-on-accent);
-  transition:
-    transform 140ms cubic-bezier(0.45, 0.05, 0.55, 0.95),
-    box-shadow 140ms var(--ease-in-out);
+  background-color: var(--bg);
+  box-shadow: 0 1px 2px var(--thumb-shadow);
+  pointer-events: none;
+  transform-origin: left center;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+:where([data-slot="switch-thumb"][data-state="checked"]) {
+  transform-origin: right center;
+}
+
+html.dark :where([data-slot="switch-thumb"][data-state="unchecked"]) {
+  background-color: var(--fg-muted);
+}
+
+:where([data-slot="switch"]:active:not([data-disabled]))
+  :where([data-slot="switch-thumb"][data-state="unchecked"]) {
+  transform: scaleX(1.1);
+}
+
+:where([data-slot="switch"][data-size="s"]) {
+  inline-size: calc(calc(var(--spacing) * 3.5) * 2 - 2px);
+  block-size: calc(calc(var(--spacing) * 3.5) + 2px);
 }
 
 :where([data-slot="switch"][data-size="s"]) :where([data-slot="switch-thumb"]) {
-  width: calc(var(--space-md) - 2px);
-  height: calc(var(--space-md) - 2px);
+  inline-size: calc(calc(var(--spacing) * 3.5) - 2px);
+  block-size: calc(calc(var(--spacing) * 3.5) - 2px);
 }
 
 :where([data-slot="switch"][data-size="s"])
   :where([data-slot="switch-thumb"][data-state="checked"]) {
-  transform: translateX(calc(var(--space-md) * 0.75));
+  transform: translateX(calc(calc(var(--spacing) * 3.5) - 4px));
+}
+
+:where([data-slot="switch"][data-size="s"]:active:not([data-disabled]))
+  :where([data-slot="switch-thumb"][data-state="checked"]) {
+  transform: translateX(calc(calc(var(--spacing) * 3.5) - 4px)) scaleX(1.1);
+}
+
+:where([data-slot="switch"][data-size="m"]) {
+  inline-size: calc(calc(var(--spacing) * 4) * 2 - 2px);
+  block-size: calc(calc(var(--spacing) * 4) + 2px);
 }
 
 :where([data-slot="switch"][data-size="m"]) :where([data-slot="switch-thumb"]) {
-  width: calc(var(--space-lg) * 5 / 6 - 2px);
-  height: calc(var(--space-lg) * 5 / 6 - 2px);
+  inline-size: calc(calc(var(--spacing) * 4) - 2px);
+  block-size: calc(calc(var(--spacing) * 4) - 2px);
 }
 
 :where([data-slot="switch"][data-size="m"])
   :where([data-slot="switch-thumb"][data-state="checked"]) {
-  transform: translateX(calc(var(--space-lg) * 5 / 6 * 0.75));
+  transform: translateX(calc(calc(var(--spacing) * 4) - 4px));
+}
+
+:where([data-slot="switch"][data-size="m"]:active:not([data-disabled]))
+  :where([data-slot="switch-thumb"][data-state="checked"]) {
+  transform: translateX(calc(calc(var(--spacing) * 4) - 4px)) scaleX(1.1);
+}
+
+:where([data-slot="switch"][data-size="l"]) {
+  inline-size: calc(calc(var(--spacing) * 5) * 2 - 2px);
+  block-size: calc(calc(var(--spacing) * 5) + 2px);
 }
 
 :where([data-slot="switch"][data-size="l"]) :where([data-slot="switch-thumb"]) {
-  width: calc(var(--space-lg) - 2px);
-  height: calc(var(--space-lg) - 2px);
+  inline-size: calc(calc(var(--spacing) * 5) - 2px);
+  block-size: calc(calc(var(--spacing) * 5) - 2px);
 }
 
 :where([data-slot="switch"][data-size="l"])
   :where([data-slot="switch-thumb"][data-state="checked"]) {
-  transform: translateX(calc(var(--space-lg) * 0.75));
+  transform: translateX(calc(calc(var(--spacing) * 5) - 4px));
 }
 
-/* --- surface --- */
-:where([data-slot="switch"][data-variant="surface"])::before {
-  background-color: var(--bg-muted);
-  background-image: linear-gradient(to right, var(--tone) 40%, transparent 60%);
-  box-shadow: inset 0 0 0 1px var(--border-strong);
-}
-
-:where([data-slot="switch"][data-variant="surface"]:active)::before {
-  background-color: var(--bg-hover);
-}
-
-:where([data-slot="switch"][data-variant="surface"][data-state="checked"]:active)::before {
-  filter: brightness(0.92) saturate(1.1);
-}
-
-html.dark
-  :where([data-slot="switch"][data-variant="surface"][data-state="checked"]:active)::before {
-  filter: brightness(1.08);
-}
-
-:where([data-slot="switch"][data-variant="surface"][data-disabled]) {
-  mix-blend-mode: multiply;
-}
-
-html.dark :where([data-slot="switch"][data-variant="surface"][data-disabled]) {
-  mix-blend-mode: screen;
-}
-
-:where([data-slot="switch"][data-variant="surface"][data-disabled])::before {
-  background-image: none;
-  background-color: var(--bg-muted);
-  box-shadow: inset 0 0 0 1px var(--border-subtle);
-  filter: none;
-}
-
-:where([data-slot="switch"][data-variant="surface"])
-  :where([data-slot="switch-thumb"][data-state="unchecked"]) {
-  box-shadow:
-    0 0 1px 1px var(--thumb-shadow),
-    0 1px 1px var(--thumb-shadow-subtle),
-    0 2px 4px -1px var(--thumb-shadow-subtle);
-}
-
-:where([data-slot="switch"][data-variant="surface"])
+:where([data-slot="switch"][data-size="l"]:active:not([data-disabled]))
   :where([data-slot="switch-thumb"][data-state="checked"]) {
-  box-shadow:
-    0 1px 3px var(--thumb-shadow),
-    0 2px 4px -1px var(--thumb-shadow-subtle),
-    0 0 0 1px var(--thumb-shadow-subtle),
-    0 0 0 1px var(--tone-subtle),
-    -1px 0 1px var(--thumb-shadow);
-}
-
-:where([data-slot="switch"][data-variant="surface"])
-  :where([data-slot="switch-thumb"][data-disabled]) {
-  background-color: var(--bg);
-  box-shadow:
-    0 0 0 1px var(--border-subtle),
-    0 1px 3px var(--thumb-shadow-subtle);
-  transition: none;
-}
-
-/* --- soft --- */
-:where([data-slot="switch"][data-variant="soft"])::before {
-  background-color: var(--bg-muted);
-  background-image: linear-gradient(to right, var(--tone-subtle) 40%, transparent 60%);
-}
-
-:where([data-slot="switch"][data-variant="soft"]:active)::before {
-  background-color: var(--bg-hover);
-}
-
-:where([data-slot="switch"][data-variant="soft"][data-disabled]) {
-  mix-blend-mode: multiply;
-}
-
-html.dark :where([data-slot="switch"][data-variant="soft"][data-disabled]) {
-  mix-blend-mode: screen;
-}
-
-:where([data-slot="switch"][data-variant="soft"][data-disabled])::before {
-  background-image: none;
-  background-color: var(--bg-hover);
-  filter: none;
-}
-
-:where([data-slot="switch"][data-variant="soft"]) :where([data-slot="switch-thumb"]) {
-  filter: saturate(0.45);
-}
-
-:where([data-slot="switch"][data-variant="soft"])
-  :where([data-slot="switch-thumb"][data-state="unchecked"]) {
-  box-shadow:
-    0 0 0 1px var(--thumb-shadow-subtle),
-    0 1px 3px var(--thumb-shadow-subtle),
-    0 1px 3px var(--thumb-shadow-subtle),
-    0 2px 4px -1px var(--thumb-shadow-subtle);
-}
-
-:where([data-slot="switch"][data-variant="soft"])
-  :where([data-slot="switch-thumb"][data-state="checked"]) {
-  box-shadow:
-    0 0 0 1px var(--thumb-shadow-subtle),
-    0 1px 3px var(--thumb-shadow),
-    0 1px 3px var(--tone-subtle),
-    0 2px 4px -1px var(--tone-subtle);
-}
-
-:where([data-slot="switch"][data-variant="soft"])
-  :where([data-slot="switch-thumb"][data-disabled]) {
-  background-color: var(--bg);
-  box-shadow:
-    0 0 0 1px var(--border-subtle),
-    0 1px 3px var(--thumb-shadow-subtle);
-  filter: none;
-  transition: none;
+  transform: translateX(calc(calc(var(--spacing) * 5) - 4px)) scaleX(1.1);
 }
 </style>

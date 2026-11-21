@@ -29,7 +29,9 @@
 
         <div class="remote-actions">
           <DialogClose as-child>
-            <Button variant="soft" color="neutral" type="button">{{ t("common.cancel") }}</Button>
+            <Button variant="secondary" color="neutral" type="button">
+              {{ t("common.cancel") }}
+            </Button>
           </DialogClose>
 
           <Button type="submit" :loading="busy" :disabled="!host || !path.trim()">

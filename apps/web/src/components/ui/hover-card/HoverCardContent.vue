@@ -45,15 +45,16 @@ const widthStyle = computed(() => ({ maxInlineSize: props.maxWidth }))
 </script>
 
 <style>
-/* 悬停卡：与浮卡同一套实色底、细环与阴影 */
+/* 悬停卡：与浮卡同一套浮层底、边框与阴影 */
 :where([data-slot="hover-card-content"]) {
   box-sizing: border-box;
   position: relative;
+  z-index: var(--z-popover);
   overflow: auto;
-  background-color: var(--bg-raised);
-  box-shadow:
-    0 0 0 var(--border-width) var(--border),
-    var(--menu-shadow);
+  border: var(--border-width) solid var(--float-border);
+  background-color: var(--float-bg);
+  box-shadow: var(--float-shadow);
+  backdrop-filter: var(--glass-filter);
   transform-origin: var(--reka-hover-card-content-transform-origin);
 }
 

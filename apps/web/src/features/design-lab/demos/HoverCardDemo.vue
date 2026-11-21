@@ -3,7 +3,7 @@
     <Variant title="Default">
       <HoverCard>
         <HoverCardTrigger as-child>
-          <Button variant="soft">Hover me</Button>
+          <Button variant="secondary">Hover me</Button>
         </HoverCardTrigger>
 
         <HoverCardContent>
@@ -18,7 +18,7 @@
     <Variant title="Open">
       <HoverCard default-open>
         <HoverCardTrigger as-child>
-          <Button variant="soft">Always open</Button>
+          <Button variant="secondary">Always open</Button>
         </HoverCardTrigger>
 
         <HoverCardContent size="l" max-width="320px">
@@ -34,7 +34,7 @@
       <div style="display: flex; flex-wrap: wrap; gap: 16px">
         <HoverCard>
           <HoverCardTrigger as-child>
-            <Button variant="soft" size="s">Small</Button>
+            <Button variant="secondary" size="s">Small</Button>
           </HoverCardTrigger>
 
           <HoverCardContent size="s">
@@ -44,7 +44,7 @@
 
         <HoverCard>
           <HoverCardTrigger as-child>
-            <Button variant="soft" size="m">Medium</Button>
+            <Button variant="secondary" size="m">Medium</Button>
           </HoverCardTrigger>
 
           <HoverCardContent size="m">
@@ -54,7 +54,7 @@
 
         <HoverCard>
           <HoverCardTrigger as-child>
-            <Button variant="soft" size="l">Large</Button>
+            <Button variant="secondary" size="l">Large</Button>
           </HoverCardTrigger>
 
           <HoverCardContent size="l">

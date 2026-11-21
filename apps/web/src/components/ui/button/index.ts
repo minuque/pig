@@ -4,10 +4,10 @@ export { default as Button } from "./Button.vue"
 
 export { default as IconButton } from "./IconButton.vue"
 
-/** 尺寸档跟基础件同一套：s=24/28px、m=32px、l=40px。rt 的 48px 档不进这套刻度。 */
+/** 尺寸档跟基础件同一套：文字按钮 s=28、m=32、l=36，图标按钮 s=24、m=28、l=36。 */
 export type ButtonSize = Size
 
-export type ButtonVariant = "solid" | "soft" | "surface" | "outline" | "ghost"
+export type ButtonVariant = "solid" | "secondary" | "outline" | "ghost"
 
 /** 圆角档：不传时跟随主题，传入只影响这一个按钮 */
 export type Radius = "none" | "small" | "medium" | "large" | "full"

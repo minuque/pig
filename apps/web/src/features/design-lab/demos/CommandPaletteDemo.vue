@@ -1,7 +1,7 @@
 <template>
   <Story title="CommandPalette">
     <Variant title="Default">
-      <Button variant="surface" @click="open = true">Open palette</Button>
+      <Button variant="outline" @click="open = true">Open palette</Button>
 
       <CommandPalette v-model:open="open" title="Commands">
         <CommandPaletteInput v-model="query" placeholder="Type a command" />

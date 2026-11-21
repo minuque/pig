@@ -90,6 +90,13 @@
   --focus-ring-danger: 0 0 0 2px var(--danger-text);
   --scrollbar-color: #d9d9d9;
   --scrollbar-color-hover: rgba(0, 0, 0, 0.27);
+  /* 按钮：实心按钮顶部高光与按下暗边，描边按钮的淡投影 */
+  --button-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  --button-pressed: inset 0 1px 0 rgba(0, 0, 0, 0.08);
+  /* outline 按钮与选择框的外框、底与投影；内阴影：浅色压底边，深色提顶边 */
+  --control-bg: var(--bg-raised);
+  --control-border: var(--border-input);
+  --control-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), inset 0 -1px 0 rgba(0, 0, 0, 0.04);
   /* Switch、Slider 滑块的投影与外环，深浅模式共用 */
   --thumb-shadow-subtle: rgba(0, 0, 0, 0.05);
   --thumb-shadow: rgba(0, 0, 0, 0.1);
@@ -181,7 +188,7 @@
   /* 控件高三档：图标按钮与侧栏行 28，菜单项与输入卡控件 32，输入框 40 */
   --control-sm: 28px;
   --control-md: 32px;
-  --control-lg: 40px;
+  --control-lg: 36px;
   /* 线性图标：14px 图标配 13px 正文 */
   --icon-md: 14px;
   /* 折叠箭头等比正文缩一档 */
@@ -214,13 +221,14 @@
   --z-raise: 1;
   --z-sticky: 2;
   --z-overlay: 3;
-  /* 全局工作台层叠：分隔条、窗控、菜单、抽屉、弹窗、拖拽 */
+  /* 全局工作台层叠：分隔条、窗控、菜单、抽屉、弹窗、浮层、拖拽；浮层压在弹窗之上 */
   --z-resizer: 1;
   /* 窗控浮在主区头部之上 */
   --z-window-controls: 1;
   --z-menu: 10;
   --z-drawer: 20;
   --z-modal: 30;
+  --z-popover: 35;
   --z-drag: 40;
 
   /* ====== 组件层：按组件前缀排列，只给单个组件或一类内容用 ====== */
@@ -304,8 +312,10 @@
   --mascot-shadow: rgba(0, 0, 0, 0.2);
   /* 小猪探头：开屏与侧栏品牌共用同一节奏 */
   --mascot-peek-duration: 640ms;
-  /* 菜单、下拉、浮卡等贴着触发器的小浮层阴影 */
-  --menu-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), 0 12px 32px -12px rgba(0, 0, 0, 0.2);
+  /* 菜单、下拉、浮卡等贴着触发器的小浮层：半透明底叠 --glass-filter 模糊，边框同卡片，只带一层淡投影 */
+  --float-bg: color-mix(in srgb, var(--bg-raised) 84%, transparent);
+  --float-border: var(--border);
+  --float-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.08);
   --menu-item-gap: calc(var(--spacing) / 2);
   --minimap-marker: color-mix(in srgb, var(--fg-secondary) 35%, transparent);
   /* 侧栏页眉、列表与页脚共用的水平内边距 */
@@ -331,7 +341,7 @@
   /* --- 色调派生比例 --- */
   --tone-subtle-mix: 8%;
   --tone-border-mix: 35%;
-  --tone-text-lightness: 0.53;
+  --tone-text-lightness: 53%;
   --hue-indigo: #3e63dd;
   --hue-cyan: #00a2c7;
   --hue-green: #30a46c;
@@ -390,6 +400,9 @@ html.dark {
   --border-subtle: rgba(255, 255, 255, 0.045);
   --border-strong: rgba(255, 255, 255, 0.13);
   --border-input: rgba(255, 255, 255, 0.23);
+  --control-bg: rgba(255, 255, 255, 0.035);
+  --control-border: rgba(255, 255, 255, 0.11);
+  --control-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   --overlay: rgba(0, 0, 0, 0.6);
 
   /* --- 交互 --- */
@@ -423,7 +436,7 @@ html.dark {
   --glass-filter: blur(16px) saturate(1.08);
   --glass-shadow: inset 0 1px rgba(255, 255, 255, 0.05), 0 24px 72px -20px rgba(0, 0, 0, 0.9);
   --glass-backdrop: color-mix(in srgb, var(--bg) 64%, transparent);
-  --menu-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 16px 40px -12px rgba(0, 0, 0, 0.8);
+  --float-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.32);
   --effort-shell: #ffffff12;
   --effort-shell-2: #ffffff1b;
   --effort-thumb-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
@@ -451,7 +464,7 @@ html.dark {
   /* --- 色调派生比例 --- */
   --tone-subtle-mix: 16%;
   --tone-border-mix: 48%;
-  --tone-text-lightness: 0.79;
+  --tone-text-lightness: 79%;
 }
 
 /* 界面字号档：默认 M；S/L 缩放辅助、正文、标题三档，页面大标题不动。 */
@@ -484,6 +497,8 @@ html[data-chat-width="full"] {
 [data-tone] {
   --tone-subtle: color-mix(in srgb, var(--tone) var(--tone-subtle-mix), transparent);
   --tone-border: color-mix(in srgb, var(--tone) var(--tone-border-mix), transparent);
+  --tone-hover: color-mix(in srgb, var(--tone) 90%, transparent);
+  --tone-shadow: color-mix(in srgb, var(--tone) 24%, transparent);
   --tint: var(--tone-text);
 }
 

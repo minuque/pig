@@ -33,7 +33,7 @@
         <Button
           :as="RouterLink"
           to="/design/guide"
-          variant="soft"
+          variant="secondary"
           color="neutral"
           size="s"
           aria-label="DESIGN.md 规范"
@@ -62,9 +62,11 @@
     </header>
 
     <div class="lab-body">
-      <ScrollArea scrollbars="vertical" class="lab-nav">
-        <DesignNav />
-      </ScrollArea>
+      <aside class="lab-nav">
+        <ScrollArea scrollbars="vertical" class="lab-nav-scroll">
+          <DesignNav />
+        </ScrollArea>
+      </aside>
 
       <main class="lab-panel">
         <template v-if="current">
@@ -177,7 +179,6 @@ onMounted(() => document.getElementById("startup-splash")?.remove())
   min-block-size: var(--header-height);
   padding: var(--space-2xs) var(--space-lg);
   background: var(--bg);
-  box-shadow: inset 0 calc(var(--border-width) * -1) 0 var(--border-subtle);
 }
 
 .lab-crumbs {
@@ -230,14 +231,23 @@ onMounted(() => document.getElementById("startup-splash")?.remove())
   flex: 1;
   grid-template-columns: 216px minmax(0, 1fr);
   align-items: start;
+  padding: var(--space-xs) 0 0 var(--space-xs);
 }
 
+/* 侧栏是浮在页头下方的粘性面板：四周留一档缝，内容在面板里自己滚 */
 .lab-nav {
   position: sticky;
-  inset-block-start: var(--header-height);
-  block-size: calc(100dvh - var(--header-height));
+  inset-block-start: calc(var(--header-height) + var(--space-xs));
+  block-size: calc(100dvh - var(--header-height) - var(--space-xs) * 2);
+  overflow: hidden;
+  border-radius: var(--radius-card);
   background: var(--sidebar);
-  box-shadow: inset calc(var(--border-width) * -1) 0 0 var(--border-subtle);
+  box-shadow: 0 0 0 var(--border-width) var(--border);
+}
+
+/* Reka 的 ScrollArea 根带行内 position: relative，吸顶交给外层 aside，这里只填满 */
+.lab-nav-scroll {
+  block-size: 100%;
 }
 
 .lab-panel {
@@ -297,6 +307,7 @@ onMounted(() => document.getElementById("startup-splash")?.remove())
 @media (width < 960px) {
   .lab-body {
     display: block;
+    padding: 0;
   }
 
   .lab-nav {

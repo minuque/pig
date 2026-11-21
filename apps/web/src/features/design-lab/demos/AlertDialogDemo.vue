@@ -2,7 +2,7 @@
   <Story title="Alert dialog">
     <Variant title="Default">
       <AlertDialog v-model:open="deleteOpen">
-        <Button variant="soft" @click="deleteOpen = true">Delete item</Button>
+        <Button variant="secondary" @click="deleteOpen = true">Delete item</Button>
 
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -23,7 +23,7 @@
 
     <Variant title="Large">
       <AlertDialog v-model:open="largeOpen">
-        <Button variant="soft" @click="largeOpen = true">Open large alert</Button>
+        <Button variant="secondary" @click="largeOpen = true">Open large alert</Button>
 
         <AlertDialogContent size="4">
           <AlertDialogHeader>

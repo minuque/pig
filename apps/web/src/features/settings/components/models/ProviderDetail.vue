@@ -117,7 +117,7 @@
           <Button
             v-if="canLogout"
             size="s"
-            variant="surface"
+            variant="outline"
             color="danger"
             :disabled="loginState.phase === 'running'"
             @click="confirmLogout = true"
@@ -125,17 +125,17 @@
             {{ t("settings.models.logout") }}
           </Button>
 
-          <Button v-if="editing" size="s" variant="surface" @click="cancelEdit">
+          <Button v-if="editing" size="s" variant="outline" @click="cancelEdit">
             {{ t("common.cancel") }}
           </Button>
 
-          <Button v-if="editable" size="s" variant="surface" @click="emit('edit')">
+          <Button v-if="editable" size="s" variant="outline" @click="emit('edit')">
             {{ t("settings.models.editProvider") }}
           </Button>
 
           <Button
             size="s"
-            :variant="hasPrimaryAction ? 'surface' : 'solid'"
+            :variant="hasPrimaryAction ? 'outline' : 'solid'"
             :loading="testing"
             :disabled="!canTest"
             @click="runTest"

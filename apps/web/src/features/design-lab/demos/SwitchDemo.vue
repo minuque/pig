@@ -8,13 +8,6 @@
       </div>
     </Variant>
 
-    <Variant title="Variants">
-      <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
-        <Switch v-model="on" variant="surface" aria-label="Surface switch" />
-        <Switch v-model="on" variant="soft" aria-label="Soft switch" />
-      </div>
-    </Variant>
-
     <Variant title="States">
       <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
         <Switch v-model="on" aria-label="On switch" />

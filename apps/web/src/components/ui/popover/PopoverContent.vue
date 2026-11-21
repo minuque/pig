@@ -41,16 +41,17 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<PopoverContentP
 </script>
 
 <style>
-/* 浮卡：实色底 + 1px 环 + 精致阴影，宽度跟随触发器但不小于它 */
+/* 浮卡：半透明模糊底 + 1px 边框 + 浮层阴影，宽度跟随触发器但不小于它 */
 :where([data-slot="popover-content"]) {
   box-sizing: border-box;
   position: relative;
+  z-index: var(--z-popover);
   overflow: auto;
   min-inline-size: var(--reka-popover-trigger-width);
-  background-color: var(--bg-raised);
-  box-shadow:
-    0 0 0 var(--border-width) var(--border),
-    var(--menu-shadow);
+  border: var(--border-width) solid var(--float-border);
+  background-color: var(--float-bg);
+  box-shadow: var(--float-shadow);
+  backdrop-filter: var(--glass-filter);
   outline: 0;
   transform-origin: var(--reka-popover-content-transform-origin);
 }

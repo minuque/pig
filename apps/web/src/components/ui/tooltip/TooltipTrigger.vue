@@ -1,5 +1,8 @@
 <template>
-  <TooltipTrigger data-slot="tooltip-trigger" v-bind="forwardedProps">
+  <!-- as-child 时不要把 data-slot 写在触发元素上：会覆盖子元素自己的标记 -->
+  <TooltipTrigger
+    v-bind="props.asChild ? forwardedProps : { ...forwardedProps, 'data-slot': 'tooltip-trigger' }"
+  >
     <slot />
   </TooltipTrigger>
 </template>

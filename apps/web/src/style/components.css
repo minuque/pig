@@ -442,14 +442,16 @@
    弹层经 Portal 挂到 body，scoped 打不中，写在这里。 */
 :where([data-menu-content]) {
   box-sizing: border-box;
+  position: relative;
+  z-index: var(--z-popover);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   border-radius: var(--radius-card);
-  background-color: var(--bg-raised);
-  box-shadow:
-    0 0 0 var(--border-width) var(--border),
-    var(--menu-shadow);
+  border: var(--border-width) solid var(--float-border);
+  background-color: var(--float-bg);
+  box-shadow: var(--float-shadow);
+  backdrop-filter: var(--glass-filter);
   color: var(--fg);
 }
 

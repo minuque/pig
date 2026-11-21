@@ -10,7 +10,7 @@
           :key="color"
           type="button"
           size="s"
-          :variant="draft.color === color ? 'soft' : 'ghost'"
+          :variant="draft.color === color ? 'secondary' : 'ghost'"
           :color="projectIconTone(color)"
           :aria-label="color"
           :aria-pressed="draft.color === color"
@@ -26,7 +26,7 @@
           :key="name"
           type="button"
           size="m"
-          :variant="current?.name === name ? 'soft' : 'ghost'"
+          :variant="current?.name === name ? 'secondary' : 'ghost'"
           :color="projectIconTone(draft.color)"
           :aria-label="name"
           :aria-pressed="current?.name === name"
@@ -37,7 +37,13 @@
       </div>
 
       <div class="icon-actions">
-        <Button variant="soft" color="neutral" type="button" :disabled="!current" @click="reset">
+        <Button
+          variant="secondary"
+          color="neutral"
+          type="button"
+          :disabled="!current"
+          @click="reset"
+        >
           {{ t("session.resetIcon") }}
         </Button>
 

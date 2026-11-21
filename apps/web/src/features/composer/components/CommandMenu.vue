@@ -1,11 +1,5 @@
 <template>
-  <div
-    class="command-menu surface-float"
-    :id="menuId"
-    role="listbox"
-    :aria-label="ariaLabel"
-    @mousedown.prevent
-  >
+  <div class="command-menu" :id="menuId" role="listbox" :aria-label="ariaLabel" @mousedown.prevent>
     <ScrollArea scrollbars="vertical" class="command-scroll">
       <div class="command-body">
         <template v-if="groups.length">
@@ -133,10 +127,12 @@ watch(
   flex-direction: column;
   max-height: 280px;
   overflow: hidden;
-  border: var(--border-width) solid var(--border);
+  border: var(--border-width) solid var(--float-border);
   border-radius: var(--radius-card);
   corner-shape: var(--composer-corner-shape);
-  box-shadow: var(--menu-shadow);
+  background-color: var(--float-bg);
+  box-shadow: var(--float-shadow);
+  backdrop-filter: var(--glass-filter);
 }
 
 .command-scroll {

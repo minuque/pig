@@ -3,7 +3,7 @@
     <Variant title="Default">
       <Tooltip>
         <TooltipTrigger as-child>
-          <Button variant="soft">Hover me</Button>
+          <Button variant="secondary">Hover me</Button>
         </TooltipTrigger>
 
         <TooltipContent>Tooltip text</TooltipContent>
@@ -13,7 +13,7 @@
     <Variant title="Open">
       <Tooltip default-open>
         <TooltipTrigger as-child>
-          <Button variant="soft">Always open</Button>
+          <Button variant="secondary">Always open</Button>
         </TooltipTrigger>
 
         <TooltipContent>Tooltip text</TooltipContent>
@@ -24,7 +24,7 @@
       <div style="display: flex; flex-wrap: wrap; gap: 24px; padding: 48px">
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button variant="soft">Top</Button>
+            <Button variant="secondary">Top</Button>
           </TooltipTrigger>
 
           <TooltipContent side="top">Top tooltip</TooltipContent>
@@ -32,7 +32,7 @@
 
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button variant="soft">Right</Button>
+            <Button variant="secondary">Right</Button>
           </TooltipTrigger>
 
           <TooltipContent side="right">Right tooltip</TooltipContent>
@@ -40,7 +40,7 @@
 
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button variant="soft">Bottom</Button>
+            <Button variant="secondary">Bottom</Button>
           </TooltipTrigger>
 
           <TooltipContent side="bottom">Bottom tooltip</TooltipContent>
@@ -48,7 +48,7 @@
 
         <Tooltip>
           <TooltipTrigger as-child>
-            <Button variant="soft">Left</Button>
+            <Button variant="secondary">Left</Button>
           </TooltipTrigger>
 
           <TooltipContent side="left">Left tooltip</TooltipContent>

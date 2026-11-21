@@ -86,7 +86,7 @@ spacing:
 
 1. **一页一个强调色。** 强调色（`#5E6AD2`）只用于主操作、焦点与选中底；活动态（链接、进行中、运行指示）另走 cyan。卡片、区块不铺强调色：悬停走中性灰，选中只铺极淡的靛，不铺成彩色块。
 2. **一页最多 4 种字号。** 全局只有 4 档，层级靠字重和三级文字色。
-3. **默认扁平。** 不叠阴影、不发光。阴影与毛玻璃只给真正浮起来的层：命令面板与警告框用 `--glass-*`，贴着触发器的菜单、下拉与浮卡用高不透明实底 `--bg-raised` 配 `--menu-shadow`。
+3. **默认扁平。** 不叠阴影、不发光。阴影与毛玻璃只给真正浮起来的层：命令面板与警告框用 `--glass-*`，贴着触发器的菜单、下拉、选择框与浮卡用 `--float-*` 浮层：`--bg-raised` 84% 半透明底叠 `--glass-filter` 模糊，配与卡片相同的 `--float-border` 边框和一层淡投影 `--float-shadow`。
 4. **不卡片套卡片。** 卡片里的分组用标题加分割线。
 5. **圆角同心。** 内层圆角 = 外层圆角 − 内边距。
 6. **规范只有一套。** 按钮、间距、圆角、分割线、弹窗、动画、阴影全站共用。
@@ -106,12 +106,12 @@ spacing:
 - 链接 `--link` 取 `--info-text`，与「进行中」同一种 cyan，不跟强调色走。
 - 「进行中」与强调色分开：运行状态、转圈、上下文进度条与用量环走 `--info-*`，文字取 `--info-text`（浅色 `#0B6F88`，深色 cyan-11），填充取 `--info-solid`（cyan-9），浅底取 cyan 第 3 级 alpha。
 - 悬停与选中分开：按钮、菜单项、侧栏行深浅均走半透明叠加，`--bg-hover` 走中性叠加（浅色 `fg 6%` / 深色 `white 6%`），`--bg-selected` 走淡强调色叠加（浅色 `accent-solid 11%` / 深色 `accent-solid 16%`），只铺极淡的一层，不铺成彩色块。
-- 一页只出现一个 solid 主按钮，其余用 soft 或 ghost。
+- 按钮变体四种：`solid`（主操作）、`secondary`（`--bg-muted` 底）、`outline`（`--border-input` 框加 `--bg-raised` 底）、`ghost`（固定盒，悬停才铺 `--bg-hover`）。一页只出现一个 solid 主按钮，其余用 secondary、outline 或 ghost。
 - 输入卡的发送键用强调色实心（`--accent-solid` 配 `--fg-on-accent`），停止键用危险色实心（`--danger-solid` 配白）。「滚动到底部」仍用反色（`--bg-inverse` / `--fg-inverse`）：中灰（浅色 `#6B6B72` 配白字 5.3:1，深色 `#9DA4AE` 配深字 7.4:1），不用纯黑白。发送键不可用时换 `--bg-emphasis` 底配 `--fg-secondary` 图标，不靠降透明度。
 
 ### 中性色
 
-表面与描边用固定 hex 与 black / white alpha；文字用带冷调的实色，与表面同一色系。控件外框用 `--border-input`，对话框遮罩用 `--overlay`；`color="neutral"` 的按钮、徽章读中性语义档（`--bg-muted`、`--fg-secondary`）。
+表面与描边用固定 hex 与 black / white alpha；文字用带冷调的实色，与表面同一色系。控件外框用 `--border-input`；outline 按钮与选择框读 `--control-bg` / `--control-border` / `--control-shadow`（深色是半透明底、淡白框加顶边高光），对话框遮罩用 `--overlay`；`color="neutral"` 的按钮、徽章读中性语义档（`--bg-muted`、`--fg-secondary`）。
 
 | 层                             | 浅色                      | 深色                      | token                         |
 | ------------------------------ | ------------------------- | ------------------------- | ----------------------------- |
@@ -140,7 +140,7 @@ spacing:
 ### 层级
 
 - 局部隔离容器内：`0`（`auto`）或 `--z-behind` / `--z-raise` / `--z-sticky` / `--z-overlay`（`-1 / 1 / 2 / 3`）。
-- 工作台全局浮动层：`--z-resizer` / `--z-window-controls` / `--z-menu` / `--z-drawer` / `--z-modal` / `--z-drag`（`1 / 1 / 10 / 20 / 30 / 40`）。`stylelint.config.js` 自动禁止在 `.vue` SFC 里写零散 `--*` 声明与非零数字 `z-index`。
+- 工作台全局浮动层：`--z-resizer` / `--z-window-controls` / `--z-menu` / `--z-drawer` / `--z-modal` / `--z-popover` / `--z-drag`（`1 / 1 / 10 / 20 / 30 / 35 / 40`）；菜单、下拉、选择框、浮卡与提示挂到 body，取 `--z-popover` 压在弹窗之上。`stylelint.config.js` 自动禁止在 `.vue` SFC 里写零散 `--*` 声明与非零数字 `z-index`。
 
 ### 例外
 
@@ -169,8 +169,8 @@ spacing:
 
 | token               | 值   | 给谁                                 |
 | ------------------- | ---- | ------------------------------------ |
-| `--radius-control`  | 6    | 按钮、输入框、标签、菜单项、侧栏行   |
-| `--radius-card`     | 8    | 卡片、面板、代码块、图片、下拉、浮层 |
+| `--radius-control`  | 6    | 输入框、标签、菜单项、侧栏行         |
+| `--radius-card`     | 8    | 按钮、选择框、卡片、面板、代码块、浮层 |
 | `--radius-dialog`   | 12   | 对话框、设置里的分行卡片             |
 | `--composer-radius` | 18   | 输入卡                               |
 | `--radius-pill`     | 9999 | 胶囊、圆形按钮                       |
@@ -186,7 +186,7 @@ spacing:
 | `--composer-shadow` | 输入卡：轻描边加顶边微高光与柔投影，聚焦输入时抬升投影                               |
 
 - 浮层与对话框阴影自带 1px 外环，写在 `tokens.css` 的 `--shadow-popover`、`--shadow-dialog`，深浅各一套。
-- 居中模态浮层（命令面板、警告框）用 `--glass-*` 毛玻璃面板；菜单、下拉与浮卡用高不透明实底 `--bg-raised` 配 `--menu-shadow`（深色加顶部 1px 微高光），避免底层代码干扰阅读；需要实色底的卡片用 `--bg-surface`。
+- 居中模态浮层（命令面板、警告框）用 `--glass-*` 毛玻璃面板；菜单、下拉、选择框与浮卡用 `--float-bg` / `--float-border` / `--float-shadow` 加 `--glass-filter`，边框同卡片、投影只留一层淡阴影；需要实色底的卡片用 `--bg-surface`。
 - 卡片用 1px `--border` 描边、不铺底；描边与底色差只用一种。
 - 分行卡片一律用 `CardList` + `CardRow`（`@components/ui/card`），不自写行线与内边距：12 圆角，行左右 16、上下 12，行线贴边；`interactive` 加悬停底；`bleed` 不带左右内边距，内容自己读 `--card-padding`。对话里的工具卡片留 8 圆角，与代码卡一致。
 - 焦点环：`--focus-color` 取 `--accent-text`（`--focus-ring` = 2px 实色 `--focus-color`）；危险态 `--focus-ring-danger`。
@@ -194,7 +194,7 @@ spacing:
 ## 间距与尺寸
 
 - 间距基数 4px：`--space-2xs/xs/sm/md/lg/xl/2xl` = 4/8/12/16/24/28/32。
-- 控件高三档：`--control-sm/md/lg` = 28/32/40（图标按钮与侧栏行 28，菜单项与输入卡控件 32，输入框 40）。
+- 控件高三档：`--control-sm/md/lg` = 28/32/36（按钮与选择框 s/m/l 依次取三档，图标按钮默认与侧栏行 28，菜单项与输入卡控件 32）。
 - 图标四档：`--icon-sm/md/lg/xl` = 12/14/16/32，线宽 `--icon-stroke`。
 - 头部高 `--header-height` 44px；macOS 标题条 `--titlebar-inset` 44px，其余平台 0。
 

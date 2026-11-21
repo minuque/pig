@@ -47,15 +47,17 @@ const size = useSelectSize()
 </script>
 
 <style>
-/* 选择框内容：与菜单同一套实底、细环与阴影；popper 位置时跟随触发器宽度 */
+/* 选择框内容：与菜单同一套浮层底、边框与阴影；popper 位置时跟随触发器宽度 */
 :where([data-slot="select-content"]) {
+  box-sizing: border-box;
   position: relative;
+  z-index: var(--z-popover);
   overflow: hidden;
   border-radius: var(--radius-card);
-  background-color: var(--bg-raised);
-  box-shadow:
-    0 0 0 var(--border-width) var(--border),
-    var(--menu-shadow);
+  border: var(--border-width) solid var(--float-border);
+  background-color: var(--float-bg);
+  box-shadow: var(--float-shadow);
+  backdrop-filter: var(--glass-filter);
   color: var(--fg);
 }
 

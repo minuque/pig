@@ -3,8 +3,7 @@
     <Variant title="Variants">
       <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
         <Button variant="solid">Solid</Button>
-        <Button variant="soft">Soft</Button>
-        <Button variant="surface">Surface</Button>
+        <Button variant="secondary">Secondary</Button>
         <Button variant="outline">Outline</Button>
         <Button variant="ghost">Ghost</Button>
       </div>

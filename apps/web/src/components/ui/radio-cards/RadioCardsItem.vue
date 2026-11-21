@@ -19,7 +19,7 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<RadioGroupItemP
 </script>
 
 <style>
-/* 卡片项：内容居中、内部元素不参与指针事件；选中与焦点都画在同一圈描边上 */
+/* 卡片项：内容居中、内部元素不参与指针事件；选中画成内嵌色环，与卡片外环同一种画法 */
 :where([data-slot="radio-cards-item"]) {
   position: relative;
   display: flex;
@@ -61,12 +61,7 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<RadioGroupItemP
 }
 
 :where([data-slot="radio-cards-item"][data-state="checked"]) {
-  outline: 2px solid var(--tone);
-  outline-offset: -2px;
-}
-
-:where([data-slot="radio-cards-item"]:focus-visible[data-state="checked"]) {
-  outline-color: var(--focus-color);
+  box-shadow: inset 0 0 0 var(--border-width) var(--tone);
 }
 
 :where([data-slot="radio-cards-item"]:disabled) {
@@ -76,7 +71,7 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<RadioGroupItemP
 }
 
 :where([data-slot="radio-cards-item"]:disabled[data-state="checked"]) {
-  outline-color: var(--border-input);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-input);
 }
 
 /* --- surface --- */
@@ -90,5 +85,10 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<RadioGroupItemP
     :where([data-slot="radio-cards-item"]:not(:disabled):not([data-state="checked"]):hover) {
     box-shadow: inset 0 0 0 var(--border-width) var(--border-strong);
   }
+}
+
+:where([data-slot="radio-cards"][data-variant="surface"])
+  :where([data-slot="radio-cards-item"][data-state="checked"]) {
+  box-shadow: inset 0 0 0 var(--border-width) var(--tone);
 }
 </style>

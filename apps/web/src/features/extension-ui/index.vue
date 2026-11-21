@@ -17,7 +17,7 @@
         <Button
           v-for="option in pending.request.options"
           :key="option"
-          variant="soft"
+          variant="secondary"
           color="neutral"
           @click="reply({ id: pending.request.id, value: option })"
         >

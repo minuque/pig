@@ -3,7 +3,7 @@
     <Variant title="Default">
       <DropdownMenu :modal="false">
         <DropdownMenuTrigger as-child>
-          <Button variant="soft">Open menu</Button>
+          <Button variant="secondary">Open menu</Button>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent>
@@ -28,7 +28,7 @@
     <Variant title="Open">
       <DropdownMenu :modal="false" default-open>
         <DropdownMenuTrigger as-child>
-          <Button variant="soft">Always open</Button>
+          <Button variant="secondary">Always open</Button>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent>
@@ -44,7 +44,7 @@
       <div style="display: flex; flex-wrap: wrap; gap: 12px">
         <DropdownMenu :modal="false">
           <DropdownMenuTrigger as-child>
-            <Button variant="soft" size="s">Small</Button>
+            <Button variant="secondary" size="s">Small</Button>
           </DropdownMenuTrigger>
 
           <DropdownMenuContent size="s">
@@ -55,7 +55,7 @@
 
         <DropdownMenu :modal="false">
           <DropdownMenuTrigger as-child>
-            <Button variant="soft" size="m">Medium</Button>
+            <Button variant="secondary" size="m">Medium</Button>
           </DropdownMenuTrigger>
 
           <DropdownMenuContent size="m">
