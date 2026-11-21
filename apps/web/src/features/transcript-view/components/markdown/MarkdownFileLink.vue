@@ -7,9 +7,9 @@
         color="cyan"
         weight="medium"
         underline="hover"
-        @click.prevent="fileOpener?.open({ path })"
+        @click.prevent="folder ? fileOpener?.reveal(path) : fileOpener?.open({ path })"
       >
-        <FolderIcon v-if="looksLikeFolder(path)" class="file-link-icon" />
+        <FolderIcon v-if="folder" class="file-link-icon" />
 
         <LanguageIcon
           v-else
@@ -17,7 +17,8 @@
           :language="fileExtension(target)"
           aria-hidden="true"
         />
-        {{ fileLinkLabel(path) }}
+
+        <span>{{ fileLinkLabel(path) }}</span>
       </Link>
     </TooltipTrigger>
 
@@ -42,6 +43,7 @@ import {
 const props = defineProps<{ path: string }>()
 const fileOpener = inject(openFileKey, undefined)
 const target = computed(() => filePosition(props.path).path)
+const folder = computed(() => looksLikeFolder(props.path))
 </script>
 
 <style scoped>
@@ -52,10 +54,10 @@ const target = computed(() => filePosition(props.path).path)
   text-overflow: ellipsis;
   white-space: nowrap;
   vertical-align: bottom;
-  text-decoration-color: currentColor;
 }
 
 .file-link .file-link-icon {
+  display: inline-block;
   width: 1em;
   height: 1em;
   margin-inline-end: 0.2em;

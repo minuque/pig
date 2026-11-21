@@ -99,7 +99,6 @@ async function refresh() {
 }
 
 function onExpanded(next: string[]) {
-  for (const dir of next) if (!listed.value[dir]) void load(dir)
   pane.setExpanded(next)
 }
 
@@ -120,6 +119,13 @@ watch(
 )
 
 watch(() => pane.changes.value, refresh)
+
+watch(
+  () => pane.expanded.value,
+  (dirs) => {
+    for (const dir of dirs) if (!listed.value[dir]) void load(dir)
+  },
+)
 
 watch(
   () => pane.request.value,

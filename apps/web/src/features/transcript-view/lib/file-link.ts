@@ -157,17 +157,16 @@ export function inlineCodeFilePath(code: string): string | null {
   if (ELIDED_SEGMENT.test(candidate.replace(POSITION_SUFFIX, ""))) return null
   const bare = candidate.replace(POSITION_SUFFIX, "")
 
-  if (SEPARATOR.test(bare.at(-1) ?? "")) return null
-
-  const basename = bare.split(SEPARATOR).at(-1) ?? ""
-  const named = FILE_EXTENSION.test(basename) || EXTENSIONLESS_FILES.has(basename)
-
   if (
     RELATIVE_PREFIX.test(candidate) ||
     candidate.startsWith("/") ||
     WINDOWS_ABSOLUTE.test(candidate)
   )
-    return named || hasPosition ? candidate : null
+    return candidate
+
+  if (SEPARATOR.test(bare.at(-1) ?? "")) return null
+  const basename = bare.split(SEPARATOR).at(-1) ?? ""
+  const named = FILE_EXTENSION.test(basename) || EXTENSIONLESS_FILES.has(basename)
 
   if (looksLikeHostname(bare.split("/")[0] ?? bare, hasPosition)) return null
 

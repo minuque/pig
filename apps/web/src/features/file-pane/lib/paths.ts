@@ -47,6 +47,9 @@ export function workspacePath(cwd: string, raw: string): WorkspaceTarget | undef
     const same = windows
       ? value.toLowerCase().startsWith(`${root.toLowerCase()}/`)
       : value.startsWith(`${root}/`)
+    const bare = value.replace(/\/+$/, "")
+
+    if (windows ? bare.toLowerCase() === root.toLowerCase() : bare === root) return { path: "" }
 
     if (!same) return undefined
     value = value.slice(root.length + 1)

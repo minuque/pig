@@ -19,6 +19,8 @@ describe("行内代码里的路径识别成文件", () => {
     ["src/資料.備份:12", "src/資料.備份:12"],
     ["C:\\proj\\src\\a.ts", "C:\\proj\\src\\a.ts"],
     ["/Users/me/Path Test/notes with spaces.md", "/Users/me/Path Test/notes with spaces.md"],
+    ["g:/aicode/learn-claude-code", "g:/aicode/learn-claude-code"],
+    ["./patches/", "./patches/"],
   ])("%s 是文件", (code, path) => {
     expect(inlineCodeFilePath(code)).toBe(path)
   })
@@ -37,12 +39,8 @@ describe("行内代码里的路径识别成文件", () => {
     "cd /tmp && ls",
     "/usr/local/bin/node server.js",
     "package.json",
-    "./patches/",
-    "G:/tmp/backup/",
+    "apps/web/",
     "subagent-notification:377",
-    "~/.pi/agent",
-    "~/.config/alma",
-    "/usr/local/share/app",
     "~/.alma/**",
     "~/ego*",
   ])("%s 不是文件", (code) => {
