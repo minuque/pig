@@ -62,7 +62,7 @@ const props = withDefaults(defineProps<Props>(), {
   appearance: none;
   padding: 0;
   border: var(--border-width) solid transparent;
-  border-radius: var(--radius-card);
+  border-radius: var(--radius-control);
   background-color: transparent;
   color: var(--fg);
   font-family: var(--font-sans);
@@ -164,7 +164,6 @@ const props = withDefaults(defineProps<Props>(), {
 }
 
 :where([data-button][data-variant="outline"]) {
-  background-color: var(--control-bg);
   box-shadow: var(--control-shadow);
 }
 

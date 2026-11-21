@@ -76,9 +76,7 @@
   --button-pressed: inset 0 1px 0 rgba(0, 0, 0, 0.08);
   --control-bg: var(--bg-raised);
   --control-border: var(--border-input);
-  --control-shadow:
-    0 0 0 var(--border-width) var(--control-border), 0 1px 2px rgba(0, 0, 0, 0.05),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.04);
+  --control-shadow: 0 0 0 var(--border-width) var(--control-border), 0 1px 2px rgba(0, 0, 0, 0.05);
   --thumb-shadow-subtle: rgba(0, 0, 0, 0.05);
   --thumb-shadow: rgba(0, 0, 0, 0.1);
   --thumb-ring: rgba(0, 0, 0, 0.2);
@@ -327,9 +325,7 @@ html.dark {
   --border-input: rgba(255, 255, 255, 0.23);
   --control-bg: rgba(255, 255, 255, 0.035);
   --control-border: rgba(255, 255, 255, 0.11);
-  --control-shadow:
-    0 0 0 var(--border-width) var(--control-border), 0 1px 2px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --control-shadow: 0 0 0 var(--border-width) var(--control-border), 0 1px 2px rgba(0, 0, 0, 0.05);
   --overlay: rgba(0, 0, 0, 0.6);
 
   /* --- 交互 --- */
