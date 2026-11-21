@@ -92,7 +92,6 @@ const weightClass = computed(() => (props.weight ? WEIGHT_CLASS[props.weight] : 
 
 :where([data-slot="link"][data-tone]) {
   color: var(--tone-text);
-  text-decoration-color: var(--tone-border);
 }
 
 :where([data-slot="link"][data-underline="always"]) {
