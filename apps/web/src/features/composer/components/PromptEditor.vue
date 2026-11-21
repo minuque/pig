@@ -1,18 +1,16 @@
 <template>
   <div class="composer" @mousedown="onComposerMousedown">
-    <Transition name="menu-reveal">
-      <CommandMenu
-        v-if="commandMenu.open.value"
-        class="command-menu-float"
-        :groups="commandMenu.groups.value"
-        :active-id="commandMenu.activeId.value"
-        :loading="commandMenu.loading.value"
-        :empty-text="commandMenu.emptyText.value"
-        :aria-label="commandMenuAriaLabel"
-        @select="commandMenu.select"
-        @highlight="(id) => (commandMenu.activeId.value = id)"
-      />
-    </Transition>
+    <CommandMenu
+      v-if="commandMenu.open.value"
+      class="command-menu-float"
+      :groups="commandMenu.groups.value"
+      :active-id="commandMenu.activeId.value"
+      :loading="commandMenu.loading.value"
+      :empty-text="commandMenu.emptyText.value"
+      :aria-label="commandMenuAriaLabel"
+      @select="commandMenu.select"
+      @highlight="(id) => (commandMenu.activeId.value = id)"
+    />
 
     <div class="composer-card">
       <div class="body">
@@ -20,25 +18,41 @@
           <slot name="attachments" />
         </div>
 
-        <div
-          ref="editor"
-          class="field"
-          contenteditable="plaintext-only"
-          role="textbox"
-          aria-multiline="true"
-          aria-label="Prompt"
-          :aria-controls="commandMenu.open.value ? 'composer-command-menu' : undefined"
-          :aria-activedescendant="commandMenuActiveId"
-          aria-autocomplete="list"
-          :data-placeholder="placeholder"
-          @keydown="onEditorKeydown"
-          @paste="onEditorPaste"
-          @input="onEditorInput"
-          @click="syncCaret"
-          @keyup="syncCaret"
-          @select="syncCaret"
-          @blur="onEditorBlur"
-        ></div>
+        <div class="field-wrap">
+          <div
+            ref="editor"
+            class="field"
+            contenteditable="plaintext-only"
+            role="textbox"
+            aria-multiline="true"
+            aria-label="Prompt"
+            :aria-controls="commandMenu.open.value ? 'composer-command-menu' : undefined"
+            :aria-activedescendant="commandMenuActiveId"
+            aria-autocomplete="list"
+            :aria-placeholder="placeholderText"
+            @keydown="onEditorKeydown"
+            @paste="onEditorPaste"
+            @input="onEditorInput"
+            @compositionstart="composing = true"
+            @compositionend="onCompositionEnd"
+            @click="syncCaret"
+            @keyup="syncCaret"
+            @select="syncCaret"
+            @blur="onEditorBlur"
+          ></div>
+
+          <div v-if="showPlaceholder" class="field-placeholder" aria-hidden="true">
+            <template v-if="props.placeholder">{{ props.placeholder }}</template>
+
+            <template v-else>
+              <span>{{ t("composer.placeholderPrefix") }}</span>
+              <Kbd size="s" variant="surface" class="placeholder-key">/</Kbd>
+              <span>{{ t("composer.placeholderCommand") }}</span>
+              <Kbd size="s" variant="surface" class="placeholder-key">@</Kbd>
+              <span>{{ t("composer.placeholderMention") }}</span>
+            </template>
+          </div>
+        </div>
       </div>
 
       <div class="footer">
@@ -70,21 +84,23 @@ export function shouldSubmitOnKeydown(e: {
 
 <script setup lang="ts">
 import { computed, onBeforeUpdate, ref, useTemplateRef, watch } from "vue"
+import { useI18n } from "@i18n/index.js"
+import { Kbd } from "@components/ui/kbd/index.js"
 import { clipboardFiles } from "@features/composer/hooks/use-composer-attachments.js"
 import { useCommandMenu, type ChipInsert } from "@features/composer/hooks/use-command-menu.js"
 import CommandMenu from "@features/composer/components/CommandMenu.vue"
-import { promptPlaceholder } from "@features/composer/index.js"
 
 const props = withDefaults(
   defineProps<{
-    placeholder?: string
+    placeholder?: string | undefined
     cwd?: string | undefined
   }>(),
   {
-    placeholder: promptPlaceholder(),
+    placeholder: undefined,
     cwd: undefined,
   },
 )
+const { t } = useI18n()
 const prompt = defineModel<string>("prompt", { required: true })
 const emit = defineEmits<{
   submit: []
@@ -92,6 +108,9 @@ const emit = defineEmits<{
 }>()
 const editor = useTemplateRef("editor")
 const hasText = computed(() => prompt.value.length > 0)
+const composing = ref(false)
+const showPlaceholder = computed(() => !hasText.value && !composing.value)
+const placeholderText = computed(() => props.placeholder ?? t("composer.placeholder"))
 const caret = ref(0)
 const commandMenu = useCommandMenu(prompt, caret, () => props.cwd, insertChip)
 
@@ -219,6 +238,11 @@ function onEditorInput() {
   prompt.value = serialize()
 }
 
+function onCompositionEnd() {
+  composing.value = false
+  onEditorInput()
+}
+
 function domCaretOffset(): number {
   const el = editor.value
 
@@ -343,28 +367,21 @@ defineExpose({ focus })
   overflow: hidden;
   border-radius: var(--composer-radius);
   background: var(--composer-bg);
+  backdrop-filter: var(--glass-filter);
   box-shadow:
-    inset 0 0 0 var(--border-width) var(--composer-border),
+    0 0 0 var(--border-width) var(--composer-border),
     var(--composer-inset),
     var(--composer-shadow);
   corner-shape: var(--composer-corner-shape);
-  transition:
-    background-color var(--duration-fast) var(--ease-out),
-    box-shadow var(--duration-fast) var(--ease-out);
+  transition: box-shadow var(--duration-fast) var(--ease-out);
 }
 
-.composer-card:hover {
+.composer-card:hover,
+.composer-card:has(.field:focus) {
   box-shadow:
-    inset 0 0 0 var(--border-width) var(--composer-border-hover),
+    0 0 0 var(--border-width) var(--composer-border-hover),
     var(--composer-inset),
     var(--composer-shadow);
-}
-
-.composer-card:has(.field:focus) {
-  background: var(--composer-focus-bg);
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--composer-border-hover),
-    var(--composer-focus-shadow);
 }
 
 .body {
@@ -428,10 +445,41 @@ defineExpose({ focus })
   cursor: text;
 }
 
-.field:empty::before {
-  content: attr(data-placeholder);
+.field-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.field-placeholder {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   color: var(--fg-muted);
+  font-size: var(--text-body);
+  line-height: 1.625;
   pointer-events: none;
+  user-select: none;
+}
+
+.placeholder-key[data-slot="kbd"] {
+  top: 0;
+  min-inline-size: 18px;
+  block-size: 18px;
+  margin-inline: var(--space-2xs);
+  padding: 0 var(--space-2xs);
+  border-radius: calc(var(--radius-control) * 0.7);
+  background-color: var(--bg-muted);
+  box-shadow:
+    inset 0 0 0 var(--border-width) var(--border),
+    inset 0 -1px 0 var(--border-strong);
+  color: var(--fg-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-meta);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
 }
 
 .field :deep(.chip) {

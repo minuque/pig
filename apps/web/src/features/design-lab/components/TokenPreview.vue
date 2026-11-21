@@ -107,7 +107,6 @@ const SIZES = ["--icon-sm", "--icon-md", "--icon-xl"]
   block-size: var(--space-xl);
   border-radius: var(--radius-control);
   background: var(--bg-raised);
-  outline: var(--border-width) solid var(--border);
 }
 
 .step {

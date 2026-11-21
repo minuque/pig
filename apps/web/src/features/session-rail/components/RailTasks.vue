@@ -8,6 +8,7 @@
         :key="task.id"
         as-child
         :open="task.kind === 'bash' && isOpen(task.id)"
+        @update:open="toggle(task.id)"
       >
         <article
           class="rail-task"
@@ -16,17 +17,19 @@
           :data-kind="task.kind"
         >
           <div class="rail-task-top">
-            <component
-              :is="task.kind === 'bash' ? 'button' : 'span'"
-              :type="task.kind === 'bash' ? 'button' : undefined"
-              class="rail-task-title"
-              :aria-expanded="task.kind === 'bash' ? isOpen(task.id) : undefined"
-              @click="task.kind === 'bash' && toggle(task.id)"
-            >
+            <CollapsibleTrigger v-if="task.kind === 'bash'" as-child>
+              <button type="button" class="rail-task-title">
+                <span class="rail-task-name" :class="{ shimmer: task.status === 'running' }">
+                  {{ task.description }}
+                </span>
+              </button>
+            </CollapsibleTrigger>
+
+            <span v-else class="rail-task-title">
               <span class="rail-task-name" :class="{ shimmer: task.status === 'running' }">
                 {{ task.description }}
               </span>
-            </component>
+            </span>
 
             <Tooltip v-if="stoppable.has(task.id)">
               <TooltipTrigger as-child>
@@ -101,7 +104,11 @@ import { computed, nextTick, ref, useTemplateRef, watch, type ComponentPublicIns
 import { useNow } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
-import { Collapsible, CollapsibleContent } from "@components/ui/collapsible/index.js"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@components/ui/collapsible/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { SquareIcon } from "@components/icons/index.js"
 import { formatTokenCount } from "@features/composer/lib/context-usage.js"

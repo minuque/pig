@@ -59,7 +59,7 @@ const size = useSelectSize()
   height: var(--control-md);
   padding-inline: calc(var(--spacing) * 3 - var(--border-width));
   border: var(--border-width) solid transparent;
-  border-radius: var(--radius-card);
+  border-radius: var(--radius-control);
   color: var(--fg);
   font-family: var(--font-sans);
   font-size: var(--text-body);
@@ -139,7 +139,6 @@ const size = useSelectSize()
 }
 
 :where([data-slot="select-trigger"][data-variant="surface"]) {
-  border-color: var(--control-border);
   background-color: var(--control-bg);
   box-shadow: var(--control-shadow);
 }

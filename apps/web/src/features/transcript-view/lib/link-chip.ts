@@ -21,6 +21,61 @@ export function prettifyUrl(url: string): string {
     .replace(/\/$/, "")
 }
 
+const SITES: [RegExp, string][] = [
+  [/(^|\.)github\.com$|^raw\.githubusercontent\.com$/, "github"],
+  [/(^|\.)huggingface\.co$/, "huggingface"],
+  [/(^|\.)openai\.com$/, "openai"],
+  [/(^|\.)(anthropic\.com|claude\.ai|claude\.com)$/, "anthropic"],
+  [/(^|\.)vercel\.com$/, "vercel"],
+  [/(^|\.)cloudflare\.com$/, "cloudflare"],
+  [/^ai\.google\.dev$/, "gemini"],
+]
+
+export function linkSite(url: string): string | undefined {
+  const host = parseUrl(url)?.hostname.toLowerCase()
+  return host ? SITES.find(([pattern]) => pattern.test(host))?.[1] : undefined
+}
+
+function githubLabel(parts: string[]): string | undefined {
+  const [owner, repo, kind, id, ...rest] = parts
+
+  if (!owner || !repo) return undefined
+  const name = `${owner}/${repo}`
+
+  if (!kind) return name
+
+  if ((kind === "pull" || kind === "issues") && id && /^\d+$/.test(id)) return `${name}#${id}`
+
+  if (kind === "commit" && id) return `${name}@${id.slice(0, 7)}`
+
+  if ((kind === "blob" || kind === "tree") && id) return `${name} · ${[id, ...rest].join("/")}`
+  return `${name} · ${[kind, id, ...rest].filter(Boolean).join("/")}`
+}
+
+export function shortUrlLabel(url: string): string {
+  const parsed = parseUrl(url)
+
+  if (!parsed) return prettifyUrl(url)
+  const host = parsed.hostname.toLowerCase().replace(/^www\./, "")
+  const parts = parsed.pathname.split("/").filter(Boolean).map(safeDecode)
+
+  if (host === "github.com") return githubLabel(parts) ?? prettifyUrl(url)
+
+  if (host === "npmjs.com" && parts[0] === "package" && parts[1])
+    return parts.slice(1, parts[1].startsWith("@") ? 3 : 2).join("/")
+
+  if (host === "huggingface.co" && parts.length === 2 && !parsed.search) return parts.join("/")
+  return prettifyUrl(url)
+}
+
+function safeDecode(value: string): string {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
+}
+
 export function linkChipLabel(href: string, text: string | undefined): string {
   const plain = (text ?? "").trim()
 
@@ -30,7 +85,7 @@ export function linkChipLabel(href: string, text: string | undefined): string {
     href === `https://${plain}` ||
     href === `http://${plain}`
   ) {
-    return prettifyUrl(href)
+    return shortUrlLabel(href)
   }
 
   return plain

@@ -306,9 +306,9 @@ function onKeyDown(event: KeyboardEvent) {
   display: flex;
   align-items: center;
   height: var(--effort-bump-h);
-  font-size: 11px;
+  font-size: var(--text-meta);
   font-weight: 500;
-  line-height: 13px;
+  line-height: 1;
   letter-spacing: -0.01em;
   white-space: nowrap;
   pointer-events: none;

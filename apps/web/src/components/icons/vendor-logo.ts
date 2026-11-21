@@ -12,6 +12,7 @@ import geminiColor from "@lobehub/icons-static-svg/icons/gemini-color.svg?url"
 import geminicliColor from "@lobehub/icons-static-svg/icons/geminicli-color.svg?url"
 import googleColor from "@lobehub/icons-static-svg/icons/google-color.svg?url"
 import grok from "@lobehub/icons-static-svg/icons/grok.svg?url"
+import github from "@lobehub/icons-static-svg/icons/github.svg?url"
 import groq from "@lobehub/icons-static-svg/icons/groq.svg?url"
 import huggingfaceColor from "@lobehub/icons-static-svg/icons/huggingface-color.svg?url"
 import kimi from "@lobehub/icons-static-svg/icons/kimi.svg?url"
@@ -47,6 +48,7 @@ const NAMES: Record<string, string> = {
   openrouter: "OpenRouter",
   deepseek: "DeepSeek",
   copilot: "GitHub Copilot",
+  github: "GitHub",
   mistral: "Mistral",
   groq: "Groq",
   bedrock: "Amazon Bedrock",
@@ -100,6 +102,7 @@ const ICONS: Record<string, VendorIcon> = {
   openrouter: { src: openrouterColor, tinted: false },
   deepseek: { src: deepseekColor, tinted: false },
   copilot: { src: copilotColor, tinted: false },
+  github: { src: github, tinted: true },
   mistral: { src: mistralColor, tinted: false },
   groq: { src: groq, tinted: true },
   bedrock: { src: bedrockColor, tinted: false },

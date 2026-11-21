@@ -1,68 +1,75 @@
 <template>
-  <div class="tool-row" :class="{ 'is-failed': call.isError, 'is-running': call.running }">
-    <div class="tool-row-head">
-      <button
-        type="button"
-        class="tool-row-trigger"
-        :class="{ 'is-file': Boolean(target.path) }"
-        :aria-expanded="open"
-        @click="emit('toggle', !open)"
-      >
-        <RollText class="tool-row-text" :text="lineText">
-          <span class="tool-row-line">
-            <span
-              class="tool-row-verb"
-              :class="{ shimmer: Boolean(liveVerb) }"
-              :data-text="liveVerb ?? undefined"
-            >
-              {{ shownVerb }}
+  <Collapsible as-child :open="open" @update:open="emit('toggle', $event)">
+    <div class="tool-row" :class="{ 'is-failed': call.isError, 'is-running': call.running }">
+      <div class="tool-row-head">
+        <CollapsibleTrigger as-child>
+          <button
+            type="button"
+            class="tool-row-trigger"
+            :class="{ 'is-file': Boolean(target.path) }"
+          >
+            <RollText class="tool-row-text" :text="lineText">
+              <span class="tool-row-line">
+                <span
+                  class="tool-row-verb"
+                  :class="{ shimmer: Boolean(liveVerb) }"
+                  :data-text="liveVerb ?? undefined"
+                >
+                  {{ shownVerb }}
+                </span>
+
+                <span
+                  v-if="target.text"
+                  class="tool-row-target"
+                  :class="{ 'is-openable': openable }"
+                  :title="target.path || target.text"
+                  @click="openable && openTarget($event)"
+                >
+                  {{ target.text }}
+                </span>
+
+                <span v-if="readRange" class="tool-row-range">({{ readRange }})</span>
+              </span>
+            </RollText>
+
+            <span v-if="lineChange.added || lineChange.removed" class="tool-row-counts">
+              <span v-if="lineChange.added" class="added">+{{ lineChange.added }}</span>
+              <span v-if="lineChange.removed" class="removed">-{{ lineChange.removed }}</span>
             </span>
+          </button>
+        </CollapsibleTrigger>
 
-            <span
-              v-if="target.text"
-              class="tool-row-target"
-              :class="{ 'is-openable': openable }"
-              :title="target.path || target.text"
-              @click="openable && openTarget($event)"
-            >
-              {{ target.text }}
-            </span>
-
-            <span v-if="readRange" class="tool-row-range">({{ readRange }})</span>
-          </span>
-        </RollText>
-
-        <span v-if="lineChange.added || lineChange.removed" class="tool-row-counts">
-          <span v-if="lineChange.added" class="added">+{{ lineChange.added }}</span>
-          <span v-if="lineChange.removed" class="removed">-{{ lineChange.removed }}</span>
+        <span v-if="images.length || duration" class="tool-row-meta">
+          <ToolThumbs :images="images" />
+          <span v-if="duration" class="tool-row-time">{{ duration }}</span>
         </span>
-      </button>
 
-      <span v-if="images.length || duration" class="tool-row-meta">
-        <ToolThumbs :images="images" />
-        <span v-if="duration" class="tool-row-time">{{ duration }}</span>
-      </span>
+        <ChevronRightIcon class="tool-row-caret" :class="{ 'is-open': open }" data-icon="inline" />
+      </div>
 
-      <ChevronRightIcon class="tool-row-caret" :class="{ 'is-open': open }" data-icon="inline" />
+      <CollapsibleContent class="tool-row-body">
+        <ToolTaskBody v-if="tasks.length" :tasks="tasks" />
+        <ToolCommandBody v-else-if="variant === 'command'" :call="shownCall" />
+
+        <ToolFileBody
+          v-else-if="variant === 'read' || variant === 'edit' || variant === 'search'"
+          :call="shownCall"
+        />
+
+        <ToolGenericBody v-else :call="shownCall" />
+      </CollapsibleContent>
     </div>
-
-    <div v-if="open" class="tool-row-body">
-      <ToolTaskBody v-if="tasks.length" :tasks="tasks" />
-      <ToolCommandBody v-else-if="variant === 'command'" :call="shownCall" />
-
-      <ToolFileBody
-        v-else-if="variant === 'read' || variant === 'edit' || variant === 'search'"
-        :call="shownCall"
-      />
-
-      <ToolGenericBody v-else :call="shownCall" />
-    </div>
-  </div>
+  </Collapsible>
 </template>
 
 <script setup lang="ts">
 import { computed, inject } from "vue"
 import { ChevronRightIcon } from "@components/icons/index.js"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@components/ui/collapsible/index.js"
 import { RollText } from "@components/ui/roll-text/index.js"
 import ToolCommandBody from "@features/transcript-view/components/tool/ToolCommandBody.vue"
 import ToolFileBody from "@features/transcript-view/components/tool/ToolFileBody.vue"
@@ -180,12 +187,16 @@ const images = computed(() => toolCallImages(props.call))
   inset: 0;
 }
 
-.tool-row-trigger:hover,
-.tool-row-trigger:focus-visible,
-.tool-row-trigger[aria-expanded="true"],
-.tool-row-head:has(.tool-row-trigger:is(:hover, :focus-visible, [aria-expanded="true"]))
-  .tool-row-caret {
-  color: var(--fg-secondary);
+.tool-row-trigger:is(:focus-visible, [aria-expanded="true"]),
+.tool-row-head:has(.tool-row-trigger:is(:focus-visible, [aria-expanded="true"])) .tool-row-caret {
+  color: var(--fg);
+}
+
+@media (hover: hover) {
+  .tool-row-trigger:hover,
+  .tool-row-head:has(.tool-row-trigger:hover) .tool-row-caret {
+    color: var(--fg);
+  }
 }
 
 .tool-row-text {
@@ -300,10 +311,15 @@ const images = computed(() => toolCallImages(props.call))
 }
 
 .tool-row-body {
+  overflow: visible;
   min-width: 0;
   padding-block-start: var(--space-xs);
   font-size: var(--text-meta);
   line-height: var(--text-code-line);
+}
+
+.tool-row-body[data-state] {
+  animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

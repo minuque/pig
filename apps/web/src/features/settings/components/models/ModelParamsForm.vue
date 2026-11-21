@@ -21,7 +21,7 @@
           size="s"
           inputmode="numeric"
           class="field-input"
-          :data-invalid="invalid.includes('maxTokens') ? '' : undefined"
+          :invalid="invalid.includes('maxTokens')"
           @update:model-value="dirty = true"
         />
       </label>
@@ -34,7 +34,7 @@
           size="s"
           inputmode="numeric"
           class="field-input"
-          :data-invalid="invalid.includes('contextWindow') ? '' : undefined"
+          :invalid="invalid.includes('contextWindow')"
           @update:model-value="dirty = true"
         />
       </label>
@@ -43,9 +43,9 @@
     <div class="param-head">
       <span class="field-label">{{ t("settings.models.samplingParams") }}</span>
 
-      <button type="button" class="add-param" @click="addParam">
+      <Button type="button" size="s" variant="ghost" color="accent" @click="addParam">
         + {{ t("settings.models.addParam") }}
-      </button>
+      </Button>
     </div>
 
     <div v-for="(row, index) in form.samplingParams" :key="index" class="param-line">
@@ -65,14 +65,17 @@
         @update:model-value="dirty = true"
       >
         <TextFieldSlot side="right">
-          <button
+          <IconButton
             type="button"
+            size="s"
+            variant="ghost"
+            color="danger"
             class="remove-param"
             :aria-label="t('settings.models.removeParam')"
             @click="removeParam(index)"
           >
-            <TrashIcon />
-          </button>
+            <TrashIcon class="size-icon-sm" />
+          </IconButton>
         </TextFieldSlot>
       </TextFieldRoot>
     </div>
@@ -95,7 +98,7 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from "vue"
 
-import { Button } from "@components/ui/button/index.js"
+import { Button, IconButton } from "@components/ui/button/index.js"
 import { TrashIcon } from "@components/icons/index.js"
 import { TabsList, TabsRoot, TabsTrigger } from "@components/ui/tabs/index.js"
 import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
@@ -217,10 +220,6 @@ async function restore() {
   font-size: var(--text-meta);
 }
 
-.field-input[data-invalid] {
-  border-color: var(--danger-text);
-}
-
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -234,15 +233,6 @@ async function restore() {
   gap: var(--space-sm);
 }
 
-.add-param {
-  color: var(--accent-text);
-  font-size: var(--text-meta);
-}
-
-.add-param:hover {
-  opacity: 0.8;
-}
-
 .param-line {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -250,20 +240,8 @@ async function restore() {
 }
 
 .remove-param {
-  display: grid;
-  place-items: center;
-  width: 20px;
-  height: 20px;
-  color: var(--fg-secondary);
-}
-
-.remove-param:hover {
-  color: var(--danger-text);
-}
-
-.remove-param svg {
-  inline-size: 13px;
-  block-size: 13px;
+  inline-size: 20px;
+  block-size: 20px;
 }
 
 .error {
@@ -288,9 +266,5 @@ async function restore() {
   .param-line {
     grid-template-columns: minmax(0, 1fr);
   }
-}
-
-:deep([data-button][data-size="s"]) {
-  font-size: var(--text-body);
 }
 </style>

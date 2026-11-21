@@ -1,6 +1,6 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises"
 import { createHmac } from "node:crypto"
-import { tmpdir } from "node:os"
+import { hostname, tmpdir } from "node:os"
 import { join } from "node:path"
 
 import { afterEach, beforeEach, expect, test } from "vitest"
@@ -79,7 +79,7 @@ test("环境列表：本机在前，保存的环境带默认目录，ssh config 
   await writeFile(join(root, "known_hosts"), "[10.0.0.2]:2222 ssh-ed25519 AAAA\n")
 
   expect(await listEnvironments({ sshConfigPath, savedPath })).toEqual([
-    { id: "local", kind: "local", saved: false },
+    { id: "local", kind: "local", host: hostname(), saved: false },
     { id: "ssh://gpu", kind: "ssh", host: "gpu", defaultPath: "/srv/train", saved: true },
     { id: "ssh://devbox", kind: "ssh", host: "devbox", saved: false },
   ])

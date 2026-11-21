@@ -150,6 +150,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
   min-block-size: 0;
   padding: 0 var(--space-xs) var(--space-sm);
   overflow: auto;
+  overscroll-behavior: contain;
 }
 
 .file-search-group + .file-search-group {

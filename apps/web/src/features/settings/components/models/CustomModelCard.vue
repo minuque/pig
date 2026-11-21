@@ -1,70 +1,74 @@
 <template>
   <CardList class="model-card">
-    <div class="card-head">
-      <button type="button" class="card-toggle" @click="open = !open">
-        <VendorMark class="model-icon" :vendor="providerId" :name="providerName" :size="16" />
-        <span class="model-name">{{ model.id || t("settings.models.newModel") }}</span>
-        <span class="model-meta">{{ model.contextWindow || "—" }}</span>
-      </button>
+    <Collapsible v-model:open="open">
+      <div class="card-head">
+        <button type="button" class="card-toggle" @click="open = !open">
+          <VendorMark class="model-icon" :vendor="providerId" :name="providerName" :size="16" />
+          <span class="model-name">{{ model.id || t("settings.models.newModel") }}</span>
+          <span class="model-meta">{{ model.contextWindow || "—" }}</span>
+        </button>
 
-      <IconButton
-        type="button"
-        class="icon-button"
-        size="s"
-        variant="ghost"
-        :aria-label="t('settings.models.removeModel')"
-        @click="emit('remove')"
-      >
-        <TrashIcon />
-      </IconButton>
+        <IconButton
+          type="button"
+          class="icon-button"
+          size="s"
+          variant="ghost"
+          :aria-label="t('settings.models.removeModel')"
+          @click="emit('remove')"
+        >
+          <TrashIcon />
+        </IconButton>
 
-      <IconButton
-        type="button"
-        class="icon-button"
-        size="s"
-        variant="ghost"
-        :aria-label="t('settings.models.expandModel')"
-        @click="open = !open"
-      >
-        <ChevronRightIcon class="chevron" :class="{ open }" />
-      </IconButton>
-    </div>
-
-    <div v-if="open" class="card-body">
-      <div class="field-grid">
-        <label class="field">
-          <span class="field-label">{{ t("settings.models.modelId") }}</span>
-          <TextFieldRoot v-model="model.id" size="s" class="field-input" />
-        </label>
-
-        <label class="field">
-          <span class="field-label">{{ t("settings.models.displayName") }}</span>
-          <TextFieldRoot v-model="model.name" size="s" class="field-input" />
-        </label>
-
-        <label class="field">
-          <span class="field-label">{{ t("settings.models.contextWindow") }}</span>
-          <TextFieldRoot v-model="model.contextWindow" size="s" class="field-input" />
-        </label>
-
-        <label class="field">
-          <span class="field-label">{{ t("settings.models.maxTokens") }}</span>
-          <TextFieldRoot v-model="model.maxTokens" size="s" class="field-input" />
-        </label>
+        <IconButton
+          type="button"
+          class="icon-button"
+          size="s"
+          variant="ghost"
+          :aria-label="t('settings.models.expandModel')"
+          @click="open = !open"
+        >
+          <ChevronRightIcon class="chevron" :class="{ open }" />
+        </IconButton>
       </div>
 
-      <div class="field-grid">
-        <div class="field field-inline">
-          <span class="field-label">{{ t("settings.models.imageInput") }}</span>
-          <span class="switch-box"><Switch v-model="model.image" size="s" /></span>
-        </div>
+      <CollapsibleContent>
+        <div class="card-body">
+          <div class="field-grid">
+            <label class="field">
+              <span class="field-label">{{ t("settings.models.modelId") }}</span>
+              <TextFieldRoot v-model="model.id" size="s" class="field-input" />
+            </label>
 
-        <div class="field field-inline">
-          <span class="field-label">{{ t("settings.models.reasoning") }}</span>
-          <span class="switch-box"><Switch v-model="model.reasoning" size="s" /></span>
+            <label class="field">
+              <span class="field-label">{{ t("settings.models.displayName") }}</span>
+              <TextFieldRoot v-model="model.name" size="s" class="field-input" />
+            </label>
+
+            <label class="field">
+              <span class="field-label">{{ t("settings.models.contextWindow") }}</span>
+              <TextFieldRoot v-model="model.contextWindow" size="s" class="field-input" />
+            </label>
+
+            <label class="field">
+              <span class="field-label">{{ t("settings.models.maxTokens") }}</span>
+              <TextFieldRoot v-model="model.maxTokens" size="s" class="field-input" />
+            </label>
+          </div>
+
+          <div class="field-grid">
+            <div class="field field-inline">
+              <span class="field-label">{{ t("settings.models.imageInput") }}</span>
+              <span class="switch-box"><Switch v-model="model.image" size="s" /></span>
+            </div>
+
+            <div class="field field-inline">
+              <span class="field-label">{{ t("settings.models.reasoning") }}</span>
+              <span class="switch-box"><Switch v-model="model.reasoning" size="s" /></span>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      </CollapsibleContent>
+    </Collapsible>
   </CardList>
 </template>
 
@@ -79,6 +83,7 @@ import { IconButton } from "@components/ui/button/index.js"
 import { useI18n } from "@i18n/index.js"
 import type { CustomModelDraft } from "@features/settings/lib/provider-view.js"
 import { CardList } from "@components/ui/card/index.js"
+import { Collapsible, CollapsibleContent } from "@components/ui/collapsible/index.js"
 
 const model = defineModel<CustomModelDraft>({ required: true })
 

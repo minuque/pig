@@ -42,6 +42,7 @@ const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DialogOver
   inset: 0;
   display: flex;
   overflow: auto;
+  overscroll-behavior: contain;
 }
 
 :where([data-slot="dialog-scroll-padding"]) {

@@ -11,9 +11,9 @@
         <div class="detail-sub">
           <span class="detail-id">{{ provider.id }}</span>
 
-          <span class="provider-badge" :data-state="badge">
+          <Badge size="s" variant="soft" :color="badgeColor" class="provider-badge">
             {{ t(`settings.models.status.${badge}`) }}
-          </span>
+          </Badge>
         </div>
       </div>
     </header>
@@ -27,12 +27,20 @@
             <span class="kvlabel">{{ t("settings.models.apiKey") }}</span>
             <span class="kvvalue masked">{{ maskedKey }}</span>
 
-            <button v-if="canSwitch" type="button" class="switch-link" @click="toggleMethod">
+            <Button
+              v-if="canSwitch"
+              type="button"
+              size="s"
+              variant="ghost"
+              color="neutral"
+              class="switch-link"
+              @click="toggleMethod"
+            >
               <component :is="method === 'apiKey' ? UserIcon : KeyRoundIcon" class="switch-icon" />
               {{
                 method === "apiKey" ? t("settings.models.useOauth") : t("settings.models.useApiKey")
               }}
-            </button>
+            </Button>
 
             <span class="rowicons">
               <IconButton
@@ -63,8 +71,9 @@
           <template v-else-if="showKeyInput">
             <span class="kvlabel">{{ t("settings.models.apiKey") }}</span>
 
-            <input
+            <TextFieldRoot
               v-model="apiKey"
+              size="m"
               class="kvinput"
               type="password"
               autocomplete="off"
@@ -72,12 +81,20 @@
               @keydown.enter="saveKey"
             />
 
-            <button v-if="canSwitch" type="button" class="switch-link" @click="toggleMethod">
+            <Button
+              v-if="canSwitch"
+              type="button"
+              size="s"
+              variant="ghost"
+              color="neutral"
+              class="switch-link"
+              @click="toggleMethod"
+            >
               <component :is="method === 'apiKey' ? UserIcon : KeyRoundIcon" class="switch-icon" />
               {{
                 method === "apiKey" ? t("settings.models.useOauth") : t("settings.models.useApiKey")
               }}
-            </button>
+            </Button>
           </template>
 
           <template v-else-if="method === 'ambient' && provider.capabilities.ambient">
@@ -89,12 +106,20 @@
             <span class="kvlabel">{{ t("settings.models.authMethod") }}</span>
             <span class="kvvalue">{{ methodLabel }}</span>
 
-            <button v-if="canSwitch" type="button" class="switch-link" @click="toggleMethod">
+            <Button
+              v-if="canSwitch"
+              type="button"
+              size="s"
+              variant="ghost"
+              color="neutral"
+              class="switch-link"
+              @click="toggleMethod"
+            >
               <component :is="method === 'apiKey' ? UserIcon : KeyRoundIcon" class="switch-icon" />
               {{
                 method === "apiKey" ? t("settings.models.useOauth") : t("settings.models.useApiKey")
               }}
-            </button>
+            </Button>
           </template>
         </CardRow>
       </CardList>
@@ -177,10 +202,18 @@
           {{ t("settings.models.modelCount", { count: provider.models.length }) }}
         </span>
 
-        <button type="button" class="refresh-models" :disabled="refreshing" @click="reloadModels">
-          <RotateCcwIcon :class="{ 'is-spinning': refreshing }" />
+        <Button
+          type="button"
+          size="s"
+          variant="ghost"
+          color="accent"
+          class="refresh-models"
+          :disabled="refreshing"
+          @click="reloadModels"
+        >
+          <RotateCcwIcon :class="['size-icon-sm', { 'is-spinning': refreshing }]" />
           {{ t("settings.models.refreshModels") }}
-        </button>
+        </Button>
       </h3>
 
       <p v-if="refreshError" class="refresh-error">{{ refreshError }}</p>
@@ -224,6 +257,8 @@ import {
   AlertDialogTitle,
 } from "@components/ui/alert-dialog/index.js"
 import { Button, IconButton } from "@components/ui/button/index.js"
+import { Badge } from "@components/ui/badge/index.js"
+import { TextFieldRoot } from "@components/ui/text-field/index.js"
 import {
   CheckIcon,
   CopyIcon,
@@ -308,6 +343,12 @@ const methodLabel = computed(() => t(`settings.models.${method.value}`))
 const badge = computed(() =>
   providerStatusBadge(props.provider, loginState.value.phase === "running"),
 )
+const badgeColor = computed<"success" | "warning" | "neutral">(() => {
+  if (badge.value === "connected") return "success"
+
+  if (badge.value === "authorizing") return "warning"
+  return "neutral"
+})
 const {
   state: loginState,
   starting: loginStarting,

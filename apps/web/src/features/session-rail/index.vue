@@ -1,7 +1,7 @@
 <template>
   <div v-if="session.sessionId.value" class="session-rail">
     <aside v-if="rail.dockedShown.value" class="rail-docked" :aria-label="t('rail.title')">
-      <RailCards v-bind="cards" @stop="stopTask" />
+      <RailSummary v-bind="cards" @stop="stopTask" />
     </aside>
 
     <Teleport v-if="rail.pane.value && paneSlot" :to="paneSlot">
@@ -21,7 +21,7 @@
 <script setup lang="ts">
 import { computed, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
-import RailCards from "@features/session-rail/components/RailCards.vue"
+import RailSummary from "@features/session-rail/components/RailSummary.vue"
 import RailPane from "@features/session-rail/components/RailPane.vue"
 import { useRailCards } from "@features/session-rail/hooks/use-rail-cards.js"
 import { useSessionRail } from "@features/session-rail/index.js"
@@ -63,9 +63,5 @@ watch(
   padding: var(--space-xs) var(--border-width) var(--space-sm);
   overflow-y: auto;
   scrollbar-width: none;
-}
-
-.rail-docked:has(.is-drag-live) {
-  overflow: visible;
 }
 </style>

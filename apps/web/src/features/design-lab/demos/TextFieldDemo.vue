@@ -32,6 +32,7 @@
         <TextFieldRoot v-model="value" placeholder="Default" />
         <TextFieldRoot model-value="Read only" readonly placeholder="Read only" />
         <TextFieldRoot model-value="Disabled" disabled placeholder="Disabled" />
+        <TextFieldRoot model-value="Invalid value" invalid placeholder="Invalid" />
       </div>
     </Variant>
   </Story>

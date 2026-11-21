@@ -25,7 +25,7 @@
       </Tooltip>
     </header>
 
-    <ScrollArea v-if="pane.kind === 'tasks'" scrollbars="vertical" class="rail-pane-scroll">
+    <div v-if="pane.kind === 'tasks'" class="rail-pane-scroll">
       <div class="rail-pane-body" data-kind="tasks">
         <RailTasks
           :sections="sections"
@@ -36,7 +36,7 @@
           @stop="emit('stop', $event)"
         />
       </div>
-    </ScrollArea>
+    </div>
 
     <div v-else class="rail-pane-body" data-kind="child">
       <RailChild :child="pane.child" :progress="progress" />
@@ -49,7 +49,6 @@ import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Card } from "@components/ui/card/index.js"
-import { ScrollArea } from "@components/ui/scroll-area/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { XIcon, TrashIcon } from "@components/icons/index.js"
 import RailChild from "@features/session-rail/components/RailChild.vue"
@@ -142,7 +141,8 @@ function clearFinished() {
 .rail-pane-scroll {
   flex: 1;
   min-block-size: 0;
-  block-size: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .rail-pane-body {

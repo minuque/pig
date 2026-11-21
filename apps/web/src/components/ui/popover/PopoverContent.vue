@@ -45,7 +45,6 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<PopoverContentP
   z-index: var(--z-popover);
   overflow: auto;
   min-inline-size: var(--reka-popover-trigger-width);
-  border: var(--border-width) solid var(--float-border);
   background-color: var(--float-bg);
   box-shadow: var(--float-shadow);
   backdrop-filter: var(--glass-filter);

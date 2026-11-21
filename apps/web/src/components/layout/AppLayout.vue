@@ -103,20 +103,12 @@ function resetWidth() {
   visibility: hidden;
   width: 0;
   border-inline-end-width: 0;
-  transition:
-    width var(--duration-normal) var(--ease-out),
-    border-inline-end-width 0s var(--duration-normal),
-    visibility 0s var(--duration-normal);
 }
 
 .sidebar.expanded {
   visibility: visible;
   width: var(--left-width);
   border-inline-end-width: var(--border-width);
-  transition:
-    width var(--duration-normal) var(--ease-out),
-    border-inline-end-width 0s,
-    visibility 0s;
 }
 
 .resizer {
@@ -135,7 +127,6 @@ html[data-pig-desktop-platform="darwin"] .resizer {
 }
 
 .shell.is-resizing .sidebar {
-  transition: none;
   will-change: width;
 }
 
@@ -153,12 +144,6 @@ main {
   flex-direction: column;
   overflow: hidden;
   background: var(--bg);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sidebar {
-    transition: none;
-  }
 }
 
 @media (max-width: 900px) {

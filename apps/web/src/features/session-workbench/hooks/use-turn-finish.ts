@@ -4,6 +4,8 @@ import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
 import type { ComposerQueueApi } from "@features/composer/hooks/use-composer-queue.js"
 import { endedCleanly } from "@features/session/index.js"
 import { notifyTurnDone } from "@features/settings/index.js"
+import { notify } from "@components/layout/notify.js"
+import { t } from "@i18n/index.js"
 
 interface TurnFinishDeps {
   sessionId(): string | undefined
@@ -39,7 +41,12 @@ export function useTurnFinish(deps: TurnFinishDeps) {
 
     if (!was || now || !id) return
 
-    const clean = !abortedTurn && deps.queue.sizeFor(id) === 0 && endedCleanly(deps.transcript())
+    const items = deps.transcript()
+    const last = items.findLast((item) => item.role === "assistant")
+    const clean = !abortedTurn && deps.queue.sizeFor(id) === 0 && endedCleanly(items)
+
+    if (!abortedTurn && last?.role === "assistant" && last.status === "error")
+      notify(last.errorMessage || t("session.turnFailed"), "error", { transient: true })
 
     abortedTurn = false
 

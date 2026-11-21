@@ -5,13 +5,13 @@
         type="button"
         size="s"
         variant="ghost"
-        :color="status === 'error' ? 'danger' : 'neutral'"
+        :color="tone"
         class="copy-button"
         :aria-label="copyLabel"
         @click.stop="copy"
       >
-        <CheckIcon v-if="status === 'copied'" class="size-icon" />
-        <CopyIcon v-else class="size-icon" />
+        <CheckIcon v-if="status === 'copied'" class="size-icon motion-blur-in" />
+        <CopyIcon v-else :class="['size-icon', { 'motion-blur-in': swapped }]" />
       </IconButton>
     </TooltipTrigger>
 
@@ -30,6 +30,10 @@ import { CheckIcon, CopyIcon } from "@components/icons/index.js"
 const props = defineProps<{ text: string; label?: string }>()
 const { t } = useI18n()
 const status = shallowRef<"idle" | "copied" | "error">("idle")
+const swapped = shallowRef(false)
+const tone = computed(() =>
+  status.value === "copied" ? "success" : status.value === "error" ? "danger" : "neutral",
+)
 const copyLabel = computed(() =>
   status.value === "copied"
     ? t("common.copied")
@@ -42,6 +46,7 @@ const { start, stop } = useTimeoutFn(() => (status.value = "idle"), 1500, { imme
 async function copy() {
   if (!props.text) return
   stop()
+  swapped.value = true
 
   try {
     await navigator.clipboard.writeText(props.text)
@@ -65,5 +70,9 @@ async function copy() {
 
 .copy-button:hover {
   color: var(--fg);
+}
+
+.copy-button:not([data-tone="neutral"]) svg {
+  color: var(--tone-text);
 }
 </style>
