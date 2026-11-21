@@ -1,9 +1,12 @@
 import { lintIgnores } from "./scripts/check/lint-ignores.mjs"
+import { stylelintPlugin } from "./scripts/check/no-comments.mjs"
 
 /** @type {import("stylelint").Config} */
 export default {
   ignoreFiles: lintIgnores,
+  plugins: [stylelintPlugin],
   rules: {
+    "pig/no-comments": true,
     "rule-empty-line-before": [
       "always",
       {
@@ -51,6 +54,10 @@ export default {
     ],
   },
   overrides: [
+    {
+      files: ["apps/web/src/style/tokens.css"],
+      rules: { "pig/no-comments": [true, { sectionHeaders: true }] },
+    },
     {
       files: ["**/*.vue"],
       customSyntax: "postcss-html",

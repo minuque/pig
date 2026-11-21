@@ -1,0 +1,587 @@
+{
+  "scripts/arch/page.css": {
+    "pig/no-comments": {
+      "count": 12
+    }
+  },
+  "apps/web/src/shell/WorkbenchShell.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/style/app.css": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/style/components.css": {
+    "pig/no-comments": {
+      "count": 32
+    }
+  },
+  "apps/web/src/style/desktop.css": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/style/globals.css": {
+    "pig/no-comments": {
+      "count": 7
+    }
+  },
+  "apps/web/src/style/markdown.css": {
+    "pig/no-comments": {
+      "count": 14
+    }
+  },
+  "apps/web/src/style/mermaid.css": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/style/motion.css": {
+    "pig/no-comments": {
+      "count": 32
+    }
+  },
+  "apps/web/src/style/reset.css": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/style/tokens.css": {
+    "pig/no-comments": {
+      "count": 78
+    }
+  },
+  "apps/web/src/components/icons/RunningPigGlyph.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/layout/AlertToaster.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/layout/AppLayout.vue": {
+    "pig/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/components/layout/WindowControls.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/composer/index.vue": {
+    "pig/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/web/src/features/design-lab/index.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/extension-ui/index.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/preview/index.vue": {
+    "pig/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/remote-workspace/index.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-nav/index.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/session-workbench/index.vue": {
+    "pig/no-comments": {
+      "count": 8
+    }
+  },
+  "apps/web/src/features/session-rail/index.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/composer/components/AttachmentChips.vue": {
+    "pig/no-comments": {
+      "count": 9
+    }
+  },
+  "apps/web/src/features/composer/components/ModelEffortFooter.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/composer/components/ModelPicker.vue": {
+    "pig/no-comments": {
+      "count": 6
+    }
+  },
+  "apps/web/src/features/composer/components/ModelPickerRow.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/composer/components/PromptEditor.vue": {
+    "pig/no-comments": {
+      "count": 7
+    }
+  },
+  "apps/web/src/features/composer/components/QueuePanel.vue": {
+    "pig/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/components/ui/alert-dialog/AlertDialogContent.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/button/Button.vue": {
+    "pig/no-comments": {
+      "count": 11
+    }
+  },
+  "apps/web/src/components/ui/button/ButtonContent.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/button/IconButton.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/card/CardList.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/checkbox/Checkbox.vue": {
+    "pig/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/components/ui/command-palette/CommandPalette.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/command-palette/CommandPaletteInput.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/command-palette/CommandPaletteItem.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/dialog/DialogContent.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/dialog/DialogOverlay.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/dialog/DialogTitle.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/hover-card/HoverCardContent.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/radio-cards/RadioCards.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/radio-cards/RadioCardsItem.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/popover/PopoverContent.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/radio-group/Radio.vue": {
+    "pig/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/components/ui/radio-group/RadioGroupItem.vue": {
+    "pig/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/components/ui/resize-handle/ResizeHandle.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/select/SelectContent.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/select/SelectItem.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/select/SelectLabel.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/select/SelectSeparator.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/select/SelectTrigger.vue": {
+    "pig/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/web/src/components/ui/slider/Slider.vue": {
+    "pig/no-comments": {
+      "count": 6
+    }
+  },
+  "apps/web/src/components/ui/switch/Switch.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/tabs/TabsList.vue": {
+    "pig/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/components/ui/text-field/TextFieldRoot.vue": {
+    "pig/no-comments": {
+      "count": 11
+    }
+  },
+  "apps/web/src/components/ui/tooltip/TooltipContent.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/design-lab/components/CardTuner.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/design-lab/components/DesignGuide.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/design-lab/components/TokenCategory.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/file-pane/components/FilePanel.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/file-pane/components/FileSearch.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/file-pane/components/FileTabs.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/file-pane/components/FileTree.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/session-nav/components/NavFooter.vue": {
+    "pig/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/session-nav/components/NavHeader.vue": {
+    "pig/no-comments": {
+      "count": 8
+    }
+  },
+  "apps/web/src/features/session-nav/components/ProjectIconDialog.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-nav/components/ScopeMenu.vue": {
+    "pig/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/session-nav/components/SessionItem.vue": {
+    "pig/no-comments": {
+      "count": 12
+    }
+  },
+  "apps/web/src/features/session-nav/components/SessionItemDelete.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-nav/components/SessionList.vue": {
+    "pig/no-comments": {
+      "count": 10
+    }
+  },
+  "apps/web/src/features/session-nav/components/SessionSection.vue": {
+    "pig/no-comments": {
+      "count": 7
+    }
+  },
+  "apps/web/src/features/session-workbench/components/WelcomeField.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-workbench/components/WorkbenchHeader.vue": {
+    "pig/no-comments": {
+      "count": 11
+    }
+  },
+  "apps/web/src/features/session-workbench/components/WorkbenchHero.vue": {
+    "pig/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/web/src/features/session-rail/components/RailCard.vue": {
+    "pig/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/web/src/features/session-rail/components/RailCards.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-rail/components/RailContext.vue": {
+    "pig/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/session-rail/components/RailContextPreview.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-rail/components/RailPane.vue": {
+    "pig/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/session-rail/components/RailTaskRows.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-rail/components/RailTasks.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-rail/components/RailToggle.vue": {
+    "pig/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/settings/components/AppearancePane.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/settings/components/GeneralPane.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/settings/components/pane.css": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/settings/components/PresetSwatches.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/settings/components/SchemeCards.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/settings/components/SettingsDialog.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/split-view/components/PaneBody.vue": {
+    "pig/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/split-view/components/PanelColumn.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/CodeCard.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/CopyButton.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/MessageTimestamp.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/transcript-view/components/SessionLoading.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/StickyCopyButton.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/transcript-view/components/ToolOutput.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/TranscriptBody.vue": {
+    "pig/no-comments": {
+      "count": 12
+    }
+  },
+  "apps/web/src/features/transcript-view/components/TranscriptLinkChip.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/TranscriptMinimap.vue": {
+    "pig/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/transcript-view/components/TranscriptStatus.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/TurnErrorRow.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/TurnRow.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/transcript-view/components/UserMessage.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/settings/components/models/ModelParamsForm.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/markdown/MarkdownCodeBlock.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/markdown/MarkdownMermaid.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/markdown/MarkdownTable.vue": {
+    "pig/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/transcript-view/components/markdown/MermaidPreview.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/transcript-view/components/tool/ToolCommandBody.vue": {
+    "pig/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/transcript-view/components/tool/ToolFileBody.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/transcript-view/components/tool/ToolGenericBody.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/tool/ToolRow.vue": {
+    "pig/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/transcript-view/components/tool/ToolRun.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/tool/ToolThoughtRow.vue": {
+    "pig/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/tool/ToolThumbs.vue": {
+    "pig/no-comments": {
+      "count": 2
+    }
+  }
+}

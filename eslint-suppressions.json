@@ -1,0 +1,2297 @@
+{
+  "apps/desktop/electron-main.mjs": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/desktop/gateway-child.mjs": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/desktop/scripts/dev-watchdog.mjs": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/desktop/src/dev-cli.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/desktop/src/main/directory-port.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/desktop/src/main/external-links.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/desktop/src/main/gateway-child.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/desktop/src/main/gateway-messages.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/desktop/src/main/gateway-process.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/desktop/src/main/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/desktop/src/main/load-retry.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/desktop/src/main/paths.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/desktop/src/main/protocol.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/desktop/src/main/theme-color.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/desktop/src/main/urls.ts": {
+    "pig-comments/no-comments": {
+      "count": 9
+    }
+  },
+  "apps/desktop/src/main/vite-child.ts": {
+    "pig-comments/no-comments": {
+      "count": 13
+    }
+  },
+  "apps/desktop/src/main/window-chrome.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/desktop/src/main/window-controls.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/desktop/src/main/window-state.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/desktop/src/main/window.ts": {
+    "pig-comments/no-comments": {
+      "count": 7
+    }
+  },
+  "apps/desktop/src/preload/index.js": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/desktop/test/directory-port.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/client/gateway-client.ts": {
+    "pig-comments/no-comments": {
+      "count": 10
+    }
+  },
+  "apps/web/src/client/gateway-connection.ts": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "apps/web/src/client/gateway-session.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/web/src/client/http.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/client/local-cwd.ts": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "apps/web/src/client/platform.ts": {
+    "pig-comments/no-comments": {
+      "count": 24
+    }
+  },
+  "apps/web/src/client/transcript-state.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/client/transport.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/components/icons/LanguageIcon.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/icons/RunningPigGlyph.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/icons/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/icons/project-icons.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/icons/vendor-logo.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/components/layout/AlertToaster.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/layout/WindowControls.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/layout/hooks/use-left-panel.ts": {
+    "pig-comments/no-comments": {
+      "count": 10
+    }
+  },
+  "apps/web/src/components/layout/notify.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/components/ui/badge/Badge.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/button/ButtonContent.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/button/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/components/ui/card/Card.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/card/CardRow.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/checkbox/Checkbox.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/collapsible/Collapsible.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/collapsible/CollapsibleTrigger.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/command-palette/CommandPalette.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/context-menu/ContextMenu.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/context-menu/ContextMenuItem.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/context-menu/ContextMenuTrigger.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/dialog/Dialog.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/dialog/DialogContent.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/dialog/DialogTrigger.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/dropdown-menu/DropdownMenu.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/dropdown-menu/DropdownMenuContent.vue": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/components/ui/dropdown-menu/DropdownMenuItem.vue": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/components/ui/dropdown-menu/DropdownMenuTrigger.vue": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/components/ui/dropdown-menu/popper-anchor.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/hover-card/HoverCardContent.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/hover-card/HoverCardTrigger.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/kbd/Kbd.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/link/Link.vue": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/components/ui/popover/PopoverAnchor.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/popover/PopoverContent.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/popover/PopoverTrigger.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/radio-cards/RadioCards.vue": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/web/src/components/ui/radio-group/Radio.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/radio-group/RadioGroup.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/radio-group/RadioGroupItem.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/radio-group/type.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/resize-handle/drag.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/roll-text/RollText.vue": {
+    "pig-comments/no-comments": {
+      "count": 7
+    }
+  },
+  "apps/web/src/components/ui/select/SelectTrigger.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/select/select-context.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/skeleton/Skeleton.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/slider/Slider.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/spinner/Spinner.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/switch/Switch.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/table/TableCell.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/table/TableRoot.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/tabs/TabsContent.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/tabs/TabsList.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/tabs/TabsRoot.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/tabs/TabsTrigger.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/tabs/context.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/text-field/TextFieldRoot.vue": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/components/ui/tooltip/Tooltip.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/components/ui/tooltip/TooltipProvider.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/components/ui/tooltip/TooltipTrigger.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/env.d.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/click-sound/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "apps/web/src/features/composer/components/AttachmentChips.vue": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/composer/components/CommandMenu.vue": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "apps/web/src/features/composer/components/ContextRing.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/composer/components/ModelEffortFooter.vue": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "apps/web/src/features/composer/components/ModelPicker.vue": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "apps/web/src/features/composer/components/PromptEditor.vue": {
+    "pig-comments/no-comments": {
+      "count": 22
+    }
+  },
+  "apps/web/src/features/composer/hooks/use-command-menu.ts": {
+    "pig-comments/no-comments": {
+      "count": 23
+    }
+  },
+  "apps/web/src/features/composer/hooks/use-composer-attachments.ts": {
+    "pig-comments/no-comments": {
+      "count": 20
+    }
+  },
+  "apps/web/src/features/composer/hooks/use-composer-binding.ts": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "apps/web/src/features/composer/hooks/use-composer-queue.ts": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "apps/web/src/features/composer/hooks/use-model-favorites.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/composer/hooks/use-model-picker-panel.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/composer/hooks/use-session-buckets.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/composer/hooks/use-session-composer.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/composer/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/composer/index.vue": {
+    "pig-comments/no-comments": {
+      "count": 13
+    }
+  },
+  "apps/web/src/features/composer/lib/composer-trigger.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/web/src/features/composer/lib/context-usage.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/composer/lib/effort-shell.ts": {
+    "pig-comments/no-comments": {
+      "count": 7
+    }
+  },
+  "apps/web/src/features/composer/lib/model-preset.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/composer/lib/thinking-level.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/composer/type.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/design-lab/components/CardTuner.vue": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "apps/web/src/features/design-lab/components/DemoStory.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/design-lab/components/DesignGuide.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/design-lab/components/DesignHome.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/design-lab/components/DesignSearch.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/design-lab/components/TokenCategory.vue": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/design-lab/components/TokenPreview.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/design-lab/demos/SelectDemo.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/design-lab/index.vue": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/design-lab/lib/fixtures.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/design-lab/lib/nav.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/web/src/features/design-lab/lib/tokens.ts": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "apps/web/src/features/extension-ui/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "apps/web/src/features/extension-ui/index.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/file-pane/components/FileCode.vue": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/web/src/features/file-pane/components/FileHtml.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/file-pane/components/FileNotice.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/file-pane/components/FilePanel.vue": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "apps/web/src/features/file-pane/components/FileSearch.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/file-pane/components/FileTable.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/file-pane/components/FileTabs.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/file-pane/components/FileTree.vue": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "apps/web/src/features/file-pane/components/FileViewer.vue": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/file-pane/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "apps/web/src/features/file-pane/index.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/file-pane/lib/csv.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/file-pane/lib/file-kind.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/file-pane/lib/paths.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/web/src/features/file-pane/lib/search-limit.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/file-pane/lib/session-memory.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/file-pane/lib/tabs.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/file-pane/lib/tree.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/preview/index.vue": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/remote-workspace/index.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/session-nav/components/NavFooter.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/session-nav/components/NavHeader.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-nav/components/ProjectIcon.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-nav/components/SessionItem.vue": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "apps/web/src/features/session-nav/components/SessionList.vue": {
+    "pig-comments/no-comments": {
+      "count": 9
+    }
+  },
+  "apps/web/src/features/session-nav/components/SessionSection.vue": {
+    "pig-comments/no-comments": {
+      "count": 7
+    }
+  },
+  "apps/web/src/features/session-nav/components/SessionStateIcon.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-nav/hooks/use-pointer-drag.ts": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "apps/web/src/features/session-nav/hooks/use-project-prefs.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-nav/hooks/use-reveal-new-sessions.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/session-nav/hooks/use-row-sweep.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/session-nav/hooks/use-session-cards.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/session-nav/hooks/use-session-drag.ts": {
+    "pig-comments/no-comments": {
+      "count": 10
+    }
+  },
+  "apps/web/src/features/session-nav/hooks/use-session-markers.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/session-nav/hooks/use-session-open.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/session-nav/hooks/use-workspace-nav.ts": {
+    "pig-comments/no-comments": {
+      "count": 9
+    }
+  },
+  "apps/web/src/features/session-nav/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/session-nav/index.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/session-nav/lib/context-drag.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/session-nav/lib/drag-plan.ts": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "apps/web/src/features/session-nav/lib/format.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/session-nav/lib/project-prefs.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/session-nav/lib/session-list.ts": {
+    "pig-comments/no-comments": {
+      "count": 15
+    }
+  },
+  "apps/web/src/features/session-nav/lib/status-cycle.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-nav/type.ts": {
+    "pig-comments/no-comments": {
+      "count": 12
+    }
+  },
+  "apps/web/src/features/session-rail/components/RailCards.vue": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/session-rail/components/RailChild.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/session-rail/components/RailContext.vue": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/web/src/features/session-rail/components/RailContextPreview.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-rail/components/RailPane.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-rail/components/RailTaskRows.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-rail/components/RailTasks.vue": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/web/src/features/session-rail/components/RailToggle.vue": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/web/src/features/session-rail/hooks/use-rail-cards.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/session-rail/hooks/use-task-stopping.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-rail/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 10
+    }
+  },
+  "apps/web/src/features/session-rail/index.vue": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/session-rail/lib/layout.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/session-rail/lib/sections.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/session-rail/lib/task-list.ts": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "apps/web/src/features/session-workbench/components/WelcomeField.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/session-workbench/components/WorkbenchHeader.vue": {
+    "pig-comments/no-comments": {
+      "count": 10
+    }
+  },
+  "apps/web/src/features/session-workbench/components/WorkbenchHero.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/session-workbench/hooks/use-composer-dock.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/session-workbench/hooks/use-composer-reserve.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-workbench/hooks/use-composer-submit.ts": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "apps/web/src/features/session-workbench/hooks/use-file-drop.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/session-workbench/hooks/use-session-drop.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-workbench/hooks/use-turn-finish.ts": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "apps/web/src/features/session-workbench/hooks/use-welcome-workspace.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/web/src/features/session-workbench/index.vue": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/session-workbench/lib/mask-flow-shader.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session-workbench/lib/session-reference.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/session/hooks/abortable-open.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/session/hooks/use-background-send.ts": {
+    "pig-comments/no-comments": {
+      "count": 10
+    }
+  },
+  "apps/web/src/features/session/hooks/use-foreground-session.ts": {
+    "pig-comments/no-comments": {
+      "count": 13
+    }
+  },
+  "apps/web/src/features/session/hooks/use-live-subscriptions.ts": {
+    "pig-comments/no-comments": {
+      "count": 24
+    }
+  },
+  "apps/web/src/features/session/hooks/use-session-file-watch.ts": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "apps/web/src/features/session/hooks/use-session-history.ts": {
+    "pig-comments/no-comments": {
+      "count": 11
+    }
+  },
+  "apps/web/src/features/session/hooks/use-session-hub.ts": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "apps/web/src/features/session/hooks/use-session.ts": {
+    "pig-comments/no-comments": {
+      "count": 14
+    }
+  },
+  "apps/web/src/features/session/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session/lib/coalesce-by-frame.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session/lib/context-usage.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session/lib/ended-cleanly.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session/lib/model-ref.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/session/lib/session-history-cache.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/web/src/features/session/lib/session-state.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/session/lib/session-title.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/session/lib/transcript-text.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/session/lib/transcript-timeline.ts": {
+    "pig-comments/no-comments": {
+      "count": 15
+    }
+  },
+  "apps/web/src/features/session/type.ts": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "apps/web/src/features/settings/components/AppearancePane.vue": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "apps/web/src/features/settings/components/GeneralPane.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/settings/components/NotificationsPane.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/settings/components/SchemeCards.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/settings/components/SettingsDialog.vue": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "apps/web/src/features/settings/components/models/ModelsPane.vue": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/settings/hooks/use-appearance-prefs.ts": {
+    "pig-comments/no-comments": {
+      "count": 7
+    }
+  },
+  "apps/web/src/features/settings/hooks/use-general-prefs.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/settings/hooks/use-local-fonts.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/settings/hooks/use-provider-login.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/settings/hooks/use-providers.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/settings/hooks/use-settings-dialog.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/settings/lib/provider-login.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/settings/lib/provider-view.ts": {
+    "pig-comments/no-comments": {
+      "count": 10
+    }
+  },
+  "apps/web/src/features/settings/lib/settings-search.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/split-view/components/PaneBody.vue": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/split-view/components/PanelColumn.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/split-view/hooks/use-split-route.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/split-view/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 13
+    }
+  },
+  "apps/web/src/features/split-view/lib/panel-stack.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/split-view/lib/split-shortcut.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/split-view/lib/split-state.ts": {
+    "pig-comments/no-comments": {
+      "count": 10
+    }
+  },
+  "apps/web/src/features/startup/components/StartupOverlay.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/startup/hooks/use-startup-sequence.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/startup/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/theme/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/transcript-view/components/FlowNumber.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/transcript-view/components/MessageTimestamp.vue": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/transcript-view/components/TaskNotice.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/ToolOutput.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/transcript-view/components/TranscriptBody.vue": {
+    "pig-comments/no-comments": {
+      "count": 10
+    }
+  },
+  "apps/web/src/features/transcript-view/components/TranscriptMinimap.vue": {
+    "pig-comments/no-comments": {
+      "count": 7
+    }
+  },
+  "apps/web/src/features/transcript-view/components/TranscriptStatus.vue": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "apps/web/src/features/transcript-view/components/TurnRow.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/transcript-view/components/markdown/MarkdownCodeBlock.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/markdown/MarkdownContent.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/markdown/MarkdownLink.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/markdown/MarkdownMermaid.vue": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "apps/web/src/features/transcript-view/components/markdown/MarkdownTable.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/markdown/MermaidPreview.vue": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/transcript-view/components/markdown/RevealWords.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/markdown/live-block.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/tool/ToolFileBody.vue": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/transcript-view/components/tool/ToolRow.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/transcript-view/components/tool/ToolRun.vue": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/transcript-view/components/tool/ToolRunCard.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/components/tool/ToolThumbs.vue": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/hooks/use-full-tool-output.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/transcript-view/hooks/use-markdown-nodes.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/transcript-view/hooks/use-transcript-edge.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/hooks/use-transcript-expand.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/hooks/use-transcript-follow.ts": {
+    "pig-comments/no-comments": {
+      "count": 11
+    }
+  },
+  "apps/web/src/features/transcript-view/hooks/use-transcript-minimap.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/web/src/features/transcript-view/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/transcript-view/lib/code-fence.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/transcript-view/lib/code-highlight.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/web/src/features/transcript-view/lib/link-chip.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/transcript-view/lib/markdown-parse.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/transcript-view/lib/mermaid-runtime.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/features/transcript-view/lib/nearest-heading.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/lib/response-reveal.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/transcript-view/lib/shown-turns.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/transcript-view/lib/tool-run.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/web/src/features/transcript-view/lib/tool-summary.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/transcript-view/lib/tool-tasks.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/transcript-view/lib/transcript-activity.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/lib/transcript-format.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/transcript-view/lib/transcript-minimap.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/features/transcript-view/lib/transcript-row-label.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/transcript-view/lib/transcript-rows.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/features/transcript-view/lib/transcript-scroll.ts": {
+    "pig-comments/no-comments": {
+      "count": 10
+    }
+  },
+  "apps/web/src/features/transcript-view/lib/transcript-turns.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/features/transcript-view/type.ts": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "apps/web/src/i18n/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/router/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/shell/WorkbenchShell.vue": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "apps/web/src/shell/hooks/use-background-pump.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "apps/web/src/types/attachment-type.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/types/provider-type.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/src/types/ui-type.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/utils/motion.ts": {
+    "pig-comments/no-comments": {
+      "count": 23
+    }
+  },
+  "apps/web/src/utils/storage.ts": {
+    "pig-comments/no-comments": {
+      "count": 12
+    }
+  },
+  "apps/web/src/utils/theme-mode.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "apps/web/src/utils/theme-palette.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/src/utils/time.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/test/features/composer/hooks/use-composer-attachments.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/test/features/composer/hooks/use-composer-binding.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/test/features/session-nav/hooks/use-workspace-nav.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/test/features/session-workbench/hooks/use-turn-finish.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/test/features/session/external-turn.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/test/features/session/session-history.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/test/features/session/session-hub.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/test/features/transcript-view/hooks/use-transcript-follow.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "apps/web/test/setup.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "apps/web/test/shell/hooks/use-background-pump.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "apps/web/vite.config.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "e2e/composer/composer-attachments.spec.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "e2e/composer/composer-queue.spec.ts": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "e2e/conversation/external-append.spec.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "e2e/conversation/history-page.spec.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "e2e/conversation/new-session.spec.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "e2e/conversation/transcript-minimap.spec.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "e2e/conversation/turn-progress.spec.ts": {
+    "pig-comments/no-comments": {
+      "count": 9
+    }
+  },
+  "e2e/electron/external-links.spec.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "e2e/electron/playwright.config.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "e2e/electron/smoke.spec.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "e2e/electron/window-controls.spec.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "e2e/global-setup.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "e2e/perf/harness.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "e2e/perf/in-page.ts": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "e2e/perf/measure.ts": {
+    "pig-comments/no-comments": {
+      "count": 21
+    }
+  },
+  "e2e/perf/report.ts": {
+    "pig-comments/no-comments": {
+      "count": 9
+    }
+  },
+  "e2e/perf/run.ts": {
+    "pig-comments/no-comments": {
+      "count": 9
+    }
+  },
+  "e2e/perf/seed.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "e2e/perf/turn.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "e2e/playwright.config.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "e2e/sidebar/remote-workspace.spec.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "e2e/sidebar/session-manage.spec.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "e2e/sidebar/session-nav.spec.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "e2e/sidebar/session-switch.spec.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "e2e/sidebar/workspace.spec.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "e2e/startup/error.spec.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "e2e/support/checkpoint.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "e2e/support/fake-model-runtime.ts": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "e2e/support/fake-provider-registry.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "e2e/support/faux-runtime.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "e2e/support/fixtures.ts": {
+    "pig-comments/no-comments": {
+      "count": 21
+    }
+  },
+  "e2e/support/prebuild-session.ts": {
+    "pig-comments/no-comments": {
+      "count": 11
+    }
+  },
+  "e2e/support/remote-fixture.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "e2e/support/sim-turn.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "e2e/support/subagent-turn.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "e2e/workbench/file-pane.spec.ts": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "e2e/workbench/split-view.spec.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "e2e/workbench/subagent-rail.spec.ts": {
+    "pig-comments/no-comments": {
+      "count": 11
+    }
+  },
+  "eslint.config.js": {
+    "pig-comments/no-comments": {
+      "count": 26
+    }
+  },
+  "packages/environment/src/known-hosts.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "packages/environment/src/list.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "packages/environment/src/local.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "packages/environment/src/pool.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "packages/environment/src/search.ts": {
+    "pig-comments/no-comments": {
+      "count": 7
+    }
+  },
+  "packages/environment/src/ssh-config.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "packages/environment/src/ssh.ts": {
+    "pig-comments/no-comments": {
+      "count": 12
+    }
+  },
+  "packages/environment/src/types.ts": {
+    "pig-comments/no-comments": {
+      "count": 9
+    }
+  },
+  "packages/environment/src/workspace.ts": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "packages/extensions/src/file-mentions/expand.ts": {
+    "pig-comments/no-comments": {
+      "count": 18
+    }
+  },
+  "packages/extensions/src/file-mentions/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "packages/extensions/src/remote-workspace/context.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "packages/extensions/src/remote-workspace/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "packages/extensions/src/remote-workspace/ops.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "packages/extensions/src/subagent/agents.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "packages/extensions/src/subagent/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 9
+    }
+  },
+  "packages/extensions/src/subagent/run.ts": {
+    "pig-comments/no-comments": {
+      "count": 11
+    }
+  },
+  "packages/extensions/src/tasks/bash.ts": {
+    "pig-comments/no-comments": {
+      "count": 6
+    }
+  },
+  "packages/extensions/src/tasks/config.ts": {
+    "pig-comments/no-comments": {
+      "count": 7
+    }
+  },
+  "packages/extensions/src/tasks/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "packages/extensions/src/tasks/registry.ts": {
+    "pig-comments/no-comments": {
+      "count": 10
+    }
+  },
+  "packages/extensions/src/turn-timing/index.ts": {
+    "pig-comments/no-comments": {
+      "count": 7
+    }
+  },
+  "packages/extensions/test/file-mentions.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "packages/extensions/test/remote-workspace.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "packages/extensions/test/subagent-refresh.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "packages/extensions/test/subagent.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "packages/extensions/test/tasks.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "packages/extensions/vitest.config.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "packages/gateway/src/auth/browser-session.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "packages/gateway/src/cli.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "packages/gateway/src/pi/attachments.ts": {
+    "pig-comments/no-comments": {
+      "count": 39
+    }
+  },
+  "packages/gateway/src/pi/authorized-workspaces.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "packages/gateway/src/pi/composer-commands.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "packages/gateway/src/pi/context-usage.ts": {
+    "pig-comments/no-comments": {
+      "count": 9
+    }
+  },
+  "packages/gateway/src/pi/disk-transcripts.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "packages/gateway/src/pi/extension-ui.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "packages/gateway/src/pi/external-append.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "packages/gateway/src/pi/item-convert.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "packages/gateway/src/pi/model-metadata.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "packages/gateway/src/pi/models-config.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "packages/gateway/src/pi/provider-config.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "packages/gateway/src/pi/provider-login.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "packages/gateway/src/pi/provider-service.ts": {
+    "pig-comments/no-comments": {
+      "count": 18
+    }
+  },
+  "packages/gateway/src/pi/provider-view.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "packages/gateway/src/pi/remote-session.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "packages/gateway/src/pi/resource-loader.ts": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "packages/gateway/src/pi/runtime-types.ts": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "packages/gateway/src/pi/service-support.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "packages/gateway/src/pi/service.ts": {
+    "pig-comments/no-comments": {
+      "count": 44
+    }
+  },
+  "packages/gateway/src/pi/session-card.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "packages/gateway/src/pi/session-index.ts": {
+    "pig-comments/no-comments": {
+      "count": 7
+    }
+  },
+  "packages/gateway/src/pi/session-label.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "packages/gateway/src/pi/session-runtime.ts": {
+    "pig-comments/no-comments": {
+      "count": 27
+    }
+  },
+  "packages/gateway/src/pi/session-watcher.ts": {
+    "pig-comments/no-comments": {
+      "count": 7
+    }
+  },
+  "packages/gateway/src/pi/transcript-page.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "packages/gateway/src/pi/transcript-reader.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "packages/gateway/src/pi/transcript.ts": {
+    "pig-comments/no-comments": {
+      "count": 22
+    }
+  },
+  "packages/gateway/src/pi/turn-state.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "packages/gateway/src/pi/workspace-resources.ts": {
+    "pig-comments/no-comments": {
+      "count": 10
+    }
+  },
+  "packages/gateway/src/server/file-preview.ts": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "packages/gateway/src/server/fs-routes.ts": {
+    "pig-comments/no-comments": {
+      "count": 14
+    }
+  },
+  "packages/gateway/src/server/host.ts": {
+    "pig-comments/no-comments": {
+      "count": 12
+    }
+  },
+  "packages/gateway/src/server/live-sessions.ts": {
+    "pig-comments/no-comments": {
+      "count": 9
+    }
+  },
+  "packages/gateway/src/server/platform.ts": {
+    "pig-comments/no-comments": {
+      "count": 17
+    }
+  },
+  "packages/gateway/src/server/provider-http.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "packages/gateway/src/server/providers.ts": {
+    "pig-comments/no-comments": {
+      "count": 11
+    }
+  },
+  "packages/gateway/src/server/router.ts": {
+    "pig-comments/no-comments": {
+      "count": 11
+    }
+  },
+  "packages/gateway/src/server/static-files.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "packages/gateway/src/server/websocket.ts": {
+    "pig-comments/no-comments": {
+      "count": 7
+    }
+  },
+  "packages/gateway/src/server/workspace-git.ts": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "packages/gateway/src/system/directory.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "packages/gateway/test/attachment-prompt.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "packages/gateway/test/attachments.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "packages/gateway/test/builtin-extensions.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "packages/gateway/test/external-append.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "packages/gateway/test/external-turn.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "packages/gateway/test/fs-routes.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "packages/gateway/test/host.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "packages/gateway/test/protocol.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "packages/gateway/test/providers-route.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "packages/gateway/test/session-watch.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "packages/gateway/test/setup.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "packages/gateway/test/snapshot-broadcast.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "packages/gateway/test/transcript.test.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "packages/gateway/vitest.config.ts": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "scripts/arch/api.mjs": {
+    "pig-comments/no-comments": {
+      "count": 7
+    }
+  },
+  "scripts/arch/build.mjs": {
+    "pig-comments/no-comments": {
+      "count": 4
+    }
+  },
+  "scripts/arch/client/data.js": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "scripts/arch/flows.mjs": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "scripts/arch/graph.mjs": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "scripts/arch/layers.mjs": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "scripts/build-package.mjs": {
+    "pig-comments/no-comments": {
+      "count": 3
+    }
+  },
+  "scripts/check/check.mjs": {
+    "pig-comments/no-comments": {
+      "count": 12
+    }
+  },
+  "scripts/check/lint-ignores.mjs": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "scripts/check/runner.mjs": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  },
+  "scripts/check/scope.mjs": {
+    "pig-comments/no-comments": {
+      "count": 8
+    }
+  },
+  "scripts/check/scope.test.mjs": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "scripts/check/vue-template.ts": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "scripts/dev.ts": {
+    "pig-comments/no-comments": {
+      "count": 9
+    }
+  },
+  "scripts/release-win.mjs": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "scripts/run.mjs": {
+    "pig-comments/no-comments": {
+      "count": 10
+    }
+  },
+  "scripts/setup-worktree.mjs": {
+    "pig-comments/no-comments": {
+      "count": 2
+    }
+  },
+  "stylelint.config.js": {
+    "pig-comments/no-comments": {
+      "count": 5
+    }
+  },
+  "vitest.workers.mjs": {
+    "pig-comments/no-comments": {
+      "count": 1
+    }
+  }
+}

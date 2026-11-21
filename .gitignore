@@ -152,11 +152,17 @@ test-results/
 # agents config files
 .pi/
 .grok/
-.claude/
+.claude/*
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/delete-comment
 .worktree/
 .worktrees/
 .codegraph/
-.agents/
+.agents/*
+!.agents/skills/
+.agents/skills/*
+!.agents/skills/delete-comment/
 .ryugi/
 .diagram-design/
 skills-lock.json

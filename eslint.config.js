@@ -8,6 +8,7 @@ import pluginVue from "eslint-plugin-vue"
 import tseslint from "typescript-eslint"
 
 import { lintIgnores } from "./scripts/check/lint-ignores.mjs"
+import { eslintPlugin as noComments } from "./scripts/check/no-comments.mjs"
 
 export default defineConfig(
   globalIgnores(lintIgnores, "pig/ignores"),
@@ -43,6 +44,18 @@ export default defineConfig(
       "vue/block-order": ["error", { order: ["template", "script", "style"] }],
       "vue/no-v-html": "error", // 禁止未消毒 HTML，防 XSS
     },
+  },
+
+  {
+    name: "pig/no-comments",
+    plugins: { "pig-comments": noComments },
+    rules: { "pig-comments/no-comments": "error" },
+  },
+
+  {
+    name: "pig/no-comments-protocol",
+    files: ["packages/protocol/src/**"],
+    rules: { "pig-comments/no-comments": ["error", { contractDocs: true }] },
   },
 
   {

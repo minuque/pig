@@ -3,7 +3,7 @@
 ## 约束
 
 - 一个逻辑任务完成并通过检查后做一次原子 commit，不按单次编辑提交。
-- 注释默认不超过 1 行。功能代码文件（`.ts`、`.vue`）不超过 500 行；样式表、i18n 文案不限。
+- 不写注释：`pig-comments/no-comments` 与 `pig/no-comments` 只放行五类（见 `/delete-comment`），存量在 `*-suppressions.json` 里只减不增；决策写进 [`docs/adr/`](docs/adr/README.md)。功能代码文件（`.ts`、`.vue`）不超过 500 行；样式表、i18n 文案不限。
 - 导入能对上现有别名就写别名，不写相对路径。同目录引用可以保持 `./`。
 - 已有依赖能表达就复用，不自写组件和行为；不引入功能重复的依赖。
 - 依赖缺陷不用 `patchedDependencies`、`patch-package`、本地 vendor 补丁。
@@ -21,6 +21,7 @@
 
 - 代码库结构与领域边界：[`docs/CODEBASE.md`](docs/CODEBASE.md)
 - 设计规则：[`docs/DESIGN.md`](docs/DESIGN.md)
+- 架构决策：[`docs/adr/`](docs/adr/README.md)
 - 产品定位与约束：[`docs/PRODUCT.md`](docs/PRODUCT.md)
 
 ## worktree
