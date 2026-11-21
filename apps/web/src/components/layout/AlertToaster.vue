@@ -1,5 +1,5 @@
 <template>
-  <ToastProvider swipe-direction="up" :label="t('common.notifications')">
+  <ToastProvider swipe-direction="right" :label="t('common.notifications')">
     <ToastRoot
       v-for="item in noticeQueue"
       :key="item.id"
@@ -10,24 +10,30 @@
       @update:open="(open) => open || dismissNotice(item.id)"
     >
       <Banner
-        variant="soft"
-        size="s"
-        :color="LEVEL_COLOR[item.level]"
+        variant="outline"
+        color="neutral"
+        size="m"
         dismissible
         floating
-        class="banner-alert"
+        class="toast-card"
         @close="dismissNotice(item.id)"
       >
-        <template v-if="item.level === 'error'" #icon><CircleExclamationPointIcon /></template>
-
-        <template v-if="item.title || item.level === 'error'" #title>
-          <ToastTitle>{{ item.title ?? t("common.error") }}</ToastTitle>
+        <template #icon>
+          <span class="toast-icon" :data-tone="LEVEL_TONE[item.level]">
+            <component :is="LEVEL_ICON[item.level]" />
+          </span>
         </template>
 
-        <div class="banner-row">
-          <ToastDescription class="banner-text">{{ item.message }}</ToastDescription>
+        <template v-if="item.title || item.level === 'error'" #title>
+          <ToastTitle class="toast-title">{{ item.title ?? t("common.error") }}</ToastTitle>
+        </template>
 
-          <ToastAction v-if="item.action" as-child :alt-text="item.action.label">
+        <ToastDescription class="toast-text" :title="item.message">
+          {{ item.message }}
+        </ToastDescription>
+
+        <div v-if="item.action" class="toast-actions">
+          <ToastAction as-child :alt-text="item.action.label">
             <Button size="s" variant="secondary" color="neutral" @click="item.action.run()">
               {{ item.action.label }}
             </Button>
@@ -43,6 +49,7 @@
 </template>
 
 <script setup lang="ts">
+import type { Component } from "vue"
 import {
   ToastAction,
   ToastDescription,
@@ -53,76 +60,110 @@ import {
   ToastViewport,
 } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
-import { Banner, type BannerColor } from "@components/ui/banner/index.js"
+import { Banner } from "@components/ui/banner/index.js"
 import { Button } from "@components/ui/button/index.js"
 import { dismissNotice, noticeQueue, type NoticeLevel } from "@components/layout/notify.js"
-import { CircleExclamationPointIcon } from "@components/icons/index.js"
+import { BellIcon, CircleCheckIcon, CircleExclamationPointIcon } from "@components/icons/index.js"
+import type { Tone } from "@/types/ui-type.js"
 
 const PASSING_MS = 5_000
 const { t } = useI18n()
-const LEVEL_COLOR: Record<NoticeLevel, BannerColor> = {
+const LEVEL_TONE: Record<NoticeLevel, Tone> = {
   info: "info",
+  success: "success",
   warning: "warning",
-  error: "destructive",
+  error: "danger",
+}
+const LEVEL_ICON: Record<NoticeLevel, Component> = {
+  info: BellIcon,
+  success: CircleCheckIcon,
+  warning: CircleExclamationPointIcon,
+  error: CircleExclamationPointIcon,
 }
 </script>
 
 <style scoped>
-.banner-alert {
-  background-image: linear-gradient(var(--tone-subtle), var(--tone-subtle));
+.toast-card[data-slot="banner"] {
+  padding-inline-end: var(--space-2xl);
+  border-radius: var(--radius-card);
   box-shadow: var(--shadow-popover);
 }
 
-.banner-row {
+.toast-icon {
   display: flex;
-  align-items: center;
-  gap: var(--space-sm);
+  color: var(--tone-text);
 }
 
-.banner-text {
-  flex: 1;
-  min-inline-size: 0;
+.toast-icon svg {
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
+}
+
+.toast-title {
+  color: var(--fg);
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-medium);
+}
+
+.toast-text {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--fg-secondary);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+  overflow-wrap: anywhere;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.toast-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-block-start: var(--space-xs);
 }
 </style>
 
 <style>
 .toast-viewport {
   position: fixed;
-  inset-block-start: var(--header-height);
-  inset-inline: 0;
+  inset-block-end: var(--space-md);
+  inset-inline-end: var(--space-md);
   z-index: var(--z-modal);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space-2xs);
+  gap: var(--space-xs);
+  inline-size: min(var(--toast-width), calc(100vw - 2 * var(--space-md)));
   margin: 0;
-  padding: var(--space-xs) var(--space-md);
+  padding: 0;
   list-style: none;
   pointer-events: none;
   outline: none;
 }
 
 .toast-item {
-  inline-size: min(100%, var(--banner-width));
   pointer-events: auto;
 }
 
 .toast-item[data-swipe="move"] {
-  transform: translateY(var(--reka-toast-swipe-move-y));
+  translate: var(--reka-toast-swipe-move-x) 0;
 }
 
 .toast-item[data-swipe="cancel"] {
-  transform: translateY(0);
-  transition: transform var(--duration-fast) var(--ease-out);
+  translate: 0 0;
+  transition: translate var(--duration-fast) var(--ease-out);
 }
 
 @media (prefers-reduced-motion: no-preference) {
   .toast-item[data-state="open"] {
-    animation: settle-down var(--duration-normal) var(--ease-out);
+    animation: toast-in var(--duration-slow) var(--ease-out);
   }
 
   .toast-item[data-state="closed"] {
     animation: overlay-out var(--duration-fast) var(--ease-out) forwards;
+  }
+
+  .toast-item[data-swipe="end"] {
+    animation: toast-swipe-out var(--duration-fast) var(--ease-out) forwards;
   }
 }
 </style>

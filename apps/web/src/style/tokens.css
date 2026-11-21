@@ -169,6 +169,7 @@
   --titlebar-controls-inset: 0px;
   --header-height: 44px;
   --banner-width: clamp(20rem, 50vw, 40rem);
+  --toast-width: 22rem;
   --content-width: 768px;
   --dialog-width-sm: 420px;
   --dialog-width-lg: 80rem;

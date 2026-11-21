@@ -166,6 +166,24 @@
   translate: 0 -10px;
 }
 
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    translate: calc(100% + var(--space-md)) 0;
+  }
+}
+
+@keyframes toast-swipe-out {
+  from {
+    translate: var(--reka-toast-swipe-end-x) 0;
+  }
+
+  to {
+    opacity: 0;
+    translate: calc(100% + var(--space-md)) 0;
+  }
+}
+
 .settle-in {
   animation: settle-down var(--duration-normal) var(--ease-out) backwards;
 }

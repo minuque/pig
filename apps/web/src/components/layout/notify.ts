@@ -1,6 +1,6 @@
 import { readonly, shallowRef } from "vue"
 
-export type NoticeLevel = "info" | "warning" | "error"
+export type NoticeLevel = "info" | "success" | "warning" | "error"
 
 export interface NoticeAction {
   label: string

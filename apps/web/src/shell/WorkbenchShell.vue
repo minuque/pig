@@ -134,9 +134,9 @@ const backgroundPump = createBackgroundPump({
     const meta = pi.sessions.value.find((item) => item.id === id)
     const title = meta ? sessionTitle(meta) : untitledSession()
     notify(
-      t(outcome === "complete" ? "session.backgroundDone" : "session.backgroundFailed", { title }),
-      outcome === "complete" ? "info" : "warning",
-      { action: { label: t("session.openSession"), run: () => nav.openSession(id) } },
+      t(outcome === "complete" ? "session.backgroundDone" : "session.backgroundFailed"),
+      outcome === "complete" ? "success" : "warning",
+      { title, action: { label: t("session.openSession"), run: () => nav.openSession(id) } },
     )
   },
 })
