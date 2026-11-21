@@ -1,6 +1,5 @@
 import { inject, provide, type InjectionKey, type Ref } from "vue"
 import type { DefaultModelView, ModelMetadata } from "@/types/common-type.js"
-import { t } from "@i18n/index.js"
 import { useSessionComposer } from "@features/composer/hooks/use-session-composer.js"
 import type { SessionContext } from "@features/session/index.js"
 
@@ -39,8 +38,4 @@ export function useComposerPreset(): ComposerPresetContext {
 
   if (!context) throw new Error("useComposerPreset() 需要在 provideComposerPreset() 之后调用")
   return context
-}
-
-export function promptPlaceholder(): string {
-  return t("composer.placeholder")
 }

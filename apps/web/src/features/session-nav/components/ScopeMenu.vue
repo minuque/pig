@@ -48,34 +48,44 @@
         <span class="scope-name">{{ workspaceName(group.canonicalPath) }}</span>
 
         <span class="scope-actions" @pointerdown.stop @pointerup.stop>
-          <IconButton
-            class="row-action"
-            type="button"
-            size="m"
-            variant="ghost"
-            color="neutral"
-            tabindex="-1"
-            :title="t('session.projectIcon')"
-            :aria-label="t('session.projectIcon')"
-            @click.stop.prevent="emit('settings', group.canonicalPath)"
-          >
-            <SettingsIcon />
-          </IconButton>
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <IconButton
+                class="row-action"
+                type="button"
+                size="m"
+                variant="ghost"
+                color="neutral"
+                tabindex="-1"
+                :aria-label="t('session.projectIcon')"
+                @click.stop.prevent="emit('settings', group.canonicalPath)"
+              >
+                <SettingsIcon />
+              </IconButton>
+            </TooltipTrigger>
 
-          <IconButton
-            class="row-action"
-            :data-pinned="isPinned(group.canonicalPath) || undefined"
-            type="button"
-            size="m"
-            variant="ghost"
-            color="neutral"
-            tabindex="-1"
-            :title="pinLabel(group.canonicalPath)"
-            :aria-label="pinLabel(group.canonicalPath)"
-            @click.stop.prevent="togglePinned(group.canonicalPath)"
-          >
-            <PinIcon />
-          </IconButton>
+            <TooltipContent>{{ t("session.projectIcon") }}</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <IconButton
+                class="row-action"
+                :data-pinned="isPinned(group.canonicalPath) || undefined"
+                type="button"
+                size="m"
+                variant="ghost"
+                color="neutral"
+                tabindex="-1"
+                :aria-label="pinLabel(group.canonicalPath)"
+                @click.stop.prevent="togglePinned(group.canonicalPath)"
+              >
+                <PinIcon />
+              </IconButton>
+            </TooltipTrigger>
+
+            <TooltipContent>{{ pinLabel(group.canonicalPath) }}</TooltipContent>
+          </Tooltip>
         </span>
       </DropdownMenuCheckboxItem>
 
@@ -93,6 +103,7 @@ import {
   DropdownMenuContent,
 } from "@components/ui/dropdown-menu/index.js"
 import { IconButton } from "@components/ui/button/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import {
   CheckIcon,
   FolderIcon,

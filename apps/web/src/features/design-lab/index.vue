@@ -62,9 +62,7 @@
 
     <div class="lab-body">
       <aside class="lab-nav">
-        <ScrollArea scrollbars="vertical" class="lab-nav-scroll">
-          <DesignNav />
-        </ScrollArea>
+        <DesignNav />
       </aside>
 
       <main class="lab-panel">
@@ -108,7 +106,6 @@ import {
   SearchIcon,
 } from "@components/icons/index.js"
 import { Button } from "@components/ui/button/index.js"
-import { ScrollArea } from "@components/ui/scroll-area/index.js"
 import { TabsList, TabsRoot, TabsTrigger } from "@components/ui/tabs/index.js"
 import { useColorScheme } from "@features/theme/index.js"
 import { useGeneralPrefs } from "@features/settings/index.js"
@@ -234,15 +231,11 @@ onMounted(() => document.getElementById("startup-splash")?.remove())
   position: sticky;
   inset-block-start: calc(var(--header-height) + var(--space-xs));
   block-size: calc(100dvh - var(--header-height) - var(--space-xs) * 2);
-  overflow: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   border-radius: var(--radius-card);
   background: var(--sidebar);
   box-shadow: 0 0 0 var(--border-width) var(--border);
-}
-
-/* 外部：Reka 的 ScrollArea 根带行内 position: relative，吸顶交给外层 aside，这里只填满 */
-.lab-nav-scroll {
-  block-size: 100%;
 }
 
 .lab-panel {

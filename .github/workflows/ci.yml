@@ -31,8 +31,12 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # 与本地 pnpm check 同一套步骤
-      - run: pnpm check
+      # 平台无关检查只在 ubuntu 全量运行，macOS / Windows 只跑测试避免争抢资源
+      - if: matrix.os == 'ubuntu-latest'
+        run: pnpm check
+
+      - if: matrix.os != 'ubuntu-latest'
+        run: pnpm test
 
   # pre-push 只跑改动映射到的用例，全量旅程在这里兜底
   e2e:

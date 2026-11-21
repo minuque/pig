@@ -10,27 +10,40 @@
       <span class="row-text">{{ item.text }}</span>
 
       <span class="row-actions">
-        <button
+        <IconButton
           type="button"
+          size="m"
+          variant="ghost"
+          color="neutral"
           class="action"
           :aria-label="t('composer.queueRemove', { text: item.text })"
           @click="emit('remove', item.id)"
         >
           <TrashIcon class="action-icon" aria-hidden="true" />
-        </button>
+        </IconButton>
 
-        <button
+        <IconButton
           type="button"
+          size="m"
+          variant="ghost"
+          color="neutral"
           class="action"
           :aria-label="t('composer.queueEdit')"
           @click="emit('edit', item)"
         >
           <PenIcon class="action-icon" aria-hidden="true" />
-        </button>
+        </IconButton>
 
-        <button type="button" class="send-now" @click="emit('sendNow', item)">
+        <Button
+          type="button"
+          size="s"
+          variant="ghost"
+          color="neutral"
+          class="send-now"
+          @click="emit('sendNow', item)"
+        >
           {{ t("composer.queueSendNow") }}
-        </button>
+        </Button>
       </span>
     </div>
   </div>
@@ -39,6 +52,7 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, useTemplateRef } from "vue"
 import { useI18n } from "@i18n/index.js"
+import { Button, IconButton } from "@components/ui/button/index.js"
 import { useDragReorder } from "@utils/motion.js"
 import type { QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
 import { GripVerticalIcon, PenIcon, TrashIcon } from "@components/icons/index.js"
@@ -137,60 +151,20 @@ onBeforeUnmount(() => reorder.detach())
 }
 
 .action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--control-sm);
-  height: var(--control-sm);
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-control);
-  background: transparent;
   color: var(--fg-secondary);
-  cursor: pointer;
-  transition:
-    background var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
 }
 
 .action:hover {
-  background: var(--bg-hover);
   color: var(--fg);
 }
 
 .action-icon {
   width: 13px;
   height: 13px;
+  color: currentColor;
 }
 
 .send-now {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 72px;
-  height: var(--control-sm);
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-control);
-  background: transparent;
-  color: var(--fg);
   font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
-  cursor: pointer;
-  transition:
-    background var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
-}
-
-.send-now:hover {
-  background: var(--bg-hover);
-  color: var(--fg);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .action,
-  .send-now {
-    transition: none;
-  }
 }
 </style>

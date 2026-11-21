@@ -1,5 +1,5 @@
 import { readFile } from "node:fs/promises"
-import { homedir } from "node:os"
+import { homedir, hostname } from "node:os"
 import { join } from "node:path"
 
 import { readSshConfig, sshHosts } from "./ssh-config.js"
@@ -36,7 +36,7 @@ export async function listEnvironments(
   ])
   const savedHosts = new Set(saved.map((item) => item.host))
   return [
-    { id: "local", kind: "local", saved: false },
+    { id: "local", kind: "local", host: hostname(), saved: false },
     ...saved.map((item): EnvironmentInfo => ({
       id: `ssh://${item.host}`,
       kind: "ssh",

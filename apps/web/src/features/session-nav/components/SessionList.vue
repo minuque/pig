@@ -288,7 +288,7 @@ onUpdated(() => {
   scrollbar-width: thin;
   scrollbar-gutter: stable;
   scrollbar-color: transparent transparent;
-  padding-inline-start: var(--space-2xs);
+  padding-inline: var(--space-2xs);
   padding-block-start: var(--space-2xs);
 }
 
@@ -310,7 +310,7 @@ onUpdated(() => {
   max-height: 60%;
   overflow-x: hidden;
   overflow-y: auto;
-  padding-inline-start: var(--space-2xs);
+  padding-inline: var(--space-2xs);
   padding-block-end: var(--space-2xs);
   background: var(--sidebar);
   scrollbar-width: thin;

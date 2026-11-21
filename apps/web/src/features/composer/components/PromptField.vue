@@ -9,10 +9,12 @@
     :aria-controls="ariaControls"
     :aria-activedescendant="ariaActivedescendant"
     aria-autocomplete="list"
-    :data-placeholder="placeholder"
+    :aria-placeholder="ariaPlaceholder"
     @keydown="onKeydown"
     @paste="onPaste"
     @input="onInput"
+    @compositionstart="emit('composing', true)"
+    @compositionend="onCompositionEnd"
     @click="emitCaret"
     @keyup="emitCaret"
     @select="emitCaret"
@@ -27,7 +29,7 @@ import type { ChipInsert } from "@features/composer/hooks/use-command-menu.js"
 
 const props = defineProps<{
   modelValue: string
-  placeholder: string
+  ariaPlaceholder?: string | undefined
   ariaControls?: string | undefined
   ariaActivedescendant?: string | undefined
 }>()
@@ -36,6 +38,7 @@ const emit = defineEmits<{
   caret: [offset: number]
   keydown: [event: KeyboardEvent]
   pasteFiles: [files: File[]]
+  composing: [value: boolean]
   blur: []
 }>()
 const editor = useTemplateRef("editor")
@@ -147,6 +150,11 @@ function onInput() {
   emitCaret()
 
   if (next !== props.modelValue) emit("update:modelValue", next)
+}
+
+function onCompositionEnd() {
+  emit("composing", false)
+  onInput()
 }
 
 function domCaretOffset(): number {
@@ -263,12 +271,6 @@ defineExpose({ focus, blur, insertChip })
   white-space: pre-wrap;
   word-break: break-word;
   cursor: text;
-}
-
-.field:empty::before {
-  content: attr(data-placeholder);
-  color: var(--fg-muted);
-  pointer-events: none;
 }
 
 .field :deep(.chip) {

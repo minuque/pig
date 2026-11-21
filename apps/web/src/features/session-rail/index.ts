@@ -4,7 +4,7 @@ import { openTaskSessionKey } from "@features/transcript-view/index.js"
 import { railModeOf } from "@features/session-rail/lib/layout.js"
 import { dismissTasks, readDismissed } from "@features/session-rail/lib/task-list.js"
 import {
-  moveShown,
+  RAIL_SECTIONS,
   readRailLayout,
   writeRailLayout,
   type RailLayout,
@@ -75,13 +75,10 @@ function useSessionRailState() {
       update({ closed: toggled(layout.value.closed, id) })
     },
     setAllOpen(open: boolean) {
-      update({ closed: open ? [] : [...layout.value.order] })
+      update({ closed: open ? [] : [...RAIL_SECTIONS] })
     },
     toggleHidden(id: RailSectionId) {
       update({ hidden: toggled(layout.value.hidden, id) })
-    },
-    move(shown: readonly RailSectionId[], id: RailSectionId, toIndex: number) {
-      update({ order: moveShown(layout.value.order, shown, id, toIndex) })
     },
   }
 }

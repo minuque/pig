@@ -1,6 +1,6 @@
 # 代码库结构
 
-pig 是 Pi Agent GUI：`apps/web` 与 `apps/desktop` 负责 UI，`packages/gateway` 负责平台接入与本地安全。Agent Loop / Session / Model Runtime 由 Pi 拥有。能力走 Pi Extension API，不在 pig 内置终端、浏览器；Files 面板只读地用 git 判断忽略与改动。
+pig 是 Pi Agent GUI：`apps/web` 与 `apps/desktop` 负责 UI，`packages/gateway` 负责平台接入与本地安全。Agent Loop / Session / Model Runtime 由 Pi 拥有。能力走 Pi Extension API，不在 pig 内置终端、浏览器与 Git。
 
 下面是 pnpm workspace 的目录，逐个写清职责、边界与目录内的约定。
 

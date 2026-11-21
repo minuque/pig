@@ -20,14 +20,17 @@
           <span class="file-tab-label">{{ pathBasename(tab.path) }}</span>
         </TabsTrigger>
 
-        <button
+        <IconButton
           type="button"
+          size="s"
+          variant="ghost"
+          color="neutral"
           class="file-tab-close"
           :aria-label="t('files.closeTab')"
           @click="pane.close(tab.path)"
         >
           <XIcon class="size-icon-sm" />
-        </button>
+        </IconButton>
       </div>
     </TabsList>
 
@@ -179,26 +182,19 @@ watch(
   font-style: italic;
 }
 
-.file-tab-close {
+.file-tab-close[data-slot="icon-button"] {
   position: relative;
-  display: grid;
-  flex-shrink: 0;
-  place-items: center;
   inline-size: 20px;
   block-size: 20px;
-  padding: 0;
-  border: 0;
   border-radius: calc(var(--radius-control) - 2px);
-  background: none;
   color: var(--fg-secondary);
 }
 
-.file-tab-close:hover {
-  background: var(--bg-hover);
-  color: var(--fg);
+.file-tab-close[data-slot="icon-button"] svg {
+  color: inherit;
 }
 
-.file-tab[data-selected] .file-tab-close {
+.file-tab[data-selected] .file-tab-close[data-slot="icon-button"] {
   color: var(--fg);
 }
 </style>

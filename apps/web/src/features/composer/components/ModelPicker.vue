@@ -134,9 +134,9 @@
           <div v-else-if="!catalog.length" class="empty empty-setup">
             {{ t("composer.noModelsConfigured") }}
 
-            <button type="button" class="configure-models" @click="configureModels">
+            <Button type="button" size="s" variant="ghost" color="accent" @click="configureModels">
               {{ t("composer.configureModels") }}
-            </button>
+            </Button>
           </div>
 
           <div v-else class="empty">{{ emptyText }}</div>
@@ -498,14 +498,5 @@ function onSelectModel(event: Event, provider: string, id: string) {
   flex-direction: column;
   align-items: center;
   gap: var(--space-xs);
-}
-
-.configure-models {
-  color: var(--accent-text);
-  font-size: var(--text-meta);
-}
-
-.configure-models:hover {
-  text-decoration: underline;
 }
 </style>

@@ -121,12 +121,12 @@ const tone = computed(() => TONE_BY_COLOR[props.color])
 }
 
 :where([data-slot="banner"][data-variant="surface"]) {
-  border: var(--border-width) solid var(--tone-border);
+  box-shadow: inset 0 0 0 var(--border-width) var(--tone-border);
   background-color: var(--tone-subtle);
 }
 
 :where([data-slot="banner"][data-variant="outline"]) {
-  border: var(--border-width) solid var(--tone-border);
+  box-shadow: inset 0 0 0 var(--border-width) var(--tone-border);
 }
 
 :where([data-slot="banner-icon"]) {

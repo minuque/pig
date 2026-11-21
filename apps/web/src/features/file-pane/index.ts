@@ -74,6 +74,18 @@ function useFilePaneState(session: SessionSource) {
     writeFlag(OPEN_KEY, next)
   }
 
+  function revealFolder(path: string) {
+    const parts = path.split("/").filter(Boolean)
+    const chain = parts.map((_, index) => parts.slice(0, index + 1).join("/"))
+    expanded.value = [...new Set([...expanded.value, ...chain])]
+    const id = session.sessionId.value
+
+    if (id) writeSessionValue(EXPANDED_KEY, id, expanded.value)
+    treeShown.value = true
+    writeFlag(TREE_KEY, true)
+    setOpen(true)
+  }
+
   function openFile(path: string, options: OpenOptions = {}) {
     update(openTab(tabs.value, path, options.pin ?? false))
     request.value = {
@@ -118,6 +130,7 @@ function useFilePaneState(session: SessionSource) {
     revisions,
     cwd,
     openFile,
+    revealFolder,
     setOpen,
     setFits: (next: boolean) => (fits.value = next),
     toggle: () => setOpen(!open.value),
@@ -162,6 +175,11 @@ export function provideFilePane(session: SessionSource) {
   provide(key, state)
   provide(openFileKey, {
     accepts: (raw) => Boolean(resolve(raw)),
+    reveal(raw) {
+      const target = resolve(raw)
+
+      if (target) state.revealFolder(target.path)
+    },
     open({ path, line, endLine, find }) {
       const target = resolve(path)
 

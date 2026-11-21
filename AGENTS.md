@@ -9,18 +9,10 @@
 - 依赖缺陷不用 `patchedDependencies`、`patch-package`、本地 vendor 补丁。
 - 单测只验证产品假设和数据路径（编排与状态转换），只测实现细节的不写；整页浏览器旅程写在 `e2e/`。
 
-## UI
-
-- 基础件自持外观：每个组件用平铺、最小的 `:where([data-slot=…])` 样式按 `docs/DESIGN.md` 的取值表达；颜色只来自 `tokens.css`，`color` 经 `data-tone` 映射到 `--tone-*` 槽位。
-- 外观微调写 SFC 的 scoped 样式：scoped 选择器带 data 属性，特异性高于 `:where()` 的组件默认样式，不需要 `!important`。不要在模板里堆工具类。
-- 组件样式只消费 `apps/web/src/style/tokens.css` 的 token。缺档先补 `tokens.css`，再写组件；SFC 不声明 `--*`，不写裸 hex/rgb/`color-mix`。
-- 动画复用 `apps/web/src/style/motion.css` 的类与 `@keyframes`。缺档先补 `motion.css`，再写组件。
-- 设计取值与规则见 [`docs/DESIGN.md`](docs/DESIGN.md)，改 UI 前读，守它的「七条规则」。
-
 ## 文档
 
 - 代码库结构与领域边界：[`docs/CODEBASE.md`](docs/CODEBASE.md)
-- 设计规则：[`docs/DESIGN.md`](docs/DESIGN.md)
+- 设计规则：[`docs/DESIGN.md`](docs/DESIGN.md)，改 UI 前读并遵守。只记跨组件的取值与规则，改值只改表格；新规则须用户提出或确认，每条不超过两行，先合并已有条目。
 - 产品定位与约束：[`docs/PRODUCT.md`](docs/PRODUCT.md)
 
 ## worktree

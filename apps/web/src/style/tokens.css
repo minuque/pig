@@ -65,6 +65,7 @@
   --bg-muted: color-mix(in srgb, var(--fg) 5%, transparent);
   --bg-emphasis: color-mix(in srgb, var(--fg) 12%, transparent);
   --link: var(--info-text);
+  --link-external: oklch(48.8% 0.243 264.376);
   --opacity-disabled: 0.55;
   --focus-color: var(--accent-text);
   --focus-ring: 0 0 0 2px var(--focus-color);
@@ -75,7 +76,9 @@
   --button-pressed: inset 0 1px 0 rgba(0, 0, 0, 0.08);
   --control-bg: var(--bg-raised);
   --control-border: var(--border-input);
-  --control-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), inset 0 -1px 0 rgba(0, 0, 0, 0.04);
+  --control-shadow: 0 0 0 var(--border-width) var(--control-border), 0 1px 2px rgba(0, 0, 0, 0.05);
+  --outline-ring: color-mix(in srgb, currentColor 24%, transparent);
+  --outline-shadow: 0 0 0 var(--border-width) var(--outline-ring), 0 1px 2px rgba(0, 0, 0, 0.05);
   --thumb-shadow-subtle: rgba(0, 0, 0, 0.05);
   --thumb-shadow: rgba(0, 0, 0, 0.1);
   --thumb-ring: rgba(0, 0, 0, 0.2);
@@ -166,6 +169,7 @@
   --titlebar-controls-inset: 0px;
   --header-height: 44px;
   --banner-width: clamp(20rem, 50vw, 40rem);
+  --toast-width: 22rem;
   --content-width: 768px;
   --dialog-width-sm: 420px;
   --dialog-width-lg: 80rem;
@@ -200,22 +204,18 @@
   --chart-free: var(--bg-emphasis);
   --composer-field-max: 208px;
   --composer-corner-shape: superellipse(1.5);
-  --composer-bg: var(--bg-raised);
+  --composer-bg: color-mix(in srgb, var(--bg-raised) 92%, transparent);
   --composer-border: rgba(0, 0, 0, 0.08);
   --composer-border-hover: rgba(0, 0, 0, 0.13);
-  --composer-inset: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --composer-inset: inset 0 1px 0 rgba(255, 255, 255, 0.72);
   --composer-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 4px 12px -4px rgba(0, 0, 0, 0.05);
-  --composer-focus-bg: var(--bg);
-  --composer-focus-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 6px rgba(0, 0, 0, 0.05),
-    0 10px 24px -8px rgba(0, 0, 0, 0.12);
-  --composer-dock-in: 420ms;
-  --composer-dock-out: 470ms;
+  --composer-dock-in: 250ms;
+  --composer-dock-out: 250ms;
   --composer-radius: 18px;
   --composer-reserve: 7rem;
   --glass-bg: color-mix(in srgb, var(--bg) 80%, transparent);
   --glass-filter: blur(12px) saturate(1.14);
-  --glass-shadow: 0 24px 64px -24px rgba(0, 0, 0, 0.65);
+  --glass-shadow: 0 0 0 var(--border-width) var(--border), 0 24px 64px -24px rgba(0, 0, 0, 0.65);
   --glass-backdrop: color-mix(in srgb, var(--bg) 60%, transparent);
   --glass-backdrop-filter: blur(4px);
   --glass-footer-bg: color-mix(in srgb, var(--fg) 2.5%, transparent);
@@ -251,15 +251,14 @@
   --mascot-shadow: rgba(0, 0, 0, 0.2);
   --mascot-peek-duration: 640ms;
   --float-bg: color-mix(in srgb, var(--bg-raised) 84%, transparent);
-  --float-border: var(--border);
-  --float-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.08);
+  --float-shadow: 0 0 0 var(--border-width) var(--border), 0 4px 12px -4px rgba(0, 0, 0, 0.08);
   --menu-item-gap: calc(var(--spacing) / 2);
   --minimap-marker: color-mix(in srgb, var(--fg-secondary) 35%, transparent);
   --nav-inline: var(--space-xs);
   --quote-border-width: 2px;
   --rail-width: 280px;
   --session-active-shadow:
-    inset 0 0 0 var(--border-width) color-mix(in srgb, var(--accent-solid) 16%, rgba(0, 0, 0, 0.05)),
+    0 0 0 var(--border-width) color-mix(in srgb, var(--accent-solid) 16%, rgba(0, 0, 0, 0.05)),
     0 1px 2px rgba(0, 0, 0, 0.05),
     0 3px 8px -3px color-mix(in srgb, var(--accent-solid) 16%, rgba(0, 0, 0, 0.1));
   --theme-wire-light: #ffffff;
@@ -328,12 +327,13 @@ html.dark {
   --border-input: rgba(255, 255, 255, 0.23);
   --control-bg: rgba(255, 255, 255, 0.035);
   --control-border: rgba(255, 255, 255, 0.11);
-  --control-shadow: 0 1px 2px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --control-shadow: 0 0 0 var(--border-width) var(--control-border), 0 1px 2px rgba(0, 0, 0, 0.05);
+  --outline-ring: color-mix(in srgb, currentColor 16%, transparent);
   --overlay: rgba(0, 0, 0, 0.6);
 
   /* --- 交互 --- */
-  --accent-solid: #6672dc;
-  --accent-solid-hover: #747fe5;
+  --accent-solid: #5e6ad2;
+  --accent-solid-hover: #6b77dc;
   --accent-text: #9eb1ff;
   --accent-subtle: color-mix(in srgb, var(--accent-solid) 16%, transparent);
   --bg-hover: color-mix(in srgb, var(--white) 6%, transparent);
@@ -344,24 +344,24 @@ html.dark {
   /* --- 状态 --- */
   --info-text: #4ccce6;
   --info-solid: #00a2c7;
+  --link-external: oklch(70.7% 0.165 254.624);
   --warning-solid: #e8a33d;
   --warning-text: #e8a33d;
   --danger-text: #e05c59;
   --danger-solid: #c84646;
 
   /* ====== 组件层：按组件前缀排列，只给单个组件或一类内容用 ====== */
-  --composer-bg: var(--bg-surface);
+  --composer-bg: color-mix(in srgb, var(--bg-surface) 90%, transparent);
   --composer-border: var(--border);
   --composer-border-hover: var(--border-strong);
-  --composer-inset: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --composer-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   --composer-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.32);
-  --composer-focus-bg: var(--bg-raised);
-  --composer-focus-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 8px 24px -8px rgba(0, 0, 0, 0.55);
   --glass-filter: blur(16px) saturate(1.08);
-  --glass-shadow: inset 0 1px rgba(255, 255, 255, 0.05), 0 24px 72px -20px rgba(0, 0, 0, 0.9);
+  --glass-shadow:
+    0 0 0 var(--border-width) var(--border), inset 0 1px rgba(255, 255, 255, 0.05),
+    0 24px 72px -20px rgba(0, 0, 0, 0.9);
   --glass-backdrop: color-mix(in srgb, var(--bg) 64%, transparent);
-  --float-shadow: 0 4px 12px -4px rgba(0, 0, 0, 0.32);
+  --float-shadow: 0 0 0 var(--border-width) var(--border), 0 4px 12px -4px rgba(0, 0, 0, 0.32);
   --effort-shell: #ffffff12;
   --effort-shell-2: #ffffff1b;
   --effort-thumb-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
@@ -378,7 +378,7 @@ html.dark {
   --language-pink: #ff678d;
   --mascot-shadow: rgba(0, 0, 0, 0.5);
   --session-active-shadow:
-    inset 0 0 0 var(--border-width) color-mix(in srgb, var(--accent-solid) 24%, transparent),
+    0 0 0 var(--border-width) color-mix(in srgb, var(--accent-solid) 24%, transparent),
     0 1px 2px rgba(0, 0, 0, 0.2);
 
   /* --- 浅色里冻结成字面值、深色取值不同的 token --- */
@@ -390,6 +390,10 @@ html.dark {
   --tone-subtle-mix: 16%;
   --tone-border-mix: 48%;
   --tone-text-lightness: 79%;
+}
+
+html.dark:is(:not([data-theme-preset]), [data-theme-preset="linear"]) {
+  --bg-selected: #1a2143;
 }
 
 html[data-ui-size="s"] {

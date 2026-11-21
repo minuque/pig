@@ -14,6 +14,12 @@ describe("对话里的路径换成工作区内的文件", () => {
     expect(workspacePath("ssh://box/srv/app", "/srv/app/lib/x.py")).toEqual({ path: "lib/x.py" })
   })
 
+  it("工作区根目录本身也算，解析成空路径", () => {
+    expect(workspacePath("G:/AICode/proj", "g:/aicode/proj")).toEqual({ path: "" })
+    expect(workspacePath("/home/me/proj", "/home/me/proj/")).toEqual({ path: "" })
+    expect(workspacePath("/home/me/proj", "/home/me/Proj")).toBeUndefined()
+  })
+
   it("读出行号写法", () => {
     expect(workspacePath("/p", "a.ts#L12")).toEqual({ path: "a.ts", line: 12, endLine: 12 })
     expect(workspacePath("/p", "a.ts#L3-L9")).toEqual({ path: "a.ts", line: 3, endLine: 9 })
@@ -29,6 +35,7 @@ describe("对话里的路径换成工作区内的文件", () => {
       "comark:incomplete-link",
       "/etc/passwd",
       "../other/a.md",
+      "~/.pi/agent/a.md",
       "",
     ])
       expect(workspacePath("/home/me/proj", raw)).toBeUndefined()

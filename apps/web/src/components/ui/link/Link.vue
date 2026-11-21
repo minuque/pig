@@ -5,6 +5,7 @@
     :as-child="asChild"
     :data-size="size"
     :data-underline="underline"
+    :data-underline-style="underlineStyle"
     :data-tone="color"
     :class="[weightClass, truncate && 'truncate', props.class]"
     v-bind="$attrs"
@@ -29,6 +30,7 @@ const props = withDefaults(
       size?: Size
       weight?: "regular" | "medium" | "bold"
       underline?: "auto" | "always" | "hover" | "none"
+      underlineStyle?: "solid" | "dotted"
       color?: ToneColor
       truncate?: boolean
     }
@@ -37,6 +39,7 @@ const props = withDefaults(
     as: "a",
     asChild: false,
     underline: "auto",
+    underlineStyle: "solid",
     truncate: false,
     class: undefined,
   },
@@ -89,7 +92,6 @@ const weightClass = computed(() => (props.weight ? WEIGHT_CLASS[props.weight] : 
 
 :where([data-slot="link"][data-tone]) {
   color: var(--tone-text);
-  text-decoration-color: var(--tone-border);
 }
 
 :where([data-slot="link"][data-underline="always"]) {
@@ -104,6 +106,14 @@ const weightClass = computed(() => (props.weight ? WEIGHT_CLASS[props.weight] : 
       ):hover
   ) {
     text-decoration-line: underline;
+  }
+
+  :where([data-slot="link"][data-underline-style="dotted"]:is(:any-link, button):hover) {
+    text-decoration-line: none;
+    background-image: radial-gradient(circle, currentColor 0.75px, transparent 1px);
+    background-position: left bottom;
+    background-repeat: repeat-x;
+    background-size: 4px 2px;
   }
 }
 

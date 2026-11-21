@@ -62,7 +62,7 @@ const props = withDefaults(defineProps<Props>(), {
   appearance: none;
   padding: 0;
   border: var(--border-width) solid transparent;
-  border-radius: var(--radius-card);
+  border-radius: var(--radius-control);
   background-color: transparent;
   color: var(--fg);
   font-family: var(--font-sans);
@@ -138,7 +138,6 @@ const props = withDefaults(defineProps<Props>(), {
 }
 
 :where([data-button][data-variant="solid"]) {
-  border-color: var(--tone);
   background-color: var(--tone);
   box-shadow:
     var(--button-highlight),
@@ -165,13 +164,11 @@ const props = withDefaults(defineProps<Props>(), {
 }
 
 :where([data-button][data-variant="outline"]) {
-  border-color: var(--control-border);
-  background-color: var(--control-bg);
-  box-shadow: var(--control-shadow);
+  box-shadow: var(--outline-shadow);
 }
 
 :where([data-button][data-variant="outline"]:active) {
-  box-shadow: none;
+  box-shadow: 0 0 0 var(--border-width) var(--outline-ring);
 }
 
 @media (hover: hover) {
@@ -196,6 +193,24 @@ const props = withDefaults(defineProps<Props>(), {
 
 :where([data-button]:is([data-variant="outline"], [data-variant="ghost"])) :where(svg) {
   color: var(--fg-muted);
+}
+
+:where(
+    [data-button]:is([data-variant="outline"], [data-variant="ghost"]):is(
+        [data-state="open"],
+        [data-active],
+        [aria-pressed="true"],
+        [aria-expanded="true"]
+      )
+  )
+  :where(svg) {
+  color: inherit;
+}
+
+@media (hover: hover) {
+  :where([data-button]:is([data-variant="outline"], [data-variant="ghost"]):hover) :where(svg) {
+    color: inherit;
+  }
 }
 
 :where([data-button][data-tone]:not([data-tone="neutral"], [data-variant="solid"])) {

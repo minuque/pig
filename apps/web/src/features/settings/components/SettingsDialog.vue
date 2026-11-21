@@ -5,32 +5,40 @@
 
       <div class="settings-shell" @keydown="onShellKeydown">
         <nav class="settings-nav" :aria-label="t('settings.title')">
-          <div class="settings-search">
-            <SearchIcon class="size-icon search-icon" />
+          <TextFieldRoot
+            ref="searchInput"
+            v-model="query"
+            size="m"
+            variant="soft"
+            color="neutral"
+            class="settings-search"
+            type="text"
+            :placeholder="t('settings.search')"
+            :aria-label="t('settings.search')"
+            @update:model-value="activeResult = 0"
+            @keydown="onSearchKeydown"
+          >
+            <TextFieldSlot side="left">
+              <SearchIcon class="size-icon" />
+            </TextFieldSlot>
 
-            <input
-              ref="searchInput"
-              v-model="query"
-              class="search-input"
-              type="text"
-              :placeholder="t('settings.search')"
-              :aria-label="t('settings.search')"
-              @input="activeResult = 0"
-              @keydown="onSearchKeydown"
-            />
+            <TextFieldSlot side="right">
+              <IconButton
+                v-if="searching"
+                type="button"
+                size="s"
+                variant="ghost"
+                color="neutral"
+                class="search-clear"
+                :aria-label="t('settings.clearSearch')"
+                @click="clearSearch(true)"
+              >
+                <XIcon class="size-icon-sm" />
+              </IconButton>
 
-            <button
-              v-if="searching"
-              type="button"
-              class="search-clear"
-              :aria-label="t('settings.clearSearch')"
-              @click="clearSearch(true)"
-            >
-              <XIcon class="size-icon" />
-            </button>
-
-            <Kbd v-else class="search-kbd" size="s">/</Kbd>
-          </div>
+              <Kbd v-else class="search-kbd" size="s">/</Kbd>
+            </TextFieldSlot>
+          </TextFieldRoot>
 
           <template v-if="searching">
             <p v-if="!results.length" class="settings-search-empty">
@@ -87,12 +95,21 @@
               </template>
             </nav>
 
-            <DialogClose class="settings-close" :aria-label="t('common.close')">
-              <XIcon class="size-icon" />
+            <DialogClose as-child>
+              <IconButton
+                type="button"
+                size="m"
+                variant="ghost"
+                color="neutral"
+                class="settings-close"
+                :aria-label="t('common.close')"
+              >
+                <XIcon class="size-icon" />
+              </IconButton>
             </DialogClose>
           </header>
 
-          <ScrollArea ref="scroller" scrollbars="vertical" class="settings-scroll">
+          <div ref="scroller" class="settings-scroll">
             <div class="settings-scroll-content">
               <div class="settings-body">
                 <GeneralPane v-if="active === 'general'" />
@@ -101,7 +118,7 @@
                 <ModelsPane v-else :refresh-models="refreshModels" />
               </div>
             </div>
-          </ScrollArea>
+          </div>
         </div>
       </div>
     </DialogContent>
@@ -112,7 +129,6 @@
 import { computed, nextTick, provide, ref, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
-import { ScrollArea } from "@components/ui/scroll-area/index.js"
 import {
   BellIcon,
   XIcon,
@@ -122,6 +138,8 @@ import {
   SlidersHorizontalIcon,
 } from "@components/icons/index.js"
 import { Kbd } from "@components/ui/kbd/index.js"
+import { IconButton } from "@components/ui/button/index.js"
+import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
 import AppearancePane from "./AppearancePane.vue"
 import GeneralPane from "./GeneralPane.vue"
 import ModelsPane from "./models/ModelsPane.vue"
@@ -142,7 +160,7 @@ const props = defineProps<{
 const emit = defineEmits<{ "update:open": [open: boolean] }>()
 const { t } = useI18n()
 const active = ref<Pane>(props.initialPane ?? "general")
-const scroller = useTemplateRef<InstanceType<typeof ScrollArea>>("scroller")
+const scroller = useTemplateRef<HTMLElement>("scroller")
 const trail = ref<SettingsCrumb[]>([])
 
 provide(SETTINGS_TRAIL, trail)
@@ -166,7 +184,7 @@ const crumbs = computed<SettingsCrumb[]>(() => {
 })
 const query = ref("")
 const activeResult = ref(0)
-const searchInput = ref<HTMLInputElement>()
+const searchInput = useTemplateRef<{ focus: () => void }>("searchInput")
 const searchEntries = computed<SettingsSearchEntry[]>(() => [
   {
     id: "setting-user-name",
@@ -296,7 +314,7 @@ async function openResult(item: SettingsSearchEntry) {
   query.value = ""
   activeResult.value = 0
   await nextTick()
-  const root = scroller.value?.viewport
+  const root = scroller.value
 
   if (!root) return
 
@@ -332,7 +350,7 @@ function select(pane: Pane) {
 }
 
 function resetScroll() {
-  scroller.value?.viewport?.scrollTo({ top: 0 })
+  scroller.value?.scrollTo({ top: 0 })
 }
 
 watch(
@@ -417,59 +435,9 @@ watch(active, async () => {
   color: var(--fg);
 }
 
-.settings-dialog .settings-search {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  height: 2rem;
-  padding-inline: var(--space-xs);
-  border-radius: var(--radius-control);
-  color: var(--fg-secondary);
-  font-size: var(--text-body);
-  transition:
-    background-color var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
-}
-
-.settings-dialog .settings-search:focus-within {
-  background: var(--bg-muted);
-  color: var(--fg);
-}
-
-.settings-dialog .search-icon {
-  flex: none;
-}
-
-.settings-dialog .search-input {
-  flex: 1;
-  min-width: 0;
-  border: 0;
-  background: transparent;
-  color: var(--fg);
-  font: inherit;
-  outline: none;
-}
-
-.settings-dialog .search-input::placeholder {
-  color: var(--fg-muted);
-}
-
 .settings-dialog .search-clear {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  border: 0;
-  border-radius: calc(var(--radius-control) / 2);
-  background: transparent;
-  color: inherit;
-  cursor: pointer;
-}
-
-.settings-dialog .search-clear:hover {
-  background: var(--bg-hover);
-  color: var(--fg);
+  inline-size: 20px;
+  block-size: 20px;
 }
 
 .settings-dialog .settings-search-empty {
@@ -580,29 +548,11 @@ watch(active, async () => {
   user-select: none;
 }
 
-.settings-dialog .settings-close {
-  display: grid;
-  flex: none;
-  place-items: center;
-  width: var(--control-sm);
-  height: var(--control-sm);
-  border-radius: var(--radius-control);
-  color: var(--fg-secondary);
-  cursor: pointer;
-  transition:
-    background-color var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
-}
-
-.settings-dialog .settings-close:hover {
-  background: var(--bg-hover);
-  color: var(--fg);
-}
-
 .settings-dialog .settings-scroll {
   flex: 1;
   min-height: 0;
-  height: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .settings-dialog .settings-scroll-content {

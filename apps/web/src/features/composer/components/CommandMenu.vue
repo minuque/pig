@@ -1,6 +1,6 @@
 <template>
   <div class="command-menu" :id="menuId" role="listbox" :aria-label="ariaLabel" @mousedown.prevent>
-    <ScrollArea scrollbars="vertical" class="command-scroll">
+    <div class="command-scroll">
       <div class="command-body">
         <template v-if="groups.length">
           <div v-for="group in groups" :key="group.id" class="command-group">
@@ -40,14 +40,13 @@
 
         <p v-else class="command-status" :data-loading="loading || undefined">{{ statusText }}</p>
       </div>
-    </ScrollArea>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, watch, type Component } from "vue"
 import { SquareCodeIcon, FileTextIcon, FolderIcon, BlocksIcon } from "@components/icons/index.js"
-import { ScrollArea } from "@components/ui/scroll-area/index.js"
 
 export type CommandMenuRowKind = "skill" | "template" | "builtin" | "file" | "directory"
 
@@ -121,7 +120,6 @@ watch(
   flex-direction: column;
   max-height: 280px;
   overflow: hidden;
-  border: var(--border-width) solid var(--float-border);
   border-radius: var(--radius-card);
   corner-shape: var(--composer-corner-shape);
   background-color: var(--float-bg);
@@ -130,9 +128,10 @@ watch(
 }
 
 .command-scroll {
-  height: auto;
+  flex: 1 1 auto;
   min-height: 0;
-  max-height: inherit;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .command-body {

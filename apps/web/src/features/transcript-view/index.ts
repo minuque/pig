@@ -23,5 +23,6 @@ export interface OpenFileTarget {
 
 export const openFileKey: InjectionKey<{
   open: (target: OpenFileTarget) => void
+  reveal: (raw: string) => void
   accepts: (raw: string) => boolean
 }> = Symbol("open-file")

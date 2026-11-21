@@ -21,8 +21,6 @@
         class="file-tree-row"
         :data-path="item.value.path"
         :data-active="item.value.path === active || undefined"
-        :data-ignored="item.value.ignored || undefined"
-        :data-git="marks.get(item.value.path)"
         :style="{ '--tree-level': item.level - 1 }"
         @select="(event: Event) => onSelect(event, item.value as TreeNode)"
         @dblclick="item.value.kind === 'file' && pane.openFile(item.value.path, { pin: true })"
@@ -40,10 +38,6 @@
         />
 
         <span class="file-tree-name">{{ item.value.name }}</span>
-
-        <span v-if="marks.has(item.value.path)" class="file-tree-mark">
-          {{ marks.get(item.value.path) === "dir" ? "•" : marks.get(item.value.path) }}
-        </span>
       </TreeItem>
     </TreeVirtualizer>
   </TreeRoot>
@@ -53,12 +47,12 @@
 import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue"
 import { TreeItem, TreeRoot, TreeVirtualizer } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
-import { listWorkspaceDir, workspaceGitStatus } from "@client/platform.js"
+import { listWorkspaceDir } from "@client/platform.js"
 import LanguageIcon from "@components/icons/LanguageIcon.vue"
 import { ChevronRightIcon, FolderIcon, FolderOpenIcon } from "@components/icons/index.js"
-import { ancestors, gitMarks, rowIndex } from "@features/file-pane/lib/tree.js"
+import { ancestors, rowIndex } from "@features/file-pane/lib/tree.js"
 import { useFilePane } from "@features/file-pane/index.js"
-import type { DirectoryEntry, GitFileStatus } from "@/types/common-type.js"
+import type { DirectoryEntry } from "@/types/common-type.js"
 
 type TreeNode = DirectoryEntry & { path: string }
 
@@ -67,8 +61,6 @@ const pane = useFilePane()
 const ROW_HEIGHT = 28
 const root = useTemplateRef<{ $el: HTMLElement }>("root")
 const listed = shallowRef<Record<string, TreeNode[]>>({})
-const status = shallowRef<GitFileStatus[]>([])
-const marks = computed(() => gitMarks(status.value))
 const active = computed(() => pane.tabs.value.active)
 const rootNodes = computed(() => listed.value[""] ?? [])
 const extension = (name: string) => name.split(".").pop()?.toLowerCase() ?? "text"
@@ -95,11 +87,9 @@ async function refresh() {
   if (!cwd) return
 
   await Promise.all(["", ...pane.expanded.value].map(load))
-  status.value = (await workspaceGitStatus(cwd).catch(() => ({ files: [] }))).files
 }
 
 function onExpanded(next: string[]) {
-  for (const dir of next) if (!listed.value[dir]) void load(dir)
   pane.setExpanded(next)
 }
 
@@ -120,6 +110,13 @@ watch(
 )
 
 watch(() => pane.changes.value, refresh)
+
+watch(
+  () => pane.expanded.value,
+  (dirs) => {
+    for (const dir of dirs) if (!listed.value[dir]) void load(dir)
+  },
+)
 
 watch(
   () => pane.request.value,
@@ -184,24 +181,6 @@ watch(
   outline-offset: -2px;
 }
 
-.file-tree-row[data-ignored] {
-  color: var(--fg-secondary);
-}
-
-.file-tree-row[data-git="M"],
-.file-tree-row[data-git="R"] {
-  color: var(--warning-text);
-}
-
-.file-tree-row[data-git="A"],
-.file-tree-row[data-git="U"] {
-  color: var(--success-text);
-}
-
-.file-tree-row[data-git="D"] {
-  color: var(--danger-text);
-}
-
 .file-tree-caret {
   flex: none;
   inline-size: var(--icon-sm);
@@ -229,11 +208,5 @@ watch(
   min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.file-tree-mark {
-  flex: none;
-  font-size: var(--text-meta);
-  font-variant-numeric: tabular-nums;
 }
 </style>

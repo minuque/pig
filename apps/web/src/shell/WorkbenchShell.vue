@@ -79,6 +79,7 @@ import { useEventListener, useResizeObserver } from "@vueuse/core"
 import { useRoute, useRouter } from "vue-router"
 import AppLayout from "@components/layout/AppLayout.vue"
 import AlertToaster from "@components/layout/AlertToaster.vue"
+import { notify } from "@components/layout/notify.js"
 
 import { useLocalWorkspaces } from "@client/local-cwd.js"
 import { useGatewayClient } from "@client/gateway-connection.js"
@@ -97,7 +98,12 @@ import { provideNav } from "@features/session-nav/index.js"
 import SettingsDialog from "@features/settings/components/SettingsDialog.vue"
 import { useSettingsDialog } from "@features/settings/hooks/use-settings-dialog.js"
 import Startup from "@features/startup/index.vue"
-import { createSessionHub, useSessionLifecycle } from "@features/session/index.js"
+import {
+  createSessionHub,
+  sessionTitle,
+  untitledSession,
+  useSessionLifecycle,
+} from "@features/session/index.js"
 import { focusedSession, provideSplitView, type Side } from "@features/split-view/index.js"
 import { splitShortcut } from "@features/split-view/lib/split-shortcut.js"
 import { prefetchHighlighter } from "@features/transcript-view/index.js"
@@ -124,6 +130,15 @@ const backgroundPump = createBackgroundPump({
   sound: useSound(),
   send: hub.backgroundSend.send,
   transcriptFor: hub.history.transcriptFor,
+  announce(id, outcome) {
+    const meta = pi.sessions.value.find((item) => item.id === id)
+    const title = meta ? sessionTitle(meta) : untitledSession()
+    notify(
+      t(outcome === "complete" ? "session.backgroundDone" : "session.backgroundFailed"),
+      outcome === "complete" ? "success" : "warning",
+      { title, action: { label: t("session.openSession"), run: () => nav.openSession(id) } },
+    )
+  },
 })
 
 hub.setBackgroundIdle(backgroundPump.onIdle)
@@ -150,8 +165,7 @@ const focused = focusedSession(
   split.leaveSession,
 )
 const { settingsOpen, settingsPane, openSettings, closeSettings } = useSettingsDialog()
-
-provideNav(pi, cwd, focused)
+const nav = provideNav(pi, cwd, focused)
 
 provideExtensionUi(pi, focused)
 
