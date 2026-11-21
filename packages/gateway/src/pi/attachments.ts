@@ -6,21 +6,23 @@ import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { finished } from "node:stream/promises"
 import type { PromptOptions } from "@earendil-works/pi-coding-agent"
+import {
+  INLINE_IMAGE_MIME_PATTERN,
+  MAX_BATCH_ITEMS,
+  MAX_FILE_BYTES,
+  MAX_IMAGE_BYTES,
+} from "@pig/protocol"
+
+export { MAX_BATCH_ITEMS, MAX_FILE_BYTES, MAX_IMAGE_BYTES }
 
 export type PromptImage = NonNullable<PromptOptions["images"]>[number]
 
-export const MAX_FILE_BYTES = 25 * 1024 * 1024
-// 外部：provider 内联上限约 4.5MB base64，3MB 编码后约 4MB
-export const MAX_IMAGE_BYTES = 3 * 1024 * 1024
-export const MAX_BATCH_ITEMS = 8
 export const ATTACHMENT_TTL_MS = 30 * 60 * 1000
 export const CONSUMED_FILE_TTL_MS = 24 * 60 * 60 * 1000
 const SWEEP_INTERVAL_MS = 60 * 1000
 const STALE_FILE_MS = 30 * 60 * 1000
 const ROOT_DIR = join(tmpdir(), "pig-attachments")
 const BATCH_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
-// 外部：provider 只稳定吃这几种内联图片；svg/bmp/heic 走文件落盘，否则整轮会被拒
-const INLINE_IMAGE_PATTERN = /^image\/(png|jpeg|gif|webp)$/i
 const MIME_PATTERN = /^[\w.+-]+\/[\w.+-]+$/
 const MAX_NAME_LENGTH = 120
 const DEFAULT_MIME = "application/octet-stream"
@@ -104,7 +106,7 @@ export class AttachmentStore implements AttachmentSink {
       mimeType: input.mimeType || DEFAULT_MIME,
       batch: input.batch,
     }
-    const item = INLINE_IMAGE_PATTERN.test(identity.mimeType)
+    const item = INLINE_IMAGE_MIME_PATTERN.test(identity.mimeType)
       ? await stageImage(identity, input.stream)
       : await stageFile(this.rootDir, identity, input.stream)
     const latest = this.batches.get(input.batch)

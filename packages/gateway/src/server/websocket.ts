@@ -1,12 +1,16 @@
 import { randomUUID } from "node:crypto"
 import type { IncomingMessage, Server } from "node:http"
 import type { Duplex } from "node:stream"
-import type { ClientMessage, ServerMessage, ServerSnapshot } from "@pig/protocol"
+import {
+  WEBSOCKET_PATH,
+  type ClientMessage,
+  type ServerMessage,
+  type ServerSnapshot,
+} from "@pig/protocol"
 import { WebSocket, WebSocketServer, type RawData } from "ws"
 import { GatewayError, type SessionService } from "../pi/runtime-types.js"
 import { LiveSessions, type ClientConnection } from "./live-sessions.js"
 
-const WEBSOCKET_PATH = "/api/v1/pi"
 const MAX_MESSAGE_BYTES = 16 * 1024 * 1024
 const MAX_PENDING_BYTES = 16 * 1024 * 1024
 const HANDSHAKE_TIMEOUT_MS = 30_000

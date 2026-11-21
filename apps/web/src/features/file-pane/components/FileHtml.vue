@@ -28,6 +28,7 @@
 
 <script setup lang="ts">
 import { shallowRef, useTemplateRef, watch } from "vue"
+import { isPreviewLinkMessage } from "@pig/protocol"
 import { useEventListener } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { filePreviewToken } from "@client/platform.js"
@@ -75,12 +76,8 @@ watch(
 )
 
 useEventListener(window, "message", (event: MessageEvent) => {
-  const data = event.data as { type?: unknown; href?: unknown } | null
-
-  if (event.source !== frame.value?.contentWindow || data?.type !== "pig-preview-link") return
-
-  if (typeof data.href !== "string" || !/^https?:\/\//i.test(data.href)) return
-  link.value = data.href
+  if (event.source !== frame.value?.contentWindow || !isPreviewLinkMessage(event.data)) return
+  link.value = event.data.href
   confirming.value = true
 })
 

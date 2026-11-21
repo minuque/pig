@@ -44,16 +44,25 @@ describe("connectGateway", () => {
     await expect(connected).rejects.toThrow("启动前退出")
   })
 
-  it("选目录对话框出错时按取消回复，子进程不会一直等", async () => {
+  it("选目录对话框出错时回传 error 并记录错误，子进程不会一直等", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {})
     const { child, sent } = fakeChild()
-    void connectGateway(child, {
-      ...noop,
-      pickDirectory: () => Promise.reject(new Error("dialog failed")),
-    })
 
-    child.emit("message", { type: "select-directory", id: 7 })
+    try {
+      void connectGateway(child, {
+        ...noop,
+        pickDirectory: () => Promise.reject(new Error("dialog failed")),
+      })
 
-    await vi.waitFor(() => expect(sent).toEqual([{ type: "directory-selected", id: 7 }]))
+      child.emit("message", { type: "select-directory", id: 7 })
+
+      await vi.waitFor(() =>
+        expect(sent).toEqual([{ type: "directory-selected", id: 7, error: "dialog failed" }]),
+      )
+      expect(spy).toHaveBeenCalledTimes(1)
+    } finally {
+      spy.mockRestore()
+    }
   })
 
   it("运行中意外退出触发提示，主动停止不触发", async () => {

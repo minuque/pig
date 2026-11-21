@@ -57,6 +57,9 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
+      "@pig/protocol": fileURLToPath(
+        new URL("../../packages/protocol/src/index.ts", import.meta.url),
+      ),
       "@": fileURLToPath(new URL("./src", import.meta.url)),
       "@style": fileURLToPath(new URL("./src/style", import.meta.url)),
       "@components": fileURLToPath(new URL("./src/components", import.meta.url)),

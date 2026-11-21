@@ -1,16 +1,11 @@
 import { readonly, ref } from "vue"
+import { canonicalizeWorkspacePath } from "@pig/protocol"
 import { readPref, writeJson, writePref, type PrefStorage } from "@utils/storage.js"
+
+export { canonicalizeWorkspacePath }
 
 export const LOCAL_WORKSPACES_KEY = "pig.localWorkspaces"
 export const LAST_CWD_KEY = "pig.lastCwd"
-
-export function canonicalizeWorkspacePath(path: string): string {
-  const trimmed = path.replaceAll("\\", "/").replace(/\/+$/, "")
-  // 外部：`c:` 是该盘当前目录，不是盘符根，根路径要保留尾斜杠
-  const normalized =
-    (trimmed === "" && path !== "") || /^[a-zA-Z]:$/.test(trimmed) ? `${trimmed}/` : trimmed
-  return /^[a-zA-Z]:/.test(normalized) ? normalized.toLowerCase() : normalized
-}
 
 export function uniqueCanonicalPaths(paths: readonly string[]): string[] {
   const seen = new Set<string>()

@@ -7,6 +7,7 @@
     "tsBuildInfoFile": "./node_modules/.cache/vue-tsc.tsbuildinfo",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "paths": {
+      "@pig/protocol": ["../../packages/protocol/src/index.ts"],
       "@/*": ["./src/*"],
       "@style/*": ["./src/style/*"],
       "@components/*": ["./src/components/*"],
