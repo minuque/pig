@@ -55,7 +55,13 @@ function shape(code, file) {
   ].join("\n<<block>>\n")
 }
 
-const changed = git("diff", "--name-only", ref, "--", ".")
+const changed = git(
+  "diff",
+  "--name-only",
+  ref,
+  "--",
+  ...(process.argv.slice(3).length ? process.argv.slice(3) : ["."]),
+)
   .split(/\r?\n/)
   .filter((f) => /\.(ts|tsx|js|mjs|cjs|vue|css)$/.test(f))
 let bad = 0

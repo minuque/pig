@@ -65,7 +65,7 @@ description: 清理代码注释：按五类放行名单逐条判定，赘述/过
 
 1. 列出范围内被基线吞掉的注释：`node .agents/skills/delete-comment/list.mjs <目录或文件>`。
 2. 逐文件读注释和它周围的代码，按上面分类处理。只删注释，不改代码；删后多出的空行交给格式化。
-3. 证明只删了注释：`node .agents/skills/delete-comment/verify.mjs [基准 ref]`。出现 `CODE` 就是误改了代码，恢复那处；出现 `DIRECTIVE` 要确认是有意删掉的抑制。
+3. 证明只删了注释：`node .agents/skills/delete-comment/verify.mjs [基准 ref] [路径…]`。出现 `CODE` 就是误改了代码，恢复那处；出现 `DIRECTIVE` 要确认是有意删掉的抑制。
 4. `pnpm fix:touched`，再收紧基线：`pnpm exec eslint . --prune-suppressions`，`pnpm exec stylelint "**/*.{css,vue}" --suppress=pig/no-comments`。
 5. `pnpm check:touched --no-e2e`（verify.mjs 已证明代码不变，所以不跑 e2e）。
 6. 按领域原子提交：`refactor(<scope>): 删掉 <领域> 的注释`，ADR 随同一个提交。
