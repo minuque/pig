@@ -11,7 +11,7 @@
           :aria-label="control.label"
           @click="control.run"
         >
-          <component :is="control.icon" class="size-icon-lg" />
+          <component :is="control.icon" :class="control.iconClass" />
         </IconButton>
       </TooltipTrigger>
 
@@ -66,14 +66,27 @@ if (bridge) {
 }
 
 const controls = computed(() => [
-  { id: "minimize", label: t("window.minimize"), icon: MinusIcon, run: () => bridge?.minimize() },
+  {
+    id: "minimize",
+    label: t("window.minimize"),
+    icon: MinusIcon,
+    iconClass: "size-icon-lg",
+    run: () => bridge?.minimize(),
+  },
   {
     id: maximized.value ? "restore" : "maximize",
     label: maximized.value ? t("window.restore") : t("window.maximize"),
     icon: maximized.value ? CopyIcon : SquareIcon,
+    iconClass: "size-icon-sm",
     run: () => bridge?.toggleMaximize(),
   },
-  { id: "close", label: t("window.close"), icon: XIcon, run: () => (closeOpen.value = true) },
+  {
+    id: "close",
+    label: t("window.close"),
+    icon: XIcon,
+    iconClass: "size-icon-lg",
+    run: () => (closeOpen.value = true),
+  },
 ])
 </script>
 
@@ -93,8 +106,12 @@ const controls = computed(() => [
 }
 
 [data-window-control="close"]:is(:hover, :focus-visible) {
-  background-color: var(--danger-subtle);
-  color: var(--danger-text);
+  background-color: var(--danger-solid);
+  color: var(--fg-on-accent);
+}
+
+[data-window-control="close"]:is(:hover, :focus-visible) svg {
+  color: inherit;
 }
 
 @media (min-width: 640px) {
