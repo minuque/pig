@@ -14,7 +14,7 @@ export default defineConfig({
   plugins: [
     vue(),
     // 外部：vitest 下加载 devtools 会在插件卸载后留下 unhandled rejection
-    ...(process.env.VITEST ? [] : [vueDevTools()]),
+    ...(process.env.VITEST || process.env.PIG_DESKTOP_DEV ? [] : [vueDevTools()]),
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "script-defer",

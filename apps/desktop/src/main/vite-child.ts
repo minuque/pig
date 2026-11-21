@@ -68,6 +68,7 @@ export function spawnVite(env: { GATEWAY_TARGET: string; GATEWAY_TOKEN: string }
     ...process.env,
     GATEWAY_TARGET: env.GATEWAY_TARGET,
     GATEWAY_TOKEN: env.GATEWAY_TOKEN,
+    PIG_DESKTOP_DEV: "1",
   })
   const windows = process.platform === "win32"
   const child = spawn(launch.command, launch.args, {
