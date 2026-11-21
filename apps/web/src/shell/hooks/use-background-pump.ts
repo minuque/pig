@@ -5,19 +5,12 @@ import { endedCleanly, type BackgroundIdleResult } from "@features/session/index
 import { notifyTurnDone } from "@features/settings/index.js"
 
 interface BackgroundPumpDeps {
-  /** 两侧输入卡共用的待发队列：会话换到哪一侧都读同一份。 */
   queue: ComposerQueueApi
   sound: { play(event: "done"): unknown }
-  /** 后台发送：对指定会话提交，失败由这里回滚队列。 */
   send(id: string, text: string, attachments?: ComposerAttachmentBatch): Promise<boolean>
-  /** 指定会话的合并转录：完成音看最后一条助手。 */
   transcriptFor(id: string): readonly TranscriptItem[]
 }
 
-/**
- * 后台会话跑完后的泵队与收尾：队列有货就在后台发出去，队列空且干净收尾时响完成音。
- * 挂在 Hub 上全局一次，不跟任何一侧分屏面板的挂载周期绑。
- */
 export function createBackgroundPump(deps: BackgroundPumpDeps) {
   async function onIdle(id: string): Promise<BackgroundIdleResult> {
     const next = deps.queue.shiftFor(id)

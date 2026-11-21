@@ -6,7 +6,6 @@ import type { Environment, ExecOptions } from "@pig/environment"
 import type { BashTask, Task } from "@pig/protocol"
 import { createTasksExtension } from "../src/tasks/index.ts"
 
-/** 给了就把日志写入流指向这里（一个目录），模拟日志写不进去。 */
 let brokenLogPath: string | undefined
 
 vi.mock("node:fs", async (importOriginal) => {
@@ -39,7 +38,6 @@ afterEach(async () => {
   await rm(logDir, { recursive: true, force: true })
 })
 
-/** 可控的命令：测试决定它何时输出、何时退出。 */
 function fakeEnvironment() {
   const runs: Array<{
     command: string
@@ -60,7 +58,6 @@ function fakeEnvironment() {
   return { env, runs }
 }
 
-/** pi 的替身：记下工具、事件处理器、总线和发出的消息。 */
 function setup(overrides: { maxRunning?: number; logMaxBytes?: number; remote?: boolean } = {}) {
   const tools = new Map<string, Tool>()
   const handlers = new Map<string, Handler>()
@@ -82,7 +79,6 @@ function setup(overrides: { maxRunning?: number; logMaxBytes?: number; remote?: 
       },
     },
   }
-  // 登记表按会话挂在全局，每个用例用自己的会话 id
   const sessionId = `s${(sessions += 1)}`
   const ctx = {
     cwd: "/work",

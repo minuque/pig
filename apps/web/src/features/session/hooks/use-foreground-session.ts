@@ -23,7 +23,6 @@ interface CreateSessionInput {
   thinkingLevel?: ThinkingLevel
 }
 
-/** 一侧 workbench 的前台连接：挂上、摘下、切换、转入共用后台池、释放。每侧同一时刻只有一条。 */
 export function useForegroundSession(
   pi: Pick<ReturnType<typeof useGatewayClient>, "client" | "connected">,
   sessionId: ComputedRef<string | undefined>,
@@ -47,7 +46,6 @@ export function useForegroundSession(
   const entry = { remote: () => remote.value, handOver, reattach }
   const unregister = hub.registerForeground(entry)
 
-  /** 占用估算只给前台：切走或换会话就作废在飞的请求。 */
   function clearContextUsage() {
     contextUsageRequest += 1
     contextUsageEstimate.value = undefined
@@ -61,19 +59,15 @@ export function useForegroundSession(
 
       if (request !== contextUsageRequest || remote.value?.id !== id) return
       contextUsageEstimate.value = usage ?? undefined
-    } catch {
-      /* 占用估算失败不挡主流程 */
-    }
+    } catch {}
   }
 
-  /** 另一侧要显示这个会话：连接不管是否在跑都转进池里，由那一侧取走。 */
   function handOver() {
     if (activeSub) live.moveToBackground(activeSub)
     activeSub = undefined
     clearForeground()
   }
 
-  /** 后台池命中就把该会话挂回前台，复用同一条连接；在另一侧前台上就先让那一侧交出来。 */
   function promote(id: string) {
     hub.claim(id, entry)
     const sub = live.promoteBackground(id, owner)
@@ -111,7 +105,6 @@ export function useForegroundSession(
     clearForeground()
   }
 
-  /** 切走前台会话：回合或后台任务还在跑就转入后台订阅池，否则放弃连接。 */
   function release() {
     const previous = remote.value
     const sub = activeSub
@@ -129,7 +122,6 @@ export function useForegroundSession(
     if (previous) void discard(previous)
   }
 
-  /** 网关那边的运行时已不可用：放掉连接并强制重拉历史，下次发送重新挂上。 */
   function dropRemote(current: GatewaySession) {
     const id = current.id
 
@@ -139,7 +131,6 @@ export function useForegroundSession(
     if (id) void history.loadHistory(id, { force: true })
   }
 
-  /** 重连后重新挂上；被 session_locked 拒绝就放掉连接，回到只读并重拉历史。 */
   async function reattach() {
     const current = remote.value
 
@@ -219,14 +210,12 @@ export function useForegroundSession(
     })
   }
 
-  /** 命令被拒为 session_changed_elsewhere：网关已释放运行时，这一侧放掉连接。 */
   function dropChanged(id: string) {
     const current = remote.value
 
     if (current?.id === id) dropRemote(current)
   }
 
-  /** 别处在跑回合：缓存页带标记且这一侧没挂这个会话。 */
   const externalTurn = computed(
     () => history.externalTurn.value && remote.value?.id !== history.activeId.value,
   )
@@ -237,7 +226,6 @@ export function useForegroundSession(
     if (id) await ensureRemote(id, { takeover: true })
   }
 
-  /** 显示中却没挂连接：按需 watch 会话文件，外部追加时立刻重拉，不再走定时轮询。 */
   const fileWatch = useSessionFileWatch({
     client: pi.client,
     connected: pi.connected,
@@ -271,7 +259,6 @@ export function useForegroundSession(
     })
   }
 
-  /** 这一侧卸下：运行中的会话照旧转入共用后台池，池本身由 hub 收尾。 */
   async function dispose() {
     fileWatch.stop()
     unregister()
@@ -281,7 +268,6 @@ export function useForegroundSession(
     release()
   }
 
-  /** 回到新建页：只放下前台，运行中的会话留在后台池继续订阅。 */
   function leaveForeground() {
     history.setActive(undefined)
     abortInflightOpen?.()

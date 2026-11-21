@@ -27,14 +27,12 @@ export interface SessionSnapshot {
   phase: SessionPhase
   model: ModelRef
   thinkingLevel: ThinkingLevel
-  /** 当前连接是否挂在这个会话上。 */
   attached: boolean
   locked: boolean
   revision: number
   transcript: TranscriptItem[]
   queuedSteer: UserTranscriptItem[]
   queuedSteerCount: number
-  /** 会话里的后台任务：在跑的和已结束的。 */
   tasks: Task[]
 }
 

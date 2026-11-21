@@ -4,7 +4,6 @@ import { join } from "node:path"
 
 import { readSshConfig, sshHosts } from "./ssh-config.js"
 
-/** 环境列表的一项；saved 表示 pig 自己保存过（带默认目录）。 */
 export interface EnvironmentInfo {
   id: string
   kind: "local" | "ssh"
@@ -28,7 +27,6 @@ async function readSaved(path: string): Promise<SavedEnvironment[]> {
   )
 }
 
-/** 本机在前，再是 pig 保存的环境，最后是 ~/.ssh/config 里其余的主机。 */
 export async function listEnvironments(
   options: { sshConfigPath?: string; savedPath?: string } = {},
 ): Promise<EnvironmentInfo[]> {

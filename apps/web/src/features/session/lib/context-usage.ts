@@ -22,7 +22,6 @@ export interface ContextUsage {
   used: number
   window: number
   percent: number
-  /** 模型可用的 MCP 工具数，含按需加载、不占上下文的 */
   mcpToolCount: number
   segments: ContextUsageSegment[]
 }

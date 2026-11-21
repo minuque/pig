@@ -1,7 +1,7 @@
 import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 
-/** 开发走 Vite，不设 webRoot；打包后用 extraResources 的 web/。 */
+// 外部：打包后 web/ 由 electron-builder 的 extraResources 放到 resources 下
 export function resolveWebRoot(
   isDev: boolean,
   isPackaged: boolean,

@@ -1,18 +1,15 @@
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent"
 import type { TurnTiming } from "@pig/protocol"
 
-/** 会话里的计时条目；网关的 readTurnTimings 按这个名字读。 */
 const TIMING_ENTRY = "pig.turn-timing"
 
 type Outcome = Exclude<TurnTiming["outcome"], "running">
 
 type Turn = { startedAt: number; userTimestamp: number; userId?: string; outcome?: Outcome }
 
-/** 回合计时：从收到用户输入到回合完全结束，先写一条 running，结束再写终态。 */
 export default function turnTiming(pi: ExtensionAPI) {
   let inputAt: number | undefined
   let turn: Turn | undefined
-  /** 用户消息落盘后才有条目 id；找到就写 running。 */
   const persistStart = (ctx: ExtensionContext) => {
     const current = turn
 
@@ -38,7 +35,6 @@ export default function turnTiming(pi: ExtensionAPI) {
   }
 
   pi.on("input", (event) => {
-    // 运行中的 steer 与 followUp 并进当前回合
     if (!event.streamingBehavior) inputAt = Date.now()
   })
 
@@ -48,7 +44,7 @@ export default function turnTiming(pi: ExtensionAPI) {
     if (message.role === "user" && inputAt !== undefined && !turn) {
       turn = { startedAt: inputAt, userTimestamp: message.timestamp }
       inputAt = undefined
-      // pi 先通知扩展再落盘这条消息
+      // 外部：pi 先通知扩展再落盘消息，所以条目 id 要等一拍
       setImmediate(() => persistStart(ctx))
     }
 
@@ -76,10 +72,8 @@ export default function turnTiming(pi: ExtensionAPI) {
     } satisfies TurnTiming)
   }
 
-  // 没等到助手消息就结束，是 prompt 在模型应答前抛了错
   pi.on("agent_settled", (event, ctx) =>
     settle(ctx, (current) => (event.aborted ? "aborted" : (current.outcome ?? "error"))),
   )
-  // 回合中途关会话：dispose 会中止回合并让 ctx 失效，之后的 agent_settled 写不进去
   pi.on("session_shutdown", (_event, ctx) => settle(ctx, () => "aborted"))
 }

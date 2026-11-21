@@ -42,7 +42,6 @@ useResizeObserver(column, ([entry]) => {
 
 const mine = new Map<PanelKind, HTMLElement>()
 
-/** 挂载点给到对应面板，面板自己 Teleport 进来；只撤自己登记的那一个。 */
 function mount(kind: PanelKind, el: unknown) {
   if (el instanceof HTMLElement) {
     mine.set(kind, el)
@@ -80,7 +79,6 @@ function mount(kind: PanelKind, el: unknown) {
   flex: 1;
 }
 
-/* 拖拽区就是上下两张面板卡片之间的空隙 */
 .panel-column-handle {
   block-size: var(--space-sm);
 }

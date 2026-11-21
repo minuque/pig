@@ -64,10 +64,8 @@ type TreeNode = DirectoryEntry & { path: string }
 
 const { t } = useI18n()
 const pane = useFilePane()
-/** 与 tokens.css 的 --control-sm 一致：虚拟列表按它算每行的位置。 */
 const ROW_HEIGHT = 28
 const root = useTemplateRef<{ $el: HTMLElement }>("root")
-/** 已读过的目录：键是工作区相对路径，根是 ""。 */
 const listed = shallowRef<Record<string, TreeNode[]>>({})
 const status = shallowRef<GitFileStatus[]>([])
 const marks = computed(() => gitMarks(status.value))
@@ -91,7 +89,6 @@ async function load(dir: string) {
   if (cwd === pane.cwd.value) listed.value = { ...listed.value, [dir]: nodes }
 }
 
-/** 重读根、所有展开过的目录与改动状态。 */
 async function refresh() {
   const cwd = pane.cwd.value
 
@@ -107,7 +104,6 @@ function onExpanded(next: string[]) {
 }
 
 function onSelect(event: Event, node: TreeNode) {
-  // 目录交给 Reka 自己展开收起；文件开临时标签
   if (node.kind === "file") {
     event.preventDefault()
     pane.openFile(node.path)
@@ -125,7 +121,6 @@ watch(
 
 watch(() => pane.changes.value, refresh)
 
-// 从对话里打开文件时，展开它上面的目录并滚到它
 watch(
   () => pane.request.value,
   async (request) => {
@@ -136,7 +131,6 @@ watch(
     pane.setExpanded([...new Set([...pane.expanded.value, ...dirs])])
     await nextTick()
 
-    // 行可能还没渲染：按它在展开后的位置算，看不见时滚到中间
     const el = root.value?.$el
     const index = rowIndex(rootNodes.value, childrenOf, pane.expanded.value, request.path)
 
@@ -159,7 +153,7 @@ watch(
   overflow: auto;
 }
 
-/* 虚拟列表把行绝对定位，只给了左边：右边也贴住，行才铺满 */
+/* 外部：虚拟列表把行绝对定位，只给了左边，右边要自己贴住才铺满 */
 .file-tree-row {
   inset-inline-end: 0;
   display: flex;
@@ -226,7 +220,6 @@ watch(
   block-size: var(--icon-md);
 }
 
-/* 文件没有展开箭头：让出箭头的宽，与同级目录的图标对齐 */
 .file-tree-row .file-tree-icon.is-file {
   margin-inline-start: calc(var(--icon-sm) + var(--space-2xs));
 }

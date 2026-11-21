@@ -1,8 +1,6 @@
-/** 查看器怎么显示一个文件：按扩展名，不读内容。 */
 export type FileViewKind =
   "markdown" | "image" | "video" | "audio" | "pdf" | "csv" | "svg" | "html" | "text"
 
-/** 按扩展名判断媒体文件；SVG 另算。 */
 const IMAGE = /\.(png|jpe?g|gif|bmp|webp|avif)$/i
 const MARKDOWN = /\.(md|mdx|markdown)$/i
 

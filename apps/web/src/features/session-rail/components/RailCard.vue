@@ -72,12 +72,10 @@ const bodyId = useId()
 </script>
 
 <style scoped>
-/* 外环、圆角、内边距都来自 Card；摘要卡只换底色 */
 .rail-card {
   --card-surface: var(--bg-surface);
 }
 
-/* 拖着走的卡片压在上层，铺浮层底遮住下面的卡；位移由 useDragReorder 驱动 */
 .rail-card.is-drag-live {
   --card-surface: var(--bg-raised);
 
@@ -136,7 +134,6 @@ const bodyId = useId()
   color: var(--fg-secondary);
 }
 
-/* 收起时的摘要居右，和把手占同一个位置：把手露出时摘要让开 */
 .rail-summary {
   display: flex;
   flex: 1;
@@ -153,7 +150,6 @@ const bodyId = useId()
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-/* 展开时摘要让给正文 */
 .rail-summary[aria-hidden="true"] {
   opacity: 0;
 }
@@ -164,7 +160,6 @@ const bodyId = useId()
   opacity: 0;
 }
 
-/* 整张卡都能拖；把手只在悬停或键盘聚焦时露出（鼠标按下留下的焦点不算），浮在行尾不占位 */
 .rail-grip {
   position: absolute;
   inset-block: 0;

@@ -97,6 +97,5 @@ import {
 } from "@components/ui/select/index.js"
 
 const value = ref("apple")
-/** 空值示例：只有值为空时才会出现占位文案 */
 const empty = ref("")
 </script>

@@ -1,5 +1,3 @@
-/** 登录事件流的状态归约；seq 单调，旧事件丢弃。 */
-
 import type { LoginEvent, LoginPrompt } from "@/types/common-type.js"
 
 export interface LoginDeviceCode {
@@ -31,7 +29,6 @@ export function initialLoginState(): LoginState {
   }
 }
 
-/** 事件流干净结束却未见终态：转成可重试的错误，不再挂着等待授权。 */
 export function endLoginStream(state: LoginState, message: string): LoginState {
   if (state.phase !== "running") return state
   return { ...state, phase: "error", prompt: null, progress: null, error: message }
@@ -69,7 +66,6 @@ export function reduceLoginEvents(state: LoginState, event: LoginEvent): LoginSt
   }
 }
 
-/** 本次事件新增的验证地址：第一次出现时自动交给系统浏览器打开。 */
 export function addedLoginUrl(previous: LoginState, next: LoginState): string | undefined {
   const known = new Set([
     ...previous.links,

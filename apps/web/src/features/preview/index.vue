@@ -8,7 +8,6 @@
       @keydown.left="step(-1)"
       @keydown.right="step(1)"
     >
-      <!-- 头部不随正文滚动；高度取图标高，与弹框自带的关闭按钮同一中线 -->
       <header class="preview-header">
         <DialogTitle class="preview-title">
           <span class="preview-name">{{ shownTitle }}</span>
@@ -56,7 +55,6 @@ defineOptions({ inheritAttrs: false })
 
 export type PreviewImage = { src: string; title: string }
 
-/** 传 src 时正文是这张图，副标题自动取图片像素尺寸；传 images 时多图轮播；否则正文走默认插槽。 */
 const props = defineProps<{
   title: string
   meta?: string
@@ -71,7 +69,6 @@ const shownSrc = computed(() => current.value?.src ?? props.src)
 const shownTitle = computed(() => current.value?.title ?? props.title)
 const gallery = computed(() => (props.images?.length ?? 0) > 1)
 
-/** 首尾相接：最后一张再往后回到第一张。 */
 function step(delta: number) {
   const count = props.images?.length ?? 0
 
@@ -89,7 +86,6 @@ function measure(event: Event) {
 </script>
 
 <style scoped>
-/* ghost 按钮自带等于内边距的负外边距，组间距要大过它才看得出分组；右侧给关闭按钮让位 */
 .preview-header {
   display: flex;
   flex-shrink: 0;
@@ -145,7 +141,6 @@ function measure(event: Event) {
   overflow: auto;
 }
 
-/* 整张图落在视口内：高度扣掉上下内边距、头部与间距 */
 .preview-image {
   display: block;
   width: auto;
@@ -160,7 +155,6 @@ function measure(event: Event) {
 </style>
 
 <style>
-/* 面板经 Portal 挂到 body，scoped 打不中；面板自身不滚动，滚动只在正文 */
 .preview-dialog[data-slot="dialog-content"] {
   display: flex;
   flex-direction: column;

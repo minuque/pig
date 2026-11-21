@@ -40,7 +40,6 @@ function finish() {
 
 function beginLeave() {
   if (!props.dismiss || !splashGone) return
-  // 离场第一帧就拆遮罩并开锁，不等淡出结束
   finish()
 }
 
@@ -53,7 +52,7 @@ watch(
 
 onMounted(async () => {
   const splash = document.getElementById("startup-splash")
-  // 等静态开屏探头播完再接管，避免中途跳帧。热更新会重新挂一层，动画不再结束，到点就撤
+  // 外部：热更新会重新挂一层，静态开屏动画不再结束，所以最多等 1200ms
   const pending = splash?.getAnimations({ subtree: true }).map((a) => a.finished) ?? []
   await Promise.race([
     Promise.allSettled(pending),

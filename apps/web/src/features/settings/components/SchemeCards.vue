@@ -48,7 +48,6 @@ function wireTone(id: ColorScheme): "light" | "dark" | "split" {
   return isDark.value ? "split" : "light"
 }
 
-/* 列表文案随语言切换，必须走 computed；setup 里一次性求值会在切语言后停住 */
 const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
   { id: "auto", label: t("settings.schemeAuto") },
   { id: "light", label: t("settings.schemeLight") },
@@ -57,7 +56,6 @@ const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
 </script>
 
 <style scoped>
-/* 卡片项的根是多节点，scoped 落不到它身上，经外层 :deep 选中；外环、选中与悬停都来自 RadioCards，这里只排线框与标签 */
 .scheme-cards :deep(.scheme-card) {
   flex-direction: column;
   align-items: stretch;
@@ -79,7 +77,6 @@ const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
   background: var(--theme-wire-light);
 }
 
-/* 线框默认画浅色界面；dark 画深色，split 只把侧栏画深色。 */
 .scheme-wire[data-wire="dark"] {
   background: var(--theme-wire-dark);
 }

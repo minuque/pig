@@ -55,7 +55,6 @@ const nodes = useMarkdownNodes({
   cacheKey: () => `context:${props.sessionId}/${props.segment.id}`,
 })
 
-/** 取这一类实际进上下文的内容；连点只认最后一次。 */
 watch(
   () => [props.sessionId, props.segment.id] as const,
   async ([sessionId, segmentId], _, onCleanup) => {
@@ -92,7 +91,6 @@ watch(
 </style>
 
 <style>
-/* 面板经 Portal 挂到 body，scoped 打不中；尺寸与设置弹窗同档 */
 .ctx-preview-dialog[data-slot="dialog-content"] {
   width: min(88vw, var(--dialog-width-lg));
   max-width: min(88vw, var(--dialog-width-lg));

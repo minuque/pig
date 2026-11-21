@@ -1,4 +1,3 @@
-/** 控制台包装 Electron：进程被 SIGINT 打死也能清掉 Vite 占用的端口。 */
 import { spawn, spawnSync } from "node:child_process"
 import { createRequire } from "node:module"
 import { dirname, join } from "node:path"
@@ -32,12 +31,11 @@ function killPidTree(pid: number): void {
   try {
     process.kill(pid, "SIGTERM")
   } catch {
-    // 已退出
+    // 外部：kill 目标已退出时抛 ESRCH
   }
 }
 
 const vitePort = viteDevPort()
-// 端口开跑前就被占着，说明旧实例还在；本进程退出时别按端口把它的 Vite 杀掉
 const ownsPort = isVitePortFree(vitePort)
 
 if (ownsPort) {

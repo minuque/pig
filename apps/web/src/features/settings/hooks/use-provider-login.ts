@@ -11,7 +11,6 @@ import {
   type LoginState,
 } from "@features/settings/lib/provider-login.js"
 
-/** 一个供应商的一次登录；start 后事件流自动归约，结束回调通知调用方刷新。 */
 export function useProviderLogin(providerId: () => string, onDone: () => void) {
   const state = ref<LoginState>(initialLoginState())
   const starting = ref(false)
@@ -38,7 +37,7 @@ export function useProviderLogin(providerId: () => string, onDone: () => void) {
           state.value = reduceLoginEvents(previous, event)
           const url = addedLoginUrl(previous, state.value)
 
-          // 授权地址到达即交给系统浏览器；桌面壳把它转给默认浏览器
+          // 外部：桌面壳会把 window.open 的地址转给默认浏览器
           if (url) window.open(url, "_blank", "noopener,noreferrer")
 
           if (event.type === "prompt" && apiKey !== undefined && !answered) {

@@ -1,6 +1,5 @@
 <template>
   <div class="tuner">
-    <!-- 预览区：变量只写在这个子树上，用的是真实组件 -->
     <section class="tuner-preview" :style="previewVars">
       <CardList>
         <CardRow v-for="row in SETTINGS_ROWS" :key="row" class="demo-row">
@@ -109,14 +108,12 @@ import { useColorScheme } from "@features/theme/index.js"
 
 type Values = { border: string; divider: string; radius: number; surface: string }
 
-// 描边的四档就是 tokens.css 现有的四个描边 token，由浅到深
 const STEPS = ["--border-subtle", "--border", "--border-strong", "--border-input"]
 const SURFACES: Record<string, string> = {
   none: "transparent",
   a2: "var(--bg-muted)",
   surface: "var(--bg-surface)",
 }
-// 「当前」是两个描边 token 自身，其余预设相对它挪一档
 const CURRENT: Values = {
   border: "--border",
   divider: "--border-subtle",
@@ -160,10 +157,9 @@ const nodes = useMarkdownNodes({
 })
 const value = reactive<Values>({ ...PRESETS[0]! })
 const { isDark } = useColorScheme()
-// 预览要用 token 在文档根上的原值：直接写 var() 会被预览容器里改过的同名变量带偏
 const steps = shallowRef<Record<string, string>>({})
 
-// 明暗切换后 html 的 class 在 post 阶段才更新，读值要排在它之后
+// 外部：明暗切换后 html 的 class 在 post 阶段才更新，读值要排在它之后
 watch(
   isDark,
   () => {
@@ -203,7 +199,6 @@ const output = computed(() =>
 const copied = ref(false)
 const { copy: write } = useClipboard({ legacy: true })
 
-/** 取样式源码里某个变量第一次声明的值，再用 pick 抠出要的那段。 */
 function declared(css: string, name: string, pick: RegExp): string | undefined {
   const line = new RegExp(`(?<![\\w-])${name}:\\s*([^;]+);`).exec(css)?.[1]
   return line ? pick.exec(line)?.[1] : undefined
@@ -297,7 +292,6 @@ async function copy() {
   justify-content: space-between;
 }
 
-/* 窄窗口上下排：调节区在上，预览在下 */
 @media (width < 760px) {
   .tuner {
     grid-template-columns: minmax(0, 1fr);

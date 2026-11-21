@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises"
 
 const escape = (text: string) => text.replace(/[.+^${}()|[\]\\]/g, String.raw`\$&`)
 
-/** known_hosts 主机字段里的一项：明文（可带 * ? 与 [host]:port）或 |1|salt|hash 散列。 */
+// 外部：known_hosts 的主机字段是明文（可带 * ? 与 [host]:port）或 |1|salt|hash 散列
 function matches(pattern: string, name: string): boolean {
   if (pattern.startsWith("|1|")) {
     const [, , salt = "", hash] = pattern.split("|")
@@ -14,7 +14,6 @@ function matches(pattern: string, name: string): boolean {
   return new RegExp(`^${source}$`, "i").test(name)
 }
 
-/** 照 OpenSSH 读 known_hosts：返回该主机受信与被吊销的公钥（ssh wire 格式）。 */
 export async function knownHostKeys(files: readonly string[], host: string, port: number) {
   const name = port === 22 ? host : `[${host}]:${port}`
   const trusted: Buffer[] = []

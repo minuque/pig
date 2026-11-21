@@ -26,7 +26,6 @@ import { useProjectPrefs } from "@features/session-nav/hooks/use-project-prefs.j
 const props = withDefaults(
   defineProps<{
     path?: string | undefined
-    /** 没配图标时的样子：目录图标或项目缩写徽标 */
     fallback?: "folder" | "monogram"
   }>(),
   { path: undefined, fallback: "folder" },

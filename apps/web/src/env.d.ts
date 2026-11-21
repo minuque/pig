@@ -13,7 +13,7 @@ declare module "*.svg?url" {
 }
 
 interface Window {
-  /** 桌面壳 preload 注入。浏览器里没有。 */
+  /** 外部：桌面壳 preload 注入，浏览器里没有。 */
   pigDesktop?: {
     setThemeColor(color: string): void
     window: {

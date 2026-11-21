@@ -11,13 +11,11 @@ import {
   type RailSectionId,
 } from "@features/session-rail/lib/sections.js"
 
-/** 打开中的子会话：面板里只读显示它的完整过程。 */
 export interface OpenChild {
   sessionId: string
   agent: string
 }
 
-/** 右侧面板正在显示的内容；点摘要卡里的条目都在这里展开。 */
 export type RailPane =
   { kind: "tasks"; focus?: string | undefined } | { kind: "child"; child: OpenChild }
 
@@ -25,16 +23,12 @@ const DOCKED_KEY = "pig.rail.docked"
 
 function useSessionRailState() {
   const pane = shallowRef<RailPane>()
-  /** 面板内容所属的会话；回到同一会话时面板照旧开着。 */
   let paneOwner: string | undefined
-  /** 当前会话里清除过的已结束任务 id。 */
   const dismissed = shallowRef<string[]>([])
   const layout = shallowRef<RailLayout>(readRailLayout())
   const docked = shallowRef(readFlag(DOCKED_KEY))
-  /** 会话面板的宽度：决定摘要是常驻还是收成头部浮层。 */
   const width = shallowRef(window.innerWidth)
   const mode = computed(() => railModeOf(width.value))
-  /** 用户开着常驻面板，且宽度放得下：卡片才真的挂出来。 */
   const dockedShown = computed(() => docked.value && mode.value === "docked")
   const toggled = (list: RailSectionId[], id: RailSectionId) =>
     list.includes(id) ? list.filter((item) => item !== id) : [...list, id]
@@ -57,7 +51,6 @@ function useSessionRailState() {
     closePane() {
       pane.value = undefined
     },
-    /** 进入会话：面板里是别的会话的内容就收起；清除记录按会话读。 */
     enterSession(sessionId: string | undefined) {
       if (sessionId !== paneOwner) pane.value = undefined
       paneOwner = sessionId
@@ -67,7 +60,6 @@ function useSessionRailState() {
     dismiss(sessionId: string, ids: readonly string[]) {
       if (ids.length) dismissed.value = dismissTasks(sessionId, ids)
     },
-    /** 宽屏常驻面板开着与否；跨会话记住。 */
     docked,
     dockedShown,
     mode,
@@ -78,7 +70,6 @@ function useSessionRailState() {
       docked.value = !docked.value
       writeFlag(DOCKED_KEY, docked.value)
     },
-    /** 常驻面板与窄屏浮层共用一份排列。 */
     layout,
     toggleOpen(id: RailSectionId) {
       update({ closed: toggled(layout.value.closed, id) })
@@ -106,7 +97,6 @@ export function provideSessionRail() {
   return state
 }
 
-/** 面板自己的状态；不在面板树里时返回 undefined。 */
 export function useSessionRail(): SessionRailContext | undefined {
   return inject(key, undefined)
 }

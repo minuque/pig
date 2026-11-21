@@ -1,4 +1,3 @@
-/** utilityProcess 入口：在独立进程里跑 gateway，经 parentPort 与主进程通信。 */
 import { resolve } from "node:path"
 import { parseArgs } from "node:util"
 
@@ -39,12 +38,11 @@ function envDir(name: "PIG_SESSION_DIR" | "PIG_CWD"): string | undefined {
 
 async function loadGatewayModule(isPackaged: boolean): Promise<GatewayModule> {
   if (isPackaged) {
-    // 非字面量，避免 tsc emit 把 gateway 源码拉进 rootDir
     const spec = "@pig/gateway"
     return (await import(spec)) as GatewayModule
   }
 
-  // exports 指向 dist，开发时可能没有
+  // 外部：@pig/gateway 的 exports 指向 dist，开发时没有构建产物
   const url = new URL("../../../../packages/gateway/src/index.js", import.meta.url).href
   return (await import(url)) as GatewayModule
 }
@@ -77,6 +75,6 @@ try {
   const port = await gateway.start()
   post({ type: "ready", port, launchToken: gateway.launchToken })
 } catch (error) {
-  // 不在这里退出：立刻 exit 可能丢掉这条消息，由主进程收到后结束本进程
+  // 外部：utilityProcess 里立刻 exit 会丢掉这条消息，由主进程收到后结束本进程
   post({ type: "failed", message: error instanceof Error ? error.message : String(error) })
 }

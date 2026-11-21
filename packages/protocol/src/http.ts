@@ -35,7 +35,6 @@ export interface PlatformHttpRouteSpec {
   stream?: true
 }
 
-/** 平台 HTTP 端点表；键就是路由，值描述参数、请求体与响应。 */
 export interface PlatformHttpRoutes {
   "POST /api/v1/platform/select-directory": {
     /** 不带 body 也能问：交互式平台会回要求手输。 */

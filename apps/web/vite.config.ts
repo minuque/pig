@@ -13,7 +13,7 @@ const gatewayToken = process.env.GATEWAY_TOKEN
 export default defineConfig({
   plugins: [
     vue(),
-    // vitest 下不加载 devtools：测试用不到，插件卸载后还会留下 unhandled rejection
+    // 外部：vitest 下加载 devtools 会在插件卸载后留下 unhandled rejection
     ...(process.env.VITEST ? [] : [vueDevTools()]),
     VitePWA({
       registerType: "autoUpdate",
@@ -69,13 +69,11 @@ export default defineConfig({
   },
   server: {
     host: "127.0.0.1",
-    // 固定端口,方便 VSCode Chrome 调试;strictPort 防止被静默换端口后断点失效
     port: 5555,
     strictPort: true,
     open: false,
     ...(gatewayTarget
       ? {
-          // 页面和 Gateway 不同源。代理补上本进程的启动凭证，浏览器不必保存它。
           proxy: {
             "/api": {
               target: gatewayTarget,
@@ -104,7 +102,6 @@ export default defineConfig({
         extends: true,
         test: {
           name: "unit",
-          // node 环境没有 localStorage；偏好读写默认参数直接引用它
           setupFiles: ["./test/setup.ts"],
         },
       },

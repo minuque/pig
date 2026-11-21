@@ -9,7 +9,6 @@ const SETTLED_KEY = "pig.sidebarSettledSessions"
 const READ_AT_KEY = "pig.sidebarReadAt"
 const EPOCH_KEY = "pig.sidebarEpoch"
 
-/** 未读起算点只写一次：首次装上侧栏标记的那一刻，重启不重算。 */
 function readEpoch(): number {
   const stored = readNumber(EPOCH_KEY)
 
@@ -21,7 +20,6 @@ function readEpoch(): number {
 
 export function useSessionMarkers(
   sessions: MaybeRefOrGetter<readonly SessionMetadata[]>,
-  /** 正在显示的会话：单个 id，或分屏时两侧的 id。 */
   activeSessionId: MaybeRefOrGetter<string | undefined | readonly (string | undefined)[]>,
 ) {
   const shownIds = () => {
@@ -60,7 +58,6 @@ export function useSessionMarkers(
     writeJson(PINNED_KEY, pinnedIdList.value)
   }
 
-  /** 拖进置顶区：不在名单里的会话插到 slot；已归档的先还原，两个状态互斥。 */
   function pinAt(id: string, toIndex: number): void {
     unsettle(id)
     pinnedIdList.value = moveSessionId(pinnedIdList.value, id, toIndex)
@@ -107,7 +104,6 @@ export function useSessionMarkers(
     { immediate: true },
   )
 
-  // 会话删掉后清掉残留，免得同一 id 复用时带着旧状态回来
   watch(
     () => toValue(sessions),
     (list) => {

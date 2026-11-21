@@ -1,4 +1,3 @@
-/** 环境列表的一项；saved 表示 pig 自己保存过（带默认目录）。 */
 export interface EnvironmentInfo {
   id: string
   kind: "local" | "ssh"
@@ -13,7 +12,6 @@ export interface FileSearchEntry {
   kind: "file" | "directory"
 }
 
-/** / 菜单候选：技能与 prompt 模板。 */
 export interface ComposerCommand {
   name: string
   description: string
@@ -21,7 +19,6 @@ export interface ComposerCommand {
   argumentHint?: string
 }
 
-/** 工作区里一个路径的元信息。 */
 export interface FileStatResponse {
   kind: "file" | "directory" | "other"
   size: number

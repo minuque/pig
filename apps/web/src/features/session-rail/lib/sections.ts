@@ -4,7 +4,6 @@ export const RAIL_SECTIONS = ["environment", "context", "tasks"] as const
 
 export type RailSectionId = (typeof RAIL_SECTIONS)[number]
 
-/** 摘要面板的排列：卡片顺序、收起的、隐藏的；跨会话记住。 */
 export interface RailLayout {
   order: RailSectionId[]
   closed: RailSectionId[]
@@ -16,7 +15,6 @@ const known = (value: unknown): value is RailSectionId =>
   RAIL_SECTIONS.includes(value as RailSectionId)
 const pick = (list: unknown) => (Array.isArray(list) ? [...new Set(list.filter(known))] : [])
 
-/** 读存下的排列；缺的卡片补到末尾，未知的丢掉。 */
 export function readRailLayout(storage?: PrefStorage): RailLayout {
   const raw = readJson<Partial<RailLayout>>(KEY, storage)
   const order = pick(raw?.order)
@@ -31,7 +29,6 @@ export function writeRailLayout(layout: RailLayout, storage?: PrefStorage) {
   writeJson(KEY, layout, storage)
 }
 
-/** 在当前显示的卡片里把 id 挪到 toIndex；没显示的卡片留在原位。 */
 export function moveShown(
   order: readonly RailSectionId[],
   shown: readonly RailSectionId[],

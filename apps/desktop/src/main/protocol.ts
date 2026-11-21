@@ -20,7 +20,7 @@ type GatewayFetchInit = RequestInit & {
   duplex?: "half"
 }
 
-/** 必须在 app ready 之前调用，否则 Chromium 不把 pig:// 当标准 origin。 */
+// 外部：必须在 app ready 之前注册，否则 Chromium 不把 pig:// 当标准 origin
 export function registerPigScheme(): void {
   protocol.registerSchemesAsPrivileged([
     {

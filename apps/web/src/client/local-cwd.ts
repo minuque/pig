@@ -1,27 +1,17 @@
-/**
- * 本地 cwd 偏好（Browser platform）。
- * 已授权目录列表与最近使用的 cwd 持久化在 localStorage；
- * 目录授权属于 transport security，不进入任何 Agent Domain。
- * 平台层只处理 canonicalPath 字符串，展示视图由 features 层映射。
- */
 import { readonly, ref } from "vue"
 import { readPref, writeJson, writePref, type PrefStorage } from "@utils/storage.js"
 
 export const LOCAL_WORKSPACES_KEY = "pig.localWorkspaces"
 export const LAST_CWD_KEY = "pig.lastCwd"
 
-/** 兼容旧偏好：统一分隔符、尾斜杠；Windows 盘符路径整段小写。新路径由 Host realpath。 */
-// 与 gateway 端 packages/gateway/src/system/directory.ts 的 canonicalizePath 是同一套
-// 规范化逻辑（分隔符/大小写/尾斜杠），跨包各自维护，修改时需两处同步。
 export function canonicalizeWorkspacePath(path: string): string {
   const trimmed = path.replaceAll("\\", "/").replace(/\/+$/, "")
-  // 根路径保留尾斜杠：`c:` 是该盘当前目录，不是盘符根
+  // 外部：`c:` 是该盘当前目录，不是盘符根，根路径要保留尾斜杠
   const normalized =
     (trimmed === "" && path !== "") || /^[a-zA-Z]:$/.test(trimmed) ? `${trimmed}/` : trimmed
   return /^[a-zA-Z]:/.test(normalized) ? normalized.toLowerCase() : normalized
 }
 
-/** 规范化后按键去重，保留首次出现顺序。 */
 export function uniqueCanonicalPaths(paths: readonly string[]): string[] {
   const seen = new Set<string>()
   const next: string[] = []
@@ -37,7 +27,6 @@ export function uniqueCanonicalPaths(paths: readonly string[]): string[] {
   return next
 }
 
-/** 解析持久化的目录列表：非法 JSON 或非字符串项一律丢弃。 */
 export function parseLocalWorkspaces(json: string | null): string[] {
   if (!json) return []
 
@@ -72,7 +61,6 @@ export function saveLastCwd(path: string, storage: PrefStorage = localStorage): 
   writePref(LAST_CWD_KEY, path, storage)
 }
 
-/** 本地目录列表偏好：添加/移除立即持久化；select 记录最近使用的 cwd。 */
 export function useLocalWorkspaces() {
   const workspaces = ref<string[]>(loadLocalWorkspaces())
   const lastCwd = ref<string | undefined>(loadLastCwd())

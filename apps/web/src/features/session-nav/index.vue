@@ -89,7 +89,6 @@ const {
   pinAt,
 } = useNav()
 const router = useRouter()
-/** 选中的项目路径；空集合显示全部。 */
 const scopeFilter = shallowRef<ReadonlySet<string>>(new Set())
 const searchOpen = shallowRef(false)
 const sbExpanded = computed(() => sbState.value !== "offcanvas")
@@ -121,7 +120,6 @@ useEventListener(window, "keydown", (event) => {
   if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement)
     return
 
-  // 输入框是 contenteditable，不是 input/textarea，打字时也要让开
   if (event.target instanceof HTMLElement && event.target.isContentEditable) return
 
   const key = event.key.toLowerCase()
@@ -194,12 +192,10 @@ function onCreateSession(cwd?: string): void {
   app-region: drag;
 }
 
-/* 只有 macOS 的标题条是浮层，需要页面自己撑出拖窗带 */
 html[data-pig-desktop-platform="darwin"] .session-nav > .titlebar-drag {
   display: block;
 }
 
-/* 顶距 = 标题条高：侧栏首行与工作台头部落在同一条横线上 */
 html[data-pig-desktop-platform="darwin"] .session-nav {
   padding-top: var(--titlebar-inset);
 }

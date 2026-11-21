@@ -54,7 +54,6 @@
 </template>
 
 <script setup lang="ts">
-// 总览卡片顶部的示意图，全部用真实 token 画
 defineProps<{ category: string }>()
 
 const HUES = [

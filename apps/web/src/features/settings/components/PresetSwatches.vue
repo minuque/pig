@@ -50,7 +50,6 @@ function swatchGradient(preset: ThemePreset): string {
 </script>
 
 <style scoped>
-/* 卡片项的根是多节点，scoped 落不到它身上，经外层 :deep 选中；外环、选中与悬停都来自 RadioCards，这里只定高度、字号与图标 */
 .preset-swatches :deep(.preset-chip) {
   min-inline-size: 0;
   min-block-size: var(--control-md);

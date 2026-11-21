@@ -81,7 +81,6 @@ import { useFilePane } from "@features/file-pane/index.js"
 import { searchLimitNotice } from "@features/file-pane/lib/search-limit.js"
 import type { ContentSearchMatch, FileSearchEntry, SearchTruncation } from "@/types/common-type.js"
 
-/** 输入停顿多久再搜，免得每敲一个字就扫一遍工作区。 */
 const DEBOUNCE_MS = 200
 const { t } = useI18n()
 const pane = useFilePane()
@@ -215,7 +214,6 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
   text-overflow: ellipsis;
 }
 
-/* 搜索截断提示：结果末尾一行弱色小字 */
 .file-search-limit {
   margin: 0;
   padding: var(--space-xs);

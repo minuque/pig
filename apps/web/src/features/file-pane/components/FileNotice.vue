@@ -11,7 +11,6 @@
 <script setup lang="ts">
 import { Button } from "@components/ui/button/index.js"
 
-/** 打不开的文件：一行说明，必要时给一个动作。 */
 defineProps<{ text: string; action?: string | undefined }>()
 
 const emit = defineEmits<{ action: [] }>()

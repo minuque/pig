@@ -7,12 +7,10 @@ export function isOpenAborted(error: unknown) {
   return error instanceof Error && error.message === OPEN_ABORTED
 }
 
-/** 挂载被网关以 session_locked 拒绝：别处正在跑回合。 */
 export function isSessionLocked(error: unknown) {
   return error instanceof GatewayRequestError && error.code === "session_locked"
 }
 
-/** 命令被网关以 session_changed_elsewhere 拒绝：会话文件被别处追加，运行时已释放。 */
 export function isChangedElsewhere(error: unknown) {
   return error instanceof GatewayRequestError && error.code === "session_changed_elsewhere"
 }
@@ -36,7 +34,6 @@ interface Opening {
   waiters: number
 }
 
-/** 同 ID 复用未完成的 open；无 waiter 时 dispose。不同 ID 只中止等待。 */
 export function createAbortableOpen() {
   const openings = new Map<string, Opening>()
   const disposals = new Map<string, Promise<void>>()

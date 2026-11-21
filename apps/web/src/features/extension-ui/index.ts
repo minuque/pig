@@ -10,15 +10,11 @@ const DIALOGS = new Set(["select", "confirm", "input", "editor"])
 const isDialog = (request: ExtensionUiRequest): request is ExtensionUiDialog =>
   DIALOGS.has(request.method)
 
-/** 扩展经 ctx.ui 发来的界面请求：对话框排队作答，通知、状态、widget 按会话记下。 */
 function useExtensionUiState(pi: ReturnType<typeof useGatewayClient>, session: FocusedSession) {
   const dialogs = shallowRef<readonly Pending[]>([])
-  /** 会话 id → 状态键 → 文本；摘要面板读它。 */
   const statuses = shallowRef(new Map<string, ReadonlyMap<string, string>>())
-  /** 会话 id → widget 键 → 文本行。 */
   const widgets = shallowRef(new Map<string, ReadonlyMap<string, readonly string[]>>())
 
-  /** 按会话改一张键值表；值为 undefined 时删掉该键。 */
   function patched<T>(
     tables: ReadonlyMap<string, ReadonlyMap<string, T>>,
     sessionId: string,
@@ -36,7 +32,6 @@ function useExtensionUiState(pi: ReturnType<typeof useGatewayClient>, session: F
 
   function receive(sessionId: string, request: ExtensionUiRequest) {
     if (isDialog(request)) {
-      // 重连补发的同一个对话框不重复排队
       if (!dialogs.value.some((item) => item.request.id === request.id))
         dialogs.value = [...dialogs.value, { sessionId, request }]
       return
@@ -69,7 +64,6 @@ function useExtensionUiState(pi: ReturnType<typeof useGatewayClient>, session: F
     { immediate: true },
   )
 
-  /** 当前会话最早的待答对话框；别的会话的等切过去再弹。 */
   function current(): Pending | undefined {
     return dialogs.value.find((item) => item.sessionId === session.sessionId.value)
   }

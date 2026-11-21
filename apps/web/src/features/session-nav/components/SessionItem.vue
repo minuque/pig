@@ -275,16 +275,12 @@ const props = withDefaults(
     settled?: boolean
     state?: SidebarSessionState | undefined
     variant?: "card" | "slim"
-    /** 在跑会话的起始时刻：传了就把状态位换成工作中秒表。 */
     startedAt?: number | undefined
 
     placeholder?: boolean
-    /** 拖起的浮层：实底加投影，行尾换成落点动作。 */
     dragging?: boolean
     draggable?: boolean
-    /** 浮层落点上的动作。 */
     dropVerb?: DropVerb | null
-    /** 被按住行尾动作扫过，松手时一起处理。 */
     swept?: boolean
   }>(),
   {
@@ -311,7 +307,6 @@ const emit = defineEmits<{
   sweepStart: [event: PointerEvent]
 }>()
 const split = trySplitView()
-/** 分屏时两侧开着的会话都高亮。 */
 const splitShown = computed(
   () =>
     Boolean(split?.split.value) &&
@@ -337,7 +332,6 @@ const clock = useIntervalFn(
   { immediate: false },
 )
 
-// 只有工作中行需要秒表；别的行不起定时器。
 watch(
   () => props.startedAt,
   (startedAt) => {
@@ -430,7 +424,6 @@ function onCardClick(event: MouseEvent) {
 
   emit("navigate")
 
-  // Alt+点击：在另一侧打开
   if (split && event.altKey && event.button === 0) {
     event.preventDefault()
     split.openToSide(props.session.id)
@@ -460,7 +453,6 @@ function openContextMenuAt(target: HTMLElement, clientX: number, clientY: number
   )
 }
 
-/** 行尾动作：未归档的归档，已归档的还原。 */
 function onRowAction() {
   if (props.settled) emit("unsettle", props.session.id)
   else emit("settle", props.session.id)
@@ -497,7 +489,6 @@ function confirmDelete() {
   min-width: 0;
 }
 
-/* 落点动作：拖起时替代右端的状态与时间 */
 .drop-verb {
   position: absolute;
   inset-inline-end: 0;
@@ -558,12 +549,10 @@ function confirmDelete() {
   box-shadow: var(--session-active-shadow);
 }
 
-/* 还没发首条消息的新会话：警示浅底，悬停与选中都不换底 */
 .session-item .session-card.is-placeholder {
   background: var(--warning-subtle);
 }
 
-/* 置顶标记即取消置顶按钮：平时图钉，悬停或键盘聚焦换成取消图标并提亮 */
 .pin-toggle {
   display: inline-flex;
   flex: none;
@@ -613,7 +602,6 @@ function confirmDelete() {
   color: var(--fg-secondary);
 }
 
-/* 项目缩写：soft 徽标收成 16px 方块 */
 .project-mono[data-tone] {
   justify-content: center;
   width: 16px;
@@ -665,7 +653,6 @@ function confirmDelete() {
   transition: color var(--duration-fast) var(--ease-out);
 }
 
-/* 悬停、当前会话、菜单打开时回到一级文本色 */
 .session-item:hover .title,
 .session-card[data-state="open"] .title,
 .session-card.active .title {
@@ -676,7 +663,6 @@ function confirmDelete() {
   flex: 1;
 }
 
-/* 行尾一格：常态放状态或时间，行被指到或聚焦时换成更多按钮。 */
 .state-slot {
   position: relative;
   display: flex;
@@ -702,7 +688,6 @@ function confirmDelete() {
   white-space: nowrap;
 }
 
-/* 工作中：虚线圆环 + 状态名 + 已跑秒数，用强调色压过右边的弱化信息 */
 .working-status {
   display: inline-flex;
   flex: none;
@@ -723,7 +708,6 @@ function confirmDelete() {
   font-variant-numeric: tabular-nums;
 }
 
-/* 行尾动作出现时与状态互换文档流，左侧目录名按动作宽度省略；没有动作的行状态照常显示 */
 .session-item:is(:hover, :focus-within, .is-menu-open, .is-swept)
   .state-slot:has(.row-action)
   .state-mark {
@@ -775,14 +759,11 @@ function confirmDelete() {
   pointer-events: auto;
 }
 
-/* 文字动作：只在悬停时提亮，不铺底 */
 .row-action:hover,
 .row-action:focus-visible {
   color: var(--fg);
 }
 
-/* 放在悬停规则之后：浮层与扫过态压过悬停与聚焦 */
-/* 拖起的浮层：实底加投影，不缩放 */
 .session-item.is-dragging .session-card {
   background: var(--bg-raised);
   color: var(--fg);
@@ -794,7 +775,6 @@ function confirmDelete() {
   color: var(--fg);
 }
 
-/* 被扫过的行：铺选中底，行尾动作常亮 */
 .session-item.is-swept .session-card {
   background: var(--bg-selected);
 }

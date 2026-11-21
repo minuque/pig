@@ -7,13 +7,10 @@ import { viteDevPort } from "./urls.js"
 
 const WEB_ROOT = fileURLToPath(new URL("../../../../apps/web/", import.meta.url))
 const webRequire = createRequire(join(WEB_ROOT, "package.json"))
-/** CSI / OSC 等 ANSI。Electron 在 Windows 上通常没开 VT，ESC 会显示成 ←[32m。 */
+// 外部：Electron 在 Windows 上通常没开 VT，ESC 会显示成 ←[32m
 const ANSI_RE = /\u001B\[[\d;?]*[ -/]*[@-~]|\u001B\][^\u0007]*(?:\u0007|\u001B\\)|\u001B[@-Z\\-_]/g
 
-/**
- * Electron 是 GUI 子系统：stdio inherit 会把 Vite 的 UTF-8 字节按系统代码页（中文 GBK）解读，
- * `\r` 也不会回车。改成字符串写入走 WriteConsoleW，并去掉颜色码。
- */
+// 外部：Electron 是 GUI 子系统，stdio inherit 会把 UTF-8 字节按系统代码页解读，\r 也不回车
 export function prepareInheritedConsoleChunk(raw: string | Buffer): string {
   const text = typeof raw === "string" ? raw : raw.toString("utf8")
   return text.replace(ANSI_RE, "").replace(/\r\n/g, "\n").replace(/\r/g, "\n")
@@ -22,9 +19,7 @@ export function prepareInheritedConsoleChunk(raw: string | Buffer): string {
 function prepareWindowsConsole(): void {
   try {
     spawnSync("chcp.com", ["65001"], { stdio: "ignore", windowsHide: true })
-  } catch {
-    // 字符串写入仍走宽字符 API
-  }
+  } catch {}
 }
 
 function attachWindowsConsole(child: ChildProcess): void {
@@ -41,18 +36,14 @@ function attachWindowsConsole(child: ChildProcess): void {
   forward(child.stderr, process.stderr)
 }
 
-/** web 包的 Vite 入口：Vite 的 exports 不包含 bin，只能先解析 package.json 再拼。 */
+// 外部：Vite 的 exports 不含 bin，只能先解析 package.json 再拼
 export function viteBin(): string {
   return join(dirname(webRequire.resolve("vite/package.json")), "bin", "vite.js")
 }
 
 export type ViteLaunch = { command: string; args: string[]; env: NodeJS.ProcessEnv }
 
-/**
- * 启动 web dev server 的命令。用调用方自己的 Node 跑：
- * Electron 里 process.execPath 是本体，靠 ELECTRON_RUN_AS_NODE 当 Node 用；纯 Node 下不加这个变量。
- * 因此不依赖启动器注入的 npm_execpath / npm_node_execpath，直接双击或 IDE 启动也能跑。
- */
+// 外部：Electron 里 process.execPath 是 GUI 本体，靠 ELECTRON_RUN_AS_NODE 当 Node 用
 export function viteLaunch(
   args: readonly string[],
   env: NodeJS.ProcessEnv = process.env,
@@ -83,7 +74,6 @@ export function spawnVite(env: { GATEWAY_TARGET: string; GATEWAY_TOKEN: string }
     cwd: WEB_ROOT,
     env: launch.env,
     stdio: windows ? ["ignore", "pipe", "pipe"] : "inherit",
-    // 非 Windows 用独立进程组，便于整树终止
     detached: !windows,
   })
 
@@ -144,12 +134,11 @@ function killPidTree(pid: number): void {
     try {
       process.kill(pid, "SIGTERM")
     } catch {
-      // 已退出
+      // 外部：kill 目标已退出时抛 ESRCH
     }
   }
 }
 
-/** Electron 被 SIGINT 打死之后，Vite 会脱离进程树，只能按端口补刀。 */
 export function killPortListeners(port: number = viteDevPort()): void {
   for (const pid of listListeningPids(port)) {
     if (pid === process.pid) continue
@@ -157,7 +146,7 @@ export function killPortListeners(port: number = viteDevPort()): void {
   }
 }
 
-/** Windows 上 child.kill() 只杀直接子进程，pnpm 下的 vite 会变孤儿，必须杀整棵树。 */
+// 外部：Windows 上 child.kill() 只杀直接子进程，pnpm 下的 vite 会变孤儿
 export function killVite(child: ChildProcess): void {
   const pid = child.pid
 
@@ -165,7 +154,6 @@ export function killVite(child: ChildProcess): void {
   killPortListeners()
 }
 
-/** 端口空着才轮得到本实例收尾时按端口清理；否则那可能是别人的 Vite。 */
 export function isVitePortFree(
   port: number,
   list: (port: number) => number[] = listListeningPids,
@@ -173,7 +161,6 @@ export function isVitePortFree(
   return list(port).length === 0
 }
 
-/** 端口必须先空着：占用中的端口多半是另一个实例的 Vite，借来用会被对方退出时连坐。 */
 export function assertVitePortFree(
   port: number,
   list: (port: number) => number[] = listListeningPids,
@@ -187,7 +174,6 @@ export function assertVitePortFree(
   }
 }
 
-/** 等到 Vite 真的能给出 200；子进程先退出就立刻报错，别空等超时。 */
 export async function waitForHttp(
   url: string,
   timeoutMs = 60_000,
@@ -206,9 +192,7 @@ export async function waitForHttp(
       const response = await fetch(url)
 
       if (response.ok) return
-    } catch {
-      // 尚未监听
-    }
+    } catch {}
 
     if (Date.now() >= deadline) throw new Error("Vite 开发服务未就绪")
     await new Promise((resolve) => setTimeout(resolve, 200))

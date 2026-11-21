@@ -19,7 +19,6 @@ import { dropRegistry, registryFor } from "./registry.ts"
 
 type Ctx = Pick<ExtensionContext, "cwd" | "sessionManager">
 
-/** 命令在哪里跑：会话绑定了远程 workspace 就在那台主机，否则在本机。 */
 export interface TaskWorkspace {
   env: Environment
   cwd: string
@@ -35,7 +34,6 @@ function workspaceOf(ctx: Ctx): TaskWorkspace {
 
 const text = (value: string) => ({ content: [{ type: "text" as const, text: value }], details: {} })
 
-/** 给模型读的任务状态：一行结论，加日志路径（本机才给）和输出末尾。 */
 function report(task: Task, remote: boolean): string {
   const lines = [`Background task ${task.id} (${task.description}): ${task.status}`]
 
@@ -55,7 +53,6 @@ function report(task: Task, remote: boolean): string {
   return lines.join("\n")
 }
 
-/** 后台任务：命令在会话里继续跑，工具调用立刻返回；结束时通知会话并叫醒模型。 */
 export function createTasksExtension(
   deps: { config?: TaskConfig; workspace?: (ctx: Ctx) => TaskWorkspace } = {},
 ) {

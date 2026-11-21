@@ -111,7 +111,6 @@ describe("useComposerBinding", () => {
 
     state.value = snapshot(sonnet, "high")
     await nextTick()
-    // 输入卡只改模型，档位仍是旧值；binding 负责回落
     preset.value = { model: gpt, thinkingLevel: "high" }
     await nextTick()
     expect(preset.value).toEqual({ model: gpt, thinkingLevel: "off" })
@@ -156,7 +155,6 @@ describe("useComposerBinding", () => {
 
     for (const [initial, configured] of cases) {
       const state = ref<SessionSnapshot | undefined>(undefined)
-      // 目录比设置后到：回落发生在另一拍，不靠预设阶段的回声抑制
       const vendors = ref<ComposerVendor[]>([])
       const { preset, consumeDetachedEdit } = useComposerBinding({
         catalog: vendors,

@@ -10,7 +10,6 @@ import type {
   UserRow,
 } from "@features/transcript-view/type.js"
 
-/** 设计页的样例数据：形状与真实数据一致，只给演示用。 */
 const NOW = Date.now()
 export const PROSE = `## 改动摘要
 

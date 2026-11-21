@@ -19,6 +19,5 @@ const slot = computed(() => (shown.value ? host?.slots.get("files") : undefined)
 
 watchEffect(() => pane.setFits(!(host?.narrow.value ?? false)))
 
-// 开着就在这一侧的面板列里登记，按打开顺序排
 watch(shown, (open) => (open ? host?.open("files") : host?.close("files")), { immediate: true })
 </script>

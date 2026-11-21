@@ -119,13 +119,11 @@ const titles = computed<Record<RailSectionId, string>>(() => ({
   tasks: t("rail.tasks"),
 }))
 const severity = computed(() => contextSeverity(props.usage?.percent ?? 0))
-/** 远程 workspace 键 ssh://主机/路径 拆成主机与远端路径。 */
 const place = computed(() => {
   const remote = props.cwd ? REMOTE_KEY.exec(props.cwd) : null
   return remote ? { host: remote[1], path: remote[2] || "/" } : { path: props.cwd }
 })
 const statusLines = computed(() => [...(props.statuses?.values() ?? [])].filter(Boolean))
-/** 按存下的顺序排，去掉隐藏的和眼下没内容的。 */
 const shown = computed(() =>
   rail.layout.value.order.filter((id) => {
     if (rail.layout.value.hidden.includes(id)) return false
@@ -158,7 +156,6 @@ onBeforeUnmount(() => {
   reorder.detach()
 })
 
-/** 把手上按方向键也能挪位置。 */
 function nudge(id: RailSectionId, step: number) {
   const to = shown.value.indexOf(id) + step
 
@@ -193,7 +190,6 @@ function nudge(id: RailSectionId, step: number) {
   white-space: nowrap;
 }
 
-/* 收起时摘要里的电池：圆角槽里一段电量，随用量分档变色 */
 .rail-battery {
   display: flex;
   flex-shrink: 0;

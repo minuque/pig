@@ -7,7 +7,7 @@ const CONTEXT_NAMES = ["AGENTS.md", "CLAUDE.md"]
 const SKILL_DIRS = [".pi/skills", ".agents/skills"]
 const MAX_SKILL_FILE = 1024 * 1024
 
-/** 远端从根到 workspace 的每一级里，第一个存在的 AGENTS.md 或 CLAUDE.md；顺序与 pi 本地一致，外层在前。 */
+// 外部：AGENTS.md 逐级向外读取的顺序与 pi 本地一致，外层在前
 export async function readRemoteContext(env: Environment, root: string) {
   const levels: string[] = []
 
@@ -34,7 +34,6 @@ export async function readRemoteContext(env: Environment, root: string) {
   return files
 }
 
-/** 把远端项目 skills 拷到本地缓存目录，返回 pi 能加载的目录；远端没有 skills 返回空。 */
 export async function syncRemoteSkills(env: Environment, root: string, cacheDir: string) {
   await rm(cacheDir, { recursive: true, force: true })
   const synced: string[] = []

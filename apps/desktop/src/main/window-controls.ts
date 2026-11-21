@@ -1,6 +1,5 @@
 import { ipcMain, type BrowserWindow, type IpcMainEvent, type IpcMainInvokeEvent } from "electron"
 
-/** 页面自画窗控的 IPC。只接受主窗口自己的 sender，别让未知页面操纵窗口。 */
 export function registerWindowControls(getWindow: () => BrowserWindow | undefined): void {
   const owned = (event: IpcMainEvent | IpcMainInvokeEvent) => {
     const window = getWindow()

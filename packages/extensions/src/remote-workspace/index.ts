@@ -29,7 +29,6 @@ type Active = {
   context: Promise<Array<{ path: string; content: string }>>
 }
 
-/** --ssh 主机[:路径]；没给路径时用远端登录目录。 */
 async function fromFlag(value: string): Promise<RemoteBinding> {
   const at = value.indexOf(":")
   const host = at === -1 ? value : value.slice(0, at)
@@ -41,7 +40,6 @@ async function fromFlag(value: string): Promise<RemoteBinding> {
   return { environment, path: Buffer.concat(chunks).toString("utf8").trim() }
 }
 
-/** 会话里最近写下的远程绑定；subagent 也用它让子会话跟父会话在同一环境。 */
 export function fromEntries(
   ctx: Pick<ExtensionContext, "sessionManager">,
 ): RemoteBinding | undefined {
@@ -57,11 +55,9 @@ export function fromEntries(
   return undefined
 }
 
-/** 远端 skills 的本地缓存目录。 */
 const skillCache = (cwd: string, ctx: Pick<ExtensionContext, "sessionManager">) =>
   join(cwd, ".pig-skills", ctx.sessionManager.getSessionId())
 
-/** 远程 workspace：会话绑定一个环境里的目录后，内置工具、! 命令、AGENTS.md 与 skills 都走那个环境。 */
 export default function remoteWorkspace(pi: ExtensionAPI) {
   let active: Active | undefined
 
@@ -70,7 +66,6 @@ export default function remoteWorkspace(pi: ExtensionAPI) {
   pi.on("session_start", async (_event, ctx) => {
     const flag = pi.getFlag("ssh")
     const stored = fromEntries(ctx)
-    // pig 建远程会话时先把绑定写进会话文件；pi TUI 用 --ssh 指定，重开时靠写下的条目恢复
     const binding = (typeof flag === "string" && flag ? await fromFlag(flag) : undefined) ?? stored
     active = undefined
 
@@ -85,7 +80,7 @@ export default function remoteWorkspace(pi: ExtensionAPI) {
     pi.registerTool(createBashToolDefinition(ctx.cwd, { operations: ops.bash }))
     pi.registerTool(createLsToolDefinition(ctx.cwd, { operations: ops.ls }))
 
-    // grep 与 find 无论给不给 operations 都在本机跑 rg/fd，远程会话里报错让模型改用 bash
+    // 外部：pi 的 grep/find 不接受 operations，只能在本机跑 rg/fd
     for (const tool of [createGrepToolDefinition(ctx.cwd), createFindToolDefinition(ctx.cwd)])
       pi.registerTool({
         ...tool,
@@ -104,7 +99,6 @@ export default function remoteWorkspace(pi: ExtensionAPI) {
   pi.on("resources_discover", async (event, ctx) => {
     if (!active) return undefined
 
-    // 同一远程目录的会话共用占位目录，缓存按会话分开，免得互相清掉
     const skillPaths = await syncRemoteSkills(
       active.env,
       active.binding.path,
@@ -113,7 +107,6 @@ export default function remoteWorkspace(pi: ExtensionAPI) {
     return { skillPaths }
   })
 
-  // 系统提示里的工作目录换成远端，并补上远端的 AGENTS.md
   pi.on("before_agent_start", async (event) => {
     if (!active) return undefined
     const options = event.systemPromptOptions

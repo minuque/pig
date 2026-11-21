@@ -26,7 +26,6 @@ function assistant(status: "complete" | "error" | "aborted"): TranscriptItem {
   return { ...base, status: "aborted", stopReason: "aborted" }
 }
 
-/** 接线成 index.vue 的形态：前台只负责收尾与泵队，后台泵队归壳层。 */
 function setup() {
   const sessionId = ref<string | undefined>("s1")
   const running = ref(false)

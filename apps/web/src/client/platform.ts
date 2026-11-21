@@ -1,6 +1,3 @@
-/**
- * 具名 platform HTTP API：路径模板、方法与返回形状都来自 @pig/protocol 的契约表。
- */
 import { PlatformRequestError, platformRequest } from "@client/http.js"
 import type {
   ComposerCommand,
@@ -31,7 +28,6 @@ import type {
   TurnTiming,
 } from "@/types/common-type.js"
 
-/** 带参数或请求体的端点必须给出 options，其余可以省略。 */
 type HasOptions<K extends PlatformHttpRouteKey> = [PlatformRouteBody<K>] extends [never]
   ? [PlatformRouteParams<K>] extends [Record<string, never>]
     ? false
@@ -47,7 +43,6 @@ type RequestOptions<K extends PlatformHttpRouteKey> = {
     ? { params?: never }
     : { params: PlatformRouteParams<K> })
 
-/** 路径模板里的 :name 用 params 填，query 只带已定义的值。 */
 function routeUrl<K extends PlatformHttpRouteKey>(
   route: K,
   options?: { params?: PlatformRouteParams<K>; query?: PlatformRouteQuery<K> },
@@ -83,7 +78,6 @@ async function request<K extends PlatformHttpRouteKey>(
   })
 }
 
-/** 选目录；给 environment（ssh://主机）时校验远端目录。 */
 export async function selectDirectory(
   path?: string,
   environment?: string,
@@ -96,13 +90,11 @@ export async function selectDirectory(
   })
 }
 
-/** 可选环境：本机、pig 保存的环境、~/.ssh/config 里的主机。 */
 export async function listEnvironments(): Promise<EnvironmentInfo[]> {
   const { environments } = await request("GET /api/v1/platform/environments")
   return environments
 }
 
-/** 通知 Host 这个目录马上要用来建会话；Host 在后台预热同一份扩展与技能。 */
 export async function warmWorkspace(path: string): Promise<void> {
   await request("POST /api/v1/platform/warm-workspace", { body: { path } })
 }
@@ -112,12 +104,10 @@ export async function listSessionCards(): Promise<SessionCard[]> {
   return cards
 }
 
-/** 设置 · 模型：供应商视图与默认模型。 */
 export async function listProviders(): Promise<ProviderListResponse> {
   return request("GET /api/v1/platform/providers")
 }
 
-/** 刷新后的模型目录与设置里的默认模型；与 PiServer 快照里的同名字段同形。 */
 export function listProviderModels(): Promise<{
   models: ModelMetadata[]
   defaultModel: DefaultModelView | null
@@ -125,7 +115,6 @@ export function listProviderModels(): Promise<{
   return request("GET /api/v1/platform/models")
 }
 
-/** 开始一次供应商登录；事件由 openLoginEvents 消费。 */
 export async function loginProvider(input: {
   providerId: string
   type: "api_key" | "oauth"
@@ -133,7 +122,6 @@ export async function loginProvider(input: {
   return request("POST /api/v1/platform/providers/login", { body: input })
 }
 
-/** 消费登录事件流；done/error 后服务端关闭连接。 */
 export async function openLoginEvents(
   loginId: string,
   after: number,
@@ -187,7 +175,6 @@ export async function logoutProvider(providerId: string): Promise<void> {
   await request("POST /api/v1/platform/providers/logout", { body: { providerId } })
 }
 
-/** 复制操作：明文只在这次响应里出现，调用方直接写剪贴板。 */
 export async function copyProviderKey(providerId: string): Promise<string> {
   const { key } = await request("GET /api/v1/platform/providers/:providerId/key", {
     params: { providerId },
@@ -195,7 +182,6 @@ export async function copyProviderKey(providerId: string): Promise<string> {
   return key
 }
 
-/** 最小请求验证凭据；失败时返回上游原文。 */
 export async function testProvider(
   providerId: string,
   modelId?: string,
@@ -205,7 +191,6 @@ export async function testProvider(
   })
 }
 
-/** 新增或更新自定义供应商；空 apiKey 保留旧值。 */
 export async function saveCustomProvider(input: CustomProviderInput): Promise<void> {
   await request("PUT /api/v1/platform/providers/custom/:providerId", {
     params: { providerId: input.id },
@@ -219,12 +204,10 @@ export async function deleteCustomProvider(providerId: string): Promise<void> {
   })
 }
 
-/** 让 gateway 全量刷新 runtime，返回刷新后的供应商列表。 */
 export async function refreshProviderCatalog(): Promise<ProviderListResponse> {
   return request("POST /api/v1/platform/providers/refresh")
 }
 
-/** 调整单个模型的思考强度、输出上限与采样参数；null 删除该项。 */
 export async function updateModelParams(
   providerId: string,
   modelId: string,
@@ -236,7 +219,6 @@ export async function updateModelParams(
   })
 }
 
-/** 开放或关闭一个模型；关闭后不进 Composer 目录。 */
 export async function setModelEnabled(
   providerId: string,
   modelId: string,
@@ -283,7 +265,6 @@ function isTurnTiming(value: unknown): value is TurnTiming {
 
 type FullTranscriptPage = Extract<SessionTranscriptPage, { items: unknown }>
 
-/** 会话全部历史的轻量形态：大块工具输出被截断，展开时用 transcriptItem 取回。known 未变得到 unchanged；after 对得上得到 append。 */
 export async function sessionTranscript(sessionId: string): Promise<FullTranscriptPage>
 export async function sessionTranscript(
   sessionId: string,
@@ -308,7 +289,6 @@ export async function sessionTranscript(
   return "append" in page ? { append: page.append, ...meta } : { items: page.items, ...meta }
 }
 
-/** 单条完整条目；找不到时返回 undefined。 */
 export async function transcriptItem(
   sessionId: string,
   id: string,
@@ -344,7 +324,6 @@ export async function deleteSession(id: string): Promise<void> {
   await request("POST /api/v1/platform/delete-session", { body: { id } })
 }
 
-/** 暂存一个附件：字节走原始 body，batch 由输入卡生成。 */
 export async function stageAttachment(batch: string, file: File): Promise<string> {
   const mimeType = file.type || "application/octet-stream"
   const { id } = await platformRequest<{ id: string }>(
@@ -356,7 +335,6 @@ export async function stageAttachment(batch: string, file: File): Promise<string
   return id
 }
 
-/** 丢弃一个批次：幂等，成功路径不要调用，Gateway 已经消费掉它。 */
 export async function discardAttachments(batch: string): Promise<void> {
   await request("POST /api/v1/platform/attachments/discard", { body: { batch } })
 }
@@ -381,7 +359,6 @@ export async function listWorkspaceCommands(
 
 const fsQuery = (cwd: string, path: string) => ({ cwd, path })
 
-/** 工作区内文件的原始字节地址；图片、音视频、PDF 直接用它加载。 */
 export function fileRawUrl(cwd: string, path: string): string {
   return routeUrl("GET /api/v1/platform/fs/raw", { query: fsQuery(cwd, path) })
 }
@@ -390,7 +367,6 @@ export function statWorkspaceFile(cwd: string, path: string): Promise<FileStatRe
   return request("GET /api/v1/platform/fs/stat", { query: fsQuery(cwd, path) })
 }
 
-/** force：二进制也按文本读出。 */
 export function readWorkspaceFile(
   cwd: string,
   path: string,
@@ -401,7 +377,6 @@ export function readWorkspaceFile(
   })
 }
 
-/** 列一个目录；path 用 "." 表示工作区根。 */
 export function listWorkspaceDir(cwd: string, path: string): Promise<DirectoryListResponse> {
   return request("GET /api/v1/platform/fs/list", { query: fsQuery(cwd, path) })
 }
@@ -421,7 +396,7 @@ export function searchWorkspaceContents(
   })
 }
 
-/** HTML 预览用的令牌：沙箱页面没有 cookie，凭它取工作区里的同目录资源。 */
+// 外部：沙箱页面没有 cookie，凭预览令牌取工作区里的同目录资源。
 export async function filePreviewToken(cwd: string): Promise<string> {
   const { token } = await request("GET /api/v1/platform/fs/preview-token", { query: { cwd } })
   return token

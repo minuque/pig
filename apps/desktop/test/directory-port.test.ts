@@ -9,7 +9,6 @@ import { createMessageDirectoryPort } from "../src/main/directory-port.js"
 import type { ChildMessage, ParentMessage } from "../src/main/gateway-messages.js"
 import { connectGateway } from "../src/main/gateway-process.js"
 
-/** 两端都是真实现，中间用 EventEmitter 代替 utilityProcess 的消息通道。 */
 async function selectThroughGateway(picked: string | undefined): Promise<string | undefined> {
   const child = Object.assign(new EventEmitter(), {
     postMessage: (message: ParentMessage) => {

@@ -1,4 +1,3 @@
-/** 欢迎页「字符流光」：fbm 流动场按格取亮度，选 5x5 位图字形遮罩显示。 */
 export const MASK_VERT = `#version 300 es
 in vec2 pos;
 void main() { gl_Position = vec4(pos, 0.0, 1.0); }`

@@ -15,7 +15,6 @@ function save(next: ProjectPrefs): void {
   writeJson(PREFS_KEY, next)
 }
 
-/** 项目置顶与图标：全局一份，改动即时生效并持久化到本机。 */
 export function useProjectPrefs() {
   function iconOf(path: string | undefined): ProjectIconChoice | undefined {
     return path ? prefs.value.icons[canonicalizeWorkspacePath(path)] : undefined

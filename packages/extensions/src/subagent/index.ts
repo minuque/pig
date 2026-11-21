@@ -30,7 +30,6 @@ type Params = {
   background?: boolean
 }
 
-/** 子任务的进展按 @pig/protocol 的 Task 形状产出；web 按它画卡片，TUI 读 content 文本。 */
 export interface SubagentDetails extends TaskDetails {
   mode: "single" | "parallel" | "chain"
   tasks: AgentTask[]
@@ -77,7 +76,6 @@ const parameters = {
   },
 }
 
-/** 按并发上限跑完一组任务，结果顺序与输入一致。 */
 async function mapLimited<T, R>(
   items: T[],
   limit: number,
@@ -119,7 +117,6 @@ function summary(details: SubagentDetails): string {
     .join("\n\n")
 }
 
-/** subagent 工具：单个、并行、串联三种派法；子任务在同一进程里开子会话。 */
 export function createSubagentTool(deps: { startChild?: StartChild } = {}): ToolDefinition {
   const startChild = deps.startChild ?? defaultStartChild
   return {
@@ -158,7 +155,6 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
         })),
       }
       const reply = (text: string) => ({ content: [{ type: "text" as const, text }], details })
-      // 没跑起来或交给后台的调用不带任务，免得落盘的结果里留下永远排队的任务
       const withoutTasks = (text: string) => ({
         content: [{ type: "text" as const, text }],
         details: { mode, tasks: [] },
@@ -203,7 +199,6 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
         result.startedAt = Date.now()
         publish()
 
-        // 远程会话里 cwd 是远端路径：改的是绑定目录，本地仍用父会话的占位目录
         const parent = fromEntries(ctx)
         const remote =
           parent && task.cwd ? { ...parent, path: posix.resolve(parent.path, task.cwd) } : parent
@@ -234,7 +229,6 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
           result.tokens = done.usage.input + done.usage.output
           return done.output
         } catch (error) {
-          // 子任务失败只记在自己的结果里，不冒到主会话
           result.status = signal?.aborted ? "stopped" : "failed"
           result.error = error instanceof Error ? error.message : String(error)
           return ""
@@ -260,11 +254,9 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
         details.tasks.forEach((item, index) =>
           registry.add(structuredClone(item), () => controllers[index]?.abort()),
         )
-        // 不等子任务：工具调用先返回，每个子任务结束时由登记表通知会话
         void mapLimited(tasks, MAX_CONCURRENCY, async (task, index) => {
           const item = details.tasks[index] as AgentTask
           const signal = (controllers[index] as AbortController).signal
-          // 结束只走 finish，进行中的更新不能把任务改成已结束
           const progress = () => {
             if (item.status === "running") registry.patch(item.id, { ...item })
           }
@@ -299,7 +291,6 @@ export default function subagent(pi: ExtensionAPI) {
   let offModelsChanged: (() => void) | undefined
 
   pi.on("session_start", () => {
-    // 新会话：上一个会话缓存的运行时可能带着旧凭据与旧模型目录
     resetSharedRuntime()
     offModelsChanged?.()
     offModelsChanged = pi.events.on(MODELS_CHANGED_CHANNEL, () => resetSharedRuntime())

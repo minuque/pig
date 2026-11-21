@@ -49,7 +49,6 @@ async function bash(session: Awaited<ReturnType<typeof open>>, command: string) 
   return (result.content[0] as { text: string }).text.trim()
 }
 
-// 本机环境当远端替身：远端目录与占位 cwd 是两个不同目录
 test("会话绑定远程后 bash 在远端目录执行，远端 skills 生效；重开会话仍在远端", async () => {
   const remote = join(root, "remote").split(sep).join("/")
   await mkdir(join(root, "remote", ".pi", "skills", "hello"), { recursive: true })
@@ -60,7 +59,6 @@ test("会话绑定远程后 bash 在远端目录执行，远端 skills 生效；
   )
   const binding = { environment: "local", path: remote }
   const cwd = await prepareRemoteCwd(binding, join(root, "cache"))
-  // 与 gateway 建远程会话一样：先把绑定写进会话
   const manager = SessionManager.create(cwd, join(root, "sessions"))
   manager.appendCustomEntry(BINDING_ENTRY, binding)
 
@@ -68,7 +66,7 @@ test("会话绑定远程后 bash 在远端目录执行，远端 skills 生效；
   expect(await bash(first, "cat marker.txt")).toBe("在远端")
   expect(first.resourceLoader.getSkills().skills.map((skill) => skill.name)).toContain("hello")
 
-  // 会话首条助手消息后才落盘；补一条让文件写下来
+  // 外部：会话在首条助手消息后才落盘，补一条让文件写下来
   first.sessionManager.appendMessage({
     role: "assistant",
     content: [{ type: "text", text: "好" }],
