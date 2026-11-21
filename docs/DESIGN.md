@@ -82,6 +82,12 @@ spacing:
 
 新 token 写进对应分区注释下，`/design` 页按这些注释分组。
 
+## 样式写法
+
+- 基础件用平铺、最小的 `:where([data-slot=…])` 写默认外观；颜色经 `data-tone` 读 `--tone-*`。
+- 业务处的微调写 SFC scoped 样式，选择器带 data 属性压过 `:where()`，不用 `!important`，模板里不堆工具类。
+- 组件只读 `tokens.css` 的 token，动画只用 `motion.css` 的类与 `@keyframes`；缺档先补这两个文件再写组件。SFC 不声明 `--*`，不写裸 hex / rgb / `color-mix`。
+
 ## 规则
 
 1. **一页一个强调色。** 强调色只给主操作、焦点、选中底；活动态走 cyan；卡片、区块不铺强调色。
@@ -209,7 +215,7 @@ spacing:
 
 ## 动画
 
-浮层进 140ms、出 100ms，只动透明度与位移；对话框用 `scale` 0.98 → 1 加透明度；主题切换 200ms cross-fade。动效只表达在跑、层级变化、状态切换，遵守 `prefers-reduced-motion`。关键帧收在 `motion.css`。
+浮层进 140ms、出 100ms，只动透明度与位移；对话框用 `scale` 0.98 → 1 加透明度；主题切换 200ms cross-fade。动效只表达在跑、层级变化、状态切换，遵守 `prefers-reduced-motion`。
 
 ## 不要
 
