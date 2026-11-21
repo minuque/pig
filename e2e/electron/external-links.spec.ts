@@ -8,7 +8,6 @@ import { expect, test, _electron as electron } from "@playwright/test"
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..")
 const desktopRoot = join(root, "apps/desktop")
-/** 避开 dev:desktop 的 5555：冒烟自己起一份 Vite。 */
 const VITE_PORT = 5598
 const desktopRequire = createRequire(join(desktopRoot, "package.json"))
 
@@ -21,7 +20,6 @@ test("window.open 被主进程拒绝，不新开 Electron 窗口", async () => {
     env: {
       ...process.env,
       PIG_CDP: "0",
-      // 测试窗口不抢焦点，跑测试时不打断手头的工作
       PIG_NO_FOCUS: "1",
       PIG_VITE_PORT: String(VITE_PORT),
       PIG_SESSION_DIR: sessionDir,

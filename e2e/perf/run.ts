@@ -1,4 +1,3 @@
-/** 工作台核心体验基准。用法: pnpm test:bench --runs=3 --skip-build --web --headed --no-fail */
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join, resolve } from "node:path"
@@ -22,7 +21,6 @@ import { regressionsSoFar, reportTable } from "./report.js"
 import { LONG_SESSION_NAME, SHORT_SESSION_NAME, seedBenchSessions } from "./seed.js"
 import { runTurn } from "./turn.js"
 
-/** 只量用户直接感知的几项；frame=true 的值是最长帧。 */
 const METRICS = [
   { key: "coldToWorkbench", label: "打开工作台", group: "启动" },
   { key: "switchLong", label: "长会话打开", group: "会话" },
@@ -33,7 +31,6 @@ const METRICS = [
   { key: "firstTokenMs", label: "发送后首条助手", group: "输入与流式" },
   { key: "streamKeepUpMs", label: "流式跟上", group: "输入与流式" },
 ] as const
-/** 离线可选的本地模型：回合由桥接模拟，不会真的发请求。 */
 const BENCH_MODELS = {
   providers: {
     local: {
@@ -99,7 +96,6 @@ async function startGateway(workspaceDir: string, sessionDir: string) {
   }
 }
 
-/** 输入跟手：丢掉首次（字体与布局预热），取其后七次的中位数。 */
 async function composerLatency(page: Parameters<typeof keyToNextFrame>[0]) {
   const values: number[] = []
 
@@ -112,7 +108,6 @@ async function composerLatency(page: Parameters<typeof keyToNextFrame>[0]) {
   return median(values)
 }
 
-/** 一轮：冷启动 → 侧栏滚动 → 打开长会话 → 滚动 → 切回短会话；再开新实例量回合。 */
 async function measureRound(harness: BenchHarness, samples: Samples) {
   const session = await harness.open()
 
@@ -135,7 +130,6 @@ async function measureRound(harness: BenchHarness, samples: Samples) {
     await session.close()
   }
 
-  // 回合用全新实例，避免上一段的会话状态压进建会话路径
   const turn = await harness.open()
 
   try {
@@ -150,7 +144,6 @@ async function measureRound(harness: BenchHarness, samples: Samples) {
   }
 }
 
-/** 同口径（版本、运行时、平台）的上次结果才拿来比较。 */
 async function loadPrevious(config: object): Promise<Partial<Record<MetricKey, number>>> {
   try {
     const raw = JSON.parse(await readFile(resultPath, "utf8")) as {
@@ -177,7 +170,6 @@ async function main() {
     const sessionDir = join(temp, "sessions")
     await mkdir(workspaceDir)
     await mkdir(sessionDir)
-    // 隔离本机 ~/.pi：用户扩展不进基准，web 与桌面子进程都读这个变量
     const agentDir = (process.env.PI_CODING_AGENT_DIR = join(temp, "agent"))
     await mkdir(agentDir)
     await writeFile(join(agentDir, "models.json"), JSON.stringify(BENCH_MODELS))
@@ -193,7 +185,6 @@ async function main() {
       harness = await createDesktopHarness({ workspaceId, workspaceDir, sessionDir })
     }
 
-    // 预热一轮不计入：首次冷启动含磁盘与编译缓存
     const warmup = await harness.open()
     await warmup.page.goto(warmup.origin, { waitUntil: "commit" })
     await waitForWorkbench(warmup.page)

@@ -87,7 +87,6 @@ async function sessionEntries(sessionId: string) {
   return SessionManager.open(join(sessionDir, files[0]!)).getEntries()
 }
 
-/** 会话文件里的计时条目与用户消息。 */
 async function persisted(sessionId: string) {
   const entries = await sessionEntries(sessionId)
   return {

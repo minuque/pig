@@ -6,9 +6,8 @@ import type {
   SearchTruncation,
 } from "@pig/protocol"
 
-/** 一次命令行最多带多少个路径：Windows 命令行有长度上限。 */
+// 外部：Windows 命令行有长度上限
 const IGNORE_BATCH = 200
-/** 内容搜索的上限：命中、单文件、总字节、耗时都封顶。 */
 const MAX_MATCHES = 241
 const MAX_FILES = 5_000
 const MAX_FILE_BYTES = 2 * 1024 * 1024
@@ -26,7 +25,6 @@ async function run(env: Environment, cwd: string, command: string, signal?: Abor
   return { exitCode, output: Buffer.concat(chunks).toString("utf8") }
 }
 
-/** 哪些路径被 .gitignore 命中；不是 git 仓库或没装 git 时一个都不算。目录要带尾斜杠。 */
 export async function gitIgnored(env: Environment, root: string, paths: readonly string[]) {
   const ignored = new Set<string>()
 
@@ -58,7 +56,6 @@ function statusLetter(code: string): GitFileStatus["status"] {
   return code[0] === "A" ? "A" : "M"
 }
 
-/** 工作区里改动过的文件；路径相对工作区，不是仓库时 repo 为 false。 */
 export async function gitStatus(env: Environment, root: string) {
   const { exitCode, output } = await run(
     env,
@@ -81,7 +78,7 @@ export async function gitStatus(env: Environment, root: string) {
     const code = part.slice(0, 2)
     const path = part.slice(3)
 
-    // 改名的下一段是旧路径
+    // 外部：git 的 -z 输出里改名/复制的下一段是旧路径
     if (code.includes("R") || code.includes("C")) i += 1
 
     if (path.startsWith(prefix))
@@ -91,7 +88,6 @@ export async function gitStatus(env: Environment, root: string) {
   return { repo: true, files }
 }
 
-/** 要搜的文件：git 仓库用 ls-files（自带 .gitignore 过滤），否则走环境自己的遍历。 */
 async function candidates(env: Environment, root: string, signal: AbortSignal) {
   const listed = await run(
     env,
@@ -108,7 +104,6 @@ async function candidates(env: Environment, root: string, signal: AbortSignal) {
   return { paths: paths.slice(0, MAX_FILES), capped: paths.length > MAX_FILES }
 }
 
-/** 逐个文件找包含 query 的行，大小写不敏感；跳过二进制与过大的文件。 */
 export async function searchContents(
   env: Environment,
   root: string,
@@ -174,7 +169,6 @@ export async function searchContents(
 
       matches.push({ path, line: index + 1, text: line.trim().slice(0, MAX_LINE_CHARS) })
 
-      // 上限在这个文件里填满，后面的行没再看
       if (matches.length >= MAX_MATCHES && index < lines.length - 1) reasons.add("result-limit")
     }
   }

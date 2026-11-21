@@ -178,7 +178,6 @@ describe("provider routes", () => {
     expect(catalog.models).toEqual([])
     expect(catalog.defaultModel).toBeNull()
 
-    // 设置页仍展示设置里写的默认模型
     const list = await fetch(`${base}/api/v1/platform/providers`, {
       headers: { authorization: auth },
     })

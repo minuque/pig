@@ -61,7 +61,6 @@ function append(manager: SessionManager, question: string, answer: string, times
   } as never)
 }
 
-/** 磁盘上一个回合已结束的会话，pig 挂上后成为活会话。 */
 async function start() {
   root = await mkdtemp(join(tmpdir(), "pig-append-"))
   const sessionDir = join(root, "sessions")
@@ -114,7 +113,6 @@ async function connect(port: number) {
   return { request }
 }
 
-/** 另开一个 SessionManager 追加一轮：这就是 TUI。 */
 function appendExternalTurn(path: string) {
   append(SessionManager.open(path), "外部提问", "外部回答", 5000)
 }
@@ -135,10 +133,8 @@ describe("pig 持有会话时文件被外部追加", () => {
     expect(await request({ command: "attach_session", sessionId: "s-1" })).toMatchObject({
       ok: true,
     })
-    // 活会话的历史不带文件版本
     expect(await transcript()).not.toHaveProperty("version")
 
-    // set_model 经 pig 的 SessionManager 追加 model_change：文件变了，但条目数对得上
     expect(
       await request({
         command: "set_model",

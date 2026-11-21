@@ -17,7 +17,6 @@ test("分屏：在右侧打开会话，两侧各自发送，关闭右侧", async
   await cards.nth(0).click()
   await expect(page).toHaveURL(new RegExp(`${leftHref}$`))
 
-  // 侧栏菜单：在右侧打开，路由跟到聚焦的右侧
   await cards.nth(1).click({ button: "right" })
   await page.getByRole("menuitem", { name: "在右侧打开" }).click()
 
@@ -30,7 +29,6 @@ test("分屏：在右侧打开会话，两侧各自发送，关闭右侧", async
   const rightBox = (await right.boundingBox())!
   expect(leftBox.x + leftBox.width).toBeLessThanOrEqual(rightBox.x + 1)
 
-  // 两侧各发一条，只出现在自己那一侧
   for (const [pane, text] of [
     [left, "左侧的消息"],
     [right, "右侧的消息"],
@@ -43,7 +41,6 @@ test("分屏：在右侧打开会话，两侧各自发送，关闭右侧", async
   await expect(left.locator(".row-user").getByText("右侧的消息", { exact: true })).toHaveCount(0)
   await expect(right.locator(".row-user").getByText("左侧的消息", { exact: true })).toHaveCount(0)
 
-  // 关闭右侧：左侧占满，路由回到左侧的会话
   await right.getByRole("button", { name: "关闭这一侧" }).click()
   await expect(right).toHaveCount(0)
   await expect(page).toHaveURL(new RegExp(`${leftHref}$`))
@@ -70,14 +67,12 @@ test("分屏：删除另一侧开着的空闲会话，那一侧回到新会话�
   const left = page.locator('.workbench-pane[data-side="left"]')
   const right = page.locator('.workbench-pane[data-side="right"]')
 
-  // 右侧发一轮再停下：会话空闲，但右侧仍挂着连接
   await right.getByRole("textbox", { name: "Prompt" }).fill("右侧的消息")
   await right.locator("button.send").click()
   const stop = right.getByRole("button", { name: STOP_TURN, exact: true })
   await stop.click()
   await expect(stop).toHaveCount(0)
 
-  // 聚焦左侧，再从侧栏删右侧的会话
   await left.getByRole("textbox", { name: "Prompt" }).click()
   await expect(page).toHaveURL(new RegExp(`${leftHref}$`))
   const target = page.locator(`.session-card[href="${rightHref}"]`)

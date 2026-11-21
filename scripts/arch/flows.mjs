@@ -1,4 +1,3 @@
-/** 读取手写的数据流，校验每步 ref（路径#导出名[.成员]）仍指向真实代码。 */
 import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { pathToFileURL } from "node:url"
@@ -11,7 +10,6 @@ export async function loadFlows(root) {
   return flows
 }
 
-/** 顶层声明名 → 节点；只认带 export 的。 */
 function exportedDeclarations(file) {
   const out = new Map()
   const exported = (node) =>

@@ -19,7 +19,6 @@ import {
 const NOTICE = "会话在别处有更新，已刷新"
 const FIRST = "e2e pig 的第一句"
 const SECOND = "e2e pig 的第二句"
-/** 真实网关 + 替身供应商：pig 的回合真的经过 pi 写进会话文件。 */
 const test = base.extend<{ appendGateway: ExternalTurnGateway }>({
   appendGateway: [
     async ({}, use) => {

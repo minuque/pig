@@ -6,7 +6,6 @@ const TURNS = 8
 const PREVIEW = "输出开头"
 const FULL = `${PREVIEW}……完整输出的结尾`
 
-/** 八轮问答，最后一轮带一条被截断的工具输出。 */
 function history(): TranscriptItem[] {
   const items: TranscriptItem[] = []
 
@@ -85,7 +84,6 @@ test("打开会话一次显示全部历史；展开被截断的工具输出时�
   await expect(page.getByText(`第 ${TURNS} 个回答`, { exact: true })).toBeVisible({
     timeout: 30_000,
   })
-  // 不用点按钮：往上滚到顶，最早一轮就在
   await page.locator("#transcript-panel").evaluate((el) => {
     el.scrollTop = 0
   })

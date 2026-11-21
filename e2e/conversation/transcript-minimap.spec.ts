@@ -20,23 +20,19 @@ test("缩略图：回合刻度、上下回合按钮与键盘导航", async ({ pa
   const ticks = minimap.locator(".minimap-tick")
   expect(await ticks.count()).toBeGreaterThan(1)
 
-  // 打开时贴底：当前是最后一个回合，上一个可用、下一个不可用
   const previous = minimap.locator(".minimap-nav.is-previous")
   await expect(previous).toBeEnabled()
   await expect(minimap.locator(".minimap-nav.is-next")).toBeDisabled()
 
-  // 上一个回合：正文滚回上一轮
   const panel = page.locator("#transcript-panel")
   const before = await panel.evaluate((el) => el.scrollTop)
   await previous.click()
   await expect.poll(() => panel.evaluate((el) => el.scrollTop)).not.toBe(before)
 
-  // 键盘：焦点在刻度上，方向键落到相邻回合
   await ticks.first().focus()
   await page.keyboard.press("ArrowDown")
   await expect(ticks.nth(1)).toBeFocused()
 
-  // 悬停刻度：预览贴在刻度右侧，指针挪到卡上仍保留
   await ticks.first().hover()
   const preview = page.locator('[data-slot="popover-content"]')
   await expect(preview).toBeVisible()

@@ -1,4 +1,3 @@
-/** 校验入口：pnpm check；--touched 脏文件；--touched --fix 先写回；--since <ref> 连提交一起查。 */
 import { existsSync } from "node:fs"
 import { spawnSync } from "node:child_process"
 import { resolve } from "node:path"
@@ -10,10 +9,8 @@ import { reportResults, splitCommandArgs } from "./runner.mjs"
 const root = resolve(import.meta.dirname, "../..")
 const touched = process.argv.includes("--touched")
 const fix = process.argv.includes("--fix")
-/** --e2e：强制跑映射到的 e2e，波及全部旅程时跑全量（pre-push 用）；--no-e2e：即使改了 UI 也不跑。 */
 const withE2e = process.argv.includes("--e2e")
 const noE2e = process.argv.includes("--no-e2e")
-/** --since <ref>：把该 ref 到 HEAD 的提交一起当脏文件（pre-push 用）。 */
 const sinceIndex = process.argv.indexOf("--since")
 const since = sinceIndex >= 0 ? (process.argv[sinceIndex + 1] ?? "") : undefined
 
@@ -22,14 +19,12 @@ if (since === "") {
   process.exit(1)
 }
 
-/* lint-staged 里 prettier 不带 --cache 会删默认缓存文件，多组并发会撞 ENOENT；check 用独立文件。 */
+// 外部：prettier 不带 --cache 时会删默认缓存文件，与并发的 lint-staged 撞 ENOENT
 const PRETTIER_CACHE = "node_modules/.cache/prettier/check"
-/* 检查侧同理：写文件的步骤（fix、lint-staged）与只读检查不共用缓存，免得多余恢复后误用旧记录。 */
 const ESLINT_CACHE = "node_modules/.cache/eslint/check"
-/* Windows 命令行上限 8191 字符，留出环境变量与引号余量。 */
+// 外部：Windows 命令行上限 8191 字符，留出环境变量与引号余量
 const MAX_ARG_CHARS = process.platform === "win32" ? 6000 : 100_000
 
-/* 文件列表按命令行长度拆成多条 step，避免一次传参过长。 */
 function fileSteps(name, prefix, files) {
   return splitCommandArgs(prefix, files, MAX_ARG_CHARS).map((args) => ({ name, args }))
 }
@@ -52,7 +47,6 @@ const CHECK_STEPS = [
   { name: "test", args: ["test"] },
 ]
 
-/** 某 ref 到 HEAD 的提交改到的文件；取不到范围时按空处理，不阻塞推送。 */
 function committedFiles(ref) {
   const opts = { cwd: root, encoding: "utf8", windowsHide: true }
   const ran = spawnSync("git", ["diff", "--name-only", `${ref}..HEAD`], opts)
@@ -141,7 +135,6 @@ async function checkTouched(scope, files, label = "check:touched") {
   }
 
   const fullE2e = withE2e && !noE2e && scope.e2eAll
-  /** @type {{ name: string, args: string[] }[]} */
   const steps = []
 
   steps.push(
@@ -171,7 +164,6 @@ async function checkTouched(scope, files, label = "check:touched") {
     steps.push({ name: "test:scripts", args: ["exec", "node", "--test", "scripts/**/*.test.mjs"] })
   }
 
-  // 数据流 ref 与分层目录都指向源码，源码或它们本身改动都要重新校验
   if (!scope.scripts && files.some((f) => /^(apps|packages|docs\/architecture)\//.test(f)))
     steps.push(
       { name: "arch-flows", args: ["exec", "node", "--test", "scripts/arch/flows.test.mjs"] },
@@ -220,7 +212,6 @@ async function checkTouched(scope, files, label = "check:touched") {
   if (fullE2e && !process.exitCode) await runFullE2e(label)
 }
 
-/** 全量 e2e 吃满 CPU：等其他步骤跑完再单独跑，免得互相拖慢、放大偶发失败。 */
 async function runFullE2e(label) {
   console.log(`${label}: 改动波及全部旅程，跑全量 e2e`)
   const ran = await runPnpm(["test:e2e"], root)

@@ -10,7 +10,6 @@ import Gateway from "../src/index.js"
 import { PiHostService } from "../src/pi/service.js"
 
 const provider = { id: "acme", name: "Acme", auth: {}, getModels: () => [] }
-/** 供应商目录可控：改 available 就能让下一次快照的模型列表不同。 */
 let available: unknown[] = []
 const runtime = {
   getProviders: () => [provider],
@@ -34,7 +33,6 @@ afterEach(async () => {
   root = undefined
 })
 
-/** 已握手的连接：按谓词等协议消息。 */
 async function connect(port: number) {
   const socket = new WebSocket(`ws://127.0.0.1:${port}/api/v1/pi`, {
     headers: { authorization: gateway?.authorizationHeader() ?? "" },

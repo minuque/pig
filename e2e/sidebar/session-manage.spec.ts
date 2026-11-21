@@ -16,7 +16,6 @@ test("改名后侧栏标签跟着变", async ({ page, navGateway }) => {
   const first = page.locator(".session-card").first()
   await expect(first.locator(".title")).toHaveText(`${FILLER_PREFIX} 6`)
 
-  // 右键卡片打开菜单
   await first.click({ button: "right" })
   await page.getByRole("menuitem", { name: "重命名" }).click()
 
@@ -45,7 +44,6 @@ test("删除会话后从侧栏消失", async ({ page, navGateway }) => {
 
   await dialog.getByRole("button", { name: "删除会话" }).click()
 
-  // 收件箱平铺，删掉一条就少一条
   await expect(
     page.locator(".session-card", { has: page.getByText(`${FILLER_PREFIX} 6`, { exact: true }) }),
   ).toHaveCount(0)

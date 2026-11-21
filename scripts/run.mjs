@@ -1,26 +1,18 @@
-/**
- * 跑外部命令的统一入口，脚本里不再各写一份 spawn 包装。
- *
- * Windows 上的 pnpm / npm 是 .cmd 包装，Node 22 起不挂 shell 直接 spawn 会 EINVAL；
- * 而 shell + args 数组在 Node 24 已废弃（DEP0190）。所以需要 shell 时自己拼命令行，
- * 当成单个字符串交给 shell。
- */
+// 外部：Windows 上 pnpm/npm 是 .cmd，Node 22 起不带 shell 直接 spawn 会 EINVAL；shell + args 在 Node 24 已废弃（DEP0190）
 
 import { spawn, spawnSync } from "node:child_process"
 
-/** cmd 的元字符与空白：出现其一就得整段加引号。 */
+// 外部：cmd 的元字符与空白，出现其一就得整段加引号
 const NEEDS_QUOTE = /[\s"&|<>^%]/
 const JS_ENTRY = /\.[cm]?js$/
 const SHELL_COMMAND = /\.(cmd|bat)$/i
 
 /** @typedef {{ command: string, args: string[], options: { shell?: boolean } }} CommandPlan */
-
 function quoteArg(value) {
   return NEEDS_QUOTE.test(value) ? `"${value.replaceAll('"', '""')}"` : value
 }
 
 /**
- * 交给 shell 执行的一条命令行。
  * @param {string} command
  * @param {string[]} args
  * @returns {CommandPlan}
@@ -30,8 +22,6 @@ function shellCommand(command, args) {
 }
 
 /**
- * 解析 pnpm 调用方式。优先用启动器注入的 npm_execpath，没有就回落到 PATH 上的 pnpm。
- * env / platform 可注入，便于单测。
  * @param {string[]} args
  * @param {{ env?: NodeJS.ProcessEnv, platform?: string }} [io]
  * @returns {CommandPlan}
@@ -41,7 +31,7 @@ function pnpmCommand(args, io = {}) {
   const platform = io.platform ?? process.platform
   const exec = env.npm_execpath
 
-  // pnpm 12 起 npm_execpath 是可执行文件，11 及以前是 JS 入口，要经 node 启动
+  // 外部：pnpm 12 起 npm_execpath 是可执行文件，11 及以前是 JS 入口
   if (exec && JS_ENTRY.test(exec))
     return { command: process.execPath, args: [exec, ...args], options: {} }
 
@@ -52,7 +42,6 @@ function pnpmCommand(args, io = {}) {
 }
 
 /**
- * 把命令和参数解析成可执行的形态，必要时改走 shell。
  * @param {string} command
  * @param {string[]} args
  * @param {{ env?: NodeJS.ProcessEnv, platform?: string }} [io]
@@ -66,13 +55,11 @@ export function buildCommand(command, args, io) {
   return { command, args, options: {} }
 }
 
-/** 同步命令的公共 spawn 选项：Windows 上不弹控制台窗口。 */
 function spawnOptions(plan, cwd) {
   return { cwd, windowsHide: true, ...plan.options }
 }
 
 /**
- * 同步跑一条命令，非零退出即抛错。capture 为真时收集 stdout 并返回，否则继承当前 stdio。
  * @param {string} command
  * @param {string[]} args
  * @param {{ cwd?: string, capture?: boolean }} [options]
@@ -97,7 +84,6 @@ export function run(command, args, { cwd, capture = false } = {}) {
 }
 
 /**
- * 异步跑 pnpm 并收集输出，给 check 的并行步骤用。不抛错，退出码交给调用方汇总。
  * @param {string[]} args
  * @param {string} cwd
  * @returns {Promise<{ code: number, out: string, ms: number }>}

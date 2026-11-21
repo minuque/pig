@@ -15,7 +15,6 @@ test("远程目录：选主机与目录，@ 搜到远端文件，会话按「主
   const dialog = page.getByRole("dialog")
   await expect(dialog.getByRole("combobox", { name: "主机" })).toContainText(REMOTE_HOST)
 
-  // 不存在的目录：对话框留着并提示
   await dialog.getByPlaceholder("/home/me/project").fill("/no/such/dir")
   await dialog.getByRole("button", { name: "添加" }).click()
   await expect(dialog.getByRole("alert")).toBeVisible()
@@ -25,7 +24,6 @@ test("远程目录：选主机与目录，@ 搜到远端文件，会话按「主
   await expect(dialog).toHaveCount(0)
   await expect(page.locator(".hero-picker .hero-name")).toHaveText(label)
 
-  // @ 候选来自远端目录
   const field = page.locator(".composer .field, .field").first()
   await field.click()
   await page.keyboard.type("@remote-only")

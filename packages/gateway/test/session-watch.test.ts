@@ -28,7 +28,6 @@ const runtime = {
 }
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-/** 等到条件成立；fs.watch 的事件是异步的，不用固定睡眠赌时间。 */
 async function until(check: () => boolean, timeout = 3_000) {
   const deadline = Date.now() + timeout
 
@@ -184,7 +183,6 @@ describe("pig 协议：watch_session 跟随外部追加", () => {
         await new Promise<void>((resolve) => waiters.push(resolve))
       }
     }
-    /** 已经收到的消息里有没有这一条；不等新的，用来验「没有事件」。 */
     const has = (match: (message: ServerMessage) => boolean) => inbox.some(match)
     let seq = 0
     const request = async (command: Command) => {
@@ -237,7 +235,6 @@ describe("pig 协议：watch_session 跟随外部追加", () => {
     expect(await first.next(fileChanged)).toBeTruthy()
     expect(await second.next(fileChanged)).toBeTruthy()
     await sleep(200)
-    // 每条连接只收到一次，不按连接数 N×N 放大
     expect(first.has(fileChanged)).toBe(false)
     expect(second.has(fileChanged)).toBe(false)
 

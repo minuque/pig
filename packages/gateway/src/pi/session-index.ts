@@ -5,7 +5,6 @@ import { remoteWorkspaceKey } from "@pig/environment"
 
 import { BINDING_ENTRY, sessionBinding } from "./remote-session.js"
 
-/** 侧栏用的会话元数据；字段语义同 pi 的 SessionInfo，但不读全文。 */
 export interface IndexedSession {
   path: string
   id: string
@@ -15,9 +14,7 @@ export interface IndexedSession {
   parentSessionPath?: string
   created: Date
   modified: Date
-  /** subagent 开的子会话；侧栏不列，只在子任务卡片里点开看。 */
   subagent?: true
-  /** 文件 mtime 与大小拼成的版本号；内容变了它就变，供下游缓存失效。 */
   version: string
 }
 
@@ -44,7 +41,6 @@ function messageText(message: Record<string, unknown>): string {
     .join(" ")
 }
 
-/** 用户或助手消息的活动时刻：优先消息时间戳，其次条目时间戳。 */
 function activityTime(entry: Record<string, unknown>): number | undefined {
   const message = entry.message as Record<string, unknown> | undefined
 
@@ -55,7 +51,6 @@ function activityTime(entry: Record<string, unknown>): number | undefined {
   return Number.isNaN(at) ? undefined : at
 }
 
-/** 只解析文件头、改名条目、首条用户句与末尾的消息；其余行只做子串判断。 */
 export function indexSessionText(
   path: string,
   text: string,
@@ -110,7 +105,6 @@ export function indexSessionText(
   return {
     path,
     id: header.id,
-    // 远程会话的 cwd 是本地占位目录，对外换成 ssh://主机/路径
     cwd: remote ?? (typeof header.cwd === "string" ? header.cwd : ""),
     ...(name ? { name } : {}),
     ...(firstMessage ? { firstMessage } : {}),
@@ -124,10 +118,6 @@ export function indexSessionText(
   }
 }
 
-/**
- * 会话目录的元数据索引：按文件的 mtime 与大小缓存，没变的文件只做一次 stat。
- * 自定义会话目录是平铺的 .jsonl；缺省目录按工作目录分子目录。
- */
 export class SessionIndex {
   private readonly cache = new Map<string, Cached>()
 

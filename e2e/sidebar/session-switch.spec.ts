@@ -38,7 +38,6 @@ test("连点只落到最后一个会话", async ({ page, navGateway }) => {
   await expect(page.getByText(`${FILLER_PREFIX} 3 的内容`, { exact: true })).toBeVisible()
 })
 
-/** 30 轮的长历史，够滚出好几屏。 */
 function longHistory() {
   return Array.from({ length: 30 }, (_, index) => [
     {

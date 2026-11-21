@@ -7,7 +7,6 @@ export class ModelsConfigError extends Error {
   }
 }
 
-/** models.json 的读写：保留未知字段，写临时文件后 rename，进程内串行。 */
 export class ProviderConfigStore {
   private queue: Promise<unknown> = Promise.resolve()
 
@@ -36,7 +35,6 @@ export class ProviderConfigStore {
     return parsed as Record<string, unknown>
   }
 
-  /** 读-改-写；change 抛错时不写文件。 */
   mutate<T>(change: (config: Record<string, unknown>) => T | Promise<T>): Promise<T> {
     const run = this.queue.then(async () => {
       const config = await this.read()

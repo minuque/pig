@@ -1,4 +1,3 @@
-/** 扫 apps/* 与 packages/* 的源码，解析 import，得到仓库内的文件节点与依赖边。 */
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs"
 import { join, posix, relative } from "node:path"
 import ts from "typescript"
@@ -20,7 +19,6 @@ function walk(dir, out) {
   return out
 }
 
-/** 工作区包：名字 → 目录（仓库相对）。 */
 function workspacePackages(root) {
   const pkgs = []
 
@@ -36,7 +34,6 @@ function workspacePackages(root) {
   return pkgs
 }
 
-/** apps/web 的路径别名，照 tsconfig 的 paths。 */
 function webAliases(root) {
   const file = join(root, "apps/web/tsconfig.json")
   const { config } = ts.readConfigFile(file, ts.sys.readFile)
@@ -46,7 +43,6 @@ function webAliases(root) {
   }))
 }
 
-/** 模块所在的分组：src 下第一层目录；features 与 components 再往下一层。 */
 function groupOf(id, pkgDir) {
   const rest = id.slice(pkgDir.length + 1).split("/")
   const srcAt = rest.indexOf("src")
@@ -70,7 +66,6 @@ export function scanGraph(root) {
     existsSync(join(root, dir, "src")) ? walk(join(root, dir, "src"), []) : [],
   )
   const ids = new Set(paths.map((p) => toId(root, p)))
-  /** 依次试原样、.js→.ts、补后缀、index。 */
   const pick = (base) =>
     [
       base,

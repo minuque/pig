@@ -11,7 +11,6 @@ function transcriptText(item: TranscriptItem): string {
     .join("")
 }
 
-/** 空失败助手句与侧栏同一口径：无正文且 error/aborted。 */
 function isRetryErrorItem(item: TranscriptItem): boolean {
   if (item.role !== "assistant") return false
 
@@ -32,12 +31,10 @@ function conversationItemCount(items: readonly TranscriptItem[]): number {
   return count
 }
 
-/** 先投影为 TranscriptItem 再计，避免另写空失败语义。 */
 export function conversationMessageCount(entries: readonly SessionEntry[]): number {
   return conversationItemCount(new TranscriptProjection().transcript(entries))
 }
 
-/** 侧栏卡片用的当前模型：当前分支上最后一次 model_change。 */
 export function modelFromBranch(
   entries: readonly SessionEntry[],
 ): { provider: string; id: string } | undefined {
@@ -51,7 +48,6 @@ export function modelFromBranch(
   return model
 }
 
-/** 侧栏只区分正常结束与失败；aborted 视为正常停止。 */
 export function outcomeFromBranch(
   entries: readonly SessionEntry[],
 ): "complete" | "error" | undefined {
@@ -83,7 +79,6 @@ function cardOf(info: IndexedSession): SessionCard {
   }
 }
 
-/** 会话文件路径 → 按文件版本缓存的卡片；文件没变就不重读分支。 */
 export class SessionCardCache {
   private readonly cache = new Map<string, { version: string; card: SessionCard }>()
 

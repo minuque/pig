@@ -1,4 +1,3 @@
-/** /api/v1/platform 下的供应商路由：目录、登录事件流、密钥、模型参数与自定义供应商。 */
 import type { IncomingMessage, ServerResponse } from "node:http"
 import type { CustomModelInput, LoginEvent, ModelParamsPatch } from "@pig/protocol"
 import { ProviderServiceError, type ProviderService } from "../pi/provider-service.js"
@@ -20,12 +19,10 @@ function frame(event: LoginEvent): string {
 const providerRoutes = {
   "GET /api/v1/platform/providers": async ({ deps }) => deps.providers.listProviders(),
 
-  /** 让 gateway 全量刷新 runtime，返回刷新后的目录。 */
   "POST /api/v1/platform/providers/refresh": async ({ deps }) => deps.providers.refreshAll(),
 
   "GET /api/v1/platform/models": async ({ deps }) => deps.providers.listModels(),
 
-  /** 开始一次供应商登录；事件由 events 那一路消费。 */
   "POST /api/v1/platform/providers/login": async (ctx) => {
     const payload = await ctx.json()
     const providerId = typeof payload.providerId === "string" ? payload.providerId : ""
@@ -36,7 +33,6 @@ const providerRoutes = {
     return ctx.deps.providers.login(providerId, type)
   },
 
-  /** 最小请求验证凭据；失败时返回上游原文。 */
   "POST /api/v1/platform/providers/test": async (ctx) => {
     const payload = await ctx.json()
     const providerId = typeof payload.providerId === "string" ? payload.providerId : ""
@@ -46,7 +42,6 @@ const providerRoutes = {
     return ctx.deps.providers.testConnection(providerId, modelId)
   },
 
-  /** 登录事件流：帧按 seq 续传，done/error 之后服务端断开。 */
   "GET /api/v1/platform/providers/login/:loginId/events": async ({ res, url, params, deps }) => {
     const { loginId } = params
 
@@ -102,11 +97,9 @@ const providerRoutes = {
     return { ok: true }
   },
 
-  /** 复制操作：明文只在这次响应里出现，调用方直接写剪贴板。 */
   "GET /api/v1/platform/providers/:providerId/key": async ({ params, deps }) =>
     deps.providers.copyKey(params.providerId),
 
-  /** 新增或更新自定义供应商；空 apiKey 保留旧值。 */
   "PUT /api/v1/platform/providers/custom/:providerId": async (ctx) => {
     const payload = await ctx.json()
     const { providerId } = ctx.params
@@ -139,7 +132,6 @@ const providerRoutes = {
     return { ok: true }
   },
 
-  /** 调整单个模型的思考强度、输出上限与采样参数；null 删除该项。 */
   "PUT /api/v1/platform/providers/:providerId/models/:modelId/params": async (ctx) => {
     const payload = await ctx.json()
     const { providerId, modelId } = ctx.params
@@ -148,7 +140,6 @@ const providerRoutes = {
     return { ok: true }
   },
 
-  /** 开放或关闭一个模型；关闭后不进 Composer 目录。 */
   "PUT /api/v1/platform/providers/:providerId/models/:modelId/enabled": async (ctx) => {
     const payload = await ctx.json()
     const { providerId, modelId } = ctx.params
@@ -158,14 +149,12 @@ const providerRoutes = {
     return { ok: true }
   },
 } satisfies HttpRouteTable<ProviderRequestDeps>
-/** 供应商服务的失败自带状态码与错误码。 */
 const providerError: MapError = (error, route) => {
   if (error instanceof ProviderServiceError) return new HttpError(error.status, error.code)
   return defaultMapError(error, route)
 }
 const providerRouter = new HttpRouter<ProviderRequestDeps>(providerRoutes, providerError)
 
-/** 供应商 HTTP 分发；true=已处理（含 400/404/409/500）。 */
 export function handleProviderRequest(
   req: IncomingMessage,
   res: ServerResponse,

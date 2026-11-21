@@ -1,11 +1,7 @@
-/** e2e 用的 ModelRuntime 替身：只需要配置页用到的投影与登录方法。 */
-
 import { readFile } from "node:fs/promises"
 
 export interface FakeRuntimeOptions {
-  /** 提供后 refresh 会把 models.json 里的自定义供应商同步进列表。 */
   modelsPath?: string
-  /** 首次 refresh 时给指定供应商追加一个模型，用来验证刷新按钮。 */
   addModelOnRefresh?: { provider: string; model: FakeModelSpec } | undefined
 }
 
@@ -22,13 +18,11 @@ export interface FakeProviderSpec {
   id: string
   name: string
   baseUrl?: string
-  /** 供应商的 API 协议，透传到模型上。 */
   api?: string
   auth?: "api_key" | "oauth" | "both" | "ambient"
   configured?: boolean
   source?: "stored" | "runtime" | "environment" | "models_json_key"
   models?: FakeModelSpec[]
-  /** 测试连接时模拟上游拒绝。 */
   failTest?: boolean
 }
 
@@ -126,7 +120,6 @@ export function createFakeRuntime(specs: FakeProviderSpec[], options: FakeRuntim
       fromFile.add(id)
     }
 
-    // 内置供应商的模型覆盖只写在 modelOverrides 里，按文件重算有效值。
     for (const spec of state) {
       const base = baseModels.get(spec.id)
 

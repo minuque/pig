@@ -1,9 +1,4 @@
 {
-  "scripts/arch/page.css": {
-    "pig/no-comments": {
-      "count": 12
-    }
-  },
   "apps/web/src/shell/WorkbenchShell.vue": {
     "pig/no-comments": {
       "count": 1

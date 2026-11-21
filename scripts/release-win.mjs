@@ -15,7 +15,7 @@ if (process.platform !== "win32") {
   throw new Error("pnpm release:win 只支持在 Windows 上打 NSIS 安装包")
 }
 
-/** Windows 上 pnpm injected 在重建 dist 后会留下旧文件，asar 必须用刚编出来的那份。 */
+// 外部：pnpm injected 在重建 dist 后会留下旧文件
 async function syncInjectedGateway() {
   if (!existsSync(injectedGateway)) {
     throw new Error("未找到注入的 @pig/gateway，请先在仓库根目录执行 pnpm install")
@@ -31,7 +31,6 @@ async function syncInjectedGateway() {
   }
 }
 
-/** 对即将打进安装包的 Gateway 做握手：未认证必须 401，带通行证后升级必须成功。 */
 async function assertDesktopGatewaySurface() {
   if (!existsSync(join(webRoot, "index.html"))) {
     throw new Error("缺少 apps/web/dist，无法写入 extraResources")

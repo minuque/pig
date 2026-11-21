@@ -1,4 +1,3 @@
-/** pi 0.84.4 内置供应商目录：仅为 e2e 假 runtime 提供真实名单。 */
 export const BUILTIN_PROVIDERS: ReadonlyArray<{ id: string; name: string }> = [
   { id: "amazon-bedrock", name: "Amazon Bedrock" },
   { id: "ant-ling", name: "Ant Ling" },

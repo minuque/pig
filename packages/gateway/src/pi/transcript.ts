@@ -15,40 +15,26 @@ import {
   toUserItem,
 } from "./item-convert.js"
 
-/** 会话条目携带的消息（pi-ai 未直接依赖，从官方会话类型提取）。 */
+// 外部：pi-ai 未直接依赖，从官方会话类型提取
 type AgentMessage = Extract<SessionEntry, { type: "message" }>["message"]
 
 type AssistantMessage = Extract<AgentMessage, { role: "assistant" }>
 
 type ToolResultMessage = Extract<AgentMessage, { role: "toolResult" }>
 
-/** 消息事件携带的消息；自定义角色（bash/custom/compaction 等）不进入 transcript。 */
 type SessionMessage = Extract<
   AgentSessionEvent,
   { type: "message_start" | "message_update" | "message_end" }
 >["message"]
 
-/**
- * 协议投影：把 AgentSession 事件与 SessionManager 条目映射为官方
- * TranscriptProgress / TranscriptItem。
- *
- * id 约定：
- * - user/assistant 条目的快照 id 用会话条目 id；进度事件中的流式 id 用自增
- *   `m<N>`（消息条目在事件后才落盘，事件本身不带条目 id）。message_end 后
- *   服务端立即广播快照，客户端以快照重建投影，流式 id 不会残留。
- * - tool 条目统一用 toolCallId 作 id，保证 running 占位与完成条目在客户端合并。
- */
 export class TranscriptProjection {
-  /** toolCallId → 工具调用参数（来自助手消息事件与 tool_execution_start） */
   private readonly toolCalls = new Map<string, JsonValue>()
   private streamingMessageId: string | undefined
-  /** 客户端手里这条流式消息各内容块的类型；增量只能落在已知块上。 */
   private streamingParts: string[] = []
   private nextMessageId = 0
   private cachedEntries: readonly SessionEntry[] = []
   private cachedTranscript: TranscriptItem[] = []
 
-  /** 把 AgentSession 事件映射为进度事件；无关事件返回 undefined。 */
   progress(event: AgentSessionEvent): TranscriptProgress | undefined {
     switch (event.type) {
       case "message_start":
@@ -63,7 +49,7 @@ export class TranscriptProjection {
         try {
           input = toJsonValue(event.args)
         } catch {
-          return undefined // 非 JSON 参数（不应发生），跳过该条目
+          return undefined
         }
 
         this.toolCalls.set(event.toolCallId, input)
@@ -84,7 +70,6 @@ export class TranscriptProjection {
       }
 
       case "tool_execution_update": {
-        // 工具执行中的部分结果（如 subagent 的子任务进度）：作为运行中条目的更新
         const input = this.toolCalls.get(event.toolCallId)
         const partial = event.partialResult as { content?: unknown; details?: unknown } | undefined
 
@@ -112,7 +97,6 @@ export class TranscriptProjection {
     }
   }
 
-  /** 把当前分支的会话条目投影为协议 transcript（跳过非消息条目）。 */
   transcript(entries: readonly SessionEntry[]): TranscriptItem[] {
     if (
       entries.length === this.cachedEntries.length &&
@@ -142,7 +126,7 @@ export class TranscriptProjection {
       } else if (message.role === "toolResult") {
         const args = toolCalls.get(message.toolCallId)
 
-        if (args === undefined) continue // 找不到对应调用，无法构造输入
+        if (args === undefined) continue
         items.push(this.toolItem(message, args))
       }
     }
@@ -152,14 +136,12 @@ export class TranscriptProjection {
     return items
   }
 
-  /** 正在生成的助手消息：中途挂上的连接从它接上，之后的增量用同一个 id。 */
   inFlight(message: unknown): AssistantTranscriptItem | undefined {
     const id = this.streamingMessageId
     const current = message as AgentMessage | undefined
     return id && current?.role === "assistant" ? toAssistantItem(current, id) : undefined
   }
 
-  /** 文本与思考块的增量只发新增文字；块未知或工具参数时退回完整条目。 */
   private textDelta(
     event: Extract<AgentSessionEvent, { type: "message_update" }>,
   ): TranscriptProgress | undefined {
@@ -185,7 +167,6 @@ export class TranscriptProjection {
   ): TranscriptProgress | undefined {
     switch (message.role) {
       case "user":
-        // user 条目不会变化，且 item_finished 不接受 user，只在开始时发一次
         if (stage !== "started") return undefined
         return {
           type: "item_started",
@@ -206,7 +187,6 @@ export class TranscriptProjection {
           this.streamingMessageId = undefined
           this.streamingParts = []
 
-          // item_finished 只接受终态（无 stopReason 的 streaming 成员被收窄排除）
           if ("stopReason" in item) return { type: "item_finished", item }
           return undefined
         }
@@ -216,14 +196,12 @@ export class TranscriptProjection {
       }
 
       case "toolResult": {
-        // running 占位已由 tool_execution_start 发出；完成态在结束时发一次
         if (stage !== "finished") return undefined
         const args = this.toolCalls.get(message.toolCallId)
 
         if (args === undefined) return undefined
         this.toolCalls.delete(message.toolCallId)
         const item = this.toolItem(message, args)
-        // finished 阶段 toToolItem 只产出终态（running 占位已由 tool_execution_start 发出）
         return {
           type: "item_finished",
           item: item as Extract<ToolTranscriptItem, { status: "complete" | "error" }>,
@@ -231,7 +209,6 @@ export class TranscriptProjection {
       }
 
       case "custom": {
-        // 后台任务的结束通知；其他自定义消息不进 transcript
         const item =
           stage === "finished"
             ? toTaskItem(message.details, this.allocateId(), message.timestamp)
@@ -240,7 +217,7 @@ export class TranscriptProjection {
       }
 
       default:
-        return undefined // 其余自定义角色（bash/compaction 等）不进 transcript
+        return undefined
     }
   }
 
@@ -252,7 +229,6 @@ export class TranscriptProjection {
     )
   }
 
-  /** 索引助手消息中的 toolCall 参数；非 JSON 参数（不应发生）跳过。 */
   private indexToolCalls(
     content: AssistantMessage["content"],
     index: Map<string, JsonValue>,
@@ -262,9 +238,7 @@ export class TranscriptProjection {
 
       try {
         index.set(part.id, toJsonValue(part.arguments))
-      } catch {
-        // 不索引；对应 tool 条目将因找不到参数而跳过
-      }
+      } catch {}
     }
   }
 
@@ -274,7 +248,6 @@ export class TranscriptProjection {
   }
 }
 
-/** 协议 ToolCall 要求参数为 JSON 对象；非对象参数按空对象处理（运行时同义）。 */
 function toolCallArguments(value: JsonValue): { [key: string]: JsonValue } {
   if (typeof value === "object" && value !== null && !Array.isArray(value)) return value
   return {}
@@ -282,7 +255,6 @@ function toolCallArguments(value: JsonValue): { [key: string]: JsonValue } {
 
 const toDetails = (value: unknown) => (value === undefined ? undefined : sanitizeDetails(value))
 
-/** 部分结果里的文本块；其他类型（图片等）在运行中不展示。 */
 function toolText(content: unknown): Array<{ type: "text"; text: string }> {
   if (!Array.isArray(content)) return []
   return content.flatMap((part: unknown) => {

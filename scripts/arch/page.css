@@ -1,5 +1,3 @@
-/* 架构看板样式：只消费 tokens.css，补齐看板自己的状态色 */
-
 :root {
   --arch-up-bg: var(--warning-subtle);
   --arch-up-fg: var(--warning-text);
@@ -106,7 +104,6 @@ a {
   inset-inline-start: var(--space-md);
 }
 
-/* 排版层级：4 档 UI 字号 + 13px 等宽代码 */
 h1,
 .h1 {
   margin: 0;
@@ -159,7 +156,6 @@ code,
   font-variant-numeric: tabular-nums;
 }
 
-/* 吸顶顶栏：与主内容同宽对齐 */
 .topbar {
   position: sticky;
   z-index: var(--z-drawer);
@@ -271,7 +267,6 @@ code,
   white-space: nowrap;
 }
 
-/* 按钮与通用控件 */
 .icon-btn,
 .btn-ghost,
 .btn-soft,
@@ -344,7 +339,6 @@ code,
   scale: 0.96;
 }
 
-/* 主内容布局与扁平表面 */
 .page {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -453,7 +447,6 @@ code,
   color: var(--fg-secondary);
 }
 
-/* 总览：四格指标条 + 拓扑图 + 包目录 */
 .stats-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -589,7 +582,6 @@ code,
   font-variant-numeric: tabular-nums;
 }
 
-/* 依赖视图：包切换条 + 面包屑 + 分层矩阵 */
 .scope-bar {
   display: flex;
   flex-wrap: wrap;
@@ -902,7 +894,6 @@ code,
   font-size: var(--text-meta);
 }
 
-/* 双栏关系列表 */
 .cols {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1049,7 +1040,6 @@ code,
   background: var(--accent-solid);
 }
 
-/* 工具栏、搜索框与数据表格 */
 .toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -1167,7 +1157,6 @@ code,
   background: var(--accent-solid);
 }
 
-/* 数据流视图：主从导航 + 聚焦时间轴 */
 .flows-shell {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr);
@@ -1333,7 +1322,6 @@ code,
   box-shadow: var(--separator-top);
 }
 
-/* 接口视图：方法徽标、参数高亮与 WS 面板 */
 .method-badge {
   display: inline-grid;
   place-items: center;
@@ -1425,7 +1413,6 @@ code,
   text-align: center;
 }
 
-/* 弹层：图预览 & 命令面板搜索 */
 .dialog {
   margin: auto;
   padding: 0;

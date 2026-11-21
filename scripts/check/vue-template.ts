@@ -1,10 +1,10 @@
-/** 用 Vue 模板编译器检查 SFC。vue-tsc 不编译事件表达式，Vite 才会报。 */
+// 外部：vue-tsc 不编译模板事件表达式，只有 Vite 构建才报
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { resolve } from "node:path"
 import { pathToFileURL } from "node:url"
 import ts from "typescript"
 
-/* 模板 ref 名写错时两侧都不报错，只静默变 null，所以按名字对齐校验。 */
+// 外部：Vue 模板 ref 名对不上时编译与类型都不报错，只静默变 null
 function checkRefNames(
   script: string,
   template: string | null,
@@ -35,7 +35,6 @@ function checkRefNames(
   return messages
 }
 
-/** 语法树取第一个字符串参数。类型参数再复杂也不影响名字。 */
 function templateRefKeysOf(script: string): string[] {
   const file = ts.createSourceFile(
     "check.ts",
@@ -67,7 +66,6 @@ function templateRefKeysOf(script: string): string[] {
 
 const root = resolve(import.meta.dirname, "../..")
 const compilerUrl = pathToFileURL(resolve(root, "apps/web/node_modules/vue/compiler-sfc")).href
-// vue 的类型在 apps/web 下，脚本 tsconfig 解析不到；用最小结构描述用到的 API
 const { parse, compileTemplate } = (await import(compilerUrl)) as {
   parse: (
     source: string,
@@ -132,7 +130,6 @@ for (const file of files) {
       messages.push(lineOf(source, error instanceof Error ? error.message : String(error)))
     }
 
-    // tips 是 dev 期 warning（如非法嵌套元素），线上会出 hydration 问题，一并计入失败
     for (const tip of compiled.tips) {
       messages.push(`tip: ${tip}`)
     }

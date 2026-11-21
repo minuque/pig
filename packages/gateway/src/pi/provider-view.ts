@@ -19,7 +19,6 @@ export const THINKING_LEVELS = [
   "max",
 ] as const satisfies readonly ThinkingLevel[]
 
-/** runtime 的供应商是唯一真源；这里只做可序列化投影，不读凭据。 */
 export function projectProvider(
   provider: RuntimeProvider,
   status: ProviderAuthStatus,
@@ -65,7 +64,7 @@ export function projectProvider(
   }
 }
 
-/** 模型引用匹配：支持 provider/model、裸 id，以及 `:thinkingLevel` 后缀。 */
+// 外部：Pi 的模型引用支持 provider/model、裸 id，以及 `:thinkingLevel` 后缀
 function matchesModelRef(pattern: string, providerId: string, modelId: string) {
   const ref = pattern.toLowerCase()
   const colon = ref.lastIndexOf(":")
@@ -82,7 +81,6 @@ export function isModelEnabled(
   return enabledModels.some((pattern) => matchesModelRef(pattern, providerId, modelId))
 }
 
-/** 从开放列表移除或加入一个模型；覆盖全部模型时恢复为未配置。 */
 export function toggleEnabledModel(
   enabledModels: readonly string[] | undefined,
   allModels: readonly { provider: string; id: string }[],

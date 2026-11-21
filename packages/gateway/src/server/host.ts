@@ -18,28 +18,16 @@ export interface GatewayOptions {
   webRoot?: string
   sessionDir?: string
   cwd?: string
-  /** 目录选择平台端口，测试可注入假件。 */
   platformPort?: DirectoryPort
-  /** HTTP 监听端口。缺省 0，由系统分配。 */
   port?: number
-  /** 测试注入：ModelRuntime 工厂。 */
   createRuntime?: PiHostServiceOptions["createRuntime"]
-  /** 非图片附件的临时根目录；缺省 os.tmpdir()/pig-attachments。 */
   attachmentRootDir?: string
-  /** 浏览器通行证的签名文件。缺省跟会话目录或用户主目录走。 */
   browserSecretFile?: string
-  /** Pi 配置目录（auth.json / models.json / settings.json）；缺省 ~/.pi/agent。 */
   agentDir?: string
-  /** 环境列表的来源（ssh config 与 pig 保存的环境），测试可指向临时文件。 */
   environments?: EnvironmentSources
-  /** 远程会话的本地占位目录根；缺省 ~/.pig/remote。 */
   remoteRoot?: string
 }
 
-/**
- * Thin Host：本地 HTTP 壳（health / 静态 SPA / 目录选择）
- * + 只绑 127.0.0.1 的 WebSocket 协议端，会话命令交给 PiHostService。
- */
 export class Gateway {
   private readonly server = createServer(this.handleRequest.bind(this))
   private readonly hostService: PiHostService
@@ -75,7 +63,6 @@ export class Gateway {
       allow: (req) => this.browser.rejection(req.headers),
       onError: (error) => console.error("Gateway protocol error:", error),
     })
-    // 会话目录与模型目录的变化经 HTTP 写进来，其他标签页要收到新的服务快照
     this.hostService.onCatalogChange = () => this.protocol.broadcastServerSnapshot()
   }
 
@@ -138,7 +125,6 @@ export class Gateway {
     )
       return
 
-    // HTML 预览在沙箱里拿不到 cookie，凭地址里的令牌放行
     if (
       await handlePreviewRequest(req, res, url, {
         send: this.send.bind(this),
@@ -211,7 +197,7 @@ export class Gateway {
       this.server.close((error) => (error ? reject(error) : resolveStop())),
     )
 
-    // 停止期间新连上、还没发完请求的客户端不会自己断，server.close 会一直等它
+    // 外部：停止期间新连上、还没发完请求的客户端不会自己断，server.close 会一直等它
     this.server.closeAllConnections()
     await closed
   }

@@ -25,7 +25,6 @@ const count = (value: number | undefined) =>
   value === undefined || !Number.isFinite(value) ? undefined : Math.max(0, Math.floor(value))
 const money = (value: number) => (Number.isFinite(value) ? Math.max(0, value) : 0)
 
-/** 执行边界上的值转成协议允许的 JSON：非有限数、函数、循环引用一律拒绝。 */
 export function toJsonValue(value: unknown, seen = new Set<object>()): JsonValue {
   if (value === null || typeof value === "string" || typeof value === "boolean") return value
 
@@ -50,7 +49,6 @@ export function toJsonValue(value: unknown, seen = new Set<object>()): JsonValue
   }
 }
 
-/** 工具 details 只作展示：无法表示的值有损转换而不报错。 */
 export function sanitizeDetails(value: unknown, seen = new Set<object>()): JsonValue | undefined {
   if (value === null || typeof value === "string" || typeof value === "boolean") return value
 
@@ -166,7 +164,6 @@ export function toAssistantItem(message: AssistantMessage, id: string): Assistan
     case "aborted":
       return { ...common, status: "aborted", stopReason: "aborted", ...errorMessage }
     default:
-      // pending 与 deferred 都还没有最终结果，按流式中展示
       return { ...common, status: "streaming" }
   }
 }
@@ -198,7 +195,6 @@ export function toToolItem(
 
 const TASK_STATUSES = new Set(["queued", "running", "completed", "failed", "stopped"])
 
-/** 自定义消息的 details 是任务形状时转成任务通知条目；不认消息类型，只认形状。 */
 export function toTaskItem(
   details: unknown,
   id: string,

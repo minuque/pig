@@ -21,7 +21,7 @@ type PigWindow = {
   __pigArmSteps?: Record<string, Promise<number>>
 }
 
-/** 自包含注入，避开 tsx keepNames 序列化。 */
+// 外部：tsx keepNames 给函数包 __name，注入页面的代码必须自包含字符串
 const PAGE_WAIT_SOURCE = `(function () {
   function visible(el) {
     return !!el && el.getClientRects().length > 0;
@@ -176,7 +176,6 @@ export async function waitInPage(page: Page, spec: PageWaitSpec, timeout = DEFAU
   )
 }
 
-/** 点击瞬间起步，记录各 step 从点击到命中的页面毫秒。 */
 export async function armClickStamps(
   _page: Page,
   locator: Locator,
@@ -194,7 +193,6 @@ export async function armClickStamps(
   )
 }
 
-/** 立刻并行起步，记录命中时的页面时刻。 */
 export async function armStamps(
   page: Page,
   steps: Record<string, PageWaitSpec>,
@@ -242,7 +240,6 @@ const KEEP_ALIVE_KEY = "__pigKeepAlive"
 
 type KeepAlive = { running: boolean; frames: number }
 
-/** 起保活 rAF：每帧空动作，让浏览器持续出帧。 */
 export async function startKeepAlive(page: Page) {
   await page.evaluate((key) => {
     const previous = Reflect.get(window, key) as KeepAlive | undefined
@@ -261,7 +258,6 @@ export async function startKeepAlive(page: Page) {
   }, KEEP_ALIVE_KEY)
 }
 
-/** 停掉保活 rAF 并摘掉句柄，回调不再排队。 */
 export async function stopKeepAlive(page: Page) {
   await page.evaluate((key) => {
     const state = Reflect.get(window, key) as KeepAlive | undefined
@@ -272,7 +268,6 @@ export async function stopKeepAlive(page: Page) {
   }, KEEP_ALIVE_KEY)
 }
 
-/** 清掉页面内计时句柄，上一遍的等待不再悬着。 */
 export async function clearStamps(page: Page) {
   await page.evaluate(() => {
     Reflect.deleteProperty(window, "__pigArmSteps")

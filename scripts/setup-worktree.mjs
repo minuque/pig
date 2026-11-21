@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/** 新 worktree 初始化：装依赖 → 构建 gateway → 补齐 electron path.txt → 校验并提示下一步。 */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
 import { join, resolve } from "node:path"
 
@@ -35,7 +34,7 @@ function platformExecutable() {
   return "electron"
 }
 
-/** electron 的 path.txt 由 postinstall 生成，跳过构建脚本时缺失会让 require('electron') 现下载。 */
+// 外部：electron 的 path.txt 由 postinstall 生成，缺失会让 require('electron') 现下载
 function ensureElectron() {
   const dir = electronDir()
 

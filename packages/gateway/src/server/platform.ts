@@ -1,4 +1,3 @@
-/** 平台 HTTP：目录选择、会话卡片、上下文用量、历史、文件与附件；流式端点在 handler 里自己写 res。 */
 import type { IncomingMessage, ServerResponse } from "node:http"
 import { listEnvironments } from "@pig/environment"
 import { AttachmentError, type AttachmentErrorCode, sanitizeMimeType } from "../pi/attachments.js"
@@ -25,19 +24,16 @@ export type PlatformRequestDeps = HttpDeps & {
   environments: EnvironmentSources
 }
 
-/** 附件错误只区分体积过大，其余按请求问题处理。 */
 function attachmentStatus(code: AttachmentErrorCode): number {
   return code === "PAYLOAD_TOO_LARGE" ? 413 : 400
 }
 
 const platformRoutes = {
-  /** 选目录；给 environment（ssh://主机）时校验远端目录。 */
   "POST /api/v1/platform/select-directory": async (ctx) => {
     const { hostService, platformPort } = ctx.deps
-    // 客户端可能不带 body：按空对象继续，交互式平台会回要求手输
     const payload = await ctx.json().catch((): Record<string, unknown> => ({}))
 
-    // 远程目录没有系统对话框，总是手输；存在且是目录才授权
+    // 外部：远程目录没有系统对话框，总是手输；存在且是目录才授权
     if (typeof payload.environment === "string" && payload.environment !== "local") {
       const remote =
         typeof payload.path === "string"
@@ -48,7 +44,6 @@ const platformRoutes = {
       return { path: remote ?? null, requiresManualInput: true }
     }
 
-    // 只有需要手输路径的平台才接受客户端传的 path；桌面端必须走系统对话框
     const input =
       platformPort.requiresManualInput && typeof payload.path === "string"
         ? payload.path
@@ -60,12 +55,10 @@ const platformRoutes = {
       ? await platformPort.validateDirectory(input)
       : await platformPort.selectDirectory()
 
-    // 用户显式选定即授权：后续 /files、/skills、warm 都靠这份清单判定
     if (path) await hostService.authorizeWorkspace(path)
     return { path: path ?? null, requiresManualInput: false }
   },
 
-  /** 客户端告知马上要用的工作目录；只接受已知工作区，预热不授予权限。 */
   "POST /api/v1/platform/warm-workspace": async (ctx) => {
     const { hostService } = ctx.deps
     const payload = await ctx.json()
@@ -77,7 +70,6 @@ const platformRoutes = {
     return { ok: true }
   },
 
-  /** 可选的环境：本机、pig 保存的环境、~/.ssh/config 里的主机。 */
   "GET /api/v1/platform/environments": async ({ deps }) => ({
     environments: await listEnvironments(deps.environments),
   }),
@@ -143,7 +135,6 @@ const platformRoutes = {
     return { ok: true }
   },
 
-  /** @ 文件引用：cwd 必须是已知工作区（用户选过的目录，或已有会话 cwd），否则拒绝。 */
   "GET /api/v1/platform/files": async ({ req, url, deps }) => {
     const cwd = url.searchParams.get("cwd")?.trim() ?? ""
 
@@ -152,7 +143,6 @@ const platformRoutes = {
 
     const controller = new AbortController()
 
-    // 客户端断开/防抖取消时中断遍历，不叠加扫描
     req.once("close", () => controller.abort())
 
     const { env, root } = workspaceEnvironment(cwd)
@@ -162,7 +152,6 @@ const platformRoutes = {
     return { entries }
   },
 
-  /** / 技能与模板清单：cwd 同上白名单；目录无候选或 loader 未就绪返回空数组。 */
   "GET /api/v1/platform/skills": async ({ url, deps }) => {
     const cwd = url.searchParams.get("cwd")?.trim() ?? ""
 
@@ -171,7 +160,6 @@ const platformRoutes = {
     return deps.hostService.workspaceCommands(cwd)
   },
 
-  /** 附件字节走原始流直写暂存，绕开 JSON body 的 1MB 上限。 */
   "POST /api/v1/platform/attachments/stage": async (ctx) => {
     const { attachments } = ctx.deps.hostService
     const params = ctx.url.searchParams
@@ -180,7 +168,6 @@ const platformRoutes = {
       const { id } = await attachments.stage({
         batch: params.get("batch") ?? "",
         name: params.get("name") ?? "",
-        // mimeType 会拼进 prompt 文本行，入口就按 type/subtype 形状净化
         mimeType: sanitizeMimeType(params.get("mimeType") ?? ""),
         stream: ctx.req,
       })
@@ -192,7 +179,6 @@ const platformRoutes = {
     }
   },
 
-  /** 撤销一次暂存。前端补偿路径：batch 不存在也回 200，静默成功即可。 */
   "POST /api/v1/platform/attachments/discard": async (ctx) => {
     const payload = await ctx.json()
     const batch = typeof payload.batch === "string" ? payload.batch : ""
@@ -202,7 +188,6 @@ const platformRoutes = {
     return { ok: true }
   },
 } satisfies HttpRouteTable<PlatformRequestDeps>
-/** 会话写入的公共失败：找不到 404、忙 409、参数问题 400。 */
 const platformError: MapError = (error, route) => {
   if (error instanceof SessionNotFoundError) return new HttpError(404, "NOT_FOUND")
 
@@ -219,7 +204,6 @@ const platformRouter = new HttpRouter<PlatformRequestDeps>(
   platformError,
 )
 
-/** 平台 HTTP 分发；true=已处理（含 400/404/500）。 */
 export function handlePlatformRequest(
   req: IncomingMessage,
   res: ServerResponse,

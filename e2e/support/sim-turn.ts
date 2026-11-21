@@ -11,10 +11,6 @@ function decode<T>(data: string | Buffer): T {
   return JSON.parse(data) as T
 }
 
-/**
- * 拦截 prompt / abort，不转发到真实模型；其余消息仍走 Gateway。
- * holdPromptReply 模拟真实网关：prompt 的应答等这一轮结束（这里是 abort）才回。
- */
 export async function installTurnBridge(page: Page, options: { holdPromptReply?: boolean } = {}) {
   let socket: WebSocketRoute | undefined
   let upstream: WebSocketRoute | undefined
@@ -23,7 +19,6 @@ export async function installTurnBridge(page: Page, options: { holdPromptReply?:
   let resolvePrompt: ((id: string) => void) | undefined
   const snapshots = new Map<string, SessionSnapshot>()
   const prompted: string[] = []
-  /** 每条 prompt 带来的附件 batch；没带附件的是 undefined。 */
   const promptBatches: (string | undefined)[] = []
   const heldReplies = new Map<string, string>()
 
@@ -135,7 +130,6 @@ export async function installTurnBridge(page: Page, options: { holdPromptReply?:
   })
   return {
     snapshots,
-    /** 收到过 prompt 的会话 id，按到达顺序。 */
     prompted,
     promptBatches,
     connections: () => connections,

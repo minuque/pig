@@ -13,7 +13,6 @@ import {
   type SessionService,
 } from "../pi/runtime-types.js"
 
-/** 一条客户端连接；协议层负责收发，这里只记它挂了哪些会话。 */
 export interface ClientConnection {
   readonly sessionIds: Set<string>
   readonly closed: boolean
@@ -26,7 +25,6 @@ interface LiveSession {
   connections: Set<ClientConnection>
   unsubscribe: () => void
   operationCount: number
-  /** 运行时报过的终止错误；挂着的连接之后的命令都收到它。 */
   terminal: GatewayError | undefined
   disposing?: Promise<void>
 }
@@ -50,14 +48,9 @@ function toMetadata(snapshot: SessionSnapshot): SessionMetadata {
   }
 }
 
-/**
- * 已打开会话的登记表：多连接可挂同一会话，事件扇出给所有挂着的连接；
- * 没有连接、没有进行中的命令且空闲时释放运行时。
- */
 export class LiveSessions {
   private readonly live = new Map<string, LiveSession>()
   private readonly opening = new Map<string, Promise<LiveSession>>()
-  /** 会话文件监听：sessionId → 连接 → 该连接的退订函数。 */
   private readonly watched = new Map<string, Map<ClientConnection, () => void>>()
 
   constructor(private readonly options: LiveSessionOptions) {}
@@ -118,7 +111,6 @@ export class LiveSessions {
     }
   }
 
-  /** 连接断开：摘掉它的会话与文件监听，能释放的释放。 */
   async disconnect(connection: ClientConnection) {
     this.clearWatches(connection)
     const sessions = [...connection.sessionIds].flatMap((id) => this.live.get(id) ?? [])
@@ -131,7 +123,6 @@ export class LiveSessions {
       if (result.status === "rejected") this.options.reportError(result.reason)
   }
 
-  /** 磁盘会话列表叠上运行中会话的最新元数据。 */
   async listMetadata(): Promise<SessionMetadata[]> {
     const stored = await this.options.service.listSessions()
     const liveById = new Map<string, SessionSnapshot>()
@@ -166,7 +157,6 @@ export class LiveSessions {
     )
   }
 
-  /** 按需盯住会话文件：不要求挂着会话，多条连接看同一个会话时共用 Gateway 侧的一份监听。 */
   private watchFile(connection: ClientConnection, sessionId: string) {
     const watchers = this.watched.get(sessionId) ?? new Map<ClientConnection, () => void>()
 
@@ -219,7 +209,6 @@ export class LiveSessions {
     const snapshot = await this.broadcastSnapshot(live)
     this.options.broadcastServerSnapshot()
 
-    // 断线前没答完的扩展对话框：新挂上的连接补收
     for (const request of live.runtime.extensionDialogs())
       connection.send({
         type: "event",
@@ -243,7 +232,6 @@ export class LiveSessions {
     this.options.broadcastServerSnapshot()
   }
 
-  /** 连接必须先挂上会话，会话必须还活着。 */
   private attached(connection: ClientConnection, sessionId: string): LiveSession {
     if (!connection.sessionIds.has(sessionId))
       throw new GatewayError(
