@@ -1,35 +1,45 @@
 <template>
-  <div v-if="row.steps.length" class="tool-run">
-    <div class="tool-run-head">
-      <button
-        type="button"
-        class="tool-run-summary"
-        :aria-expanded="open"
-        @click="emit('toggleExpand', !open)"
-      >
-        <RollText :text="labelText" :live="labelLive" />
-        <span v-if="duration" class="tool-run-time">{{ duration }}</span>
+  <Collapsible
+    v-if="row.steps.length"
+    as-child
+    :open="open"
+    @update:open="emit('toggleExpand', $event)"
+  >
+    <div class="tool-run">
+      <div class="tool-run-head">
+        <CollapsibleTrigger as-child>
+          <button type="button" class="tool-run-summary">
+            <RollText :text="labelText" :live="labelLive" />
+            <span v-if="duration" class="tool-run-time">{{ duration }}</span>
 
-        <span v-if="summary.lineChange.added || summary.lineChange.removed" class="tool-run-counts">
-          <span v-if="summary.lineChange.added" class="added">+{{ summary.lineChange.added }}</span>
+            <span
+              v-if="summary.lineChange.added || summary.lineChange.removed"
+              class="tool-run-counts"
+            >
+              <span v-if="summary.lineChange.added" class="added">
+                +{{ summary.lineChange.added }}
+              </span>
 
-          <span v-if="summary.lineChange.removed" class="removed">
-            -{{ summary.lineChange.removed }}
-          </span>
-        </span>
-      </button>
+              <span v-if="summary.lineChange.removed" class="removed">
+                -{{ summary.lineChange.removed }}
+              </span>
+            </span>
+          </button>
+        </CollapsibleTrigger>
 
-      <ChevronRightIcon class="tool-run-caret" :class="{ 'is-open': open }" data-icon="inline" />
-      <ToolThumbs class="tool-run-thumbs" :images="images" />
+        <ChevronRightIcon class="tool-run-caret" :class="{ 'is-open': open }" data-icon="inline" />
+        <ToolThumbs class="tool-run-thumbs" :images="images" />
+      </div>
+
+      <CollapsibleContent class="tool-run-body">
+        <ToolRunCard
+          :row="row"
+          :expanded-tools="expandedTools"
+          @toggle-tool="(id, value) => emit('toggleTool', id, value)"
+        />
+      </CollapsibleContent>
     </div>
-
-    <ToolRunCard
-      v-if="open"
-      :row="row"
-      :expanded-tools="expandedTools"
-      @toggle-tool="(id, value) => emit('toggleTool', id, value)"
-    />
-  </div>
+  </Collapsible>
 </template>
 
 <script setup lang="ts">
@@ -37,6 +47,11 @@ import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue"
 import { useIntervalFn } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { ChevronRightIcon } from "@components/icons/index.js"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@components/ui/collapsible/index.js"
 import { RollText } from "@components/ui/roll-text/index.js"
 import ToolRunCard from "@features/transcript-view/components/tool/ToolRunCard.vue"
 import ToolThumbs from "@features/transcript-view/components/tool/ToolThumbs.vue"
@@ -141,6 +156,15 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
+
+.tool-run-body {
+  overflow: visible;
+  min-width: 0;
+}
+
+.tool-run-body[data-state] {
+  animation: none;
 }
 
 .tool-run-head {

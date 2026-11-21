@@ -1,31 +1,35 @@
 <template>
-  <div class="tool-row">
-    <button
-      type="button"
-      class="tool-row-trigger"
-      :aria-expanded="open"
-      @click="emit('toggle', !open)"
-    >
-      <span
-        class="thought-label"
-        :class="{ shimmer: step.streaming }"
-        :data-text="step.streaming ? label : undefined"
-      >
-        {{ label }}
-      </span>
+  <Collapsible as-child :open="open" @update:open="emit('toggle', $event)">
+    <div class="tool-row">
+      <CollapsibleTrigger as-child>
+        <button type="button" class="tool-row-trigger">
+          <span
+            class="thought-label"
+            :class="{ shimmer: step.streaming }"
+            :data-text="step.streaming ? label : undefined"
+          >
+            {{ label }}
+          </span>
 
-      <ChevronRightIcon class="thought-caret" :class="{ 'is-open': open }" data-icon="inline" />
-    </button>
+          <ChevronRightIcon class="thought-caret" :class="{ 'is-open': open }" data-icon="inline" />
+        </button>
+      </CollapsibleTrigger>
 
-    <div v-if="open" class="thought-body">
-      <ToolOutput :text="step.text" soft-wrap />
+      <CollapsibleContent class="thought-body">
+        <ToolOutput :text="step.text" soft-wrap />
+      </CollapsibleContent>
     </div>
-  </div>
+  </Collapsible>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue"
 import { ChevronRightIcon } from "@components/icons/index.js"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@components/ui/collapsible/index.js"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import { thoughtStepLabel } from "@features/transcript-view/lib/transcript-row-label.js"
 import type { ThoughtStep } from "@features/transcript-view/type.js"
@@ -80,10 +84,15 @@ const label = computed(() => thoughtStepLabel(props.step))
 }
 
 .thought-body {
+  overflow: visible;
   min-width: 0;
   padding-block-start: var(--space-xs);
   font-size: var(--text-meta);
   line-height: var(--text-code-line);
+}
+
+.thought-body[data-state] {
+  animation: none;
 }
 
 .thought-body :deep(.tool-output-card) {
