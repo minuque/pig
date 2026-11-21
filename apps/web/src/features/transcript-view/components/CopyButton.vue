@@ -5,7 +5,7 @@
         type="button"
         size="s"
         variant="ghost"
-        :color="status === 'error' ? 'danger' : 'neutral'"
+        :color="tone"
         class="copy-button"
         :aria-label="copyLabel"
         @click.stop="copy"
@@ -31,6 +31,9 @@ const props = defineProps<{ text: string; label?: string }>()
 const { t } = useI18n()
 const status = shallowRef<"idle" | "copied" | "error">("idle")
 const swapped = shallowRef(false)
+const tone = computed(() =>
+  status.value === "copied" ? "success" : status.value === "error" ? "danger" : "neutral",
+)
 const copyLabel = computed(() =>
   status.value === "copied"
     ? t("common.copied")
@@ -67,5 +70,9 @@ async function copy() {
 
 .copy-button:hover {
   color: var(--fg);
+}
+
+.copy-button:not([data-tone="neutral"]) svg {
+  color: var(--tone-text);
 }
 </style>
