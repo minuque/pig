@@ -23,7 +23,7 @@ export const THEME_PRESETS: readonly ThemePreset[] = [
   {
     id: "linear",
     light: { canvas: "#ffffff", accent: "#5e6ad2" },
-    dark: { canvas: "#101012", accent: "#6672dc" },
+    dark: { canvas: "#101012", accent: "#5e6ad2" },
   },
   {
     id: "paper",

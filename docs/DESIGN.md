@@ -3,9 +3,9 @@ name: pig 工作台
 description: 本机 Pi agent 的多会话并行工作台界面
 colors:
   primary: "#5E6AD2"
-  primary-dark: "#6672DC"
+  primary-dark: "#5E6AD2"
   primary-hover-light: "#4C56B8"
-  primary-hover-dark: "#747FE5"
+  primary-hover-dark: "#6B77DC"
   primary-on: "#FFFFFF"
   link-light: "#0B6F88"
   link-dark: "#4CCCE6"
@@ -96,16 +96,16 @@ spacing:
 
 ### 强调色
 
-默认强调色取 Linear 的靛（浅色 `#5E6AD2`、悬停 `#4C56B8`；深色提亮到 `#6672DC`、悬停 `#747FE5`，保证深底清晰度）。外观设置另提供 `paper` / `ocean` / `grove` / `iris` 四套精选预设，由 `utils/theme-palette.ts` 从 `canvas + accent` 双种子经 OKLCH 推导出表面阶梯、前景三级灰与强调色阶并兜底 WCAG 对比度。文档根默认取强调色调，`--tone-*` 直接读预设推导出的 `--accent-solid` / `--accent-text`，浅底与描边由它派生；子组件显式传入 `color` 时改读对应家族。
+默认强调色取 Linear 的靛（浅色 `#5E6AD2`、悬停 `#4C56B8`；深色同为 `#5E6AD2`、悬停提亮到 `#6B77DC`；深色默认预设的选中底 `--bg-selected` 取实色 `#1A2143`）。外观设置另提供 `paper` / `ocean` / `grove` / `iris` 四套精选预设，由 `utils/theme-palette.ts` 从 `canvas + accent` 双种子经 OKLCH 推导出表面阶梯、前景三级灰与强调色阶并兜底 WCAG 对比度。文档根默认取强调色调，`--tone-*` 直接读预设推导出的 `--accent-solid` / `--accent-text`，浅底与描边由它派生；子组件显式传入 `color` 时改读对应家族。
 
 强调色分两个角色，按用法取值，不混用：
 
-- `--accent-solid`：实心填充与描边（默认浅色 `#5E6AD2` / 深色 `#6672DC`），悬停用 `--accent-solid-hover`（浅色变深、深色提亮）。主按钮的底、发送键、指示器与选中描边用它，文字用 `--fg-on-accent`（白）。
+- `--accent-solid`：实心填充与描边（默认浅色与深色都是 `#5E6AD2`），悬停用 `--accent-solid-hover`（浅色变深、深色提亮）。主按钮的底、发送键、指示器与选中描边用它，文字用 `--fg-on-accent`（白）。
 - `--accent-text`：文字与图标前景（默认取 `indigo-11`）。焦点环、`.text-primary` 与强调色文字用它；淡底 `--accent-subtle` 与 `--bg-selected` 同一档位（浅色 `11%` / 深色 `16%`）。
 - 焦点环：`--focus-color` 取 `--accent-text`（indigo），全局 `:focus-visible` 与 `--focus-ring` 均由它派生。
 - 链接 `--link` 取 `--info-text`，与「进行中」同一种 cyan，不跟强调色走。
 - 「进行中」与强调色分开：运行状态、转圈、上下文进度条与用量环走 `--info-*`，文字取 `--info-text`（浅色 `#0B6F88`，深色 cyan-11），填充取 `--info-solid`（cyan-9），浅底取 cyan 第 3 级 alpha。
-- 悬停与选中分开：按钮、菜单项、侧栏行深浅均走半透明叠加，`--bg-hover` 走中性叠加（浅色 `fg 6%` / 深色 `white 6%`），`--bg-selected` 走淡强调色叠加（浅色 `accent-solid 11%` / 深色 `accent-solid 16%`），只铺极淡的一层，不铺成彩色块。
+- 悬停与选中分开：按钮、菜单项、侧栏行深浅均走半透明叠加，`--bg-hover` 走中性叠加（浅色 `fg 6%` / 深色 `white 6%`），`--bg-selected` 走淡强调色叠加（浅色 `accent-solid 11%` / 深色 `accent-solid 16%`；深色默认预设改用实色 `#1A2143`），只铺极淡的一层，不铺成彩色块。
 - 按钮变体四种：`solid`（主操作）、`secondary`（`--bg-muted` 底）、`outline`（透明底，只有一圈 `--control-border` 环，由 `--control-shadow` 绘出）、`ghost`（固定盒，悬停才铺 `--bg-hover`）。一页只出现一个 solid 主按钮，其余用 secondary、outline 或 ghost。
 - 输入卡的发送键用强调色实心（`--accent-solid` 配 `--fg-on-accent`），停止键用危险色实心（`--danger-solid` 配白）。「滚动到底部」仍用反色（`--bg-inverse` / `--fg-inverse`）：中灰（浅色 `#6B6B72` 配白字 5.3:1，深色 `#9DA4AE` 配深字 7.4:1），不用纯黑白。发送键不可用时换 `--bg-emphasis` 底配 `--fg-secondary` 图标，不靠降透明度。
 

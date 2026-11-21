@@ -329,8 +329,8 @@ html.dark {
   --overlay: rgba(0, 0, 0, 0.6);
 
   /* --- 交互 --- */
-  --accent-solid: #6672dc;
-  --accent-solid-hover: #747fe5;
+  --accent-solid: #5e6ad2;
+  --accent-solid-hover: #6b77dc;
   --accent-text: #9eb1ff;
   --accent-subtle: color-mix(in srgb, var(--accent-solid) 16%, transparent);
   --bg-hover: color-mix(in srgb, var(--white) 6%, transparent);
@@ -387,6 +387,10 @@ html.dark {
   --tone-subtle-mix: 16%;
   --tone-border-mix: 48%;
   --tone-text-lightness: 79%;
+}
+
+html.dark:is(:not([data-theme-preset]), [data-theme-preset="linear"]) {
+  --bg-selected: #1a2143;
 }
 
 html[data-ui-size="s"] {
