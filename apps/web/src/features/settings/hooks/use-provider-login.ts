@@ -37,7 +37,6 @@ export function useProviderLogin(providerId: () => string, onDone: () => void) {
           state.value = reduceLoginEvents(previous, event)
           const url = addedLoginUrl(previous, state.value)
 
-          // 外部：桌面壳会把 window.open 的地址转给默认浏览器
           if (url) window.open(url, "_blank", "noopener,noreferrer")
 
           if (event.type === "prompt" && apiKey !== undefined && !answered) {

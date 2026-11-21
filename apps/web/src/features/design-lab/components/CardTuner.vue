@@ -159,7 +159,6 @@ const value = reactive<Values>({ ...PRESETS[0]! })
 const { isDark } = useColorScheme()
 const steps = shallowRef<Record<string, string>>({})
 
-// 外部：明暗切换后 html 的 class 在 post 阶段才更新，读值要排在它之后
 watch(
   isDark,
   () => {

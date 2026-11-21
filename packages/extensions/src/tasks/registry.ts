@@ -55,7 +55,6 @@ export class TaskRegistry {
 
     if (!live(entry)) return
     Object.assign(entry.task, patch, { completedAt: Date.now() })
-    // 外部：宿主收到「没有在跑的任务」时会销毁会话，先叫醒再发布列表
     this.host?.notify(structuredClone(entry.task), wake)
     this.prune()
     this.publishNow()

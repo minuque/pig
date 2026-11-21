@@ -125,7 +125,6 @@ export type DirectoryExecFile = (
 ) => Promise<{ stdout: string }>
 
 export function canonicalizePath(path: string): string {
-  // 外部：远程 workspace 键不是本地路径，只去尾斜杠
   if (path.startsWith("ssh://")) {
     const key = path.replace(/\/+$/, "")
     return /^ssh:\/\/[^/]+$/.test(key) ? `${key}/` : key

@@ -10,7 +10,6 @@ export function gatewayOrigin(port: number): string {
   return `http://127.0.0.1:${port}`
 }
 
-// 外部：凭证只注入 Gateway 自己的回环端口，同机其它端口的服务收不到 Authorization
 export function gatewayTrustUrls(port: number): string[] {
   return ["http", "ws"].map((scheme) => `${scheme}://127.0.0.1:${port}/*`)
 }

@@ -5,7 +5,6 @@ import type { Task } from "@/types/common-type.js"
 const DISMISSED_KEY = "pig.rail.dismissedTasks"
 const MAX_IDS = 1000
 const MAX_SESSIONS = 100
-// 外部：终端输出带 ANSI 控制序列（颜色、光标移动）
 const ANSI = new RegExp(`${String.fromCharCode(27)}\\[[0-9;?]*[ -/]*[@-~]`, "g")
 
 export function mergeTasks(background: readonly Task[], foreground: readonly Task[]): Task[] {

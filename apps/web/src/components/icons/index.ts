@@ -1,4 +1,4 @@
-// 外部：图标集来自 Lucide（ISC 许可），星标实心态用同一图标填 currentColor
+// @license ISC — Lucide icons
 import { Star, type LucideProps } from "@lucide/vue"
 import { h, type FunctionalComponent } from "vue"
 

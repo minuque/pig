@@ -44,7 +44,6 @@ import {
 import FileNotice from "@features/file-pane/components/FileNotice.vue"
 import { useFilePane } from "@features/file-pane/index.js"
 
-// 外部：沙箱页面没有 cookie，地址带预览令牌，相对路径的资源也走同一前缀。
 const props = defineProps<{ path: string; revision: number }>()
 const { t } = useI18n()
 const pane = useFilePane()

@@ -33,7 +33,6 @@ const platformRoutes = {
     const { hostService, platformPort } = ctx.deps
     const payload = await ctx.json().catch((): Record<string, unknown> => ({}))
 
-    // 外部：远程目录没有系统对话框，总是手输；存在且是目录才授权
     if (typeof payload.environment === "string" && payload.environment !== "local") {
       const remote =
         typeof payload.path === "string"

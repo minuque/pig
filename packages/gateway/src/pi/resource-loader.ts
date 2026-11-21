@@ -55,7 +55,6 @@ function settingsWithoutPackages(cwd: string, agentDir: string): SettingsManager
   const settings = SettingsManager.create(cwd, agentDir)
   const global = settings.getGlobalSettings.bind(settings)
   const project = settings.getProjectSettings.bind(settings)
-  // 外部：这两份只有 pi 的包增删会拿去回写，pig 不调用它们
   settings.getGlobalSettings = () => ({ ...global(), packages: [] })
   settings.getProjectSettings = () => ({ ...project(), packages: [] })
   return settings

@@ -292,7 +292,6 @@ export class PiHostSession implements SessionRuntime {
   }
 
   private async exclusive<T>(operation: () => Promise<T>): Promise<T> {
-    // 外部：协议要求冲突操作 reject 而不是排队
     if (this.busy) throw new SessionBusyError("Session is busy")
 
     const run = operation()

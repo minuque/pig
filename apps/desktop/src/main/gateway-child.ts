@@ -42,7 +42,6 @@ async function loadGatewayModule(isPackaged: boolean): Promise<GatewayModule> {
     return (await import(spec)) as GatewayModule
   }
 
-  // 外部：@pig/gateway 的 exports 指向 dist，开发时没有构建产物
   const url = new URL("../../../../packages/gateway/src/index.js", import.meta.url).href
   return (await import(url)) as GatewayModule
 }

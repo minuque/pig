@@ -4,7 +4,6 @@ import { t } from "@i18n/index.js"
 import { useSessionBuckets } from "@features/composer/hooks/use-session-buckets.js"
 
 export const MAX_COMPOSER_ATTACHMENTS = 8
-// 外部：图片直接进 SDK images，上限比普通文件保守
 export const MAX_IMAGE_BYTES = 3 * 1024 * 1024
 export const MAX_FILE_BYTES = 25 * 1024 * 1024
 const MEGABYTE = 1024 * 1024

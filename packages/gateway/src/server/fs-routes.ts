@@ -216,10 +216,9 @@ export async function sendRaw(
     "Content-Type": type,
     "Accept-Ranges": "bytes",
     "Cache-Control": "no-cache",
-    // 外部：agent 写的文件不能以 pig 的源跑脚本；PDF 除外，Chromium 的查看器在 sandbox 里不工作
+    // 外部：Chromium 的 PDF 查看器在 sandbox 里不工作
     ...(type === "application/pdf" ? {} : { "Content-Security-Policy": "sandbox" }),
     "X-Content-Type-Options": "nosniff",
-    // 外部：预览地址里带令牌，不让浏览器经 Referer 把外链带出去
     "Referrer-Policy": "no-referrer",
   }
 

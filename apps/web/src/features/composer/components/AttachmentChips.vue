@@ -196,7 +196,6 @@ const rows = computed(() =>
   color: var(--fg-secondary);
 }
 
-/* 外部：Tailwind v4 的 ring 工具类会给 svg 加直角 box-shadow，类名不能用 ring */
 .upload-ring {
   position: absolute;
   inset: 0;

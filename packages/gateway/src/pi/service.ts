@@ -224,7 +224,6 @@ export class PiHostService implements SessionService {
     const cwd = await this.resources.localCwd(workspace)
     const manager = SessionManager.create(cwd, this.options.sessionDir, { id: options.id })
 
-    // 外部：remote-workspace 扩展启动时从会话条目读绑定，必须先写
     if (binding) manager.appendCustomEntry(BINDING_ENTRY, binding)
 
     if (options.name) manager.appendSessionInfo(options.name)

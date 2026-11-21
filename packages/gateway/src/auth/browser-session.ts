@@ -153,7 +153,6 @@ export class BrowserSession {
 
     if (!host || !loopbackHost(host)) return 403
 
-    // 外部：桌面壳的页面来源是 pig://app，凭证由壳按进程注入，带 Bearer 就不按来源拦
     if (this.bearerValid(headers)) return undefined
 
     if (header(headers, "sec-fetch-site") === "cross-site") return 403

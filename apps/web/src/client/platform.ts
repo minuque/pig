@@ -396,7 +396,6 @@ export function searchWorkspaceContents(
   })
 }
 
-// 外部：沙箱页面没有 cookie，凭预览令牌取工作区里的同目录资源。
 export async function filePreviewToken(cwd: string): Promise<string> {
   const { token } = await request("GET /api/v1/platform/fs/preview-token", { query: { cwd } })
   return token

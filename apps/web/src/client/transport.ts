@@ -18,7 +18,6 @@ function stampedGatewayOrigin(): string | undefined {
   }
 }
 
-// 外部：桌面壳页 origin 是 pig://app，必须用注入的 Gateway 地址。
 export function webSocketUrl(base?: string | URL): string {
   const resolved =
     base ?? import.meta.env.VITE_GATEWAY_TARGET ?? stampedGatewayOrigin() ?? window.location.href
