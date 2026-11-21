@@ -30,7 +30,7 @@ const props = withDefaults(
       size?: Size
       weight?: "regular" | "medium" | "bold"
       underline?: "auto" | "always" | "hover" | "none"
-      underlineStyle?: "solid" | "dashed"
+      underlineStyle?: "solid" | "dotted"
       color?: ToneColor
       truncate?: boolean
     }
@@ -95,10 +95,6 @@ const weightClass = computed(() => (props.weight ? WEIGHT_CLASS[props.weight] : 
   text-decoration-color: var(--tone-border);
 }
 
-:where([data-slot="link"][data-underline-style="dashed"]) {
-  text-decoration-style: dashed;
-}
-
 :where([data-slot="link"][data-underline="always"]) {
   text-decoration-line: underline;
 }
@@ -111,6 +107,14 @@ const weightClass = computed(() => (props.weight ? WEIGHT_CLASS[props.weight] : 
       ):hover
   ) {
     text-decoration-line: underline;
+  }
+
+  :where([data-slot="link"][data-underline-style="dotted"]:is(:any-link, button):hover) {
+    text-decoration-line: none;
+    background-image: radial-gradient(circle, currentColor 0.75px, transparent 1px);
+    background-position: left bottom;
+    background-repeat: repeat-x;
+    background-size: 4px 2px;
   }
 }
 

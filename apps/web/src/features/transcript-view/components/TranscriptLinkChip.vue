@@ -6,10 +6,9 @@
         :href="url"
         target="_blank"
         rel="noopener noreferrer"
-        color="accent"
         weight="medium"
         underline="hover"
-        underline-style="dashed"
+        underline-style="dotted"
       >
         <LinkIcon class="icon" />
         <span class="label">{{ text }}</span>
@@ -36,6 +35,7 @@ const text = computed(() => props.label ?? prettifyUrl(props.url))
 
 <style scoped>
 .link-chip {
+  color: var(--link-external);
   display: inline-flex;
   align-items: baseline;
   max-width: 100%;

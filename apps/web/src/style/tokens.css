@@ -65,6 +65,7 @@
   --bg-muted: color-mix(in srgb, var(--fg) 5%, transparent);
   --bg-emphasis: color-mix(in srgb, var(--fg) 12%, transparent);
   --link: var(--info-text);
+  --link-external: oklch(48.8% 0.243 264.376);
   --opacity-disabled: 0.55;
   --focus-color: var(--accent-text);
   --focus-ring: 0 0 0 2px var(--focus-color);
@@ -343,6 +344,7 @@ html.dark {
   /* --- 状态 --- */
   --info-text: #4ccce6;
   --info-solid: #00a2c7;
+  --link-external: oklch(70.7% 0.165 254.624);
   --warning-solid: #e8a33d;
   --warning-text: #e8a33d;
   --danger-text: #e05c59;
