@@ -10,7 +10,11 @@ describe("常用站点的链接显示成简短标签", () => {
     ["https://github.com/vuejs/core/commit/0123456789abcdef", "vuejs/core@0123456"],
     [
       "https://github.com/vuejs/core/blob/main/packages/vue/src/index.ts",
-      "vuejs/core · packages/vue/src/index.ts",
+      "vuejs/core · main/packages/vue/src/index.ts",
+    ],
+    [
+      "https://github.com/minuque/pig/tree/refactor/design-system-align",
+      "minuque/pig · refactor/design-system-align",
     ],
     ["https://github.com/vuejs/core/releases", "vuejs/core · releases"],
     ["https://github.com/vuejs", "github.com/vuejs"],

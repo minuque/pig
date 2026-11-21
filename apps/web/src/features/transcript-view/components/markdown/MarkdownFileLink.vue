@@ -1,22 +1,28 @@
 <template>
-  <Link
-    href="#"
-    class="file-link"
-    color="cyan"
-    weight="medium"
-    underline="hover"
-    :title="path"
-    @click.prevent="fileOpener?.open({ path })"
-  >
-    <LanguageIcon class="file-link-icon" :language="fileExtension(target)" aria-hidden="true" />
-    {{ fileLinkLabel(path) }}
-  </Link>
+  <Tooltip>
+    <TooltipTrigger as-child>
+      <Link
+        href="#"
+        class="file-link"
+        color="cyan"
+        weight="medium"
+        underline="hover"
+        @click.prevent="fileOpener?.open({ path })"
+      >
+        <LanguageIcon class="file-link-icon" :language="fileExtension(target)" aria-hidden="true" />
+        {{ fileLinkLabel(path) }}
+      </Link>
+    </TooltipTrigger>
+
+    <TooltipContent>{{ path }}</TooltipContent>
+  </Tooltip>
 </template>
 
 <script setup lang="ts">
 import { computed, inject } from "vue"
 import LanguageIcon from "@components/icons/LanguageIcon.vue"
 import { Link } from "@components/ui/link/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { openFileKey } from "@features/transcript-view/index.js"
 import {
   fileExtension,

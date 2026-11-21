@@ -48,7 +48,7 @@ function githubLabel(parts: string[]): string | undefined {
 
   if (kind === "commit" && id) return `${name}@${id.slice(0, 7)}`
 
-  if ((kind === "blob" || kind === "tree") && rest.length) return `${name} · ${rest.join("/")}`
+  if ((kind === "blob" || kind === "tree") && id) return `${name} · ${[id, ...rest].join("/")}`
   return `${name} · ${[kind, id, ...rest].filter(Boolean).join("/")}`
 }
 
