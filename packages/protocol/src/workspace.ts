@@ -71,3 +71,20 @@ export interface ContentSearchResponse {
   truncated: boolean
   truncationReasons: SearchTruncation[]
 }
+
+export const PREVIEW_LINK_MESSAGE_TYPE = "pig-preview-link"
+
+export interface PreviewLinkMessage {
+  type: typeof PREVIEW_LINK_MESSAGE_TYPE
+  href: string
+}
+
+export function isPreviewLinkMessage(value: unknown): value is PreviewLinkMessage {
+  if (typeof value !== "object" || value === null) return false
+  const candidate = value as { type?: unknown; href?: unknown }
+  return (
+    candidate.type === PREVIEW_LINK_MESSAGE_TYPE &&
+    typeof candidate.href === "string" &&
+    /^https?:\/\//i.test(candidate.href)
+  )
+}

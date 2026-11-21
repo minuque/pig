@@ -1,6 +1,7 @@
+import { WEBSOCKET_PATH } from "@pig/protocol"
 import { t } from "@i18n/index.js"
 
-export const WEBSOCKET_PATH = "/api/v1/pi"
+export { WEBSOCKET_PATH }
 
 function stampedGatewayOrigin(): string | undefined {
   if (typeof document === "undefined") return undefined

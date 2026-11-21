@@ -30,6 +30,7 @@ describe("scanApi", () => {
   })
 
   it("WS 命令与事件来自协议联合类型", () => {
+    assert.equal(api.ws.path, "/api/v1/pi")
     assert.ok(api.ws.commands.includes("prompt"))
     assert.ok(api.ws.events.includes("session_progress"))
   })

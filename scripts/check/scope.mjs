@@ -1,9 +1,13 @@
 export const PACKAGES = [
+  { id: "@pig/protocol", prefix: "packages/protocol/" },
   { id: "@pig/web", prefix: "apps/web/" },
   { id: "@pig/desktop", prefix: "apps/desktop/" },
   { id: "@pig/gateway", prefix: "packages/gateway/" },
 ]
-const PACKAGE_DEPENDENTS = { "@pig/gateway": ["@pig/desktop"] }
+const PACKAGE_DEPENDENTS = {
+  "@pig/gateway": ["@pig/desktop"],
+  "@pig/protocol": ["@pig/web", "@pig/gateway", "@pig/desktop"],
+}
 const NEW_SESSION = "e2e/conversation/new-session.spec.ts"
 const SPLIT_VIEW = "e2e/workbench/split-view.spec.ts"
 const E2E_BY_AREA = [

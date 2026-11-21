@@ -1,14 +1,18 @@
 import { computed, getCurrentInstance, onUnmounted, ref, shallowRef, type Ref } from "vue"
+import {
+  INLINE_IMAGE_MIME_PATTERN,
+  MAX_BATCH_ITEMS,
+  MAX_FILE_BYTES,
+  MAX_IMAGE_BYTES,
+} from "@pig/protocol"
 import type { ComposerAttachment, ComposerAttachmentBatch } from "@/types/attachment-type.js"
 import { t } from "@i18n/index.js"
 import { useSessionBuckets } from "@features/composer/hooks/use-session-buckets.js"
 
-export const MAX_COMPOSER_ATTACHMENTS = 8
-export const MAX_IMAGE_BYTES = 3 * 1024 * 1024
-export const MAX_FILE_BYTES = 25 * 1024 * 1024
+export { MAX_FILE_BYTES, MAX_IMAGE_BYTES }
+
+export const MAX_COMPOSER_ATTACHMENTS = MAX_BATCH_ITEMS
 const MEGABYTE = 1024 * 1024
-// 外部：provider 只稳吃这几种位图，其余（svg / bmp / heic）当普通文件，否则整轮 prompt 失败
-const IMAGE_MIME_PATTERN = /^image\/(png|jpeg|gif|webp)$/i
 
 export interface ComposerAttachmentsApi {
   files: Ref<ComposerAttachment[]>
@@ -108,7 +112,7 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
       }
 
       const mimeType = file.type || "application/octet-stream"
-      const image = IMAGE_MIME_PATTERN.test(mimeType)
+      const image = INLINE_IMAGE_MIME_PATTERN.test(mimeType)
       const limit = image ? MAX_IMAGE_BYTES : MAX_FILE_BYTES
 
       if (file.size > limit) {

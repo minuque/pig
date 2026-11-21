@@ -2,6 +2,7 @@ import { execFile } from "node:child_process"
 import { realpath } from "node:fs/promises"
 import { resolve } from "node:path"
 import { promisify } from "node:util"
+import { canonicalizeWorkspacePath } from "@pig/protocol"
 
 const execFileAsync = promisify(execFile)
 const PICKER_TIMEOUT_MS = 60_000
@@ -125,17 +126,10 @@ export type DirectoryExecFile = (
 ) => Promise<{ stdout: string }>
 
 export function canonicalizePath(path: string): string {
-  if (path.startsWith("ssh://")) {
-    const key = path.replace(/\/+$/, "")
-    return /^ssh:\/\/[^/]+$/.test(key) ? `${key}/` : key
-  }
-
-  const trimmed = resolve(path).replaceAll("\\", "/").replace(/\/+$/, "")
-  // 外部：`c:` 是该盘当前目录，不是盘符根，根路径要保留尾斜杠
-  const normalized = trimmed === "" || /^[a-zA-Z]:$/.test(trimmed) ? `${trimmed}/` : trimmed
-
-  if (process.platform === "win32") return normalized.toLowerCase()
-  return /^[a-zA-Z]:/.test(normalized) ? normalized.toLowerCase() : normalized
+  if (path.startsWith("ssh://")) return canonicalizeWorkspacePath(path)
+  return canonicalizeWorkspacePath(resolve(path), {
+    caseInsensitive: process.platform === "win32",
+  })
 }
 
 async function validateDirectory(path: string): Promise<string> {

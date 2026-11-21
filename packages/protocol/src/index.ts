@@ -1,4 +1,11 @@
-/** web 与 gateway 之间的 WebSocket 消息与 HTTP 数据形状；只有类型，没有运行时代码。 */
+/** web 与 gateway 之间的共享协议契约、常量与纯函数。 */
+export {
+  INLINE_IMAGE_MIME_PATTERN,
+  MAX_BATCH_ITEMS,
+  MAX_FILE_BYTES,
+  MAX_IMAGE_BYTES,
+} from "./attachments.js"
+
 export type { ExtensionUiDialog, ExtensionUiRequest, ExtensionUiResponse } from "./extension-ui.js"
 
 export type {
@@ -47,6 +54,8 @@ export type {
   UserTranscriptItem,
 } from "./transcript.js"
 
+export { WEBSOCKET_PATH } from "./wire.js"
+
 export type {
   ClientMessage,
   Command,
@@ -61,6 +70,14 @@ export type {
   SessionPhase,
   SessionSnapshot,
 } from "./wire.js"
+
+export {
+  isPreviewLinkMessage,
+  PREVIEW_LINK_MESSAGE_TYPE,
+  type PreviewLinkMessage,
+} from "./workspace.js"
+
+export { canonicalizeWorkspacePath } from "./workspace-path.js"
 
 export type {
   ComposerCommand,

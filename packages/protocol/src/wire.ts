@@ -7,6 +7,8 @@ import type { TranscriptItem, TranscriptProgress, UserTranscriptItem } from "./t
 /** 协议版本；两端写字面量 1，类型保证一致。 */
 export type ProtocolVersion = 1
 
+export const WEBSOCKET_PATH = "/api/v1/pi"
+
 export type SessionPhase = "idle" | "turn" | "compaction" | "branch_summary" | "retry"
 
 export interface SessionMetadata {

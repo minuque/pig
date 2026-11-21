@@ -215,9 +215,7 @@ export function scanApi(root) {
   return {
     http,
     ws: {
-      path: /WEBSOCKET_PATH = "([^"]+)"/.exec(
-        readFileSync(join(root, SERVER_DIR, "websocket.ts"), "utf8"),
-      )?.[1],
+      path: /WEBSOCKET_PATH = "([^"]+)"/.exec(readFileSync(join(root, WIRE), "utf8"))?.[1],
       commands: unionLiterals(wire, "Command", "command"),
       events: unionLiterals(wire, "ServerEvent", "type"),
     },

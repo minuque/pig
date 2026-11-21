@@ -1,12 +1,13 @@
 import { randomBytes } from "node:crypto"
 import type { IncomingMessage, ServerResponse } from "node:http"
+import { PREVIEW_LINK_MESSAGE_TYPE } from "@pig/protocol"
 
 import { MIME, resolveFile, sendRaw, type Target } from "./fs-routes.js"
 import type { PlatformRequestDeps } from "./platform.js"
 
 const TOKEN_TTL_MS = 60 * 60 * 1000
 const PREFIX = "/api/v1/preview/"
-const LINK_SCRIPT = `<script>document.addEventListener("click",function(e){var a=e.target&&e.target.closest&&e.target.closest("a[href]");if(!a)return;var u=new URL(a.href,location.href);if(u.protocol!=="http:"&&u.protocol!=="https:")return;if(u.host===location.host&&u.pathname.indexOf(${JSON.stringify(PREFIX)})===0)return;e.preventDefault();parent.postMessage({type:"pig-preview-link",href:u.href},"*")},true)</script>`
+const LINK_SCRIPT = `<script>document.addEventListener("click",function(e){var a=e.target&&e.target.closest&&e.target.closest("a[href]");if(!a)return;var u=new URL(a.href,location.href);if(u.protocol!=="http:"&&u.protocol!=="https:")return;if(u.host===location.host&&u.pathname.indexOf(${JSON.stringify(PREFIX)})===0)return;e.preventDefault();parent.postMessage({type:${JSON.stringify(PREVIEW_LINK_MESSAGE_TYPE)},href:u.href},"*")},true)</script>`
 const tokens = new Map<string, { cwd: string; expires: number }>()
 
 export function issuePreviewToken(cwd: string): string {
