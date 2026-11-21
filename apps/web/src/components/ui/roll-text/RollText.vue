@@ -27,10 +27,8 @@ import { nextTick, onBeforeUnmount, ref, shallowRef, useSlots, useTemplateRef, w
 const ROLL_MS = 180
 const props = defineProps<{
   text: string
-  /** 纯文字时运行中显示 shimmer；富文本内容由调用方自己控制闪烁 */
   live?: boolean
 }>()
-/** 没给默认插槽就是纯文字模式；给了就渲染富文本，过渡帧沿用上一帧的 DOM。 */
 const plain = !useSlots().default
 
 type Slot = { id: number; text: string; live: boolean }
@@ -42,11 +40,9 @@ const gliding = ref(false)
 let glide: Animation | null = null
 let settleTimer: ReturnType<typeof setTimeout> | undefined
 
-/** 换字时宽度从旧值滑到新值，避免尾部元素跟着瞬间跳位。 */
 watch([() => props.text, () => Boolean(props.live)], async ([text, live]) => {
   const prev = slots.value.at(-1)
 
-  // 流式参数只往后长：同一段文字原地更新，不滚动也不锁宽，否则每个增量都闪一次
   if (prev && prev.live === live && text.startsWith(prev.text)) {
     slots.value = [{ ...prev, text }]
     return
@@ -60,10 +56,8 @@ watch([() => props.text, () => Boolean(props.live)], async ([text, live]) => {
   glide = null
 
   if (!node || from === 0) return
-  // 旧字退场期间锁住当前宽度，否则卡片会在退场帧弹回旧字的自然宽度。
   node.style.width = `${from}px`
   gliding.value = true
-  // 退场事件偶发缺失时的兜底，别让锁定宽度留到下一次换字。
   clearTimeout(settleTimer)
   settleTimer = setTimeout(() => {
     settleTimer = undefined
@@ -97,7 +91,6 @@ watch([() => props.text, () => Boolean(props.live)], async ([text, live]) => {
   }
 })
 
-/** 退场元素还在时保持锁定宽度，等最后一个离场后再放回自然宽度。 */
 function release(node: HTMLElement) {
   if (node.querySelector(".label-roll-leave-active")) return
   clearTimeout(settleTimer)

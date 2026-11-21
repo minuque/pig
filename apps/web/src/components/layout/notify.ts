@@ -8,7 +8,6 @@ export interface Notice {
   level: NoticeLevel
 }
 
-/** 非错误的提示停留这么久后自动收起；错误驻留到手动关闭。 */
 const PASSING_MS = 5_000
 const notices = shallowRef<Notice[]>([])
 let nextId = 1
@@ -18,7 +17,6 @@ export function dismissNotice(id: number): void {
   notices.value = notices.value.filter((item) => item.id !== id)
 }
 
-/** 顶部 banner 提示；扩展的 ctx.ui.notify 也走这里。 */
 export function notify(message: string, level: NoticeLevel = "error"): void {
   const text = message.trim()
 
@@ -30,7 +28,6 @@ export function notify(message: string, level: NoticeLevel = "error"): void {
   if (level !== "error") setTimeout(() => dismissNotice(id), PASSING_MS)
 }
 
-/** 需要用户知悉/确认的错误：驻留顶部 banner，直到手动关闭。 */
 export function notifyAction(message: string): void {
   notify(message, "error")
 }

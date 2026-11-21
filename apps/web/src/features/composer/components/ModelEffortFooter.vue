@@ -98,7 +98,6 @@ const labelRef = useTemplateRef("labelRef")
 const current = computed(() => displayThinkingLevel(props.level, props.levels))
 const index = computed(() => Math.max(0, props.levels.indexOf(current.value)))
 const steps = computed(() => Math.max(props.levels.length - 1, 0))
-// 轨道宽度跟随面板，几何全部按实测宽度算
 const track = ref(224)
 const display = ref(index.value)
 const open = ref(0)
@@ -106,7 +105,6 @@ const dragging = ref(false)
 const textW = ref(64)
 const plateauW = ref(plateauFor(64))
 const reveal = ref(0)
-// 尺寸全部出自几何常量，样式里只读这几个变量
 const geometry = {
   "--effort-h": `${HEIGHT}px`,
   "--effort-root-h": `${BUMP_H + HEIGHT}px`,
@@ -119,7 +117,6 @@ useResizeObserver(rootRef, (entries) => {
   if (width > 0) track.value = width
 })
 
-// 外部改档（重置、换模型）时跟上；拖动中以指针为准
 watch(index, (next) => {
   if (!dragging.value) display.value = next
 })
@@ -172,7 +169,6 @@ function onThumb(i: number) {
   return x >= view.value.thumbLeft + 0.5 && x <= view.value.thumbRight - 0.5
 }
 
-// 拖动开合：滑块变宽、凸台长出；松手时吸附到最近一档
 watch(dragging, (isDragging, _, onCleanup) => {
   const fromOpen = open.value
   const fromValue = display.value
@@ -187,7 +183,6 @@ watch(dragging, (isDragging, _, onCleanup) => {
   )
 })
 
-// 标签出现：拖动时延后 85ms 淡入 132ms，松手 90ms 淡出
 watch(dragging, (isDragging, _, onCleanup) => {
   onCleanup(
     tween(
@@ -200,7 +195,6 @@ watch(dragging, (isDragging, _, onCleanup) => {
   )
 })
 
-// 凸台宽度跟着标签文字宽度走
 watch(
   () => plateauFor(textW.value),
   (to, _, onCleanup) => {
@@ -286,7 +280,6 @@ function onKeyDown(event: KeyboardEvent) {
   padding: var(--space-xs);
 }
 
-/* 以下整体缩到 2/3：下方轨道，上方留给拖动时长出的标签凸台 */
 .root {
   position: relative;
   width: 100%;

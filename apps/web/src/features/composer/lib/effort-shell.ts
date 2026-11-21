@@ -1,5 +1,3 @@
-/** 强度滑条外壳的几何：整体缩到 2/3，轨道约 21px 胶囊，拖动时顶部长出凸台。轨道宽度由调用方实测传入。 */
-
 const SCALE = 2 / 3
 export const HEIGHT = 32 * SCALE
 export const RADIUS = HEIGHT / 2
@@ -8,7 +6,6 @@ export const REST_W = 27.2 * SCALE
 export const DRAG_W = 33.6 * SCALE
 export const REST_H = 27.2 * SCALE
 export const EDGE_PAD = (HEIGHT - REST_H) / 2
-/** 肩部曲线的设计稿宽度：控制点按它归一化，实际宽度再按比例放回。 */
 const SHOULDER_DESIGN = 23.572
 const LEFT_SHOULDER = SHOULDER_DESIGN * SCALE
 const TEXT_SIDE = 32 * SCALE
@@ -37,12 +34,10 @@ export function easeOut(t: number): number {
   return 1 - (1 - t) ** 3
 }
 
-/** 第 value 档滑块中心的横坐标；steps 是档位数减一。 */
 export function centerFor(value: number, steps: number, track: number): number {
   return RADIUS + (steps === 0 ? 0 : value / steps) * (track - RADIUS * 2)
 }
 
-/** 刻度由低到高逐级加高：4 档时是设计稿 4.8 / 6.4 / 8 / 9.6 的 2/3。 */
 export function tickHeight(index: number, steps: number): number {
   return (4.8 + (steps === 0 ? 0 : index / steps) * 4.8) * SCALE
 }
@@ -64,7 +59,6 @@ function capFoot(side: -1 | 1, phi: number, track: number): Point {
   }
 }
 
-/** 凸台平顶的左右端：贴近两端时顺着圆角下滑，平顶整体被推回轨道内。 */
 export function shellGeom(cx: number, plateau: number, track: number): ShellGeom {
   const crownL = RADIUS
   const crownR = track - RADIUS
@@ -134,7 +128,6 @@ function shoulderCmds(
   return `C${fmt(c4)} ${fmt(c3)} ${fmt(p1)}C${fmt(c2)} ${fmt(c1)} ${fmt(p0)}`
 }
 
-/** 外壳 SVG 路径：openAmount 为 0 时是纯胶囊，为 1 时凸台完全长出。 */
 export function shellPath(cx: number, openAmount: number, plateau: number, track: number): string {
   const trackTop = BUMP_H
   const trackBot = BUMP_H + HEIGHT
@@ -179,7 +172,6 @@ export function shellPath(cx: number, openAmount: number, plateau: number, track
   return cmds.join("")
 }
 
-/** 从起点到终点按 ease-out 补间，每帧回调；返回取消函数。reduce 时直接落到终点。 */
 export function tween(
   from: number,
   to: number,

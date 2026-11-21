@@ -54,14 +54,10 @@ export type CommandMenuRowKind = "skill" | "template" | "builtin" | "file" | "di
 export interface CommandMenuRow {
   id: string
   title: string
-  /** 标题右侧弱化说明（描述或参数提示）。 */
   secondary?: string | undefined
-  /** 行尾元信息（路径、来源）。 */
   trailing?: string | undefined
   icon?: Component
-  /** 行类别：决定占位图标，技能/模板/内置与 Codex 命令弹层对齐；目录由 icon 决定。 */
   kind?: CommandMenuRowKind
-  /** 无图标时用目录占位符。 */
   directory?: boolean
 }
 
@@ -75,7 +71,6 @@ const props = withDefaults(
   defineProps<{
     groups: CommandMenuGroup[]
     activeId: string | null
-    /** listbox 的 id，textarea 用它挂 aria-controls / activedescendant。 */
     menuId?: string
     loading?: boolean
     emptyText?: string
@@ -102,7 +97,6 @@ function setRowRef(id: string, el: Element | Component | null) {
   else rowRefs.delete(id)
 }
 
-/** id 里可能有空白/斜杠（文件路径），编码成合法 HTML id。 */
 function encodeRowId(id: string): string {
   return encodeURIComponent(id)
 }

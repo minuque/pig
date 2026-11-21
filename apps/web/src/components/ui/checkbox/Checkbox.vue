@@ -27,7 +27,6 @@ const props = withDefaults(
   defineProps<
     CheckboxRootProps<boolean> & {
       class?: HTMLAttributes["class"] | undefined
-      /** 尺寸档：s、m、l */
       size?: Size | undefined
       variant?: "surface" | "soft" | undefined
       color?: ToneColor | undefined
@@ -43,7 +42,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
 </script>
 
 <style>
-/* 勾选框：根容器只撑到行高，方框画在 ::before 上，勾在居中的指示层里 */
 :where([data-slot="checkbox"]) {
   position: relative;
   display: inline-flex;
@@ -125,7 +123,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
   stroke-width: 2.5px;
 }
 
-/* --- surface --- */
 :where([data-slot="checkbox"][data-variant="surface"][data-state="unchecked"])::before {
   background-color: var(--bg-raised);
   box-shadow: inset 0 0 0 var(--border-width) var(--border-input);
@@ -160,7 +157,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
   color: var(--fg-disabled);
 }
 
-/* --- soft --- */
 :where([data-slot="checkbox"][data-variant="soft"])::before {
   background-color: var(--tone-subtle);
 }

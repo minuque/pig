@@ -31,7 +31,6 @@ const text = computed(() => props.label ?? prettifyUrl(props.url))
 </script>
 
 <style scoped>
-/* 外链不带图标，悬停出下划线；inline-flex 让长地址能截断又不改行高 */
 .link-chip {
   display: inline-flex;
   align-items: baseline;

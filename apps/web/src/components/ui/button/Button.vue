@@ -51,7 +51,6 @@ const props = withDefaults(defineProps<Props>(), {
 </script>
 
 <style>
-/* 按钮：s/m/l 对应 28/32/36 的控件高，外观全在 data 属性上；底色与文字色读 `--tone-*` 槽位 */
 :where([data-button]) {
   box-sizing: border-box;
   position: relative;
@@ -82,7 +81,6 @@ const props = withDefaults(defineProps<Props>(), {
     transform var(--duration-fast) var(--ease-out);
 }
 
-/* 按下微缩；会弹出菜单的按钮不缩，避免与浮层出现动画叠加 */
 :where([data-button]:active:not([aria-haspopup], [data-disabled])) {
   transform: scale(0.97);
 }
@@ -101,7 +99,6 @@ const props = withDefaults(defineProps<Props>(), {
   pointer-events: none;
 }
 
-/* --- 尺寸：内边距扣掉 1px 边框，与描边按钮的视觉宽度一致 --- */
 :where([data-button]:not([data-slot="icon-button"])[data-size="s"]) {
   height: var(--control-sm);
   gap: calc(var(--spacing) * 1.5);
@@ -120,7 +117,6 @@ const props = withDefaults(defineProps<Props>(), {
   padding-inline: calc(var(--spacing) * 3.5 - var(--border-width));
 }
 
-/* --- 圆角档 --- */
 :where([data-button][data-radius="none"]) {
   border-radius: 0;
 }
@@ -141,7 +137,6 @@ const props = withDefaults(defineProps<Props>(), {
   border-radius: var(--radius-pill);
 }
 
-/* --- solid：实色底 + 顶部高光 + 同色淡投影，悬停降到 90% --- */
 :where([data-button][data-variant="solid"]) {
   border-color: var(--tone);
   background-color: var(--tone);
@@ -165,12 +160,10 @@ const props = withDefaults(defineProps<Props>(), {
   box-shadow: var(--button-pressed);
 }
 
-/* --- secondary：中性浅底 --- */
 :where([data-button][data-variant="secondary"]) {
   background-color: var(--bg-muted);
 }
 
-/* --- outline：输入框同款外框、浮层底与淡投影 --- */
 :where([data-button][data-variant="outline"]) {
   border-color: var(--control-border);
   background-color: var(--control-bg);
@@ -181,7 +174,6 @@ const props = withDefaults(defineProps<Props>(), {
   box-shadow: none;
 }
 
-/* secondary、outline 悬停在原底色上叠一层中性 */
 @media (hover: hover) {
   :where([data-button]:is([data-variant="secondary"], [data-variant="outline"]):hover) {
     background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
@@ -192,7 +184,6 @@ const props = withDefaults(defineProps<Props>(), {
   background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
 }
 
-/* --- ghost：固定盒，悬停铺中性底 --- */
 @media (hover: hover) {
   :where([data-button][data-variant="ghost"]:hover) {
     background-color: var(--bg-hover);
@@ -203,12 +194,10 @@ const props = withDefaults(defineProps<Props>(), {
   background-color: var(--bg-hover);
 }
 
-/* 描边与幽灵按钮的图标压到弱色 */
 :where([data-button]:is([data-variant="outline"], [data-variant="ghost"])) :where(svg) {
   color: var(--fg-muted);
 }
 
-/* 非实心按钮显式给了色调（如 danger）时，文字取该色调 */
 :where([data-button][data-tone]:not([data-tone="neutral"], [data-variant="solid"])) {
   color: var(--tone-text);
 }

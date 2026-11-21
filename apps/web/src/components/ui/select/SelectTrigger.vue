@@ -37,7 +37,6 @@ const props = withDefaults(
       variant?: "surface" | "ghost"
       color?: ToneColor
       radius?: Radius
-      /** 未选中时显示的文案 */
       placeholder?: string
     }
   >(),
@@ -49,7 +48,6 @@ const size = useSelectSize()
 </script>
 
 <style>
-/* 选择框触发器：输入框同款外框、浮层底与淡投影；s/m/l 对应 28/32/36，内边距扣掉 1px 边框 */
 :where([data-slot="select-trigger"]) {
   box-sizing: border-box;
   position: relative;
@@ -88,7 +86,6 @@ const size = useSelectSize()
   height: var(--control-lg);
 }
 
-/* --- 圆角档 --- */
 :where([data-slot="select-trigger"][data-radius="none"]) {
   border-radius: 0;
 }
@@ -125,7 +122,6 @@ const size = useSelectSize()
   white-space: nowrap;
 }
 
-/* 下拉箭头压小一档、弱一档，贴近右侧内边距 */
 :where([data-slot="select-icon"]) {
   display: inline-flex;
   flex-shrink: 0;
@@ -142,14 +138,12 @@ const size = useSelectSize()
   color: var(--fg-muted);
 }
 
-/* --- surface --- */
 :where([data-slot="select-trigger"][data-variant="surface"]) {
   border-color: var(--control-border);
   background-color: var(--control-bg);
   box-shadow: var(--control-shadow);
 }
 
-/* --- ghost：固定盒，次级文字，悬停铺中性底并回到正文色 --- */
 :where([data-slot="select-trigger"][data-variant="ghost"]) {
   color: var(--fg-secondary);
 }

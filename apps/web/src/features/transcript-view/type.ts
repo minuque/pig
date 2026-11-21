@@ -31,16 +31,12 @@ export type ToolCallView = {
   input: unknown
   outputText: string
   outputImages: TranscriptImage[]
-  /** 工具结果的结构化数据（如任务进展）。 */
   details?: unknown
-  /** 历史只带了输出开头；展开时取完整条目。 */
   truncated?: boolean
-  /** 单次工具调用的起止时间；没有对应结果时缺省 */
   startedAt?: number
   endedAt?: number
 }
 
-/** Pi 内置：read / write / edit / bash|powershell / grep|find|ls，其余为 tool。 */
 export type ToolGroupKey = "read" | "write" | "edit" | "command" | "search" | "tool"
 
 export type ToolGroup = { type: "tools"; id: string; key: ToolGroupKey; items: ToolCallView[] }
@@ -69,7 +65,6 @@ export type ToolRow = {
   timing?: TurnTiming
 }
 
-/** 后台任务结束的一行通知。 */
 export type TaskNoticeRow = {
   id: string
   role: "task"
@@ -79,7 +74,6 @@ export type TaskNoticeRow = {
 
 export type TimelineRow = UserRow | AssistantRow | ToolRow | TaskNoticeRow
 
-/** 窗口项：一轮（user 条目 id，无 user 时用 orphan 锚点）。 */
 export type TimelineTurn = {
   id: string
   rows: TimelineRow[]

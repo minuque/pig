@@ -18,7 +18,6 @@
               {{ shownVerb }}
             </span>
 
-            <!-- 文件名点开 Files 面板，不展开行 -->
             <span
               v-if="target.text"
               class="tool-row-target"
@@ -113,7 +112,6 @@ const duration = computed(() => {
   return formatElapsed(endedAt - startedAt)
 })
 const readLines = computed(() => {
-  // 读图片时输出只有一行占位说明，不是文件行
   if (variant.value !== "read" || props.call.running || props.call.isError) return undefined
 
   if (props.call.outputImages.length) return undefined
@@ -151,7 +149,6 @@ const images = computed(() => toolCallImages(props.call))
   min-width: 0;
 }
 
-/* 触发器用伪元素铺满整行，缩略图浮在上面单独可点；箭头固定在最右 */
 .tool-row-head {
   position: relative;
   display: flex;
@@ -216,7 +213,6 @@ const images = computed(() => toolCallImages(props.call))
   font-weight: var(--font-weight-medium);
 }
 
-/* 与缩略图一样浮在整行伪元素之上，才点得到 */
 .tool-row-target.is-openable {
   position: relative;
   z-index: var(--z-raise);
@@ -237,7 +233,6 @@ const images = computed(() => toolCallImages(props.call))
   transition: transform var(--duration-fast) var(--ease-out);
 }
 
-/* 缩略图在左、计时在右，紧挨箭头；只有缩略图接收点击 */
 .tool-row-meta {
   position: relative;
   z-index: var(--z-raise);

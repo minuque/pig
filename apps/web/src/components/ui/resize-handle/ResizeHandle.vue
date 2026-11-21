@@ -3,8 +3,6 @@
 </template>
 
 <style scoped>
-/* 分栏拖拽把手：外观只有一根胶囊，悬停或键盘聚焦时露形，拖动时换成强调色。
-   方向与拖动态照 reka SplitterResizeHandle 的 data-orientation / data-state；占位尺寸由调用方定 */
 .resize-handle {
   position: relative;
   flex: none;
@@ -16,7 +14,6 @@
   cursor: ns-resize;
 }
 
-/* 命中区比视觉边界宽一档，落在两侧内容上 */
 .resize-handle::before {
   content: "";
   position: absolute;

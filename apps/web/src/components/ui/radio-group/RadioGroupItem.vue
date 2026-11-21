@@ -1,5 +1,4 @@
 <template>
-  <!-- 有内容时按 rt 的结构渲染成 label：按钮空着，文字进内层 span -->
   <label
     v-if="$slots.default"
     data-slot="radio-group-item-label"
@@ -56,7 +55,6 @@ const group = inject(
 </script>
 
 <style>
-/* 带文字的单选项：label 撑行高，圆点按钮与文字间距固定 0.5em */
 :where([data-slot="radio-group-item-label"]) {
   display: flex;
   gap: 0.5em;
@@ -80,7 +78,6 @@ const group = inject(
   min-width: 0;
 }
 
-/* 圆点：外环画在 ::before，勾选的实心点画在 ::after，靠缩放而不是改尺寸 */
 :where([data-slot="radio-group-item"]) {
   position: relative;
   display: inline-flex;
@@ -138,7 +135,6 @@ const group = inject(
   cursor: default;
 }
 
-/* --- surface --- */
 :where([data-slot="radio-group-item"][data-variant="surface"]:not([data-state="checked"]))::before {
   background-color: var(--bg-raised);
   box-shadow: inset 0 0 0 var(--border-width) var(--border-input);
@@ -161,7 +157,6 @@ const group = inject(
   background-color: var(--fg-disabled);
 }
 
-/* --- soft --- */
 :where([data-slot="radio-group-item"][data-variant="soft"])::before {
   background-color: var(--tone-subtle);
 }

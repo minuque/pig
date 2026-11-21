@@ -41,7 +41,6 @@ const forwarded = useForwardPropsEmits(
 </script>
 
 <style scoped>
-/* 上下各一份弹性空白，面板垂直居中且矮窗口里不顶出屏幕 */
 .viewport {
   position: fixed;
   z-index: var(--z-modal);

@@ -26,7 +26,7 @@ import { openFileKey } from "@features/transcript-view/index.js"
 
 const props = defineProps<{ __node: ElementNode; href?: string }>()
 const href = computed(() => props.href ?? "")
-// 流式中未写完的链接 href 是 comark:incomplete-link，按普通文字显示。
+// 外部：流式中未写完的链接 href 是 comark:incomplete-link
 const external = computed(() => /^https?:\/\//i.test(href.value))
 const fileOpener = inject(openFileKey, undefined)
 const label = computed(() => linkChipLabel(href.value, textContent(props.__node)))

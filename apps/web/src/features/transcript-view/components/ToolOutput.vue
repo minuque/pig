@@ -19,7 +19,6 @@
 
   <div v-else-if="text || images.length" class="tool-output" :class="{ 'is-soft-wrap': softWrap }">
     <template v-if="text">
-      <!-- 卡片只画边框，滚动交给里面的 pre：卡片自己滚动时 rt 的边框伪元素会跟着滚走 -->
       <CodeCard class="tool-output-card">
         <pre
           class="tool-output-pre"
@@ -54,7 +53,6 @@ import type { TranscriptImage as ToolImage } from "@features/transcript-view/typ
 const LINE_LIMIT = 500
 const { t } = useI18n()
 
-/** 前 limit 行的结束位置和总行数；不超限时 end 为 -1。 */
 function lineCut(text: string, limit: number) {
   let end = -1
   let count = 1
@@ -133,7 +131,6 @@ const copyText = computed(() => (props.code ? props.lines.join("\n") : props.tex
   overflow: auto;
 }
 
-/* pre 的上内边距是 sm，复制按钮跟着上移 */
 .tool-output-pre :deep(.copy-backdrop) {
   top: calc(var(--space-2xs) - var(--space-sm));
 }

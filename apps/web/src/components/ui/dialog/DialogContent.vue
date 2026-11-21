@@ -46,9 +46,7 @@ const props = withDefaults(
     DialogContentProps & {
       class?: HTMLAttributes["class"]
       showCloseButton?: boolean
-      /** 面板宽度与内边距档：s / m / l */
       size?: Size
-      /** 面板最大宽度，默认沿用 rt 的 600px；调用方的 scoped 类仍可覆盖 */
       maxWidth?: string
       align?: "start" | "center"
     }
@@ -70,7 +68,6 @@ const widthStyle = computed(() =>
 </script>
 
 <style>
-/* 面板：主区底色与圆角同心，尺寸档只改内边距、圆角与最大宽度 */
 :where([data-slot="dialog-content"]) {
   position: relative;
   z-index: var(--z-raise);
@@ -103,7 +100,6 @@ const widthStyle = computed(() =>
 </style>
 
 <style scoped>
-/* 关闭按钮：图标边缘与内容边缘对齐，偏移 = 内边距 -（按钮宽 - 图标宽）/ 2 */
 .dlg-close {
   position: absolute;
   inset-block-start: calc(var(--space-md) - (var(--space-lg) - var(--icon-md)) / 2);

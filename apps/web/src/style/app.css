@@ -1,7 +1,3 @@
-/* 全局样式入口：只引分片，规则写在各分片里。
-   顺序有讲究：重置进 base 层，token 先落，
-   最后是 globals.css —— 它不分层，靠排在最后压住库的默认值。 */
-
 @import "./reset.css" layer(base);
 @import "./tokens.css";
 @import "./motion.css";

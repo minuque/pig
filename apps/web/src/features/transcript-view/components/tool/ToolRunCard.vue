@@ -38,7 +38,6 @@ const props = defineProps<{
   expandedTools: Map<string, boolean>
 }>()
 const emit = defineEmits<{ toggleTool: [id: string, open: boolean] }>()
-/** 按步骤顺序展开：思考块和工具调用共用同一份展开状态表。 */
 const entries = computed<RunEntry[]>(() =>
   props.row.steps.flatMap((step): RunEntry[] =>
     step.type === "thought"

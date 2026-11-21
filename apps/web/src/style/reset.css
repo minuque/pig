@@ -1,7 +1,3 @@
-/* 归零层：接替 Tailwind 的 preflight，逐条对齐它原来做的事，
-   删依赖前后同一份 DOM 的默认值不变。这里只管浏览器默认值：
-   字体与色板在 tokens.css、globals.css，分片入口是 app.css。 */
-
 *,
 ::after,
 ::before,
@@ -136,7 +132,6 @@ summary {
   display: none !important;
 }
 
-/* 默认键盘焦点环留在 base 层，组件与库自带样式优先级更高、不会叠出双框 */
 :focus-visible {
   outline: 2px solid var(--focus-color);
   outline-offset: 2px;

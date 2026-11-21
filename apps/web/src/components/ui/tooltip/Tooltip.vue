@@ -11,6 +11,6 @@ import { TooltipRoot, useForwardPropsEmits } from "reka-ui"
 
 const props = defineProps<TooltipRootProps>()
 const emits = defineEmits<TooltipRootEmits>()
-// reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，cast 到组件 props 类型
+// 外部：reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，须 cast 到组件 props 类型
 const forwarded = useForwardPropsEmits(props, emits) as ComputedRef<TooltipRootProps>
 </script>

@@ -28,15 +28,11 @@ const props = withDefaults(
   defineProps<
     RadioGroupRootProps & {
       class?: HTMLAttributes["class"]
-      /** 尺寸档：s、m、l */
       size?: Size
       variant?: "surface"
-      /** accent 色：选中项描边与圆点跟随它 */
       color?: ToneColor
       disabled?: boolean
-      /** 列宽规则，直接落成 grid-template-columns */
       columns?: string
-      /** 卡片间距，取 --space-* 档 */
       gap?: "2xs" | "xs" | "sm" | "md" | "lg"
     }
   >(),
@@ -61,7 +57,6 @@ const delegatedProps = reactiveOmit(
   "gap",
 )
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<RadioGroupRootProps>
-/** 列宽与间距随 props 变，直接落成内联属性 */
 const gridStyle = computed(() => ({
   gridTemplateColumns: props.columns,
   gap: `var(--space-${props.gap})`,
@@ -69,7 +64,6 @@ const gridStyle = computed(() => ({
 </script>
 
 <style>
-/* 卡片式单选：网格由调用方的列宽规则决定，字号随尺寸档 */
 :where([data-slot="radio-cards"]) {
   display: grid;
   cursor: default;

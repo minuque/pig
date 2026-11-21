@@ -26,9 +26,7 @@ const props = withDefaults(
       class?: HTMLAttributes["class"]
       inset?: boolean
       variant?: "default" | "destructive"
-      /** 右对齐的快捷键提示，rt 在 Item 上提供同名属性 */
       shortcut?: string
-      /** accent 色，Item 的文字色跟随它 */
       color?: ToneColor
     }
   >(),

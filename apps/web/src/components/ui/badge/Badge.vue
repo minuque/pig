@@ -26,7 +26,6 @@ defineOptions({ inheritAttrs: false })
 const props = withDefaults(
   defineProps<
     Pick<PrimitiveProps, "as" | "asChild"> & {
-      /** 尺寸档：s、m、l */
       size?: Size
       variant?: "solid" | "soft" | "surface" | "outline"
       color?: ToneColor

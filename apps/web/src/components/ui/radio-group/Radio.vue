@@ -20,7 +20,6 @@ import type { Size, ToneColor } from "@/types/ui-type.js"
 
 const props = withDefaults(
   defineProps<{
-    /** 独立使用的单选按钮：脱离 RadioGroup 时用它自己成组（同名 group） */
     value: string
     name?: string
     checked?: boolean
@@ -40,7 +39,6 @@ function onChange(event: Event) {
 </script>
 
 <style>
-/* 独立的单选按钮：原生 input 去掉外观后，圆环与圆点都画在底色上 */
 :where([data-slot="radio"]) {
   appearance: none;
   position: relative;
@@ -72,7 +70,6 @@ function onChange(event: Event) {
   cursor: default;
 }
 
-/* --- surface --- */
 :where([data-slot="radio"][data-variant="surface"]:not(:checked)) {
   background-color: var(--bg-raised);
   box-shadow: inset 0 0 0 var(--border-width) var(--border-input);
@@ -93,7 +90,6 @@ function onChange(event: Event) {
   background-image: radial-gradient(circle, var(--fg-disabled) 0 20%, transparent 21%);
 }
 
-/* --- soft --- */
 :where([data-slot="radio"][data-variant="soft"]) {
   background-color: var(--tone-subtle);
   background-image: none;

@@ -33,9 +33,7 @@ const props = withDefaults(
   defineProps<
     DropdownMenuContentProps & {
       class?: HTMLAttributes["class"]
-      /** 大面板自管内边距，不套菜单视口壳 */
       bare?: boolean
-      /** 菜单尺寸：s 紧凑、m 默认 */
       size?: MenuSize
       color?: ToneColor
     }
@@ -50,11 +48,11 @@ const props = withDefaults(
   },
 )
 const emits = defineEmits<DropdownMenuContentEmits>()
-// 被 Tooltip 包住时 MenuAnchor 会注册到 Tooltip 的 PopperRoot，须显式传触发元素当锚点
+// 外部：被 Tooltip 包住时 MenuAnchor 会注册到 Tooltip 的 PopperRoot，须显式传触发元素当锚点
 const anchor = usePopperAnchor()
 const reference = computed(() => props.reference ?? anchor?.value)
 const delegatedProps = reactiveOmit(props, "class", "bare", "size", "color")
-// reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，cast 到组件 props 类型
+// 外部：reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，须 cast 到组件 props 类型
 const forwarded = useForwardPropsEmits(
   delegatedProps,
   emits,

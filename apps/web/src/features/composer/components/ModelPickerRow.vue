@@ -46,7 +46,6 @@ const { t } = useI18n()
 </script>
 
 <style scoped>
-/* 行高 28px：悬停与键盘高亮同一底色，当前模型再深一档 */
 .model-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 20px;

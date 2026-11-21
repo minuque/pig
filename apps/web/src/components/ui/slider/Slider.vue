@@ -35,7 +35,6 @@ const props = withDefaults(
   defineProps<
     SliderRootProps & {
       class?: HTMLAttributes["class"]
-      /** 尺寸档：s、m、l */
       size?: Size
       variant?: "surface" | "soft"
       color?: ToneColor
@@ -47,14 +46,13 @@ const props = withDefaults(
 const emits = defineEmits<SliderRootEmits>()
 const delegatedProps = reactiveOmit(props, "class", "size", "variant", "color", "radius")
 const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<SliderRootProps>
-// reka 把 aria-* 留在根节点，而 role=slider 在滑块上，无障碍名要自己转过去
+// 外部：reka 把 aria-* 留在根节点，而 role=slider 在滑块上，无障碍名要自己转过去
 const attrs = useAttrs()
 const thumbLabel = computed(() => attrs["aria-label"] as string | undefined)
 const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | undefined)
 </script>
 
 <style>
-/* 滑杆：轨道高 6/8/10，滑块比轨道大 4px，轨道与滑块都是胶囊 */
 :where([data-slot="slider"]) {
   position: relative;
   display: flex;
@@ -128,7 +126,6 @@ const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | unde
   inline-size: 100%;
 }
 
-/* 滑块：可点区域是可见尺寸的三倍，视觉部分画在 ::after 上 */
 :where([data-slot="slider-thumb"]) {
   position: relative;
   display: block;
@@ -183,7 +180,6 @@ const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | unde
   cursor: default;
 }
 
-/* --- surface --- */
 :where([data-slot="slider"][data-variant="surface"]) :where([data-slot="slider-track"]) {
   background-color: var(--bg-muted);
   box-shadow: inset 0 0 0 var(--border-width) var(--border-strong);
@@ -209,7 +205,6 @@ const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | unde
   box-shadow: 0 0 0 1px var(--border-strong);
 }
 
-/* --- soft --- */
 :where([data-slot="slider"][data-variant="soft"]) :where([data-slot="slider-track"]) {
   background-color: var(--bg-hover);
 }
@@ -239,7 +234,6 @@ const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | unde
   box-shadow: 0 0 0 1px var(--border-strong);
 }
 
-/* 焦点环叠在滑块阴影外：一档浅强调底 + 一档前景焦点环 */
 :where([data-slot="slider-thumb"]:focus-visible)::after {
   outline: none;
   box-shadow:
@@ -248,7 +242,6 @@ const thumbLabelledby = computed(() => attrs["aria-labelledby"] as string | unde
     0 0 0 5px var(--focus-color);
 }
 
-/* --- 禁用 --- */
 :where([data-slot="slider"][data-disabled]) {
   cursor: default;
   mix-blend-mode: multiply;

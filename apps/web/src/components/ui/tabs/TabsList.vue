@@ -18,7 +18,6 @@ import { provide, toRef } from "vue"
 import { TabsIndicator, TabsList } from "reka-ui"
 import { TABS_VARIANT, type TabsVariant } from "./context.js"
 
-/** 标签栏只有 s、m 两档；segmented 两档高 26、36px */
 const props = withDefaults(
   defineProps<{
     variant?: TabsVariant
@@ -33,7 +32,6 @@ provide(TABS_VARIANT, toRef(props, "variant"))
 </script>
 
 <style>
-/* 下划线标签栏：整条底部一条细线，选中项底边压 2px 强调色 */
 :where([data-slot="tabs-list"][data-variant="underline"]) {
   display: flex;
   justify-content: flex-start;
@@ -59,7 +57,6 @@ provide(TABS_VARIANT, toRef(props, "variant"))
   line-height: var(--text-body--line-height);
 }
 
-/* 触发器：图标与文字居中，选中态靠底部色条表达 */
 :where([data-slot="tabs-list"][data-variant="underline"]) :where([data-slot="tabs-trigger"]) {
   position: relative;
   display: flex;
@@ -125,7 +122,6 @@ provide(TABS_VARIANT, toRef(props, "variant"))
   outline-offset: -2px;
 }
 
-/* 内层：隐藏的加粗副本占位，可见层绝对定位叠在上面，切换选中时宽度不跳 */
 :where([data-slot="tabs-list"][data-variant="underline"])
   :where([data-slot="tabs-trigger-inner"], [data-slot="tabs-trigger-inner-hidden"]) {
   display: flex;
@@ -156,7 +152,6 @@ provide(TABS_VARIANT, toRef(props, "variant"))
   font-weight: var(--font-weight-medium);
 }
 
-/* 凹槽底 + 细环，选中块上下内缩 2px，圆角同心 */
 :where([data-slot="tabs-list"][data-variant="segmented"]) {
   position: relative;
   display: inline-flex;

@@ -4,11 +4,10 @@ import { tmpdir } from "node:os"
 import { join, relative, resolve } from "node:path"
 
 const root = resolve(import.meta.dirname, "../../..")
-const target = process.argv[2] ?? "."
+const targets = process.argv.slice(2).length ? process.argv.slice(2) : ["."]
 const dir = mkdtempSync(join(tmpdir(), "delete-comment-"))
 const empty = join(dir, "empty.json")
-const cssGlob =
-  target.endsWith(".css") || target.endsWith(".vue") ? target : `${target}/**/*.{css,vue}`
+const cssGlobs = targets.map((t) => (/\.(css|vue)$/.test(t) ? t : `${t}/**/*.{css,vue}`))
 
 writeFileSync(empty, "{}")
 
@@ -26,13 +25,13 @@ function run(args, out) {
 }
 
 const eslint = run(
-  ["eslint", target, "-f", "json", "--suppressions-location", `"${empty}"`],
+  ["eslint", ...targets, "-f", "json", "--suppressions-location", `"${empty}"`],
   join(dir, "e.json"),
 )
 const style = run(
   [
     "stylelint",
-    `"${cssGlob}"`,
+    ...cssGlobs.map((g) => `"${g}"`),
     "-f",
     "json",
     "--suppress-location",

@@ -50,7 +50,6 @@ const props = withDefaults(defineProps<Props>(), {
 </script>
 
 <style>
-/* 图标按钮：固定方框，尺寸档 s=24、m=28、l=36；外观与圆角沿用 Button 的 data-button 规则 */
 :where([data-slot="icon-button"][data-size="s"]) {
   height: var(--space-lg);
   inline-size: var(--space-lg);

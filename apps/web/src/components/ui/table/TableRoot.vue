@@ -6,7 +6,6 @@
     :class="props.class"
     v-bind="$attrs"
   >
-    <!-- 用原生滚动容器承担横向溢出 -->
     <div class="table-scroll">
       <table data-slot="table-element">
         <slot />
@@ -23,7 +22,6 @@ defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
   defineProps<{
-    /** 尺寸档：s、m、l */
     size?: Size
     variant?: "surface" | "ghost"
     class?: HTMLAttributes["class"]

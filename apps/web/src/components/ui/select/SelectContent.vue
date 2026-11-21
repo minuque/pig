@@ -47,7 +47,6 @@ const size = useSelectSize()
 </script>
 
 <style>
-/* 选择框内容：与菜单同一套浮层底、边框与阴影；popper 位置时跟随触发器宽度 */
 :where([data-slot="select-content"]) {
   box-sizing: border-box;
   position: relative;
@@ -66,7 +65,6 @@ const size = useSelectSize()
   padding: var(--space-xs);
 }
 
-/* 行距只有一条：视口里相邻的任意两行之间留一道 --menu-item-gap */
 :where([data-slot="select-viewport"]) > * + * {
   margin-block-start: var(--menu-item-gap);
 }

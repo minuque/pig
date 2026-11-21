@@ -87,15 +87,6 @@
 </template>
 
 <script setup lang="ts">
-/**
- * 奔跑小猪：turn 状态指示器，hero-mascot 等比缩。
- * state：
- *   idle    空闲（闭眼 + Zzz）
- *   run     <5min（摇摆 + 张嘴）
- *   long    5min（摇摆 + 晃头 + 腮红 + 汗）
- *   xlong   10min（红温 + 蒸汽 + 更快晃头 + 汗）
- * 高度随文本行（父级用 1em 驱动）。
- */
 import { useId } from "vue"
 
 export type PigState = "idle" | "run" | "long" | "xlong"
@@ -188,8 +179,6 @@ const shadeId = `pig-shade-${useId()}`
   stroke-linecap: round;
   opacity: 0.7;
 }
-
-/* ============ keyframes ============ */
 
 @keyframes breathe {
   0%,
@@ -381,8 +370,6 @@ const shadeId = `pig-shade-${useId()}`
     opacity: 0;
   }
 }
-
-/* ============ 状态机 ============ */
 
 .g,
 .ear-l,

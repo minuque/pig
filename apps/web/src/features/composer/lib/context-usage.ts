@@ -1,6 +1,5 @@
 import { finiteTokens, type ContextUsage } from "@features/session/lib/context-usage.js"
 
-/** <1K 整数；1K–100K 一位小数；更大取整。 */
 export function formatTokenCount(tokens: number): string {
   const abs = finiteTokens(tokens)
 
@@ -16,7 +15,6 @@ export function segmentShare(tokens: number, window: number): number {
   return Math.min(100, (tokens / window) * 100)
 }
 
-/** 用量分档：75% 起警告，90% 起危险。 */
 export function contextSeverity(percent: number): "warning" | "critical" | undefined {
   return percent >= 90 ? "critical" : percent >= 75 ? "warning" : undefined
 }

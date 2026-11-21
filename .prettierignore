@@ -19,3 +19,5 @@ package-lock.json
 pnpm-lock.yaml
 yarn.lock
 nul
+eslint-suppressions.json
+stylelint-suppressions.json

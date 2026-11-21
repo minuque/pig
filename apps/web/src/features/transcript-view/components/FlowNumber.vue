@@ -11,7 +11,6 @@
 <script setup lang="ts">
 import { onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
 
-/** 旧值留在 DOM 里的时长：--duration-fast 150ms 加一帧余量。 */
 const LEAVE_HOLD_MS = 180
 const props = defineProps<{ text: string }>()
 const reduced =
@@ -40,7 +39,6 @@ watch(
     current.value = next
     entering.value = true
     frame = requestAnimationFrame(() => {
-      // 先落定 enter 样式，否则首帧即终态，过渡不启动
       root.value?.getBoundingClientRect()
       entering.value = false
       timer = setTimeout(() => {

@@ -1,6 +1,5 @@
 import type { Node, ElementNode } from "comark"
 
-/** 词级淡入节奏：文字即时上屏，按批错开淡入。 */
 export const REVEAL_TAG = "reveal-words"
 export const REVEAL_FADE_MS = 200
 export const REVEAL_SETTLE_MS = 1000
@@ -165,7 +164,6 @@ function decorateChildren(
   return [parent[0], parent[1], ...out]
 }
 
-/** 每条流式消息一个实例；已装饰的根节点按引用缓存，只给新节点算排期。 */
 export function createResponseReveal(
   initialText: string,
   now: () => number = () => performance.now(),

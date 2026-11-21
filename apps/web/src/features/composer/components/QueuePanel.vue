@@ -74,9 +74,7 @@ onBeforeUnmount(() => reorder.detach())
 </script>
 
 <style scoped>
-/* 托盘：左右内缩 16px，顶部 16px 圆角，底边 18px 垫在输入卡后面 */
 .queue-panel {
-  /* 队列长了从自己这儿让位：内部滚动，不把输入卡顶到头部 */
   flex: 0 1 auto;
   min-block-size: 0;
   overflow-y: auto;
@@ -107,7 +105,6 @@ onBeforeUnmount(() => reorder.detach())
   background: var(--bg-hover);
 }
 
-/* 拖拽跟手：源行保持实体阴影，邻项让位由 useDragReorder 的 transform 预览驱动 */
 .row.is-drag-live {
   z-index: var(--z-sticky);
   background: var(--bg-surface);

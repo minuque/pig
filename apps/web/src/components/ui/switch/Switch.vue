@@ -21,7 +21,6 @@ const props = withDefaults(
   defineProps<
     SwitchRootProps<boolean> & {
       class?: HTMLAttributes["class"]
-      /** 尺寸档：s、m、l */
       size?: Size
       color?: ToneColor
     }
@@ -36,7 +35,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
 </script>
 
 <style>
-/* 开关：轨道即根元素，内边距 2px；滑块边长比档位小 2px，勾选时右移「档位 - 4px」，按下横向拉长 */
 :where([data-slot="switch"]) {
   box-sizing: border-box;
   display: inline-flex;

@@ -24,7 +24,6 @@ export const FAVORITES_SCOPE = "__favorites__"
 
 export type ModelPickerRow = { vendor: ComposerVendor; model: ComposerModelInfo }
 
-/** 有搜索词时全目录匹配；无搜索按供应商或收藏过滤。 */
 export function listPickerRows(
   catalog: ComposerVendor[],
   query: string,
@@ -53,7 +52,6 @@ export function resolveModelInfo(catalog: ComposerVendor[], ref: ComposerModel |
   return { vendor, model, levels: model?.thinkingLevels ?? [] }
 }
 
-/** 官方 ModelMetadata → 供应商目录；保留服务端顺序。 */
 export function catalogFromModels(models: readonly ModelMetadata[]): ComposerVendor[] {
   const vendors = new Map<string, ComposerVendor>()
 

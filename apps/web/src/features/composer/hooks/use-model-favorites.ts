@@ -7,7 +7,6 @@ function loadFavoriteModels(): string[] {
   return readStringArray(FAVORITE_MODELS_KEY).filter((item) => item.includes("/"))
 }
 
-/** 收藏模型：localStorage 持久化，切换立即写回。 */
 export function useModelFavorites() {
   const keys = ref(loadFavoriteModels())
   const set = computed(() => new Set(keys.value))

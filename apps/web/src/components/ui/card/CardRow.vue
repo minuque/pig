@@ -17,9 +17,7 @@ import { Primitive } from "reka-ui"
 withDefaults(
   defineProps<
     PrimitiveProps & {
-      /** 行不带左右内边距，行里的内容自己读 --card-padding */
       bleed?: boolean
-      /** 可点的整行：带悬停底 */
       interactive?: boolean
     }
   >(),

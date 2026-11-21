@@ -19,7 +19,9 @@ function git(...args) {
 
 function printScript(code, name) {
   const kind = /\.(tsx|jsx)$/.test(name) ? ts.ScriptKind.TSX : ts.ScriptKind.TS
-  return printer.printFile(ts.createSourceFile(name, code, ts.ScriptTarget.Latest, false, kind))
+  return printer
+    .printFile(ts.createSourceFile(name, code, ts.ScriptTarget.Latest, false, kind))
+    .replace(/\{\s+\}/g, "{}")
 }
 
 function printCss(code) {

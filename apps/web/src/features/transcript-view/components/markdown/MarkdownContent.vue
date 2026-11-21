@@ -36,7 +36,6 @@ const components = {
 }
 const documents = new WeakMap<object, ComarkDocument>()
 
-/** 每个根块一份稳定的文档对象：props 不变，Vue 就跳过已写完的块。 */
 function blockDocument(node: Node): ComarkDocument {
   if (typeof node === "string") return { nodes: [node], frontmatter: {}, meta: {} }
   const hit = documents.get(node)
