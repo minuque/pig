@@ -34,7 +34,7 @@ const LAYOUT: { id: string; title: Label; items: (string | [string, Label])[] }[
   {
     id: "feedback",
     title: { zh: "反馈", en: "Feedback" },
-    items: ["Banner", "Badge", "StatusIndicator", "Spinner", "Skeleton", "Tooltip"],
+    items: ["Banner", "Toast", "Badge", "StatusIndicator", "Spinner", "Skeleton", "Tooltip"],
   },
   {
     id: "overlays",
