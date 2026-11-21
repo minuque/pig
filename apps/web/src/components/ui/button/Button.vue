@@ -195,6 +195,24 @@ const props = withDefaults(defineProps<Props>(), {
   color: var(--fg-muted);
 }
 
+:where(
+    [data-button]:is([data-variant="outline"], [data-variant="ghost"]):is(
+        [data-state="open"],
+        [data-active],
+        [aria-pressed="true"],
+        [aria-expanded="true"]
+      )
+  )
+  :where(svg) {
+  color: inherit;
+}
+
+@media (hover: hover) {
+  :where([data-button]:is([data-variant="outline"], [data-variant="ghost"]):hover) :where(svg) {
+    color: inherit;
+  }
+}
+
 :where([data-button][data-tone]:not([data-tone="neutral"], [data-variant="solid"])) {
   color: var(--tone-text);
 }

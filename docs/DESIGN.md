@@ -106,7 +106,7 @@ spacing:
 - 链接 `--link` 取 `--info-text`，与「进行中」同一种 cyan，不跟强调色走。
 - 「进行中」与强调色分开：运行状态、转圈、上下文进度条与用量环走 `--info-*`，文字取 `--info-text`（浅色 `#0B6F88`，深色 cyan-11），填充取 `--info-solid`（cyan-9），浅底取 cyan 第 3 级 alpha。
 - 悬停与选中分开：按钮、菜单项、侧栏行深浅均走半透明叠加，`--bg-hover` 走中性叠加（浅色 `fg 6%` / 深色 `white 6%`），`--bg-selected` 走淡强调色叠加（浅色 `accent-solid 11%` / 深色 `accent-solid 16%`；深色默认预设改用实色 `#1A2143`），只铺极淡的一层，不铺成彩色块。
-- 按钮变体四种：`solid`（主操作）、`secondary`（`--bg-muted` 底）、`outline`（透明底，只有一圈 `--control-border` 环，由 `--control-shadow` 绘出）、`ghost`（固定盒，悬停才铺 `--bg-hover`）。一页只出现一个 solid 主按钮，其余用 secondary、outline 或 ghost。
+- 按钮变体四种：`solid`（主操作）、`secondary`（`--bg-muted` 底）、`outline`（透明底，只有一圈 `--control-border` 环，由 `--control-shadow` 绘出）、`ghost`（固定盒，悬停才铺 `--bg-hover`）。一页只出现一个 solid 主按钮，其余用 secondary、outline 或 ghost。outline 与 ghost 的图标常态取 `--fg-muted`，悬停、选中（`data-active` / `aria-pressed`）、展开与弹层打开时随文字色提亮，不再单独压暗。
 - 输入卡的发送键用强调色实心（`--accent-solid` 配 `--fg-on-accent`），停止键用危险色实心（`--danger-solid` 配白）。「滚动到底部」仍用反色（`--bg-inverse` / `--fg-inverse`）：中灰（浅色 `#6B6B72` 配白字 5.3:1，深色 `#9DA4AE` 配深字 7.4:1），不用纯黑白。发送键不可用时换 `--bg-emphasis` 底配 `--fg-secondary` 图标，不靠降透明度。
 
 ### 中性色
