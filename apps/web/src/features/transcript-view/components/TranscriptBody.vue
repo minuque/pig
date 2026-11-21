@@ -72,6 +72,7 @@ import TurnRow from "@features/transcript-view/components/TurnRow.vue"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
+import { useTranscriptPosition } from "@features/transcript-view/hooks/use-transcript-position.js"
 import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-edge.js"
 import { TRANSCRIPT_SESSION_ID } from "@features/transcript-view/hooks/use-full-tool-output.js"
 import type { SessionPhase, TranscriptItem } from "@/types/common-type.js"
@@ -179,9 +180,8 @@ const {
   onPointerDown,
   scrollToLatest,
   scrollToElement,
+  restoreScrollTop,
 } = useTranscriptFollow(scrollerRoot)
-const scrollMemory = new Map<string, number>()
-let pendingRestore: number | undefined
 let historyPending = 0
 const showScrollToLatest = computed(() =>
   shouldShowScrollToLatest(props.transcript.length, visuallyAtBottom.value),
@@ -269,14 +269,21 @@ function pinLatest() {
   pinIfNeeded()
 }
 
-function scrollToElementOffset(top: number) {
-  const root = scrollerRoot()
-
-  if (root) root.scrollTop = top
-}
-
-const { readyFrame } = useTranscriptReveal(rows, pinLatest)
+const { readyFrame } = useTranscriptReveal(rows)
 const runwayId = shallowRef<string>()
+
+useTranscriptPosition({
+  sessionId: () => props.sessionId,
+  ready: () => turns.value.length > 0 && list.value !== null,
+  readScrollTop: () => scrollerRoot()?.scrollTop,
+  restore: restoreScrollTop,
+  pinLatest,
+  onSessionChange: () => {
+    runwayId.value = undefined
+    rowsBuilder.reset()
+    reset()
+  },
+})
 
 function userTurnAppended(previous: readonly TimelineTurn[], next: readonly TimelineTurn[]) {
   return (
@@ -289,12 +296,6 @@ function userTurnAppended(previous: readonly TimelineTurn[], next: readonly Time
 
 watch(turns, (next, prev) => {
   const previous = prev ?? []
-
-  if (pendingRestore !== undefined && next.length > 0) {
-    const target = pendingRestore
-    pendingRestore = undefined
-    void nextTick(() => scrollToElementOffset(target))
-  }
 
   if (previous.length === 0 && next.length > 0) return
 
@@ -325,40 +326,10 @@ watch(turns, (next, prev) => {
 
 watch(
   [viewport, list, column],
-  ([, body], prev) => {
+  () => {
     observeSizes()
-
-    if (body && !prev?.[1]) pinLatest()
   },
   { flush: "post" },
-)
-
-watch(
-  () => props.sessionId,
-  (id, prev) => {
-    if (!prev || prev === id) return
-
-    const root = scrollerRoot()
-
-    if (root) scrollMemory.set(prev, root.scrollTop)
-    runwayId.value = undefined
-    rowsBuilder.reset()
-    reset()
-    pendingRestore = scrollMemory.get(id)
-
-    if (pendingRestore === undefined) {
-      void nextTick(pinLatest)
-      return
-    }
-
-    const target = pendingRestore
-
-    void nextTick(() => {
-      if (pendingRestore !== target || turns.value.length === 0) return
-      pendingRestore = undefined
-      scrollToElementOffset(target)
-    })
-  },
 )
 
 onBeforeUnmount(() => {
