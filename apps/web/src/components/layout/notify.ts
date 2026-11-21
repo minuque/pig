@@ -13,6 +13,7 @@ export interface Notice {
   level: NoticeLevel
   title?: string | undefined
   action?: NoticeAction | undefined
+  transient?: boolean | undefined
   open: boolean
 }
 
@@ -27,7 +28,7 @@ export function dismissNotice(id: number): void {
 export function notify(
   message: string,
   level: NoticeLevel = "error",
-  extra: Pick<Notice, "title" | "action"> = {},
+  extra: Pick<Notice, "title" | "action" | "transient"> = {},
 ): void {
   const text = message.trim()
 

@@ -46,7 +46,7 @@ export function useTurnFinish(deps: TurnFinishDeps) {
     const clean = !abortedTurn && deps.queue.sizeFor(id) === 0 && endedCleanly(items)
 
     if (!abortedTurn && last?.role === "assistant" && last.status === "error")
-      notify(last.errorMessage || t("session.turnFailed"), "error")
+      notify(last.errorMessage || t("session.turnFailed"), "error", { transient: true })
 
     abortedTurn = false
 

@@ -110,7 +110,7 @@ describe("前台轮次收尾", () => {
     await nextTick()
 
     expect(ctx.sound.play).not.toHaveBeenCalled()
-    expect(notify).toHaveBeenCalledWith(expect.any(String), "error")
+    expect(notify).toHaveBeenCalledWith(expect.any(String), "error", { transient: true })
   })
 
   it("用户中止的轮次不弹出错通知", async () => {

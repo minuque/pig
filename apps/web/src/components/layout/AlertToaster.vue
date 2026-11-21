@@ -6,7 +6,7 @@
       class="banner-item"
       :open="item.open"
       :type="item.level === 'error' ? 'foreground' : 'background'"
-      :duration="item.level === 'error' ? Infinity : PASSING_MS"
+      :duration="item.level === 'error' && !item.transient ? Infinity : PASSING_MS"
       @update:open="(open) => open || dismissNotice(item.id)"
     >
       <Banner
