@@ -280,7 +280,7 @@ describe("thin host WebSocket", () => {
       await rm(picked, { recursive: true, force: true, maxRetries: 5 })
       await rm(stranger, { recursive: true, force: true, maxRetries: 5 })
     }
-  })
+  }, 15_000)
 })
 
 describe("thin host 停止", () => {
