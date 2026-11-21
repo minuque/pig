@@ -69,6 +69,7 @@ function setup() {
   const scope = effectScope()
   const pi = fakePi()
   const sound = { play: vi.fn() }
+  const announce = vi.fn()
   const buckets = createSharedBuckets()
   const { hub } = scope.run(() => {
     const hub = createSessionHub(pi as never)
@@ -77,6 +78,7 @@ function setup() {
       sound,
       send: hub.backgroundSend.send,
       transcriptFor: hub.history.transcriptFor,
+      announce,
     })
 
     hub.setBackgroundIdle(pump.onIdle)
@@ -103,7 +105,7 @@ function setup() {
     return session
   }
 
-  return { scope, pi, hub, sound, buckets, paneQueue, leftId, left, background }
+  return { scope, pi, hub, sound, announce, buckets, paneQueue, leftId, left, background }
 }
 
 afterEach(() => {
@@ -169,15 +171,17 @@ describe("后台泵队挂在 Hub 上", () => {
     expect(a.submitted).toEqual([])
     expect(ctx.paneQueue.sizeFor("a")).toBe(2)
     expect(ctx.sound.play).not.toHaveBeenCalled()
+    expect(ctx.announce).not.toHaveBeenCalled()
     ctx.scope.stop()
   })
 
-  it("队列空且干净收尾：响完成音", async () => {
+  it("队列空且干净收尾：响完成音并播报这个会话", async () => {
     const ctx = setup()
     const a = await ctx.background("a")
 
     a.emit(phase("idle", 2))
     await vi.waitFor(() => expect(ctx.sound.play).toHaveBeenCalledWith("done"))
+    expect(ctx.announce).toHaveBeenCalledWith("a", "complete")
     expect(a.submitted).toEqual([])
     ctx.scope.stop()
   })

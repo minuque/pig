@@ -9,6 +9,12 @@ interface BackgroundPumpDeps {
   sound: { play(event: "done"): unknown }
   send(id: string, text: string, attachments?: ComposerAttachmentBatch): Promise<boolean>
   transcriptFor(id: string): readonly TranscriptItem[]
+  announce(id: string, outcome: "complete" | "error"): void
+}
+
+function failed(items: readonly TranscriptItem[]): boolean {
+  const last = items.findLast((item) => item.role === "assistant")
+  return last?.role === "assistant" && last.status === "error"
 }
 
 export function createBackgroundPump(deps: BackgroundPumpDeps) {
@@ -16,11 +22,13 @@ export function createBackgroundPump(deps: BackgroundPumpDeps) {
     const next = deps.queue.shiftFor(id)
 
     if (!next) {
-      if (endedCleanly(deps.transcriptFor(id))) {
+      const items = deps.transcriptFor(id)
+
+      if (endedCleanly(items)) {
         void deps.sound.play("done")
         void notifyTurnDone()
-      }
-
+        deps.announce(id, "complete")
+      } else if (failed(items)) deps.announce(id, "error")
       return "done"
     }
 
