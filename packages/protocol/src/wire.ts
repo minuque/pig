@@ -1,6 +1,7 @@
 import type { ExtensionUiRequest, ExtensionUiResponse } from "./extension-ui.js"
 import type { ModelMetadata, ModelRef, ThinkingLevel } from "./model.js"
 import type { DefaultModelView } from "./provider.js"
+import type { UserPreferences } from "./preferences.js"
 import type { Task } from "./task.js"
 import type { TranscriptItem, TranscriptProgress, UserTranscriptItem } from "./transcript.js"
 
@@ -115,6 +116,7 @@ export type ServerEvent =
   | { type: "extension_ui_request"; sessionId: string; request: ExtensionUiRequest }
   /** 会话文件变了（外部追加、改名或删除）：客户端自己决定要不要重拉历史。 */
   | { type: "session_file_changed"; sessionId: string }
+  | { type: "preferences_changed"; preferences: UserPreferences }
 
 export type ServerMessage =
   | { type: "hello"; snapshot: ServerSnapshot }

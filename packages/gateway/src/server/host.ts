@@ -7,6 +7,7 @@ import {
   WindowsDirectoryPort,
   type DirectoryPort,
 } from "../system/directory.js"
+import { PreferencesStore, preferencesFile } from "../system/preferences.js"
 import { handlePreviewRequest } from "./file-preview.js"
 import { handlePlatformRequest, type EnvironmentSources } from "./platform.js"
 import { installProviderHttp } from "./provider-http.js"
@@ -17,6 +18,7 @@ import { ProtocolServer } from "./websocket.js"
 export interface GatewayOptions {
   webRoot?: string
   sessionDir?: string
+  pigHome?: string
   cwd?: string
   platformPort?: DirectoryPort
   port?: number
@@ -38,13 +40,15 @@ export class Gateway {
   private readonly listenPort: number
   private readonly browser: BrowserSession
   private readonly environments: EnvironmentSources
+  private readonly preferences: PreferencesStore
 
   constructor(options: GatewayOptions = {}) {
     this.webRoot = options.webRoot
     this.listenPort = options.port ?? 0
     this.browser = new BrowserSession(
-      options.browserSecretFile ?? browserSecretFile(options.sessionDir),
+      options.browserSecretFile ?? browserSecretFile(options.sessionDir, options.pigHome),
     )
+    this.preferences = new PreferencesStore(preferencesFile(options.sessionDir, options.pigHome))
     this.environments = options.environments ?? {}
     this.platformPort =
       options.platformPort ??
@@ -52,6 +56,7 @@ export class Gateway {
 
     this.hostService = new PiHostService({
       ...(options.sessionDir ? { sessionDir: options.sessionDir } : {}),
+      ...(options.pigHome ? { pigHome: options.pigHome } : {}),
       ...(options.cwd ? { cwd: options.cwd } : {}),
       ...(options.attachmentRootDir ? { attachmentRootDir: options.attachmentRootDir } : {}),
       ...(options.agentDir ? { agentDir: options.agentDir } : {}),
@@ -159,6 +164,7 @@ export class Gateway {
         hostService: this.hostService,
         platformPort: this.platformPort,
         environments: this.environments,
+        preferences: this.preferences,
       })
 
       if (handled) return
@@ -170,6 +176,7 @@ export class Gateway {
   async start() {
     await this.browser.open()
     installProviderHttp()
+    this.preferences.watch((preferences) => this.protocol.broadcastPreferences(preferences))
     const warming = this.hostService.warm()
     const port = await new Promise<number>((resolveStart, reject) => {
       this.server.once("error", reject)
@@ -191,6 +198,7 @@ export class Gateway {
   }
 
   async stop() {
+    this.preferences.close()
     await this.protocol.close()
     await this.hostService.dispose()
     await closeEnvironments()

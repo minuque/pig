@@ -1,12 +1,11 @@
 import { computed, inject, provide, shallowRef, type InjectionKey } from "vue"
+import { updatePreferences, userPreferences } from "@client/preferences.js"
 import { readFlag, writeFlag } from "@utils/storage.js"
 import { openTaskSessionKey } from "@features/transcript-view/index.js"
 import { railModeOf } from "@features/session-rail/lib/layout.js"
 import { dismissTasks, readDismissed } from "@features/session-rail/lib/task-list.js"
 import {
   RAIL_SECTIONS,
-  readRailLayout,
-  writeRailLayout,
   type RailLayout,
   type RailSectionId,
 } from "@features/session-rail/lib/sections.js"
@@ -25,7 +24,7 @@ function useSessionRailState() {
   const pane = shallowRef<RailPane>()
   let paneOwner: string | undefined
   const dismissed = shallowRef<string[]>([])
-  const layout = shallowRef<RailLayout>(readRailLayout())
+  const layout = computed(() => userPreferences.value.railLayout)
   const docked = shallowRef(readFlag(DOCKED_KEY))
   const width = shallowRef(window.innerWidth)
   const mode = computed(() => railModeOf(width.value))
@@ -34,8 +33,7 @@ function useSessionRailState() {
     list.includes(id) ? list.filter((item) => item !== id) : [...list, id]
 
   function update(patch: Partial<RailLayout>) {
-    layout.value = { ...layout.value, ...patch }
-    writeRailLayout(layout.value)
+    updatePreferences({ railLayout: { ...layout.value, ...patch } })
   }
 
   function openPane(next: RailPane) {

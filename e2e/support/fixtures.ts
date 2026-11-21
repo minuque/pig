@@ -74,6 +74,7 @@ export interface E2eGateway {
   readonly entryUrl: string
   readonly workspaceDir: string
   readonly workspaceId: string
+  readonly pigHome: string
 }
 
 export interface MultiE2eGateway extends E2eGateway {
@@ -131,8 +132,10 @@ export async function withGateway(
   const temp = await mkdtemp(join(tmpdir(), "pig-e2e-"))
   const workspaceDir = join(temp, "workspace")
   const sessionDir = join(temp, "sessions")
+  const pigHome = join(temp, "pig-home")
   await mkdir(workspaceDir)
   await mkdir(sessionDir)
+  await mkdir(pigHome)
   await writeFile(join(workspaceDir, ".keep"), "")
   seed(sessionDir, workspaceDir)
   const agentDir = join(temp, "agent")
@@ -152,6 +155,7 @@ export async function withGateway(
   const { gateway, port, stop } = await startGateway({
     webRoot,
     sessionDir,
+    pigHome,
     cwd: workspaceDir,
     platformPort,
     port: 0,
@@ -165,6 +169,7 @@ export async function withGateway(
       entryUrl: gateway.authenticatedUrl(`http://127.0.0.1:${port}`),
       workspaceDir,
       workspaceId,
+      pigHome,
     })
   } finally {
     await stop()
@@ -199,6 +204,7 @@ async function withTwoWorkspaces(use: (gateway: MultiE2eGateway) => Promise<void
   const { gateway, port, stop } = await startGateway({
     webRoot,
     sessionDir,
+    pigHome: join(temp, "pig-home"),
     cwd: firstDir,
     platformPort,
     port: 0,
@@ -212,6 +218,7 @@ async function withTwoWorkspaces(use: (gateway: MultiE2eGateway) => Promise<void
       workspaceDir: firstDir,
       workspaceId: canonicalizeWorkspacePath(firstDir),
       secondWorkspaceId: canonicalizeWorkspacePath(secondDir),
+      pigHome: join(temp, "pig-home"),
     })
   } finally {
     await stop()
@@ -338,6 +345,7 @@ async function withModelsGateway(
   const { gateway, port, stop } = await startGateway({
     webRoot,
     sessionDir,
+    pigHome: join(temp, "pig-home"),
     cwd: workspaceDir,
     platformPort,
     port: 0,
@@ -351,6 +359,7 @@ async function withModelsGateway(
       entryUrl: gateway.authenticatedUrl(`http://127.0.0.1:${port}`),
       workspaceDir,
       workspaceId: canonicalizeWorkspacePath(workspaceDir),
+      pigHome: join(temp, "pig-home"),
     })
   } finally {
     await stop()

@@ -1,7 +1,5 @@
-import { readonly, shallowRef } from "vue"
-import { readFlag, writeFlag } from "@utils/storage.js"
-
-const CLICK_SOUND_KEY = "pig.clickSound"
+import { computed } from "vue"
+import { updatePreferences, userPreferences } from "@client/preferences.js"
 
 export type SoundEvent = "done"
 
@@ -15,24 +13,9 @@ const DONE = {
   tones: [[0.145, 349.23, 0.055, 0.1]],
   reflections: [0.024, 0.032],
 } as const
-const enabled = shallowRef(true)
-let loaded = false
+const enabled = computed(() => userPreferences.value.clickSound)
 let ctx: AudioContext | null = null
 let doneBuffer: AudioBuffer | null = null
-
-function readEnabled(): boolean {
-  return readFlag(CLICK_SOUND_KEY)
-}
-
-function persist(value: boolean): void {
-  writeFlag(CLICK_SOUND_KEY, value)
-}
-
-function load(): void {
-  if (loaded) return
-  loaded = true
-  enabled.value = readEnabled()
-}
 
 function synthesizeDone(audio: AudioContext): AudioBuffer {
   const rate = audio.sampleRate
@@ -82,8 +65,6 @@ async function audioReady(): Promise<AudioContext | null> {
 }
 
 async function play(_event: SoundEvent): Promise<void> {
-  load()
-
   if (!enabled.value) return
   const audio = await audioReady()
 
@@ -96,13 +77,11 @@ async function play(_event: SoundEvent): Promise<void> {
 }
 
 function toggle(): void {
-  enabled.value = !enabled.value
-  persist(enabled.value)
+  updatePreferences({ clickSound: !enabled.value })
 
   if (enabled.value) void play("done")
 }
 
 export function useSound() {
-  load()
-  return { enabled: readonly(enabled), toggle, play }
+  return { enabled, toggle, play }
 }

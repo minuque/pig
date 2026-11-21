@@ -14,6 +14,7 @@ import type {
   SessionTranscriptPage,
 } from "./session.js"
 import type { TranscriptItem } from "./transcript.js"
+import type { UserPreferences, UserPreferencesPatch } from "./preferences.js"
 import type {
   ComposerCommand,
   ContentSearchResponse,
@@ -77,6 +78,13 @@ export interface PlatformHttpRoutes {
   "POST /api/v1/platform/attachments/stage": {
     query: { batch: string; name: string; mimeType: string }
     response: { id: string }
+  }
+  "GET /api/v1/platform/preferences": {
+    response: { preferences: UserPreferences; exists: boolean }
+  }
+  "PATCH /api/v1/platform/preferences": {
+    body: UserPreferencesPatch
+    response: { preferences: UserPreferences }
   }
   "POST /api/v1/platform/attachments/discard": {
     body: { batch: string }

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto"
 import { mkdir } from "node:fs/promises"
 import { homedir } from "node:os"
-import { join } from "node:path"
+import { join, resolve } from "node:path"
 
 export interface RemoteBinding {
   environment: string
@@ -9,8 +9,14 @@ export interface RemoteBinding {
 }
 
 export const BINDING_ENTRY = "pig.remote"
-export const defaultRemoteRoot = () => join(homedir(), ".pig", "remote")
-export const defaultTaskLogRoot = () => join(homedir(), ".pig", "tasks")
+
+export function defaultPigHome(env: NodeJS.ProcessEnv = process.env): string {
+  const configured = env.PIG_HOME?.trim()
+  return configured ? resolve(configured) : join(homedir(), ".pig")
+}
+
+export const defaultRemoteRoot = () => join(defaultPigHome(), "remote")
+export const defaultTaskLogRoot = () => join(defaultPigHome(), "tasks")
 export const remoteWorkspaceKey = (binding: RemoteBinding) =>
   `${binding.environment}${binding.path.startsWith("/") ? "" : "/"}${binding.path}`
 

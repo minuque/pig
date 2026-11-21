@@ -1,14 +1,8 @@
-import { computed, ref } from "vue"
-import { readStringArray, writeJson } from "@utils/storage.js"
-
-const FAVORITE_MODELS_KEY = "pig.favoriteModels"
-
-function loadFavoriteModels(): string[] {
-  return readStringArray(FAVORITE_MODELS_KEY).filter((item) => item.includes("/"))
-}
+import { computed } from "vue"
+import { updatePreferences, userPreferences } from "@client/preferences.js"
 
 export function useModelFavorites() {
-  const keys = ref(loadFavoriteModels())
+  const keys = computed(() => userPreferences.value.favoriteModels)
   const set = computed(() => new Set(keys.value))
 
   function isFavorite(provider: string, id: string) {
@@ -17,11 +11,11 @@ export function useModelFavorites() {
 
   function toggle(provider: string, id: string) {
     const key = `${provider}/${id}`
-    keys.value = keys.value.includes(key)
-      ? keys.value.filter((item) => item !== key)
-      : [...keys.value, key]
-
-    writeJson(FAVORITE_MODELS_KEY, keys.value)
+    updatePreferences({
+      favoriteModels: keys.value.includes(key)
+        ? keys.value.filter((item) => item !== key)
+        : [...keys.value, key],
+    })
   }
 
   return { set, isFavorite, toggle }

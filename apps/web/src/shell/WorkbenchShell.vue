@@ -83,6 +83,7 @@ import { notify } from "@components/layout/notify.js"
 
 import { useLocalWorkspaces } from "@client/local-cwd.js"
 import { useGatewayClient } from "@client/gateway-connection.js"
+import { hydratePreferences } from "@client/preferences.js"
 
 import { Columns2Icon } from "@components/icons/index.js"
 import { useI18n } from "@i18n/index.js"
@@ -224,7 +225,7 @@ function onSessionDrop(zone: Side, event: Event) {
 }
 
 function initialize() {
-  return Promise.all([left.initialize(), right.initialize()])
+  return Promise.all([left.initialize(), right.initialize(), hydratePreferences()])
 }
 
 onMounted(() => {

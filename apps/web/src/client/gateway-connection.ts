@@ -4,6 +4,7 @@ import type { ServerSnapshot } from "@/types/common-type.js"
 import { t } from "@i18n/index.js"
 
 import { GatewayClient, type ConnectionState, type Unsubscribe } from "@client/gateway-client.js"
+import { applyRemotePreferences, hydratePreferences } from "@client/preferences.js"
 import { webSocketUrl } from "@client/transport.js"
 import { listProviderModels } from "@client/platform.js"
 
@@ -62,6 +63,7 @@ export function useGatewayClient() {
       next.subscribe((snapshot) => {
         serverSnapshot.value = snapshot
       }),
+      next.onPreferencesChanged(applyRemotePreferences),
     )
 
     try {
@@ -108,6 +110,7 @@ export function useGatewayClient() {
 
   watch(connectionState, (state) => {
     if (state === "connected") {
+      if (wasConnected) void hydratePreferences()
       wasConnected = true
       return
     }
