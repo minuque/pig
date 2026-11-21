@@ -395,7 +395,6 @@
 }
 
 .glass-panel {
-  border: var(--border-width) solid var(--border);
   border-radius: 16px;
   background: var(--glass-bg);
   box-shadow: var(--glass-shadow);
@@ -412,7 +411,6 @@
   flex-direction: column;
   overflow: hidden;
   border-radius: var(--radius-card);
-  border: var(--border-width) solid var(--float-border);
   background-color: var(--float-bg);
   box-shadow: var(--float-shadow);
   backdrop-filter: var(--glass-filter);

@@ -3,7 +3,7 @@
     <TransitionGroup name="banner" tag="div" class="banner-layer">
       <div v-for="item in noticeQueue" :key="item.id" class="banner-item">
         <Banner
-          variant="surface"
+          variant="soft"
           size="s"
           :color="LEVEL_COLOR[item.level]"
           dismissible
@@ -55,6 +55,7 @@ const LEVEL_COLOR: Record<NoticeLevel, BannerColor> = {
 }
 
 .banner-alert {
+  background-image: linear-gradient(var(--tone-subtle), var(--tone-subtle));
   box-shadow: var(--shadow-popover);
 }
 

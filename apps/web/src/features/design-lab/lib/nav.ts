@@ -44,7 +44,7 @@ const LAYOUT: { id: string; title: Label; items: (string | [string, Label])[] }[
   {
     id: "layout",
     title: { zh: "布局", en: "Layout" },
-    items: ["Card", "Collapsible", "ScrollArea", "Table", "Tabs"],
+    items: ["Card", "Collapsible", "Table", "Tabs"],
   },
   {
     id: "business",

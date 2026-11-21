@@ -139,7 +139,6 @@ const size = useSelectSize()
 }
 
 :where([data-slot="select-trigger"][data-variant="surface"]) {
-  border-color: var(--control-border);
   background-color: var(--control-bg);
   box-shadow: var(--control-shadow);
 }

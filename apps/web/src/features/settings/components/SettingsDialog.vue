@@ -92,7 +92,7 @@
             </DialogClose>
           </header>
 
-          <ScrollArea ref="scroller" scrollbars="vertical" class="settings-scroll">
+          <div ref="scroller" class="settings-scroll">
             <div class="settings-scroll-content">
               <div class="settings-body">
                 <GeneralPane v-if="active === 'general'" />
@@ -101,7 +101,7 @@
                 <ModelsPane v-else :refresh-models="refreshModels" />
               </div>
             </div>
-          </ScrollArea>
+          </div>
         </div>
       </div>
     </DialogContent>
@@ -112,7 +112,6 @@
 import { computed, nextTick, provide, ref, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
-import { ScrollArea } from "@components/ui/scroll-area/index.js"
 import {
   BellIcon,
   XIcon,
@@ -142,7 +141,7 @@ const props = defineProps<{
 const emit = defineEmits<{ "update:open": [open: boolean] }>()
 const { t } = useI18n()
 const active = ref<Pane>(props.initialPane ?? "general")
-const scroller = useTemplateRef<InstanceType<typeof ScrollArea>>("scroller")
+const scroller = useTemplateRef<HTMLElement>("scroller")
 const trail = ref<SettingsCrumb[]>([])
 
 provide(SETTINGS_TRAIL, trail)
@@ -296,7 +295,7 @@ async function openResult(item: SettingsSearchEntry) {
   query.value = ""
   activeResult.value = 0
   await nextTick()
-  const root = scroller.value?.viewport
+  const root = scroller.value
 
   if (!root) return
 
@@ -332,7 +331,7 @@ function select(pane: Pane) {
 }
 
 function resetScroll() {
-  scroller.value?.viewport?.scrollTo({ top: 0 })
+  scroller.value?.scrollTo({ top: 0 })
 }
 
 watch(
@@ -602,7 +601,8 @@ watch(active, async () => {
 .settings-dialog .settings-scroll {
   flex: 1;
   min-height: 0;
-  height: auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .settings-dialog .settings-scroll-content {

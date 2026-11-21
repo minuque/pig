@@ -53,7 +53,6 @@ const size = useSelectSize()
   z-index: var(--z-popover);
   overflow: hidden;
   border-radius: var(--radius-card);
-  border: var(--border-width) solid var(--float-border);
   background-color: var(--float-bg);
   box-shadow: var(--float-shadow);
   backdrop-filter: var(--glass-filter);

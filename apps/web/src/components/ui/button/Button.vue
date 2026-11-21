@@ -138,7 +138,6 @@ const props = withDefaults(defineProps<Props>(), {
 }
 
 :where([data-button][data-variant="solid"]) {
-  border-color: var(--tone);
   background-color: var(--tone);
   box-shadow:
     var(--button-highlight),
@@ -165,13 +164,12 @@ const props = withDefaults(defineProps<Props>(), {
 }
 
 :where([data-button][data-variant="outline"]) {
-  border-color: var(--control-border);
   background-color: var(--control-bg);
   box-shadow: var(--control-shadow);
 }
 
 :where([data-button][data-variant="outline"]:active) {
-  box-shadow: none;
+  box-shadow: 0 0 0 var(--border-width) var(--control-border);
 }
 
 @media (hover: hover) {

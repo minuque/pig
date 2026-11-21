@@ -86,7 +86,7 @@ spacing:
 
 1. **一页一个强调色。** 强调色（`#5E6AD2`）只用于主操作、焦点与选中底；活动态（链接、进行中、运行指示）另走 cyan。卡片、区块不铺强调色：悬停走中性灰，选中只铺极淡的靛，不铺成彩色块。
 2. **一页最多 4 种字号。** 全局只有 4 档，层级靠字重和三级文字色。
-3. **默认扁平。** 不叠阴影、不发光。阴影与毛玻璃只给真正浮起来的层：命令面板与警告框用 `--glass-*`，贴着触发器的菜单、下拉、选择框与浮卡用 `--float-*` 浮层：`--bg-raised` 84% 半透明底叠 `--glass-filter` 模糊，配与卡片相同的 `--float-border` 边框和一层淡投影 `--float-shadow`。
+3. **默认扁平，有阴影就用环。** 不叠阴影、不发光。阴影与毛玻璃只给真正浮起来的层：命令面板与警告框用 `--glass-*`，贴着触发器的菜单、下拉、选择框与浮卡用 `--float-*` 浮层：`--bg-raised` 84% 半透明底叠 `--glass-filter` 模糊，边缘与一层淡投影都写在 `--float-shadow` 里。有阴影的卡片、浮层、输入卡与立体控件用 `box-shadow: 0 0 0 var(--border-width) ...` 画环，不写 `border`：`border` 坐在表面底色之上，会在圆角内侧留一条苍白割裂线；外环绘在盒子外侧，和阴影融成一条干净的边。扁平无阴影的静态卡片仍用 `inset` 细线或单边分割线。
 4. **不卡片套卡片。** 卡片里的分组用标题加分割线。
 5. **圆角同心。** 内层圆角 = 外层圆角 − 内边距。
 6. **规范只有一套。** 按钮、间距、圆角、分割线、弹窗、动画、阴影全站共用。
@@ -106,7 +106,7 @@ spacing:
 - 链接 `--link` 取 `--info-text`，与「进行中」同一种 cyan，不跟强调色走。
 - 「进行中」与强调色分开：运行状态、转圈、上下文进度条与用量环走 `--info-*`，文字取 `--info-text`（浅色 `#0B6F88`，深色 cyan-11），填充取 `--info-solid`（cyan-9），浅底取 cyan 第 3 级 alpha。
 - 悬停与选中分开：按钮、菜单项、侧栏行深浅均走半透明叠加，`--bg-hover` 走中性叠加（浅色 `fg 6%` / 深色 `white 6%`），`--bg-selected` 走淡强调色叠加（浅色 `accent-solid 11%` / 深色 `accent-solid 16%`），只铺极淡的一层，不铺成彩色块。
-- 按钮变体四种：`solid`（主操作）、`secondary`（`--bg-muted` 底）、`outline`（`--border-input` 框加 `--bg-raised` 底）、`ghost`（固定盒，悬停才铺 `--bg-hover`）。一页只出现一个 solid 主按钮，其余用 secondary、outline 或 ghost。
+- 按钮变体四种：`solid`（主操作）、`secondary`（`--bg-muted` 底）、`outline`（`--control-border` 环加 `--control-bg` 底，环由 `--control-shadow` 绘出）、`ghost`（固定盒，悬停才铺 `--bg-hover`）。一页只出现一个 solid 主按钮，其余用 secondary、outline 或 ghost。
 - 输入卡的发送键用强调色实心（`--accent-solid` 配 `--fg-on-accent`），停止键用危险色实心（`--danger-solid` 配白）。「滚动到底部」仍用反色（`--bg-inverse` / `--fg-inverse`）：中灰（浅色 `#6B6B72` 配白字 5.3:1，深色 `#9DA4AE` 配深字 7.4:1），不用纯黑白。发送键不可用时换 `--bg-emphasis` 底配 `--fg-secondary` 图标，不靠降透明度。
 
 ### 中性色
@@ -179,15 +179,17 @@ spacing:
 
 ## 阴影与层级
 
-| token               | 给谁                                                                       |
-| ------------------- | -------------------------------------------------------------------------- |
-| `--shadow-popover`  | 提示、悬停卡、拖拽中的行、滚动到底按钮                                     |
-| `--shadow-dialog`   | 对话框、抽屉、图片预览                                                     |
-| `--composer-shadow` | 输入卡：轻描边加顶边微高光与柔投影，聚焦输入时抬升投影                               |
+| token               | 给谁                                                                                                     |
+| ------------------- | -------------------------------------------------------------------------------------------------------- |
+| `--shadow-popover`  | 提示、悬停卡、拖拽中的行、滚动到底按钮                                                                   |
+| `--shadow-dialog`   | 对话框、抽屉、图片预览                                                                                   |
+| `--composer-shadow` | 输入卡：柔投影；与 `--composer-bg` 的高不透明毛玻璃底、`--composer-inset` 的顶边高光、1px 外环组合使用     |
 
-- 浮层与对话框阴影自带 1px 外环，写在 `tokens.css` 的 `--shadow-popover`、`--shadow-dialog`，深浅各一套。
-- 居中模态浮层（命令面板、警告框）用 `--glass-*` 毛玻璃面板；菜单、下拉、选择框与浮卡用 `--float-bg` / `--float-border` / `--float-shadow` 加 `--glass-filter`，边框同卡片、投影只留一层淡阴影；需要实色底的卡片用 `--bg-surface`。
-- 卡片用 1px `--border` 描边、不铺底；描边与底色差只用一种。
+- **有阴影的表面用环不用 `border`。** `box-shadow: 0 0 0 var(--border-width) ...` 画在盒子外侧，与投影连成一条边缘；`border` 占着盒内一圈，比阴影更靠里，圆角处会露出苍白割裂线。
+- 外环已并入各组阴影，深浅各一套：`--shadow-popover`、`--shadow-dialog` 自带 1px 环；菜单、下拉、选择框与浮卡的 1px 环在 `--float-shadow` 里（不再有 `--float-border`）；居中模态浮层的环在 `--glass-shadow` 里；outline 按钮与选择框等立体控件的环在 `--control-shadow` 里（读 `--control-border`）。组件只写 `box-shadow: var(--float-shadow)` 之类的一行，不再补 `border`。
+- 毛玻璃只给浮起来的层：命令面板与警告框用 `--glass-*` 面板，菜单、下拉、选择框与浮卡用 `--float-bg` / `--float-shadow` 加 `--glass-filter`；需要实色底的卡片用 `--bg-surface`。
+- 输入卡用 `--composer-bg`（浅色 `--bg-raised` 92%、深色 `--bg-surface` 90% 的高不透明毛玻璃）配 `--glass-filter`，加 1px 外环、`--composer-inset` 轻顶边高光与 `--composer-shadow` 柔投影；聚焦时只轻微加深外环（`--composer-border` → `--composer-border-hover`），不做抬升。
+- 扁平无阴影的静态卡片用 1px `--border` 的 `inset` 细线或不铺底；描边与底色差只用一种。
 - 分行卡片一律用 `CardList` + `CardRow`（`@components/ui/card`），不自写行线与内边距：12 圆角，行左右 16、上下 12，行线贴边；`interactive` 加悬停底；`bleed` 不带左右内边距，内容自己读 `--card-padding`。对话里的工具卡片留 8 圆角，与代码卡一致。
 - 焦点环：`--focus-color` 取 `--accent-text`（`--focus-ring` = 2px 实色 `--focus-color`）；危险态 `--focus-ring-danger`。
 
@@ -206,11 +208,11 @@ spacing:
 
 - 设置行由标题、一行简短说明与控件组成，不再堆叠多余提示。
 - 项目缩写用灰色 soft Badge。
-- AI 工作台与通用基础件收口到 `components/ui/`：`StatusIndicator` 统一圆点/图标状态表达（侧栏状态、子任务点、摘要角标），`Collapsible` 已接入 `RailCard`、`ProviderModelList`、`RailTasks`，`ScrollArea` 已接入 `SettingsDialog`、`RailPane`、`CommandMenu`、`DesignLab`，`Checkbox` 补全表单复选能力并在 `/design` 提供示例。
+- AI 工作台与通用基础件收口到 `components/ui/`：`StatusIndicator` 统一圆点/图标状态表达（侧栏状态、子任务点、摘要角标），`Collapsible` 已接入 `RailCard`、`ProviderModelList`、`RailTasks`，`Checkbox` 补全表单复选能力并在 `/design` 提供示例。
 
 ## 不要
 
-- 不加第二个强调色、装饰色、渐变、光晕；毛玻璃只用于居中模态浮层。
-- 不给静止的卡片、侧栏、工具栏加阴影。
+- 不加第二个强调色、装饰色、渐变、光晕；毛玻璃只用于居中模态浮层、贴着触发器的浮层与悬浮输入卡，不给静止正文卡片或侧栏加毛玻璃。
+- 不给静止的卡片、侧栏、工具栏加阴影；有阴影的表面不叠 `border`，环一律写进阴影。
 - 不加第 5 种字号，不加第 4 级文字灰。
 - 不写说明产品本身已经说清楚的文案。

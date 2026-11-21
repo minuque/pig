@@ -48,7 +48,6 @@ const widthStyle = computed(() => ({ maxInlineSize: props.maxWidth }))
   position: relative;
   z-index: var(--z-popover);
   overflow: auto;
-  border: var(--border-width) solid var(--float-border);
   background-color: var(--float-bg);
   box-shadow: var(--float-shadow);
   backdrop-filter: var(--glass-filter);
