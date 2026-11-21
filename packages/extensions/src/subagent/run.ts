@@ -1,4 +1,5 @@
 import {
+  CONFIG_DIR_NAME,
   createAgentSession,
   DefaultResourceLoader,
   getAgentDir,
@@ -8,6 +9,8 @@ import {
   type AgentSessionEvent,
 } from "@earendil-works/pi-coding-agent"
 import { BINDING_ENTRY, type RemoteBinding } from "@pig/environment/source"
+import { existsSync, readFileSync } from "node:fs"
+import { join, resolve } from "node:path"
 
 import remoteWorkspace from "../remote-workspace/index.ts"
 import type { AgentConfig } from "./agents.ts"
@@ -62,12 +65,43 @@ function stepOf(event: Extract<AgentSessionEvent, { type: "tool_execution_start"
   return `${event.toolName} ${brief(target)}`
 }
 
+function stripPackagesFromSettingsJson(raw: string | undefined): string | undefined {
+  if (raw === undefined) return undefined
+
+  try {
+    const clean = raw.charCodeAt(0) === 0xfeff ? raw.slice(1) : raw
+    const parsed: unknown = JSON.parse(clean)
+
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return raw
+    const { packages: _packages, ...rest } = parsed as Record<string, unknown>
+    return JSON.stringify(rest)
+  } catch {
+    return raw
+  }
+}
+
 function settingsWithoutPackages(cwd: string, agentDir: string): SettingsManager {
-  const settings = SettingsManager.create(cwd, agentDir)
-  const global = settings.getGlobalSettings.bind(settings)
-  const project = settings.getProjectSettings.bind(settings)
-  settings.getGlobalSettings = () => ({ ...global(), packages: [] })
-  settings.getProjectSettings = () => ({ ...project(), packages: [] })
+  const globalPath = join(resolve(agentDir), "settings.json")
+  const projectPath = join(resolve(cwd), CONFIG_DIR_NAME, "settings.json")
+  const settings = SettingsManager.fromStorage({
+    withLock(scope, fn) {
+      const path = scope === "global" ? globalPath : projectPath
+      const current = existsSync(path)
+        ? stripPackagesFromSettingsJson(readFileSync(path, "utf-8"))
+        : undefined
+
+      fn(current)
+    },
+  })
+
+  if (
+    (settings.getGlobalSettings().packages?.length ?? 0) > 0 ||
+    (settings.getProjectSettings().packages?.length ?? 0) > 0 ||
+    settings.getPackages().length > 0
+  ) {
+    throw new Error("SettingsManager unexpectedly retained packages")
+  }
+
   return settings
 }
 

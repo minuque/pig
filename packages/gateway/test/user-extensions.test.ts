@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs"
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises"
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
@@ -69,16 +69,15 @@ else if (args.includes("root")) console.log(${JSON.stringify(join(root, "npm-glo
 `,
     )
     const npmCommand = [process.execPath, fakeNpm]
-    await writeFile(
-      join(agentDir, "settings.json"),
-      JSON.stringify({ npmCommand, packages: ["npm:pig-missing-global"] }),
-    )
-    await writeFile(
-      join(cwd, ".pi", "settings.json"),
-      JSON.stringify({ npmCommand, packages: ["npm:pig-missing-project"] }),
-    )
-    await createResourceLoader(cwd, { agentDir })
+    const globalRaw = `\uFEFF${JSON.stringify({ npmCommand, defaultThinkingLevel: "high", packages: ["npm:pig-missing-global"] })}`
+    const projectRaw = JSON.stringify({ npmCommand, packages: ["npm:pig-missing-project"] })
+    await writeFile(join(agentDir, "settings.json"), globalRaw)
+    await writeFile(join(cwd, ".pi", "settings.json"), projectRaw)
+    const loader = await createResourceLoader(cwd, { agentDir })
 
     expect(existsSync(installMarker)).toBe(false)
+    expect(loader.getSkills().skills.map((skill) => skill.name)).toContain("probe-skill")
+    await expect(readFile(join(agentDir, "settings.json"), "utf-8")).resolves.toBe(globalRaw)
+    await expect(readFile(join(cwd, ".pi", "settings.json"), "utf-8")).resolves.toBe(projectRaw)
   })
 })
