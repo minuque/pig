@@ -187,12 +187,16 @@ const images = computed(() => toolCallImages(props.call))
   inset: 0;
 }
 
-.tool-row-trigger:hover,
-.tool-row-trigger:focus-visible,
-.tool-row-trigger[aria-expanded="true"],
-.tool-row-head:has(.tool-row-trigger:is(:hover, :focus-visible, [aria-expanded="true"]))
-  .tool-row-caret {
-  color: var(--fg-secondary);
+.tool-row-trigger:is(:focus-visible, [aria-expanded="true"]),
+.tool-row-head:has(.tool-row-trigger:is(:focus-visible, [aria-expanded="true"])) .tool-row-caret {
+  color: var(--fg);
+}
+
+@media (hover: hover) {
+  .tool-row-trigger:hover,
+  .tool-row-head:has(.tool-row-trigger:hover) .tool-row-caret {
+    color: var(--fg);
+  }
 }
 
 .tool-row-text {

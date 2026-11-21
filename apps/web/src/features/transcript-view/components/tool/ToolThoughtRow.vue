@@ -65,10 +65,14 @@ const label = computed(() => thoughtStepLabel(props.step))
   cursor: pointer;
 }
 
-.tool-row-trigger:hover,
-.tool-row-trigger:focus-visible,
-.tool-row-trigger[aria-expanded="true"] {
-  color: var(--fg-secondary);
+.tool-row-trigger:is(:focus-visible, [aria-expanded="true"]) {
+  color: var(--fg);
+}
+
+@media (hover: hover) {
+  .tool-row-trigger:hover {
+    color: var(--fg);
+  }
 }
 
 .thought-caret {

@@ -200,10 +200,16 @@ onBeforeUnmount(() => {
   inset: 0;
 }
 
-.tool-run-summary:hover,
-.tool-run-summary:focus-visible,
-.tool-run-summary[aria-expanded="true"] {
-  color: var(--fg-secondary);
+.tool-run-summary:is(:focus-visible, [aria-expanded="true"]),
+.tool-run-head:has(.tool-run-summary:is(:focus-visible, [aria-expanded="true"])) .tool-run-caret {
+  color: var(--fg);
+}
+
+@media (hover: hover) {
+  .tool-run-summary:hover,
+  .tool-run-head:has(.tool-run-summary:hover) .tool-run-caret {
+    color: var(--fg);
+  }
 }
 
 .tool-run-thumbs {
