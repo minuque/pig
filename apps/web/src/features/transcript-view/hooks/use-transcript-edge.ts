@@ -1,20 +1,11 @@
 import { onMounted, shallowRef, toValue, watch, type MaybeRefOrGetter } from "vue"
 import type { TimelineRow } from "@features/transcript-view/type.js"
 
-export function useTranscriptReveal(
-  rows: MaybeRefOrGetter<readonly TimelineRow[]>,
-  pinLatest: () => void,
-) {
+export function useTranscriptReveal(rows: MaybeRefOrGetter<readonly TimelineRow[]>) {
   const readyFrame = shallowRef(toValue(rows).length > 0)
 
   function reveal() {
-    if (toValue(rows).length === 0) {
-      readyFrame.value = false
-      return
-    }
-
-    pinLatest()
-    readyFrame.value = true
+    readyFrame.value = toValue(rows).length > 0
   }
 
   onMounted(reveal)

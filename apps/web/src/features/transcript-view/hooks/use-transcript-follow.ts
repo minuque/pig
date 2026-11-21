@@ -422,6 +422,16 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     el.scrollIntoView({ block: "start", behavior: userScrollBehavior() })
   }
 
+  function restoreScrollTop(top: number) {
+    detachFollow()
+    atBottom.value = false
+    const root = getRoot()
+
+    if (!root) return
+    writeScrollTop(root, top)
+    updateVisual(root)
+  }
+
   onMounted(() => {
     window.addEventListener("pointerup", onPointerUp, { passive: true })
   })
@@ -443,5 +453,6 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     onPointerDown,
     scrollToLatest,
     scrollToElement,
+    restoreScrollTop,
   }
 }

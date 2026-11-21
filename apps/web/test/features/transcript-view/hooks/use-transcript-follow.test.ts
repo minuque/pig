@@ -180,4 +180,28 @@ describe("一轮工作：流式视口跟随", () => {
     expect(follow.atBottom.value).toBe(false)
     expect(root.scrollTop).toBe(480)
   })
+
+  it("restoreScrollTop 直接写入位置并脱底，不触发自动贴底，同步更新 visuallyAtBottom", () => {
+    const { root, follow } = fixture()
+
+    expect(follow.atBottom.value).toBe(true)
+    expect(follow.visuallyAtBottom.value).toBe(true)
+
+    root.scrollHeight = 1200
+    follow.restoreScrollTop(200)
+    expect(root.scrollTop).toBe(200)
+    expect(follow.atBottom.value).toBe(false)
+    expect(follow.visuallyAtBottom.value).toBe(false)
+
+    root.scrollHeight += 120
+    follow.pinIfNeeded()
+    settleFully()
+    expect(root.scrollTop).toBe(200)
+    expect(follow.atBottom.value).toBe(false)
+
+    follow.restoreScrollTop(900)
+    expect(root.scrollTop).toBe(900)
+    expect(follow.atBottom.value).toBe(false)
+    expect(follow.visuallyAtBottom.value).toBe(true)
+  })
 })

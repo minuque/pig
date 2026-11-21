@@ -196,4 +196,76 @@ describe("useComposerBinding", () => {
     await nextTick()
     expect(preset.value).toBeUndefined()
   })
+
+  it("setModel 在途收到旧快照回声不回盖，中途再切第三个模型会顺次下发", async () => {
+    const sonnet = { provider: "anthropic", id: "claude-sonnet" }
+    const haiku = { provider: "anthropic", id: "claude-haiku" }
+    const gpt = { provider: "openai", id: "gpt-4o" }
+    const state = ref(snapshot(sonnet, "high"))
+    const releases: Array<() => void> = []
+    const setModel = vi.fn(
+      async (model: { provider: string; id: string }) =>
+        new Promise<void>((resolve) => {
+          releases.push(() => {
+            state.value = snapshot(model, "high")
+            resolve()
+          })
+        }),
+    )
+    const setThinking = vi.fn(async (level: string) => {
+      state.value = snapshot(state.value.model, level)
+    })
+    const { preset } = useComposerBinding({
+      catalog: ref(pickerCatalog),
+      defaultModel: ref(null),
+      snapshot: state,
+      phase: ref("idle"),
+      setModel,
+      setThinking,
+    })
+
+    preset.value = { model: haiku, thinkingLevel: "low" }
+    await nextTick()
+    state.value = snapshot(sonnet, "high")
+    await nextTick()
+    expect(preset.value).toEqual({ model: haiku, thinkingLevel: "low" })
+
+    preset.value = { model: gpt, thinkingLevel: "off" }
+    await nextTick()
+    expect(setModel).toHaveBeenCalledTimes(1)
+    expect(preset.value).toEqual({ model: gpt, thinkingLevel: "off" })
+
+    releases.shift()?.()
+    await new Promise((resolve) => setTimeout(resolve))
+    expect(setModel).toHaveBeenCalledTimes(2)
+    expect(setModel).toHaveBeenNthCalledWith(2, gpt)
+
+    releases.shift()?.()
+    await new Promise((resolve) => setTimeout(resolve))
+    expect(setThinking).toHaveBeenCalledTimes(1)
+    expect(setThinking).toHaveBeenCalledWith("off")
+    expect(preset.value).toEqual({ model: gpt, thinkingLevel: "off" })
+  })
+
+  it("setModel 失败时清理 pending 并回落到当前快照模型", async () => {
+    const state = ref(snapshot({ provider: "a", id: "one" }, "high"))
+    const setModel = vi.fn(async () => {
+      throw new Error("boom")
+    })
+    const setThinking = vi.fn(async () => undefined)
+    const { preset } = useComposerBinding({
+      catalog: ref(catalog),
+      defaultModel: ref(null),
+      snapshot: state,
+      phase: ref("idle"),
+      setModel,
+      setThinking,
+    })
+
+    preset.value = { model: { provider: "b", id: "two" }, thinkingLevel: "low" }
+    await new Promise((resolve) => setTimeout(resolve))
+    expect(setModel).toHaveBeenCalledTimes(1)
+    expect(setThinking).not.toHaveBeenCalled()
+    expect(preset.value).toEqual({ model: { provider: "a", id: "one" }, thinkingLevel: "high" })
+  })
 })
