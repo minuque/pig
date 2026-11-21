@@ -2,14 +2,16 @@ import { EventEmitter } from "node:events"
 import { mkdir, mkdtemp, realpath, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 
 import { canonicalizePath } from "../../../packages/gateway/src/system/directory.js"
 import { createMessageDirectoryPort } from "../src/main/directory-port.js"
 import type { ChildMessage, ParentMessage } from "../src/main/gateway-messages.js"
 import { connectGateway } from "../src/main/gateway-process.js"
 
-async function selectThroughGateway(picked: string | undefined): Promise<string | undefined> {
+async function selectThroughGateway(
+  pickDirectory: () => Promise<string | undefined>,
+): Promise<string | undefined> {
   const child = Object.assign(new EventEmitter(), {
     postMessage: (message: ParentMessage) => {
       if (message.type === "directory-selected") directory.settle(message)
@@ -21,7 +23,7 @@ async function selectThroughGateway(picked: string | undefined): Promise<string 
     canonicalizePath,
   )
   const connected = connectGateway(child, {
-    pickDirectory: async () => picked,
+    pickDirectory,
     onUnexpectedExit: () => {},
   })
 
@@ -38,7 +40,7 @@ describe("选目录经主进程一去一回", () => {
   })
 
   it("取消返回 undefined", async () => {
-    expect(await selectThroughGateway(undefined)).toBeUndefined()
+    expect(await selectThroughGateway(async () => undefined)).toBeUndefined()
   })
 
   it("选中目录后在子进程做 realpath 规范化", async () => {
@@ -46,6 +48,21 @@ describe("选目录经主进程一去一回", () => {
     const selected = join(tempRoot, "workspace")
     await mkdir(selected)
 
-    expect(await selectThroughGateway(selected)).toBe(canonicalizePath(await realpath(selected)))
+    expect(await selectThroughGateway(async () => selected)).toBe(
+      canonicalizePath(await realpath(selected)),
+    )
+  })
+
+  it("对话框出错时透传失败而不是当成取消", async () => {
+    const spy = vi.spyOn(console, "error").mockImplementation(() => {})
+
+    try {
+      await expect(
+        selectThroughGateway(() => Promise.reject(new Error("dialog failed"))),
+      ).rejects.toThrow("dialog failed")
+      expect(spy).toHaveBeenCalledTimes(1)
+    } finally {
+      spy.mockRestore()
+    }
   })
 })
