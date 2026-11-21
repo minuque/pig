@@ -43,6 +43,7 @@ const target = computed(() => filePosition(props.path).path)
   text-overflow: ellipsis;
   white-space: nowrap;
   vertical-align: bottom;
+  text-decoration-color: currentColor;
 }
 
 .file-link .file-link-icon {
