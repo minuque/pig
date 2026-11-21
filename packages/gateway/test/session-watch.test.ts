@@ -125,11 +125,15 @@ describe("会话文件监听：按需开关", () => {
 
     watcher.subscribe("s-1", () => changes.push(1))
     await sleep(100)
-    watcher.close()
+    await appendFile(file, "before\n")
+    expect(await until(() => changes.length > 0)).toBe(true)
 
-    await appendFile(file, "a\n")
+    watcher.close()
+    const countAtClose = changes.length
+
+    await appendFile(file, "after\n")
     await sleep(200)
-    expect(changes).toEqual([])
+    expect(changes.length).toBe(countAtClose)
   })
 
   it("会话不在磁盘上就没有可监听的文件", async () => {

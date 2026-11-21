@@ -268,6 +268,11 @@ async function stageFile(
 
   await mkdir(dir, { recursive: true })
   const sink = createWriteStream(path)
+  let sinkError: unknown
+
+  sink.on("error", (error) => {
+    sinkError ??= error
+  })
   let size = 0
 
   try {
@@ -275,15 +280,19 @@ async function stageFile(
     await once(sink, "open")
 
     for await (const chunk of readBounded(stream, MAX_FILE_BYTES)) {
+      if (sinkError) throw sinkError
       size += chunk.length
 
       if (!sink.write(chunk)) await once(sink, "drain")
     }
 
+    if (sinkError) throw sinkError
     sink.end()
     await finished(sink)
   } catch (error) {
     sink.destroy()
+
+    if (!sink.closed) await new Promise<void>((resolve) => sink.once("close", resolve))
     await rm(path, { force: true })
     await rmdir(dir).catch(() => undefined)
     throw error
