@@ -12,9 +12,22 @@ const ALLOWED = [
 ]
 const MESSAGE =
   "删掉注释：只放行许可证、外部约束（以「外部：」开头）、prettier-ignore、有理由的 lint 抑制、公开契约文档和 issue/RFC 链接。见 /delete-comment。"
+const TYPE_TAG =
+  /^@(type|typedef|param|returns?|template|satisfies|import|property|overload|callback)\b/
+
+function isTypeAnnotation(text) {
+  if (!text.startsWith("*")) return false
+
+  const lines = text
+    .slice(1)
+    .split("\n")
+    .map((line) => line.replace(/^\s*\*?\s*/, "").trim())
+    .filter(Boolean)
+  return lines.length > 0 && lines.every((line) => TYPE_TAG.test(line))
+}
 
 export function isAllowedComment(text) {
-  return ALLOWED.some((pattern) => pattern.test(text))
+  return ALLOWED.some((pattern) => pattern.test(text)) || isTypeAnnotation(text)
 }
 
 const eslintRule = {

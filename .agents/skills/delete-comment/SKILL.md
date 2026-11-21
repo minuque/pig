@@ -15,7 +15,7 @@ description: 清理代码注释：按五类放行名单逐条判定，赘述/过
 4. 定义公开 API 契约的文档注释。只有 `packages/protocol/src`（web 与 gateway 之间的线上契约）算公开 API，lint 在那里放行 `/** */`；只复述字段名的照样删。
 5. 解释代码表达不了的约束的 issue 或 RFC 链接（`/issues/`、`/pull/`、RFC）。
 
-`/// <reference …>`、shebang 和 `tokens.css` 里 `/* --- 分组 --- */` 这类分区标题是代码读取的数据，不算注释，不动。
+只含类型标签的 JSDoc（`/** @type {…} */`、`@param {…} x`、`@returns`、`@typedef` 等，不带说明文字）是类型代码：`e2e` 开了 `allowJs`，tsc 会读 `.mjs` 里的这些标注，删了会报类型错误。lint 放行，保留它们，只删其中的说明文字。`/// <reference …>`、shebang 和 `tokens.css` 里 `/* --- 分组 --- */` 这类分区标题是代码读取的数据，不算注释，不动。
 
 其余全部删除。拿不准也删。
 
