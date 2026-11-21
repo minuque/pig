@@ -88,8 +88,6 @@ export type {
   DirectoryListResponse,
   FileSearchEntry,
   FileStatResponse,
-  GitFileStatus,
-  GitStatusResponse,
   SearchTruncation,
   FileTextResponse,
 } from "./workspace.js"

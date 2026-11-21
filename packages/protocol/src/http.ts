@@ -22,7 +22,6 @@ import type {
   FileSearchEntry,
   FileStatResponse,
   FileTextResponse,
-  GitStatusResponse,
 } from "./workspace.js"
 
 /** 一个端点的声明：params 是路径参数，query 一律字符串，body 是 JSON 形状。 */
@@ -106,10 +105,6 @@ export interface PlatformHttpRoutes {
   "GET /api/v1/platform/fs/preview-token": {
     query: { cwd: string }
     response: { token: string }
-  }
-  "GET /api/v1/platform/git/status": {
-    query: { cwd: string }
-    response: GitStatusResponse
   }
   "GET /api/v1/platform/providers": { response: ProviderListResponse }
   "POST /api/v1/platform/providers/refresh": { response: ProviderListResponse }

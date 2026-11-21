@@ -1,4 +1,3 @@
-import { execFileSync } from "node:child_process"
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
@@ -150,88 +149,43 @@ describe("fs routes", () => {
   })
 })
 
-// 外部：git 钩子里跑测试会带上 GIT_DIR 等变量，不清掉就会落到真仓库上
-for (const key of Object.keys(process.env)) if (key.startsWith("GIT_")) delete process.env[key]
-
-describe("目录、git 状态与内容搜索", () => {
-  async function gitWorkspace() {
-    const git = (...args: string[]) => execFileSync("git", args, { cwd: workspace, stdio: "pipe" })
-    git("init", "-q")
-    git("config", "user.email", "e2e@pig.local")
-    git("config", "user.name", "pig")
-    await writeFile(join(workspace, ".gitignore"), "dist/\n*.log\n")
+describe("目录与内容搜索", () => {
+  it("list 目录在前、名字按自然序", async () => {
     await mkdir(join(workspace, "dist"))
-    await writeFile(join(workspace, "dist", "out.js"), "needle in build output\n")
-    await writeFile(join(workspace, "debug.log"), "needle in log\n")
     await writeFile(join(workspace, "file10.ts"), "")
     await writeFile(join(workspace, "file9.ts"), "")
-    git("add", ".gitignore", "src/main.ts", "file9.ts")
-    git("commit", "-q", "-m", "init")
-    await writeFile(
-      join(workspace, "src", "main.ts"),
-      "export const answer = 43\nconst needle = 1\n",
-    )
-  }
 
-  it("list 目录在前、名字按自然序，gitignore 命中的打标记", async () => {
-    await gitWorkspace()
     const response = await get(fsUrl("list", "."))
 
     expect(response.status).toBe(200)
 
     const { entries } = (await response.json()) as {
-      entries: { name: string; kind: string; ignored: boolean }[]
+      entries: { name: string; kind: string }[]
     }
 
     expect(entries.map((entry) => entry.name)).toEqual([
-      ".git",
       "dist",
       "src",
-      ".gitignore",
       "big.txt",
-      "debug.log",
       "file9.ts",
       "file10.ts",
       "logo.bin",
     ])
-    expect(entries.find((entry) => entry.name === "dist")?.ignored).toBe(true)
-    expect(entries.find((entry) => entry.name === "debug.log")?.ignored).toBe(true)
-    expect(entries.find((entry) => entry.name === "src")?.ignored).toBe(false)
-  })
 
-  it("不是 git 仓库时 list 照常列出，都不标忽略", async () => {
-    const { entries } = (await (await get(fsUrl("list", "src"))).json()) as {
-      entries: { name: string; ignored: boolean }[]
+    const child = (await (await get(fsUrl("list", "src"))).json()) as {
+      entries: { name: string; kind: string }[]
     }
 
-    expect(entries).toEqual([{ name: "main.ts", kind: "file", ignored: false }])
+    expect(child.entries).toEqual([{ name: "main.ts", kind: "file" }])
   })
 
-  it("git status 报告修改与未跟踪的文件，路径相对工作区", async () => {
-    await gitWorkspace()
-
-    const body = (await (
-      await get(`/api/v1/platform/git/status?cwd=${encodeURIComponent(workspace)}`)
-    ).json()) as { repo: boolean; files: { path: string; status: string }[] }
-
-    expect(body.repo).toBe(true)
-    expect(body.files).toEqual(
-      expect.arrayContaining([
-        { path: "src/main.ts", status: "M" },
-        { path: "file10.ts", status: "U" },
-      ]),
+  it("内容搜索给出路径、行号与那一行，跳过构建产物目录", async () => {
+    await mkdir(join(workspace, "dist"))
+    await writeFile(join(workspace, "dist", "out.js"), "needle in build output\n")
+    await writeFile(
+      join(workspace, "src", "main.ts"),
+      "export const answer = 43\nconst needle = 1\n",
     )
-    expect(body.files.some((file) => file.path.startsWith("dist/"))).toBe(false)
-  })
-
-  it("git status 在非仓库返回 repo false", async () => {
-    await expect(
-      (await get(`/api/v1/platform/git/status?cwd=${encodeURIComponent(workspace)}`)).json(),
-    ).resolves.toEqual({ repo: false, files: [] })
-  })
-
-  it("内容搜索给出路径、行号与那一行，跳过 gitignore 命中的文件", async () => {
-    await gitWorkspace()
 
     const body = (await (
       await get(
@@ -269,11 +223,10 @@ describe("目录、git 状态与内容搜索", () => {
     expect(body).toMatchObject({ truncated: false, truncationReasons: [] })
   })
 
-  it("未授权的工作区 list、status、search 都 403", async () => {
+  it("未授权的工作区 list、search 都 403", async () => {
     const cwd = encodeURIComponent(outside)
 
     expect((await get(fsUrl("list", ".", outside))).status).toBe(403)
-    expect((await get(`/api/v1/platform/git/status?cwd=${cwd}`)).status).toBe(403)
     expect((await get(`/api/v1/platform/fs/search?cwd=${cwd}&q=x`)).status).toBe(403)
   })
 })

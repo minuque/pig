@@ -11,7 +11,6 @@ import type {
   FileSearchEntry,
   FileStatResponse,
   FileTextResponse,
-  GitStatusResponse,
   LoginEvent,
   ModelMetadata,
   ModelParamsPatch,
@@ -379,10 +378,6 @@ export function readWorkspaceFile(
 
 export function listWorkspaceDir(cwd: string, path: string): Promise<DirectoryListResponse> {
   return request("GET /api/v1/platform/fs/list", { query: fsQuery(cwd, path) })
-}
-
-export function workspaceGitStatus(cwd: string): Promise<GitStatusResponse> {
-  return request("GET /api/v1/platform/git/status", { query: { cwd } })
 }
 
 export function searchWorkspaceContents(

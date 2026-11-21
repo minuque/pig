@@ -16,6 +16,7 @@ export interface WorkspaceResourcesOptions {
 
 export class WorkspaceResources {
   private readonly slots = new Map<string, Promise<ResourceSlot>>()
+  private disposed = false
 
   constructor(
     private readonly options: WorkspaceResourcesOptions,
@@ -30,29 +31,40 @@ export class WorkspaceResources {
   }
 
   prepare(workspace: string): void {
-    if (this.options.disabled) return
+    if (this.options.disabled || this.disposed) return
     void this.localCwd(workspace)
-      .then((local) => this.slot(local))
+      .then((local) => (this.disposed ? undefined : this.slot(local)))
       .catch(() => undefined)
   }
 
   async peek(workspace: string): Promise<ResourceSlot | undefined> {
+    if (this.disposed) return undefined
     return this.slots.get(await this.localCwd(workspace))?.catch(() => undefined)
   }
 
   async take(cwd: string): Promise<DefaultResourceLoader | undefined> {
-    if (this.options.disabled) return undefined
+    if (this.options.disabled || this.disposed) return undefined
 
     const key = canonicalizePath(cwd)
     const pending = this.slot(key)
     const slot = await pending
 
+    if (this.disposed) return undefined
+
     if (slot.taken) return createResourceLoader(key, this.options, this.events)
     slot.taken = true
 
     if (this.slots.get(key) === pending) this.slots.delete(key)
-    void this.slot(key).catch(() => undefined)
+
+    if (!this.disposed) void this.slot(key).catch(() => undefined)
     return slot.loader
+  }
+
+  async dispose(): Promise<void> {
+    this.disposed = true
+    const pending = [...this.slots.values()]
+    this.slots.clear()
+    await Promise.allSettled(pending)
   }
 
   private slot(cwd: string): Promise<ResourceSlot> {
@@ -74,7 +86,7 @@ export class WorkspaceResources {
       },
     )
 
-    this.slots.set(cwd, pending)
+    if (!this.disposed) this.slots.set(cwd, pending)
     return pending
   }
 }
