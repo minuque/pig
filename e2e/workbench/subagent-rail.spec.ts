@@ -1,3 +1,4 @@
+import { hostname } from "node:os"
 import { expect, test } from "../support/fixtures.js"
 import { CHILD_MARKER } from "../support/prebuild-session.js"
 import { startSubagentTurn } from "../support/subagent-turn.js"
@@ -44,7 +45,7 @@ test("subagent 子任务：时间线卡片与摘要面板都列出进展，点�
   await expect(pane.getByText(CHILD_MARKER)).toBeVisible({ timeout: 30_000 })
 })
 
-test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({ page, subagentGateway }) => {
+test("摘要面板：分节可折叠，刷新后保持", async ({ page, subagentGateway }) => {
   await page.setViewportSize({ width: 1680, height: 900 })
   await startSubagentTurn(page, subagentGateway)
 
@@ -65,7 +66,7 @@ test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({
   expect(viewportBox.x + viewportBox.width).toBeGreaterThan(railBox.x)
   expect(railBox.x + railBox.width).toBeLessThanOrEqual(viewportBox.x + viewportBox.width + 1)
 
-  const contextCard = rail.locator(".rail-card", { hasText: "上下文" })
+  const contextCard = rail.locator(".rail-part", { hasText: "上下文" })
   await contextCard.locator(".ctx-row button").first().click()
   const preview = page.getByRole("dialog")
   const body = preview.locator(".preview-body")
@@ -77,23 +78,11 @@ test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({
   await preview.getByRole("button", { name: "关闭" }).last().click()
   await expect(preview).toBeHidden()
 
-  const env = rail.locator(".rail-card").first()
+  const env = rail.locator(".rail-part").first()
   const envHead = env.locator(".rail-head")
   await envHead.click()
   await expect(envHead).toHaveAttribute("aria-expanded", "false")
-  await expect(env.locator(".rail-summary")).toHaveText("本机")
-
-  const tasks = rail.locator(".rail-card").last()
-  const tasksHead = tasks.locator(".rail-head")
-  const expanded = await tasksHead.getAttribute("aria-expanded")
-  const from = (await tasksHead.boundingBox())!
-  const top = (await env.boundingBox())!
-  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2)
-  await page.mouse.down()
-  await page.mouse.move(from.x + from.width / 2, top.y - 160, { steps: 16 })
-  await page.mouse.up()
-  await expect(titles.first()).toHaveText("后台任务")
-  await expect(rail.locator(".rail-head").first()).toHaveAttribute("aria-expanded", expanded!)
+  await expect(env.locator(".rail-summary")).toHaveText(hostname())
 
   await page.reload()
   await page.locator(".session-card").first().click()
@@ -104,9 +93,6 @@ test("摘要面板：卡片可折叠、拖拽换位，刷新后保持", async ({
       timeout: 30_000,
     },
   )
-  const order = await page.evaluate(() => localStorage.getItem("pig.rail.layout"))
-  expect(JSON.parse(order ?? "{}").order[0]).toBe("tasks")
-
   const toggle = page.locator(".rail-toggle-docked")
   await expect(toggle).toHaveAttribute("aria-pressed", "true")
   await toggle.click()

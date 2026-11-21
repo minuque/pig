@@ -58,7 +58,7 @@
 
       <!-- 外部：Tooltip 会把触发器锚点登记到自己名下，浮层要用显式锚点 -->
       <PopoverContent class="rail-popover" align="end" :reference="popoverButton?.$el">
-        <RailCards v-bind="cards" @stop="stopTask" />
+        <RailSummary v-bind="cards" @stop="stopTask" />
       </PopoverContent>
     </Popover>
   </div>
@@ -72,7 +72,7 @@ import { IconButton } from "@components/ui/button/index.js"
 import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover/index.js"
 import { StatusIndicator } from "@components/ui/status-indicator/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import RailCards from "@features/session-rail/components/RailCards.vue"
+import RailSummary from "@features/session-rail/components/RailSummary.vue"
 import { useRailCards } from "@features/session-rail/hooks/use-rail-cards.js"
 import { useSessionRail } from "@features/session-rail/index.js"
 
