@@ -10,8 +10,8 @@
         :aria-label="copyLabel"
         @click.stop="copy"
       >
-        <CheckIcon v-if="status === 'copied'" class="size-icon" />
-        <CopyIcon v-else class="size-icon" />
+        <CheckIcon v-if="status === 'copied'" class="size-icon motion-blur-in" />
+        <CopyIcon v-else :class="['size-icon', { 'motion-blur-in': swapped }]" />
       </IconButton>
     </TooltipTrigger>
 
@@ -30,6 +30,7 @@ import { CheckIcon, CopyIcon } from "@components/icons/index.js"
 const props = defineProps<{ text: string; label?: string }>()
 const { t } = useI18n()
 const status = shallowRef<"idle" | "copied" | "error">("idle")
+const swapped = shallowRef(false)
 const copyLabel = computed(() =>
   status.value === "copied"
     ? t("common.copied")
@@ -42,6 +43,7 @@ const { start, stop } = useTimeoutFn(() => (status.value = "idle"), 1500, { imme
 async function copy() {
   if (!props.text) return
   stop()
+  swapped.value = true
 
   try {
     await navigator.clipboard.writeText(props.text)

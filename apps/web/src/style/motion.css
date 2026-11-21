@@ -337,6 +337,17 @@
   transform: translateY(-12px);
 }
 
+.pane-enter {
+  animation: pane-enter var(--duration-normal) var(--ease-out) backwards;
+}
+
+@keyframes pane-enter {
+  from {
+    opacity: 0;
+    translate: var(--space-md) 0;
+  }
+}
+
 .list-reveal-enter-active,
 .list-reveal-leave-active {
   overflow: hidden;
@@ -875,6 +886,10 @@
   .panel-reveal-enter-from,
   .panel-reveal-leave-to {
     transform: none;
+  }
+
+  .pane-enter {
+    animation-name: overlay-in;
   }
 
   .list-reveal-enter-active,

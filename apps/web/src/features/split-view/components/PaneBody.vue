@@ -15,14 +15,14 @@
           :default-size="PANE_DEFAULT"
           :min-size="PANE_MIN"
           size-unit="px"
-          class="pane-body-column"
+          class="pane-body-column pane-enter"
         >
           <PanelColumn :host="host" />
         </SplitterPanel>
       </template>
     </SplitterGroup>
 
-    <div v-if="covering" class="pane-body-cover">
+    <div v-if="covering" class="pane-body-cover pane-enter">
       <PanelColumn :host="host" />
     </div>
   </div>
