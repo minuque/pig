@@ -3,21 +3,23 @@
     <p v-if="error" class="list-error">{{ error }}</p>
 
     <CardRow v-for="model in provider.models" :key="model.id" bleed class="model-card">
-      <Collapsible :open="expanded === model.id">
+      <Collapsible :open="expanded === model.id" @update:open="toggle(model.id)">
         <div class="model-row">
-          <button
-            type="button"
-            class="model-toggle"
-            :aria-expanded="expanded === model.id"
-            @click="toggle(model.id)"
-          >
-            <VendorMark class="model-icon" :vendor="provider.id" :name="provider.name" :size="16" />
+          <CollapsibleTrigger as-child>
+            <button type="button" class="model-toggle">
+              <VendorMark
+                class="model-icon"
+                :vendor="provider.id"
+                :name="provider.name"
+                :size="16"
+              />
 
-            <span class="model-copy">
-              <span class="model-name">{{ model.name }}</span>
-              <span class="model-meta">{{ modelMeta(model) }}</span>
-            </span>
-          </button>
+              <span class="model-copy">
+                <span class="model-name">{{ model.name }}</span>
+                <span class="model-meta">{{ modelMeta(model) }}</span>
+              </span>
+            </button>
+          </CollapsibleTrigger>
 
           <Switch
             :model-value="model.enabled"
@@ -27,18 +29,21 @@
             @update:model-value="toggleEnabled(model, $event)"
           />
 
-          <IconButton
-            type="button"
-            size="s"
-            variant="ghost"
-            color="neutral"
-            class="chevron-button"
-            :aria-expanded="expanded === model.id"
-            :aria-label="t('settings.models.expandModel')"
-            @click="toggle(model.id)"
-          >
-            <ChevronRightIcon class="chevron" :data-open="expanded === model.id ? '' : undefined" />
-          </IconButton>
+          <CollapsibleTrigger as-child>
+            <IconButton
+              type="button"
+              size="s"
+              variant="ghost"
+              color="neutral"
+              class="chevron-button"
+              :aria-label="t('settings.models.expandModel')"
+            >
+              <ChevronRightIcon
+                class="chevron"
+                :data-open="expanded === model.id ? '' : undefined"
+              />
+            </IconButton>
+          </CollapsibleTrigger>
         </div>
 
         <CollapsibleContent>
@@ -68,7 +73,11 @@ import { modelMeta } from "@features/settings/lib/provider-view.js"
 import { useI18n } from "@i18n/index.js"
 import type { ProviderModelView, ProviderView } from "@/types/common-type.js"
 import { CardList, CardRow } from "@components/ui/card/index.js"
-import { Collapsible, CollapsibleContent } from "@components/ui/collapsible/index.js"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@components/ui/collapsible/index.js"
 
 const props = defineProps<{ provider: ProviderView }>()
 const emit = defineEmits<{ changed: [] }>()
