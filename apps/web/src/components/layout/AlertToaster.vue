@@ -5,41 +5,56 @@
       :key="item.id"
       class="toast-item"
       :open="item.open"
+      :data-level="item.level"
       :type="item.level === 'error' ? 'foreground' : 'background'"
       :duration="item.level === 'error' && !item.transient ? Infinity : PASSING_MS"
       @update:open="(open) => open || dismissNotice(item.id)"
     >
-      <Banner
-        variant="outline"
-        color="neutral"
-        size="m"
-        dismissible
-        floating
-        class="toast-card"
-        @close="dismissNotice(item.id)"
-      >
-        <template #icon>
+      <ToastClose as-child>
+        <IconButton
+          class="toast-close"
+          type="button"
+          size="s"
+          variant="ghost"
+          color="neutral"
+          :aria-label="t('common.close')"
+        >
+          <XIcon />
+        </IconButton>
+      </ToastClose>
+
+      <div class="toast-body">
+        <div class="toast-head">
           <span class="toast-icon" :data-tone="LEVEL_TONE[item.level]">
             <component :is="LEVEL_ICON[item.level]" />
           </span>
-        </template>
 
-        <template v-if="item.title || item.level === 'error'" #title>
-          <ToastTitle class="toast-title">{{ item.title ?? t("common.error") }}</ToastTitle>
-        </template>
+          <ToastTitle class="toast-title">
+            {{ item.title ?? (item.level === "error" ? t("common.error") : item.message) }}
+          </ToastTitle>
+        </div>
 
-        <ToastDescription class="toast-text" :title="item.message">
+        <ToastDescription
+          v-if="item.title || item.level === 'error'"
+          class="toast-text"
+          :data-clamp="item.message.length > CLAMP_CHARS || undefined"
+          :title="item.message.length > CLAMP_CHARS ? item.message : undefined"
+        >
           {{ item.message }}
         </ToastDescription>
+      </div>
 
-        <div v-if="item.action" class="toast-actions">
-          <ToastAction as-child :alt-text="item.action.label">
-            <Button size="s" variant="secondary" color="neutral" @click="item.action.run()">
-              {{ item.action.label }}
-            </Button>
-          </ToastAction>
-        </div>
-      </Banner>
+      <ToastAction v-if="item.action" as-child :alt-text="item.action.label">
+        <Button
+          class="toast-action"
+          size="s"
+          variant="secondary"
+          color="neutral"
+          @click="item.action.run()"
+        >
+          {{ item.action.label }}
+        </Button>
+      </ToastAction>
     </ToastRoot>
 
     <ToastPortal>
@@ -52,6 +67,7 @@
 import type { Component } from "vue"
 import {
   ToastAction,
+  ToastClose,
   ToastDescription,
   ToastPortal,
   ToastProvider,
@@ -60,13 +76,19 @@ import {
   ToastViewport,
 } from "reka-ui"
 import { useI18n } from "@i18n/index.js"
-import { Banner } from "@components/ui/banner/index.js"
-import { Button } from "@components/ui/button/index.js"
+import { Button, IconButton } from "@components/ui/button/index.js"
 import { dismissNotice, noticeQueue, type NoticeLevel } from "@components/layout/notify.js"
-import { BellIcon, CircleCheckIcon, CircleExclamationPointIcon } from "@components/icons/index.js"
+import {
+  CircleCheckIcon,
+  CircleExclamationPointIcon,
+  InfoIcon,
+  TriangleAlertIcon,
+  XIcon,
+} from "@components/icons/index.js"
 import type { Tone } from "@/types/ui-type.js"
 
 const PASSING_MS = 5_000
+const CLAMP_CHARS = 180
 const { t } = useI18n()
 const LEVEL_TONE: Record<NoticeLevel, Tone> = {
   info: "info",
@@ -75,53 +97,12 @@ const LEVEL_TONE: Record<NoticeLevel, Tone> = {
   error: "danger",
 }
 const LEVEL_ICON: Record<NoticeLevel, Component> = {
-  info: BellIcon,
+  info: InfoIcon,
   success: CircleCheckIcon,
-  warning: CircleExclamationPointIcon,
+  warning: TriangleAlertIcon,
   error: CircleExclamationPointIcon,
 }
 </script>
-
-<style scoped>
-.toast-card[data-slot="banner"] {
-  padding-inline-end: var(--space-2xl);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-popover);
-}
-
-.toast-icon {
-  display: flex;
-  color: var(--tone-text);
-}
-
-.toast-icon svg {
-  inline-size: var(--icon-lg);
-  block-size: var(--icon-lg);
-}
-
-.toast-title {
-  color: var(--fg);
-  font-size: var(--text-body);
-  font-weight: var(--font-weight-medium);
-}
-
-.toast-text {
-  display: -webkit-box;
-  overflow: hidden;
-  color: var(--fg-secondary);
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
-  overflow-wrap: anywhere;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-}
-
-.toast-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-block-start: var(--space-xs);
-}
-</style>
 
 <style>
 .toast-viewport {
@@ -131,7 +112,7 @@ const LEVEL_ICON: Record<NoticeLevel, Component> = {
   z-index: var(--z-modal);
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: var(--space-sm);
   inline-size: min(var(--toast-width), calc(100vw - 2 * var(--space-md)));
   margin: 0;
   padding: 0;
@@ -141,7 +122,96 @@ const LEVEL_ICON: Record<NoticeLevel, Component> = {
 }
 
 .toast-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md) var(--space-sm) calc(var(--space-sm) + 2px);
+  color: var(--fg);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  background-color: var(--float-bg);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-card);
+  box-shadow: var(--float-shadow);
+  backdrop-filter: var(--glass-filter);
   pointer-events: auto;
+  user-select: none;
+}
+
+.toast-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}
+
+.toast-head {
+  display: flex;
+  gap: var(--space-xs);
+  min-inline-size: 0;
+}
+
+.toast-icon {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  block-size: calc(var(--text-body) * var(--text-body--line-height));
+  color: var(--tone-text);
+}
+
+.toast-icon svg {
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
+}
+
+.toast-title {
+  min-inline-size: 0;
+  font-weight: var(--font-weight-medium);
+  overflow-wrap: anywhere;
+}
+
+.toast-text {
+  min-inline-size: 0;
+  color: var(--fg-secondary);
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+
+.toast-text[data-clamp] {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.toast-action {
+  flex-shrink: 0;
+}
+
+.toast-item .toast-close {
+  position: absolute;
+  inset-block-start: calc(var(--space-2xs) * -1.5);
+  inset-inline-end: calc(var(--space-2xs) * -1.5);
+  color: var(--fg-secondary);
+  background-color: var(--float-bg);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-popover);
+  backdrop-filter: var(--glass-filter);
+}
+
+.toast-item .toast-close svg {
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
+}
+
+@media (hover: hover) {
+  .toast-item .toast-close:hover {
+    color: var(--fg);
+    background-color: var(--bg-raised);
+  }
 }
 
 .toast-item[data-swipe="move"] {
