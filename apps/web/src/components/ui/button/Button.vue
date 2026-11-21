@@ -164,11 +164,11 @@ const props = withDefaults(defineProps<Props>(), {
 }
 
 :where([data-button][data-variant="outline"]) {
-  box-shadow: var(--control-shadow);
+  box-shadow: var(--outline-shadow);
 }
 
 :where([data-button][data-variant="outline"]:active) {
-  box-shadow: 0 0 0 var(--border-width) var(--control-border);
+  box-shadow: 0 0 0 var(--border-width) var(--outline-ring);
 }
 
 @media (hover: hover) {
