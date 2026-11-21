@@ -188,6 +188,9 @@ spacing:
 - **显示模型名的地方，前面一律加 `VendorMark`（传模型的 provider）。**
   Why：和模型选择器一致，一眼认出供应商。
   <!-- 2026-11-21：「模型名称前补上模型icon」 -->
+- **通知一律走 `notify()`（`@components/layout/notify.js`），显示在右下角。页面上已能看到同样内容的（如 transcript 里的 TurnError）传 `transient: true`，5 秒后消失；只有页面别处看不到的错误才常驻。**
+  Why：同一条报错在 toast 和页面里各留一份，常驻的 toast 只是重复。
+  <!-- 2026-11-21：「显示在右下角」；当前会话出错 toast 改为 5 秒消失，回复「ok」 -->
 - `TextFieldRoot` 的 `invalid` 表达错误态（危险色内环与焦点环）。
 - 设置行 = 标题 + 一行说明 + 控件。项目缩写用灰色 soft Badge。
 
