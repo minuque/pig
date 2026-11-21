@@ -1,10 +1,11 @@
-import { nextTick, ref, watch, type Ref } from "vue"
+import { computed, ref, watch, type Ref } from "vue"
 import type { DefaultModelView, SessionPhase, ThinkingLevel } from "@/types/common-type.js"
 import type { ComposerModel, ComposerPreset, ComposerVendor } from "@features/composer/type.js"
 import { resolveModelInfo } from "@features/composer/lib/model-preset.js"
 import { sameModel, thinkingLevelOf } from "@features/session/lib/model-ref.js"
 
 interface ComposerSnapshot {
+  id?: string
   model: ComposerModel
   thinkingLevel: ThinkingLevel
 }
@@ -18,101 +19,142 @@ interface ComposerBindingOptions {
   setThinking(level: ThinkingLevel): Promise<void>
 }
 
+type PendingPreset =
+  | { readonly kind: "detached"; readonly preset: ComposerPreset }
+  | { readonly kind: "sync"; readonly version: number; readonly preset: ComposerPreset }
+
+function normalizePreset(
+  candidate: ComposerPreset | undefined,
+  catalog: ComposerVendor[],
+): ComposerPreset | undefined {
+  if (!candidate) return undefined
+  const levels = resolveModelInfo(catalog, candidate.model).levels
+
+  if (levels.length && !levels.includes(candidate.thinkingLevel)) {
+    return { ...candidate, thinkingLevel: levels[0]! }
+  }
+
+  return candidate
+}
+
+function samePreset(a: ComposerPreset, b: ComposerPreset): boolean {
+  return sameModel(a.model, b.model) && a.thinkingLevel === b.thinkingLevel
+}
+
 export function useComposerBinding(options: ComposerBindingOptions) {
-  const preset = ref<ComposerPreset>()
-  const pendingModel = ref(false)
-  const detachedEdit = ref(false)
-  let suppress = 0
+  const pending = ref<PendingPreset>()
+  let syncVersion = 0
+  let syncing = false
+  const basePreset = computed<ComposerPreset | undefined>(() => {
+    const snap = options.snapshot.value
 
-  function writePreset(next: ComposerPreset) {
-    suppress += 1
-    preset.value = next
-    void nextTick(() => {
-      suppress -= 1
-    })
-  }
+    if (snap) return { model: snap.model, thinkingLevel: snap.thinkingLevel }
+    const initial = options.defaultModel.value
 
-  function noteDetachedEdit() {
-    if (suppress > 0 || options.snapshot.value) return
-    detachedEdit.value = true
-  }
-
-  function consumeDetachedEdit(): ComposerPreset | undefined {
-    if (!detachedEdit.value) return undefined
-    detachedEdit.value = false
-    return preset.value
-  }
-
-  watch(
-    [() => options.snapshot.value?.model, () => options.snapshot.value?.thinkingLevel],
-    ([model, level]) => {
-      if (!model || !level || pendingModel.value || detachedEdit.value) return
-      writePreset({ model, thinkingLevel: level })
-    },
-  )
-
-  watch([() => preset.value?.model, () => preset.value?.thinkingLevel, options.catalog], () => {
-    const current = preset.value
-
-    if (!current) return
-    const levels = resolveModelInfo(options.catalog.value, current.model).levels
-
-    if (levels.length && !levels.includes(current.thinkingLevel)) {
-      writePreset({ ...current, thinkingLevel: levels[0]! })
+    if (!initial) return undefined
+    return {
+      model: { provider: initial.provider, id: initial.id },
+      thinkingLevel: initial.thinkingLevel ?? "",
     }
   })
-  watch(
-    () => preset.value?.model,
-    (model) => {
-      noteDetachedEdit()
-      const snapshot = options.snapshot.value
 
-      if (!model || !snapshot || options.phase.value !== "idle" || sameModel(model, snapshot.model))
-        return
-      pendingModel.value = true
-      void (async () => {
-        try {
-          await options.setModel({ provider: model.provider, id: model.id })
+  async function flushSync() {
+    if (syncing) return
+    syncing = true
 
-          const desired = sameModel(preset.value?.model, model)
-            ? preset.value?.thinkingLevel
-            : undefined
+    try {
+      while (pending.value?.kind === "sync") {
+        const current = pending.value
+        const snap = options.snapshot.value
 
-          if (desired && desired !== options.snapshot.value?.thinkingLevel)
-            await options.setThinking(thinkingLevelOf(desired))
-        } catch {
-        } finally {
-          pendingModel.value = false
+        if (!snap || options.phase.value !== "idle") {
+          if (pending.value === current) pending.value = undefined
+          break
         }
-      })()
+
+        const target = normalizePreset(current.preset, options.catalog.value) ?? current.preset
+
+        try {
+          if (!sameModel(target.model, snap.model)) {
+            await options.setModel({ provider: target.model.provider, id: target.model.id })
+
+            if (pending.value?.kind !== "sync" || pending.value.version !== current.version) {
+              continue
+            }
+          }
+
+          const afterSnap = options.snapshot.value
+          const afterTarget =
+            normalizePreset(current.preset, options.catalog.value) ?? current.preset
+
+          if (
+            afterSnap &&
+            options.phase.value === "idle" &&
+            afterTarget.thinkingLevel &&
+            afterTarget.thinkingLevel !== afterSnap.thinkingLevel
+          ) {
+            await options.setThinking(thinkingLevelOf(afterTarget.thinkingLevel))
+
+            if (pending.value?.kind !== "sync" || pending.value.version !== current.version) {
+              continue
+            }
+          }
+
+          if (pending.value?.kind === "sync" && pending.value.version === current.version) {
+            pending.value = undefined
+          }
+
+          break
+        } catch {
+          if (pending.value?.kind === "sync" && pending.value.version === current.version) {
+            pending.value = undefined
+          }
+        }
+      }
+    } finally {
+      syncing = false
+    }
+  }
+
+  const preset = computed<ComposerPreset | undefined>({
+    get: () => normalizePreset(pending.value?.preset ?? basePreset.value, options.catalog.value),
+    set: (next) => {
+      if (!next) return
+      const normalized = normalizePreset(next, options.catalog.value) ?? next
+      const snap = options.snapshot.value
+
+      if (!snap) {
+        pending.value = { kind: "detached", preset: normalized }
+        return
+      }
+
+      if (options.phase.value !== "idle") return
+
+      if (
+        !pending.value &&
+        samePreset(normalized, { model: snap.model, thinkingLevel: snap.thinkingLevel })
+      ) {
+        return
+      }
+
+      pending.value = { kind: "sync", version: ++syncVersion, preset: normalized }
+      void flushSync()
     },
-  )
-
-  watch([() => preset.value?.thinkingLevel, pendingModel], ([level]) => {
-    noteDetachedEdit()
-    const snapshot = options.snapshot.value
-
-    if (
-      !level ||
-      !snapshot ||
-      pendingModel.value ||
-      options.phase.value !== "idle" ||
-      level === snapshot.thinkingLevel
-    )
-      return
-    void options.setThinking(thinkingLevelOf(level)).catch(() => {})
   })
 
   watch(
-    options.defaultModel,
-    (initial) => {
-      if (preset.value || !initial) return
-      writePreset({
-        model: { provider: initial.provider, id: initial.id },
-        thinkingLevel: initial.thinkingLevel ?? "",
-      })
+    () => options.snapshot.value?.id,
+    () => {
+      if (pending.value?.kind === "sync") pending.value = undefined
     },
-    { immediate: true },
   )
+
+  function consumeDetachedEdit(): ComposerPreset | undefined {
+    if (pending.value?.kind !== "detached") return undefined
+    const chosen = normalizePreset(pending.value.preset, options.catalog.value)
+    pending.value = undefined
+    return chosen
+  }
+
   return { preset, consumeDetachedEdit }
 }
