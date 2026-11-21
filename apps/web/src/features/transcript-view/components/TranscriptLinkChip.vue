@@ -10,7 +10,8 @@
         underline="hover"
         underline-style="dotted"
       >
-        <LinkIcon class="icon" />
+        <VendorMark v-if="site" class="icon" :vendor="site" :size="14" />
+        <LinkIcon v-else class="icon" />
         <span class="label">{{ text }}</span>
       </Link>
     </TooltipTrigger>
@@ -22,15 +23,17 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { LinkIcon } from "@components/icons/index.js"
+import VendorMark from "@components/icons/VendorMark.vue"
 import { Link } from "@components/ui/link/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { prettifyUrl } from "@features/transcript-view/lib/link-chip.js"
+import { linkSite, shortUrlLabel } from "@features/transcript-view/lib/link-chip.js"
 
 const props = defineProps<{
   url: string
   label?: string
 }>()
-const text = computed(() => props.label ?? prettifyUrl(props.url))
+const text = computed(() => props.label ?? shortUrlLabel(props.url))
+const site = computed(() => linkSite(props.url))
 </script>
 
 <style scoped>
