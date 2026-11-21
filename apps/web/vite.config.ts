@@ -3,7 +3,6 @@ import { fileURLToPath, URL } from "node:url"
 import vue from "@vitejs/plugin-vue"
 import { defineConfig } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
-import vueDevTools from "vite-plugin-vue-devtools"
 
 import { maxWorkers } from "../../vitest.workers.mjs"
 
@@ -13,8 +12,6 @@ const gatewayToken = process.env.GATEWAY_TOKEN
 export default defineConfig({
   plugins: [
     vue(),
-    // 外部：vitest 下加载 devtools 会在插件卸载后留下 unhandled rejection
-    ...(process.env.VITEST || process.env.PIG_DESKTOP_DEV ? [] : [vueDevTools()]),
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "script-defer",
