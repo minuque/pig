@@ -88,6 +88,7 @@ onBeforeUnmount(() => drag.detach())
   flex-direction: column;
   align-items: flex-end;
   gap: var(--space-2xs);
+  margin-block-start: auto;
   padding-block: var(--space-md) var(--space-xs);
 }
 

@@ -23,7 +23,12 @@
               @mousemove="emit('highlight', row.id)"
               @click="emit('select', row.id)"
             >
-              <component :is="rowIcon(row)" class="command-icon" aria-hidden="true" />
+              <component
+                :is="rowIcon(row)"
+                v-bind="rowIconProps(row)"
+                class="command-icon"
+                aria-hidden="true"
+              />
 
               <span class="command-main">
                 <span class="command-title">{{ row.title }}</span>
@@ -47,6 +52,7 @@ import { computed, nextTick, onMounted, ref, watch, type Component } from "vue"
 import { useEventListener, useResizeObserver } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { SquareCodeIcon, FileTextIcon, FolderIcon, BlocksIcon } from "@components/icons/index.js"
+import LanguageIcon from "@components/icons/LanguageIcon.vue"
 import type { CommandMenuGroup, CommandMenuRow } from "@features/composer/type.js"
 
 const MENU_MAX_HEIGHT = 280
@@ -87,7 +93,17 @@ const boxStyle = computed(() => ({
 }))
 
 function rowIcon(row: CommandMenuRow) {
+  if (row.kind === "file") return LanguageIcon
   return row.icon ?? KIND_ICONS[row.kind ?? ""] ?? FileTextIcon
+}
+
+function rowIconProps(row: CommandMenuRow) {
+  return row.kind === "file" ? { language: rowLanguage(row.title) } : {}
+}
+
+function rowLanguage(name: string): string {
+  const dot = name.lastIndexOf(".")
+  return (dot > 0 ? name.slice(dot + 1) : name).toLowerCase()
 }
 
 function rowElementId(id: string): string {

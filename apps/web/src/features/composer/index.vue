@@ -31,11 +31,10 @@
           <TooltipTrigger as-child>
             <IconButton
               type="button"
-              size="s"
+              size="m"
               variant="ghost"
               color="neutral"
-              radius="full"
-              class="attach press-scale"
+              class="press-scale"
               :aria-label="t('composer.addAttachment')"
               :disabled="attachmentsFull"
               @mousedown.prevent
@@ -242,11 +241,5 @@ watch(previewItem, (item, previous) => {
   margin-inline: auto;
   padding: 0;
   background: transparent;
-}
-
-.attach {
-  inline-size: var(--control-md);
-  block-size: var(--control-md);
-  color: var(--fg);
 }
 </style>

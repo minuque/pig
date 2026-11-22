@@ -3,7 +3,6 @@
     <DropdownMenuItem class="model-item" :disabled="disabled" @select="emit('select', $event)">
       <VendorMark :vendor="vendorId" :name="vendorName" :size="14" />
       <span class="model-name">{{ vendorId }}/{{ modelName }}</span>
-      <Kbd v-if="shortcut" size="s" variant="soft" class="model-key">{{ shortcut }}</Kbd>
     </DropdownMenuItem>
 
     <button
@@ -28,7 +27,6 @@
 <script setup lang="ts">
 import { useI18n } from "@i18n/index.js"
 import { DropdownMenuItem } from "@components/ui/dropdown-menu/index.js"
-import { Kbd } from "@components/ui/kbd/index.js"
 import VendorMark from "@components/icons/VendorMark.vue"
 import { StarFilledIcon, StarIcon } from "@components/icons/index.js"
 
@@ -39,10 +37,9 @@ withDefaults(
     modelName: string
     current: boolean
     favorite: boolean
-    shortcut?: string
     disabled?: boolean
   }>(),
-  { shortcut: "", disabled: false },
+  { disabled: false },
 )
 
 const emit = defineEmits<{
@@ -98,11 +95,6 @@ const { t } = useI18n()
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.model-key {
-  flex: none;
-  color: var(--fg-muted);
 }
 
 .fav {

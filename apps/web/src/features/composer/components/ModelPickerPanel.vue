@@ -11,7 +11,7 @@
     @focus-outside="onFocusOutside"
     @close-auto-focus="onCloseAutoFocus"
   >
-    <div class="picker" @keydown.capture="onPickerKeydown">
+    <div class="picker" @keydown.capture="onPanelKeydown">
       <div class="tabs-bar">
         <div class="tabs">
           <Tooltip>
@@ -202,22 +202,6 @@ function pick(provider: string, id: string) {
 function configureModels() {
   open.value = false
   openSettings("models")
-}
-
-function onPickerKeydown(event: KeyboardEvent) {
-  if ((event.metaKey || event.ctrlKey) && !event.altKey && !event.shiftKey) {
-    const n = Number(event.key)
-
-    if (n >= 1 && n <= 9) {
-      event.preventDefault()
-      const row = items.value[n - 1]
-
-      if (row) pick(row.vendor.id, row.model.id)
-      return
-    }
-  }
-
-  onPanelKeydown(event)
 }
 
 function onSearchKeydown(event: KeyboardEvent) {

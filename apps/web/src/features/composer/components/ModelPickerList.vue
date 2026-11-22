@@ -9,7 +9,6 @@
         :model-name="row.data.model.name"
         :current="isCurrent(row.data.vendor.id, row.data.model.id)"
         :favorite="favorites.has(`${row.data.vendor.id}/${row.data.model.id}`)"
-        :shortcut="shortcutOf(row.index)"
         :disabled="disabled"
         @select="emit('select', $event, row.data.vendor.id, row.data.model.id)"
         @toggle-favorite="emit('toggleFavorite', row.data.vendor.id, row.data.model.id)"
@@ -40,8 +39,6 @@ import type { ComposerModel, ComposerVendor } from "@features/composer/type.js"
 import { sameModel } from "@features/session/lib/model-ref.js"
 
 const ROW_HEIGHT = 28
-const SHORTCUTS = 9
-const isMac = /mac/i.test(navigator.platform || navigator.userAgent)
 const props = withDefaults(
   defineProps<{
     items: PickerRow[]
@@ -68,11 +65,6 @@ watch(
   () => props.items,
   () => scrollTo(0),
 )
-
-function shortcutOf(index: number): string {
-  if (index >= SHORTCUTS) return ""
-  return `${isMac ? "⌘" : "Ctrl"}+${index + 1}`
-}
 
 function isCurrent(provider: string, id: string): boolean {
   return props.model !== undefined && sameModel(props.model, { provider, id })

@@ -7,7 +7,7 @@
     :min="0"
     :max="steps"
     :step="1"
-    :label="t('composer.thinkingEffort')"
+    :aria-label="t('composer.thinkingEffort')"
     :format-value="labelAt"
     :get-aria-value-text="labelAt"
     :disabled="disabled"

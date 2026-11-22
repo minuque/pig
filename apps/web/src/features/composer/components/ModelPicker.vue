@@ -6,6 +6,7 @@
           <Button
             variant="ghost"
             color="neutral"
+            size="s"
             class="selector"
             :disabled="disabled"
             :aria-label="t('composer.selectModel', { model: triggerText })"
@@ -15,7 +16,7 @@
               v-if="current.vendor"
               :vendor="current.vendor.id"
               :name="current.vendor.name"
-              :size="14"
+              :size="16"
             />
 
             <span ref="labelsRef" class="selector-labels">
@@ -104,7 +105,10 @@ function measureLabels() {
   font-size: var(--text-body);
 }
 
-.selector[data-button]:not(:disabled):hover,
+.selector[data-button]:not(:disabled):hover {
+  background-color: var(--bg-hover);
+}
+
 .selector[data-button][data-state="open"] {
   background-color: var(--bg-selected);
 }

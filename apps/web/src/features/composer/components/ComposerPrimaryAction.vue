@@ -33,9 +33,10 @@
         <IconButton
           type="button"
           size="s"
-          variant="ghost"
-          color="neutral"
-          class="stop"
+          variant="solid"
+          radius="full"
+          color="danger"
+          class="send press-scale"
           :aria-label="t('composer.stopTurn')"
           @mousedown.prevent
           @click="emit('abort')"
@@ -124,8 +125,7 @@ function onPrimary() {
   gap: var(--space-2xs);
 }
 
-.send,
-.stop {
+.send {
   inline-size: var(--control-md);
   block-size: var(--control-md);
 }

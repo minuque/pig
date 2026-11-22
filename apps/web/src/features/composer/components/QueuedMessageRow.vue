@@ -1,8 +1,6 @@
 <template>
   <div class="row" role="listitem" :data-id="item.id" :class="{ 'is-editing': editing }">
-    <GripVerticalIcon class="row-grip" aria-hidden="true" />
-
-    <div class="row-body">
+    <div class="bubble">
       <p v-if="item.text" class="row-text">{{ item.text }}</p>
 
       <div v-if="images.length" class="row-images">
@@ -20,83 +18,52 @@
     </div>
 
     <div class="row-actions">
-      <IconButton
-        type="button"
-        size="s"
-        variant="ghost"
-        color="neutral"
-        class="action"
-        :aria-label="t('composer.queueMoveUp', { text: item.text })"
-        :disabled="!canUp"
-        @click="emit('move', -1)"
-      >
-        <ChevronUpIcon class="action-icon" aria-hidden="true" />
-      </IconButton>
+      <Tooltip v-for="action in actions" :key="action.id">
+        <TooltipTrigger as-child>
+          <IconButton
+            type="button"
+            size="s"
+            variant="ghost"
+            color="neutral"
+            :class="action.class"
+            :aria-label="action.label"
+            :disabled="action.disabled ?? false"
+            @click="action.run?.()"
+          >
+            <component :is="action.icon" aria-hidden="true" />
+          </IconButton>
+        </TooltipTrigger>
 
-      <IconButton
-        type="button"
-        size="s"
-        variant="ghost"
-        color="neutral"
-        class="action"
-        :aria-label="t('composer.queueMoveDown', { text: item.text })"
-        :disabled="!canDown"
-        @click="emit('move', 1)"
-      >
-        <ChevronDownIcon class="action-icon" aria-hidden="true" />
-      </IconButton>
-
-      <Button
-        type="button"
-        size="s"
-        variant="ghost"
-        color="neutral"
-        class="send-now"
-        @click="emit('sendNow')"
-      >
-        {{ t("composer.queueSendNow") }}
-      </Button>
-
-      <IconButton
-        type="button"
-        size="s"
-        variant="ghost"
-        color="neutral"
-        class="action"
-        :aria-label="t('composer.queueEdit')"
-        @click="emit('edit')"
-      >
-        <PenIcon class="action-icon" aria-hidden="true" />
-      </IconButton>
-
-      <IconButton
-        type="button"
-        size="s"
-        variant="ghost"
-        color="neutral"
-        class="action"
-        :aria-label="t('composer.queueRemove', { text: item.text })"
-        @click="emit('remove')"
-      >
-        <TrashIcon class="action-icon" aria-hidden="true" />
-      </IconButton>
+        <TooltipContent>{{ action.label }}</TooltipContent>
+      </Tooltip>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, type Component } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { Button, IconButton } from "@components/ui/button/index.js"
+import { IconButton } from "@components/ui/button/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import type { ComposerAttachment } from "@/types/attachment-type.js"
 import type { QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
 import {
+  ArrowUpIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   GripVerticalIcon,
   PenIcon,
   TrashIcon,
 } from "@components/icons/index.js"
+
+interface RowAction {
+  id: string
+  icon: Component
+  label: string
+  class?: string
+  disabled?: boolean
+  run?: () => void
+}
 
 const props = defineProps<{
   item: QueuedPrompt
@@ -113,50 +80,86 @@ const emit = defineEmits<{
 }>()
 const { t } = useI18n()
 const images = computed(() => props.item.attachmentsPreview.filter((file) => file.url))
+const actions = computed<RowAction[]>(() => [
+  {
+    id: "grip",
+    icon: GripVerticalIcon,
+    label: t("composer.queueDrag"),
+    class: "row-grip",
+  },
+  {
+    id: "up",
+    icon: ChevronUpIcon,
+    label: t("composer.queueMoveUp", { text: props.item.text }),
+    disabled: !props.canUp,
+    run: () => emit("move", -1),
+  },
+  {
+    id: "down",
+    icon: ChevronDownIcon,
+    label: t("composer.queueMoveDown", { text: props.item.text }),
+    disabled: !props.canDown,
+    run: () => emit("move", 1),
+  },
+  {
+    id: "send",
+    icon: ArrowUpIcon,
+    label: t("composer.queueSendNow"),
+    run: () => emit("sendNow"),
+  },
+  {
+    id: "edit",
+    icon: PenIcon,
+    label: t("composer.queueEdit"),
+    run: () => emit("edit"),
+  },
+  {
+    id: "remove",
+    icon: TrashIcon,
+    label: t("composer.queueRemove", { text: props.item.text }),
+    run: () => emit("remove"),
+  },
+])
 </script>
 
 <style scoped>
 .row {
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-xs);
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2xs);
   max-inline-size: 85%;
-  padding: var(--space-2xs) var(--space-xs);
-  border: var(--border-width) dashed var(--border);
-  border-radius: var(--radius-card);
-  color: var(--fg);
-  font-size: var(--text-body);
-  line-height: var(--text-body--line-height);
   touch-action: pan-y;
-}
-
-.row.is-editing {
-  border-color: var(--accent-solid);
-  background: var(--bg-selected);
 }
 
 .row.is-drag-live {
   z-index: var(--z-sticky);
-  box-shadow: var(--shadow-popover);
   cursor: grabbing;
 }
 
-.row-grip {
-  flex: none;
-  inline-size: var(--icon-md);
-  block-size: var(--icon-md);
-  margin-block-start: var(--space-2xs);
-  color: var(--fg-muted);
-  cursor: grab;
-  touch-action: none;
-}
-
-.row-body {
-  flex: 1;
-  min-inline-size: 0;
+.bubble {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   gap: var(--space-2xs);
+  max-inline-size: 100%;
+  padding: var(--space-xs) var(--space-sm);
+  border: var(--border-width) dashed var(--border-strong);
+  border-radius: var(--radius-card);
+  background: transparent;
+  color: var(--fg);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+}
+
+.row.is-editing .bubble {
+  border-color: var(--accent-solid);
+  background: var(--bg-selected);
+}
+
+.row.is-drag-live .bubble {
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-popover);
 }
 
 .row-text {
@@ -191,17 +194,10 @@ const images = computed(() => props.item.attachmentsPreview.filter((file) => fil
 .row-actions {
   display: flex;
   align-items: center;
-  gap: var(--space-2xs);
-  flex: none;
 }
 
-.action-icon {
-  inline-size: 13px;
-  block-size: 13px;
-  color: currentColor;
-}
-
-.send-now {
-  font-size: var(--text-meta);
+.row-grip {
+  cursor: grab;
+  touch-action: none;
 }
 </style>
