@@ -138,7 +138,7 @@ const emit = defineEmits<{ "update:modelValue": [value: CheckedState] }>()
 
 :where([data-slot="checkbox"][data-variant="surface"]:is([data-checked], [data-indeterminate]))
   :where([data-slot="checkbox-indicator"]) {
-  color: var(--fg-on-accent);
+  color: var(--bg);
 }
 
 :where([data-slot="checkbox"][data-variant="surface"][data-disabled])::before {

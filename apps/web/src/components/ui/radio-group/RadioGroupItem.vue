@@ -147,7 +147,7 @@ const group = inject(
 }
 
 :where([data-radio-group-item][data-variant="surface"])::after {
-  background-color: var(--fg-on-accent);
+  background-color: var(--bg);
 }
 
 :where([data-radio-group-item][data-variant="surface"][data-disabled])::before {

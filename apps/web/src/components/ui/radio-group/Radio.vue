@@ -77,7 +77,7 @@ function onChange(event: Event) {
 
 :where([data-slot="radio-input"][data-variant="surface"]:checked) {
   background-color: var(--tone);
-  background-image: radial-gradient(circle, var(--fg-on-accent) 0 20%, transparent 21%);
+  background-image: radial-gradient(circle, var(--bg) 0 20%, transparent 21%);
 }
 
 :where([data-slot="radio-input"][data-variant="surface"]:disabled) {
