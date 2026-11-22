@@ -363,26 +363,37 @@ defineExpose({ focus, blur, insertChip, isAtStart, isAtEnd })
   list-style: none;
 }
 
-.editor :deep(.field li[data-type="taskItem"]) {
+.editor :deep(.field ul[data-type="taskList"] ul[data-type="taskList"]) {
+  padding-inline-start: var(--space-lg);
+}
+
+.editor :deep(.field li[data-checked]) {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   gap: var(--space-2xs);
 }
 
-.editor :deep(.field li[data-type="taskItem"] > label) {
-  flex: 0 0 auto;
+.editor :deep(.field li[data-checked] > label) {
+  display: flex;
+  align-items: center;
+  flex: none;
+  block-size: 1lh;
   user-select: none;
+  cursor: pointer;
 }
 
-.editor :deep(.field li[data-type="taskItem"] > div) {
+.editor :deep(.field li[data-checked] > div) {
   flex: 1 1 auto;
-  min-width: 0;
+  min-inline-size: 0;
 }
 
-.editor :deep(.field li[data-type="taskItem"] input[type="checkbox"]) {
+.editor :deep(.field li[data-checked] input[type="checkbox"]) {
+  display: block;
   margin: 0;
+  inline-size: 0.95rem;
+  block-size: 0.95rem;
   accent-color: var(--accent-solid);
-  vertical-align: middle;
+  cursor: pointer;
 }
 
 .editor :deep(.chip) {

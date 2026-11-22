@@ -124,3 +124,49 @@ test("@ 与 / 在代码块里不弹菜单，普通段落与列表项照旧", asy
     "note.md",
   )
 })
+
+test("项目符号里敲 [ ] 转成任务项，切换勾选后按 Markdown 提交", async ({
+  page,
+  complexGateway,
+}) => {
+  test.setTimeout(120_000)
+  const bridge = await installTurnBridge(page)
+
+  await openComposer(page, complexGateway)
+  const prompt = field(page)
+  const items = prompt.locator("li[data-checked]")
+
+  await prompt.click()
+  await prompt.pressSequentially("- [ ] 甲")
+  await expect(items).toHaveCount(1)
+  await expect(items.first()).toHaveAttribute("data-checked", "false")
+
+  await items.first().locator('input[type="checkbox"]').click()
+  await expect(items.first()).toHaveAttribute("data-checked", "true")
+
+  await prompt.press("Enter")
+  await prompt.pressSequentially("乙")
+  await expect(items).toHaveCount(2)
+  await expect(items.nth(1)).toHaveAttribute("data-checked", "false")
+
+  await prompt.press("Control+Enter")
+  await expect.poll(() => bridge.prompts.length).toBe(1)
+  expect(bridge.prompts[0]).toBe("- [x] 甲\n- [ ] 乙")
+})
+
+test("算式里的星号不当强调，按原样提交", async ({ page, complexGateway }) => {
+  test.setTimeout(120_000)
+  const bridge = await installTurnBridge(page)
+
+  await openComposer(page, complexGateway)
+  const prompt = field(page)
+
+  await prompt.click()
+  await prompt.pressSequentially("3 * 4 * 5，再 * 强调 *")
+  await expect(prompt.locator("em")).toHaveCount(0)
+  await expect(prompt.locator("strong")).toHaveCount(0)
+
+  await prompt.press("Control+Enter")
+  await expect.poll(() => bridge.prompts.length).toBe(1)
+  expect(bridge.prompts[0]).toBe("3 * 4 * 5，再 * 强调 *")
+})

@@ -1,4 +1,5 @@
 import { lift, newlineInCode, splitBlock } from "@tiptap/pm/commands"
+import type { NodeType } from "@tiptap/pm/model"
 import { liftListItem, splitListItem } from "@tiptap/pm/schema-list"
 import { TextSelection, type EditorState, type Transaction } from "@tiptap/pm/state"
 import {
@@ -101,13 +102,17 @@ function listItemType(state: EditorState) {
   return LIST_ITEMS.has(node.type.name) ? node.type : undefined
 }
 
+function itemAttrs(type: NodeType): Record<string, unknown> | undefined {
+  return type.name === "taskItem" ? { checked: false } : undefined
+}
+
 export function splitOrLiftListItem(state: EditorState, dispatch?: Dispatch): boolean {
   const type = listItemType(state)
 
   if (!type) return false
 
-  if (splitListItem(type)(state, undefined)) {
-    splitListItem(type)(state, dispatch)
+  if (splitListItem(type, itemAttrs(type))(state, undefined)) {
+    splitListItem(type, itemAttrs(type))(state, dispatch)
     return true
   }
 
