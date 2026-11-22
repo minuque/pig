@@ -6,6 +6,7 @@ import {
   type ClientMessage,
   type ServerMessage,
   type ServerSnapshot,
+  type SessionArchives,
   type UserPreferences,
 } from "@pig/protocol"
 import { WebSocket, WebSocketServer, type RawData } from "ws"
@@ -107,6 +108,14 @@ export class ProtocolServer {
 
     for (const connection of ready)
       connection.send({ type: "event", event: { type: "preferences_changed", preferences } })
+  }
+
+  broadcastSessionArchives(archives: SessionArchives) {
+    if (this.closing) return
+    const ready = [...this.connections].filter((connection) => connection.ready)
+
+    for (const connection of ready)
+      connection.send({ type: "event", event: { type: "session_archives_changed", archives } })
   }
 
   broadcastServerSnapshot() {

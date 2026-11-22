@@ -1,17 +1,15 @@
-import { randomUUID } from "node:crypto"
 import { watch, type FSWatcher } from "node:fs"
-import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises"
-import { basename, dirname, join } from "node:path"
-import { defaultPigHome } from "@pig/environment"
+import { mkdir, readFile } from "node:fs/promises"
+import { basename, dirname } from "node:path"
 import type {
   UserPreferences,
   UserPreferencesPatch,
   UserRailLayout,
   UserRailSection,
 } from "@pig/protocol"
+import { pigHomeFile, writeJsonAtomic } from "./pig-file.js"
 
 const DEBOUNCE_MS = 80
-const RENAME_ATTEMPTS = 4
 const THEME_MODES = ["auto", "light", "dark"] as const
 const THEME_PRESETS = ["linear", "paper", "ocean", "grove", "iris"] as const
 const WELCOME_FIELDS = ["mask", "off"] as const
@@ -192,24 +190,7 @@ function requiredRailLayout(value: unknown): UserRailLayout {
 }
 
 export function preferencesFile(sessionDir?: string, pigHome?: string): string {
-  if (pigHome) return join(pigHome, "preferences.json")
-
-  if (sessionDir) return join(sessionDir, "preferences.json")
-  return join(defaultPigHome(), "preferences.json")
-}
-
-async function renameAside(from: string, to: string): Promise<void> {
-  for (let attempt = 0; ; attempt += 1) {
-    try {
-      await rename(from, to)
-      return
-    } catch (error) {
-      const code = (error as NodeJS.ErrnoException).code
-
-      if ((code !== "EPERM" && code !== "EBUSY") || attempt >= RENAME_ATTEMPTS) throw error
-      await new Promise((resolve) => setTimeout(resolve, 15 * (attempt + 1)))
-    }
-  }
+  return pigHomeFile("preferences.json", sessionDir, pigHome)
 }
 
 export class PreferencesStore {
@@ -298,18 +279,7 @@ export class PreferencesStore {
   }
 
   private async write(config: Record<string, unknown>): Promise<void> {
-    const temp = `${this.path}.${randomUUID()}.tmp`
-
-    await mkdir(dirname(this.path), { recursive: true })
-
-    try {
-      await writeFile(temp, `${JSON.stringify(config, null, 2)}\n`, { mode: 0o600 })
-      await renameAside(temp, this.path)
-    } catch (error) {
-      await rm(temp, { force: true })
-      throw error
-    }
-
+    await writeJsonAtomic(this.path, config)
     await this.attach()
   }
 

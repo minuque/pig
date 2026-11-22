@@ -54,6 +54,8 @@ export type {
   SessionCard,
   SessionTranscriptPage,
   TurnTiming,
+  SessionArchives,
+  SessionArchivesPatch,
 } from "./session.js"
 
 export type {

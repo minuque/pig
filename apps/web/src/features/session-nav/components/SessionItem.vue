@@ -213,6 +213,11 @@
           </ContextMenuItem>
         </template>
 
+        <ContextMenuItem :disabled="startedAt !== undefined" @select="emit('archive', session.id)">
+          <ArchiveIcon />
+          {{ t("session.archive") }}
+        </ContextMenuItem>
+
         <ContextMenuSeparator />
 
         <ContextMenuItem variant="destructive" @select="deleteOpen = true">
@@ -254,6 +259,7 @@ import type { DropVerb } from "@features/session-nav/lib/drag-plan.js"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import { trySplitView } from "@features/split-view/index.js"
 import {
+  ArchiveIcon,
   CircleCheckIcon,
   CheckIcon,
   Columns2Icon,
@@ -303,6 +309,7 @@ const emit = defineEmits<{
   delete: [id: string]
   settle: [id: string]
   unsettle: [id: string]
+  archive: [id: string]
   dragStart: [event: PointerEvent]
   sweepStart: [event: PointerEvent]
 }>()

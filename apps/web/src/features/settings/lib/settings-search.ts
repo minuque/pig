@@ -5,6 +5,7 @@ export interface SettingsSearchEntry {
   pane: SettingsPane
   title: string
   section: string
+  keywords?: string
 }
 
 export function matchSettings(
@@ -16,6 +17,8 @@ export function matchSettings(
   if (!keyword) return []
   return entries.filter(
     (entry) =>
-      entry.title.toLowerCase().includes(keyword) || entry.section.toLowerCase().includes(keyword),
+      entry.title.toLowerCase().includes(keyword) ||
+      entry.section.toLowerCase().includes(keyword) ||
+      (entry.keywords?.toLowerCase().includes(keyword) ?? false),
   )
 }

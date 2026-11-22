@@ -8,6 +8,7 @@ import {
   type DirectoryPort,
 } from "../system/directory.js"
 import { PreferencesStore, preferencesFile } from "../system/preferences.js"
+import { SessionArchivesStore, sessionArchivesFile } from "../system/session-archives.js"
 import { handlePreviewRequest } from "./file-preview.js"
 import { handlePlatformRequest, type EnvironmentSources } from "./platform.js"
 import { installProviderHttp } from "./provider-http.js"
@@ -41,6 +42,7 @@ export class Gateway {
   private readonly browser: BrowserSession
   private readonly environments: EnvironmentSources
   private readonly preferences: PreferencesStore
+  private readonly sessionArchives: SessionArchivesStore
 
   constructor(options: GatewayOptions = {}) {
     this.webRoot = options.webRoot
@@ -49,6 +51,9 @@ export class Gateway {
       options.browserSecretFile ?? browserSecretFile(options.sessionDir, options.pigHome),
     )
     this.preferences = new PreferencesStore(preferencesFile(options.sessionDir, options.pigHome))
+    this.sessionArchives = new SessionArchivesStore(
+      sessionArchivesFile(options.sessionDir, options.pigHome),
+    )
     this.environments = options.environments ?? {}
     this.platformPort =
       options.platformPort ??
@@ -165,6 +170,7 @@ export class Gateway {
         platformPort: this.platformPort,
         environments: this.environments,
         preferences: this.preferences,
+        sessionArchives: this.sessionArchives,
       })
 
       if (handled) return
@@ -177,6 +183,7 @@ export class Gateway {
     await this.browser.open()
     installProviderHttp()
     this.preferences.watch((preferences) => this.protocol.broadcastPreferences(preferences))
+    this.sessionArchives.watch((archives) => this.protocol.broadcastSessionArchives(archives))
     const warming = this.hostService.warm()
     const port = await new Promise<number>((resolveStart, reject) => {
       this.server.once("error", reject)
@@ -199,6 +206,7 @@ export class Gateway {
 
   async stop() {
     this.preferences.close()
+    this.sessionArchives.close()
     await this.protocol.close()
     await this.hostService.dispose()
     await closeEnvironments()

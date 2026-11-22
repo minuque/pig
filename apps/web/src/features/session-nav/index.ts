@@ -3,11 +3,15 @@ import { useRouter } from "vue-router"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
 import type { FocusedSession } from "@features/split-view/index.js"
+import type { ArchiveProjectView } from "@features/settings/lib/archive-view.js"
+import { useProjectPrefs } from "@features/session-nav/hooks/use-project-prefs.js"
 import { useSessionCards } from "@features/session-nav/hooks/use-session-cards.js"
 import { useSessionMarkers } from "@features/session-nav/hooks/use-session-markers.js"
 import { useSessionOpen } from "@features/session-nav/hooks/use-session-open.js"
 import { useRevealNewSessions } from "@features/session-nav/hooks/use-reveal-new-sessions.js"
 import { useWorkspaceNav } from "@features/session-nav/hooks/use-workspace-nav.js"
+import { projectMonogram, workspaceName } from "@features/session-nav/lib/format.js"
+import { projectIconColorOf, projectIconTone } from "@features/session-nav/lib/project-prefs.js"
 import {
   conversationItemCount,
   sessionCardFoot,
@@ -51,7 +55,41 @@ function createNav(
     leave: session.leave,
     refreshSessions: pi.refreshSessions,
   })
-  const markers = useSessionMarkers(nav.listedSessions, session.shownIds)
+  const markers = useSessionMarkers(nav.allSessions, session.shownIds)
+  const { iconOf } = useProjectPrefs()
+  const projectByCwd = computed(() => {
+    const map = new Map<string, ArchiveProjectView>()
+    const cwds = new Set<string>(nav.workspaces.value)
+
+    for (const item of nav.allSessions.value) {
+      if (item.cwd) cwds.add(item.cwd)
+    }
+
+    for (const cwd of cwds) {
+      const name = workspaceName(cwd)
+      const choice = iconOf(cwd)
+      let host: string | undefined
+
+      if (cwd.startsWith("ssh://")) {
+        try {
+          host = new URL(cwd).host || undefined
+        } catch {
+          host = undefined
+        }
+      }
+
+      map.set(cwd, {
+        cwd,
+        name,
+        monogram: projectMonogram(name),
+        tone: projectIconTone(choice?.color ?? projectIconColorOf(cwd)),
+        iconName: choice?.name,
+        host,
+      })
+    }
+
+    return map
+  })
   const highlightedSessionId = computed(
     () => baseHighlightedSessionId.value ?? nav.draftSessionId.value,
   )
@@ -77,7 +115,7 @@ function createNav(
       }
     >()
 
-    for (const item of nav.listedSessions.value) {
+    for (const item of nav.allSessions.value) {
       const foot = sessionCardFoot(item.id, extras, live)
       const isRunning =
         (liveId === item.id && activeSessionRunning.value) ||
@@ -146,7 +184,10 @@ function createNav(
 
   return {
     groups: nav.groups,
+    allSessions: nav.allSessions,
     listedSessions: nav.listedSessions,
+    projectByCwd,
+    runningIds,
     cardFootById,
     revealMore: nav.revealMore,
     collapseGroup: nav.collapseGroup,
@@ -180,6 +221,9 @@ function createNav(
     addRemoteWorkspace: nav.addRemoteWorkspace,
     renameSession: nav.renameSession,
     deleteSession: nav.deleteSession,
+    deleteSessions: nav.deleteSessions,
+    archiveSessions: nav.archiveSessions,
+    unarchiveSessions: nav.unarchiveSessions,
   }
 }
 

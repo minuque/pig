@@ -71,6 +71,7 @@
             >
               <component :is="item.icon" class="size-icon" />
               <span class="nav-label">{{ item.label }}</span>
+              <span v-if="item.count" class="nav-count">{{ item.count }}</span>
             </button>
           </template>
         </nav>
@@ -115,6 +116,7 @@
                 <GeneralPane v-if="active === 'general'" />
                 <AppearancePane v-else-if="active === 'appearance'" />
                 <NotificationsPane v-else-if="active === 'notifications'" />
+                <ArchivePane v-else-if="active === 'archive' && archive" :controller="archive" />
                 <ModelsPane v-else :refresh-models="refreshModels" />
               </div>
             </div>
@@ -130,6 +132,7 @@ import { computed, nextTick, provide, ref, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
 import {
+  ArchiveIcon,
   BellIcon,
   XIcon,
   CloudIcon,
@@ -137,13 +140,16 @@ import {
   PaletteIcon,
   SlidersHorizontalIcon,
 } from "@components/icons/index.js"
+import { archivedSessionIds } from "@client/session-archives.js"
 import { Kbd } from "@components/ui/kbd/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
 import AppearancePane from "./AppearancePane.vue"
+import ArchivePane from "./ArchivePane.vue"
 import GeneralPane from "./GeneralPane.vue"
 import ModelsPane from "./models/ModelsPane.vue"
 import NotificationsPane from "./NotificationsPane.vue"
+import type { ArchiveController } from "@features/settings/lib/archive-view.js"
 import { matchSettings, type SettingsSearchEntry } from "@features/settings/lib/settings-search.js"
 
 import type {
@@ -156,6 +162,7 @@ const props = defineProps<{
   open: boolean
   initialPane?: Pane | undefined
   refreshModels?: (() => Promise<void>) | undefined
+  archive?: ArchiveController | undefined
 }>()
 const emit = defineEmits<{ "update:open": [open: boolean] }>()
 const { t } = useI18n()
@@ -165,7 +172,9 @@ const trail = ref<SettingsCrumb[]>([])
 
 provide(SETTINGS_TRAIL, trail)
 
-const tabs = computed<{ id: Pane; label: string; icon: typeof SlidersHorizontalIcon }[]>(() => [
+const tabs = computed<
+  { id: Pane; label: string; icon: typeof SlidersHorizontalIcon; count?: number | undefined }[]
+>(() => [
   {
     id: "general",
     label: t("settings.general"),
@@ -174,6 +183,16 @@ const tabs = computed<{ id: Pane; label: string; icon: typeof SlidersHorizontalI
   { id: "appearance", label: t("settings.appearance"), icon: PaletteIcon },
   { id: "models", label: t("settings.models.title"), icon: CloudIcon },
   { id: "notifications", label: t("settings.notifications"), icon: BellIcon },
+  ...(props.archive
+    ? [
+        {
+          id: "archive" as const,
+          label: t("settings.archive.title"),
+          icon: ArchiveIcon,
+          count: archivedSessionIds.value.size || undefined,
+        },
+      ]
+    : []),
 ])
 const crumbs = computed<SettingsCrumb[]>(() => {
   const base: SettingsCrumb[] = [{ label: t("settings.title") }]
@@ -264,6 +283,17 @@ const searchEntries = computed<SettingsSearchEntry[]>(() => [
     title: t("settings.notifySound"),
     section: t("settings.notifications"),
   },
+  ...(props.archive
+    ? [
+        {
+          id: "setting-archive",
+          pane: "archive" as const,
+          title: t("settings.archive.title"),
+          section: t("settings.archive.title"),
+          keywords: t("settings.archive.searchKeywords"),
+        },
+      ]
+    : []),
 ])
 const results = computed(() => matchSettings(searchEntries.value, query.value))
 const searching = computed(() => query.value.trim().length > 0)
@@ -425,6 +455,13 @@ watch(active, async () => {
     color var(--duration-fast) var(--ease-out);
 }
 
+.settings-dialog .nav-count {
+  margin-inline-start: auto;
+  color: var(--fg-muted);
+  font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
+}
+
 .settings-dialog .nav-item:hover {
   background: var(--bg-hover);
   color: var(--fg);
@@ -576,7 +613,8 @@ watch(active, async () => {
     padding-inline: var(--space-2xs);
   }
 
-  .settings-dialog .nav-label {
+  .settings-dialog .nav-label,
+  .settings-dialog .nav-count {
     display: none;
   }
 

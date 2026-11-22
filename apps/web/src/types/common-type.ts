@@ -33,6 +33,8 @@ export type {
   ProviderView,
   ServerSnapshot,
   SessionCard,
+  SessionArchives,
+  SessionArchivesPatch,
   Task,
   TaskStatus,
   TaskTranscriptItem,

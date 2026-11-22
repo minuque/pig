@@ -118,6 +118,7 @@ const emit = defineEmits<{
   delete: [id: string]
   settle: [id: string]
   unsettle: [id: string]
+  archive: [id: string]
   reorderPinned: [id: string, toIndex: number]
   pinAt: [id: string, toIndex: number]
   unpin: [id: string]
@@ -189,6 +190,7 @@ const sectionOn = {
   delete: (id: string) => emit("delete", id),
   settle: (id: string) => emit("settle", id),
   unsettle: (id: string) => emit("unsettle", id),
+  archive: (id: string) => emit("archive", id),
   dragStart: startDrag,
   sweepStart: sweep.start,
   toggleSection: (key: string) => emit("toggleSection", key),

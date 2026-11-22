@@ -12,6 +12,8 @@ import type {
   ContextUsagePreview,
   SessionCard,
   SessionTranscriptPage,
+  SessionArchives,
+  SessionArchivesPatch,
 } from "./session.js"
 import type { TranscriptItem } from "./transcript.js"
 import type { UserPreferences, UserPreferencesPatch } from "./preferences.js"
@@ -85,6 +87,13 @@ export interface PlatformHttpRoutes {
   "PATCH /api/v1/platform/preferences": {
     body: UserPreferencesPatch
     response: { preferences: UserPreferences }
+  }
+  "GET /api/v1/platform/session-archives": {
+    response: { archives: SessionArchives; exists: boolean }
+  }
+  "PATCH /api/v1/platform/session-archives": {
+    body: SessionArchivesPatch
+    response: { archives: SessionArchives }
   }
   "POST /api/v1/platform/attachments/discard": {
     body: { batch: string }

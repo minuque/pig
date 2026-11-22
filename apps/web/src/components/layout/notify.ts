@@ -4,6 +4,7 @@ export type NoticeLevel = "info" | "success" | "warning" | "error"
 
 export interface NoticeAction {
   label: string
+  icon?: "open" | "undo"
   run(): void
 }
 

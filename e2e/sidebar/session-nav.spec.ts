@@ -11,13 +11,13 @@ async function enter(page: Page, gateway: E2eGateway) {
 
 const section = (page: Page) => page.locator('.session-section[data-key="active"]')
 
-test("行尾归档按钮把会话收进已归档段", async ({ page, navGateway }) => {
+test("行尾标记完成按钮把会话收进已完成段", async ({ page, navGateway }) => {
   await enter(page, navGateway)
 
   const first = section(page).locator(".session-card").first()
   await expect(first).toContainText(`${FILLER_PREFIX} 6`)
   await first.hover()
-  await first.getByRole("button", { name: "归档" }).click()
+  await first.getByRole("button", { name: "标记完成" }).click()
 
   await expect(section(page).locator(".session-card")).toHaveCount(5)
   const settled = page.locator('.session-section[data-key="settled"]')
@@ -95,12 +95,12 @@ test("拖拽会话进出置顶区：拖进置顶、拖出取消置顶", async ({
   await expect(pinned.locator(".session-card").first()).toContainText("批量会话 6")
 })
 
-test("按住行尾归档按钮往下扫，扫过的会话一起归档", async ({ page, navGateway }) => {
+test("按住行尾标记完成按钮往下扫，扫过的会话一起标记完成", async ({ page, navGateway }) => {
   await enter(page, navGateway)
 
   const cards = section(page).locator(".session-card")
   await cards.first().hover()
-  const button = await cards.first().getByRole("button", { name: "归档" }).boundingBox()
+  const button = await cards.first().getByRole("button", { name: "标记完成" }).boundingBox()
   const third = await cards.nth(2).boundingBox()
 
   expect(button).not.toBeNull()

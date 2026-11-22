@@ -46,7 +46,8 @@
 
       <ToastAction v-if="item.action" as-child :alt-text="item.action.label">
         <Button class="toast-action" size="s" variant="solid" @click="item.action.run()">
-          <ArrowUpRightIcon />
+          <Undo2Icon v-if="item.action.icon === 'undo'" />
+          <ArrowUpRightIcon v-else />
           {{ item.action.label }}
         </Button>
       </ToastAction>
@@ -79,6 +80,7 @@ import {
   CircleExclamationPointIcon,
   InfoIcon,
   TriangleAlertIcon,
+  Undo2Icon,
   XIcon,
 } from "@components/icons/index.js"
 import type { Tone } from "@/types/ui-type.js"
