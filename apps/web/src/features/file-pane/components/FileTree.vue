@@ -1,56 +1,62 @@
 <template>
-  <TreeRoot
-    ref="root"
-    class="file-tree"
-    :items="rootNodes"
-    :get-key="(node: TreeNode) => node.path"
-    :get-children="childrenOf"
-    :expanded="pane.expanded.value"
-    :aria-label="t('files.title')"
-    @update:expanded="onExpanded"
-  >
-    <TreeVirtualizer
-      v-slot="{ item }"
-      :estimate-size="ROW_HEIGHT"
-      :text-content="(node) => String(node.name).toLowerCase()"
+  <div ref="scroller" class="file-tree" @scroll="onScroll">
+    <Tree
+      ref="tree"
+      class="file-tree-list"
+      mode="none"
+      :items="items"
+      :expanded="pane.expanded.value"
+      :aria-label="t('files.title')"
+      :style="{ blockSize: `${rows.length * ROW_HEIGHT}px` }"
+      @update:expanded="pane.setExpanded"
+      @highlight="(_value: string, details: ListHighlightDetails) => reveal(details.index)"
+      @action="onAction"
     >
       <TreeItem
-        v-slot="{ isExpanded }"
-        :key="item._id"
-        v-bind="item.bind"
+        v-for="{ item, index } in visible"
+        :key="item.value"
+        :value="item.value"
         class="file-tree-row"
-        :data-path="item.value.path"
-        :data-active="item.value.path === active || undefined"
-        :style="{ '--tree-level': item.level - 1 }"
-        @select="(event: Event) => onSelect(event, item.value as TreeNode)"
-        @dblclick="item.value.kind === 'file' && pane.openFile(item.value.path, { pin: true })"
+        :data-path="item.value"
+        :data-active="item.value === active || undefined"
+        :style="{ insetBlockStart: `${index * ROW_HEIGHT}px` }"
+        @dblclick="!item.children && pane.openFile(item.value, { pin: true })"
       >
-        <template v-if="item.value.kind === 'directory'">
-          <ChevronRightIcon class="file-tree-caret" :data-open="isExpanded || undefined" />
-          <FolderOpenIcon v-if="isExpanded" class="file-tree-icon" />
-          <FolderIcon v-else class="file-tree-icon" />
-        </template>
+        <TreeItemLabel v-slot="{ state }" class="file-tree-label">
+          <template v-if="item.children">
+            <TreeItemIndicator class="file-tree-caret">
+              <ChevronRightIcon class="file-tree-caret-icon" />
+            </TreeItemIndicator>
 
-        <LanguageIcon
-          v-else
-          class="file-tree-icon is-file"
-          :language="extension(item.value.name)"
-        />
+            <FolderOpenIcon v-if="state.expanded" class="file-tree-icon" />
+            <FolderIcon v-else class="file-tree-icon" />
+          </template>
 
-        <span class="file-tree-name">{{ item.value.name }}</span>
+          <LanguageIcon v-else class="file-tree-icon is-file" :language="extension(item.label)" />
+          <span class="file-tree-name">{{ item.label }}</span>
+        </TreeItemLabel>
       </TreeItem>
-    </TreeVirtualizer>
-  </TreeRoot>
+    </Tree>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue"
-import { TreeItem, TreeRoot, TreeVirtualizer } from "reka-ui"
+import { useResizeObserver } from "@vueuse/core"
+import {
+  Tree,
+  TreeItem,
+  TreeItemIndicator,
+  TreeItemLabel,
+  visibleTreeRows,
+  type ListHighlightDetails,
+  type TreeItemData,
+} from "@ui-sdk/vue/tree"
 import { useI18n } from "@i18n/index.js"
 import { listWorkspaceDir } from "@client/platform.js"
 import LanguageIcon from "@components/icons/LanguageIcon.vue"
 import { ChevronRightIcon, FolderIcon, FolderOpenIcon } from "@components/icons/index.js"
-import { ancestors, rowIndex } from "@features/file-pane/lib/tree.js"
+import { ancestors } from "@features/file-pane/lib/tree.js"
 import { useFilePane } from "@features/file-pane/index.js"
 import type { DirectoryEntry } from "@/types/common-type.js"
 
@@ -59,13 +65,29 @@ type TreeNode = DirectoryEntry & { path: string }
 const { t } = useI18n()
 const pane = useFilePane()
 const ROW_HEIGHT = 28
-const root = useTemplateRef<{ $el: HTMLElement }>("root")
+const OVERSCAN = 8
+const scroller = useTemplateRef<HTMLElement>("scroller")
+const tree = useTemplateRef<{ $el: HTMLElement }>("tree")
 const listed = shallowRef<Record<string, TreeNode[]>>({})
+const scrollTop = shallowRef(0)
+const height = shallowRef(0)
 const active = computed(() => pane.tabs.value.active)
-const rootNodes = computed(() => listed.value[""] ?? [])
+const items = computed(() => toItems(listed.value[""] ?? []))
+const rows = computed(() => visibleTreeRows(items.value, pane.expanded.value))
+const visible = computed(() => {
+  const start = Math.max(0, Math.floor(scrollTop.value / ROW_HEIGHT) - OVERSCAN)
+  const end = Math.ceil((scrollTop.value + height.value) / ROW_HEIGHT) + OVERSCAN
+  return rows.value.slice(start, end)
+})
 const extension = (name: string) => name.split(".").pop()?.toLowerCase() ?? "text"
-const childrenOf = (node: TreeNode) =>
-  node.kind === "directory" ? (listed.value[node.path] ?? []) : undefined
+
+function toItems(nodes: TreeNode[]): TreeItemData[] {
+  return nodes.map((node) =>
+    node.kind === "directory"
+      ? { value: node.path, label: node.name, children: toItems(listed.value[node.path] ?? []) }
+      : { value: node.path, label: node.name },
+  )
+}
 
 async function load(dir: string) {
   const cwd = pane.cwd.value
@@ -89,16 +111,35 @@ async function refresh() {
   await Promise.all(["", ...pane.expanded.value].map(load))
 }
 
-function onExpanded(next: string[]) {
-  pane.setExpanded(next)
+function onScroll(event: Event) {
+  scrollTop.value = (event.currentTarget as HTMLElement).scrollTop
 }
 
-function onSelect(event: Event, node: TreeNode) {
-  if (node.kind === "file") {
-    event.preventDefault()
-    pane.openFile(node.path)
-  }
+function onAction(value: string) {
+  const row = rows.value.find((entry) => entry.item.value === value)
+
+  if (row && !row.item.children) pane.openFile(value)
 }
+
+function reveal(index: number, center = false) {
+  const el = scroller.value
+
+  if (!el || index < 0) return
+
+  const top = (tree.value?.$el.offsetTop ?? 0) + index * ROW_HEIGHT
+
+  if (center && (top < el.scrollTop || top + ROW_HEIGHT > el.scrollTop + el.clientHeight))
+    el.scrollTop = top - (el.clientHeight - ROW_HEIGHT) / 2
+  else if (top < el.scrollTop) el.scrollTop = top
+  else if (top + ROW_HEIGHT > el.scrollTop + el.clientHeight)
+    el.scrollTop = top + ROW_HEIGHT - el.clientHeight
+
+  scrollTop.value = el.scrollTop
+}
+
+useResizeObserver(scroller, ([entry]) => {
+  if (entry) height.value = entry.contentRect.height
+})
 
 watch(
   () => pane.cwd.value,
@@ -127,16 +168,10 @@ watch(
     await Promise.all(dirs.filter((dir) => !listed.value[dir]).map(load))
     pane.setExpanded([...new Set([...pane.expanded.value, ...dirs])])
     await nextTick()
-
-    const el = root.value?.$el
-    const index = rowIndex(rootNodes.value, childrenOf, pane.expanded.value, request.path)
-
-    if (!el || index < 0) return
-
-    const top = index * ROW_HEIGHT
-
-    if (top < el.scrollTop || top + ROW_HEIGHT > el.scrollTop + el.clientHeight)
-      el.scrollTop = top - (el.clientHeight - ROW_HEIGHT) / 2
+    reveal(
+      rows.value.findIndex((row) => row.item.value === request.path),
+      true,
+    )
   },
   { immediate: true },
 )
@@ -144,20 +179,22 @@ watch(
 
 <style scoped>
 .file-tree {
+  position: relative;
   flex: 1;
   min-block-size: 0;
   padding: var(--space-2xs) var(--space-xs) var(--space-sm);
   overflow: auto;
 }
 
-/* 外部：虚拟列表把行绝对定位，只给了左边，右边要自己贴住才铺满 */
+.file-tree-list {
+  position: relative;
+}
+
 .file-tree-row {
-  inset-inline-end: 0;
-  display: flex;
-  align-items: center;
-  gap: var(--space-2xs);
+  position: absolute;
+  inset-inline: 0;
   block-size: var(--control-sm);
-  padding-inline: calc(var(--space-xs) + var(--tree-level) * var(--space-md)) var(--space-xs);
+  padding-inline: calc(var(--space-xs) + (var(--tree-level) - 1) * var(--space-md)) var(--space-xs);
   border-radius: var(--radius-control);
   color: var(--fg-secondary);
   font-size: var(--text-body);
@@ -181,15 +218,26 @@ watch(
   outline-offset: -2px;
 }
 
+.file-tree-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  block-size: 100%;
+}
+
 .file-tree-caret {
+  display: inline-flex;
   flex: none;
-  inline-size: var(--icon-sm);
-  block-size: var(--icon-sm);
   color: var(--fg-secondary);
   transition: transform var(--duration-fast) var(--ease-out);
 }
 
-.file-tree-caret[data-open] {
+.file-tree-caret-icon {
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
+}
+
+.file-tree-caret[data-expanded] {
   transform: rotate(90deg);
 }
 

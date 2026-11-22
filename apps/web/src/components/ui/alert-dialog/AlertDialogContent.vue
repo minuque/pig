@@ -1,66 +1,32 @@
 <template>
-  <AlertDialogPortal>
-    <AlertDialogOverlay data-slot="alert-dialog-overlay" class="glass-backdrop" />
+  <AlertDialogBackdrop class="glass-backdrop" />
 
-    <div class="viewport">
-      <AlertDialogContent
-        data-slot="alert-dialog-content"
-        v-bind="{ ...$attrs, ...forwarded }"
-        class="glass-panel"
-        :class="props.class"
-      >
-        <slot />
-      </AlertDialogContent>
-    </div>
-  </AlertDialogPortal>
+  <AlertDialogContentPrimitive v-bind="$attrs" class="glass-panel">
+    <slot />
+  </AlertDialogContentPrimitive>
 </template>
 
 <script setup lang="ts">
-import type { AlertDialogContentEmits, AlertDialogContentProps } from "reka-ui"
-import type { ComputedRef, HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
 import {
-  AlertDialogContent,
-  AlertDialogOverlay,
-  AlertDialogPortal,
-  useForwardPropsEmits,
-} from "reka-ui"
+  AlertDialogBackdrop,
+  AlertDialogContent as AlertDialogContentPrimitive,
+} from "@ui-sdk/vue/alert-dialog"
 
 defineOptions({ inheritAttrs: false })
-
-const props = withDefaults(
-  defineProps<AlertDialogContentProps & { class?: HTMLAttributes["class"] }>(),
-  { class: undefined },
-)
-const emits = defineEmits<AlertDialogContentEmits>()
-const delegatedProps = reactiveOmit(props, "class")
-const forwarded = useForwardPropsEmits(
-  delegatedProps,
-  emits,
-) as ComputedRef<AlertDialogContentProps>
 </script>
 
 <style scoped>
-.viewport {
-  position: fixed;
-  z-index: var(--z-modal);
-  inset: 0;
-  display: grid;
-  grid-template-rows: 1fr auto 1fr;
-  justify-items: center;
-  padding: var(--space-md);
-  pointer-events: none;
-}
-
 [data-slot="alert-dialog-content"] {
+  position: fixed;
+  inset: var(--space-md);
   display: flex;
-  grid-row-start: 2;
   flex-direction: column;
-  width: 100%;
-  max-width: 32rem;
-  max-height: 100%;
+  box-sizing: border-box;
+  block-size: fit-content;
+  max-block-size: calc(100dvh - var(--space-md) * 2);
+  max-inline-size: 32rem;
   min-height: 0;
+  margin: auto;
   overflow: hidden;
-  pointer-events: auto;
 }
 </style>

@@ -32,7 +32,6 @@
         <PopoverTrigger as-child>
           <TooltipTrigger as-child>
             <IconButton
-              ref="popoverButton"
               class="rail-toggle-popover"
               type="button"
               size="m"
@@ -56,8 +55,7 @@
         <TooltipContent>{{ label }}</TooltipContent>
       </Tooltip>
 
-      <!-- 外部：Tooltip 会把触发器锚点登记到自己名下，浮层要用显式锚点 -->
-      <PopoverContent class="rail-popover" align="end" :reference="popoverButton?.$el">
+      <PopoverContent class="rail-popover" align="end">
         <RailSummary v-bind="cards" @stop="stopTask" />
       </PopoverContent>
     </Popover>
@@ -65,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, useTemplateRef, watch, type ComponentPublicInstance } from "vue"
+import { computed, ref, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { NotepadTextIcon } from "@components/icons/index.js"
 import { IconButton } from "@components/ui/button/index.js"
@@ -80,7 +78,6 @@ const { t } = useI18n()
 const rail = useSessionRail()!
 const { session, tasks, runningCount, cards, stopTask } = useRailCards()
 const popoverOpen = ref(false)
-const popoverButton = useTemplateRef<ComponentPublicInstance>("popoverButton")
 
 watch(rail.pane, (pane) => {
   if (pane) popoverOpen.value = false

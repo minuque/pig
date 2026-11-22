@@ -1,19 +1,14 @@
 <template>
-  <DropdownMenuRadioGroup v-bind="forwardedProps" data-menu-group :class="props.class">
+  <MenuRadioGroup data-menu-group :class="props.class">
     <slot />
-  </DropdownMenuRadioGroup>
+  </MenuRadioGroup>
 </template>
 
 <script setup lang="ts">
-import type { DropdownMenuRadioGroupProps } from "reka-ui"
-import type { ComputedRef, HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { DropdownMenuRadioGroup, useForwardProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
+import { MenuRadioGroup } from "@ui-sdk/vue/menu"
 
-const props = withDefaults(
-  defineProps<DropdownMenuRadioGroupProps & { class?: HTMLAttributes["class"] }>(),
-  { class: undefined },
-)
-const delegatedProps = reactiveOmit(props, "class")
-const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DropdownMenuRadioGroupProps>
+const props = withDefaults(defineProps<{ class?: HTMLAttributes["class"] }>(), {
+  class: undefined,
+})
 </script>

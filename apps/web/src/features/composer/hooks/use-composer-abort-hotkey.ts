@@ -12,8 +12,9 @@ interface AbortHotkeyOptions {
 const PANEL_SELECTOR = [
   "[data-slot='dialog-content']",
   "[data-slot='alert-dialog-content']",
-  "[data-slot='dropdown-menu-content']",
-  "[data-slot='context-menu-content']",
+  "[data-menu-content]",
+  "[data-slot='popover-content']",
+  "[data-slot='select-content']",
 ].join(", ")
 
 export function useComposerAbortHotkey(options: AbortHotkeyOptions) {

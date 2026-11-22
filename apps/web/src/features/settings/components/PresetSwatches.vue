@@ -60,7 +60,7 @@ function swatchGradient(preset: ThemePreset): string {
   line-height: var(--text-meta--line-height);
 }
 
-.preset-swatches :deep(.preset-chip[data-state="checked"]) {
+.preset-swatches :deep(.preset-chip[data-checked]) {
   color: var(--fg);
 }
 

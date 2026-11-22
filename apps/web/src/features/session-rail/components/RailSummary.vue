@@ -96,6 +96,7 @@
         :key="item"
         :model-value="!rail.layout.value.hidden.includes(item)"
         :disabled="shown.length === 1 && shown[0] === item"
+        close-on-select
         @update:model-value="rail.toggleHidden(item)"
       >
         {{ titles[item] }}

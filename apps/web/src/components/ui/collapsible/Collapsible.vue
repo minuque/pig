@@ -1,18 +1,27 @@
 <template>
   <CollapsibleRoot
-    v-slot="slotProps"
-    v-bind="props.asChild ? forwarded : { ...forwarded, 'data-slot': 'collapsible' }"
+    v-bind="open === undefined ? {} : { open }"
+    @update:open="(next: boolean) => emit('update:open', next)"
   >
-    <slot v-bind="slotProps" />
+    <template v-if="asChild" #render="{ props: partProps }">
+      <AsChildSlot :part-props="partProps"><slot /></AsChildSlot>
+    </template>
+
+    <slot />
   </CollapsibleRoot>
 </template>
 
 <script setup lang="ts">
-import type { CollapsibleRootEmits, CollapsibleRootProps } from "reka-ui"
-import type { ComputedRef } from "vue"
-import { CollapsibleRoot, useForwardPropsEmits } from "reka-ui"
+import { Collapsible as CollapsibleRoot } from "@ui-sdk/vue/collapsible"
+import { AsChildSlot } from "@components/ui/primitive/index.js"
 
-const props = defineProps<CollapsibleRootProps>()
-const emits = defineEmits<CollapsibleRootEmits>()
-const forwarded = useForwardPropsEmits(props, emits) as ComputedRef<CollapsibleRootProps>
+withDefaults(
+  defineProps<{
+    open?: boolean | undefined
+    asChild?: boolean
+  }>(),
+  { open: undefined, asChild: false },
+)
+
+const emit = defineEmits<{ "update:open": [open: boolean] }>()
 </script>

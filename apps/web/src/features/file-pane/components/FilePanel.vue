@@ -70,7 +70,7 @@
           aria-orientation="vertical"
           tabindex="0"
           data-orientation="horizontal"
-          :data-state="dragging ? 'drag' : undefined"
+          :data-dragging="dragging || undefined"
           @pointerdown="startDrag"
           @keydown.left.prevent="setTree(treeWidth - 16, true)"
           @keydown.right.prevent="setTree(treeWidth + 16, true)"
@@ -223,6 +223,7 @@ const actions = computed(() => [
   flex: none;
   flex-direction: column;
   min-inline-size: 0;
+  min-block-size: 0;
 }
 
 .file-panel-viewer {

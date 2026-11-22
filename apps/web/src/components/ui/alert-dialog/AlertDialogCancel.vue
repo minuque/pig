@@ -1,25 +1,12 @@
 <template>
-  <AlertDialogCancel
-    data-slot="alert-dialog-cancel"
-    v-bind="{ ...forwardedProps, ...buttonAttrs('outline') }"
-    data-tone="neutral"
-    :class="props.class"
-  >
+  <AlertDialogClose v-bind="{ ...$attrs, ...buttonAttrs('outline') }" data-tone="neutral">
     <slot />
-  </AlertDialogCancel>
+  </AlertDialogClose>
 </template>
 
 <script setup lang="ts">
-import type { AlertDialogCancelProps } from "reka-ui"
-import type { ComputedRef, HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { AlertDialogCancel, useForwardProps } from "reka-ui"
+import { AlertDialogClose } from "@ui-sdk/vue/alert-dialog"
 import { buttonAttrs } from "@components/ui/button/index.js"
 
-const props = withDefaults(
-  defineProps<AlertDialogCancelProps & { class?: HTMLAttributes["class"] }>(),
-  { class: undefined },
-)
-const delegatedProps = reactiveOmit(props, "class")
-const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<AlertDialogCancelProps>
+defineOptions({ inheritAttrs: false })
 </script>

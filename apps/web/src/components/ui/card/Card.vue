@@ -1,28 +1,27 @@
 <template>
-  <Primitive
+  <Polymorphic
+    v-bind="$attrs"
     data-slot="card"
     :data-size="size"
     :data-variant="variant"
     :as="as"
     :as-child="asChild"
     :class="props.class"
-    v-bind="$attrs"
   >
     <slot />
-  </Primitive>
+  </Polymorphic>
 </template>
 
 <script setup lang="ts">
-import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
-import { Primitive } from "reka-ui"
+import { Polymorphic, type PolymorphicProps } from "@components/ui/primitive/index.js"
 import type { Size } from "@/types/ui-type.js"
 
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
   defineProps<
-    PrimitiveProps & {
+    PolymorphicProps & {
       class?: HTMLAttributes["class"]
       size?: Size
       variant?: "surface" | "ghost"

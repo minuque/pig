@@ -1,29 +1,26 @@
 <template>
-  <SelectTrigger
-    data-slot="select-trigger"
+  <SelectTriggerPrimitive
     :data-size="size"
     :data-variant="variant"
     :data-tone="color"
     :data-radius="radius"
-    v-bind="{ ...forwarded, ...$attrs }"
+    v-bind="$attrs"
     :class="props.class"
   >
     <span data-slot="select-trigger-inner">
       <SelectValue :placeholder="placeholder"><slot /></SelectValue>
     </span>
 
-    <SelectIcon data-slot="select-icon">
+    <span data-slot="select-icon">
       <ChevronDownIcon />
-    </SelectIcon>
-  </SelectTrigger>
+    </span>
+  </SelectTriggerPrimitive>
 </template>
 
 <script setup lang="ts">
 import type { ToneColor } from "@/types/ui-type.js"
-import type { SelectTriggerProps } from "reka-ui"
-import type { ComputedRef, HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { SelectIcon, SelectTrigger, SelectValue, useForwardProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
+import { SelectTrigger as SelectTriggerPrimitive, SelectValue } from "@ui-sdk/vue/select"
 import type { Radius } from "@components/ui/button/index.js"
 import { useSelectSize } from "@components/ui/select/select-context.js"
 import { ChevronDownIcon } from "@components/icons/index.js"
@@ -31,19 +28,15 @@ import { ChevronDownIcon } from "@components/icons/index.js"
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
-  defineProps<
-    SelectTriggerProps & {
-      class?: HTMLAttributes["class"]
-      variant?: "surface" | "ghost"
-      color?: ToneColor
-      radius?: Radius
-      placeholder?: string
-    }
-  >(),
+  defineProps<{
+    class?: HTMLAttributes["class"]
+    variant?: "surface" | "ghost"
+    color?: ToneColor
+    radius?: Radius
+    placeholder?: string
+  }>(),
   { class: undefined, variant: "surface", placeholder: "" },
 )
-const delegatedProps = reactiveOmit(props, "class", "variant", "color", "radius", "placeholder")
-const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectTriggerProps>
 const size = useSelectSize()
 </script>
 
@@ -111,7 +104,7 @@ const size = useSelectSize()
   outline-offset: 2px;
 }
 
-:where([data-slot="select-trigger"]:disabled) {
+:where([data-slot="select-trigger"][data-disabled]) {
   opacity: var(--opacity-disabled);
   pointer-events: none;
 }
@@ -154,7 +147,7 @@ const size = useSelectSize()
   }
 }
 
-:where([data-slot="select-trigger"][data-variant="ghost"][data-state="open"]) {
+:where([data-slot="select-trigger"][data-variant="ghost"][data-open]) {
   background-color: var(--bg-hover);
   color: var(--fg);
 }

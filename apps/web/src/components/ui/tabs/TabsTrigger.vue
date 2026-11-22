@@ -1,17 +1,17 @@
 <template>
-  <TabsTrigger data-slot="tabs-trigger" :data-variant="variant" :value="value" :disabled="disabled">
+  <TabsTab :data-variant="variant" :value="String(value)" :disabled="disabled">
     <slot v-if="variant === 'segmented'" />
 
     <template v-else>
       <span data-slot="tabs-trigger-inner"><slot /></span>
       <span data-slot="tabs-trigger-inner-hidden"><slot /></span>
     </template>
-  </TabsTrigger>
+  </TabsTab>
 </template>
 
 <script setup lang="ts">
 import { inject, ref } from "vue"
-import { TabsTrigger } from "reka-ui"
+import { TabsTab } from "@ui-sdk/vue/tabs"
 import { TABS_VARIANT } from "./context.js"
 
 defineProps<{ value: string | number; disabled?: boolean }>()
@@ -20,7 +20,7 @@ const variant = inject(TABS_VARIANT, ref("underline"))
 </script>
 
 <style>
-:where([data-slot="tabs-trigger"][data-variant="segmented"]) {
+:where([data-slot="tabs-tab"][data-variant="segmented"]) {
   display: flex;
   align-items: center;
   gap: var(--space-2xs);
@@ -33,28 +33,23 @@ const variant = inject(TABS_VARIANT, ref("underline"))
   cursor: pointer;
 }
 
-:where(
-  [data-slot="tabs-list"][data-size="s"] > [data-slot="tabs-trigger"][data-variant="segmented"]
-) {
+:where([data-slot="tabs-list"][data-size="s"] > [data-slot="tabs-tab"][data-variant="segmented"]) {
   padding-inline: var(--space-xs);
   border-radius: calc(var(--radius-control) - 2px);
 }
 
 :where(
-  [data-slot="tabs-trigger"][data-variant="segmented"]:is(
-      [data-state="active"],
-      :not([data-disabled]):hover
-    )
+  [data-slot="tabs-tab"][data-variant="segmented"]:is([data-selected], :not([data-disabled]):hover)
 ) {
   color: var(--fg);
 }
 
-:where([data-slot="tabs-trigger"][data-variant="segmented"][data-disabled]) {
+:where([data-slot="tabs-tab"][data-variant="segmented"][data-disabled]) {
   color: var(--fg-secondary);
   cursor: not-allowed;
 }
 
-:where([data-slot="tabs-trigger"][data-variant="segmented"]:focus-visible) {
+:where([data-slot="tabs-tab"][data-variant="segmented"]:focus-visible) {
   outline: none;
   box-shadow: var(--focus-ring);
 }

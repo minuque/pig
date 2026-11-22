@@ -1,44 +1,46 @@
 <template>
   <CheckboxRoot
-    v-slot="{ modelValue }"
-    data-slot="checkbox"
-    v-bind="forwarded"
+    v-bind="modelValue === undefined ? {} : { checked: modelValue }"
+    :disabled="disabled"
     :data-tone="color"
     :data-size="size"
     :data-variant="variant"
     :class="props.class"
+    @checked-change="(next: CheckedState) => emit('update:modelValue', next)"
   >
-    <CheckboxIndicator data-slot="checkbox-indicator">
-      <MinusIcon v-if="modelValue === 'indeterminate'" data-slot="checkbox-icon" />
+    <CheckboxIndicator v-slot="{ state }">
+      <MinusIcon v-if="state.indeterminate" data-slot="checkbox-icon" />
       <CheckIcon v-else data-slot="checkbox-icon" />
     </CheckboxIndicator>
   </CheckboxRoot>
 </template>
 
 <script setup lang="ts">
-import type { CheckboxRootEmits, CheckboxRootProps } from "reka-ui"
-import type { ComputedRef, HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { CheckboxIndicator, CheckboxRoot, useForwardPropsEmits } from "reka-ui"
+import type { HTMLAttributes } from "vue"
+import type { CheckedState } from "@ui-sdk/core/checkbox"
+import { Checkbox as CheckboxRoot, CheckboxIndicator } from "@ui-sdk/vue/checkbox"
 import { CheckIcon, MinusIcon } from "@components/icons/index.js"
 import type { Size, ToneColor } from "@/types/ui-type.js"
 
 const props = withDefaults(
-  defineProps<
-    CheckboxRootProps<boolean> & {
-      class?: HTMLAttributes["class"] | undefined
-      size?: Size | undefined
-      variant?: "surface" | "soft" | undefined
-      color?: ToneColor | undefined
-    }
-  >(),
-  { class: undefined, size: "m", variant: "surface", color: undefined },
+  defineProps<{
+    modelValue?: CheckedState | undefined
+    disabled?: boolean
+    class?: HTMLAttributes["class"] | undefined
+    size?: Size | undefined
+    variant?: "surface" | "soft" | undefined
+    color?: ToneColor | undefined
+  }>(),
+  {
+    modelValue: undefined,
+    disabled: false,
+    class: undefined,
+    size: "m",
+    variant: "surface",
+    color: undefined,
+  },
 )
-const emits = defineEmits<CheckboxRootEmits<boolean>>()
-const delegatedProps = reactiveOmit(props, "class", "size", "variant", "color")
-const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
-  CheckboxRootProps<boolean>
->
+const emit = defineEmits<{ "update:modelValue": [value: CheckedState] }>()
 </script>
 
 <style>
@@ -123,26 +125,18 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
   stroke-width: 2.5px;
 }
 
-:where([data-slot="checkbox"][data-variant="surface"][data-state="unchecked"])::before {
+:where([data-slot="checkbox"][data-variant="surface"][data-unchecked])::before {
   background-color: var(--bg-raised);
   box-shadow: inset 0 0 0 var(--border-width) var(--border-input);
 }
 
 :where(
-  [data-slot="checkbox"][data-variant="surface"]:is(
-      [data-state="checked"],
-      [data-state="indeterminate"]
-    )
+  [data-slot="checkbox"][data-variant="surface"]:is([data-checked], [data-indeterminate])
 )::before {
   background-color: var(--tone);
 }
 
-:where(
-    [data-slot="checkbox"][data-variant="surface"]:is(
-        [data-state="checked"],
-        [data-state="indeterminate"]
-      )
-  )
+:where([data-slot="checkbox"][data-variant="surface"]:is([data-checked], [data-indeterminate]))
   :where([data-slot="checkbox-indicator"]) {
   color: var(--fg-on-accent);
 }
@@ -161,12 +155,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
   background-color: var(--tone-subtle);
 }
 
-:where(
-    [data-slot="checkbox"][data-variant="soft"]:is(
-        [data-state="checked"],
-        [data-state="indeterminate"]
-      )
-  )
+:where([data-slot="checkbox"][data-variant="soft"]:is([data-checked], [data-indeterminate]))
   :where([data-slot="checkbox-indicator"]) {
   color: var(--tone-text);
 }

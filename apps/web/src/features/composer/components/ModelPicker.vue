@@ -1,8 +1,8 @@
 <template>
-  <DropdownMenu v-model:open="open" :modal="false">
+  <Popover v-model:open="open">
     <Tooltip :disabled="!labelsOverflow && !locked">
       <TooltipTrigger as-child>
-        <DropdownMenuTrigger as-child>
+        <PopoverTrigger as-child>
           <Button
             variant="ghost"
             color="neutral"
@@ -24,7 +24,7 @@
               <RollText v-if="effortLabel" class="selector-effort" :text="effortLabel" />
             </span>
           </Button>
-        </DropdownMenuTrigger>
+        </PopoverTrigger>
       </TooltipTrigger>
 
       <TooltipContent>
@@ -41,14 +41,14 @@
       @pick="emit('update:model', $event)"
       @update:level="emit('update:level', $event)"
     />
-  </DropdownMenu>
+  </Popover>
 </template>
 
 <script setup lang="ts">
 import { computed, shallowRef, useTemplateRef } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Button } from "@components/ui/button/index.js"
-import { DropdownMenu, DropdownMenuTrigger } from "@components/ui/dropdown-menu/index.js"
+import { Popover, PopoverTrigger } from "@components/ui/popover/index.js"
 import { RollText } from "@components/ui/roll-text/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import VendorMark from "@components/icons/VendorMark.vue"
@@ -109,7 +109,7 @@ function measureLabels() {
   background-color: var(--bg-hover);
 }
 
-.selector[data-button][data-state="open"] {
+.selector[data-button][data-open] {
   background-color: var(--bg-selected);
 }
 

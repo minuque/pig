@@ -1,4 +1,4 @@
-import { readonly, shallowRef } from "vue"
+import { createToaster, type ToastData } from "@ui-sdk/vue/toast"
 
 export type NoticeLevel = "info" | "success" | "warning" | "error"
 
@@ -8,36 +8,45 @@ export interface NoticeAction {
   run(): void
 }
 
+export interface NoticeExtra {
+  title?: string | undefined
+  action?: NoticeAction | undefined
+  transient?: boolean | undefined
+}
+
 export interface Notice {
-  id: number
   message: string
   level: NoticeLevel
   title?: string | undefined
   action?: NoticeAction | undefined
-  transient?: boolean | undefined
-  open: boolean
 }
 
-const notices = shallowRef<Notice[]>([])
-let nextId = 1
-export const noticeQueue = readonly(notices)
+export const PASSING_MS = 5_000
+export const noticeToaster = createToaster({ duration: PASSING_MS })
 
-export function dismissNotice(id: number): void {
-  notices.value = notices.value.map((item) => (item.id === id ? { ...item, open: false } : item))
+export function noticeOf(toast: ToastData): Notice {
+  return toast.data as Notice
 }
 
 export function notify(
   message: string,
   level: NoticeLevel = "error",
-  extra: Pick<Notice, "title" | "action" | "transient"> = {},
+  extra: NoticeExtra = {},
 ): void {
   const text = message.trim()
 
   if (!text) return
-  notices.value = [
-    ...notices.value.filter((item) => item.open),
-    { id: nextId++, message: text, level, ...extra, open: true },
-  ]
+
+  const { action, title, transient } = extra
+  const notice: Notice = { message: text, level, title, action }
+  noticeToaster({
+    title: title ?? text,
+    ...(title && { description: text }),
+    type: level,
+    duration: level === "error" && !transient ? Infinity : PASSING_MS,
+    data: notice,
+    ...(action && { action: { label: action.label, onAction: () => action.run() } }),
+  })
 }
 
 export function notifyAction(message: string): void {

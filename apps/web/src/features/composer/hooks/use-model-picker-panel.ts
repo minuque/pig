@@ -1,17 +1,13 @@
-import { nextTick, ref, watch, type Ref } from "vue"
+import { ref, watch, type Ref } from "vue"
 import { FAVORITES_SCOPE } from "@features/composer/lib/model-preset.js"
 
-function eventElement(target: EventTarget | null): Element | null {
-  if (target instanceof Element) return target
+function moveFocus(panel: HTMLElement, step: number): boolean {
+  const items = [...panel.querySelectorAll<HTMLElement>("[data-menu-item]:not(:disabled)")]
+  const index = items.findIndex((item) => item === document.activeElement)
+  const next = items[index === -1 ? (step > 0 ? 0 : items.length - 1) : index + step]
 
-  if (target instanceof Node) return target.parentElement
-  return null
-}
-
-function isEffortMenuEvent(event: Event): boolean {
-  const detail = (event as CustomEvent<{ originalEvent?: Event }>).detail
-  const el = eventElement(detail?.originalEvent?.target ?? event.target)
-  return Boolean(el?.closest("[data-model-effort-menu]"))
+  next?.focus()
+  return Boolean(next)
 }
 
 export function useModelPickerPanel(
@@ -24,7 +20,6 @@ export function useModelPickerPanel(
 ) {
   const query = ref("")
   const scope = ref(FAVORITES_SCOPE)
-  let suppressRestore = false
 
   watch(open, (isOpen) => {
     if (!isOpen) return
@@ -32,7 +27,6 @@ export function useModelPickerPanel(
     scope.value = hasFavorites()
       ? FAVORITES_SCOPE
       : (currentVendorId() ?? fallbackVendorId() ?? FAVORITES_SCOPE)
-    void nextTick(focusSearch)
   })
 
   function focusSearch() {
@@ -54,8 +48,21 @@ export function useModelPickerPanel(
   }
 
   function onPanelKeydown(event: KeyboardEvent) {
-    if (event.key !== "/") return
     const target = event.target
+
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      const panel = event.currentTarget
+
+      if (!(panel instanceof HTMLElement) || !(target instanceof HTMLElement)) return
+
+      if (target !== searchRef.value && !target.matches("[data-menu-item]")) return
+      event.preventDefault()
+
+      if (!moveFocus(panel, event.key === "ArrowDown" ? 1 : -1)) focusSearch()
+      return
+    }
+
+    if (event.key !== "/") return
 
     if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) return
     event.preventDefault()
@@ -69,24 +76,6 @@ export function useModelPickerPanel(
     query.value = ""
   }
 
-  function onPointerDownOutside(event: Event) {
-    if (isEffortMenuEvent(event)) {
-      event.preventDefault()
-      return
-    }
-
-    suppressRestore = true
-  }
-
-  function onFocusOutside(event: Event) {
-    if (isEffortMenuEvent(event)) event.preventDefault()
-  }
-
-  function onCloseAutoFocus(event: Event) {
-    if (suppressRestore) event.preventDefault()
-    suppressRestore = false
-  }
-
   return {
     query,
     scope,
@@ -94,9 +83,5 @@ export function useModelPickerPanel(
     cycleScope,
     onPanelKeydown,
     onSearchKeydown,
-    onPointerDownOutside,
-    onFocusOutside,
-    onCloseAutoFocus,
-    focusSearch,
   }
 }

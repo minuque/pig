@@ -1,18 +1,11 @@
 <template>
-  <SelectGroup data-slot="select-group" v-bind="forwarded" :class="props.class">
+  <SelectGroupPrimitive v-bind="$attrs">
     <slot />
-  </SelectGroup>
+  </SelectGroupPrimitive>
 </template>
 
 <script setup lang="ts">
-import type { SelectGroupProps } from "reka-ui"
-import type { ComputedRef, HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { SelectGroup, useForwardProps } from "reka-ui"
+import { SelectGroup as SelectGroupPrimitive } from "@ui-sdk/vue/select"
 
-const props = withDefaults(defineProps<SelectGroupProps & { class?: HTMLAttributes["class"] }>(), {
-  class: undefined,
-})
-const delegatedProps = reactiveOmit(props, "class")
-const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectGroupProps>
+defineOptions({ inheritAttrs: false })
 </script>

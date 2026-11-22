@@ -409,6 +409,7 @@
   z-index: var(--z-popover);
   display: flex;
   flex-direction: column;
+  max-block-size: var(--available-height);
   overflow: hidden;
   border-radius: var(--radius-card);
   background-color: var(--float-bg);
@@ -421,14 +422,21 @@
   border-radius: var(--radius-control);
 }
 
-:where([data-slot="dropdown-menu-content"]) {
-  max-block-size: var(--reka-dropdown-menu-content-available-height);
-  transform-origin: var(--reka-dropdown-menu-content-transform-origin);
+:where([data-menu-content][popover], [data-slot="select-content"][popover]) {
+  margin: 0;
+  padding: 0;
+  border: 0;
 }
 
-:where([data-slot="context-menu-content"]) {
-  max-block-size: var(--reka-context-menu-content-available-height);
-  transform-origin: var(--reka-context-menu-content-transform-origin);
+:where(
+  [data-menu-content],
+  [data-slot="select-content"],
+  [data-slot="popover-content"],
+  [data-slot="hover-card-content"],
+  [data-slot="tooltip-content"]
+) {
+  --popup-available-height: var(--available-height);
+  --popup-available-width: var(--available-width);
 }
 
 :where([data-menu-viewport]) {
@@ -476,7 +484,7 @@
   color: var(--tone-text);
 }
 
-:where([data-menu-item]:is([data-highlighted], [data-state="open"])) {
+:where([data-menu-item]:is([data-highlighted], [data-open])) {
   background-color: var(--bg-hover);
 }
 
@@ -484,11 +492,11 @@
   background-color: var(--danger-subtle);
 }
 
-:where([data-menu-item][data-state="checked"]) {
+:where([data-menu-item][data-checked]) {
   background-color: var(--bg-selected);
 }
 
-:where([data-menu-item][data-state="checked"][data-highlighted]) {
+:where([data-menu-item][data-checked][data-highlighted]) {
   background-color: var(--bg-selected);
 }
 

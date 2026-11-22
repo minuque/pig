@@ -1,5 +1,6 @@
 <template>
-  <Primitive
+  <Polymorphic
+    v-bind="$attrs"
     data-button
     data-slot="icon-button"
     :data-size="size"
@@ -12,23 +13,21 @@
     :as="as"
     :as-child="asChild"
     :class="props.class"
-    v-bind="$attrs"
   >
     <ButtonContent :loading="loading" :size="size"><slot /></ButtonContent>
-  </Primitive>
+  </Polymorphic>
 </template>
 
 <script setup lang="ts">
-import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
-import { Primitive } from "reka-ui"
+import { Polymorphic, type PolymorphicProps } from "@components/ui/primitive/index.js"
 import type { Size, ToneColor } from "@/types/ui-type.js"
 import type { ButtonVariant, Radius } from "./index.js"
 import ButtonContent from "./ButtonContent.vue"
 
 defineOptions({ inheritAttrs: false })
 
-interface Props extends PrimitiveProps {
+interface Props extends PolymorphicProps {
   variant?: ButtonVariant
   size?: Size
   color?: ToneColor

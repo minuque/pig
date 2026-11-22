@@ -12,13 +12,17 @@
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="center" :side-offset="6">
-            <DropdownMenuRadioGroup :model-value="workspaceId ?? ''" class="hero-projects">
+            <DropdownMenuRadioGroup
+              :model-value="workspaceId ?? null"
+              class="hero-projects"
+              @update:model-value="workspaceId = $event"
+            >
               <DropdownMenuRadioItem
                 v-for="item in workspaces"
                 :key="item"
                 :value="item"
                 :title="item"
-                @select="workspaceId = item"
+                close-on-select
               >
                 <ProjectIcon class="size-icon-sm" :path="item" />
                 <span class="hero-option">{{ workspaceName(item) }}</span>
@@ -118,7 +122,7 @@ const suffix = computed(() => t(workspaceId.value ? "hero.askSuffix" : "hero.pic
   line-height: inherit;
 }
 
-.hero-picker[data-state="open"] {
+.hero-picker[data-open] {
   text-decoration-line: underline;
 }
 

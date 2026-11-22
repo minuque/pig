@@ -1,11 +1,10 @@
 <template>
-  <CommandPalette v-model:open="open" :title="text(TITLE)">
-    <CommandPaletteInput v-model="query" :placeholder="text(PLACEHOLDER)" />
+  <CommandPalette v-model:open="open" v-model:query="query" :title="text(TITLE)">
+    <CommandPaletteInput :placeholder="text(PLACEHOLDER)" />
+    <CommandPaletteEmpty>{{ text(EMPTY) }}</CommandPaletteEmpty>
 
     <CommandPaletteList>
-      <CommandPaletteEmpty v-if="!matches.length">{{ text(EMPTY) }}</CommandPaletteEmpty>
-
-      <template v-for="section in matches" :key="section.id">
+      <CommandPaletteGroup v-for="section in matches" :key="section.id">
         <CommandPaletteGroupLabel>{{ text(section.title) }}</CommandPaletteGroupLabel>
 
         <CommandPaletteItem
@@ -16,7 +15,7 @@
         >
           {{ text(item.title) }}
         </CommandPaletteItem>
-      </template>
+      </CommandPaletteGroup>
     </CommandPaletteList>
   </CommandPalette>
 </template>
@@ -29,6 +28,7 @@ import { useGeneralPrefs } from "@features/settings/index.js"
 import {
   CommandPalette,
   CommandPaletteEmpty,
+  CommandPaletteGroup,
   CommandPaletteGroupLabel,
   CommandPaletteInput,
   CommandPaletteItem,

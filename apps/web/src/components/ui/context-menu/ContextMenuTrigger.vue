@@ -1,19 +1,20 @@
 <template>
-  <ContextMenuTrigger
-    v-bind="
-      props.asChild ? forwardedProps : { ...forwardedProps, 'data-slot': 'context-menu-trigger' }
-    "
-  >
-    <slot />
-  </ContextMenuTrigger>
+  <MenuContextTrigger>
+    <template v-if="asChild" #render="{ props: partProps }">
+      <AsChildSlot :part-props="partProps">
+        <slot />
+      </AsChildSlot>
+    </template>
+
+    <template v-else #default>
+      <slot />
+    </template>
+  </MenuContextTrigger>
 </template>
 
 <script setup lang="ts">
-import type { ContextMenuTriggerProps } from "reka-ui"
-import type { ComputedRef } from "vue"
-import { ContextMenuTrigger, useForwardProps } from "reka-ui"
+import { MenuContextTrigger } from "@ui-sdk/vue/menu"
+import { AsChildSlot } from "@components/ui/primitive/index.js"
 
-const props = defineProps<ContextMenuTriggerProps>()
-// 外部：reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，须 cast 到组件 props 类型
-const forwardedProps = useForwardProps(props) as ComputedRef<ContextMenuTriggerProps>
+defineProps<{ asChild?: boolean }>()
 </script>

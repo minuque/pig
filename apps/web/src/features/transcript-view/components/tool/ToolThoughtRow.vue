@@ -89,14 +89,11 @@ const label = computed(() => thoughtStepLabel(props.step))
 
 .thought-body {
   overflow: visible;
+  transition: none;
   min-width: 0;
   padding-block-start: var(--space-xs);
   font-size: var(--text-meta);
   line-height: var(--text-code-line);
-}
-
-.thought-body[data-state] {
-  animation: none;
 }
 
 .thought-body :deep(.tool-output-card) {

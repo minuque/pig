@@ -4,7 +4,6 @@
       v-bind="$attrs"
       class="preview-dialog"
       :data-kind="shownSrc ? 'image' : undefined"
-      :aria-describedby="undefined"
       @keydown.left="step(-1)"
       @keydown.right="step(1)"
     >

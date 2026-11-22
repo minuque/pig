@@ -1,6 +1,6 @@
 <template>
-  <Dialog :open="open" @update:open="emit('update:open', $event)">
-    <DialogContent class="settings-dialog" :show-close-button="false" @interact-outside.prevent>
+  <Dialog :open="open" :close-on-outside-press="false" @update:open="emit('update:open', $event)">
+    <DialogContent class="settings-dialog" :show-close-button="false">
       <DialogTitle class="sr-only">{{ t("settings.title") }}</DialogTitle>
 
       <div class="settings-shell" @keydown="onShellKeydown">

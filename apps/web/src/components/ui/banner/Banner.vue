@@ -1,5 +1,5 @@
 <template>
-  <Primitive
+  <Polymorphic
     data-slot="banner"
     :data-color="color"
     :data-size="size"
@@ -34,14 +34,13 @@
     >
       <XIcon class="size-icon" />
     </button>
-  </Primitive>
+  </Polymorphic>
 </template>
 
 <script setup lang="ts">
-import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { computed } from "vue"
-import { Primitive } from "reka-ui"
+import { Polymorphic, type PolymorphicProps } from "@components/ui/primitive/index.js"
 import { useI18n } from "@i18n/index.js"
 import { XIcon } from "@components/icons/index.js"
 import type { Size, Tone } from "@/types/ui-type.js"
@@ -49,7 +48,7 @@ import { type BannerColor, type BannerVariant } from "./index.js"
 
 const { t } = useI18n()
 
-interface Props extends PrimitiveProps {
+interface Props extends PolymorphicProps {
   variant?: BannerVariant
   color?: BannerColor
   size?: Size

@@ -1,6 +1,7 @@
 <template>
-  <Primitive
+  <Polymorphic
     v-if="loading"
+    v-bind="$attrs"
     data-slot="skeleton"
     :as="as"
     :as-child="asChild"
@@ -9,25 +10,23 @@
     :data-inline-skeleton="asChild ? undefined : true"
     :class="props.class"
     :style="skeletonStyle"
-    v-bind="$attrs"
   >
     <slot />
-  </Primitive>
+  </Polymorphic>
 
   <slot v-else />
 </template>
 
 <script setup lang="ts">
-import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { computed } from "vue"
-import { Primitive } from "reka-ui"
+import { Polymorphic, type PolymorphicProps } from "@components/ui/primitive/index.js"
 
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
   defineProps<
-    Pick<PrimitiveProps, "as" | "asChild"> & {
+    Pick<PolymorphicProps, "as" | "asChild"> & {
       loading?: boolean
       width?: string
       height?: string

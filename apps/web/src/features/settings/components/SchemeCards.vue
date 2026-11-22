@@ -64,7 +64,7 @@ const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
   color: var(--fg-secondary);
 }
 
-.scheme-cards :deep(.scheme-card[data-state="checked"]) {
+.scheme-cards :deep(.scheme-card[data-checked]) {
   color: var(--fg);
 }
 

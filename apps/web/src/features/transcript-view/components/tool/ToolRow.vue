@@ -312,14 +312,11 @@ const images = computed(() => toolCallImages(props.call))
 
 .tool-row-body {
   overflow: visible;
+  transition: none;
   min-width: 0;
   padding-block-start: var(--space-xs);
   font-size: var(--text-meta);
   line-height: var(--text-code-line);
-}
-
-.tool-row-body[data-state] {
-  animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

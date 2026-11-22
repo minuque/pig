@@ -1,21 +1,13 @@
 <template>
-  <DialogDescription data-slot="dialog-description" v-bind="forwardedProps" :class="props.class">
+  <DialogDescriptionPrimitive v-bind="$attrs">
     <slot />
-  </DialogDescription>
+  </DialogDescriptionPrimitive>
 </template>
 
 <script setup lang="ts">
-import type { DialogDescriptionProps } from "reka-ui"
-import type { ComputedRef, HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { DialogDescription, useForwardProps } from "reka-ui"
+import { DialogDescription as DialogDescriptionPrimitive } from "@ui-sdk/vue/dialog"
 
-const props = withDefaults(
-  defineProps<DialogDescriptionProps & { class?: HTMLAttributes["class"] }>(),
-  { class: undefined },
-)
-const delegatedProps = reactiveOmit(props, "class")
-const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DialogDescriptionProps>
+defineOptions({ inheritAttrs: false })
 </script>
 
 <style>

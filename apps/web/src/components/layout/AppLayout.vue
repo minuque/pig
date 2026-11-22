@@ -15,7 +15,7 @@
       class="resizer"
       tabindex="0"
       data-orientation="horizontal"
-      :data-state="resizing ? 'drag' : undefined"
+      :data-dragging="resizing || undefined"
       @pointerdown="startResize($event)"
       @keydown.left.prevent="resizeBy(-16)"
       @keydown.right.prevent="resizeBy(16)"

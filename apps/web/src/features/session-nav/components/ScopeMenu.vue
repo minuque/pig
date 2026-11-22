@@ -1,108 +1,119 @@
 <template>
-  <DropdownMenuContent
+  <PopoverContent
     side="bottom"
     align="start"
     :side-offset="4"
+    :initial-focus="() => searchRef"
+    data-menu-content
     class="scope-menu"
-    @open-auto-focus.prevent="openSearch"
   >
-    <div class="scope-search">
-      <SearchIcon class="search-icon" />
+    <div data-menu-viewport @keydown="onKeydown">
+      <div class="scope-search">
+        <SearchIcon class="search-icon" />
 
-      <input
-        ref="searchRef"
-        v-model="query"
-        type="text"
-        :placeholder="t('session.searchProjects')"
-        :aria-label="t('session.searchProjects')"
-      />
+        <input
+          ref="searchRef"
+          v-model="query"
+          type="text"
+          :placeholder="t('session.searchProjects')"
+          :aria-label="t('session.searchProjects')"
+        />
+      </div>
+
+      <div class="scope-projects">
+        <div v-if="!needle" class="scope-item" data-menu-item>
+          <button
+            type="button"
+            class="scope-toggle"
+            :aria-pressed="scopeFilter.size === 0"
+            @click="emit('update:scopeFilter', new Set())"
+          >
+            <span class="scope-icon">
+              <FolderIcon class="size-icon-lg" />
+              <span v-if="scopeFilter.size === 0" class="check-badge"><CheckIcon /></span>
+            </span>
+
+            <span class="scope-name">{{ t("session.allProjects") }}</span>
+          </button>
+        </div>
+
+        <div
+          v-for="group in matched"
+          :key="group.canonicalPath"
+          class="scope-item scope-row"
+          data-menu-item
+        >
+          <button
+            type="button"
+            class="scope-toggle"
+            :aria-pressed="scopeFilter.has(group.canonicalPath)"
+            @click="toggleProject(group.canonicalPath)"
+          >
+            <span class="scope-icon">
+              <ProjectIcon :path="group.canonicalPath" class="size-icon-lg" />
+
+              <span v-if="scopeFilter.has(group.canonicalPath)" class="check-badge">
+                <CheckIcon />
+              </span>
+            </span>
+
+            <span class="scope-name">{{ workspaceName(group.canonicalPath) }}</span>
+          </button>
+
+          <span class="scope-actions">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <IconButton
+                  class="row-action"
+                  type="button"
+                  size="m"
+                  variant="ghost"
+                  color="neutral"
+                  tabindex="-1"
+                  :aria-label="t('session.projectIcon')"
+                  @click="emit('settings', group.canonicalPath)"
+                >
+                  <SettingsIcon />
+                </IconButton>
+              </TooltipTrigger>
+
+              <TooltipContent>{{ t("session.projectIcon") }}</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <IconButton
+                  class="row-action"
+                  :data-pinned="isPinned(group.canonicalPath) || undefined"
+                  type="button"
+                  size="m"
+                  variant="ghost"
+                  color="neutral"
+                  tabindex="-1"
+                  :aria-label="pinLabel(group.canonicalPath)"
+                  @click="togglePinned(group.canonicalPath)"
+                >
+                  <PinIcon />
+                </IconButton>
+              </TooltipTrigger>
+
+              <TooltipContent>{{ pinLabel(group.canonicalPath) }}</TooltipContent>
+            </Tooltip>
+          </span>
+        </div>
+
+        <p v-if="!matched.length" class="scope-empty">{{ t("session.noMatchingProjects") }}</p>
+      </div>
     </div>
-
-    <div class="scope-projects">
-      <DropdownMenuCheckboxItem
-        v-if="!needle"
-        class="scope-item"
-        :model-value="scopeFilter.size === 0"
-        @select.prevent="emit('update:scopeFilter', new Set())"
-      >
-        <span class="scope-icon">
-          <FolderIcon class="size-icon-lg" />
-          <span v-if="scopeFilter.size === 0" class="check-badge"><CheckIcon /></span>
-        </span>
-
-        <span class="scope-name">{{ t("session.allProjects") }}</span>
-      </DropdownMenuCheckboxItem>
-
-      <DropdownMenuCheckboxItem
-        v-for="group in matched"
-        :key="group.canonicalPath"
-        class="scope-item scope-row"
-        :model-value="scopeFilter.has(group.canonicalPath)"
-        @select.prevent="toggleProject(group.canonicalPath)"
-      >
-        <span class="scope-icon">
-          <ProjectIcon :path="group.canonicalPath" class="size-icon-lg" />
-          <span v-if="scopeFilter.has(group.canonicalPath)" class="check-badge"><CheckIcon /></span>
-        </span>
-
-        <span class="scope-name">{{ workspaceName(group.canonicalPath) }}</span>
-
-        <span class="scope-actions" @pointerdown.stop @pointerup.stop>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <IconButton
-                class="row-action"
-                type="button"
-                size="m"
-                variant="ghost"
-                color="neutral"
-                tabindex="-1"
-                :aria-label="t('session.projectIcon')"
-                @click.stop.prevent="emit('settings', group.canonicalPath)"
-              >
-                <SettingsIcon />
-              </IconButton>
-            </TooltipTrigger>
-
-            <TooltipContent>{{ t("session.projectIcon") }}</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <IconButton
-                class="row-action"
-                :data-pinned="isPinned(group.canonicalPath) || undefined"
-                type="button"
-                size="m"
-                variant="ghost"
-                color="neutral"
-                tabindex="-1"
-                :aria-label="pinLabel(group.canonicalPath)"
-                @click.stop.prevent="togglePinned(group.canonicalPath)"
-              >
-                <PinIcon />
-              </IconButton>
-            </TooltipTrigger>
-
-            <TooltipContent>{{ pinLabel(group.canonicalPath) }}</TooltipContent>
-          </Tooltip>
-        </span>
-      </DropdownMenuCheckboxItem>
-
-      <p v-if="!matched.length" class="scope-empty">{{ t("session.noMatchingProjects") }}</p>
-    </div>
-  </DropdownMenuContent>
+  </PopoverContent>
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef, useTemplateRef } from "vue"
+import { computed, shallowRef, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { workspaceName } from "@features/session-nav/index.js"
-import {
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-} from "@components/ui/dropdown-menu/index.js"
 import { IconButton } from "@components/ui/button/index.js"
+import { PopoverContent } from "@components/ui/popover/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import {
   CheckIcon,
@@ -117,6 +128,7 @@ import { orderPinnedFirst } from "@features/session-nav/lib/project-prefs.js"
 import type { SessionGroup } from "@features/session-nav/type.js"
 
 const props = defineProps<{
+  open: boolean
   groups: readonly SessionGroup[]
   scopeFilter: ReadonlySet<string>
 }>()
@@ -142,9 +154,26 @@ function pinLabel(canonicalPath: string): string {
     : t("session.pinProject", { name })
 }
 
-function openSearch(): void {
-  query.value = ""
-  searchRef.value?.focus()
+watch(
+  () => props.open,
+  (open) => {
+    if (open) query.value = ""
+  },
+)
+
+function onKeydown(event: KeyboardEvent): void {
+  if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return
+
+  const stops = [
+    searchRef.value,
+    ...(event.currentTarget as HTMLElement).querySelectorAll<HTMLElement>(".scope-toggle"),
+  ]
+  const index = stops.indexOf(document.activeElement as HTMLElement)
+  const next = stops.at((index + (event.key === "ArrowDown" ? 1 : -1)) % stops.length)
+
+  if (!next) return
+  event.preventDefault()
+  next.focus()
 }
 
 function toggleProject(canonicalPath: string): void {
@@ -157,6 +186,10 @@ function toggleProject(canonicalPath: string): void {
 </script>
 
 <style scoped>
+:global(.scope-menu) {
+  padding: 0;
+}
+
 .scope-search {
   display: flex;
   align-items: center;
@@ -205,12 +238,33 @@ function toggleProject(canonicalPath: string): void {
   white-space: nowrap;
 }
 
-.scope-item[data-state="checked"]:not([data-highlighted]) {
-  background-color: transparent;
-}
-
 .scope-item {
   flex: none;
+}
+
+.scope-item:is(:hover, :focus-within) {
+  background-color: var(--bg-hover);
+}
+
+.scope-item:has([aria-pressed="true"]):is(:hover, :focus-within) {
+  background-color: var(--bg-selected);
+}
+
+.scope-toggle {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-xs);
+  align-self: stretch;
+  min-inline-size: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
 }
 
 .scope-icon {
@@ -249,7 +303,7 @@ function toggleProject(canonicalPath: string): void {
   visibility: hidden;
 }
 
-.scope-row[data-highlighted] .row-action {
+.scope-row:is(:hover, :focus-within) .row-action {
   visibility: visible;
 }
 </style>

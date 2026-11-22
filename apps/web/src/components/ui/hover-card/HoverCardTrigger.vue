@@ -1,9 +1,18 @@
 <template>
-  <HoverCardTrigger as-child>
-    <slot />
-  </HoverCardTrigger>
+  <HoverCardTriggerPrimitive v-bind="$attrs">
+    <template v-if="asChild" #render="{ props: partProps }">
+      <AsChildSlot :part-props="partProps"><slot /></AsChildSlot>
+    </template>
+
+    <template v-else #default><slot /></template>
+  </HoverCardTriggerPrimitive>
 </template>
 
 <script setup lang="ts">
-import { HoverCardTrigger } from "reka-ui"
+import { HoverCardTrigger as HoverCardTriggerPrimitive } from "@ui-sdk/vue/hover-card"
+import { AsChildSlot } from "@components/ui/primitive/index.js"
+
+defineOptions({ inheritAttrs: false })
+
+defineProps<{ asChild?: boolean }>()
 </script>

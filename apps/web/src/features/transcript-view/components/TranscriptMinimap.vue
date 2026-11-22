@@ -67,10 +67,10 @@
     </div>
 
     <Popover :open="hoverIndex !== null" @update:open="onPreviewOpenChange">
-      <PopoverAnchor :reference="anchorEl" />
-
       <PopoverContent
         class="minimap-preview"
+        :anchor="anchorEl"
+        initial-focus="none"
         style="width: 20rem"
         side="right"
         align="center"
@@ -92,7 +92,7 @@
 <script setup lang="ts">
 import { computed, shallowRef, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { Popover, PopoverAnchor, PopoverContent } from "@components/ui/popover/index.js"
+import { Popover, PopoverContent } from "@components/ui/popover/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import type { TranscriptMinimapItem } from "@features/transcript-view/type.js"
 import {

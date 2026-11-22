@@ -1,10 +1,14 @@
 <template>
-  <CommandPalette :open="open" :title="t('nav.search')" @update:open="emit('update:open', $event)">
-    <CommandPaletteInput v-model="query" :placeholder="t('nav.searchPlaceholder')" />
+  <CommandPalette
+    v-model:query="query"
+    :open="open"
+    :title="t('nav.search')"
+    @update:open="emit('update:open', $event)"
+  >
+    <CommandPaletteInput :placeholder="t('nav.searchPlaceholder')" />
+    <CommandPaletteEmpty>{{ t("nav.searchEmpty") }}</CommandPaletteEmpty>
 
     <CommandPaletteList>
-      <CommandPaletteEmpty v-if="!rows.length">{{ t("nav.searchEmpty") }}</CommandPaletteEmpty>
-
       <CommandPaletteItem
         v-for="row in rows"
         :key="row.id"

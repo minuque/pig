@@ -1,9 +1,9 @@
 <template>
-  <TabsRoot
+  <Tabs
     class="file-tabs"
-    :model-value="state.active ?? ''"
-    activation-mode="manual"
-    @update:model-value="(path: string | number) => pane.activate(String(path))"
+    :value="state.active ?? null"
+    activation="manual"
+    @update:value="(path: string | null) => path !== null && pane.activate(path)"
   >
     <TabsList ref="list" class="file-tabs-list" :aria-label="t('files.title')">
       <div
@@ -16,9 +16,9 @@
         @dblclick="pane.pin(tab.path)"
         @auxclick.middle="pane.close(tab.path)"
       >
-        <TabsTrigger :value="tab.path" class="file-tab-trigger">
+        <TabsTab :value="tab.path" class="file-tab-trigger">
           <span class="file-tab-label">{{ pathBasename(tab.path) }}</span>
-        </TabsTrigger>
+        </TabsTab>
 
         <IconButton
           type="button"
@@ -58,13 +58,13 @@
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  </TabsRoot>
+  </Tabs>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue"
 import { useResizeObserver } from "@vueuse/core"
-import { TabsList, TabsRoot, TabsTrigger } from "reka-ui"
+import { Tabs, TabsList, TabsTab } from "@ui-sdk/vue/tabs"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import {

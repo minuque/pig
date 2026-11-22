@@ -109,7 +109,7 @@ function toggleLocale() {
 }
 
 .footer-profile[data-tone]:hover,
-.footer-profile[data-tone][data-state="open"] {
+.footer-profile[data-tone][data-open] {
   color: var(--fg);
 }
 

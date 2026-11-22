@@ -1,57 +1,46 @@
 <template>
-  <HoverCardPortal>
-    <HoverCardContent
-      data-slot="hover-card-content"
-      :data-size="size"
-      :align="align"
-      :side-offset="8"
-      :collision-padding="10"
-      v-bind="forwarded"
-      class="reveal-menu"
-      :class="props.class"
-      :style="widthStyle"
-    >
-      <slot />
-    </HoverCardContent>
-  </HoverCardPortal>
+  <HoverCardContentPrimitive
+    :data-size="size"
+    :align="align"
+    :side-offset="8"
+    :collision-padding="10"
+    v-bind="$attrs"
+    class="reveal-menu"
+    :class="props.class"
+    :style="{ maxInlineSize: props.maxWidth }"
+  >
+    <slot />
+  </HoverCardContentPrimitive>
 </template>
 
 <script setup lang="ts">
-import type { HoverCardContentProps } from "reka-ui"
-import type { ComputedRef, HTMLAttributes } from "vue"
-import { computed } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { HoverCardContent, HoverCardPortal, useForwardProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
+import { HoverCardContent as HoverCardContentPrimitive } from "@ui-sdk/vue/hover-card"
 import type { Size } from "@/types/ui-type.js"
 
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
-  defineProps<
-    HoverCardContentProps & {
-      class?: HTMLAttributes["class"]
-      size?: Size
-      align?: "start" | "center" | "end"
-      maxWidth?: string
-    }
-  >(),
+  defineProps<{
+    class?: HTMLAttributes["class"]
+    size?: Size
+    align?: "start" | "center" | "end"
+    maxWidth?: string
+  }>(),
   { class: undefined, size: "m", align: "start", maxWidth: "480px" },
 )
-const delegatedProps = reactiveOmit(props, "class", "size", "align", "maxWidth")
-const forwarded = useForwardProps(delegatedProps) as ComputedRef<HoverCardContentProps>
-const widthStyle = computed(() => ({ maxInlineSize: props.maxWidth }))
 </script>
 
 <style>
 :where([data-slot="hover-card-content"]) {
   box-sizing: border-box;
-  position: relative;
-  z-index: var(--z-popover);
   overflow: auto;
+  max-block-size: var(--available-height);
   background-color: var(--float-bg);
   box-shadow: var(--float-shadow);
   backdrop-filter: var(--glass-filter);
-  transform-origin: var(--reka-hover-card-content-transform-origin);
+  color: var(--fg);
+  transform-origin: var(--transform-origin);
 }
 
 :where([data-slot="hover-card-content"][data-size="s"]) {

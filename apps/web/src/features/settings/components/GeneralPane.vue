@@ -61,7 +61,6 @@ const locales = computed<{ id: UiLocale; label: string }[]>(() => [
   { id: "en", label: "English" },
   { id: "zh-CN", label: t("settings.zhCN") },
 ])
-/* 外部：SelectValue 缓存的选中项文字不会跟着切语言更新 */
 const localeLabel = computed(
   () => locales.value.find((option) => option.id === locale.value)?.label ?? "",
 )

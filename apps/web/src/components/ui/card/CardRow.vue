@@ -1,5 +1,5 @@
 <template>
-  <Primitive
+  <Polymorphic
     :as="as"
     :as-child="asChild"
     class="card-row"
@@ -7,16 +7,15 @@
     :data-interactive="interactive || undefined"
   >
     <slot />
-  </Primitive>
+  </Polymorphic>
 </template>
 
 <script setup lang="ts">
-import type { PrimitiveProps } from "reka-ui"
-import { Primitive } from "reka-ui"
+import { Polymorphic, type PolymorphicProps } from "@components/ui/primitive/index.js"
 
 withDefaults(
   defineProps<
-    PrimitiveProps & {
+    PolymorphicProps & {
       bleed?: boolean
       interactive?: boolean
     }
