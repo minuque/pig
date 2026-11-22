@@ -528,10 +528,6 @@ function confirmDelete() {
   background: var(--bg-selected);
 }
 
-.session-card.active {
-  box-shadow: var(--session-active-shadow);
-}
-
 .session-item .session-card.is-placeholder {
   background: var(--warning-subtle);
 }
