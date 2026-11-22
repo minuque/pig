@@ -45,6 +45,8 @@ export interface ComposerAttachmentsApi {
   remove(id: string): void
   consumeForSend(): ComposerAttachmentBatch | undefined
   detach(batch: ComposerAttachmentBatch): void
+  restore(batch: ComposerAttachmentBatch): void
+  revertStaged(batch: ComposerAttachmentBatch): void
   settle(batch: ComposerAttachmentBatch): void
   retryItem(id: string): void
   dismissError(): void
@@ -104,6 +106,7 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
   const errors = computed(() => uploadErrors(bucket().uploads.value))
 
   function writeUpload(stash: AttachmentStash, id: string, next: AttachmentUpload | undefined) {
+    if (!stash.files.value.some((item) => item.id === id)) return
     stash.uploads.value = replaceUpload(stash.uploads.value, id, next)
   }
 
@@ -183,7 +186,6 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
         writeUpload(stash, id, failedAt(stash.uploads.value[id], message)),
     }
 
-    stash.batch = crypto.randomUUID()
     sources.set(batch, stash)
     return batch
   }
@@ -195,6 +197,20 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     stash.error.value = ""
     stash.uploads.value = {}
     stash.batch = crypto.randomUUID()
+  }
+
+  function revertStaged(batch: ComposerAttachmentBatch) {
+    const stash = sources.get(batch)
+
+    if (!stash) return
+    batch.staged = []
+    let uploads = stash.uploads.value
+
+    for (const item of batch.files) {
+      if (uploads[item.id]?.status === "ready") uploads = replaceUpload(uploads, item.id, undefined)
+    }
+
+    stash.uploads.value = uploads
   }
 
   function settle(batch: ComposerAttachmentBatch) {
@@ -210,6 +226,19 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     const stash = sources.get(batch)
 
     if (stash) detachFrom(stash, batch)
+  }
+
+  function restore(batch: ComposerAttachmentBatch) {
+    const stash = sources.get(batch)
+
+    if (!stash) return
+    revertStaged(batch)
+
+    const held = new Set(stash.files.value.map((item) => item.id))
+    const missing = batch.files.filter((item) => !held.has(item.id))
+
+    if (missing.length) stash.files.value = [...missing, ...stash.files.value]
+    sources.delete(batch)
   }
 
   async function stageItem(stash: AttachmentStash, item: ComposerAttachment) {
@@ -250,6 +279,8 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     remove,
     consumeForSend,
     detach,
+    restore,
+    revertStaged,
     settle,
     retryItem,
     dismissError,

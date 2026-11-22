@@ -37,11 +37,20 @@ export interface ContextUsagePreview {
   content: string
 }
 
+export interface ContextUsageTokens {
+  input: number
+  output: number
+  cacheRead: number
+  cacheWrite: number
+  total: number
+}
+
 export interface ContextUsageEstimate {
   used: number
   window: number
   /** 模型可用的 MCP 工具数，含按需加载、不占上下文的 */
   mcpToolCount: number
+  tokens?: ContextUsageTokens
   segments: {
     systemPrompt: number
     memory: number

@@ -244,4 +244,75 @@ describe("useComposerAttachments", () => {
     expect(files.value).toEqual([])
     expect(status.value[id]).toBeUndefined()
   })
+
+  it("多文件发送失败后批次号不变，重试时只补传没传完的那几个", () => {
+    const { files, addFiles, consumeForSend } = useComposerAttachments()
+
+    addFiles([file("a.md", "text/markdown"), file("b.md", "text/markdown")])
+    const [first, second] = files.value
+    const batch = consumeForSend()
+
+    expect(batch?.batch).toBeDefined()
+    batch?.reportProgress?.(first!.id, 100)
+
+    const retry = consumeForSend()
+
+    expect(retry?.batch).toBe(batch?.batch)
+    expect(retry?.staged).toEqual([first!.id])
+    expect(retry?.staged).not.toContain(second!.id)
+  })
+
+  it("批次被丢弃后已上传的项退回未上传，失败项的错误照旧保留", () => {
+    const { files, status, errors, addFiles, consumeForSend, revertStaged } =
+      useComposerAttachments()
+
+    addFiles([file("a.md", "text/markdown"), file("b.md", "text/markdown")])
+    const [first, second] = files.value
+    const batch = consumeForSend()!
+
+    batch.reportProgress?.(first!.id, 100)
+    batch.reportError?.(second!.id, "上传失败")
+    revertStaged(batch)
+
+    expect(status.value[first!.id]).toBeUndefined()
+    expect(status.value[second!.id]).toBe("error")
+    expect(errors.value[second!.id]).toBe("上传失败")
+    expect(batch.staged).toEqual([])
+  })
+
+  it("发出后清空输入卡但仍保留预览地址，成功才回收", () => {
+    const revoke = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {})
+
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:1")
+    const { files, addFiles, consumeForSend, detach, settle } = useComposerAttachments()
+
+    addFiles([file("shot.png", "image/png")])
+    const batch = consumeForSend()!
+
+    detach(batch)
+    expect(files.value).toEqual([])
+    expect(revoke).not.toHaveBeenCalled()
+
+    settle(batch)
+    expect(revoke).toHaveBeenCalledWith("blob:1")
+  })
+
+  it("送出后失败时附件回到输入卡，保留原顺序且不回收地址", () => {
+    const revoke = vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {})
+
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:1")
+    const { files, status, addFiles, consumeForSend, detach, restore } = useComposerAttachments()
+
+    addFiles([file("shot.png", "image/png"), file("note.md", "text/markdown")])
+    const batch = consumeForSend()!
+
+    batch.reportProgress?.(batch.files[0]!.id, 100)
+    detach(batch)
+    addFiles([file("later.md", "text/markdown")])
+    restore(batch)
+
+    expect(files.value.map((item) => item.name)).toEqual(["shot.png", "note.md", "later.md"])
+    expect(status.value[batch.files[0]!.id]).toBeUndefined()
+    expect(revoke).not.toHaveBeenCalled()
+  })
 })

@@ -1,4 +1,4 @@
-import type { ContextUsageEstimate } from "@/types/common-type.js"
+import type { ContextUsageEstimate, ContextUsageTokens } from "@/types/common-type.js"
 import { t } from "@i18n/index.js"
 
 export interface ContextUsageSegment {
@@ -18,11 +18,16 @@ export interface ContextUsageSegment {
   previewable: boolean
 }
 
+export interface ContextUsageSessionTokens extends ContextUsageTokens {
+  cacheHitRate: number | null
+}
+
 export interface ContextUsage {
   used: number
   window: number
   percent: number
   mcpToolCount: number
+  tokens?: ContextUsageSessionTokens | undefined
   segments: ContextUsageSegment[]
 }
 
@@ -87,6 +92,24 @@ const SEGMENT_DEFS = [
   },
 ]
 
+export function projectSessionTokens(
+  tokens: ContextUsageTokens | undefined,
+): ContextUsageSessionTokens | undefined {
+  if (!tokens) return undefined
+  const input = finiteTokens(tokens.input)
+  const cacheRead = finiteTokens(tokens.cacheRead)
+  const cacheWrite = finiteTokens(tokens.cacheWrite)
+  const prompt = input + cacheRead + cacheWrite
+  return {
+    input,
+    output: finiteTokens(tokens.output),
+    cacheRead,
+    cacheWrite,
+    total: finiteTokens(tokens.total),
+    cacheHitRate: prompt > 0 ? Math.round((cacheRead / prompt) * 1000) / 10 : null,
+  }
+}
+
 export function projectContextUsage(
   estimate: ContextUsageEstimate | undefined,
 ): ContextUsage | undefined {
@@ -94,11 +117,13 @@ export function projectContextUsage(
 
   const window = Math.max(0, estimate.window)
   const used = Math.max(0, estimate.used)
+  const tokens = projectSessionTokens(estimate.tokens)
   return {
     used,
     window,
     percent: window <= 0 || used <= 0 ? 0 : Math.min(100, Math.round((used / window) * 100)),
     mcpToolCount: finiteTokens(estimate.mcpToolCount),
+    ...(tokens ? { tokens } : {}),
     segments: SEGMENT_DEFS.map((def) => ({
       id: def.id,
       label: def.label(),

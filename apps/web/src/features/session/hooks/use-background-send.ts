@@ -47,9 +47,16 @@ export async function stageBatch(
   return true
 }
 
-export function dropBatch(batch: string | undefined): Promise<void> {
-  if (!batch) return Promise.resolve()
-  return discardAttachments(batch).catch(() => undefined)
+export function releaseAttachments(files: readonly ComposerAttachment[]) {
+  for (const item of files) {
+    if (item.url) URL.revokeObjectURL(item.url)
+  }
+}
+
+export async function dropBatch(batch: ComposerAttachmentBatch | undefined): Promise<void> {
+  if (!batch) return
+  batch.staged = []
+  await discardAttachments(batch.batch).catch(() => undefined)
 }
 
 interface BackgroundSendDeps {
@@ -79,12 +86,12 @@ export function createBackgroundSender(deps: BackgroundSendDeps) {
 
     try {
       if (attachments && !(await stageBatch(attachments, () => !pooled()))) {
-        await dropBatch(attachments.batch)
+        await dropBatch(attachments)
         return false
       }
 
       if (!pooled()) {
-        await dropBatch(attachments?.batch)
+        await dropBatch(attachments)
         return false
       }
 
@@ -93,9 +100,11 @@ export function createBackgroundSender(deps: BackgroundSendDeps) {
         attachments ? { attachmentBatch: attachments.batch } : undefined,
       )
       accepted = true
+
+      if (attachments) releaseAttachments(attachments.files)
       return true
     } catch {
-      await dropBatch(attachments?.batch)
+      await dropBatch(attachments)
       return false
     } finally {
       if (!accepted) {

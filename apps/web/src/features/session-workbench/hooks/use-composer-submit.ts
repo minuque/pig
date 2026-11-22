@@ -1,5 +1,5 @@
 import { onBeforeUnmount, ref, watch, type Ref } from "vue"
-import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
+import type { ComposerAttachmentBatch, SendAttachmentsHooks } from "@/types/attachment-type.js"
 import { notify } from "@components/layout/notify.js"
 import { t } from "@i18n/index.js"
 import type { ComposerAttachmentsApi } from "@features/composer/hooks/use-composer-attachments.js"
@@ -16,7 +16,12 @@ interface ComposerSubmitDeps {
   queue: ComposerQueueApi
   attachments: ComposerAttachmentsApi
   scrollToLatest(): void
-  submit(text: string, cwd?: string, attachments?: ComposerAttachmentBatch): Promise<boolean>
+  submit(
+    text: string,
+    cwd?: string,
+    attachments?: ComposerAttachmentBatch,
+    hooks?: SendAttachmentsHooks,
+  ): Promise<boolean>
   steer(text: string): Promise<boolean>
   abort(): unknown
 }
@@ -38,18 +43,31 @@ export function useComposerSubmit(deps: ComposerSubmitDeps) {
     }, delay)
   }
 
-  function deliver(text: string, batch?: ComposerAttachmentBatch) {
+  function deliver(text: string, batch?: ComposerAttachmentBatch, remember = false) {
     const id = deps.sessionId()
 
     if (id) deps.scrollToLatest()
     else if (!deps.welcomeCwd()) return Promise.resolve(false)
+    let dispatched = false
+    const hooks: SendAttachmentsHooks | undefined = batch
+      ? {
+          onDispatched: () => {
+            dispatched = true
+            deps.attachments.detach(batch)
+          },
+          onStageDropped: () => deps.attachments.revertStaged(batch),
+        }
+      : undefined
     return deps
-      .submit(text, id ? undefined : deps.welcomeCwd(), batch)
+      .submit(text, id ? undefined : deps.welcomeCwd(), batch, hooks)
       .then((sent) => {
-        if (sent && batch) deps.attachments.settle(batch)
+        if (batch && (sent || (remember && dispatched))) deps.attachments.settle(batch)
         return sent
       })
-      .catch(() => false)
+      .catch(() => {
+        if (batch && remember && dispatched) deps.attachments.restore(batch)
+        return false
+      })
   }
 
   function history(text: string) {
@@ -62,7 +80,7 @@ export function useComposerSubmit(deps: ComposerSubmitDeps) {
     if (!text.trim() && !batch) return
 
     history(text)
-    void deliver(text, batch)
+    void deliver(text, batch, true)
   }
 
   function sendQueued(item: QueuedPrompt) {

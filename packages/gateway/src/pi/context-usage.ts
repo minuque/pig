@@ -1,5 +1,10 @@
 import { estimateTokens, formatSkillsForPrompt, type Skill } from "@earendil-works/pi-coding-agent"
-import type { ContextPreviewKey, ContextUsageEstimate, ContextUsagePreview } from "@pig/protocol"
+import type {
+  ContextPreviewKey,
+  ContextUsageEstimate,
+  ContextUsagePreview,
+  ContextUsageTokens,
+} from "@pig/protocol"
 
 export const CONTEXT_PREVIEW_KEYS = [
   "systemPrompt",
@@ -25,6 +30,7 @@ interface ContextUsageSource {
   model: { contextWindow?: number } | undefined
   getContextUsage():
     { tokens: number | null; contextWindow: number; percent: number | null } | undefined
+  getSessionStats?(): { tokens: ContextUsageTokens } | undefined
   getActiveToolNames(): string[]
   getAllTools(): Array<{
     name: string
@@ -332,6 +338,20 @@ function capVariable(raw: VariableTokens, budget: number): VariableTokens {
   return { toolResults, mcpCalls, conversation: budget - toolResults - mcpCalls }
 }
 
+function sessionTokens(source: ContextUsageSource): ContextUsageTokens | undefined {
+  const tokens = source.getSessionStats?.()?.tokens
+
+  if (!tokens) return undefined
+  const count = (value: number) => (Number.isFinite(value) ? Math.max(0, Math.round(value)) : 0)
+  return {
+    input: count(tokens.input),
+    output: count(tokens.output),
+    cacheRead: count(tokens.cacheRead),
+    cacheWrite: count(tokens.cacheWrite),
+    total: count(tokens.total),
+  }
+}
+
 export function resolveUsedTokens(
   usage: { tokens: number | null; percent: number | null } | undefined,
   estimated: number,
@@ -391,10 +411,12 @@ export function estimateContextUsage(
   const used = Math.max(resolveUsedTokens(reported, known, window), fixed)
   const fitted = capVariable(walked, Math.max(0, used - fixed))
   const attributed = fixed + fitted.toolResults + fitted.conversation + fitted.mcpCalls
+  const tokens = sessionTokens(source)
   const estimate: ContextUsageEstimate = {
     used,
     window,
     mcpToolCount: onDemandMcp.count,
+    ...(tokens ? { tokens } : {}),
     segments: {
       systemPrompt,
       memory,

@@ -88,4 +88,8 @@ export interface QueueDraftPatch {
   attachments?: ComposerAttachmentBatch | undefined
 }
 
-export type { ContextUsage, ContextUsageSegment } from "@features/session/lib/context-usage.js"
+export type {
+  ContextUsage,
+  ContextUsageSegment,
+  ContextUsageSessionTokens,
+} from "@features/session/lib/context-usage.js"

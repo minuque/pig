@@ -1,9 +1,11 @@
 <template>
-  <Tooltip>
-    <TooltipTrigger as-child>
-      <button
+  <HoverCard>
+    <HoverCardTrigger as-child>
+      <IconButton
         type="button"
-        class="ring-trigger"
+        size="m"
+        variant="ghost"
+        color="neutral"
         :aria-label="`${t('composer.contextUsageBreakdown')} ${usage.percent}%`"
       >
         <svg class="context-ring" :data-severity="severity" viewBox="0 0 16 16" aria-hidden="true">
@@ -18,29 +20,46 @@
             :stroke-dasharray="`${usage.percent} 100`"
           />
         </svg>
-      </button>
-    </TooltipTrigger>
+      </IconButton>
+    </HoverCardTrigger>
 
-    <TooltipContent class="ring-tip">
-      <span class="tip-total">{{ contextUsageSummary(usage) }} · {{ usage.percent }}%</span>
+    <HoverCardContent side="top" align="end" size="s">
+      <div class="usage-card">
+        <div class="card-head">
+          <span class="card-total">{{ contextUsageSummary(usage) }}</span>
+          <span class="card-percent">{{ usage.percent }}%</span>
+        </div>
 
-      <span v-for="segment in segments" :key="segment.id" class="tip-row">
-        <span class="tip-dot" :style="{ background: segment.color }" />
-        <span class="tip-label">{{ segment.label }}</span>
-        <span class="tip-tokens">{{ formatTokenCount(segment.tokens) }}</span>
-      </span>
-    </TooltipContent>
-  </Tooltip>
+        <dl class="card-metrics">
+          <div v-for="metric in metrics" :key="metric.id" class="metric">
+            <dt class="metric-label">{{ metric.label }}</dt>
+            <dd class="metric-value">{{ metric.value }}</dd>
+          </div>
+        </dl>
+
+        <ul v-if="segments.length" class="card-legend">
+          <li v-for="segment in segments" :key="segment.id" class="legend-row">
+            <span class="legend-dot" :style="{ background: segment.color }" />
+            <span class="legend-label">{{ segment.label }}</span>
+            <span class="legend-share">{{ share(segment.tokens) }}</span>
+            <span class="legend-tokens">{{ formatTokenCount(segment.tokens) }}</span>
+          </li>
+        </ul>
+      </div>
+    </HoverCardContent>
+  </HoverCard>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { IconButton } from "@components/ui/button/index.js"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@components/ui/hover-card/index.js"
 import {
   contextSeverity,
   contextUsageSummary,
   formatTokenCount,
+  segmentShare,
 } from "@features/composer/lib/context-usage.js"
 import type { ContextUsage } from "@features/composer/type.js"
 
@@ -52,21 +71,30 @@ const segments = computed(() =>
     .filter((segment) => segment.id !== "idle" && segment.tokens > 0)
     .sort((left, right) => right.tokens - left.tokens),
 )
+const metrics = computed(() => {
+  const tokens = props.usage.tokens
+  const count = (value: number | undefined) =>
+    value === undefined ? "--" : formatTokenCount(value)
+  const rate = tokens?.cacheHitRate
+  return [
+    { id: "input", label: t("composer.contextInput"), value: count(tokens?.input) },
+    { id: "output", label: t("composer.contextOutput"), value: count(tokens?.output) },
+    { id: "cacheRead", label: t("composer.contextCacheRead"), value: count(tokens?.cacheRead) },
+    { id: "cacheWrite", label: t("composer.contextCacheWrite"), value: count(tokens?.cacheWrite) },
+    {
+      id: "cacheHitRate",
+      label: t("composer.contextCacheHitRate"),
+      value: rate === undefined || rate === null ? "--" : `${rate}%`,
+    },
+  ]
+})
+const share = (tokens: number) =>
+  props.usage.window > 0 ? `${segmentShare(tokens, props.usage.window).toFixed(1)}%` : "--"
 </script>
 
 <style scoped>
-.ring-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-control);
-  background: transparent;
-  cursor: pointer;
-}
-
 .context-ring {
+  display: block;
   flex: none;
   inline-size: var(--icon-lg);
   block-size: var(--icon-lg);
@@ -98,26 +126,99 @@ const segments = computed(() =>
   transition: stroke-dasharray var(--duration-slow) var(--ease-out);
 }
 
-.tip-total {
-  display: block;
+.usage-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  min-inline-size: 216px;
+  color: var(--fg-secondary);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+}
+
+.card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-xs);
   font-variant-numeric: tabular-nums;
 }
 
-.tip-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2xs);
+.card-percent {
+  color: var(--fg);
+  font-weight: var(--font-weight-medium);
 }
 
-.tip-dot {
+.card-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  margin: 0;
+}
+
+.metric {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-xs);
+}
+
+.metric-label {
+  min-inline-size: 0;
+  color: var(--fg-muted);
+}
+
+.metric-value {
+  margin: 0;
+  color: var(--fg);
+  font-variant-numeric: tabular-nums;
+}
+
+.card-legend {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  margin: 0;
+  padding-block-start: var(--space-xs);
+  border-block-start: var(--border-width) solid var(--border-subtle);
+  list-style: none;
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.legend-dot {
   flex: none;
   inline-size: var(--space-2xs);
   block-size: var(--space-2xs);
   border-radius: var(--radius-pill);
 }
 
-.tip-tokens {
+.legend-label {
+  flex: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legend-share,
+.legend-tokens {
+  flex: none;
   font-variant-numeric: tabular-nums;
+}
+
+.legend-share {
+  color: var(--fg-muted);
+}
+
+.legend-tokens {
+  color: var(--fg);
+  min-inline-size: 44px;
+  text-align: end;
 }
 
 @media (prefers-reduced-motion: reduce) {

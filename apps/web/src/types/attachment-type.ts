@@ -14,3 +14,8 @@ export interface ComposerAttachmentBatch {
   reportProgress?(id: string, progress: number | undefined): void
   reportError?(id: string, message: string): void
 }
+
+export interface SendAttachmentsHooks {
+  onDispatched?(): void
+  onStageDropped?(): void
+}

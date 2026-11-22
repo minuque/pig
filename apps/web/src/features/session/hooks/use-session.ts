@@ -2,7 +2,7 @@ import { computed, getCurrentInstance, onBeforeUnmount, ref, watch, type Compute
 import type { ModelRef, ThinkingLevel } from "@/types/common-type.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
-import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
+import type { ComposerAttachmentBatch, SendAttachmentsHooks } from "@/types/attachment-type.js"
 import { notify } from "@components/layout/notify.js"
 import { t } from "@i18n/index.js"
 import { isChangedElsewhere } from "@features/session/hooks/abortable-open.js"
@@ -193,6 +193,7 @@ export function useSessionLifecycle(
     text: string,
     cwd?: string,
     attachments?: ComposerAttachmentBatch,
+    hooks?: SendAttachmentsHooks,
   ): Promise<boolean> {
     const normalized = text.trim()
     let thread = clientState.value
@@ -241,19 +242,22 @@ export function useSessionLifecycle(
       if (epoch !== thread.epoch || remote.value?.id !== sessionId.value) return false
 
       if (attachments && !(await stageAttachments(attachments, thread, epoch))) {
-        await dropBatch(attachments.batch)
+        await dropBatch(attachments)
+        hooks?.onStageDropped?.()
         return false
       }
 
       if (epoch !== thread.epoch || remote.value?.id !== sessionId.value) {
-        await dropBatch(attachments?.batch)
+        await dropBatch(attachments)
+        hooks?.onStageDropped?.()
         return false
       }
 
+      if (attachments) hooks?.onDispatched?.()
       await submitRemote(normalized, attachments?.batch)
       return true
     } catch (error) {
-      await dropBatch(attachments?.batch)
+      await dropBatch(attachments)
 
       if (epoch !== thread.epoch) return false
 
