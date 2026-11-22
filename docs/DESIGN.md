@@ -187,7 +187,7 @@ spacing:
 ## 控件
 
 - 按钮四变体：`solid` 主操作（一页一个）、`secondary`（`--bg-muted` 底）、`outline`（透明底，单环 `--outline-shadow`，环色取文字色：浅色 24%、深色 16%）、`ghost`（悬停才铺 `--bg-hover`）。
-- 选择框 surface 变体读 `--control-bg` + `--control-shadow`（一圈环加淡投影，不加内高光）。
+- 选择框 surface 变体读 `--control-bg` + `--control-shadow`（一圈环加淡投影，不加内高光）；输入框 surface 背景同读 `--control-bg`。
 - outline / ghost 的图标常态 `--fg-muted`，悬停、选中（`data-active` / `aria-pressed`）、展开、弹层打开时随文字提亮。
 - **可交互的行、触发器、图标按钮：常态 `--fg-secondary` 或 `--fg-muted`，悬停、展开、选中时文字和图标一律提亮到 `--fg`，状态色绝不与常态同色。侧栏行整行悬停只提亮标题，meta 与行内按钮等到自己被悬停才提亮。**
   Why：状态色与常态一样，就看不出能点、已展开或已选中。

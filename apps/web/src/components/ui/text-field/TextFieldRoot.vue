@@ -232,7 +232,7 @@ function onPointerDown(event: PointerEvent) {
 
 :where([data-slot="text-field-root"][data-variant="surface"]) {
   background-clip: content-box;
-  background-color: var(--bg-raised);
+  background-color: var(--control-bg);
   box-shadow: inset 0 0 0 var(--border-width) var(--border-input);
   color: var(--fg);
 }

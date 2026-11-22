@@ -50,13 +50,13 @@ const props = withDefaults(defineProps<{ class?: HTMLAttributes["class"] }>(), {
 }
 
 :where([data-slot="tooltip-arrow"][data-side="top"]) {
-  inset-block-start: 100%;
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  inset-block-start: calc(100% - 1px);
+  clip-path: polygon(0 0, 100% 0, 100% 1px, 50% 100%, 0 1px);
 }
 
 :where([data-slot="tooltip-arrow"][data-side="bottom"]) {
-  inset-block-end: 100%;
-  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  inset-block-end: calc(100% - 1px);
+  clip-path: polygon(50% 0, 100% calc(100% - 1px), 100% 100%, 0 100%, 0 calc(100% - 1px));
 }
 
 :where([data-slot="tooltip-arrow"]:is([data-side="left"], [data-side="right"])) {
@@ -65,12 +65,12 @@ const props = withDefaults(defineProps<{ class?: HTMLAttributes["class"] }>(), {
 }
 
 :where([data-slot="tooltip-arrow"][data-side="left"]) {
-  left: 100%;
-  clip-path: polygon(0 0, 100% 50%, 0 100%);
+  left: calc(100% - 1px);
+  clip-path: polygon(0 0, 1px 0, 100% 50%, 1px 100%, 0 100%);
 }
 
 :where([data-slot="tooltip-arrow"][data-side="right"]) {
-  right: 100%;
-  clip-path: polygon(100% 0, 100% 100%, 0 50%);
+  right: calc(100% - 1px);
+  clip-path: polygon(calc(100% - 1px) 0, 100% 0, 100% 100%, calc(100% - 1px) 100%, 0 50%);
 }
 </style>
