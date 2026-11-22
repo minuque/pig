@@ -114,17 +114,15 @@ watch(
 .command-menu {
   position: absolute;
   inset-inline: 0;
-  bottom: calc(100% + var(--space-xs));
-  z-index: var(--z-drawer);
+  bottom: calc(100% - var(--composer-radius));
   display: flex;
   flex-direction: column;
-  max-height: 280px;
+  max-height: calc(280px + var(--composer-radius));
   overflow: hidden;
-  border-radius: var(--radius-card);
-  corner-shape: var(--composer-corner-shape);
-  background-color: var(--float-bg);
-  box-shadow: var(--float-shadow);
-  backdrop-filter: var(--glass-filter);
+  padding-bottom: var(--composer-radius);
+  border-radius: var(--radius-dialog) var(--radius-dialog) 0 0;
+  background-color: var(--bg-raised);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border);
 }
 
 .command-scroll {

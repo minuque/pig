@@ -18,6 +18,10 @@
       @submit="onSubmit"
       @paste-files="attachments.addFiles"
     >
+      <template v-if="$slots.plate" #plate>
+        <slot name="plate" />
+      </template>
+
       <template v-if="attachmentFiles.length || attachmentError" #attachments>
         <div class="attach-tray">
           <p v-if="attachmentError" class="attach-error" role="alert">{{ attachmentError }}</p>

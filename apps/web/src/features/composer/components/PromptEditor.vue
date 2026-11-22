@@ -1,16 +1,19 @@
 <template>
   <div class="composer" @mousedown="onComposerMousedown">
-    <CommandMenu
-      v-if="commandMenu.open.value"
-      class="command-menu-float"
-      :groups="commandMenu.groups.value"
-      :active-id="commandMenu.activeId.value"
-      :loading="commandMenu.loading.value"
-      :empty-text="commandMenu.emptyText.value"
-      :aria-label="commandMenuAriaLabel"
-      @select="commandMenu.select"
-      @highlight="(id) => (commandMenu.activeId.value = id)"
-    />
+    <div class="composer-plates">
+      <CommandMenu
+        v-if="commandMenu.open.value"
+        :groups="commandMenu.groups.value"
+        :active-id="commandMenu.activeId.value"
+        :loading="commandMenu.loading.value"
+        :empty-text="commandMenu.emptyText.value"
+        :aria-label="commandMenuAriaLabel"
+        @select="commandMenu.select"
+        @highlight="(id) => (commandMenu.activeId.value = id)"
+      />
+
+      <slot name="plate" />
+    </div>
 
     <div class="composer-card">
       <div class="body">
@@ -150,12 +153,18 @@ defineExpose({ focus })
   margin-inline: auto;
 }
 
-.command-menu-float {
-  margin-bottom: var(--space-2xs);
+.composer-plates {
+  position: relative;
+  margin-inline: var(--space-md);
+}
+
+.composer-plates:has(.command-menu) :slotted(.turn-status) {
+  border-radius: 0;
 }
 
 .composer-card {
   display: flex;
+  position: relative;
   flex-direction: column;
   overflow: hidden;
   border-radius: var(--composer-radius);

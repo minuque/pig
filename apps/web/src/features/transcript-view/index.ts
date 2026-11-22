@@ -28,3 +28,5 @@ export const openFileKey: InjectionKey<{
 }> = Symbol("open-file")
 
 export { transcriptModelsKey } from "@features/transcript-view/lib/transcript-models.js"
+
+export { default as TranscriptStatus } from "@features/transcript-view/components/TranscriptStatus.vue"

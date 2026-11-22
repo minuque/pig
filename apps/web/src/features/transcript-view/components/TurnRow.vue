@@ -58,8 +58,6 @@
         @toggle="emit('toggleExpand', row.id, $event)"
       />
     </div>
-
-    <slot />
   </div>
 </template>
 
