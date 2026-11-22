@@ -84,6 +84,29 @@ describe("时间线投影：磁盘底稿与 live 尾部对齐", () => {
     expect(items.map((item) => item.id)).toEqual(["u1", "a1", "mc", "u2"])
   })
 
+  it("新拉到的历史末尾只多了一条压缩记录，这条记录要接上", () => {
+    const compaction = {
+      id: "cp",
+      role: "system",
+      event: { kind: "compaction", tokensBefore: 1000, summary: "摘要" },
+      timestamp: 0,
+    } as const
+    const absorbed = absorbTranscriptPage(
+      {
+        items: [row("u1", "user", "问"), row("a1", "assistant", "答")],
+        timings: [],
+        hasMore: false,
+      },
+      {
+        items: [row("u1", "user", "问"), row("a1", "assistant", "答"), compaction],
+        timings: [],
+        hasMore: false,
+      },
+    )
+
+    expect(absorbed.items.map((item) => item.id)).toEqual(["u1", "a1", "cp"])
+  })
+
   it("同 id 覆盖，新 id 追加；临时 id 对齐历史后缀", () => {
     const overlay = project({
       persisted: [row("u1", "user", "a"), row("a1", "assistant", "old")],

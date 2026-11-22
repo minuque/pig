@@ -61,8 +61,8 @@ function mergeLiveTranscript(
     }
   }
 
-  const firstNew = head[covered]
-  const start = firstNew ? live.indexOf(firstNew) : live.length
+  const lastCovered = head[covered - 1]
+  const start = lastCovered ? live.indexOf(lastCovered) + 1 : 0
   const persistedSystem = merged.filter((item) => item.role === "system")
   return merged.concat(
     live
