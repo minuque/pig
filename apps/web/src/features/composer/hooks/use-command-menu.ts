@@ -17,7 +17,11 @@ const FILE_PREFIX = "file:"
 const SKILL_PREFIX = "skill:"
 const TEMPLATE_PREFIX = "template:"
 const BUILTIN_PREFIX = "builtin:"
-const BUILTIN_COMMANDS = [{ name: "clear", description: "清空输入草稿" }]
+const BUILTIN_COMMANDS = [
+  { name: "clear", description: "清空输入草稿" },
+  { name: "compact", description: "压缩上下文，可在后面写要保留的重点" },
+  { name: "reload", description: "重新加载扩展、技能、模板与上下文文件" },
+]
 
 export interface CommandMenuApi {
   open: Ref<boolean>
@@ -293,15 +297,28 @@ export function useCommandMenu(
       return
     }
 
-    if (id.startsWith(BUILTIN_PREFIX)) {
-      prompt.value = ""
-      caret.value = 0
-      close()
-      return
-    }
-
     const triggerLength = caret.value - start
     const base = { start, triggerLength }
+
+    if (id.startsWith(BUILTIN_PREFIX)) {
+      const name = id.slice(BUILTIN_PREFIX.length)
+
+      if (name === "clear") {
+        prompt.value = ""
+        caret.value = 0
+        close()
+        return
+      }
+
+      onChip({
+        ...base,
+        kind: "builtin",
+        label: name,
+        token: `/${name} `,
+        caret: start + name.length + 2,
+      })
+      return
+    }
 
     if (id.startsWith(SKILL_PREFIX)) {
       const name = id.slice(SKILL_PREFIX.length)

@@ -4,6 +4,7 @@ import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
 import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
 import { notify } from "@components/layout/notify.js"
+import { errorMessage } from "@client/http.js"
 import { t } from "@i18n/index.js"
 import { isChangedElsewhere } from "@features/session/hooks/abortable-open.js"
 import { dropBatch, stageBatch } from "@features/session/hooks/use-background-send.js"
@@ -24,6 +25,7 @@ import {
   withNotices,
 } from "@features/session/lib/transcript-timeline.js"
 import type { PresetPort, SessionClientState } from "@features/session/type.js"
+import { parseBuiltinCommand, type BuiltinCommand } from "@features/session/lib/builtin-command.js"
 
 export interface SessionLifecycleOptions {
   hub: SessionHub
@@ -190,6 +192,29 @@ export function useSessionLifecycle(
     }
   }
 
+  async function runBuiltin(command: BuiltinCommand, thread: SessionClientState) {
+    const id = sessionId.value
+    const previousDraft = thread.draft
+
+    if (!id) return false
+    thread.submitting = true
+    thread.draft = ""
+
+    try {
+      await ensureRemote(id)
+
+      if (command.name === "compact") await remote.value?.compact(command.instructions)
+      else await remote.value?.reload()
+      return true
+    } catch (error) {
+      if (!thread.draft) thread.draft = previousDraft
+      notify(errorMessage(error), "error")
+      return false
+    } finally {
+      thread.submitting = false
+    }
+  }
+
   async function sendPrompt(
     text: string,
     cwd?: string,
@@ -199,6 +224,10 @@ export function useSessionLifecycle(
     let thread = clientState.value
 
     if (!normalized || thread.submitting) return false
+
+    const builtin = sessionId.value ? parseBuiltinCommand(normalized) : undefined
+
+    if (builtin) return runBuiltin(builtin, thread)
 
     if (!sessionId.value && (!cwd || creatingCwd.value)) return false
     const epoch = ++thread.epoch

@@ -15,7 +15,15 @@ import {
 } from "@client/transcript-state.js"
 
 export type SessionOperation =
-  "open" | "create" | "submit" | "abort" | "setModel" | "setThinking" | "reconnect"
+  | "open"
+  | "create"
+  | "submit"
+  | "abort"
+  | "setModel"
+  | "setThinking"
+  | "compact"
+  | "reload"
+  | "reconnect"
 
 export type SessionLifecycle =
   | { readonly status: "unbound" }
@@ -144,6 +152,22 @@ export class GatewaySession {
     await this.#run("setThinking", () =>
       this.client.requestSession({ command: "set_thinking_level", sessionId, level }),
     )
+  }
+
+  async compact(instructions?: string) {
+    const sessionId = this.#requireIdle("compact")
+    await this.#run("compact", () =>
+      this.client.requestSession({
+        command: "compact",
+        sessionId,
+        ...(instructions ? { instructions } : {}),
+      }),
+    )
+  }
+
+  async reload() {
+    const sessionId = this.#requireIdle("reload")
+    await this.#run("reload", () => this.client.requestSession({ command: "reload", sessionId }))
   }
 
   async reattach() {

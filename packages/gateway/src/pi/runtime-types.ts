@@ -61,6 +61,8 @@ export interface SessionRuntime {
   abort(): Promise<void>
   setModel(model: ModelRef): Promise<void>
   setThinking(thinkingLevel: ThinkingLevel): Promise<void>
+  compact(instructions?: string): Promise<void>
+  reload(): Promise<void>
   subscribe(listener: (event: SessionRuntimeEvent) => void): () => void
   respondExtensionUi(response: ExtensionUiResponse): void
   extensionDialogs(): ExtensionUiDialog[]

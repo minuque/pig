@@ -229,6 +229,25 @@ export class PiHostSession implements SessionRuntime {
     await this.session.abort()
   }
 
+  async compact(instructions?: string): Promise<void> {
+    await this.whenIdle(async () => {
+      // 外部：pi 的 compact 失败或被中止都会先发 compaction_end，失败已记进 notices
+      await this.session.compact(instructions).catch(() => undefined)
+    })
+  }
+
+  async reload(): Promise<void> {
+    await this.whenIdle(() => this.session.reload())
+    this.broadcastSnapshot()
+  }
+
+  private async whenIdle(operation: () => Promise<unknown>): Promise<void> {
+    await this.exclusive(async () => {
+      if (!this.session.isIdle) throw new SessionBusyError("Session is busy")
+      await operation()
+    })
+  }
+
   async setModel(model: ModelRef): Promise<void> {
     await this.exclusive(async () => {
       if (!this.session.isIdle) throw new SessionBusyError("Session is busy")
