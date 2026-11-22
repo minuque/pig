@@ -737,6 +737,13 @@
   }
 }
 
+@keyframes plate-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   #startup-splash .startup-mark,
   #startup-splash .startup-logo {

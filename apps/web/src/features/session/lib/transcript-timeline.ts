@@ -63,16 +63,26 @@ function mergeLiveTranscript(
 
   const lastCovered = head[covered - 1]
   const start = lastCovered ? live.indexOf(lastCovered) + 1 : 0
-  const persistedSystem = merged.filter((item) => item.role === "system")
-  return merged.concat(
-    live
-      .slice(start)
-      .filter(
-        (item) =>
-          !persistedIds.has(item.id) &&
-          !persistedSystem.some((known) => sameTranscriptItem(known, item)),
-      ),
-  )
+  const lastNonSystem = merged.findLastIndex((item) => item.role !== "system")
+  const trailingSystem = merged.slice(lastNonSystem + 1).filter((item) => item.role === "system")
+  const additions: TranscriptItem[] = []
+
+  for (const item of live.slice(start)) {
+    if (persistedIds.has(item.id)) continue
+
+    if (item.role === "system") {
+      const matchIndex = trailingSystem.findIndex((known) => sameTranscriptItem(known, item))
+
+      if (matchIndex >= 0) {
+        trailingSystem.splice(matchIndex, 1)
+        continue
+      }
+    }
+
+    additions.push(item)
+  }
+
+  return merged.concat(additions)
 }
 
 function sameTranscriptItem(a: TranscriptItem, b: TranscriptItem): boolean {

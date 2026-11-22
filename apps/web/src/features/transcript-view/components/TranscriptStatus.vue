@@ -268,13 +268,6 @@ const tokensLabel = computed(() => {
   margin-inline: 0.35em;
 }
 
-@keyframes plate-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .turn-status {
     animation: none;

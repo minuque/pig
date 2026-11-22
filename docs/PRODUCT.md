@@ -32,7 +32,7 @@ web
 - 工作台：流式 transcript、思考区块、diff 渲染、待发队列、附件（有单文件大小与数量上限）、停止当前 turn。
 - 模型：供应商连接（API Key 或 OAuth 订阅登录）、自定义 provider 与模型写入 `models.json`、思考强度与采样参数、连接测试、用量查看。
 - 设置：外观（浅色 / 深色 / 跟随系统、精选配色预设、界面与代码字体及字号、对话宽度、欢迎页背景）、语言、系统通知与完成提示音、skills、extensions。
-- 已知缺口（尚未实现）：retry 详情、thinking 精确时长、streaming 期间的实时 token 计数。
+- 已知缺口（尚未实现）：thinking 精确时长、streaming 期间的实时 token 计数。
 - 数据契约在 `pi-protocol` schema 与 gateway：界面拿不到的事实先补协议与 gateway，不在前端造数据。
 
 ## Brand Commitments

@@ -1,6 +1,10 @@
 <template>
   <Collapsible :open="open" class="timeline-event">
-    <div class="event-divider" role="separator" :data-tone="failed ? 'danger' : undefined">
+    <div
+      class="event-divider"
+      :role="expandable ? undefined : 'separator'"
+      :data-tone="failed ? 'danger' : undefined"
+    >
       <component
         :is="expandable ? 'button' : 'span'"
         class="event-pill"
@@ -26,8 +30,16 @@
       <div class="event-panel">
         <MarkdownContent v-if="summary" :nodes="nodes" :streaming="false" />
 
-        <ol v-for="part in retries" :key="part.attempts[0]?.timestamp" class="event-attempts">
-          <li v-for="(attempt, index) in part.attempts" :key="attempt.timestamp">
+        <p v-for="(message, index) in failures" :key="index" class="event-error">
+          {{ message }}
+        </p>
+
+        <ol
+          v-for="(part, partIndex) in retries"
+          :key="`${part.attempts[0]?.timestamp ?? 0}-${partIndex}`"
+          class="event-attempts"
+        >
+          <li v-for="(attempt, index) in part.attempts" :key="`${attempt.timestamp}-${index}`">
             <span class="event-attempt-head">
               {{ t("transcript.retryAttempt", { index: index + 1 }) }}
             </span>
@@ -82,7 +94,14 @@ const summary = computed(() =>
 const retries = computed(() =>
   props.row.parts.flatMap((part) => (part.kind === "retry_recovered" ? [part] : [])),
 )
-const expandable = computed(() => summary.value !== "" || retries.value.length > 0)
+const failures = computed(() =>
+  props.row.parts.flatMap((part) =>
+    part.kind === "compaction_failed" && part.errorMessage ? [part.errorMessage] : [],
+  ),
+)
+const expandable = computed(
+  () => summary.value !== "" || retries.value.length > 0 || failures.value.length > 0,
+)
 const nodes = useMarkdownNodes({
   text: () => summary.value,
   streaming: () => false,
@@ -195,11 +214,20 @@ button.event-pill[aria-expanded="true"] {
 }
 
 .event-panel {
+  display: grid;
+  gap: var(--space-xs);
   margin-block-start: var(--space-xs);
   padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-card);
   background: var(--bg-surface);
   color: var(--fg-secondary);
+}
+
+.event-error {
+  margin: 0;
+  color: var(--danger-text);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 
 .event-attempts {

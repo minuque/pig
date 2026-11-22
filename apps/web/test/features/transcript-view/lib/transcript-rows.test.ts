@@ -206,6 +206,22 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     })
   })
 
+  it("重试中途夹带扩展通知或事件时，最终成功恢复仍收为恢复记录而不是红卡报错", () => {
+    const notice = {
+      id: "n1",
+      role: "system",
+      event: { kind: "extension_notice", level: "warning", message: "正在重试" },
+      timestamp: 1500,
+    } as const
+    const rows = buildRows([user, assistant(1, [], "error"), notice, text(2, "好了")], false)
+
+    expect(rows.some((row) => row.role === "alert" && row.source === "request")).toBe(false)
+    expect(
+      rows.some((row) => row.role === "event" && row.parts[0]?.kind === "retry_recovered"),
+    ).toBe(true)
+    expect(rows.at(-1)).toMatchObject({ role: "assistant", text: "好了" })
+  })
+
   it("两次发送之间来回切换模型不留记录，真正的切换与压缩合成一条", () => {
     const sonnet = { provider: "anthropic", id: "sonnet" }
     const gpt = { provider: "openai", id: "gpt-5" }

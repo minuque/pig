@@ -195,7 +195,12 @@ export function settleTurnOutcome(
       continue
     }
 
-    flushFailures(row.role === "assistant" || row.role === "tools")
+    if (row.role === "assistant" || row.role === "tools" || row.role === "task") {
+      flushFailures(true)
+    } else if (row.role === "user") {
+      flushFailures(false)
+    }
+
     settled.push(row)
   }
 

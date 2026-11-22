@@ -84,6 +84,31 @@ describe("时间线投影：磁盘底稿与 live 尾部对齐", () => {
     expect(items.map((item) => item.id)).toEqual(["u1", "a1", "mc", "u2"])
   })
 
+  it("早期已有一次相同的模型切换时，后续轮次再出现同向切换不被吞掉；尾部已落盘的不重复", () => {
+    const sonnet = { provider: "a", id: "x" }
+    const gpt = { provider: "b", id: "y" }
+    const switchEvent = (id: string) =>
+      ({
+        id,
+        role: "system",
+        event: { kind: "model_change", previous: sonnet, model: gpt },
+        timestamp: 0,
+      }) as const
+    const items = project({
+      persisted: [row("u1", "user", "问"), switchEvent("mc-1"), row("a1", "assistant", "答")],
+      liveOverlay: [row("m1", "user", "问"), row("m2", "assistant", "答"), switchEvent("live-2")],
+    })
+
+    expect(items.map((item) => item.id)).toEqual(["u1", "mc-1", "a1", "live-2"])
+
+    const dedupedTail = project({
+      persisted: [row("u1", "user", "问"), row("a1", "assistant", "答"), switchEvent("mc-2")],
+      liveOverlay: [row("m1", "user", "问"), row("m2", "assistant", "答"), switchEvent("live-2")],
+    })
+
+    expect(dedupedTail.map((item) => item.id)).toEqual(["u1", "a1", "mc-2"])
+  })
+
   it("新拉到的历史末尾只多了一条压缩记录，这条记录要接上", () => {
     const compaction = {
       id: "cp",

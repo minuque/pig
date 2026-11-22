@@ -250,7 +250,7 @@ describe("useComposerBinding", () => {
 
   it("回合运行中锁定换模型：预设写入被忽略，switchLocked 跟随 phase", async () => {
     const state = ref(snapshot())
-    const phase = ref<SessionPhase>("turn")
+    const phase = ref<SessionPhase | undefined>("turn")
     const setModel = vi.fn(async () => undefined)
     const { preset, switchLocked } = useComposerBinding({
       catalog: ref(catalog),
@@ -273,6 +273,20 @@ describe("useComposerBinding", () => {
     await nextTick()
     expect(switchLocked.value).toBe(false)
 
+    phase.value = "compaction"
+    await nextTick()
+    expect(switchLocked.value).toBe(true)
+
+    phase.value = "retry"
+    await nextTick()
+    expect(switchLocked.value).toBe(true)
+
+    phase.value = undefined
+    await nextTick()
+    expect(switchLocked.value).toBe(false)
+
+    phase.value = "idle"
+    await nextTick()
     preset.value = { model: { provider: "b", id: "two" }, thinkingLevel: "low" }
     await nextTick()
     expect(setModel).toHaveBeenCalledWith({ provider: "b", id: "two" })

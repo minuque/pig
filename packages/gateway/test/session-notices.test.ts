@@ -52,17 +52,24 @@ describe("网关：重试、压缩和扩展告警进快照", () => {
     expect(host.snapshot().activity).toBeUndefined()
   })
 
-  it("压缩失败留一条通知，用户中止的压缩不留", () => {
+  it("压缩失败留一条通知且只触发一次快照广播，用户中止的压缩不留", () => {
     const { host, emit } = hostWithSession()
     const end = { type: "compaction_end", reason: "threshold", result: undefined, willRetry: false }
+    let snapshots = 0
+
+    host.subscribe((event) => {
+      if (event.type === "snapshot") snapshots += 1
+    })
 
     emit({ type: "compaction_start", reason: "threshold" })
     expect(host.snapshot().activity).toEqual({ kind: "compaction", reason: "threshold" })
 
     emit({ ...end, aborted: true, errorMessage: "aborted" } as AgentSessionEvent)
+    snapshots = 0
     emit({ ...end, aborted: false, errorMessage: "摘要超时" } as AgentSessionEvent)
 
     const { activity, notices } = host.snapshot()
+    expect(snapshots).toBe(1)
     expect(activity).toBeUndefined()
     expect(notices.map((item) => item.event)).toEqual([
       { kind: "compaction_failed", errorMessage: "摘要超时" },

@@ -342,14 +342,15 @@ export class PiHostSession implements SessionRuntime {
     }
   }
 
-  private addNotice(event: SystemEvent): void {
+  private addNotice(event: SystemEvent, broadcast = true): void {
     this.notices.push({
       id: `notice-${this.notices.length + 1}`,
       role: "system",
       event,
       timestamp: Date.now(),
     })
-    this.broadcastSnapshot()
+
+    if (broadcast) this.broadcastSnapshot()
   }
 
   private trackActivity(event: AgentSessionEvent): void {
@@ -370,7 +371,7 @@ export class PiHostSession implements SessionRuntime {
         this.activity = undefined
 
         if (event.errorMessage && !event.aborted)
-          this.addNotice({ kind: "compaction_failed", errorMessage: event.errorMessage })
+          this.addNotice({ kind: "compaction_failed", errorMessage: event.errorMessage }, false)
         return
       case "auto_retry_end":
         this.activity = undefined
