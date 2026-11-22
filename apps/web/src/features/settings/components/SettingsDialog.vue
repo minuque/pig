@@ -1,9 +1,14 @@
 <template>
   <Dialog :open="open" :close-on-outside-press="false" @update:open="emit('update:open', $event)">
-    <DialogContent class="settings-dialog" :show-close-button="false">
+    <DialogContent
+      class="settings-dialog"
+      :show-close-button="false"
+      initial-focus="content"
+      @keydown="onShellKeydown"
+    >
       <DialogTitle class="sr-only">{{ t("settings.title") }}</DialogTitle>
 
-      <div class="settings-shell" @keydown="onShellKeydown">
+      <div class="settings-shell">
         <nav class="settings-nav" :aria-label="t('settings.title')">
           <TextFieldRoot
             ref="searchInput"
