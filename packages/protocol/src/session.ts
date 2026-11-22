@@ -55,3 +55,14 @@ export interface ContextUsageEstimate {
   }
   preview?: ContextUsagePreview
 }
+
+/** 已归档会话的持久化映射，键为会话 ID，值为归档时间戳（毫秒） */
+export type SessionArchives = Record<string, number>
+
+/** 更新会话归档状态的增量补丁 */
+export interface SessionArchivesPatch {
+  /** 要归档的会话 ID 列表 */
+  archive?: string[]
+  /** 要恢复（取消归档）的会话 ID 列表 */
+  unarchive?: string[]
+}

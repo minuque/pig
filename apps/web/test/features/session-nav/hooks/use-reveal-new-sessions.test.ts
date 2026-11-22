@@ -37,4 +37,25 @@ describe("新建会话落进收着的分段时自动展开", () => {
     await nextTick()
     expect(expand).toHaveBeenCalledWith("working")
   })
+
+  it("ready 就绪前的早期空列表波动不触发误判，空工作区就绪后新建会话仍会展开工作中", async () => {
+    const listed = shallowRef<{ id: string }[]>([])
+    const placements = shallowRef(new Map<string, SidebarPlacement>())
+    const ready = shallowRef(false)
+    const expand = vi.fn()
+
+    effectScope().run(() => useRevealNewSessions(listed, placements, expand, ready))
+
+    listed.value = []
+    await nextTick()
+
+    ready.value = true
+    await nextTick()
+
+    listed.value = [{ id: "first" }]
+    placements.value = new Map([["first", { running: true, settled: false }]])
+    await nextTick()
+
+    expect(expand).toHaveBeenCalledWith("working")
+  })
 })

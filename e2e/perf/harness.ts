@@ -124,6 +124,7 @@ export async function createDesktopHarness(options: {
           PIG_NO_FOCUS: "1",
           PIG_CDP: "off",
           PIG_SESSION_DIR: options.sessionDir,
+          PIG_HOME: options.sessionDir,
           PIG_CWD: options.workspaceDir,
         }),
         colorScheme: "light",

@@ -29,6 +29,7 @@
       @delete="deleteSession"
       @settle="settle"
       @unsettle="unsettle"
+      @archive="onArchiveSession"
       @reorder-pinned="reorderPinned"
       @pin-at="pinAt"
       @unpin="togglePinned"
@@ -85,6 +86,7 @@ const {
   deleteSession,
   settle,
   unsettle,
+  archiveSessions,
   reorderPinned,
   pinAt,
 } = useNav()
@@ -166,6 +168,10 @@ function onCreateSession(cwd?: string): void {
 
   if (path) return onCreateInDir(path)
   void addWorkspace()
+}
+
+function onArchiveSession(id: string): void {
+  void archiveSessions([id])
 }
 </script>
 

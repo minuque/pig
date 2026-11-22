@@ -6,6 +6,16 @@ import { validateRemoteDirectory, workspaceEnvironment } from "../pi/remote-sess
 import { GatewayError, SessionNotFoundError } from "../pi/runtime-types.js"
 import type { PiHostService } from "../pi/service.js"
 import type { DirectoryPort } from "../system/directory.js"
+import {
+  PreferencesCorruptedError,
+  PreferencesError,
+  type PreferencesStore,
+} from "../system/preferences.js"
+import {
+  SessionArchivesCorruptedError,
+  SessionArchivesError,
+  type SessionArchivesStore,
+} from "../system/session-archives.js"
 import { fsRoutes } from "./fs-routes.js"
 import {
   HttpError,
@@ -22,6 +32,8 @@ export type PlatformRequestDeps = HttpDeps & {
   hostService: PiHostService
   platformPort: DirectoryPort
   environments: EnvironmentSources
+  preferences: PreferencesStore
+  sessionArchives: SessionArchivesStore
 }
 
 function attachmentStatus(code: AttachmentErrorCode): number {
@@ -71,6 +83,18 @@ const platformRoutes = {
 
   "GET /api/v1/platform/environments": async ({ deps }) => ({
     environments: await listEnvironments(deps.environments),
+  }),
+
+  "GET /api/v1/platform/preferences": async ({ deps }) => deps.preferences.read(),
+
+  "PATCH /api/v1/platform/preferences": async (ctx) => ({
+    preferences: await ctx.deps.preferences.patch(await ctx.json()),
+  }),
+
+  "GET /api/v1/platform/session-archives": async ({ deps }) => deps.sessionArchives.read(),
+
+  "PATCH /api/v1/platform/session-archives": async (ctx) => ({
+    archives: await ctx.deps.sessionArchives.patch(await ctx.json()),
   }),
 
   "GET /api/v1/platform/session-cards": async ({ deps }) => ({
@@ -131,6 +155,7 @@ const platformRoutes = {
 
     if (!id) throw new HttpError(400, "INVALID_REQUEST")
     await ctx.deps.hostService.deleteSession(id)
+    await ctx.deps.sessionArchives.remove(id)
     return { ok: true }
   },
 
@@ -189,6 +214,15 @@ const platformRoutes = {
 } satisfies HttpRouteTable<PlatformRequestDeps>
 const platformError: MapError = (error, route) => {
   if (error instanceof SessionNotFoundError) return new HttpError(404, "NOT_FOUND")
+
+  if (error instanceof PreferencesError) return new HttpError(400, "INVALID_REQUEST")
+
+  if (error instanceof PreferencesCorruptedError) return new HttpError(409, "PREFERENCES_CORRUPTED")
+
+  if (error instanceof SessionArchivesError) return new HttpError(400, "INVALID_REQUEST")
+
+  if (error instanceof SessionArchivesCorruptedError)
+    return new HttpError(409, "SESSION_ARCHIVES_CORRUPTED")
 
   if (error instanceof GatewayError) {
     if (error.code === "busy") return new HttpError(409, "BUSY")

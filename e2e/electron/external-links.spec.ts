@@ -23,6 +23,7 @@ test("window.open 被主进程拒绝，不新开 Electron 窗口", async () => {
       PIG_NO_FOCUS: "1",
       PIG_VITE_PORT: String(VITE_PORT),
       PIG_SESSION_DIR: sessionDir,
+      PIG_HOME: sessionDir,
       PIG_CWD: sessionDir,
     },
   })

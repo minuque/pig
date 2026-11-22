@@ -7,6 +7,8 @@ export { default as RunningPigGlyph } from "@components/icons/RunningPigGlyph.vu
 export { default as LanguageIcon } from "@components/icons/LanguageIcon.vue"
 
 export {
+  ArchiveIcon,
+  ArchiveRestoreIcon,
   ArrowDownIcon,
   ArrowDownLeftIcon,
   ArrowLeftIcon,

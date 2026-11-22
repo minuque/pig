@@ -21,6 +21,19 @@ export type {
 export type { ModelChannels, ModelMetadata, ModelRef, ThinkingLevel } from "./model.js"
 
 export type {
+  UserChatWidth,
+  UserLocale,
+  UserPreferences,
+  UserPreferencesPatch,
+  UserRailLayout,
+  UserRailSection,
+  UserThemeMode,
+  UserThemePreset,
+  UserUiSize,
+  UserWelcomeField,
+} from "./preferences.js"
+
+export type {
   CustomModelInput,
   CustomProviderInput,
   DefaultModelView,
@@ -41,6 +54,8 @@ export type {
   SessionCard,
   SessionTranscriptPage,
   TurnTiming,
+  SessionArchives,
+  SessionArchivesPatch,
 } from "./session.js"
 
 export type {

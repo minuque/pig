@@ -191,7 +191,13 @@ const props = withDefaults(defineProps<Props>(), {
   background-color: var(--bg-hover);
 }
 
-:where([data-button]:is([data-variant="outline"], [data-variant="ghost"])) :where(svg) {
+:where(
+    [data-button]:is([data-variant="outline"], [data-variant="ghost"]):is(
+        :not([data-tone]),
+        [data-tone="neutral"]
+      )
+  )
+  :where(svg) {
   color: var(--fg-muted);
 }
 

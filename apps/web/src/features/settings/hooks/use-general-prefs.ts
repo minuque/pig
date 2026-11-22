@@ -1,19 +1,15 @@
-import { readonly, shallowRef, watch } from "vue"
+import { computed, effectScope, readonly, shallowRef, watch } from "vue"
+import { userPreferences, updatePreferences } from "@client/preferences.js"
 import { i18n, t } from "@i18n/index.js"
-import { readEnum, readFlag, readPref, writeFlag, writePref } from "@utils/storage.js"
 
 export type UiLocale = "en" | "zh-CN"
 
 export type ChatWidth = "comfortable" | "wide" | "full"
 
-const LOCALE_KEY = "pig.locale"
-const CHAT_WIDTH_KEY = "pig.chatWidth"
-const NOTIFY_KEY = "pig.notify"
-const USER_NAME_KEY = "pig.userName"
-const locale = shallowRef<UiLocale>("zh-CN")
-const chatWidth = shallowRef<ChatWidth>("comfortable")
-const notifyOn = shallowRef(true)
-const userName = shallowRef("")
+const locale = computed(() => userPreferences.value.locale)
+const chatWidth = computed(() => userPreferences.value.chatWidth)
+const notifyOn = computed(() => userPreferences.value.notify)
+const userName = shallowRef(userPreferences.value.userName)
 let loaded = false
 
 function apply(nextLocale: UiLocale, nextChatWidth: ChatWidth): void {
@@ -26,48 +22,48 @@ function apply(nextLocale: UiLocale, nextChatWidth: ChatWidth): void {
 function load(): void {
   if (loaded) return
   loaded = true
-  locale.value = readEnum(LOCALE_KEY, ["en", "zh-CN"] as const, "zh-CN")
-  chatWidth.value = readEnum(
-    CHAT_WIDTH_KEY,
-    ["comfortable", "wide", "full"] as const,
-    "comfortable",
-  )
-  notifyOn.value = readFlag(NOTIFY_KEY)
-  userName.value = readPref(USER_NAME_KEY) ?? ""
-  apply(locale.value, chatWidth.value)
+  effectScope(true).run(() => {
+    watch([locale, chatWidth], ([nextLocale, nextChatWidth]) => apply(nextLocale, nextChatWidth), {
+      immediate: true,
+      flush: "sync",
+    })
+    watch(
+      () => userPreferences.value.userName,
+      (next) => {
+        if (userName.value.trim() !== next) userName.value = next
+      },
+      { immediate: true, flush: "sync" },
+    )
+  })
 }
 
 export function useGeneralPrefs() {
   load()
-
-  watch([locale, chatWidth], ([nextLocale, nextChatWidth]) => apply(nextLocale, nextChatWidth))
   return {
-    locale: readonly(locale),
-    chatWidth: readonly(chatWidth),
-    notifyOn: readonly(notifyOn),
+    locale,
+    chatWidth,
+    notifyOn,
     userName: readonly(userName),
     setUserName(next: string) {
       userName.value = next
-      writePref(USER_NAME_KEY, next.trim())
+
+      const trimmed = next.trim()
+
+      if (trimmed !== userPreferences.value.userName) updatePreferences({ userName: trimmed })
     },
     setLocale(next: UiLocale) {
-      locale.value = next
-      writePref(LOCALE_KEY, next)
+      updatePreferences({ locale: next })
     },
     setChatWidth(next: ChatWidth) {
-      chatWidth.value = next
-      writePref(CHAT_WIDTH_KEY, next)
+      updatePreferences({ chatWidth: next })
     },
     setNotify(next: boolean) {
-      notifyOn.value = next
-      writeFlag(NOTIFY_KEY, next)
+      updatePreferences({ notify: next })
     },
   }
 }
 
 export async function notifyTurnDone(): Promise<void> {
-  load()
-
   if (
     !notifyOn.value ||
     typeof Notification === "undefined" ||

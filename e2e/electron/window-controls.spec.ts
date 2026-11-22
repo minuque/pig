@@ -24,6 +24,7 @@ test("自画窗控经 IPC 操作真实窗口", async () => {
       PIG_CDP: "0",
       PIG_VITE_PORT: String(VITE_PORT),
       PIG_SESSION_DIR: sessionDir,
+      PIG_HOME: sessionDir,
       PIG_CWD: sessionDir,
     },
   })

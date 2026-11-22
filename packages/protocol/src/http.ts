@@ -12,8 +12,11 @@ import type {
   ContextUsagePreview,
   SessionCard,
   SessionTranscriptPage,
+  SessionArchives,
+  SessionArchivesPatch,
 } from "./session.js"
 import type { TranscriptItem } from "./transcript.js"
+import type { UserPreferences, UserPreferencesPatch } from "./preferences.js"
 import type {
   ComposerCommand,
   ContentSearchResponse,
@@ -77,6 +80,20 @@ export interface PlatformHttpRoutes {
   "POST /api/v1/platform/attachments/stage": {
     query: { batch: string; name: string; mimeType: string }
     response: { id: string }
+  }
+  "GET /api/v1/platform/preferences": {
+    response: { preferences: UserPreferences; exists: boolean }
+  }
+  "PATCH /api/v1/platform/preferences": {
+    body: UserPreferencesPatch
+    response: { preferences: UserPreferences }
+  }
+  "GET /api/v1/platform/session-archives": {
+    response: { archives: SessionArchives; exists: boolean }
+  }
+  "PATCH /api/v1/platform/session-archives": {
+    body: SessionArchivesPatch
+    response: { archives: SessionArchives }
   }
   "POST /api/v1/platform/attachments/discard": {
     body: { batch: string }
