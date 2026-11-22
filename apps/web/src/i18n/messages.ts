@@ -151,6 +151,7 @@ export const zh = {
       emptyArchivedTitle: "还没有归档的会话",
       emptyArchivedFiltered: "当前筛选下没有匹配的归档",
       deleteBatchDone: "已删除 {count} 个会话",
+      loadMore: "已加载 {loaded} / {total}，加载更多",
     },
     models: {
       title: "模型",
@@ -656,6 +657,7 @@ export const en: Messages = {
       emptyArchivedTitle: "No archived sessions",
       emptyArchivedFiltered: "No matching archived sessions",
       deleteBatchDone: "Deleted {count} sessions",
+      loadMore: "Loaded {loaded} of {total}, load more",
     },
     models: {
       title: "Models",

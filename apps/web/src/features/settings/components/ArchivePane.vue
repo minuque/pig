@@ -4,8 +4,8 @@
       v-model:project-filter="projectFilter"
       v-model:query="query"
       :tab="tab"
-      :inbox-count="inboxRows.length"
-      :archived-count="archivedRows.length"
+      :inbox-count="inboxCount"
+      :archived-count="archivedCount"
       :project-options="projectOptions"
       :has-rows="filteredRows.length > 0"
       :has-selectable="selectableVisibleIds.length > 0"
@@ -18,70 +18,84 @@
       @clear-selection="clearSelection"
     />
 
-    <div v-if="groups.length > 0" class="group-list">
-      <section v-for="group in groups" :key="group.project.cwd" class="project-section">
-        <div class="project-head">
-          <div class="project-meta">
-            <Checkbox
-              :model-value="groupCheckState(group)"
-              :disabled="group.selectableIds.length === 0"
-              :aria-label="t('settings.archive.selectProject', { name: group.project.name })"
-              @update:model-value="toggleGroupSelect(group)"
-            />
+    <div v-show="virtualItems.length > 0" v-bind="containerProps" class="virtual-viewport">
+      <div v-bind="wrapperProps">
+        <template v-for="{ data } in list" :key="data.key">
+          <div
+            v-if="data.kind === 'group-head'"
+            class="project-head"
+            :data-first="data.firstGroup ? '' : undefined"
+          >
+            <div class="project-meta">
+              <Checkbox
+                :model-value="groupCheckState(data.group)"
+                :disabled="data.group.selectableIds.length === 0"
+                :aria-label="t('settings.archive.selectProject', { name: data.group.project.name })"
+                @update:model-value="toggleGroupSelect(data.group)"
+              />
 
-            <span
-              v-if="projectIcon(group.project.iconName)"
-              class="project-mark"
-              :data-tone="group.project.tone"
-              aria-hidden="true"
-            >
-              <component :is="projectIcon(group.project.iconName)" class="size-icon" />
-            </span>
+              <span
+                v-if="projectIcon(data.group.project.iconName)"
+                class="project-mark"
+                :data-tone="data.group.project.tone"
+                aria-hidden="true"
+              >
+                <component :is="projectIcon(data.group.project.iconName)" class="size-icon" />
+              </span>
 
-            <Badge
-              v-else
-              variant="soft"
+              <Badge
+                v-else
+                variant="soft"
+                size="s"
+                :color="data.group.project.tone"
+                class="project-monogram"
+              >
+                {{ data.group.project.monogram }}
+              </Badge>
+
+              <span class="project-name">{{ data.group.project.name }}</span>
+              <span class="project-count tabular">{{ data.group.rows.length }}</span>
+
+              <span v-if="data.group.project.host" class="project-host">
+                {{ data.group.project.host }}
+              </span>
+            </div>
+
+            <Button
+              v-if="tab === 'inbox' && data.group.staleIds.length > 0"
+              variant="ghost"
               size="s"
-              :color="group.project.tone"
-              class="project-monogram"
+              class="group-stale-action"
+              @click="archiveGroupStale(data.group)"
             >
-              {{ group.project.monogram }}
-            </Badge>
-
-            <span class="project-name">{{ group.project.name }}</span>
-            <span class="project-count tabular">{{ group.rows.length }}</span>
-            <span v-if="group.project.host" class="project-host">{{ group.project.host }}</span>
+              {{ t("settings.archive.archiveProjectStale", { count: data.group.staleIds.length }) }}
+            </Button>
           </div>
 
-          <Button
-            v-if="tab === 'inbox' && group.staleIds.length > 0"
-            variant="ghost"
-            size="s"
-            class="group-stale-action"
-            @click="archiveGroupStale(group)"
-          >
-            {{ t("settings.archive.archiveProjectStale", { count: group.staleIds.length }) }}
-          </Button>
-        </div>
-
-        <CardList>
           <ArchiveRow
-            v-for="row in group.rows"
-            :key="row.id"
-            :row="row"
+            v-else-if="data.kind === 'row'"
+            :row="data.row"
             :archived="tab === 'archived'"
-            :selected="selectedIds.has(row.id)"
+            :selected="selectedIds.has(data.row.id)"
             :now="now"
+            :is-first="data.isFirst"
+            :is-last="data.isLast"
             @toggle-select="toggleSelectOne"
             @archive="archiveOne"
             @unarchive="unarchiveOne"
             @delete="requestDeleteOne"
           />
-        </CardList>
-      </section>
+
+          <div v-else class="load-more-row">
+            <Button variant="ghost" size="s" class="load-more-button" @click="loadMoreRows">
+              {{ t("settings.archive.loadMore", { loaded: data.loaded, total: data.total }) }}
+            </Button>
+          </div>
+        </template>
+      </div>
     </div>
 
-    <div v-else class="archive-empty">
+    <div v-if="virtualItems.length === 0" class="archive-empty">
       <ArchiveIcon class="empty-icon" />
       <p class="empty-text">{{ emptyMessage }}</p>
     </div>
@@ -130,6 +144,8 @@
 </template>
 
 <script setup lang="ts">
+import { useVirtualList } from "@vueuse/core"
+import { nextTick, watch } from "vue"
 import { ArchiveIcon } from "@components/icons/index.js"
 import { PROJECT_ICONS } from "@components/icons/project-icons.js"
 import {
@@ -144,12 +160,15 @@ import {
 } from "@components/ui/alert-dialog/index.js"
 import { Badge } from "@components/ui/badge/index.js"
 import { Button } from "@components/ui/button/index.js"
-import { CardList } from "@components/ui/card/index.js"
 import { Checkbox } from "@components/ui/checkbox/index.js"
 import ArchiveRow from "@features/settings/components/ArchiveRow.vue"
 import ArchiveToolbar from "@features/settings/components/ArchiveToolbar.vue"
 import { useArchivePane } from "@features/settings/hooks/use-archive-pane.js"
-import type { ArchiveController, ArchiveProjectGroup } from "@features/settings/lib/archive-view.js"
+import {
+  archiveVirtualItemHeight,
+  type ArchiveController,
+  type ArchiveProjectGroup,
+} from "@features/settings/lib/archive-view.js"
 import { useI18n } from "@i18n/index.js"
 
 const props = defineProps<{
@@ -162,10 +181,11 @@ const {
   query,
   now,
   selectedIds,
-  inboxRows,
-  archivedRows,
+  inboxCount,
+  archivedCount,
   filteredRows,
-  groups,
+  virtualItems,
+  hasMoreRows,
   projectOptions,
   selectableVisibleIds,
   selectedCount,
@@ -176,6 +196,8 @@ const {
   deleteDialogTitle,
   deleteDialogDescription,
   setTab,
+  loadMoreRows,
+  scheduleLoadMore,
   clearSelection,
   toggleSelectAll,
   toggleSelectOne,
@@ -189,6 +211,26 @@ const {
   requestDeleteBatch,
   confirmDelete,
 } = useArchivePane(() => props.controller)
+const { list, containerProps, wrapperProps, scrollTo } = useVirtualList(virtualItems, {
+  itemHeight: (index) => archiveVirtualItemHeight(virtualItems.value[index]),
+  overscan: 6,
+})
+
+watch([tab, projectFilter, query], async () => {
+  await nextTick()
+  scrollTo(0)
+})
+
+watch(
+  list,
+  (visible) => {
+    if (!hasMoreRows.value || visible.length === 0) return
+    const lastIndex = visible[visible.length - 1]?.index ?? -1
+
+    if (lastIndex >= virtualItems.value.length - 8) scheduleLoadMore()
+  },
+  { immediate: true },
+)
 
 function projectIcon(name: string | undefined) {
   return name ? PROJECT_ICONS[name] : undefined
@@ -210,28 +252,35 @@ function archiveGroupStale(group: ArchiveProjectGroup): void {
 <style scoped>
 .archive-pane {
   display: flex;
+  flex: 1;
   flex-direction: column;
+  min-height: 0;
   gap: var(--space-md);
 }
 
-.group-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-md);
-}
-
-.project-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-xs);
+.virtual-viewport {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
 }
 
 .project-head {
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-sm);
+  height: 52px;
+  padding-top: var(--space-md);
   padding-inline: calc(var(--space-md) + var(--border-width));
+}
+
+.project-head[data-first] {
+  height: 36px;
+  padding-top: 0;
 }
 
 .project-meta {
@@ -290,8 +339,22 @@ function archiveGroupStale(group: ArchiveProjectGroup): void {
   color: var(--fg);
 }
 
+.load-more-row {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+}
+
+.load-more-button {
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 .archive-empty {
   display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -313,9 +376,7 @@ function archiveGroupStale(group: ArchiveProjectGroup): void {
 }
 
 .bulk-bar {
-  position: sticky;
-  bottom: var(--space-sm);
-  z-index: var(--z-sticky);
+  flex: none;
   display: flex;
   flex-wrap: wrap;
   align-items: center;

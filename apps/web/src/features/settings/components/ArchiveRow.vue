@@ -1,9 +1,10 @@
 <template>
   <ContextMenu>
     <ContextMenuTrigger as-child>
-      <CardRow
-        interactive
+      <div
         class="archive-row"
+        :data-first="isFirst ? '' : undefined"
+        :data-last="isLast ? '' : undefined"
         :data-selected="selected ? '' : undefined"
         :data-disabled="row.running ? '' : undefined"
         @click="onRowClick"
@@ -95,7 +96,7 @@
             <TooltipContent>{{ t("settings.archive.deleteOne") }}</TooltipContent>
           </Tooltip>
         </div>
-      </CardRow>
+      </div>
     </ContextMenuTrigger>
 
     <ContextMenuContent>
@@ -121,7 +122,6 @@ import { ArchiveIcon, ArchiveRestoreIcon, TrashIcon } from "@components/icons/in
 import VendorMark from "@components/icons/VendorMark.vue"
 import { Badge } from "@components/ui/badge/index.js"
 import { IconButton } from "@components/ui/button/index.js"
-import { CardRow } from "@components/ui/card/index.js"
 import { Checkbox } from "@components/ui/checkbox/index.js"
 import {
   ContextMenu,
@@ -140,6 +140,8 @@ const props = defineProps<{
   archived: boolean
   selected: boolean
   now: number
+  isFirst: boolean
+  isLast: boolean
 }>()
 const emit = defineEmits<{
   toggleSelect: [id: string]
@@ -175,10 +177,37 @@ function onPrimaryAction(): void {
 
 <style scoped>
 .archive-row {
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  padding-block: var(--space-sm);
+  height: 60px;
+  padding-inline: var(--space-md);
+  background-color: var(--card-surface);
+  border-inline: var(--border-width) solid var(--border);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.archive-row[data-first] {
+  border-top: var(--border-width) solid var(--border);
+  border-start-start-radius: var(--radius-card);
+  border-start-end-radius: var(--radius-card);
+}
+
+.archive-row:not([data-first]) {
+  box-shadow: var(--separator-top);
+}
+
+.archive-row[data-last] {
+  border-bottom: var(--border-width) solid var(--border);
+  border-end-start-radius: var(--radius-card);
+  border-end-end-radius: var(--radius-card);
+}
+
+@media (hover: hover) {
+  .archive-row:not([data-disabled]):hover {
+    background-color: var(--bg-hover);
+  }
 }
 
 .archive-row[data-selected] {
@@ -228,17 +257,20 @@ function onPrimaryAction(): void {
 
 .row-meta {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: var(--space-xs);
+  overflow: hidden;
   color: var(--fg-muted);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
+  white-space: nowrap;
 }
 
 .meta-item {
   display: inline-flex;
   align-items: center;
+  flex-shrink: 0;
   gap: var(--space-2xs);
 }
 
@@ -249,17 +281,30 @@ function onPrimaryAction(): void {
 }
 
 .meta-model {
+  flex-shrink: 1;
   min-width: 0;
+  overflow: hidden;
+}
+
+.meta-model > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .row-actions {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  gap: var(--space-2xs);
+  gap: var(--space-xs);
 }
 
 .tabular {
   font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .archive-row {
+    transition: none;
+  }
 }
 </style>

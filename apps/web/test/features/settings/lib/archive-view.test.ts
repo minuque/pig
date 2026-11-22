@@ -1,9 +1,17 @@
 import { describe, expect, it } from "vitest"
 import type { SessionMetadata } from "@/types/common-type.js"
 import {
+  ARCHIVE_GROUP_HEAD_FIRST_HEIGHT,
+  ARCHIVE_GROUP_HEAD_HEIGHT,
+  ARCHIVE_LOAD_MORE_HEIGHT,
+  ARCHIVE_ROW_HEIGHT,
+  archiveVirtualItemHeight,
   buildArchiveRows,
   collectProjectOptions,
+  countArchiveTabs,
+  countQuickRules,
   filterArchiveRows,
+  flattenArchiveGroups,
   formatRelativeAge,
   groupArchiveRows,
   idsMatchingQuickRule,
@@ -26,7 +34,7 @@ function session(id: string, overrides: Partial<SessionMetadata> = {}): SessionM
 }
 
 describe("archive-view 纯计算逻辑", () => {
-  it("按 inbox / archived 视图拆分并正确标记 running、settled、error、stale", () => {
+  it("按 inbox / archived 视图拆分并正确统计 Tab 数量与状态标记", () => {
     const sessions: SessionMetadata[] = [
       session("run", { updatedAt: NOW - 1_000 }),
       session("settled", { updatedAt: NOW - 2_000 }),
@@ -45,6 +53,9 @@ describe("archive-view 纯计算逻辑", () => {
         },
       ],
     ])
+
+    expect(countArchiveTabs(sessions, { arch: NOW - 500 })).toEqual({ inbox: 4, archived: 1 })
+
     const inbox = buildArchiveRows({
       sessions,
       archives: { arch: NOW - 500 },
@@ -62,6 +73,7 @@ describe("archive-view 纯计算逻辑", () => {
       ["err", "error", false],
       ["old", "idle", true],
     ])
+    expect(countQuickRules(inbox)).toEqual({ stale: 1, settled: 1, error: 1 })
     expect(idsMatchingQuickRule(inbox, "stale")).toEqual(["old"])
     expect(idsMatchingQuickRule(inbox, "settled")).toEqual(["settled"])
     expect(idsMatchingQuickRule(inbox, "error")).toEqual(["err"])
@@ -128,6 +140,58 @@ describe("archive-view 纯计算逻辑", () => {
     expect(collectProjectOptions(sessions, projectMap).map((p) => p.name)).toEqual([
       "alpha",
       "beta",
+    ])
+  })
+
+  it("按批截断扁平化分组并精确标记首尾圆角与加载更多项", () => {
+    const sessions: SessionMetadata[] = [
+      session("a1", { cwd: "/work/alpha", updatedAt: NOW - 1_000 }),
+      session("a2", { cwd: "/work/alpha", updatedAt: NOW - 2_000 }),
+      session("b1", { cwd: "/work/beta", updatedAt: NOW - 3_000 }),
+      session("b2", { cwd: "/work/beta", updatedAt: NOW - 4_000 }),
+    ]
+    const rows = buildArchiveRows({
+      sessions,
+      archives: {},
+      settledIds: new Set(),
+      runningIds: new Set(),
+      cardFootById: new Map(),
+      tab: "inbox",
+      untitledLabel: "新对话",
+      now: NOW,
+    })
+    const groups = groupArchiveRows(rows, new Map())
+    const partial = flattenArchiveGroups(groups, 3, rows.length)
+
+    expect(partial.map((item) => item.kind)).toEqual([
+      "group-head",
+      "row",
+      "row",
+      "group-head",
+      "row",
+      "load-more",
+    ])
+    expect(partial.map((item) => archiveVirtualItemHeight(item))).toEqual([
+      ARCHIVE_GROUP_HEAD_FIRST_HEIGHT,
+      ARCHIVE_ROW_HEIGHT,
+      ARCHIVE_ROW_HEIGHT,
+      ARCHIVE_GROUP_HEAD_HEIGHT,
+      ARCHIVE_ROW_HEIGHT,
+      ARCHIVE_LOAD_MORE_HEIGHT,
+    ])
+    expect(partial[4]).toMatchObject({ kind: "row", key: "b1", isFirst: true, isLast: true })
+    expect(partial[5]).toEqual({ kind: "load-more", key: "__load_more__", loaded: 3, total: 4 })
+
+    const full = flattenArchiveGroups(groups, 10, rows.length)
+
+    expect(full.some((item) => item.kind === "load-more")).toBe(false)
+    expect(full.map((item) => item.key)).toEqual([
+      "head:/work/alpha",
+      "a1",
+      "a2",
+      "head:/work/beta",
+      "b1",
+      "b2",
     ])
   })
 

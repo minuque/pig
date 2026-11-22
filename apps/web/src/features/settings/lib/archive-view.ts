@@ -4,6 +4,12 @@ import type { ToneColor } from "@/types/ui-type.js"
 
 export const STALE_SESSION_DAYS = 7
 export const STALE_SESSION_MS = STALE_SESSION_DAYS * 24 * 60 * 60 * 1000
+export const ARCHIVE_INITIAL_BATCH = 60
+export const ARCHIVE_BATCH_STEP = 60
+export const ARCHIVE_GROUP_HEAD_FIRST_HEIGHT = 36
+export const ARCHIVE_GROUP_HEAD_HEIGHT = 52
+export const ARCHIVE_ROW_HEIGHT = 60
+export const ARCHIVE_LOAD_MORE_HEIGHT = 44
 
 export type ArchiveTab = "inbox" | "archived"
 
@@ -50,6 +56,27 @@ export interface ArchiveProjectGroup {
   readonly selectableIds: string[]
 }
 
+export type ArchiveVirtualItem =
+  | {
+      readonly kind: "group-head"
+      readonly key: string
+      readonly group: ArchiveProjectGroup
+      readonly firstGroup: boolean
+    }
+  | {
+      readonly kind: "row"
+      readonly key: string
+      readonly row: ArchiveSessionRow
+      readonly isFirst: boolean
+      readonly isLast: boolean
+    }
+  | {
+      readonly kind: "load-more"
+      readonly key: string
+      readonly loaded: number
+      readonly total: number
+    }
+
 export interface ArchiveController {
   readonly allSessions: ComputedRef<readonly SessionMetadata[]>
   readonly settledIds: ComputedRef<ReadonlySet<string>>
@@ -74,6 +101,37 @@ export interface BuildArchiveRowsInput {
 
 function sessionLastActive(session: Pick<SessionMetadata, "createdAt" | "updatedAt">): number {
   return session.updatedAt ?? session.createdAt
+}
+
+export function countArchiveTabs(
+  sessions: readonly SessionMetadata[],
+  archives: SessionArchives,
+): { inbox: number; archived: number } {
+  let archived = 0
+
+  for (const session of sessions) {
+    if (archives[session.id] !== undefined) archived += 1
+  }
+
+  return { inbox: sessions.length - archived, archived }
+}
+
+export function countQuickRules(
+  rows: readonly ArchiveSessionRow[],
+): Record<ArchiveQuickRule, number> {
+  const counts: Record<ArchiveQuickRule, number> = { stale: 0, settled: 0, error: 0 }
+
+  for (const row of rows) {
+    if (row.running) continue
+
+    if (row.stale) counts.stale += 1
+
+    if (row.settled) counts.settled += 1
+
+    if (row.errored) counts.error += 1
+  }
+
+  return counts
 }
 
 export function fallbackProjectView(cwd: string): ArchiveProjectView {
@@ -174,6 +232,63 @@ export function groupArchiveRows(
   }
 
   return groups
+}
+
+export function flattenArchiveGroups(
+  groups: readonly ArchiveProjectGroup[],
+  rowLimit: number,
+  totalRowCount: number,
+): ArchiveVirtualItem[] {
+  if (rowLimit <= 0) return []
+  const items: ArchiveVirtualItem[] = []
+  let loaded = 0
+
+  for (let groupIndex = 0; groupIndex < groups.length; groupIndex += 1) {
+    const remaining = rowLimit - loaded
+
+    if (remaining <= 0) break
+    const group = groups[groupIndex]!
+    const take = Math.min(remaining, group.rows.length)
+
+    if (take <= 0) continue
+
+    items.push({
+      kind: "group-head",
+      key: `head:${group.project.cwd}`,
+      group,
+      firstGroup: groupIndex === 0,
+    })
+
+    for (let i = 0; i < take; i += 1) {
+      const row = group.rows[i]!
+
+      items.push({
+        kind: "row",
+        key: row.id,
+        row,
+        isFirst: i === 0,
+        isLast: i === take - 1,
+      })
+    }
+
+    loaded += take
+  }
+
+  if (loaded < totalRowCount) {
+    items.push({ kind: "load-more", key: "__load_more__", loaded, total: totalRowCount })
+  }
+
+  return items
+}
+
+export function archiveVirtualItemHeight(item: ArchiveVirtualItem | undefined): number {
+  if (!item) return ARCHIVE_ROW_HEIGHT
+
+  if (item.kind === "group-head")
+    return item.firstGroup ? ARCHIVE_GROUP_HEAD_FIRST_HEIGHT : ARCHIVE_GROUP_HEAD_HEIGHT
+
+  if (item.kind === "load-more") return ARCHIVE_LOAD_MORE_HEIGHT
+  return ARCHIVE_ROW_HEIGHT
 }
 
 export function idsMatchingQuickRule(

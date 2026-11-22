@@ -175,6 +175,11 @@ const props = withDefaults(defineProps<Props>(), {
   :where([data-button]:is([data-variant="secondary"], [data-variant="outline"]):hover) {
     background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
   }
+
+  :where([data-button][data-variant="outline"][data-tone]:not([data-tone="neutral"]):hover) {
+    background-color: var(--tone-subtle);
+    background-image: none;
+  }
 }
 
 :where([data-button]:is([data-variant="secondary"], [data-variant="outline"])[data-state="open"]) {
@@ -191,7 +196,13 @@ const props = withDefaults(defineProps<Props>(), {
   background-color: var(--bg-hover);
 }
 
-:where([data-button]:is([data-variant="outline"], [data-variant="ghost"])) :where(svg) {
+:where(
+    [data-button]:is([data-variant="outline"], [data-variant="ghost"]):is(
+        :not([data-tone]),
+        [data-tone="neutral"]
+      )
+  )
+  :where(svg) {
   color: var(--fg-muted);
 }
 

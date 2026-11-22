@@ -110,7 +110,11 @@
             </DialogClose>
           </header>
 
-          <div ref="scroller" class="settings-scroll">
+          <div
+            ref="scroller"
+            class="settings-scroll"
+            :class="{ 'is-fixed-pane': active === 'archive' }"
+          >
             <div class="settings-scroll-content">
               <div class="settings-body">
                 <GeneralPane v-if="active === 'general'" />
@@ -592,14 +596,35 @@ watch(active, async () => {
   overscroll-behavior: contain;
 }
 
+.settings-dialog .settings-scroll.is-fixed-pane {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .settings-dialog .settings-scroll-content {
   padding: var(--space-lg) var(--space-lg) calc(var(--space-2xl) + var(--space-md));
+}
+
+.settings-dialog .settings-scroll.is-fixed-pane .settings-scroll-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  padding-bottom: var(--space-md);
 }
 
 .settings-dialog .settings-body {
   width: 100%;
   max-width: 56rem;
   margin-inline: auto;
+}
+
+.settings-dialog .settings-scroll.is-fixed-pane .settings-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
 }
 
 @media (max-width: 720px) {

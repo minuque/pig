@@ -36,7 +36,6 @@ import { readPref, writePref } from "@utils/storage.js"
 type LocalWorkspaces = ReturnType<typeof useLocalWorkspaces>
 
 const DELETE_RETRY_MS = 400
-const EMPTY_SESSIONS: readonly SessionMetadata[] = []
 
 function isBusy(error: unknown): boolean {
   return error instanceof PlatformRequestError && error.code === "BUSY"
@@ -79,11 +78,9 @@ export function useWorkspaceNav(
   )
   const visibleSessions = computed(() => {
     const all = allSessions.value
-    const draft = draftSession.value
-
-    if (all.length === 0) return draft ? [draft] : EMPTY_SESSIONS
     const archived = archivedSessionIds.value
     const list = archived.size === 0 ? all : all.filter((session) => !archived.has(session.id))
+    const draft = draftSession.value
     return draft && !list.some((session) => session.id === draft.id) ? [draft, ...list] : list
   })
 

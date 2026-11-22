@@ -1,10 +1,15 @@
 import { useIntervalFn } from "@vueuse/core"
-import { computed, ref, shallowRef, watch } from "vue"
+import { computed, onScopeDispose, ref, shallowRef, watch } from "vue"
 import { sessionArchives } from "@client/session-archives.js"
 import {
+  ARCHIVE_BATCH_STEP,
+  ARCHIVE_INITIAL_BATCH,
   buildArchiveRows,
   collectProjectOptions,
+  countArchiveTabs,
+  countQuickRules,
   filterArchiveRows,
+  flattenArchiveGroups,
   groupArchiveRows,
   idsMatchingQuickRule,
   type ArchiveController,
@@ -29,15 +34,34 @@ export function useArchivePane(controller: () => ArchiveController) {
   const projectFilter = ref<string>(ALL_PROJECTS)
   const query = ref("")
   const selectedIds = ref(new Set<string>())
+  const loadedLimit = ref(ARCHIVE_INITIAL_BATCH)
   const now = shallowRef(Date.now())
+  const staleNow = shallowRef(Date.now())
   const pendingDelete = ref<ArchiveSessionRow[]>([])
   const deleteDialogOpen = ref(false)
+  let loadQueued = false
+  let loadRaf: number | undefined
 
   useIntervalFn(() => {
     now.value = Date.now()
   }, 30_000)
 
-  const inboxRows = computed(() => {
+  useIntervalFn(() => {
+    staleNow.value = Date.now()
+  }, 300_000)
+
+  onScopeDispose(() => {
+    if (loadRaf !== undefined) cancelAnimationFrame(loadRaf)
+    loadRaf = undefined
+    loadQueued = false
+  })
+
+  const tabCounts = computed(() =>
+    countArchiveTabs(controller().allSessions.value, sessionArchives.value),
+  )
+  const inboxCount = computed(() => tabCounts.value.inbox)
+  const archivedCount = computed(() => tabCounts.value.archived)
+  const activeRows = computed(() => {
     const active = controller()
     return buildArchiveRows({
       sessions: active.allSessions.value,
@@ -45,25 +69,11 @@ export function useArchivePane(controller: () => ArchiveController) {
       settledIds: active.settledIds.value,
       runningIds: active.runningIds.value,
       cardFootById: active.cardFootById.value,
-      tab: "inbox",
+      tab: tab.value,
       untitledLabel: t("session.untitled"),
-      now: now.value,
+      now: staleNow.value,
     })
   })
-  const archivedRows = computed(() => {
-    const active = controller()
-    return buildArchiveRows({
-      sessions: active.allSessions.value,
-      archives: sessionArchives.value,
-      settledIds: active.settledIds.value,
-      runningIds: active.runningIds.value,
-      cardFootById: active.cardFootById.value,
-      tab: "archived",
-      untitledLabel: t("session.untitled"),
-      now: now.value,
-    })
-  })
-  const activeRows = computed(() => (tab.value === "inbox" ? inboxRows.value : archivedRows.value))
   const projectOptions = computed(() => {
     const active = controller()
     return collectProjectOptions(active.allSessions.value, active.projectByCwd.value)
@@ -78,9 +88,17 @@ export function useArchivePane(controller: () => ArchiveController) {
   const groups = computed(() =>
     groupArchiveRows(filteredRows.value, controller().projectByCwd.value),
   )
+  const hasMoreRows = computed(() => loadedLimit.value < filteredRows.value.length)
+  const virtualItems = computed(() =>
+    flattenArchiveGroups(groups.value, loadedLimit.value, filteredRows.value.length),
+  )
   const selectableVisibleIds = computed(() =>
     filteredRows.value.filter((row) => !row.running).map((row) => row.id),
   )
+
+  watch([tab, projectFilter, query], () => {
+    loadedLimit.value = ARCHIVE_INITIAL_BATCH
+  })
 
   watch(selectableVisibleIds, (visible) => {
     const allowed = new Set(visible)
@@ -118,6 +136,7 @@ export function useArchivePane(controller: () => ArchiveController) {
     if (checked === 0) return false
     return checked === total ? true : "indeterminate"
   })
+  const quickRuleCounts = computed(() => countQuickRules(filteredRows.value))
 
   function isRuleSelected(rule: ArchiveQuickRule): boolean {
     const ids = idsMatchingQuickRule(filteredRows.value, rule)
@@ -130,10 +149,11 @@ export function useArchivePane(controller: () => ArchiveController) {
       { rule: "settled", key: "settings.archive.pickSettled" },
       { rule: "error", key: "settings.archive.pickError" },
     ]
+    const counts = quickRuleCounts.value
     const chips: QuickRuleChip[] = []
 
     for (const { rule, key } of specs) {
-      const count = idsMatchingQuickRule(filteredRows.value, rule).length
+      const count = counts[rule]
 
       if (count > 0) {
         chips.push({ rule, label: t(key, { count }), active: isRuleSelected(rule) })
@@ -165,6 +185,23 @@ export function useArchivePane(controller: () => ArchiveController) {
       ? t("settings.archive.deleteConfirmBatchDescription")
       : t("session.deleteBody", { title: pendingDelete.value[0]?.title ?? "" }),
   )
+
+  function loadMoreRows(): void {
+    const total = filteredRows.value.length
+
+    if (loadedLimit.value >= total) return
+    loadedLimit.value = Math.min(total, loadedLimit.value + ARCHIVE_BATCH_STEP)
+  }
+
+  function scheduleLoadMore(): void {
+    if (loadQueued || !hasMoreRows.value) return
+    loadQueued = true
+    loadRaf = requestAnimationFrame(() => {
+      loadRaf = undefined
+      loadQueued = false
+      loadMoreRows()
+    })
+  }
 
   function setTab(next: ArchiveTab): void {
     tab.value = next
@@ -284,10 +321,11 @@ export function useArchivePane(controller: () => ArchiveController) {
     query,
     now,
     selectedIds,
-    inboxRows,
-    archivedRows,
+    inboxCount,
+    archivedCount,
     filteredRows,
-    groups,
+    virtualItems,
+    hasMoreRows,
     projectOptions,
     selectableVisibleIds,
     selectedCount,
@@ -298,6 +336,8 @@ export function useArchivePane(controller: () => ArchiveController) {
     deleteDialogTitle,
     deleteDialogDescription,
     setTab,
+    loadMoreRows,
+    scheduleLoadMore,
     clearSelection,
     toggleSelectAll,
     toggleSelectOne,

@@ -156,7 +156,7 @@ function createNav(
     return placements.value.get(id) ?? { running: false, settled: false }
   }
 
-  useRevealNewSessions(nav.listedSessions, placements, nav.expandSection)
+  useRevealNewSessions(nav.listedSessions, placements, nav.expandSection, pi.connected)
 
   const runningSince = shallowRef<Record<string, number>>({})
 
