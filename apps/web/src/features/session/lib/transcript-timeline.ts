@@ -49,17 +49,30 @@ function mergeLiveTranscript(
   const overlay = new Map(live.map((item) => [item.id, item]))
   const persistedIds = new Set(persisted.map((item) => item.id))
   const merged = persisted.map((item) => overlay.get(item.id) ?? item)
-  const limit = Math.min(merged.length, live.length)
+  const tail = merged.filter((item) => item.role !== "system")
+  const head = live.filter((item) => item.role !== "system")
+  const limit = Math.min(tail.length, head.length)
   let covered = 0
 
   for (let count = limit; count >= 1; count -= 1) {
-    if (merged.slice(-count).every((item, index) => sameTranscriptItem(item, live[index]!))) {
+    if (tail.slice(-count).every((item, index) => sameTranscriptItem(item, head[index]!))) {
       covered = count
       break
     }
   }
 
-  return merged.concat(live.slice(covered).filter((item) => !persistedIds.has(item.id)))
+  const firstNew = head[covered]
+  const start = firstNew ? live.indexOf(firstNew) : live.length
+  const persistedSystem = merged.filter((item) => item.role === "system")
+  return merged.concat(
+    live
+      .slice(start)
+      .filter(
+        (item) =>
+          !persistedIds.has(item.id) &&
+          !persistedSystem.some((known) => sameTranscriptItem(known, item)),
+      ),
+  )
 }
 
 function sameTranscriptItem(a: TranscriptItem, b: TranscriptItem): boolean {

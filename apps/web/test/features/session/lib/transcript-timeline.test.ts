@@ -56,6 +56,34 @@ const send = (
 })
 
 describe("时间线投影：磁盘底稿与 live 尾部对齐", () => {
+  it("磁盘历史里夹着 live 没有的模型切换，已落盘的消息不重复", () => {
+    const change = {
+      id: "mc",
+      role: "system",
+      event: {
+        kind: "model_change",
+        previous: { provider: "a", id: "x" },
+        model: { provider: "b", id: "y" },
+      },
+      timestamp: 0,
+    } as const
+    const items = project({
+      persisted: [
+        row("u1", "user", "问"),
+        row("a1", "assistant", "答"),
+        change,
+        row("u2", "user", "再问"),
+      ],
+      liveOverlay: [
+        row("m1", "user", "问"),
+        row("m2", "assistant", "答"),
+        row("m3", "user", "再问"),
+      ],
+    })
+
+    expect(items.map((item) => item.id)).toEqual(["u1", "a1", "mc", "u2"])
+  })
+
   it("同 id 覆盖，新 id 追加；临时 id 对齐历史后缀", () => {
     const overlay = project({
       persisted: [row("u1", "user", "a"), row("a1", "assistant", "old")],
