@@ -2,6 +2,8 @@ import type { AgentSessionEvent, SessionEntry } from "@earendil-works/pi-coding-
 import type {
   AssistantTranscriptItem,
   JsonValue,
+  ModelRef,
+  ThinkingLevel,
   TranscriptItem,
   TranscriptProgress,
   ToolTranscriptItem,
@@ -9,11 +11,15 @@ import type {
 import {
   sanitizeDetails,
   toAssistantItem,
+  toExtensionMessage,
+  systemItem,
   toJsonValue,
+  toSystemItem,
   toTaskItem,
   toToolItem,
   toUserItem,
 } from "./item-convert.js"
+import { isThinkingLevel } from "./provider-view.js"
 
 // 外部：pi-ai 未直接依赖，从官方会话类型提取
 type AgentMessage = Extract<SessionEntry, { type: "message" }>["message"]
@@ -106,21 +112,59 @@ export class TranscriptProjection {
 
     const toolCalls = new Map<string, JsonValue>()
     const items: TranscriptItem[] = []
+    const settings: { model?: ModelRef; thinking?: ThinkingLevel } = {}
 
     for (const entry of entries) {
       if (entry.type === "custom_message") {
-        const task = toTaskItem(entry.details, entry.id, Date.parse(entry.timestamp))
+        const item =
+          toTaskItem(entry.details, entry.id, Date.parse(entry.timestamp)) ?? toSystemItem(entry)
 
-        if (task) items.push(task)
+        if (item) items.push(item)
         continue
       }
 
-      if (entry.type !== "message") continue
+      if (entry.type === "model_change") {
+        const model = { provider: entry.provider, id: entry.modelId }
+        const previous = settings.model
+        settings.model = model
+
+        if (previous && (previous.provider !== model.provider || previous.id !== model.id))
+          items.push(systemItem(entry, { kind: "model_change", model, previous }))
+        continue
+      }
+
+      if (entry.type === "thinking_level_change") {
+        const previous = settings.thinking
+        const thinkingLevel = entry.thinkingLevel
+
+        if (!isThinkingLevel(thinkingLevel)) continue
+        settings.thinking = thinkingLevel
+
+        if (previous && previous !== thinkingLevel)
+          items.push(
+            systemItem(entry, {
+              kind: "thinking_level_change",
+              thinkingLevel,
+              previous,
+              ...(settings.model ? { model: settings.model } : {}),
+            }),
+          )
+        continue
+      }
+
+      if (entry.type !== "message") {
+        const item = toSystemItem(entry)
+
+        if (item) items.push(item)
+        continue
+      }
+
       const message = entry.message
 
       if (message.role === "user") {
         items.push(toUserItem(message, entry.id))
       } else if (message.role === "assistant") {
+        settings.model = { provider: message.provider, id: message.model }
         this.indexToolCalls(message.content, toolCalls)
         items.push(toAssistantItem(message, entry.id))
       } else if (message.role === "toolResult") {
@@ -209,10 +253,18 @@ export class TranscriptProjection {
       }
 
       case "custom": {
+        if (stage !== "finished") return undefined
+        const id = this.allocateId()
         const item =
-          stage === "finished"
-            ? toTaskItem(message.details, this.allocateId(), message.timestamp)
-            : undefined
+          toTaskItem(message.details, id, message.timestamp) ??
+          (message.display
+            ? {
+                id,
+                role: "system" as const,
+                event: toExtensionMessage(message.customType, message.content),
+                timestamp: message.timestamp,
+              }
+            : undefined)
         return item ? { type: "item_started", item } : undefined
       }
 

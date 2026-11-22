@@ -2,6 +2,8 @@ import type { SessionEntry } from "@earendil-works/pi-coding-agent"
 import type {
   AssistantTranscriptItem,
   JsonValue,
+  SystemEvent,
+  SystemTranscriptItem,
   Task,
   TaskTranscriptItem,
   ToolTranscriptItem,
@@ -212,4 +214,32 @@ export function toTaskItem(
   )
     return undefined
   return { id, role: "task", task: sanitizeDetails(task) as unknown as Task, timestamp }
+}
+
+type CustomContent = Extract<SessionEntry, { type: "custom_message" }>["content"]
+
+export function toExtensionMessage(customType: string, content: CustomContent): SystemEvent {
+  return { kind: "extension_message", customType, content: toMedia(content) }
+}
+
+function systemEvent(entry: SessionEntry): SystemEvent | undefined {
+  switch (entry.type) {
+    case "compaction":
+      return { kind: "compaction", tokensBefore: entry.tokensBefore, summary: entry.summary }
+    case "branch_summary":
+      return { kind: "branch_summary", summary: entry.summary }
+    case "custom_message":
+      return entry.display ? toExtensionMessage(entry.customType, entry.content) : undefined
+    default:
+      return undefined
+  }
+}
+
+export function systemItem(entry: SessionEntry, event: SystemEvent): SystemTranscriptItem {
+  return { id: entry.id, role: "system", event, timestamp: Date.parse(entry.timestamp) }
+}
+
+export function toSystemItem(entry: SessionEntry): SystemTranscriptItem | undefined {
+  const event = systemEvent(entry)
+  return event && systemItem(entry, event)
 }

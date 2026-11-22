@@ -20,7 +20,7 @@ export function isToolItem(item: TranscriptItem): item is ToolTranscriptItem {
 }
 
 export function transcriptImages(item: TranscriptItem): TranscriptImage[] {
-  if (item.role === "task") return []
+  if (item.role === "task" || item.role === "system") return []
   return item.content
     .filter(
       (block): block is { type: "image"; data: string; mimeType: string } => block.type === "image",

@@ -105,6 +105,7 @@
               :session-id="sessionId"
               :cwd="composerCwd"
               :usage="welcome ? undefined : contextUsage"
+              :reload-revision="reloadRevision"
               :send-disabled="sendDisabled"
               @send="sendNow"
               @steer="steer"
@@ -115,7 +116,11 @@
               @history-next="historyNext"
               @open-file="filePane.openFile($event)"
               @abort="abort"
-            />
+            >
+              <template v-if="transcriptStatus" #plate>
+                <TranscriptStatus v-bind="transcriptStatus" :activity="snapshot?.activity" />
+              </template>
+            </Composer>
           </div>
         </div>
       </template>
@@ -155,7 +160,7 @@ import TranscriptView from "@features/transcript-view/index.vue"
 import SessionRail from "@features/session-rail/index.vue"
 import { useSessionRail } from "@features/session-rail/index.js"
 import RemoteWorkspaceDialog from "@features/remote-workspace/index.vue"
-import { prefetchTranscriptView } from "@features/transcript-view/index.js"
+import { prefetchTranscriptView, TranscriptStatus } from "@features/transcript-view/index.js"
 import { ArrowDownIcon, FilePlusIcon, LoaderIcon } from "@components/icons/index.js"
 
 onMounted(() => {
@@ -187,6 +192,8 @@ const {
   contextUsage,
   welcome,
   externalTurn,
+  snapshot,
+  reloadRevision,
 } = useSession()
 const { catalog, preset, switchLocked } = useComposerPreset()
 const { groups, lastCwd, addingWorkspace, addWorkspace, addRemoteWorkspace } = useNav()
@@ -236,6 +243,7 @@ useComposerDock(composerBar, welcome)
 useComposerReserve(composerBar, () => welcome.value)
 
 const showScrollToLatest = computed(() => transcriptView.value?.showScrollToLatest ?? false)
+const transcriptStatus = computed(() => (welcome.value ? undefined : transcriptView.value?.status))
 
 function scrollToLatest(behavior: "auto" | "smooth" = "auto") {
   transcriptView.value?.scrollToLatest(behavior)

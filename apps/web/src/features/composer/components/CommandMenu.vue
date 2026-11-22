@@ -1,14 +1,12 @@
 <template>
-  <Teleport to="body">
-    <div
-      :id="menuId"
-      ref="menuEl"
-      class="command-menu"
-      role="listbox"
-      :aria-label="t('composer.commandMenuLabel')"
-      :style="boxStyle"
-      @mousedown.prevent
-    >
+  <div
+    :id="menuId"
+    class="command-menu"
+    role="listbox"
+    :aria-label="t('composer.commandMenuLabel')"
+    @mousedown.prevent
+  >
+    <div class="command-scroll">
       <div class="command-body">
         <template v-if="groups.length">
           <div v-for="group in groups" :key="group.id" class="command-group">
@@ -45,21 +43,16 @@
         <p v-else class="command-status" role="status">{{ statusText }}</p>
       </div>
     </div>
-  </Teleport>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, useTemplateRef, watch, type Component } from "vue"
-import { useEventListener, useResizeObserver } from "@vueuse/core"
+import { computed, nextTick, watch, type Component } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { SquareCodeIcon, FileTextIcon, FolderIcon, BlocksIcon } from "@components/icons/index.js"
 import LanguageIcon from "@components/icons/LanguageIcon.vue"
 import type { CommandMenuGroup, CommandMenuRow } from "@features/composer/type.js"
 
-const MENU_MAX_HEIGHT = 280
-const MENU_MIN_HEIGHT = 96
-const VIEWPORT_MARGIN = 12
-const ANCHOR_GAP = 8
 const KIND_ICONS: Record<string, Component> = {
   skill: BlocksIcon,
   builtin: SquareCodeIcon,
@@ -69,30 +62,20 @@ const props = withDefaults(
   defineProps<{
     groups: CommandMenuGroup[]
     activeId: string | null
-    anchorEl?: HTMLElement | null
     menuId?: string
     loading?: boolean
     emptyText?: string
   }>(),
-  { anchorEl: null, menuId: "composer-command-menu", loading: false },
+  { menuId: "composer-command-menu", loading: false },
 )
 const emit = defineEmits<{
   select: [id: string]
   highlight: [id: string]
 }>()
 const { t } = useI18n()
-const menuEl = useTemplateRef("menuEl")
-const anchor = computed(() => props.anchorEl)
-const box = ref({ left: 0, width: 0, bottom: 0, maxHeight: MENU_MAX_HEIGHT })
 const statusText = computed(() =>
   props.loading ? t("composer.commandLoading") : (props.emptyText ?? t("composer.commandEmpty")),
 )
-const boxStyle = computed(() => ({
-  left: `${box.value.left}px`,
-  width: `${box.value.width}px`,
-  bottom: `${box.value.bottom}px`,
-  maxHeight: `${box.value.maxHeight}px`,
-}))
 
 function rowIcon(row: CommandMenuRow) {
   if (row.kind === "file") return LanguageIcon
@@ -112,42 +95,6 @@ function rowElementId(id: string): string {
   return `${props.menuId}-row-${encodeURIComponent(id)}`
 }
 
-function measure() {
-  const element = props.anchorEl
-
-  if (!element) return
-  const rect = element.getBoundingClientRect()
-  const space = rect.top - ANCHOR_GAP - VIEWPORT_MARGIN
-
-  box.value = {
-    left: rect.left,
-    width: rect.width,
-    bottom: window.innerHeight - rect.top + ANCHOR_GAP,
-    maxHeight: Math.min(MENU_MAX_HEIGHT, Math.max(MENU_MIN_HEIGHT, space)),
-  }
-}
-
-useEventListener(window, "resize", measure)
-
-useEventListener(
-  window,
-  "scroll",
-  (event: Event) => {
-    if (event.target instanceof Node && menuEl.value?.contains(event.target)) return
-    measure()
-  },
-  { capture: true },
-)
-
-useResizeObserver(anchor, measure)
-
-onMounted(measure)
-
-watch(
-  () => [props.anchorEl, props.groups],
-  () => void nextTick(measure),
-)
-
 watch(
   () => props.activeId,
   async (id) => {
@@ -160,16 +107,26 @@ watch(
 
 <style scoped>
 .command-menu {
-  position: fixed;
-  z-index: var(--z-popover);
-  overflow: hidden auto;
-  border-radius: var(--radius-card);
-  background-color: var(--float-bg);
-  box-shadow: var(--float-shadow);
-  backdrop-filter: var(--glass-filter);
+  position: absolute;
+  inset-inline: 0;
+  bottom: calc(100% - var(--composer-radius));
+  display: flex;
+  flex-direction: column;
+  max-height: calc(280px + var(--composer-radius));
+  overflow: hidden;
+  padding-bottom: var(--composer-radius);
+  border-radius: var(--radius-dialog) var(--radius-dialog) 0 0;
+  background-color: var(--bg-raised);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border);
   color: var(--fg);
   font-size: var(--text-body);
-  corner-shape: var(--composer-corner-shape);
+}
+
+.command-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .command-body {
@@ -197,8 +154,10 @@ watch(
   min-width: 0;
   padding: var(--space-2xs) var(--space-xs);
   border-radius: calc(var(--radius-card) - var(--space-2xs));
+  corner-shape: var(--composer-corner-shape);
   cursor: pointer;
   user-select: none;
+  transition: background var(--duration-fast) var(--ease-out);
 }
 
 .command-row:hover,
@@ -239,5 +198,11 @@ watch(
   padding: var(--space-xs) var(--space-sm);
   color: var(--fg-muted);
   font-size: var(--text-meta);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .command-row {
+    transition: none;
+  }
 }
 </style>

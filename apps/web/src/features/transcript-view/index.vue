@@ -46,5 +46,7 @@ function scrollToLatest(behavior?: "auto" | "smooth") {
   body.value?.scrollToLatest(behavior)
 }
 
-defineExpose({ showScrollToLatest, scrollToLatest })
+const status = computed(() => body.value?.status)
+
+defineExpose({ showScrollToLatest, scrollToLatest, status })
 </script>

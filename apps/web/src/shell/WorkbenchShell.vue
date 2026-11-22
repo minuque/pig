@@ -75,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, shallowRef, useTemplateRef } from "vue"
+import { computed, onBeforeUnmount, onMounted, provide, shallowRef, useTemplateRef } from "vue"
 import { useEventListener, useResizeObserver } from "@vueuse/core"
 import { useRoute, useRouter } from "vue-router"
 import AppLayout from "@components/layout/AppLayout.vue"
@@ -110,12 +110,15 @@ import {
 } from "@features/session/index.js"
 import { focusedSession, provideSplitView, type Side } from "@features/split-view/index.js"
 import { splitShortcut } from "@features/split-view/lib/split-shortcut.js"
-import { prefetchHighlighter } from "@features/transcript-view/index.js"
+import { prefetchHighlighter, transcriptModelsKey } from "@features/transcript-view/index.js"
 import { createBackgroundPump } from "@/shell/hooks/use-background-pump.js"
 import WorkbenchPane from "@/shell/WorkbenchPane.vue"
 
 const { t } = useI18n()
 const pi = useGatewayClient()
+
+provide(transcriptModelsKey, pi.models)
+
 const cwd = useLocalWorkspaces()
 const route = useRoute()
 const router = useRouter()

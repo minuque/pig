@@ -45,7 +45,9 @@ export function useComposerBinding(options: ComposerBindingOptions) {
   const pending = ref<PendingPreset>()
   let syncVersion = 0
   let syncing = false
-  const switchLocked = computed(() => options.phase.value === "turn")
+  const switchLocked = computed(
+    () => options.phase.value !== undefined && options.phase.value !== "idle",
+  )
   const basePreset = computed<ComposerPreset | undefined>(() => {
     const snap = options.snapshot.value
 

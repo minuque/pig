@@ -23,6 +23,10 @@ import {
 } from "@features/transcript-view/lib/transcript-format.js"
 import { transcriptText, userMessageText } from "@features/session/lib/transcript-text.js"
 import { toolGroupKey } from "@features/transcript-view/lib/tool-summary.js"
+import {
+  appendSystemRow,
+  settleTurnOutcome,
+} from "@features/transcript-view/lib/transcript-events.js"
 
 export function isToolRow(row: TimelineRow): row is ToolRow {
   return row.role === "tools"
@@ -45,17 +49,6 @@ function assistantRow(item: AssistantTranscriptItem, text = transcriptText(item)
     timestamp: item.timestamp,
     ...("errorMessage" in item && item.errorMessage ? { errorMessage: item.errorMessage } : {}),
   }
-}
-
-function addAssistant(rows: TimelineRow[], item: AssistantRow) {
-  const last = rows.at(-1)
-
-  if (!item.text && item.error && last?.role === "assistant" && last.error && !last.text) {
-    Object.assign(last, { ...item, retryCount: (last.retryCount ?? 1) + 1 })
-    return
-  }
-
-  rows.push(item)
 }
 
 function appendTurn({
@@ -156,6 +149,12 @@ function appendTurn({
   }
 
   for (const [itemIndex, item] of rest.entries()) {
+    if (item.role === "system") {
+      flushTools("done")
+      appendSystemRow(rows, item)
+      continue
+    }
+
     if (item.role === "task") {
       flushTools("done")
       rows.push({ id: `task:${item.id}`, role: "task", task: item.task, timestamp: item.timestamp })
@@ -190,7 +189,7 @@ function appendTurn({
       if (block.type === "thinking" && block.thinking) {
         if (pendingText) {
           flushTools("done")
-          addAssistant(rows, pendingText)
+          rows.push(pendingText)
           pendingText = undefined
         }
 
@@ -210,7 +209,7 @@ function appendTurn({
       } else if (block.type === "toolCall") {
         if (pendingText) {
           flushTools("done")
-          addAssistant(rows, pendingText)
+          rows.push(pendingText)
           pendingText = undefined
         }
 
@@ -240,21 +239,29 @@ function appendTurn({
         else pendingText = { ...assistantRow(item, block.text), id: `text:${id}` }
       } else if (pendingText) {
         flushTools("done")
-        addAssistant(rows, pendingText)
+        rows.push(pendingText)
         pendingText = undefined
       }
     }
 
     if (pendingText) {
       flushTools("done")
-      addAssistant(rows, pendingText)
+      rows.push(pendingText)
     } else if (!transcriptText(item) && (item.status === "error" || item.status === "aborted")) {
       flushTools("done")
-      addAssistant(rows, assistantRow(item))
+      rows.push(assistantRow(item))
     }
   }
 
   flushTools(live ? "live" : "done")
+  rows.splice(
+    turnStart,
+    rows.length - turnStart,
+    ...settleTurnOutcome(rows.slice(turnStart), {
+      live,
+      abortedTurn: !live && timing?.outcome === "aborted",
+    }),
+  )
 
   if (!live) markLastAssistantTimestamp(rows, turnStart)
 }
@@ -378,8 +385,7 @@ function sameAssistantRow(left: AssistantRow, right: AssistantRow) {
     left.aborted === right.aborted &&
     left.timestamp === right.timestamp &&
     left.showTimestamp === right.showTimestamp &&
-    left.errorMessage === right.errorMessage &&
-    left.retryCount === right.retryCount
+    left.errorMessage === right.errorMessage
   )
 }
 
@@ -442,6 +448,9 @@ function sameRow(left: TimelineRow, right: TimelineRow) {
   if (left.role === "assistant" && right.role === "assistant") return sameAssistantRow(left, right)
 
   if (left.role === "tools" && right.role === "tools") return sameToolRow(left, right)
+
+  if (left.role === "event" || left.role === "alert" || left.role === "extension")
+    return JSON.stringify(left) === JSON.stringify(right)
   return false
 }
 

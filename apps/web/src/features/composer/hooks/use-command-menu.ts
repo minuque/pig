@@ -10,6 +10,7 @@ import {
 } from "@features/composer/lib/composer-trigger.js"
 import {
   BUILTIN_PREFIX,
+  CLEAR_COMMAND,
   DIR_PREFIX,
   buildCommandGroups,
   chipForRow,
@@ -38,6 +39,8 @@ export interface CommandMenuOptions {
   edited: Ref<boolean>
   inCode(): boolean
   cwd(): string | undefined
+  hasSession?(): boolean
+  reloadRevision?(): number | undefined
   onChip(chip: ChipInsert): void
   onReplaceText(start: number, triggerLength: number, text: string): void
 }
@@ -75,6 +78,7 @@ export function useCommandMenu(options: CommandMenuOptions): CommandMenuApi {
       kind: trigger.value?.kind ?? "none",
       query: trigger.value?.kind === "command" ? trigger.value.query : "",
       clearApplicable: clearApplicable.value,
+      hasSession: options.hasSession?.() ?? false,
       files: files.value,
       skills: skills.value,
       prompts: prompts.value,
@@ -97,6 +101,12 @@ export function useCommandMenu(options: CommandMenuOptions): CommandMenuApi {
     flush: "post",
   })
   watch(flatRows, (rows) => (activeId.value = rows[0]?.id ?? null), { immediate: true })
+  watch(
+    () => options.reloadRevision?.(),
+    () => {
+      skillsFor = ""
+    },
+  )
 
   function cancelFetch() {
     if (debounce) clearTimeout(debounce)
@@ -224,7 +234,7 @@ export function useCommandMenu(options: CommandMenuOptions): CommandMenuApi {
       return
     }
 
-    if (id.startsWith(BUILTIN_PREFIX)) {
+    if (id === `${BUILTIN_PREFIX}${CLEAR_COMMAND}`) {
       options.prompt.value = ""
       options.caret.value = 0
       close()

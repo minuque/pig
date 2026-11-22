@@ -289,3 +289,43 @@ describe("回合进行中挂上会话", () => {
     expect(delta).toMatchObject({ type: "assistant_delta", messageId: inFlight?.id })
   })
 })
+
+describe("会话里的非对话事件进时间线", () => {
+  it("会话开头的设置和没变值的切换不算，真正的切换、压缩和可见的扩展消息按条目位置投影", () => {
+    const manager = SessionManager.inMemory("/tmp")
+    manager.appendModelChange("anthropic", "claude-sonnet-4-5")
+    manager.appendThinkingLevelChange("high")
+    manager.appendMessage({ role: "user", content: "开始", timestamp: 1000 })
+    manager.appendModelChange("anthropic", "claude-sonnet-4-5")
+    manager.appendModelChange("openai", "gpt-5")
+    manager.appendThinkingLevelChange("low")
+    const kept = manager.appendMessage({ role: "user", content: "继续", timestamp: 2000 })
+    manager.appendCompaction("目标与进度", kept, 128_000)
+    manager.appendCustomMessageEntry("review-bot", "发现 2 处空指针", true)
+    manager.appendCustomMessageEntry("hidden-state", "内部状态", false)
+
+    const items = new TranscriptProjection().transcript(manager.getBranch())
+
+    expect(items.map((item) => (item.role === "system" ? item.event : item.role))).toEqual([
+      "user",
+      {
+        kind: "model_change",
+        model: { provider: "openai", id: "gpt-5" },
+        previous: { provider: "anthropic", id: "claude-sonnet-4-5" },
+      },
+      {
+        kind: "thinking_level_change",
+        thinkingLevel: "low",
+        previous: "high",
+        model: { provider: "openai", id: "gpt-5" },
+      },
+      "user",
+      { kind: "compaction", tokensBefore: 128_000, summary: "目标与进度" },
+      {
+        kind: "extension_message",
+        customType: "review-bot",
+        content: [{ type: "text", text: "发现 2 处空指针" }],
+      },
+    ])
+  })
+})

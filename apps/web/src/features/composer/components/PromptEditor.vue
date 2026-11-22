@@ -1,18 +1,21 @@
 <template>
   <div class="composer" @mousedown="onComposerMousedown">
-    <CommandMenu
-      v-if="commandMenu.open.value"
-      :groups="commandMenu.groups.value"
-      :active-id="commandMenu.activeId.value"
-      :loading="commandMenu.loading.value"
-      :empty-text="commandMenu.emptyText.value"
-      :menu-id="commandMenu.menuId"
-      :anchor-el="cardEl"
-      @select="commandMenu.select"
-      @highlight="(id) => (commandMenu.activeId.value = id)"
-    />
+    <div class="composer-plates">
+      <CommandMenu
+        v-if="commandMenu.open.value"
+        :groups="commandMenu.groups.value"
+        :active-id="commandMenu.activeId.value"
+        :loading="commandMenu.loading.value"
+        :empty-text="commandMenu.emptyText.value"
+        :menu-id="commandMenu.menuId"
+        @select="commandMenu.select"
+        @highlight="(id) => (commandMenu.activeId.value = id)"
+      />
 
-    <div ref="cardEl" class="composer-card">
+      <slot name="plate" />
+    </div>
+
+    <div class="composer-card">
       <div class="body">
         <div v-if="props.editingQueue || props.disabledReason" class="notice" role="status">
           {{ props.editingQueue ? t("composer.queueEditing") : props.disabledReason }}
@@ -100,6 +103,8 @@ import type { ComposerCaret } from "@features/composer/type.js"
 const props = defineProps<{
   placeholder?: string | undefined
   cwd?: string | undefined
+  hasSession?: boolean
+  reloadRevision?: number | undefined
   editingQueue?: boolean
   disabled?: boolean
   disabledReason?: string | undefined
@@ -114,7 +119,6 @@ const emit = defineEmits<{
   historyPrev: []
   historyNext: []
 }>()
-const cardEl = useTemplateRef("cardEl")
 const field = useTemplateRef("field")
 const composing = ref(false)
 const caret = ref(0)
@@ -131,6 +135,8 @@ const commandMenu = useCommandMenu({
   edited,
   inCode: () => inCode.value,
   cwd: () => props.cwd,
+  hasSession: () => props.hasSession ?? false,
+  reloadRevision: () => props.reloadRevision,
   onChip: (chip) => field.value?.insertChip(chip),
   onReplaceText: (start, triggerLength, text) =>
     field.value?.replaceRange(start, triggerLength, text),
@@ -182,7 +188,23 @@ defineExpose({ focus, menuOpen: commandMenu.open, steerHeld: shortcuts.steerHeld
 </script>
 
 <style scoped>
+.composer {
+  position: relative;
+  width: 100%;
+  margin-inline: auto;
+}
+
+.composer-plates {
+  position: relative;
+  margin-inline: var(--space-md);
+}
+
+.composer-plates:has(.command-menu) :slotted(.turn-status) {
+  border-radius: 0;
+}
+
 .composer-card {
+  position: relative;
   overflow: hidden;
   container-type: inline-size;
   border-radius: var(--composer-radius);

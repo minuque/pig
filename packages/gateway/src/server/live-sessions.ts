@@ -36,7 +36,15 @@ export interface LiveSessionOptions {
   isClosing(): boolean
 }
 
-type RunCommand = "prompt" | "steer" | "abort" | "set_model" | "set_thinking_level" | "stop_task"
+type RunCommand =
+  | "prompt"
+  | "steer"
+  | "abort"
+  | "set_model"
+  | "set_thinking_level"
+  | "compact"
+  | "reload"
+  | "stop_task"
 
 function toMetadata(snapshot: SessionSnapshot): SessionMetadata {
   return {
@@ -97,6 +105,10 @@ export class LiveSessions {
         return this.run(connection, command, (runtime) => runtime.setModel(command.model))
       case "set_thinking_level":
         return this.run(connection, command, (runtime) => runtime.setThinking(command.level))
+      case "compact":
+        return this.run(connection, command, (runtime) => runtime.compact(command.instructions))
+      case "reload":
+        return this.run(connection, command, (runtime) => runtime.reload())
       case "stop_task":
         return this.run(connection, command, async (runtime) => runtime.stopTask(command.taskId))
       case "extension_ui_response":

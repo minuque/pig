@@ -1,5 +1,6 @@
 import type {
   AssistantTranscriptItem,
+  SystemTranscriptItem,
   ToolTranscriptItem,
   TranscriptItem,
   TurnTiming,
@@ -48,17 +49,40 @@ function mergeLiveTranscript(
   const overlay = new Map(live.map((item) => [item.id, item]))
   const persistedIds = new Set(persisted.map((item) => item.id))
   const merged = persisted.map((item) => overlay.get(item.id) ?? item)
-  const limit = Math.min(merged.length, live.length)
+  const tail = merged.filter((item) => item.role !== "system")
+  const head = live.filter((item) => item.role !== "system")
+  const limit = Math.min(tail.length, head.length)
   let covered = 0
 
   for (let count = limit; count >= 1; count -= 1) {
-    if (merged.slice(-count).every((item, index) => sameTranscriptItem(item, live[index]!))) {
+    if (tail.slice(-count).every((item, index) => sameTranscriptItem(item, head[index]!))) {
       covered = count
       break
     }
   }
 
-  return merged.concat(live.slice(covered).filter((item) => !persistedIds.has(item.id)))
+  const lastCovered = head[covered - 1]
+  const start = lastCovered ? live.indexOf(lastCovered) + 1 : 0
+  const lastNonSystem = merged.findLastIndex((item) => item.role !== "system")
+  const trailingSystem = merged.slice(lastNonSystem + 1).filter((item) => item.role === "system")
+  const additions: TranscriptItem[] = []
+
+  for (const item of live.slice(start)) {
+    if (persistedIds.has(item.id)) continue
+
+    if (item.role === "system") {
+      const matchIndex = trailingSystem.findIndex((known) => sameTranscriptItem(known, item))
+
+      if (matchIndex >= 0) {
+        trailingSystem.splice(matchIndex, 1)
+        continue
+      }
+    }
+
+    additions.push(item)
+  }
+
+  return merged.concat(additions)
 }
 
 function sameTranscriptItem(a: TranscriptItem, b: TranscriptItem): boolean {
@@ -68,6 +92,13 @@ function sameTranscriptItem(a: TranscriptItem, b: TranscriptItem): boolean {
 
   if (a.role === "task" || b.role === "task")
     return a.role === "task" && b.role === "task" && a.task.id === b.task.id
+
+  if (a.role === "system" || b.role === "system")
+    return (
+      a.role === "system" &&
+      b.role === "system" &&
+      JSON.stringify(a.event) === JSON.stringify(b.event)
+    )
   return a.role === b.role && JSON.stringify(a.content) === JSON.stringify(b.content)
 }
 
@@ -187,4 +218,19 @@ export function absorbTranscriptPage(loaded: HistorySlice | undefined, page: His
     ],
     hasMore: base.hasMore,
   }
+}
+
+export function withNotices(
+  items: readonly TranscriptItem[],
+  notices: readonly SystemTranscriptItem[],
+): readonly TranscriptItem[] {
+  if (notices.length === 0) return items
+  const merged = [...items]
+
+  for (const notice of notices) {
+    const at = merged.findIndex((item) => item.timestamp > notice.timestamp)
+    merged.splice(at < 0 ? merged.length : at, 0, notice)
+  }
+
+  return merged
 }

@@ -21,6 +21,7 @@ function snapshot(overrides: Partial<SessionSnapshot> = {}): SessionSnapshot {
     queuedSteer: [],
     queuedSteerCount: 0,
     tasks: [],
+    notices: [],
     ...overrides,
   }
 }

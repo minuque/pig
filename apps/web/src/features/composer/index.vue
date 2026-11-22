@@ -4,6 +4,8 @@
       ref="editor"
       v-model:prompt="prompt"
       :cwd="cwd"
+      :has-session="Boolean(sessionId)"
+      :reload-revision="reloadRevision"
       :editing-queue="editingQueue"
       @submit="submitIntent"
       @paste-files="attachments.addFiles"
@@ -12,6 +14,10 @@
       @history-prev="emit('historyPrev')"
       @history-next="emit('historyNext')"
     >
+      <template v-if="$slots.plate" #plate>
+        <slot name="plate" />
+      </template>
+
       <template #attachments>
         <AttachmentTray
           :files="attachmentFiles"
@@ -127,6 +133,7 @@ const props = withDefaults(
     sessionId?: string | undefined
     cwd?: string | undefined
     usage?: ContextUsage | undefined
+    reloadRevision?: number | undefined
   }>(),
   {
     running: false,
@@ -137,6 +144,7 @@ const props = withDefaults(
     sessionId: undefined,
     cwd: undefined,
     usage: undefined,
+    reloadRevision: undefined,
   },
 )
 const prompt = defineModel<string>("prompt", { required: true })

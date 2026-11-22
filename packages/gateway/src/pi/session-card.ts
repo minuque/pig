@@ -4,7 +4,7 @@ import type { IndexedSession } from "./session-index.js"
 import { TranscriptProjection } from "./transcript.js"
 
 function transcriptText(item: TranscriptItem): string {
-  if (item.role === "task") return ""
+  if (item.role === "task" || item.role === "system") return ""
   return item.content
     .filter((block): block is { type: "text"; text: string } => block.type === "text")
     .map((block) => block.text)

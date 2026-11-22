@@ -4,6 +4,7 @@ import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
 import type { ComposerAttachmentBatch, SendAttachmentsHooks } from "@/types/attachment-type.js"
 import { notify } from "@components/layout/notify.js"
+import { errorMessage } from "@client/http.js"
 import { t } from "@i18n/index.js"
 import { isChangedElsewhere } from "@features/session/hooks/abortable-open.js"
 import { dropBatch, stageBatch } from "@features/session/hooks/use-background-send.js"
@@ -21,8 +22,10 @@ import {
 import {
   NO_TOOL_STARTS,
   projectTranscriptTimeline,
+  withNotices,
 } from "@features/session/lib/transcript-timeline.js"
 import type { PresetPort, SessionClientState } from "@features/session/type.js"
+import { parseBuiltinCommand, type BuiltinCommand } from "@features/session/lib/builtin-command.js"
 
 export interface SessionLifecycleOptions {
   hub: SessionHub
@@ -131,6 +134,7 @@ export function useSessionLifecycle(
     const id = sessionId.value ?? pendingSessionId.value
     return id ? sessionState(states, id) : idleState
   })
+  const reloadRevision = ref(0)
   const submitting = computed(() => clientState.value.submitting)
   const aborting = computed(() => clientState.value.aborting)
   const prompt = computed({
@@ -189,6 +193,41 @@ export function useSessionLifecycle(
     }
   }
 
+  async function runBuiltin(
+    command: BuiltinCommand,
+    thread: SessionClientState,
+    options?: { preserveDraft?: boolean },
+  ) {
+    const id = sessionId.value
+    const previousDraft = thread.draft
+
+    if (!id) return false
+    thread.submitting = true
+
+    if (!options?.preserveDraft) thread.draft = ""
+
+    try {
+      await ensureRemote(id)
+
+      if (remote.value?.id !== id) throw new Error("会话未连接")
+
+      if (command.name === "compact") await remote.value.compact(command.instructions)
+      else {
+        await remote.value.reload()
+        reloadRevision.value += 1
+        notify(t("session.reloaded"), "success")
+      }
+
+      return true
+    } catch (error) {
+      if (!options?.preserveDraft && !thread.draft) thread.draft = previousDraft
+      notify(errorMessage(error), "error")
+      return false
+    } finally {
+      thread.submitting = false
+    }
+  }
+
   async function sendPrompt(
     text: string,
     cwd?: string,
@@ -200,6 +239,15 @@ export function useSessionLifecycle(
     let thread = clientState.value
 
     if ((!normalized && !attachments) || thread.submitting) return false
+
+    const builtin = sessionId.value ? parseBuiltinCommand(normalized) : undefined
+
+    if (builtin && attachments) {
+      notify(t("composer.builtinNoAttachments"), "warning")
+      return false
+    }
+
+    if (builtin) return runBuiltin(builtin, thread, options)
 
     if (!sessionId.value && (!cwd || creatingCwd.value)) return false
     const epoch = ++thread.epoch
@@ -319,12 +367,14 @@ export function useSessionLifecycle(
   const turnPending = computed(() => submitting.value || running.value)
   const transcript = computed(() => {
     const id = history.activeId.value
-    return projectTranscriptTimeline({
+    const items = projectTranscriptTimeline({
       ...history.timelineSource(id),
       optimisticSends: clientState.value.sends,
       turnPending: turnPending.value,
       toolStartedAt: id ? live.toolStartedAtFor(id) : NO_TOOL_STARTS,
     })
+    const current = snapshot.value
+    return withNotices(items, current && current.id === id ? current.notices : [])
   })
   const sessionCwd = computed(
     () =>
@@ -384,6 +434,7 @@ export function useSessionLifecycle(
     externalTurn,
     takeover,
     abortSession,
+    reloadRevision,
     initialize,
     remote,
     teardown,

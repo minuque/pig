@@ -178,6 +178,7 @@ spacing:
 | 命令面板、警告框 | `--glass-*` |
 | 菜单、下拉、选择框浮层、浮卡、toast | `--float-bg` + `--float-shadow` + `--glass-filter` |
 | 输入卡 | `--composer-bg` + `--glass-filter` + `--composer-inset` + `--composer-shadow`；聚焦只加深外环 |
+| 贴在输入卡上方的浮板（运行状态、命令菜单） | `--bg-raised` + 1px `--border` inset 环，左右缩 `--space-md`，上圆角 `--radius-dialog`，底部伸进输入卡 `--composer-radius`；多块叠放时只有最上一块留圆角 |
 | 静态卡片 | `--bg-surface` 或 1px `--border` inset 细线，二选一，不加阴影 |
 
 - 环都已写进上面的阴影 token，组件只写一行 `box-shadow: var(--…)`，不补 `border`。
@@ -194,7 +195,7 @@ spacing:
 - **显示模型名的地方，前面一律加 `VendorMark`（传模型的 provider）。**
   Why：和模型选择器一致，一眼认出供应商。
   <!-- 2026-11-21：「模型名称前补上模型icon」 -->
-- **通知一律走 `notify()`（`@components/layout/notify.js`），显示在右下角。页面上已能看到同样内容的（如 transcript 里的 TurnError）传 `transient: true`，5 秒后消失；只有页面别处看不到的错误才常驻。**
+- **通知一律走 `notify()`（`@components/layout/notify.js`），显示在右下角。页面上已能看到同样内容的（如 transcript 里的请求失败行）传 `transient: true`，5 秒后消失；只有页面别处看不到的错误才常驻。**
   Why：同一条报错在 toast 和页面里各留一份，常驻的 toast 只是重复。
   <!-- 2026-11-21：「显示在右下角」；当前会话出错 toast 改为 5 秒消失，回复「ok」 -->
 - `TextFieldRoot` 的 `invalid` 表达错误态（危险色内环与焦点环）。

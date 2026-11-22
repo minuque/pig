@@ -54,7 +54,7 @@ const LAYOUT: { id: string; title: Label; items: (string | [string, Label])[] }[
       ["Prose", { zh: "正文排版", en: "Prose" }],
       ["ToolRun", { zh: "工具组", en: "Tool run" }],
       ["UserMessage", { zh: "用户消息", en: "User message" }],
-      ["TurnError", { zh: "轮次提示", en: "Turn notice" }],
+      ["TimelineEvent", { zh: "会话事件", en: "Session events" }],
       ["SettingsPane", { zh: "设置分区", en: "Settings pane" }],
       ["Provider", { zh: "供应商", en: "Providers" }],
     ],
