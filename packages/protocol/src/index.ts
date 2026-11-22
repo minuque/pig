@@ -46,6 +46,8 @@ export type {
 export type {
   AssistantTranscriptItem,
   JsonValue,
+  SystemEvent,
+  SystemTranscriptItem,
   TaskTranscriptItem,
   ToolTranscriptItem,
   TranscriptItem,
@@ -66,6 +68,7 @@ export type {
   ServerEvent,
   ServerMessage,
   ServerSnapshot,
+  SessionActivity,
   SessionMetadata,
   SessionPhase,
   SessionSnapshot,

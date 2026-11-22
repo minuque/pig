@@ -1,4 +1,4 @@
-import type { ModelRef } from "./model.js"
+import type { ModelRef, ThinkingLevel } from "./model.js"
 import type { Task } from "./task.js"
 
 export type JsonValue =
@@ -91,8 +91,29 @@ export interface TaskTranscriptItem {
   timestamp: number
 }
 
+export type SystemEvent =
+  | { kind: "model_change"; model: ModelRef }
+  | { kind: "thinking_level_change"; thinkingLevel: ThinkingLevel }
+  | { kind: "compaction"; tokensBefore: number; summary: string }
+  | { kind: "branch_summary"; summary: string }
+  | { kind: "extension_message"; customType: string; content: Array<TextContent | ImageContent> }
+  | { kind: "compaction_failed"; errorMessage: string }
+  | { kind: "extension_notice"; level: "warning" | "error"; message: string }
+
+/** 会话里的非对话事件；notice 类只存在 gateway 内存，不落盘。 */
+export interface SystemTranscriptItem {
+  id: string
+  role: "system"
+  event: SystemEvent
+  timestamp: number
+}
+
 export type TranscriptItem =
-  UserTranscriptItem | AssistantTranscriptItem | ToolTranscriptItem | TaskTranscriptItem
+  | UserTranscriptItem
+  | AssistantTranscriptItem
+  | ToolTranscriptItem
+  | TaskTranscriptItem
+  | SystemTranscriptItem
 
 /** 增量活动；快照始终是权威。 */
 export type TranscriptProgress =

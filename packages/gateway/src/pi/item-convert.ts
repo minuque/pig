@@ -2,12 +2,16 @@ import type { SessionEntry } from "@earendil-works/pi-coding-agent"
 import type {
   AssistantTranscriptItem,
   JsonValue,
+  SystemEvent,
+  SystemTranscriptItem,
   Task,
   TaskTranscriptItem,
   ToolTranscriptItem,
   Usage,
   UserTranscriptItem,
 } from "@pig/protocol"
+
+import { isThinkingLevel } from "./provider-view.js"
 
 type AgentMessage = Extract<SessionEntry, { type: "message" }>["message"]
 
@@ -212,4 +216,34 @@ export function toTaskItem(
   )
     return undefined
   return { id, role: "task", task: sanitizeDetails(task) as unknown as Task, timestamp }
+}
+
+type CustomContent = Extract<SessionEntry, { type: "custom_message" }>["content"]
+
+export function toExtensionMessage(customType: string, content: CustomContent): SystemEvent {
+  return { kind: "extension_message", customType, content: toMedia(content) }
+}
+
+function systemEvent(entry: SessionEntry): SystemEvent | undefined {
+  switch (entry.type) {
+    case "model_change":
+      return { kind: "model_change", model: { provider: entry.provider, id: entry.modelId } }
+    case "thinking_level_change":
+      return isThinkingLevel(entry.thinkingLevel)
+        ? { kind: "thinking_level_change", thinkingLevel: entry.thinkingLevel }
+        : undefined
+    case "compaction":
+      return { kind: "compaction", tokensBefore: entry.tokensBefore, summary: entry.summary }
+    case "branch_summary":
+      return { kind: "branch_summary", summary: entry.summary }
+    case "custom_message":
+      return entry.display ? toExtensionMessage(entry.customType, entry.content) : undefined
+    default:
+      return undefined
+  }
+}
+
+export function toSystemItem(entry: SessionEntry): SystemTranscriptItem | undefined {
+  const event = systemEvent(entry)
+  return event && { id: entry.id, role: "system", event, timestamp: Date.parse(entry.timestamp) }
 }

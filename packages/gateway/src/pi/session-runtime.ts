@@ -3,12 +3,15 @@ import type {
   ContextPreviewKey,
   ExtensionUiResponse,
   ModelRef,
+  SessionActivity,
   SessionPhase,
   SessionSnapshot,
   Task,
   TaskChannels,
   TaskStopEvent,
   TasksEvent,
+  SystemEvent,
+  SystemTranscriptItem,
   ThinkingLevel,
   TranscriptProgress,
 } from "@pig/protocol"
@@ -62,9 +65,20 @@ export class PiHostSession implements SessionRuntime {
   private revision = 0
   private busy: Promise<void> | undefined
   private disposed = false
-  private readonly ui = new ExtensionUiBridge((request) =>
-    this.emit({ type: "extension_ui", request }),
-  )
+  private readonly ui = new ExtensionUiBridge((request) => {
+    if (request.method === "notify" && request.notifyType && request.notifyType !== "info") {
+      this.addNotice({
+        kind: "extension_notice",
+        level: request.notifyType,
+        message: request.message,
+      })
+      return
+    }
+
+    this.emit({ type: "extension_ui", request })
+  })
+  private activity: SessionActivity | undefined
+  private readonly notices: SystemTranscriptItem[] = []
   private pendingProgress: StreamingProgress[] = []
   private pendingUpdateTimer: ReturnType<typeof setTimeout> | undefined
   private tasks: Task[] = []
@@ -137,6 +151,7 @@ export class PiHostSession implements SessionRuntime {
       createdAt,
       updatedAt: this.sessionUpdatedAt(entries, createdAt),
       phase: this.getPhase(),
+      ...(this.activity ? { activity: this.activity } : {}),
       model: { provider: model.provider, id: model.id },
       thinkingLevel: session.thinkingLevel,
       attached: false,
@@ -151,6 +166,7 @@ export class PiHostSession implements SessionRuntime {
       })),
       queuedSteerCount: steering.length,
       tasks: this.tasks,
+      notices: [...this.notices],
     }
   }
 
@@ -307,7 +323,45 @@ export class PiHostSession implements SessionRuntime {
     }
   }
 
+  private addNotice(event: SystemEvent): void {
+    this.notices.push({
+      id: `notice-${this.notices.length + 1}`,
+      role: "system",
+      event,
+      timestamp: Date.now(),
+    })
+    this.broadcastSnapshot()
+  }
+
+  private trackActivity(event: AgentSessionEvent): void {
+    switch (event.type) {
+      case "auto_retry_start":
+        this.activity = {
+          kind: "retry",
+          attempt: event.attempt,
+          maxAttempts: event.maxAttempts,
+          retryAt: Date.now() + event.delayMs,
+          errorMessage: event.errorMessage,
+        }
+        return
+      case "compaction_start":
+        this.activity = { kind: "compaction", reason: event.reason }
+        return
+      case "compaction_end":
+        this.activity = undefined
+
+        if (event.errorMessage && !event.aborted)
+          this.addNotice({ kind: "compaction_failed", errorMessage: event.errorMessage })
+        return
+      case "auto_retry_end":
+        this.activity = undefined
+        return
+      default:
+    }
+  }
+
   private handleEvent(event: AgentSessionEvent): void {
+    this.trackActivity(event)
     const progress = this.projection.progress(event)
 
     if (progress) this.forwardProgress(progress)

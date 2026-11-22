@@ -9,7 +9,9 @@ import type {
 import {
   sanitizeDetails,
   toAssistantItem,
+  toExtensionMessage,
   toJsonValue,
+  toSystemItem,
   toTaskItem,
   toToolItem,
   toUserItem,
@@ -106,21 +108,40 @@ export class TranscriptProjection {
 
     const toolCalls = new Map<string, JsonValue>()
     const items: TranscriptItem[] = []
+    const settings: { model?: string; thinking?: string } = {}
 
     for (const entry of entries) {
       if (entry.type === "custom_message") {
-        const task = toTaskItem(entry.details, entry.id, Date.parse(entry.timestamp))
+        const item =
+          toTaskItem(entry.details, entry.id, Date.parse(entry.timestamp)) ?? toSystemItem(entry)
 
-        if (task) items.push(task)
+        if (item) items.push(item)
         continue
       }
 
-      if (entry.type !== "message") continue
+      if (entry.type === "model_change" || entry.type === "thinking_level_change") {
+        const key = entry.type === "model_change" ? "model" : "thinking"
+        const value =
+          entry.type === "model_change" ? `${entry.provider}/${entry.modelId}` : entry.thinkingLevel
+        const previous = settings[key]
+        settings[key] = value
+
+        if (previous === undefined || previous === value) continue
+      }
+
+      if (entry.type !== "message") {
+        const item = toSystemItem(entry)
+
+        if (item) items.push(item)
+        continue
+      }
+
       const message = entry.message
 
       if (message.role === "user") {
         items.push(toUserItem(message, entry.id))
       } else if (message.role === "assistant") {
+        settings.model = `${message.provider}/${message.model}`
         this.indexToolCalls(message.content, toolCalls)
         items.push(toAssistantItem(message, entry.id))
       } else if (message.role === "toolResult") {
@@ -209,10 +230,18 @@ export class TranscriptProjection {
       }
 
       case "custom": {
+        if (stage !== "finished") return undefined
+        const id = this.allocateId()
         const item =
-          stage === "finished"
-            ? toTaskItem(message.details, this.allocateId(), message.timestamp)
-            : undefined
+          toTaskItem(message.details, id, message.timestamp) ??
+          (message.display
+            ? {
+                id,
+                role: "system" as const,
+                event: toExtensionMessage(message.customType, message.content),
+                timestamp: message.timestamp,
+              }
+            : undefined)
         return item ? { type: "item_started", item } : undefined
       }
 

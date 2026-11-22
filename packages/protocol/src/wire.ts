@@ -2,7 +2,12 @@ import type { ExtensionUiRequest, ExtensionUiResponse } from "./extension-ui.js"
 import type { ModelMetadata, ModelRef, ThinkingLevel } from "./model.js"
 import type { DefaultModelView } from "./provider.js"
 import type { Task } from "./task.js"
-import type { TranscriptItem, TranscriptProgress, UserTranscriptItem } from "./transcript.js"
+import type {
+  SystemTranscriptItem,
+  TranscriptItem,
+  TranscriptProgress,
+  UserTranscriptItem,
+} from "./transcript.js"
 
 /** 协议版本；两端写字面量 1，类型保证一致。 */
 export type ProtocolVersion = 1
@@ -10,6 +15,11 @@ export type ProtocolVersion = 1
 export const WEBSOCKET_PATH = "/api/v1/pi"
 
 export type SessionPhase = "idle" | "turn" | "compaction" | "branch_summary" | "retry"
+
+/** 进行中的重试或压缩；retryAt 是下次重试的时间戳。 */
+export type SessionActivity =
+  | { kind: "retry"; attempt: number; maxAttempts: number; retryAt: number; errorMessage: string }
+  | { kind: "compaction"; reason: "manual" | "threshold" | "overflow" }
 
 export interface SessionMetadata {
   id: string
@@ -27,6 +37,7 @@ export interface SessionSnapshot {
   createdAt: number
   updatedAt: number
   phase: SessionPhase
+  activity?: SessionActivity
   model: ModelRef
   thinkingLevel: ThinkingLevel
   attached: boolean
@@ -36,6 +47,7 @@ export interface SessionSnapshot {
   queuedSteer: UserTranscriptItem[]
   queuedSteerCount: number
   tasks: Task[]
+  notices: SystemTranscriptItem[]
 }
 
 export interface ServerSnapshot {

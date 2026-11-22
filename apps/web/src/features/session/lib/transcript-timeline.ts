@@ -68,6 +68,13 @@ function sameTranscriptItem(a: TranscriptItem, b: TranscriptItem): boolean {
 
   if (a.role === "task" || b.role === "task")
     return a.role === "task" && b.role === "task" && a.task.id === b.task.id
+
+  if (a.role === "system" || b.role === "system")
+    return (
+      a.role === "system" &&
+      b.role === "system" &&
+      JSON.stringify(a.event) === JSON.stringify(b.event)
+    )
   return a.role === b.role && JSON.stringify(a.content) === JSON.stringify(b.content)
 }
 

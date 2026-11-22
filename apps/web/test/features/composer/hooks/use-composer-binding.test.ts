@@ -40,6 +40,7 @@ function snapshot(model = { provider: "a", id: "one" }, thinkingLevel = "high") 
     queuedSteer: [],
     queuedSteerCount: 0,
     tasks: [],
+    notices: [],
   } as SessionSnapshot
 }
 
