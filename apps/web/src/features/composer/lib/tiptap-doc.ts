@@ -129,14 +129,20 @@ function serializeCommand(attrs: Record<string, unknown> | undefined): string {
   return attrs?.["kind"] === "skill" ? `/${SKILL_PREFIX}${name}` : `/${name}`
 }
 
+export function chipToken(type: string, attrs: Record<string, unknown> | undefined): string {
+  if (type === "fileMention") return serializeMention(attrs)
+
+  if (type === "commandChip") return serializeCommand(attrs)
+  return ""
+}
+
 function serializeInline(node: JSONContent): string {
   switch (node.type) {
     case "text":
       return node.text ?? ""
     case "fileMention":
-      return serializeMention(node.attrs)
     case "commandChip":
-      return serializeCommand(node.attrs)
+      return chipToken(node.type, node.attrs)
     default:
       return node.text ?? ""
   }

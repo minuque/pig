@@ -17,6 +17,7 @@
       :cwd="cwd"
       @submit="onSubmit"
       @paste-files="attachments.addFiles"
+      @open-file="emit('openFile', $event)"
     >
       <template v-if="attachmentFiles.length || attachmentError" #attachments>
         <div class="attach-tray">
@@ -171,6 +172,7 @@ const emit = defineEmits<{
   sendNow: [item: QueuedPrompt]
   queue: [text: string]
   abort: []
+  openFile: [path: string]
 }>()
 const model = computed({
   get: () => preset.value?.model,
@@ -278,6 +280,8 @@ function onAbortHotkey(event: KeyboardEvent) {
   if (event.altKey || event.ctrlKey || event.metaKey) return
 
   if (previewItem.value || !props.running || props.aborting || modelPickerOpen.value) return
+
+  if (editor.value?.menuOpen) return
   const active = document.activeElement
 
   if (
