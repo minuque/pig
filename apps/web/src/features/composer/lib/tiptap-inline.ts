@@ -64,7 +64,7 @@ function isSpace(char: string | undefined): boolean {
   return char === undefined || /\s/u.test(char)
 }
 
-function longestBacktickRun(text: string): number {
+export function longestBacktickRun(text: string): number {
   return Math.max(0, ...[...text.matchAll(/`+/gu)].map((match) => match[0].length))
 }
 
@@ -117,12 +117,30 @@ function hasLevel(levels: readonly Level[], mark: InlineMark): boolean {
   return levels.some((level) => level.mark === mark)
 }
 
+function findClosingFence(text: string, start: number, run: number): number {
+  let cursor = start
+
+  while (cursor < text.length) {
+    const next = text.indexOf("`", cursor)
+
+    if (next === -1) return -1
+    let end = next + 1
+
+    while (text[end] === "`") end += 1
+
+    if (end - next === run) return next
+    cursor = end
+  }
+
+  return -1
+}
+
 function readCode(text: string, index: number, levels: Level[]): number {
   const run = /^`+/u.exec(text.slice(index))![0].length
   const fence = "`".repeat(run)
-  const close = text.indexOf(fence, index + run)
+  const close = findClosingFence(text, index + run, run)
 
-  if (close === -1 || text[close + run] === "`") {
+  if (close === -1) {
     emitText(levels, fence)
     return index + run
   }
@@ -140,6 +158,12 @@ function readCode(text: string, index: number, levels: Level[]): number {
 
   emitCode(levels, content)
   return close + run
+}
+
+function inlineCodeEnd(text: string, index: number): number {
+  const run = /^`+/u.exec(text.slice(index))![0].length
+  const close = findClosingFence(text, index + run, run)
+  return close === -1 ? index + run : close + run
 }
 
 function readStar(text: string, index: number, levels: Level[]): number {
@@ -191,7 +215,7 @@ function readStrike(text: string, index: number, levels: Level[]): number {
   const canOpen = !isSpace(text[index + run])
   const canClose = !isSpace(text[index - 1])
 
-  if (canClose && hasLevel(levels, "strike")) closeLevel(levels)
+  if (canClose && topLevel(levels).mark === "strike") closeLevel(levels)
   else if (canOpen && !hasLevel(levels, "strike"))
     levels.push({ mark: "strike", delimiter: "~~", spans: [] })
   else emitText(levels, "~~")
@@ -243,7 +267,7 @@ export function parseInlineMarkdown(text: string): JSONContent[] {
 }
 
 function looksLikePath(token: string): boolean {
-  if (!PATH_TOKEN.test(token)) return false
+  if (!PATH_TOKEN.test(token) || token.endsWith("/")) return false
   return token.includes("/") || EXTENSION.test(token)
 }
 
@@ -309,8 +333,24 @@ export function parseLine(line: string, options: ParsePromptOptions = {}): JSONC
   }
 
   while (index < line.length) {
+    const char = line[index]!
+
+    if (char === "\\") {
+      text += line.slice(index, index + 2)
+      index += 2
+      continue
+    }
+
+    if (char === "`") {
+      const end = inlineCodeEnd(line, index)
+
+      text += line.slice(index, end)
+      index = end
+      continue
+    }
+
     const atBoundary = index === 0 || /\s/u.test(line[index - 1] ?? "")
-    const mention = line[index] === "@" && atBoundary ? mentionToken(line, index) : undefined
+    const mention = char === "@" && atBoundary ? mentionToken(line, index) : undefined
 
     if (mention) {
       flush()
@@ -322,7 +362,7 @@ export function parseLine(line: string, options: ParsePromptOptions = {}): JSONC
       continue
     }
 
-    text += line[index]
+    text += char
     index += 1
   }
 

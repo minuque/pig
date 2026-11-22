@@ -113,11 +113,14 @@ function sync(edited: boolean) {
   const instance = editor.value
 
   if (!instance) return
-  const text = serializeDocToPrompt(instance.getJSON())
 
-  if (text !== syncedText) {
-    syncedText = text
-    emit("update:modelValue", text)
+  if (edited) {
+    const text = serializeDocToPrompt(instance.getJSON())
+
+    if (text !== syncedText) {
+      syncedText = text
+      emit("update:modelValue", text)
+    }
   }
 
   const { doc, selection } = instance.state
@@ -235,7 +238,21 @@ function insertChip(chip: ChipInsert) {
   instance.view.focus()
 }
 
-defineExpose({ focus, blur, insertChip, isAtStart, isAtEnd })
+function replaceRange(start: number, triggerLength: number, text: string) {
+  const instance = editor.value
+
+  if (!instance) return
+  const { state } = instance
+  const from = positionAtOffset(state.doc, start)
+  const to = Math.max(from, positionAtOffset(state.doc, start + triggerLength))
+  const tr = state.tr.insertText(text, from, to)
+
+  tr.setSelection(TextSelection.create(tr.doc, from + text.length))
+  instance.view.dispatch(tr)
+  instance.view.focus()
+}
+
+defineExpose({ focus, blur, insertChip, replaceRange, isAtStart, isAtEnd })
 </script>
 
 <style scoped>

@@ -1,4 +1,4 @@
-import { computed, nextTick, onScopeDispose, ref, watch, type Ref } from "vue"
+import { computed, onScopeDispose, ref, useId, watch, type Ref } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { listWorkspaceCommands, searchWorkspaceFiles } from "@client/platform.js"
 import type { ComposerCommand, FileSearchEntry } from "@/types/common-type.js"
@@ -39,14 +39,18 @@ export interface CommandMenuOptions {
   inCode(): boolean
   cwd(): string | undefined
   onChip(chip: ChipInsert): void
+  onReplaceText(start: number, triggerLength: number, text: string): void
 }
 
-export function commandRowId(id: string): string {
-  return `${MENU_ID}-row-${encodeURIComponent(id)}`
+let menuSeq = 0
+
+export function commandRowId(id: string, menuId = MENU_ID): string {
+  return `${menuId}-row-${encodeURIComponent(id)}`
 }
 
 export function useCommandMenu(options: CommandMenuOptions): CommandMenuApi {
   const { t } = useI18n()
+  const menuId = `${MENU_ID}-${useId() || ++menuSeq}`
   const open = ref(false)
   const trigger = ref<ComposerTrigger>(null)
   const dismissedKey = ref("")
@@ -86,14 +90,13 @@ export function useCommandMenu(options: CommandMenuOptions): CommandMenuApi {
     ),
   )
   const activeDescendantId = computed(() =>
-    activeId.value ? commandRowId(activeId.value) : undefined,
+    activeId.value ? commandRowId(activeId.value, menuId) : undefined,
   )
 
   watch([options.prompt, options.caret, () => options.cwd()], () => void refresh(), {
     flush: "post",
   })
   watch(flatRows, (rows) => (activeId.value = rows[0]?.id ?? null), { immediate: true })
-  watch(activeId, (id) => void scrollToRow(id), { flush: "post" })
 
   function cancelFetch() {
     if (debounce) clearTimeout(debounce)
@@ -216,10 +219,8 @@ export function useCommandMenu(options: CommandMenuOptions): CommandMenuApi {
 
     if (id.startsWith(DIR_PREFIX)) {
       const prefix = id.slice(DIR_PREFIX.length)
-      const { prompt, caret } = options
 
-      prompt.value = `${prompt.value.slice(0, start)}@${prefix}${prompt.value.slice(caret.value)}`
-      void nextTick(() => (caret.value = start + prefix.length + 1))
+      options.onReplaceText(start, options.caret.value - start, `@${prefix}`)
       return
     }
 
@@ -247,16 +248,10 @@ export function useCommandMenu(options: CommandMenuOptions): CommandMenuApi {
     trigger.value = null
   }
 
-  async function scrollToRow(id: string | null) {
-    if (!id || !open.value) return
-    await nextTick()
-    document.getElementById(commandRowId(id))?.scrollIntoView({ block: "nearest" })
-  }
-
   onScopeDispose(cancelFetch)
   return {
     open,
-    menuId: MENU_ID,
+    menuId,
     groups,
     activeId,
     activeDescendantId,

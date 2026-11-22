@@ -2,6 +2,7 @@
   <Teleport to="body">
     <div
       :id="menuId"
+      ref="menuEl"
       class="command-menu"
       role="listbox"
       :aria-label="t('composer.commandMenuLabel')"
@@ -48,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch, type Component } from "vue"
+import { computed, nextTick, onMounted, ref, useTemplateRef, watch, type Component } from "vue"
 import { useEventListener, useResizeObserver } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { SquareCodeIcon, FileTextIcon, FolderIcon, BlocksIcon } from "@components/icons/index.js"
@@ -80,6 +81,7 @@ const emit = defineEmits<{
   highlight: [id: string]
 }>()
 const { t } = useI18n()
+const menuEl = useTemplateRef("menuEl")
 const anchor = computed(() => props.anchorEl)
 const box = ref({ left: 0, width: 0, bottom: 0, maxHeight: MENU_MAX_HEIGHT })
 const statusText = computed(() =>
@@ -127,7 +129,15 @@ function measure() {
 
 useEventListener(window, "resize", measure)
 
-useEventListener(window, "scroll", measure, { capture: true })
+useEventListener(
+  window,
+  "scroll",
+  (event: Event) => {
+    if (event.target instanceof Node && menuEl.value?.contains(event.target)) return
+    measure()
+  },
+  { capture: true },
+)
 
 useResizeObserver(anchor, measure)
 

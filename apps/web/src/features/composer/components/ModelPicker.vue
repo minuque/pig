@@ -6,7 +6,7 @@
           <Button
             variant="ghost"
             color="neutral"
-            size="s"
+            size="m"
             class="selector"
             :disabled="disabled"
             :aria-label="t('composer.selectModel', { model: triggerText })"

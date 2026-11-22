@@ -92,6 +92,7 @@ import {
   shouldSubmitOnKeydown,
   useComposerShortcuts,
 } from "@features/composer/hooks/use-composer-shortcuts.js"
+import { trySplitView, usePaneSide } from "@features/split-view/index.js"
 import CommandMenu from "@features/composer/components/CommandMenu.vue"
 import PromptField from "@features/composer/components/PromptField.vue"
 import type { ComposerCaret } from "@features/composer/type.js"
@@ -119,6 +120,9 @@ const composing = ref(false)
 const caret = ref(0)
 const edited = ref(false)
 const inCode = ref(false)
+const split = trySplitView()
+const side = usePaneSide()
+const isPaneActive = () => !split || split.focused.value === side
 const showPlaceholder = computed(() => !prompt.value.length && !composing.value)
 const placeholderText = computed(() => props.placeholder ?? t("composer.placeholder"))
 const commandMenu = useCommandMenu({
@@ -128,8 +132,11 @@ const commandMenu = useCommandMenu({
   inCode: () => inCode.value,
   cwd: () => props.cwd,
   onChip: (chip) => field.value?.insertChip(chip),
+  onReplaceText: (start, triggerLength, text) =>
+    field.value?.replaceRange(start, triggerLength, text),
 })
 const shortcuts = useComposerShortcuts({
+  active: isPaneActive,
   menuOpen: () => commandMenu.open.value,
   closeMenu: () => commandMenu.dismiss(),
   cancelQueueEdit: () => {

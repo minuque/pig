@@ -315,4 +315,28 @@ describe("useComposerAttachments", () => {
     expect(status.value[batch.files[0]!.id]).toBeUndefined()
     expect(revoke).not.toHaveBeenCalled()
   })
+
+  it("分离旧批次并加入新附件后，结算旧批次不清空新附件的上传状态", () => {
+    vi.spyOn(URL, "revokeObjectURL").mockImplementation(() => {})
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:1")
+
+    const { files, status, progress, addFiles, consumeForSend, detach, settle } =
+      useComposerAttachments()
+
+    addFiles([file("first.md", "text/markdown")])
+    const firstBatch = consumeForSend()!
+
+    firstBatch.reportProgress?.(firstBatch.files[0]!.id, 100)
+    detach(firstBatch)
+
+    addFiles([file("second.md", "text/markdown")])
+    const secondId = files.value[0]!.id
+    const secondBatch = consumeForSend()!
+
+    secondBatch.reportProgress?.(secondId, 60)
+    settle(firstBatch)
+
+    expect(status.value[secondId]).toBe("uploading")
+    expect(progress.value[secondId]).toBe(60)
+  })
 })

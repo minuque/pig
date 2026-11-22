@@ -1,6 +1,7 @@
 import { useEventListener } from "@vueuse/core"
 
 interface AbortHotkeyOptions {
+  active?(): boolean
   running(): boolean
   stopping(): boolean
   blocked(): boolean
@@ -17,6 +18,8 @@ const PANEL_SELECTOR = [
 
 export function useComposerAbortHotkey(options: AbortHotkeyOptions) {
   function onKeydown(event: KeyboardEvent) {
+    if (options.active && !options.active()) return
+
     if (event.key !== "Escape" || event.isComposing) return
 
     if (event.altKey || event.ctrlKey || event.metaKey) return

@@ -15,6 +15,14 @@
           <img :src="image.url" :alt="image.name" />
         </button>
       </div>
+
+      <div v-if="files.length" class="row-files">
+        <span v-for="file in files" :key="file.id" class="file-chip">
+          <FileTextIcon class="file-icon" aria-hidden="true" />
+          <span class="file-name">{{ file.name }}</span>
+          <span class="file-size">{{ formatFileSize(file.size) }}</span>
+        </span>
+      </div>
     </div>
 
     <div class="row-actions">
@@ -46,11 +54,13 @@ import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import type { ComposerAttachment } from "@/types/attachment-type.js"
+import { formatFileSize } from "@features/composer/lib/attachment-size.js"
 import type { QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
 import {
   ArrowUpIcon,
   ChevronDownIcon,
   ChevronUpIcon,
+  FileTextIcon,
   GripVerticalIcon,
   PenIcon,
   TrashIcon,
@@ -80,46 +90,51 @@ const emit = defineEmits<{
 }>()
 const { t } = useI18n()
 const images = computed(() => props.item.attachmentsPreview.filter((file) => file.url))
-const actions = computed<RowAction[]>(() => [
-  {
-    id: "grip",
-    icon: GripVerticalIcon,
-    label: t("composer.queueDrag"),
-    class: "row-grip",
-  },
-  {
-    id: "up",
-    icon: ChevronUpIcon,
-    label: t("composer.queueMoveUp", { text: props.item.text }),
-    disabled: !props.canUp,
-    run: () => emit("move", -1),
-  },
-  {
-    id: "down",
-    icon: ChevronDownIcon,
-    label: t("composer.queueMoveDown", { text: props.item.text }),
-    disabled: !props.canDown,
-    run: () => emit("move", 1),
-  },
-  {
-    id: "send",
-    icon: ArrowUpIcon,
-    label: t("composer.queueSendNow"),
-    run: () => emit("sendNow"),
-  },
-  {
-    id: "edit",
-    icon: PenIcon,
-    label: t("composer.queueEdit"),
-    run: () => emit("edit"),
-  },
-  {
-    id: "remove",
-    icon: TrashIcon,
-    label: t("composer.queueRemove", { text: props.item.text }),
-    run: () => emit("remove"),
-  },
-])
+const files = computed(() => props.item.attachmentsPreview.filter((file) => !file.url))
+const actions = computed<RowAction[]>(() => {
+  const labelText =
+    props.item.text || props.item.attachmentsPreview.map((file) => file.name).join(", ")
+  return [
+    {
+      id: "grip",
+      icon: GripVerticalIcon,
+      label: t("composer.queueDrag"),
+      class: "row-grip",
+    },
+    {
+      id: "up",
+      icon: ChevronUpIcon,
+      label: t("composer.queueMoveUp", { text: labelText }),
+      disabled: !props.canUp,
+      run: () => emit("move", -1),
+    },
+    {
+      id: "down",
+      icon: ChevronDownIcon,
+      label: t("composer.queueMoveDown", { text: labelText }),
+      disabled: !props.canDown,
+      run: () => emit("move", 1),
+    },
+    {
+      id: "send",
+      icon: ArrowUpIcon,
+      label: t("composer.queueSendNow"),
+      run: () => emit("sendNow"),
+    },
+    {
+      id: "edit",
+      icon: PenIcon,
+      label: t("composer.queueEdit"),
+      run: () => emit("edit"),
+    },
+    {
+      id: "remove",
+      icon: TrashIcon,
+      label: t("composer.queueRemove", { text: labelText }),
+      run: () => emit("remove"),
+    },
+  ]
+})
 </script>
 
 <style scoped>
@@ -189,6 +204,45 @@ const actions = computed<RowAction[]>(() => [
   inline-size: 100%;
   block-size: 100%;
   object-fit: cover;
+}
+
+.row-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+}
+
+.file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  max-inline-size: 100%;
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--radius-control);
+  background: var(--bg-muted);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+}
+
+.file-icon {
+  flex: none;
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
+  color: var(--fg-muted);
+}
+
+.file-name {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--fg);
+}
+
+.file-size {
+  flex: none;
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .row-actions {

@@ -25,6 +25,7 @@ export interface ShortcutKeyEvent {
 }
 
 export interface ComposerShortcutsOptions {
+  active?(): boolean
   menuOpen(): boolean
   closeMenu(): void
   cancelQueueEdit?(): boolean
@@ -126,8 +127,14 @@ function focusIsFree(): boolean {
 
 export function useComposerShortcuts(options: ComposerShortcutsOptions): ComposerShortcutsApi {
   const shortcuts = createComposerShortcuts(options)
+  const isActive = () => options.active?.() ?? true
 
   function onWindowKeydown(event: KeyboardEvent) {
+    if (!isActive()) {
+      shortcuts.releaseModifiers()
+      return
+    }
+
     shortcuts.trackModifiers(event)
 
     if (event.defaultPrevented || event.isComposing) return
@@ -138,8 +145,17 @@ export function useComposerShortcuts(options: ComposerShortcutsOptions): Compose
     options.focus()
   }
 
+  function onWindowKeyup(event: KeyboardEvent) {
+    if (!isActive()) {
+      shortcuts.releaseModifiers()
+      return
+    }
+
+    shortcuts.trackModifiers(event)
+  }
+
   function onWindowPaste(event: ClipboardEvent) {
-    if (!focusIsFree()) return
+    if (!isActive() || !focusIsFree()) return
     const files = clipboardFiles(event.clipboardData)
 
     options.focus()
@@ -150,7 +166,7 @@ export function useComposerShortcuts(options: ComposerShortcutsOptions): Compose
   }
 
   useEventListener(window, "keydown", onWindowKeydown, { capture: true })
-  useEventListener(window, "keyup", shortcuts.trackModifiers)
+  useEventListener(window, "keyup", onWindowKeyup)
   useEventListener(window, "paste", onWindowPaste)
   useEventListener(window, "blur", shortcuts.releaseModifiers)
   useEventListener(document, "visibilitychange", shortcuts.releaseModifiers)

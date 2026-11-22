@@ -1,16 +1,12 @@
 import type { JSONContent } from "@tiptap/core"
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model"
 import {
+  longestBacktickRun,
   type MarkdownSink,
   type PromptNode,
   writeInline,
 } from "@features/composer/lib/tiptap-inline.js"
-import {
-  CLOSING_FENCE,
-  headingPrefix,
-  isClosingFence,
-  openingFence,
-} from "@features/composer/lib/tiptap-markdown.js"
+import { headingPrefix } from "@features/composer/lib/tiptap-markdown.js"
 
 export interface MarkdownToken {
   at: number
@@ -80,12 +76,7 @@ function indentOf(marker: string): string {
 }
 
 function codeText(node: PromptNode): string {
-  const text = (node.content ?? []).map((child) => child.text ?? "").join("")
-  const lines = text.split("\n")
-  const last = lines[lines.length - 1]
-
-  if (lines.length > 1 && last !== undefined && isClosingFence(last, CLOSING_FENCE)) lines.pop()
-  return lines.join("\n")
+  return (node.content ?? []).map((child) => child.text ?? "").join("")
 }
 
 function headingLevel(node: PromptNode): number {
@@ -160,15 +151,14 @@ function writeBlock(node: PromptNode, sink: MarkdownSink, linePrefix: string): v
 
     case "codeBlock": {
       const code = codeText(node)
+      const fence = "`".repeat(Math.max(3, longestBacktickRun(code) + 1))
+      const language = String(node.attrs?.["language"] ?? "")
 
-      sink.virtual(contentStart(node), openingFence(String(node.attrs?.["language"] ?? "")))
+      sink.virtual(contentStart(node), `${fence}${language}\n`)
 
-      if (code) {
-        sink.virtual(node.at + 1, "\n")
-        sink.mapped(node.at + 1, code.length, code)
-        sink.virtual(node.at + 1 + code.length, `\n${CLOSING_FENCE}`)
-      }
+      if (code) sink.mapped(node.at + 1, code.length, code)
 
+      sink.virtual(node.at + 1 + code.length, `${code ? "\n" : ""}${fence}`)
       return
     }
 

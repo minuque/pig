@@ -21,6 +21,7 @@ interface ComposerSubmitDeps {
     cwd?: string,
     attachments?: ComposerAttachmentBatch,
     hooks?: SendAttachmentsHooks,
+    options?: { preserveDraft?: boolean },
   ): Promise<boolean>
   steer(text: string): Promise<boolean>
   abort(): unknown
@@ -59,7 +60,13 @@ export function useComposerSubmit(deps: ComposerSubmitDeps) {
         }
       : undefined
     return deps
-      .submit(text, id ? undefined : deps.welcomeCwd(), batch, hooks)
+      .submit(
+        text,
+        id ? undefined : deps.welcomeCwd(),
+        batch,
+        hooks,
+        remember ? undefined : { preserveDraft: true },
+      )
       .then((sent) => {
         if (batch && (sent || (remember && dispatched))) deps.attachments.settle(batch)
         return sent
@@ -84,8 +91,30 @@ export function useComposerSubmit(deps: ComposerSubmitDeps) {
   }
 
   function sendQueued(item: QueuedPrompt) {
+    if (deps.running()) {
+      if (item.attachments) {
+        notify(t("composer.steerNoAttachments"), "warning")
+        return
+      }
+
+      if (!item.text.trim()) return
+      void deps
+        .steer(item.text)
+        .catch(() => false)
+        .then((steered) => {
+          if (!steered) return
+
+          if (editingQueueId.value === item.id) cancelQueueEdit()
+          deps.queue.remove(item.id)
+        })
+      return
+    }
+
     void deliver(item.text, item.attachments).then((sent) => {
-      if (sent) deps.queue.remove(item.id)
+      if (!sent) return
+
+      if (editingQueueId.value === item.id) cancelQueueEdit()
+      deps.queue.remove(item.id)
     })
   }
 
@@ -164,6 +193,18 @@ export function useComposerSubmit(deps: ComposerSubmitDeps) {
     stopPhase.value = "landed"
     phaseAfter("landed", LANDED_GUARD_MS, "idle")
   })
+
+  watch(
+    () => deps.queue.items.value,
+    (items) => {
+      if (
+        editingQueueId.value !== null &&
+        !items.some((item) => item.id === editingQueueId.value)
+      ) {
+        cancelQueueEdit()
+      }
+    },
+  )
 
   onBeforeUnmount(() => {
     if (stopTimer) clearTimeout(stopTimer)

@@ -98,6 +98,7 @@ import ContextRing from "@features/composer/components/ContextRing.vue"
 import ModelPicker from "@features/composer/components/ModelPicker.vue"
 import PromptEditor from "@features/composer/components/PromptEditor.vue"
 import PreviewDialog from "@features/preview/index.vue"
+import { trySplitView, usePaneSide } from "@features/split-view/index.js"
 import type { ComposerAttachment } from "@/types/attachment-type.js"
 import { useComposerAbortHotkey } from "@features/composer/hooks/use-composer-abort-hotkey.js"
 import {
@@ -176,6 +177,9 @@ const attachmentsFull = computed(() => attachmentFiles.value.length >= MAX_COMPO
 const hasAttachments = computed(() => attachmentFiles.value.length > 0)
 const hasPayload = computed(() => prompt.value.trim().length > 0 || hasAttachments.value)
 const steerHeld = computed(() => editor.value?.steerHeld ?? false)
+const split = trySplitView()
+const side = usePaneSide()
+const isPaneActive = () => !split || split.focused.value === side
 
 watch(
   () => props.sessionId,
@@ -185,6 +189,7 @@ watch(
 )
 
 useComposerAbortHotkey({
+  active: isPaneActive,
   running: () => props.running,
   stopping: () => props.stopPhase === "pending",
   blocked: () => Boolean(previewItem.value) || modelPickerOpen.value || props.editingQueue,

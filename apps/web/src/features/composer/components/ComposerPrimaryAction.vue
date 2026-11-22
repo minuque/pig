@@ -4,7 +4,7 @@
       <TooltipTrigger as-child>
         <IconButton
           type="button"
-          size="s"
+          size="m"
           variant="solid"
           radius="full"
           :color="mode === 'stop' ? 'danger' : 'accent'"
@@ -28,11 +28,11 @@
       <TooltipContent>{{ label }}</TooltipContent>
     </Tooltip>
 
-    <Tooltip v-if="mode === 'queue'">
+    <Tooltip v-if="mode === 'queue' || mode === 'steer'">
       <TooltipTrigger as-child>
         <IconButton
           type="button"
-          size="s"
+          size="m"
           variant="solid"
           radius="full"
           color="danger"
@@ -102,6 +102,8 @@ const label = computed(() => {
   return steerLocked.value ? t("composer.steerNoAttachments") : t(`composer.${key}`)
 })
 const disabled = computed(() => {
+  if (mode.value === "save") return !props.hasPayload
+
   if (mode.value === "stopping" || props.stopPhase === "landed") return true
 
   if (mode.value === "stop") return false
@@ -123,11 +125,6 @@ function onPrimary() {
   display: flex;
   align-items: center;
   gap: var(--space-2xs);
-}
-
-.send {
-  inline-size: var(--control-md);
-  block-size: var(--control-md);
 }
 
 .send:disabled {

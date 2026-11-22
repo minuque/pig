@@ -145,6 +145,8 @@ export const ComposerTaskInput = Extension.create({
 
           if ($from.node(-1).type.name !== "listItem") return
 
+          if ($from.index(-1) !== 0) return
+
           if ($from.node(-2).type.name !== "bulletList") return
 
           const checked = (match[1] ?? " ").toLowerCase() === "x"

@@ -206,6 +206,62 @@ describe("行内 Markdown", () => {
     expect(text).toBe("``a`b``")
     expect(serializeDocToPrompt(parsePromptToDoc(text))).toBe(text)
   })
+
+  it("行内代码里的 @作用域包 与路径不拆成文件 chip", () => {
+    const raw = "安装 `@pig/protocol` 并对比 ` @src/a.ts ` 的写法"
+    const doc = parsePromptToDoc(raw)
+
+    expect(collectChips(doc)).toEqual([])
+    expect(doc.content?.[0]?.content).toEqual([
+      { type: "text", text: "安装 " },
+      { type: "text", text: "@pig/protocol", marks: [{ type: "code" }] },
+      { type: "text", text: " 并对比 " },
+      { type: "text", text: "@src/a.ts", marks: [{ type: "code" }] },
+      { type: "text", text: " 的写法" },
+    ])
+  })
+
+  it("嵌套双反引号的单个行内代码完整匹配闭合围栏", () => {
+    const doc = parsePromptToDoc("看 `a``b` 这里")
+
+    expect(doc.content?.[0]?.content).toEqual([
+      { type: "text", text: "看 " },
+      { type: "text", text: "a``b", marks: [{ type: "code" }] },
+      { type: "text", text: " 这里" },
+    ])
+  })
+
+  it("交叉的删除线与粗体不误弹内层标记且往返不丢字符", () => {
+    const raw = "~~hello **world~~**"
+    const round = roundTrip(raw)
+
+    expect(round).toBe("~~hello **world~~**")
+    expect(
+      parsePromptToDoc(raw).content?.[0]?.content?.some((node) =>
+        node.marks?.some((m) => m.type === "strike"),
+      ),
+    ).toBe(false)
+  })
+
+  it("末尾带斜杠的目录前缀保持纯文本不转文件 chip", () => {
+    const raw = "在 @src/ 下面找"
+
+    expect(collectChips(parsePromptToDoc(raw))).toEqual([])
+    expect(roundTrip(raw)).toBe(raw)
+  })
+
+  it("空代码块与内部含三反引号行的代码块按动态围栏完整往返", () => {
+    expect(roundTrip("```ts\n```")).toBe("```ts\n```")
+
+    const withFence = "````md\n```ts\nconst x = 1\n```\n````"
+
+    expect(readBlock(withFence)).toEqual({
+      type: "codeBlock",
+      attrs: { language: "md" },
+      content: [{ type: "text", text: "```ts\nconst x = 1\n```" }],
+    })
+    expect(roundTrip(withFence)).toBe(withFence)
+  })
 })
 
 describe("chip 与嵌套内容", () => {

@@ -178,7 +178,7 @@ const { t } = useI18n()
 .fill {
   display: block;
   block-size: 100%;
-  background: var(--accent-solid);
+  background: var(--info-solid);
   transition: inline-size var(--duration-fast) linear;
 }
 

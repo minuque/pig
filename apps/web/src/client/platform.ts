@@ -397,6 +397,11 @@ export function stageAttachment(
         return
       }
 
+      if (!body.id) {
+        reject(new PlatformRequestError("INVALID_RESPONSE", requestId))
+        return
+      }
+
       resolve(body.id)
     }
 

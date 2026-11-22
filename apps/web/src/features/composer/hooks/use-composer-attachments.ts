@@ -192,10 +192,13 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
 
   function detachFrom(stash: AttachmentStash, batch: ComposerAttachmentBatch) {
     const sent = new Set(batch.files.map((item) => item.id))
+    let uploads = stash.uploads.value
+
+    for (const id of sent) uploads = replaceUpload(uploads, id, undefined)
 
     stash.files.value = stash.files.value.filter((item) => !sent.has(item.id))
     stash.error.value = ""
-    stash.uploads.value = {}
+    stash.uploads.value = uploads
     stash.batch = crypto.randomUUID()
   }
 

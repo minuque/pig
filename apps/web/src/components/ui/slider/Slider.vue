@@ -15,7 +15,6 @@
         v-bind="forwarded"
         data-slot="slider"
         thumb-alignment="contain"
-        orientation="horizontal"
       >
         <SliderTrack data-slot="slider-track">
           <SliderRange data-slot="slider-range" />
@@ -71,6 +70,7 @@ interface SliderProps extends SliderRootProps {
 const props = withDefaults(defineProps<SliderProps>(), {
   class: undefined,
   size: "m",
+  orientation: "horizontal",
   showValueBadge: true,
   showBounds: true,
 })

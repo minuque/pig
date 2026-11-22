@@ -194,6 +194,7 @@ export function useSessionLifecycle(
     cwd?: string,
     attachments?: ComposerAttachmentBatch,
     hooks?: SendAttachmentsHooks,
+    options?: { preserveDraft?: boolean },
   ): Promise<boolean> {
     const normalized = text.trim()
     let thread = clientState.value
@@ -211,7 +212,8 @@ export function useSessionLifecycle(
     )
 
     thread.sends.push(send)
-    thread.draft = ""
+
+    if (!options?.preserveDraft) thread.draft = ""
 
     try {
       if (!sessionId.value) {
@@ -261,7 +263,7 @@ export function useSessionLifecycle(
 
       if (epoch !== thread.epoch) return false
 
-      if (!thread.draft) thread.draft = previousDraft || text
+      if (!options?.preserveDraft && !thread.draft) thread.draft = previousDraft || text
       const index = thread.sends.findIndex((item) => item.item.id === send.item.id)
 
       if (index >= 0) thread.sends.splice(index, 1)
