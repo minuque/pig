@@ -5,6 +5,8 @@ import { getSessionArchives, patchSessionArchives } from "@client/platform.js"
 const state = shallowRef<SessionArchives>({})
 let hydrated = false
 let inflight: Promise<void> | undefined
+let deferredRemote: SessionArchives | undefined
+let lastOptimisticNow = 0
 let pendingOps = 0
 let revision = 0
 let chain: Promise<void> = Promise.resolve()
@@ -17,6 +19,8 @@ export function resetSessionArchivesForTest(): void {
   state.value = {}
   hydrated = false
   inflight = undefined
+  deferredRemote = undefined
+  lastOptimisticNow = 0
   pendingOps = 0
   revision = 0
   chain = Promise.resolve()
@@ -55,7 +59,14 @@ export async function hydrateSessionArchives(): Promise<void> {
 export function applyRemoteSessionArchives(archives: SessionArchives): void {
   hydrated = true
 
-  if (pendingOps > 0 || sameArchives(state.value, archives)) return
+  if (pendingOps > 0) {
+    deferredRemote = { ...archives }
+    return
+  }
+
+  deferredRemote = undefined
+
+  if (sameArchives(state.value, archives)) return
   state.value = { ...archives }
 }
 
@@ -137,7 +148,10 @@ async function commitPatch(patch: SessionArchivesPatch): Promise<void> {
     ...(unarchive.length > 0 ? { unarchive } : {}),
   }
   const myRevision = ++revision
-  const { rollback, changed } = applyPatchOptimistic(payload, Date.now())
+  const now = Math.max(Date.now(), lastOptimisticNow + 1)
+
+  lastOptimisticNow = now
+  const { rollback, changed } = applyPatchOptimistic(payload, now)
 
   if (!changed && hydrated) return
   pendingOps += 1
@@ -146,19 +160,27 @@ async function commitPatch(patch: SessionArchivesPatch): Promise<void> {
     const server = await patchSessionArchives(payload)
 
     hydrated = true
+    deferredRemote = undefined
 
     if (revision === myRevision) state.value = { ...server }
   })
 
   chain = run.catch(() => undefined)
+  let failed = false
 
   try {
     await run
   } catch (error) {
+    failed = true
     rollback()
     throw error
   } finally {
     pendingOps -= 1
+
+    if (failed && pendingOps === 0 && deferredRemote !== undefined) {
+      state.value = deferredRemote
+      deferredRemote = undefined
+    }
   }
 }
 

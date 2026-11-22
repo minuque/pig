@@ -1,4 +1,4 @@
-import { computed, readonly, shallowRef, watch } from "vue"
+import { computed, effectScope, readonly, shallowRef, watch } from "vue"
 import { userPreferences, updatePreferences } from "@client/preferences.js"
 import { i18n, t } from "@i18n/index.js"
 
@@ -22,17 +22,19 @@ function apply(nextLocale: UiLocale, nextChatWidth: ChatWidth): void {
 function load(): void {
   if (loaded) return
   loaded = true
-  watch([locale, chatWidth], ([nextLocale, nextChatWidth]) => apply(nextLocale, nextChatWidth), {
-    immediate: true,
-    flush: "sync",
+  effectScope(true).run(() => {
+    watch([locale, chatWidth], ([nextLocale, nextChatWidth]) => apply(nextLocale, nextChatWidth), {
+      immediate: true,
+      flush: "sync",
+    })
+    watch(
+      () => userPreferences.value.userName,
+      (next) => {
+        if (userName.value.trim() !== next) userName.value = next
+      },
+      { immediate: true, flush: "sync" },
+    )
   })
-  watch(
-    () => userPreferences.value.userName,
-    (next) => {
-      if (userName.value.trim() !== next) userName.value = next
-    },
-    { immediate: true, flush: "sync" },
-  )
 }
 
 export function useGeneralPrefs() {

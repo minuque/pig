@@ -85,16 +85,6 @@
         </Button>
       </div>
     </div>
-
-    <div v-if="selectedCount > 0" class="triage-right">
-      <span class="selected-meta tabular">
-        {{ t("settings.archive.selectedCount", { count: selectedCount }) }}
-      </span>
-
-      <Button variant="ghost" size="s" @click="emit('clearSelection')">
-        {{ t("settings.archive.clearSelection") }}
-      </Button>
-    </div>
   </div>
 </template>
 
@@ -123,7 +113,6 @@ const props = defineProps<{
   hasSelectable: boolean
   masterCheckState: boolean | "indeterminate"
   quickRules: readonly QuickRuleChip[]
-  selectedCount: number
 }>()
 const projectFilter = defineModel<string>("projectFilter", { required: true })
 const query = defineModel<string>("query", { required: true })
@@ -131,7 +120,6 @@ const emit = defineEmits<{
   changeTab: [tab: ArchiveTab]
   toggleSelectAll: []
   toggleQuickRule: [rule: ArchiveQuickRule]
-  clearSelection: []
 }>()
 const { t } = useI18n()
 const activeProjectLabel = computed(() => {
@@ -232,18 +220,6 @@ function clearQuery(): void {
 .quick-chip.is-active {
   background-color: var(--bg-selected);
   color: var(--fg);
-}
-
-.triage-right {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  margin-inline-start: auto;
-}
-
-.selected-meta {
-  color: var(--fg-muted);
-  font-size: var(--text-meta);
 }
 
 .tabular {

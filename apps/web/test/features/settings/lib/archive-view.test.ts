@@ -3,7 +3,6 @@ import type { SessionMetadata } from "@/types/common-type.js"
 import {
   ARCHIVE_GROUP_HEAD_FIRST_HEIGHT,
   ARCHIVE_GROUP_HEAD_HEIGHT,
-  ARCHIVE_LOAD_MORE_HEIGHT,
   ARCHIVE_ROW_HEIGHT,
   archiveVirtualItemHeight,
   buildArchiveRows,
@@ -143,12 +142,11 @@ describe("archive-view 纯计算逻辑", () => {
     ])
   })
 
-  it("按批截断扁平化分组并精确标记首尾圆角与加载更多项", () => {
+  it("扁平化全部分组并精确标记首尾圆角与虚拟高度", () => {
     const sessions: SessionMetadata[] = [
       session("a1", { cwd: "/work/alpha", updatedAt: NOW - 1_000 }),
       session("a2", { cwd: "/work/alpha", updatedAt: NOW - 2_000 }),
       session("b1", { cwd: "/work/beta", updatedAt: NOW - 3_000 }),
-      session("b2", { cwd: "/work/beta", updatedAt: NOW - 4_000 }),
     ]
     const rows = buildArchiveRows({
       sessions,
@@ -161,38 +159,25 @@ describe("archive-view 纯计算逻辑", () => {
       now: NOW,
     })
     const groups = groupArchiveRows(rows, new Map())
-    const partial = flattenArchiveGroups(groups, 3, rows.length)
+    const items = flattenArchiveGroups(groups)
 
-    expect(partial.map((item) => item.kind)).toEqual([
+    expect(items.map((item) => item.kind)).toEqual([
       "group-head",
       "row",
       "row",
       "group-head",
       "row",
-      "load-more",
     ])
-    expect(partial.map((item) => archiveVirtualItemHeight(item))).toEqual([
+    expect(items.map((item) => archiveVirtualItemHeight(item))).toEqual([
       ARCHIVE_GROUP_HEAD_FIRST_HEIGHT,
       ARCHIVE_ROW_HEIGHT,
       ARCHIVE_ROW_HEIGHT,
       ARCHIVE_GROUP_HEAD_HEIGHT,
       ARCHIVE_ROW_HEIGHT,
-      ARCHIVE_LOAD_MORE_HEIGHT,
     ])
-    expect(partial[4]).toMatchObject({ kind: "row", key: "b1", isFirst: true, isLast: true })
-    expect(partial[5]).toEqual({ kind: "load-more", key: "__load_more__", loaded: 3, total: 4 })
-
-    const full = flattenArchiveGroups(groups, 10, rows.length)
-
-    expect(full.some((item) => item.kind === "load-more")).toBe(false)
-    expect(full.map((item) => item.key)).toEqual([
-      "head:/work/alpha",
-      "a1",
-      "a2",
-      "head:/work/beta",
-      "b1",
-      "b2",
-    ])
+    expect(items[1]).toMatchObject({ kind: "row", key: "a1", isFirst: true, isLast: false })
+    expect(items[2]).toMatchObject({ kind: "row", key: "a2", isFirst: false, isLast: true })
+    expect(items[4]).toMatchObject({ kind: "row", key: "b1", isFirst: true, isLast: true })
   })
 
   it("按分/时/天/周/月格式化相对时间", () => {

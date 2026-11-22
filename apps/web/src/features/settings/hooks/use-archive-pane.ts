@@ -1,9 +1,7 @@
 import { useIntervalFn } from "@vueuse/core"
-import { computed, onScopeDispose, ref, shallowRef, watch } from "vue"
+import { computed, ref, shallowRef, watch } from "vue"
 import { sessionArchives } from "@client/session-archives.js"
 import {
-  ARCHIVE_BATCH_STEP,
-  ARCHIVE_INITIAL_BATCH,
   buildArchiveRows,
   collectProjectOptions,
   countArchiveTabs,
@@ -34,13 +32,10 @@ export function useArchivePane(controller: () => ArchiveController) {
   const projectFilter = ref<string>(ALL_PROJECTS)
   const query = ref("")
   const selectedIds = ref(new Set<string>())
-  const loadedLimit = ref(ARCHIVE_INITIAL_BATCH)
   const now = shallowRef(Date.now())
   const staleNow = shallowRef(Date.now())
   const pendingDelete = ref<ArchiveSessionRow[]>([])
   const deleteDialogOpen = ref(false)
-  let loadQueued = false
-  let loadRaf: number | undefined
 
   useIntervalFn(() => {
     now.value = Date.now()
@@ -49,12 +44,6 @@ export function useArchivePane(controller: () => ArchiveController) {
   useIntervalFn(() => {
     staleNow.value = Date.now()
   }, 300_000)
-
-  onScopeDispose(() => {
-    if (loadRaf !== undefined) cancelAnimationFrame(loadRaf)
-    loadRaf = undefined
-    loadQueued = false
-  })
 
   const tabCounts = computed(() =>
     countArchiveTabs(controller().allSessions.value, sessionArchives.value),
@@ -88,17 +77,10 @@ export function useArchivePane(controller: () => ArchiveController) {
   const groups = computed(() =>
     groupArchiveRows(filteredRows.value, controller().projectByCwd.value),
   )
-  const hasMoreRows = computed(() => loadedLimit.value < filteredRows.value.length)
-  const virtualItems = computed(() =>
-    flattenArchiveGroups(groups.value, loadedLimit.value, filteredRows.value.length),
-  )
+  const virtualItems = computed(() => flattenArchiveGroups(groups.value))
   const selectableVisibleIds = computed(() =>
     filteredRows.value.filter((row) => !row.running).map((row) => row.id),
   )
-
-  watch([tab, projectFilter, query], () => {
-    loadedLimit.value = ARCHIVE_INITIAL_BATCH
-  })
 
   watch(selectableVisibleIds, (visible) => {
     const allowed = new Set(visible)
@@ -185,23 +167,6 @@ export function useArchivePane(controller: () => ArchiveController) {
       ? t("settings.archive.deleteConfirmBatchDescription")
       : t("session.deleteBody", { title: pendingDelete.value[0]?.title ?? "" }),
   )
-
-  function loadMoreRows(): void {
-    const total = filteredRows.value.length
-
-    if (loadedLimit.value >= total) return
-    loadedLimit.value = Math.min(total, loadedLimit.value + ARCHIVE_BATCH_STEP)
-  }
-
-  function scheduleLoadMore(): void {
-    if (loadQueued || !hasMoreRows.value) return
-    loadQueued = true
-    loadRaf = requestAnimationFrame(() => {
-      loadRaf = undefined
-      loadQueued = false
-      loadMoreRows()
-    })
-  }
 
   function setTab(next: ArchiveTab): void {
     tab.value = next
@@ -325,7 +290,6 @@ export function useArchivePane(controller: () => ArchiveController) {
     archivedCount,
     filteredRows,
     virtualItems,
-    hasMoreRows,
     projectOptions,
     selectableVisibleIds,
     selectedCount,
@@ -336,8 +300,6 @@ export function useArchivePane(controller: () => ArchiveController) {
     deleteDialogTitle,
     deleteDialogDescription,
     setTab,
-    loadMoreRows,
-    scheduleLoadMore,
     clearSelection,
     toggleSelectAll,
     toggleSelectOne,

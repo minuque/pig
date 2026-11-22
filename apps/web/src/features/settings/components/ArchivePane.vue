@@ -11,11 +11,9 @@
       :has-selectable="selectableVisibleIds.length > 0"
       :master-check-state="masterCheckState"
       :quick-rules="visibleQuickRules"
-      :selected-count="selectedCount"
       @change-tab="setTab"
       @toggle-select-all="toggleSelectAll"
       @toggle-quick-rule="toggleQuickRule"
-      @clear-selection="clearSelection"
     />
 
     <div v-show="virtualItems.length > 0" v-bind="containerProps" class="virtual-viewport">
@@ -73,7 +71,7 @@
           </div>
 
           <ArchiveRow
-            v-else-if="data.kind === 'row'"
+            v-else
             :row="data.row"
             :archived="tab === 'archived'"
             :selected="selectedIds.has(data.row.id)"
@@ -85,12 +83,6 @@
             @unarchive="unarchiveOne"
             @delete="requestDeleteOne"
           />
-
-          <div v-else class="load-more-row">
-            <Button variant="ghost" size="s" class="load-more-button" @click="loadMoreRows">
-              {{ t("settings.archive.loadMore", { loaded: data.loaded, total: data.total }) }}
-            </Button>
-          </div>
         </template>
       </div>
     </div>
@@ -185,7 +177,6 @@ const {
   archivedCount,
   filteredRows,
   virtualItems,
-  hasMoreRows,
   projectOptions,
   selectableVisibleIds,
   selectedCount,
@@ -196,8 +187,6 @@ const {
   deleteDialogTitle,
   deleteDialogDescription,
   setTab,
-  loadMoreRows,
-  scheduleLoadMore,
   clearSelection,
   toggleSelectAll,
   toggleSelectOne,
@@ -220,17 +209,6 @@ watch([tab, projectFilter, query], async () => {
   await nextTick()
   scrollTo(0)
 })
-
-watch(
-  list,
-  (visible) => {
-    if (!hasMoreRows.value || visible.length === 0) return
-    const lastIndex = visible[visible.length - 1]?.index ?? -1
-
-    if (lastIndex >= virtualItems.value.length - 8) scheduleLoadMore()
-  },
-  { immediate: true },
-)
 
 function projectIcon(name: string | undefined) {
   return name ? PROJECT_ICONS[name] : undefined
@@ -339,19 +317,6 @@ function archiveGroupStale(group: ArchiveProjectGroup): void {
   color: var(--fg);
 }
 
-.load-more-row {
-  box-sizing: border-box;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 44px;
-}
-
-.load-more-button {
-  color: var(--fg-muted);
-  font-variant-numeric: tabular-nums;
-}
-
 .archive-empty {
   display: flex;
   flex: 1;
@@ -385,8 +350,8 @@ function archiveGroupStale(group: ArchiveProjectGroup): void {
   padding: var(--space-xs) var(--space-md);
   border-radius: var(--radius-card);
   background: var(--float-bg);
-  box-shadow: var(--shadow-popover);
-  backdrop-filter: blur(12px);
+  box-shadow: var(--float-shadow);
+  backdrop-filter: var(--glass-filter);
 }
 
 .bulk-count {

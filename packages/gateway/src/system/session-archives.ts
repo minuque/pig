@@ -86,7 +86,7 @@ export class SessionArchivesStore {
   private timer: NodeJS.Timeout | undefined
   private onChange: ((archives: SessionArchives) => void) | undefined
   private attaching: Promise<void> | undefined
-  private closed = false
+  private closed = true
 
   constructor(readonly path: string) {}
 
@@ -105,31 +105,24 @@ export class SessionArchivesStore {
   }
 
   patch(input: unknown): Promise<SessionArchives> {
-    const { archive, unarchive } = parsePatch(input)
     return this.enqueue(async () => {
+      const { archive, unarchive } = parsePatch(input)
       const loaded = await this.load()
       const current = loaded.state === "ok" ? loaded.archives : {}
       const next: SessionArchives = { ...current }
       const now = Date.now()
-      let changed = false
 
       for (const id of archive) {
-        if (next[id] === undefined) {
-          next[id] = now
-          changed = true
-        }
+        if (next[id] === undefined) next[id] = now
       }
 
       for (const id of unarchive) {
-        if (next[id] !== undefined) {
-          delete next[id]
-          changed = true
-        }
+        if (next[id] !== undefined) delete next[id]
       }
 
       const sorted = sortArchives(next)
 
-      if (!changed) return sorted
+      if (JSON.stringify(sorted) === JSON.stringify(current)) return sorted
       await writeJsonAtomic(this.path, { version: 1, archives: sorted })
       const committed = this.commit(sorted)
 
@@ -175,6 +168,7 @@ export class SessionArchivesStore {
       this.timer = undefined
     }
 
+    this.onChange = undefined
     this.watcher?.close()
     this.watcher = undefined
   }
@@ -258,6 +252,7 @@ export class SessionArchivesStore {
         if (this.watcher === watcher) this.watcher = undefined
       })
 
+      watcher.unref()
       this.watcher = watcher
     } catch {
       this.watcher = undefined
@@ -270,6 +265,7 @@ export class SessionArchivesStore {
       this.timer = undefined
       void this.flush()
     }, DEBOUNCE_MS)
+    this.timer.unref()
   }
 
   private flush(): Promise<void> {

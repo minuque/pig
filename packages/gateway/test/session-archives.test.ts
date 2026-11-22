@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it } from "vitest"
 import { WebSocket } from "ws"
 
 import Gateway from "../src/index.js"
+import { browserSecretFile } from "../src/auth/browser-session.js"
 import type { DirectoryPort } from "../src/system/directory.js"
 import { SessionArchivesStore } from "../src/system/session-archives.js"
 
@@ -231,6 +232,25 @@ describe("session-archives 接口", () => {
     expect(after.exists).toBe(true)
     expect(Object.keys(after.archives)).toEqual(["s2"])
     store.close()
+  })
+
+  it("store.patch 非法入参返回 rejected Promise，且未 watch 时不开启目录监听", async () => {
+    root = await mkdtemp(join(tmpdir(), "pig-archives-store-"))
+    const file = join(root, "session-archives.json")
+    const store = new SessionArchivesStore(file)
+    const rejected = store.patch({ unknown: 1 })
+
+    await expect(rejected).rejects.toThrow()
+    await store.patch({ archive: ["s1"] })
+    expect((store as unknown as { watcher: unknown }).watcher).toBeUndefined()
+    store.close()
+  })
+
+  it("browserSecretFile 同时传入 sessionDir 与 pigHome 时优先使用 pigHome", () => {
+    expect(browserSecretFile("/tmp/sessions", "/tmp/pig-home")).toBe(
+      join("/tmp/pig-home", "browser-session-secret"),
+    )
+    expect(browserSecretFile("/tmp/sessions")).toBe(join("/tmp/sessions", "browser-session-secret"))
   })
 })
 

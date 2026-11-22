@@ -100,7 +100,7 @@ import SessionNav from "@features/session-nav/index.vue"
 import { provideNav } from "@features/session-nav/index.js"
 import SettingsDialog from "@features/settings/components/SettingsDialog.vue"
 import { useSettingsDialog } from "@features/settings/hooks/use-settings-dialog.js"
-import type { ArchiveController } from "@features/settings/lib/archive-view.js"
+import type { ArchiveController } from "@features/settings/index.js"
 import Startup from "@features/startup/index.vue"
 import {
   createSessionHub,

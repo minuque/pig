@@ -296,7 +296,8 @@ export function useWorkspaceNav(
       notify(t("settings.archive.deleteBatchDone", { count: deletedCount }), "info", {
         transient: true,
       })
-    else if (error.value) notify(error.value, "error", { transient: true })
+
+    if (error.value) notify(error.value, "error", { transient: true })
   }
 
   function formatArchiveNotice(
@@ -321,12 +322,12 @@ export function useWorkspaceNav(
       return
     }
 
-    for (const id of eligible) {
-      if (admin.shownIds.value.includes(id)) admin.leave(id)
-    }
-
     try {
       await requestArchiveSessions(eligible)
+
+      for (const id of eligible) {
+        if (admin.shownIds.value.includes(id)) admin.leave(id)
+      }
 
       if (options?.silent) return
 

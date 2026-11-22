@@ -250,7 +250,7 @@ function onPrimaryAction(): void {
   align-items: center;
   flex-shrink: 0;
   gap: var(--space-2xs);
-  color: var(--accent-solid);
+  color: var(--info-text);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }

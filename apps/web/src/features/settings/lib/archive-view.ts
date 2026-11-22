@@ -4,12 +4,9 @@ import type { ToneColor } from "@/types/ui-type.js"
 
 export const STALE_SESSION_DAYS = 7
 export const STALE_SESSION_MS = STALE_SESSION_DAYS * 24 * 60 * 60 * 1000
-export const ARCHIVE_INITIAL_BATCH = 60
-export const ARCHIVE_BATCH_STEP = 60
 export const ARCHIVE_GROUP_HEAD_FIRST_HEIGHT = 36
 export const ARCHIVE_GROUP_HEAD_HEIGHT = 52
 export const ARCHIVE_ROW_HEIGHT = 60
-export const ARCHIVE_LOAD_MORE_HEIGHT = 44
 
 export type ArchiveTab = "inbox" | "archived"
 
@@ -69,12 +66,6 @@ export type ArchiveVirtualItem =
       readonly row: ArchiveSessionRow
       readonly isFirst: boolean
       readonly isLast: boolean
-    }
-  | {
-      readonly kind: "load-more"
-      readonly key: string
-      readonly loaded: number
-      readonly total: number
     }
 
 export interface ArchiveController {
@@ -234,23 +225,13 @@ export function groupArchiveRows(
   return groups
 }
 
-export function flattenArchiveGroups(
-  groups: readonly ArchiveProjectGroup[],
-  rowLimit: number,
-  totalRowCount: number,
-): ArchiveVirtualItem[] {
-  if (rowLimit <= 0) return []
+export function flattenArchiveGroups(groups: readonly ArchiveProjectGroup[]): ArchiveVirtualItem[] {
   const items: ArchiveVirtualItem[] = []
-  let loaded = 0
 
   for (let groupIndex = 0; groupIndex < groups.length; groupIndex += 1) {
-    const remaining = rowLimit - loaded
-
-    if (remaining <= 0) break
     const group = groups[groupIndex]!
-    const take = Math.min(remaining, group.rows.length)
 
-    if (take <= 0) continue
+    if (group.rows.length === 0) continue
 
     items.push({
       kind: "group-head",
@@ -259,7 +240,7 @@ export function flattenArchiveGroups(
       firstGroup: groupIndex === 0,
     })
 
-    for (let i = 0; i < take; i += 1) {
+    for (let i = 0; i < group.rows.length; i += 1) {
       const row = group.rows[i]!
 
       items.push({
@@ -267,15 +248,9 @@ export function flattenArchiveGroups(
         key: row.id,
         row,
         isFirst: i === 0,
-        isLast: i === take - 1,
+        isLast: i === group.rows.length - 1,
       })
     }
-
-    loaded += take
-  }
-
-  if (loaded < totalRowCount) {
-    items.push({ kind: "load-more", key: "__load_more__", loaded, total: totalRowCount })
   }
 
   return items
@@ -286,8 +261,6 @@ export function archiveVirtualItemHeight(item: ArchiveVirtualItem | undefined): 
 
   if (item.kind === "group-head")
     return item.firstGroup ? ARCHIVE_GROUP_HEAD_FIRST_HEIGHT : ARCHIVE_GROUP_HEAD_HEIGHT
-
-  if (item.kind === "load-more") return ARCHIVE_LOAD_MORE_HEIGHT
   return ARCHIVE_ROW_HEIGHT
 }
 

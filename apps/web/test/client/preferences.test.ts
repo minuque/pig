@@ -168,4 +168,80 @@ describe("preferences 同步", () => {
     expect(userPreferences.value.theme).toBe("dark")
     expect(userPreferences.value.locale).toBe("en")
   })
+
+  it("在途 patch 未返回时收到远端推送，在途字段不被短暂回退", async () => {
+    api.getPreferences.mockResolvedValue({ preferences: DEFAULTS, exists: true })
+
+    const { applyRemotePreferences, hydratePreferences, updatePreferences, userPreferences } =
+      await load()
+
+    await hydratePreferences()
+
+    let release = () => {}
+
+    api.patchPreferences.mockImplementation(async (patch: UserPreferencesPatch) => {
+      await new Promise<void>((resolve) => {
+        release = resolve
+      })
+      return { ...DEFAULTS, themePreset: "paper", ...patch }
+    })
+
+    updatePreferences({ theme: "dark" })
+    await vi.waitFor(() => expect(api.patchPreferences).toHaveBeenCalledTimes(1))
+
+    applyRemotePreferences({ ...DEFAULTS, theme: "light", themePreset: "paper" })
+    expect(userPreferences.value.theme).toBe("dark")
+    expect(userPreferences.value.themePreset).toBe("paper")
+
+    release()
+    await vi.waitFor(() => expect(userPreferences.value.theme).toBe("dark"))
+  })
+
+  it("patch 失败后保留待发变更，后续修改会一并重发", async () => {
+    api.getPreferences.mockResolvedValue({ preferences: DEFAULTS, exists: true })
+
+    const { hydratePreferences, updatePreferences, userPreferences } = await load()
+
+    await hydratePreferences()
+
+    api.patchPreferences
+      .mockRejectedValueOnce(new Error("network down"))
+      .mockImplementationOnce(async (patch: UserPreferencesPatch) => ({ ...DEFAULTS, ...patch }))
+
+    updatePreferences({ theme: "dark" })
+    await vi.waitFor(() => expect(api.patchPreferences).toHaveBeenCalledTimes(1))
+
+    updatePreferences({ locale: "en" })
+    await vi.waitFor(() => expect(api.patchPreferences).toHaveBeenCalledTimes(2))
+
+    expect(api.patchPreferences.mock.calls[1]?.[0]).toEqual({ theme: "dark", locale: "en" })
+    expect(userPreferences.value.theme).toBe("dark")
+    expect(userPreferences.value.locale).toBe("en")
+  })
+
+  it("首次 hydrate 失败时保持未同步，后续修改会重跑水合并完成旧 localStorage 迁移", async () => {
+    localStorage.setItem("npg-theme", "dark")
+    let server: UserPreferences = { ...DEFAULTS }
+
+    api.getPreferences
+      .mockRejectedValueOnce(new Error("offline"))
+      .mockResolvedValueOnce({ preferences: DEFAULTS, exists: false })
+    api.patchPreferences.mockImplementation(async (patch: UserPreferencesPatch) => {
+      server = { ...server, ...patch }
+      return server
+    })
+
+    const { hydratePreferences, updatePreferences, userPreferences } = await load()
+
+    await hydratePreferences()
+    expect(api.patchPreferences).not.toHaveBeenCalled()
+
+    updatePreferences({ locale: "en" })
+    await vi.waitFor(() => expect(api.patchPreferences).toHaveBeenCalledTimes(2))
+
+    expect(api.patchPreferences.mock.calls[0]?.[0]).toEqual({ theme: "dark" })
+    expect(api.patchPreferences.mock.calls[1]?.[0]).toEqual({ locale: "en" })
+    expect(userPreferences.value.theme).toBe("dark")
+    expect(userPreferences.value.locale).toBe("en")
+  })
 })

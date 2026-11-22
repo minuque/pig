@@ -175,11 +175,6 @@ const props = withDefaults(defineProps<Props>(), {
   :where([data-button]:is([data-variant="secondary"], [data-variant="outline"]):hover) {
     background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
   }
-
-  :where([data-button][data-variant="outline"][data-tone]:not([data-tone="neutral"]):hover) {
-    background-color: var(--tone-subtle);
-    background-image: none;
-  }
 }
 
 :where([data-button]:is([data-variant="secondary"], [data-variant="outline"])[data-state="open"]) {

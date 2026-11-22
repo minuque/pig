@@ -133,7 +133,7 @@ const SCALAR_KEYS = [
 ] as const
 
 function legacyPatch(): UserPreferencesPatch {
-  const current = readStored()
+  const current = initial
   const patch: UserPreferencesPatch = {}
 
   for (const key of SCALAR_KEYS) {
@@ -168,9 +168,12 @@ function writeMirror(preferences: UserPreferences): void {
   writeJson(KEYS.railLayout, preferences.railLayout)
 }
 
-const state = shallowRef<UserPreferences>(readStored())
+const initial = readStored()
+const state = shallowRef<UserPreferences>(initial)
 let pending: UserPreferencesPatch = {}
+let inflight: UserPreferencesPatch = {}
 let hydration: Promise<void> | undefined
+let hydrateAttempted = false
 let flushing = false
 let synced = false
 export const userPreferences: ComputedRef<UserPreferences> = computed(() => state.value)
@@ -184,7 +187,18 @@ async function flushPending(): Promise<void> {
       const batch = pending
 
       pending = {}
-      applyFromServer(await patchPreferences(batch))
+      inflight = batch
+
+      try {
+        const server = await patchPreferences(batch)
+
+        inflight = {}
+        applyFromServer(server)
+      } catch (error) {
+        inflight = {}
+        pending = { ...batch, ...pending }
+        throw error
+      }
     }
   } catch (error) {
     console.error("preferences patch failed:", error)
@@ -194,30 +208,33 @@ async function flushPending(): Promise<void> {
 }
 
 function applyFromServer(preferences: UserPreferences): void {
-  const effective = Object.keys(pending).length > 0 ? { ...preferences, ...pending } : preferences
+  const effective =
+    Object.keys(inflight).length > 0 || Object.keys(pending).length > 0
+      ? { ...preferences, ...inflight, ...pending }
+      : preferences
 
   state.value = effective
   writeMirror(effective)
 }
 
 async function hydrate(): Promise<void> {
+  hydrateAttempted = true
+
   try {
     const { preferences, exists } = await getPreferences()
 
     if (exists) {
       applyFromServer(preferences)
-      return
+    } else {
+      const patch = legacyPatch()
+
+      if (Object.keys(patch).length > 0) applyFromServer(await patchPreferences(patch))
     }
 
-    const patch = legacyPatch()
-
-    if (Object.keys(patch).length === 0) return
-    applyFromServer(await patchPreferences(patch))
-  } catch (error) {
-    console.error("preferences hydrate failed:", error)
-  } finally {
     synced = true
     void flushPending()
+  } catch (error) {
+    console.error("preferences hydrate failed:", error)
   }
 }
 
@@ -234,7 +251,9 @@ export function updatePreferences(patch: UserPreferencesPatch): void {
   state.value = next
   writeMirror(next)
   pending = { ...pending, ...patch }
-  void flushPending()
+
+  if (synced) void flushPending()
+  else if (hydrateAttempted) void hydratePreferences()
 }
 
 export function applyRemotePreferences(preferences: UserPreferences): void {

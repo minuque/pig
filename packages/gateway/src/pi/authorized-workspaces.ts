@@ -1,10 +1,9 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises"
-import { dirname, join } from "node:path"
-import { defaultPigHome } from "@pig/environment"
+import { dirname } from "node:path"
+import { pigHomeFile } from "../system/pig-file.js"
 
 function authorizedWorkspacesFile(sessionDir?: string, pigHome?: string): string {
-  if (sessionDir) return join(sessionDir, "authorized-workspaces.json")
-  return join(pigHome ?? defaultPigHome(), "authorized-workspaces.json")
+  return pigHomeFile("authorized-workspaces.json", sessionDir, pigHome)
 }
 
 export async function loadAuthorizedWorkspaces(

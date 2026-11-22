@@ -1,4 +1,4 @@
-import { computed, watch } from "vue"
+import { computed, effectScope, watch } from "vue"
 import { CODE_SIZES, userPreferences, updatePreferences } from "@client/preferences.js"
 
 export type WelcomeField = "mask" | "off"
@@ -39,16 +39,18 @@ function applyCodeSize(size: number): void {
 function load(): void {
   if (loaded) return
   loaded = true
-  watch(
-    [uiFont, codeFont, uiSize, codeSize],
-    ([nextUiFont, nextCodeFont, nextUiSize, nextCodeSize]) => {
-      applyFont("--font-sans", nextUiFont)
-      applyFont("--font-mono", nextCodeFont)
-      applyUiSize(nextUiSize)
-      applyCodeSize(nextCodeSize)
-    },
-    { immediate: true, flush: "sync" },
-  )
+  effectScope(true).run(() => {
+    watch(
+      [uiFont, codeFont, uiSize, codeSize],
+      ([nextUiFont, nextCodeFont, nextUiSize, nextCodeSize]) => {
+        applyFont("--font-sans", nextUiFont)
+        applyFont("--font-mono", nextCodeFont)
+        applyUiSize(nextUiSize)
+        applyCodeSize(nextCodeSize)
+      },
+      { immediate: true, flush: "sync" },
+    )
+  })
 }
 
 export function useAppearancePrefs() {

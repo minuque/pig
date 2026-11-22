@@ -144,7 +144,7 @@ import {
   PaletteIcon,
   SlidersHorizontalIcon,
 } from "@components/icons/index.js"
-import { archivedSessionIds } from "@client/session-archives.js"
+import { sessionArchives } from "@client/session-archives.js"
 import { Kbd } from "@components/ui/kbd/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
@@ -153,7 +153,7 @@ import ArchivePane from "./ArchivePane.vue"
 import GeneralPane from "./GeneralPane.vue"
 import ModelsPane from "./models/ModelsPane.vue"
 import NotificationsPane from "./NotificationsPane.vue"
-import type { ArchiveController } from "@features/settings/lib/archive-view.js"
+import { countArchiveTabs, type ArchiveController } from "@features/settings/lib/archive-view.js"
 import { matchSettings, type SettingsSearchEntry } from "@features/settings/lib/settings-search.js"
 
 import type {
@@ -193,7 +193,9 @@ const tabs = computed<
           id: "archive" as const,
           label: t("settings.archive.title"),
           icon: ArchiveIcon,
-          count: archivedSessionIds.value.size || undefined,
+          count:
+            countArchiveTabs(props.archive.allSessions.value, sessionArchives.value).archived ||
+            undefined,
         },
       ]
     : []),

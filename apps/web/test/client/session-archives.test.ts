@@ -94,4 +94,32 @@ describe("session-archives 客户端同步与乐观回滚", () => {
     applyRemoteSessionArchives({ s1: 3000, s2: 4000 })
     expect(sessionArchives.value).toEqual({ s1: 3000, s2: 4000 })
   })
+
+  it("在途修改期间收到远端推送，若本地请求失败回滚则保留远端最新快照", async () => {
+    api.getSessionArchives.mockResolvedValue({ archives: {}, exists: true })
+
+    const { hydrateSessionArchives, archiveSessions, applyRemoteSessionArchives, sessionArchives } =
+      await load()
+
+    await hydrateSessionArchives()
+
+    let rejectPatch!: (error: Error) => void
+
+    api.patchSessionArchives.mockImplementation(
+      () =>
+        new Promise<SessionArchives>((_resolve, reject) => {
+          rejectPatch = reject
+        }),
+    )
+
+    const pending = archiveSessions(["s1"])
+
+    await vi.waitFor(() => expect(api.patchSessionArchives).toHaveBeenCalledTimes(1))
+    applyRemoteSessionArchives({ s9: 9000 })
+    expect(sessionArchives.value.s1).toBeTypeOf("number")
+
+    rejectPatch(new Error("boom"))
+    await expect(pending).rejects.toThrow("boom")
+    expect(sessionArchives.value).toEqual({ s9: 9000 })
+  })
 })
