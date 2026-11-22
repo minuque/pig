@@ -244,7 +244,8 @@
   --mascot-shadow: rgba(0, 0, 0, 0.2);
   --mascot-peek-duration: 640ms;
   --float-bg: color-mix(in srgb, var(--bg-raised) 84%, transparent);
-  --float-shadow: 0 0 0 var(--border-width) var(--border), 0 4px 12px -4px rgba(0, 0, 0, 0.08);
+  --float-ring: rgba(0, 0, 0, 0.1);
+  --float-shadow: 0 0 0 var(--border-width) var(--float-ring), 0 4px 12px -4px rgba(0, 0, 0, 0.08);
   --menu-item-gap: calc(var(--spacing) / 2);
   --minimap-marker: color-mix(in srgb, var(--fg-secondary) 35%, transparent);
   --nav-inline: var(--space-xs);
@@ -357,7 +358,8 @@ html.dark {
     0 0 0 var(--border-width) var(--border), inset 0 1px rgba(255, 255, 255, 0.05),
     0 24px 72px -20px rgba(0, 0, 0, 0.9);
   --glass-backdrop: color-mix(in srgb, var(--bg) 64%, transparent);
-  --float-shadow: 0 0 0 var(--border-width) var(--border), 0 4px 12px -4px rgba(0, 0, 0, 0.32);
+  --float-ring: rgba(255, 255, 255, 0.12);
+  --float-shadow: 0 0 0 var(--border-width) var(--float-ring), 0 4px 12px -4px rgba(0, 0, 0, 0.32);
   --language-gray: #adadb1;
   --language-red: #ff6762;
   --language-orange: #ffa359;
