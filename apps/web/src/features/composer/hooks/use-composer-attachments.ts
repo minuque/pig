@@ -22,6 +22,7 @@ export interface ComposerAttachmentsApi {
   addDropped(data: DataTransfer | null | undefined): void
   remove(id: string): void
   consumeForSend(): ComposerAttachmentBatch | undefined
+  detach(batch: ComposerAttachmentBatch): void
   settle(batch: ComposerAttachmentBatch): void
   setKey(sessionId: string | undefined): void
   handOff(sessionId: string): void
@@ -209,19 +210,25 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
   function settle(batch: ComposerAttachmentBatch) {
     const stash = sources.get(batch)
 
-    if (!stash) return
     sources.delete(batch)
+
+    for (const item of batch.files) release(item)
+
+    if (stash) detachFrom(stash, batch)
+  }
+
+  function detachFrom(stash: AttachmentStash, batch: ComposerAttachmentBatch) {
     const sent = new Set(batch.files.map((item) => item.id))
-    const kept: ComposerAttachment[] = []
 
-    for (const item of stash.files.value) {
-      if (sent.has(item.id)) release(item)
-      else kept.push(item)
-    }
-
-    stash.files.value = kept
+    stash.files.value = stash.files.value.filter((item) => !sent.has(item.id))
     stash.error.value = ""
     stash.progress.value = new Map()
+  }
+
+  function detach(batch: ComposerAttachmentBatch) {
+    const stash = sources.get(batch)
+
+    if (stash) detachFrom(stash, batch)
   }
 
   if (getCurrentInstance() && !buckets.shared) onUnmounted(() => buckets.clearAll())
@@ -233,6 +240,7 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     addDropped,
     remove,
     consumeForSend,
+    detach,
     settle,
     setKey: buckets.setKey,
     handOff: buckets.handOff,

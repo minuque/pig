@@ -49,7 +49,7 @@ test("running 时 Enter 入队，轮次结束自动发送队首", async ({ page,
   await expect(queue).toHaveCount(0)
 })
 
-test("队列编辑：消息搬回输入框，队列清空", async ({ page, complexGateway }) => {
+test("队列编辑：消息搬回输入框，保存后改回队列", async ({ page, complexGateway }) => {
   test.setTimeout(120_000)
   await installTurnBridge(page)
   await openSession(page, complexGateway)
@@ -69,8 +69,15 @@ test("队列编辑：消息搬回输入框，队列清空", async ({ page, compl
   await expect(queue).toBeVisible()
 
   await page.getByRole("button", { name: "编辑", exact: true }).click()
-  await expect(queue).toHaveCount(0)
+  await expect(queue.locator(".row")).toHaveCount(1)
+  await expect(queue.locator(".row.is-editing")).toHaveCount(1)
   await expect(prompt).toHaveText("排队第二条")
+
+  await prompt.fill("排队第二条改过")
+  await page.getByRole("button", { name: "保存排队消息" }).click()
+  await expect(queue).toContainText("排队第二条改过")
+  await expect(queue.locator(".row.is-editing")).toHaveCount(0)
+  await expect(prompt).toHaveText("")
 })
 
 test("队列拖拽排序：拖到队首换位", async ({ page, complexGateway }) => {

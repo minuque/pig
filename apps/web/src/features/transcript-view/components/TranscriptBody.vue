@@ -43,6 +43,7 @@
             </div>
 
             <TranscriptStatus v-if="turns.length === 0" v-bind="statusProps" />
+            <slot name="queue" />
           </div>
         </div>
 

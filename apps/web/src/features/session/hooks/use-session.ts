@@ -197,7 +197,7 @@ export function useSessionLifecycle(
     const normalized = text.trim()
     let thread = clientState.value
 
-    if (!normalized || thread.submitting) return false
+    if ((!normalized && !attachments) || thread.submitting) return false
 
     if (!sessionId.value && (!cwd || creatingCwd.value)) return false
     const epoch = ++thread.epoch
@@ -271,6 +271,18 @@ export function useSessionLifecycle(
     } finally {
       if (epoch === thread.epoch) thread.submitting = false
     }
+  }
+
+  async function steer(text: string): Promise<boolean> {
+    const normalized = text.trim()
+    const id = sessionId.value
+
+    if (!normalized || !id || !running.value) return false
+    await ensureRemote(id)
+
+    if (sessionId.value !== id || remote.value?.id !== id) return false
+    await remote.value.steer(normalized)
+    return true
   }
 
   async function abortSession() {
@@ -360,6 +372,7 @@ export function useSessionLifecycle(
     aborting,
     createSession,
     sendPrompt,
+    steer,
     setWelcomeHandoff,
     transcriptFor: history.transcriptFor,
     externalTurn,

@@ -107,6 +107,37 @@ test("附件随 Prompt 发送：逐个 stage 后由 WS prompt 带 batch 提交",
   await expect(page.locator(".attach-tray")).toHaveCount(0)
 })
 
+test("纯附件发送：不写文字也能发出，批次跟着走", async ({ page, complexGateway }) => {
+  test.setTimeout(120_000)
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await seedWorkspace(page, complexGateway.workspaceId)
+  const bridge = await installTurnBridge(page)
+
+  await page.goto(complexGateway.entryUrl)
+
+  const card = page.locator(".session-card", {
+    has: page.getByText(COMPLEX_SESSION_NAME, { exact: true }),
+  })
+
+  await expect(card).toBeVisible({ timeout: 30_000 })
+  await card.click()
+  await expect(page).toHaveURL(new RegExp(`/sessions/${COMPLEX_SESSION_ID}$`))
+  await drag(page, "drop")
+  await expect(page.locator(".attach-tray .chip")).toHaveCount(2)
+
+  const staged = page.waitForResponse((response) => response.url().includes("/attachments/stage"))
+
+  await page.locator("button.send").click()
+
+  const stage = await staged
+  const batch = new URL(stage.url()).searchParams.get("batch")
+
+  expect(stage.status()).toBe(200)
+  await expect.poll(() => bridge.promptBatches.length).toBe(1)
+  expect(bridge.promptBatches).toEqual([batch])
+  await expect(page.locator(".attach-tray")).toHaveCount(0)
+})
+
 test("发送中被中止：不再发 prompt，丢弃批次且保留 chips", async ({ page, complexGateway }) => {
   test.setTimeout(120_000)
   await page.emulateMedia({ reducedMotion: "reduce" })

@@ -50,6 +50,21 @@ describe("useComposerDraft", () => {
     expect(draft.isEmpty.value).toBe(false)
   })
 
+  it("改编另一条排队条目时沿用原草稿，切到新条目", () => {
+    const draft = useComposerDraft()
+
+    draft.setKey("s1")
+    draft.text.value = "还没发的话"
+    draft.beginQueueEdit("q1", "排队的第一条")
+    draft.beginQueueEdit("q2", "排队的第二条")
+
+    expect(draft.editingQueueId.value).toBe("q2")
+    expect(draft.text.value).toBe("排队的第二条")
+    expect(draft.stashedDraft.value).toBe("还没发的话")
+    expect(draft.commitQueueEdit()).toEqual({ id: "q2", text: "排队的第二条" })
+    expect(draft.text.value).toBe("还没发的话")
+  })
+
   it("切换会话时结束编辑状态，旧会话的草稿留在原桶", () => {
     const draft = useComposerDraft()
 

@@ -1,23 +1,16 @@
 <template>
-  <form class="prompt" @submit.prevent="onSubmit">
-    <Transition name="fade-layer">
-      <QueuePanel
-        v-if="queueItems.length"
-        :items="queueItems"
-        @reorder="queue.reorder"
-        @edit="onQueueEdit"
-        @send-now="emit('sendNow', $event)"
-        @remove="queue.remove"
-      />
-    </Transition>
-
+  <form class="prompt" @submit.prevent="submitIntent">
     <PromptEditor
       ref="editor"
       v-model:prompt="prompt"
       :cwd="cwd"
-      @submit="onSubmit"
+      :editing-queue="editingQueue"
+      @submit="submitIntent"
       @paste-files="attachments.addFiles"
       @open-file="emit('openFile', $event)"
+      @cancel-queue-edit="emit('cancelQueueEdit')"
+      @history-prev="emit('historyPrev')"
+      @history-next="emit('historyNext')"
     >
       <template v-if="attachmentFiles.length || attachmentError" #attachments>
         <div class="attach-tray">
@@ -47,21 +40,14 @@
               @mousedown.prevent
               @click="pickFiles"
             >
-              <PaperclipIcon class="attach-icon" />
+              <PaperclipIcon class="size-icon" />
             </IconButton>
           </TooltipTrigger>
 
           <TooltipContent>{{ t("composer.addAttachment") }}</TooltipContent>
         </Tooltip>
 
-        <input
-          ref="fileInput"
-          class="file-input"
-          type="file"
-          multiple
-          hidden
-          @change="onFilesPicked"
-        />
+        <input ref="fileInput" type="file" multiple hidden @change="onFilesPicked" />
       </template>
 
       <template #tools>
@@ -76,33 +62,17 @@
       </template>
 
       <template #right>
-        <Tooltip>
-          <TooltipTrigger as-child>
-            <IconButton
-              type="button"
-              size="s"
-              variant="solid"
-              radius="full"
-              :color="primaryMode === 'stop' ? 'danger' : 'accent'"
-              class="send press-scale"
-              :class="{ 'send--abort': primaryMode === 'stop' }"
-              :aria-label="primaryLabel"
-              :aria-keyshortcuts="primaryMode === 'stop' ? 'Escape' : 'Enter'"
-              :disabled="primaryDisabled"
-              @mousedown.prevent
-              @click="onPrimaryAction"
-            >
-              <span v-if="primaryMode === 'stop'" class="stop-square" aria-hidden="true"></span>
-              <ArrowUpIcon v-else class="size-icon send-arrow" aria-hidden="true" />
-            </IconButton>
-          </TooltipTrigger>
-
-          <TooltipContent>
-            <!-- 外部：元素间的换行空白会被编译器丢掉 -->
-            <span>{{ primaryLabel }}</span>
-            <Kbd v-if="primaryMode !== 'stop'" size="s" variant="soft" class="tooltip-hint">↵</Kbd>
-          </TooltipContent>
-        </Tooltip>
+        <ComposerPrimaryAction
+          :running="running"
+          :steer-held="steerHeld"
+          :editing-queue="editingQueue"
+          :stop-phase="stopPhase"
+          :send-disabled="sendDisabled"
+          :has-payload="hasPayload"
+          :has-attachments="hasAttachments"
+          @submit="submitIntent"
+          @abort="emit('abort')"
+        />
       </template>
     </PromptEditor>
 
@@ -118,30 +88,29 @@
 
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue"
-import { useEventListener } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
-import { Kbd } from "@components/ui/kbd/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import AttachmentChips from "@features/composer/components/AttachmentChips.vue"
-import PreviewDialog from "@features/preview/index.vue"
-import ModelPicker from "@features/composer/components/ModelPicker.vue"
+import ComposerPrimaryAction from "@features/composer/components/ComposerPrimaryAction.vue"
 import ContextRing from "@features/composer/components/ContextRing.vue"
+import ModelPicker from "@features/composer/components/ModelPicker.vue"
 import PromptEditor from "@features/composer/components/PromptEditor.vue"
-import QueuePanel from "@features/composer/components/QueuePanel.vue"
+import PreviewDialog from "@features/preview/index.vue"
 import type { ComposerAttachment } from "@/types/attachment-type.js"
+import { useComposerAbortHotkey } from "@features/composer/hooks/use-composer-abort-hotkey.js"
 import {
   MAX_COMPOSER_ATTACHMENTS,
   type ComposerAttachmentsApi,
 } from "@features/composer/hooks/use-composer-attachments.js"
-import type { ComposerQueueApi, QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
 import type {
   ComposerModel,
   ComposerPreset,
   ComposerVendor,
   ContextUsage,
+  StopPhase,
 } from "@features/composer/type.js"
-import { ArrowUpIcon, PaperclipIcon } from "@components/icons/index.js"
+import { PaperclipIcon } from "@components/icons/index.js"
 
 const { t } = useI18n()
 const props = withDefaults(
@@ -149,16 +118,17 @@ const props = withDefaults(
     catalog: ComposerVendor[]
     attachments: ComposerAttachmentsApi
     running?: boolean
-    aborting?: boolean
+    editingQueue?: boolean
+    stopPhase?: StopPhase
     sendDisabled?: boolean
     sessionId?: string | undefined
     cwd?: string | undefined
     usage?: ContextUsage | undefined
-    queue: ComposerQueueApi
   }>(),
   {
     running: false,
-    aborting: false,
+    editingQueue: false,
+    stopPhase: "idle",
     sendDisabled: false,
     sessionId: undefined,
     cwd: undefined,
@@ -169,10 +139,14 @@ const prompt = defineModel<string>("prompt", { required: true })
 const preset = defineModel<ComposerPreset | undefined>("preset")
 const emit = defineEmits<{
   send: [text: string]
-  sendNow: [item: QueuedPrompt]
+  steer: [text: string]
   queue: [text: string]
+  saveEdit: []
   abort: []
   openFile: [path: string]
+  cancelQueueEdit: []
+  historyPrev: []
+  historyNext: []
 }>()
 const model = computed({
   get: () => preset.value?.model,
@@ -186,37 +160,17 @@ const level = computed({
     if (preset.value) preset.value = { ...preset.value, thinkingLevel }
   },
 })
-const sendActive = computed(() => prompt.value.trim() !== "" && !props.sendDisabled)
 const modelPickerOpen = ref(false)
 const previewItem = ref<ComposerAttachment>()
 const fileInput = useTemplateRef("fileInput")
 const editor = useTemplateRef("editor")
 const attachmentFiles = computed(() => props.attachments.files.value)
-const queueItems = computed(() => props.queue.items.value)
 const attachmentProgress = computed(() => props.attachments.progress.value)
 const attachmentError = computed(() => props.attachments.error.value)
 const attachmentsFull = computed(() => attachmentFiles.value.length >= MAX_COMPOSER_ATTACHMENTS)
-
-type PrimaryMode = "send" | "queue" | "stop"
-
-const primaryMode = computed<PrimaryMode>(() => {
-  if (props.running) return sendActive.value ? "queue" : "stop"
-  return "send"
-})
-const primaryLabel = computed(() => {
-  switch (primaryMode.value) {
-    case "stop":
-      return t("composer.stopTurn")
-    case "queue":
-      return t("composer.queuePrompt")
-    default:
-      return t("composer.sendPrompt")
-  }
-})
-const primaryDisabled = computed(() => {
-  if (primaryMode.value === "stop") return props.aborting
-  return !sendActive.value
-})
+const hasAttachments = computed(() => attachmentFiles.value.length > 0)
+const hasPayload = computed(() => prompt.value.trim().length > 0 || hasAttachments.value)
+const steerHeld = computed(() => editor.value?.steerHeld ?? false)
 
 watch(
   () => props.sessionId,
@@ -225,34 +179,31 @@ watch(
   },
 )
 
-useEventListener(window, "keydown", onAbortHotkey, { capture: true })
+useComposerAbortHotkey({
+  running: () => props.running,
+  stopping: () => props.stopPhase === "pending",
+  blocked: () => Boolean(previewItem.value) || modelPickerOpen.value || props.editingQueue,
+  menuOpen: () => editor.value?.menuOpen ?? false,
+  abort: () => emit("abort"),
+})
 
 function submitIntent() {
-  if (!sendActive.value) return
+  if (!hasPayload.value) return
 
-  if (props.running) emit("queue", prompt.value)
-  else emit("send", prompt.value)
-}
-
-function onSubmit() {
-  submitIntent()
-}
-
-function onPrimaryAction() {
-  if (primaryMode.value === "stop") {
-    if (!props.aborting) emit("abort")
+  if (props.editingQueue) {
+    emit("saveEdit")
     return
   }
 
-  submitIntent()
-}
+  if (props.sendDisabled || props.stopPhase === "pending" || props.stopPhase === "landed") return
 
-function onQueueEdit(item: QueuedPrompt) {
-  prompt.value = item.text
+  if (props.running) {
+    if (steerHeld.value) emit("steer", prompt.value)
+    else emit("queue", prompt.value)
+    return
+  }
 
-  if (item.attachments) props.attachments.addFiles(item.attachments.files.map((f) => f.file))
-  props.queue.remove(item.id)
-  editor.value?.focus()
+  emit("send", prompt.value)
 }
 
 function pickFiles() {
@@ -273,30 +224,6 @@ function onPreview(item: ComposerAttachment) {
 watch(previewItem, (item, previous) => {
   if (previous && !item) editor.value?.focus()
 })
-
-function onAbortHotkey(event: KeyboardEvent) {
-  if (event.key !== "Escape" || event.isComposing) return
-
-  if (event.altKey || event.ctrlKey || event.metaKey) return
-
-  if (previewItem.value || !props.running || props.aborting || modelPickerOpen.value) return
-
-  if (editor.value?.menuOpen) return
-  const active = document.activeElement
-
-  if (
-    active instanceof Element &&
-    active.closest(
-      "[data-slot='dialog-content'], [data-slot='alert-dialog-content'], [data-slot='dropdown-menu-content'], [data-slot='context-menu-content']",
-    )
-  ) {
-    return
-  }
-
-  event.preventDefault()
-  event.stopPropagation()
-  emit("abort")
-}
 </script>
 
 <style scoped>
@@ -308,8 +235,6 @@ function onAbortHotkey(event: KeyboardEvent) {
   width: 100%;
   margin-inline: auto;
   padding: 0;
-  border: 0;
-  border-radius: 0;
   background: transparent;
 }
 
@@ -332,53 +257,5 @@ function onAbortHotkey(event: KeyboardEvent) {
   inline-size: var(--control-md);
   block-size: var(--control-md);
   color: var(--fg);
-}
-
-.send {
-  inline-size: var(--control-md);
-  block-size: var(--control-md);
-}
-
-.send:disabled {
-  opacity: 1;
-  background: var(--bg-emphasis);
-  color: var(--fg-secondary);
-  box-shadow: none;
-}
-
-.send--abort:not(:disabled):hover {
-  opacity: 0.85;
-}
-
-.send--abort:disabled {
-  opacity: var(--opacity-disabled);
-}
-
-.stop-square {
-  width: 11px;
-  height: 11px;
-  border-radius: 3px;
-  background: currentColor;
-}
-
-.send-arrow {
-  stroke-width: 2.5px;
-}
-
-.tooltip-hint[data-slot="kbd"] {
-  top: 0;
-  min-inline-size: 0;
-  margin-inline-start: var(--space-2xs);
-  padding: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  opacity: 0.65;
-}
-
-.attach-icon {
-  inline-size: var(--icon-lg);
-  block-size: var(--icon-lg);
-  color: currentColor;
 }
 </style>

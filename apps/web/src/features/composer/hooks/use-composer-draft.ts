@@ -27,7 +27,7 @@ export interface ComposerDraftApi {
   handOff(sessionId: string): void
 }
 
-export function useComposerDraft(store?: SharedBuckets): ComposerDraftApi {
+export function useComposerDraft(textRef?: Ref<string>, store?: SharedBuckets): ComposerDraftApi {
   const buckets = useSessionBuckets<DraftStash>(
     () => ({ text: ref(""), history: createPromptHistory() }),
     undefined,
@@ -35,12 +35,13 @@ export function useComposerDraft(store?: SharedBuckets): ComposerDraftApi {
     store,
   )
   const bucket = buckets.current
+  const source = () => textRef ?? bucket().text
   const editingQueueId = ref<string | null>(null)
   const stashedDraft = ref("")
   const text = computed({
-    get: () => bucket().text.value,
+    get: () => source().value,
     set: (value: string) => {
-      bucket().text.value = value
+      source().value = value
     },
   })
   const isEmpty = computed(() => text.value.trim().length === 0)
@@ -53,8 +54,7 @@ export function useComposerDraft(store?: SharedBuckets): ComposerDraftApi {
   }
 
   function beginQueueEdit(id: string, value: string) {
-    if (editingQueueId.value !== null) return
-    stashedDraft.value = text.value
+    if (editingQueueId.value === null) stashedDraft.value = text.value
     editingQueueId.value = id
     text.value = value
   }

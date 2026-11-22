@@ -229,7 +229,8 @@ export function composePrompt(
   const lines = files.map(
     (file) => `- ${file.name} — ${file.mimeType} — ${file.size} — ${file.path}`,
   )
-  return { text: `${text}\n\n<attached_files>\n${lines.join("\n")}\n</attached_files>`, images }
+  const block = `<attached_files>\n${lines.join("\n")}\n</attached_files>`
+  return { text: text ? `${text}\n\n${block}` : block, images }
 }
 
 export function sanitizeFileName(raw: string): string {

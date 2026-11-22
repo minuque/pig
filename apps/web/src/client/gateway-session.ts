@@ -15,7 +15,7 @@ import {
 } from "@client/transcript-state.js"
 
 export type SessionOperation =
-  "open" | "create" | "submit" | "abort" | "setModel" | "setThinking" | "reconnect"
+  "open" | "create" | "submit" | "steer" | "abort" | "setModel" | "setThinking" | "reconnect"
 
 export type SessionLifecycle =
   | { readonly status: "unbound" }
@@ -97,13 +97,13 @@ export class GatewaySession {
 
   async submit(text: string, options?: { attachmentBatch?: string }) {
     const message = text.trim()
+    const batch = options?.attachmentBatch
 
-    if (!message) return
+    if (!message && !batch) return
     const sessionId = this.#require()
 
     if (this.phase !== "idle" && this.phase !== "turn")
       throw new Error(`Session cannot accept input during ${this.phase ?? "unknown"} phase`)
-    const batch = options?.attachmentBatch
     const idle = this.phase === "idle"
 
     if (!idle && batch) throw new Error("Attachments can only ride an idle prompt")
@@ -113,6 +113,18 @@ export class GatewaySession {
           ? { command: "prompt", sessionId, message, ...(batch ? { attachmentBatch: batch } : {}) }
           : { command: "steer", sessionId, message },
       ),
+    )
+  }
+
+  async steer(text: string) {
+    const message = text.trim()
+
+    if (!message) return
+    const sessionId = this.#require()
+
+    if (this.phase === "idle") throw new Error("There is no active turn to steer")
+    await this.#run("steer", () =>
+      this.client.requestSession({ command: "steer", sessionId, message }),
     )
   }
 
