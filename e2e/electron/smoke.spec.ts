@@ -25,6 +25,7 @@ test("桌面壳启动：preload、网关与渲染进程都就位", async () => {
       PIG_NO_FOCUS: "1",
       PIG_VITE_PORT: String(VITE_PORT),
       PIG_SESSION_DIR: sessionDir,
+      PIG_HOME: sessionDir,
       PIG_CWD: sessionDir,
     },
   })

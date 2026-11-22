@@ -18,6 +18,8 @@ export function useModelPickerPanel(
   open: Ref<boolean>,
   currentVendorId: () => string | undefined,
   fallbackVendorId: () => string | undefined,
+  hasFavorites: () => boolean,
+  vendorIds: () => string[],
   searchRef: Ref<HTMLInputElement | null>,
 ) {
   const query = ref("")
@@ -27,7 +29,9 @@ export function useModelPickerPanel(
   watch(open, (isOpen) => {
     if (!isOpen) return
     query.value = ""
-    scope.value = currentVendorId() ?? fallbackVendorId() ?? FAVORITES_SCOPE
+    scope.value = hasFavorites()
+      ? FAVORITES_SCOPE
+      : (currentVendorId() ?? fallbackVendorId() ?? FAVORITES_SCOPE)
     void nextTick(focusSearch)
   })
 
@@ -38,6 +42,15 @@ export function useModelPickerPanel(
   function selectScope(next: string) {
     query.value = ""
     scope.value = next
+  }
+
+  function cycleScope(event: KeyboardEvent) {
+    event.stopPropagation()
+    const order = [FAVORITES_SCOPE, ...vendorIds()]
+    const index = order.indexOf(scope.value)
+    const next = order[(index + (event.shiftKey ? -1 : 1) + order.length) % order.length]
+
+    if (next) selectScope(next)
   }
 
   function onPanelKeydown(event: KeyboardEvent) {
@@ -78,6 +91,7 @@ export function useModelPickerPanel(
     query,
     scope,
     selectScope,
+    cycleScope,
     onPanelKeydown,
     onSearchKeydown,
     onPointerDownOutside,

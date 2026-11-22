@@ -66,6 +66,34 @@ test("输入卡附件：超量的跳过并提示，附件入口禁用", async ({
   await expect(page.locator(".attach-tray .chip")).toHaveCount(8)
   await expect(page.locator(".attach-error")).toContainText("f8.txt（最多 8 个附件）")
   await expect(attach).toBeDisabled()
+
+  await page.getByRole("button", { name: "隐藏提示" }).click()
+  await expect(page.locator(".attach-error")).toHaveCount(0)
+  await expect(page.locator(".attach-tray .chip")).toHaveCount(8)
+})
+
+test("输入卡附件：大段粘贴折成 pasted-1.txt 附件", async ({ page, gateway }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await seedWorkspace(page, gateway.workspaceId)
+  await page.goto(gateway.entryUrl)
+  await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
+
+  const prompt = page.getByRole("textbox", { name: "Prompt" })
+  const lines = Array.from({ length: 301 }, (_, index) => `第 ${index + 1} 行`).join("\n")
+
+  await prompt.evaluate((element, text) => {
+    const data = new DataTransfer()
+
+    data.setData("text/plain", text)
+    element.dispatchEvent(new ClipboardEvent("paste", { bubbles: true, clipboardData: data }))
+  }, lines)
+
+  const chip = page.locator(".attach-tray .chip", { hasText: "pasted-1.txt" })
+
+  await expect(chip).toBeVisible()
+  await expect(page.getByRole("button", { name: "移除 pasted-1.txt" })).toBeVisible()
+  await expect(chip.locator(".file-size")).toContainText("KB")
+  await expect(prompt).toHaveText("")
 })
 
 test("附件随 Prompt 发送：逐个 stage 后由 WS prompt 带 batch 提交", async ({
@@ -104,6 +132,37 @@ test("附件随 Prompt 发送：逐个 stage 后由 WS prompt 带 batch 提交",
   await expect(
     page.locator(".row-user").getByText("附件一轮", { exact: true }).first(),
   ).toBeVisible()
+  await expect(page.locator(".attach-tray")).toHaveCount(0)
+})
+
+test("纯附件发送：不写文字也能发出，批次跟着走", async ({ page, complexGateway }) => {
+  test.setTimeout(120_000)
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await seedWorkspace(page, complexGateway.workspaceId)
+  const bridge = await installTurnBridge(page)
+
+  await page.goto(complexGateway.entryUrl)
+
+  const card = page.locator(".session-card", {
+    has: page.getByText(COMPLEX_SESSION_NAME, { exact: true }),
+  })
+
+  await expect(card).toBeVisible({ timeout: 30_000 })
+  await card.click()
+  await expect(page).toHaveURL(new RegExp(`/sessions/${COMPLEX_SESSION_ID}$`))
+  await drag(page, "drop")
+  await expect(page.locator(".attach-tray .chip")).toHaveCount(2)
+
+  const staged = page.waitForResponse((response) => response.url().includes("/attachments/stage"))
+
+  await page.locator("button.send").click()
+
+  const stage = await staged
+  const batch = new URL(stage.url()).searchParams.get("batch")
+
+  expect(stage.status()).toBe(200)
+  await expect.poll(() => bridge.promptBatches.length).toBe(1)
+  expect(bridge.promptBatches).toEqual([batch])
   await expect(page.locator(".attach-tray")).toHaveCount(0)
 })
 
@@ -152,4 +211,75 @@ test("发送中被中止：不再发 prompt，丢弃批次且保留 chips", asyn
   expect(discard.request().postDataJSON()).toEqual({ batch })
   expect(bridge.promptBatches).toEqual([])
   await expect(page.locator(".attach-tray .chip")).toHaveCount(2)
+})
+
+test("单个附件上传失败：报错可重试，其他附件与草稿保留", async ({ page, complexGateway }) => {
+  test.setTimeout(120_000)
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await seedWorkspace(page, complexGateway.workspaceId)
+  const bridge = await installTurnBridge(page)
+  let failOnce = true
+
+  await page.route(/\/attachments\/stage/, async (route) => {
+    const name = new URL(route.request().url()).searchParams.get("name")
+
+    if (name === "note.md" && failOnce) {
+      failOnce = false
+      await route.fulfill({ status: 500, json: { code: "SERVER_ERROR" } })
+      return
+    }
+
+    await route.continue()
+  })
+  await page.goto(complexGateway.entryUrl)
+
+  const card = page.locator(".session-card", {
+    has: page.getByText(COMPLEX_SESSION_NAME, { exact: true }),
+  })
+
+  await expect(card).toBeVisible({ timeout: 30_000 })
+  await card.click()
+  await expect(page).toHaveURL(new RegExp(`/sessions/${COMPLEX_SESSION_ID}$`))
+  await drag(page, "drop")
+  await expect(page.locator(".attach-tray .chip")).toHaveCount(2)
+
+  const prompt = page.getByRole("textbox", { name: "Prompt" })
+  const note = page.locator(".attach-tray .chip", { hasText: "note.md" })
+  const failed = page.waitForResponse(
+    (response) => response.url().includes("/attachments/stage") && response.status() === 500,
+  )
+
+  await prompt.fill("上传失败的一轮")
+  await page.locator("button.send").click()
+  await failed
+
+  await expect(note).toHaveAttribute("data-status", "error")
+  await expect(note.getByRole("button", { name: "重试" })).toBeVisible()
+  await expect(page.locator(".attach-tray .chip")).toHaveCount(2)
+  await expect(page.getByRole("button", { name: "移除 shot.png" })).toBeVisible()
+  await expect(prompt).toHaveText("上传失败的一轮")
+  expect(bridge.promptBatches).toEqual([])
+
+  const retried = page.waitForResponse(
+    (response) => response.url().includes("/attachments/stage") && response.status() === 200,
+  )
+
+  await note.getByRole("button", { name: "重试" }).click()
+  await retried
+  await expect(note).toHaveAttribute("data-status", "ready")
+  await expect(note.getByRole("button", { name: "重试" })).toHaveCount(0)
+
+  const staged = page.waitForRequest((request) => request.url().includes("/attachments/stage"))
+
+  await page.locator("button.send").click()
+
+  const stage = await staged
+  const batch = new URL(stage.url()).searchParams.get("batch")
+
+  await expect.poll(() => bridge.promptBatches.length).toBe(1)
+  expect(bridge.promptBatches).toEqual([batch])
+  await expect(
+    page.locator(".row-user").getByText("上传失败的一轮", { exact: true }).first(),
+  ).toBeVisible()
+  await expect(page.locator(".attach-tray")).toHaveCount(0)
 })

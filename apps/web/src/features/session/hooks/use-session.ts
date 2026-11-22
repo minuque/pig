@@ -2,7 +2,7 @@ import { computed, getCurrentInstance, onBeforeUnmount, ref, watch, type Compute
 import type { ModelRef, ThinkingLevel } from "@/types/common-type.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
-import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
+import type { ComposerAttachmentBatch, SendAttachmentsHooks } from "@/types/attachment-type.js"
 import { notify } from "@components/layout/notify.js"
 import { errorMessage } from "@client/http.js"
 import { t } from "@i18n/index.js"
@@ -134,6 +134,7 @@ export function useSessionLifecycle(
     const id = sessionId.value ?? pendingSessionId.value
     return id ? sessionState(states, id) : idleState
   })
+  const reloadRevision = ref(0)
   const submitting = computed(() => clientState.value.submitting)
   const aborting = computed(() => clientState.value.aborting)
   const prompt = computed({
@@ -192,22 +193,34 @@ export function useSessionLifecycle(
     }
   }
 
-  async function runBuiltin(command: BuiltinCommand, thread: SessionClientState) {
+  async function runBuiltin(
+    command: BuiltinCommand,
+    thread: SessionClientState,
+    options?: { preserveDraft?: boolean },
+  ) {
     const id = sessionId.value
     const previousDraft = thread.draft
 
     if (!id) return false
     thread.submitting = true
-    thread.draft = ""
+
+    if (!options?.preserveDraft) thread.draft = ""
 
     try {
       await ensureRemote(id)
 
-      if (command.name === "compact") await remote.value?.compact(command.instructions)
-      else await remote.value?.reload()
+      if (remote.value?.id !== id) throw new Error("会话未连接")
+
+      if (command.name === "compact") await remote.value.compact(command.instructions)
+      else {
+        await remote.value.reload()
+        reloadRevision.value += 1
+        notify(t("session.reloaded"), "success")
+      }
+
       return true
     } catch (error) {
-      if (!thread.draft) thread.draft = previousDraft
+      if (!options?.preserveDraft && !thread.draft) thread.draft = previousDraft
       notify(errorMessage(error), "error")
       return false
     } finally {
@@ -219,15 +232,22 @@ export function useSessionLifecycle(
     text: string,
     cwd?: string,
     attachments?: ComposerAttachmentBatch,
+    hooks?: SendAttachmentsHooks,
+    options?: { preserveDraft?: boolean },
   ): Promise<boolean> {
     const normalized = text.trim()
     let thread = clientState.value
 
-    if (!normalized || thread.submitting) return false
+    if ((!normalized && !attachments) || thread.submitting) return false
 
     const builtin = sessionId.value ? parseBuiltinCommand(normalized) : undefined
 
-    if (builtin) return runBuiltin(builtin, thread)
+    if (builtin && attachments) {
+      notify(t("composer.builtinNoAttachments"), "warning")
+      return false
+    }
+
+    if (builtin) return runBuiltin(builtin, thread, options)
 
     if (!sessionId.value && (!cwd || creatingCwd.value)) return false
     const epoch = ++thread.epoch
@@ -240,7 +260,8 @@ export function useSessionLifecycle(
     )
 
     thread.sends.push(send)
-    thread.draft = ""
+
+    if (!options?.preserveDraft) thread.draft = ""
 
     try {
       if (!sessionId.value) {
@@ -271,23 +292,26 @@ export function useSessionLifecycle(
       if (epoch !== thread.epoch || remote.value?.id !== sessionId.value) return false
 
       if (attachments && !(await stageAttachments(attachments, thread, epoch))) {
-        await dropBatch(attachments.batch)
+        await dropBatch(attachments)
+        hooks?.onStageDropped?.()
         return false
       }
 
       if (epoch !== thread.epoch || remote.value?.id !== sessionId.value) {
-        await dropBatch(attachments?.batch)
+        await dropBatch(attachments)
+        hooks?.onStageDropped?.()
         return false
       }
 
+      if (attachments) hooks?.onDispatched?.()
       await submitRemote(normalized, attachments?.batch)
       return true
     } catch (error) {
-      await dropBatch(attachments?.batch)
+      await dropBatch(attachments)
 
       if (epoch !== thread.epoch) return false
 
-      if (!thread.draft) thread.draft = previousDraft || text
+      if (!options?.preserveDraft && !thread.draft) thread.draft = previousDraft || text
       const index = thread.sends.findIndex((item) => item.item.id === send.item.id)
 
       if (index >= 0) thread.sends.splice(index, 1)
@@ -301,6 +325,18 @@ export function useSessionLifecycle(
     } finally {
       if (epoch === thread.epoch) thread.submitting = false
     }
+  }
+
+  async function steer(text: string): Promise<boolean> {
+    const normalized = text.trim()
+    const id = sessionId.value
+
+    if (!normalized || !id || !running.value) return false
+    await ensureRemote(id)
+
+    if (sessionId.value !== id || remote.value?.id !== id) return false
+    await remote.value.steer(normalized)
+    return true
   }
 
   async function abortSession() {
@@ -392,11 +428,13 @@ export function useSessionLifecycle(
     aborting,
     createSession,
     sendPrompt,
+    steer,
     setWelcomeHandoff,
     transcriptFor: history.transcriptFor,
     externalTurn,
     takeover,
     abortSession,
+    reloadRevision,
     initialize,
     remote,
     teardown,

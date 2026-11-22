@@ -1,5 +1,11 @@
 <template>
-  <div class="command-menu" :id="menuId" role="listbox" :aria-label="ariaLabel" @mousedown.prevent>
+  <div
+    :id="menuId"
+    class="command-menu"
+    role="listbox"
+    :aria-label="t('composer.commandMenuLabel')"
+    @mousedown.prevent
+  >
     <div class="command-scroll">
       <div class="command-body">
         <template v-if="groups.length">
@@ -8,37 +14,33 @@
 
             <div
               v-for="row in group.rows"
+              :id="rowElementId(row.id)"
               :key="row.id"
-              :id="`${menuId}-row-${encodeRowId(row.id)}`"
-              :ref="(el) => setRowRef(row.id, el)"
               role="option"
               class="command-row"
               :aria-selected="row.id === activeId"
-              :data-active="row.id === activeId ? '' : undefined"
               @mousemove="emit('highlight', row.id)"
-              @mousedown.prevent
               @click="emit('select', row.id)"
             >
-              <span class="command-icon" aria-hidden="true">
-                <component :is="row.icon" v-if="row.icon" />
-                <BlocksIcon v-else-if="row.kind === 'skill'" class="command-glyph" />
-                <FileTextIcon v-else-if="row.kind === 'template'" class="command-glyph" />
-                <SquareCodeIcon v-else-if="row.kind === 'builtin'" class="command-glyph" />
-                <FolderIcon v-else-if="row.directory" class="command-glyph" />
-                <FileTextIcon v-else class="command-glyph" />
-              </span>
+              <component
+                :is="rowIcon(row)"
+                v-bind="rowIconProps(row)"
+                class="command-icon"
+                aria-hidden="true"
+              />
 
               <span class="command-main">
                 <span class="command-title">{{ row.title }}</span>
-                <span v-if="row.secondary" class="command-secondary">{{ row.secondary }}</span>
-              </span>
 
-              <span v-if="row.trailing" class="command-trailing">{{ row.trailing }}</span>
+                <span v-if="row.secondary" class="command-secondary" :title="row.secondary">
+                  {{ row.secondary }}
+                </span>
+              </span>
             </div>
           </div>
         </template>
 
-        <p v-else class="command-status" :data-loading="loading || undefined">{{ statusText }}</p>
+        <p v-else class="command-status" role="status">{{ statusText }}</p>
       </div>
     </div>
   </div>
@@ -46,26 +48,16 @@
 
 <script setup lang="ts">
 import { computed, nextTick, watch, type Component } from "vue"
+import { useI18n } from "@i18n/index.js"
 import { SquareCodeIcon, FileTextIcon, FolderIcon, BlocksIcon } from "@components/icons/index.js"
+import LanguageIcon from "@components/icons/LanguageIcon.vue"
+import type { CommandMenuGroup, CommandMenuRow } from "@features/composer/type.js"
 
-export type CommandMenuRowKind = "skill" | "template" | "builtin" | "file" | "directory"
-
-export interface CommandMenuRow {
-  id: string
-  title: string
-  secondary?: string | undefined
-  trailing?: string | undefined
-  icon?: Component
-  kind?: CommandMenuRowKind
-  directory?: boolean
+const KIND_ICONS: Record<string, Component> = {
+  skill: BlocksIcon,
+  builtin: SquareCodeIcon,
+  directory: FolderIcon,
 }
-
-export interface CommandMenuGroup {
-  id: string
-  label?: string
-  rows: CommandMenuRow[]
-}
-
 const props = withDefaults(
   defineProps<{
     groups: CommandMenuGroup[]
@@ -73,31 +65,34 @@ const props = withDefaults(
     menuId?: string
     loading?: boolean
     emptyText?: string
-    loadingText?: string
-    ariaLabel?: string
   }>(),
-  {
-    menuId: "composer-command-menu",
-    loading: false,
-    emptyText: "没有匹配项",
-    loadingText: "搜索中…",
-    ariaLabel: "命令菜单",
-  },
+  { menuId: "composer-command-menu", loading: false },
 )
 const emit = defineEmits<{
   select: [id: string]
   highlight: [id: string]
 }>()
-const statusText = computed(() => (props.loading ? props.loadingText : props.emptyText))
-const rowRefs = new Map<string, HTMLElement>()
+const { t } = useI18n()
+const statusText = computed(() =>
+  props.loading ? t("composer.commandLoading") : (props.emptyText ?? t("composer.commandEmpty")),
+)
 
-function setRowRef(id: string, el: Element | Component | null) {
-  if (el instanceof HTMLElement) rowRefs.set(id, el)
-  else rowRefs.delete(id)
+function rowIcon(row: CommandMenuRow) {
+  if (row.kind === "file") return LanguageIcon
+  return row.icon ?? KIND_ICONS[row.kind ?? ""] ?? FileTextIcon
 }
 
-function encodeRowId(id: string): string {
-  return encodeURIComponent(id)
+function rowIconProps(row: CommandMenuRow) {
+  return row.kind === "file" ? { language: rowLanguage(row.title) } : {}
+}
+
+function rowLanguage(name: string): string {
+  const dot = name.lastIndexOf(".")
+  return (dot > 0 ? name.slice(dot + 1) : name).toLowerCase()
+}
+
+function rowElementId(id: string): string {
+  return `${props.menuId}-row-${encodeURIComponent(id)}`
 }
 
 watch(
@@ -105,7 +100,7 @@ watch(
   async (id) => {
     if (!id) return
     await nextTick()
-    rowRefs.get(id)?.scrollIntoView({ block: "nearest" })
+    document.getElementById(rowElementId(id))?.scrollIntoView({ block: "nearest" })
   },
 )
 </script>
@@ -123,6 +118,8 @@ watch(
   border-radius: var(--radius-dialog) var(--radius-dialog) 0 0;
   background-color: var(--bg-raised);
   box-shadow: inset 0 0 0 var(--border-width) var(--border);
+  color: var(--fg);
+  font-size: var(--text-body);
 }
 
 .command-scroll {
@@ -138,13 +135,10 @@ watch(
 
 .command-label {
   margin: 0;
-  padding: var(--space-2xs) var(--space-xs) var(--space-2xs);
+  padding: var(--space-2xs) var(--space-xs);
   color: var(--fg-muted);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-semibold);
-  line-height: var(--text-meta--line-height);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .command-group + .command-group {
@@ -157,37 +151,25 @@ watch(
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  width: 100%;
   min-width: 0;
   padding: var(--space-2xs) var(--space-xs);
   border-radius: calc(var(--radius-card) - var(--space-2xs));
   corner-shape: var(--composer-corner-shape);
-  color: var(--fg);
-  font-size: var(--text-body);
-  line-height: var(--text-body--line-height);
   cursor: pointer;
   user-select: none;
   transition: background var(--duration-fast) var(--ease-out);
 }
 
 .command-row:hover,
-.command-row[data-active] {
+.command-row[aria-selected="true"] {
   background: var(--bg-hover);
 }
 
 .command-icon {
-  display: grid;
-  place-items: center;
   flex: none;
-  width: 16px;
-  height: 16px;
+  width: var(--icon-md);
+  height: var(--icon-md);
   color: var(--fg-muted);
-}
-
-.command-glyph,
-.command-icon svg {
-  width: 14px;
-  height: 14px;
 }
 
 .command-main {
@@ -211,18 +193,16 @@ watch(
   white-space: nowrap;
 }
 
-.command-trailing {
-  flex: none;
-  margin-inline-start: auto;
-  padding-inline-start: var(--space-xs);
+.command-status {
+  margin: 0;
+  padding: var(--space-xs) var(--space-sm);
   color: var(--fg-muted);
   font-size: var(--text-meta);
 }
 
-.command-status {
-  margin: 0;
-  padding: var(--space-xs) var(--space-sm);
-  color: var(--fg-secondary);
-  font-size: var(--text-meta);
+@media (prefers-reduced-motion: reduce) {
+  .command-row {
+    transition: none;
+  }
 }
 </style>

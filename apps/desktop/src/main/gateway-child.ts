@@ -15,6 +15,7 @@ type GatewayModule = {
     platformPort: DirectoryPort
     webRoot?: string
     sessionDir?: string
+    pigHome?: string
     cwd?: string
   }) => GatewayInstance
   canonicalizePath: (path: string) => string
@@ -31,7 +32,7 @@ function post(message: ChildMessage): void {
   parentPort.postMessage(message)
 }
 
-function envDir(name: "PIG_SESSION_DIR" | "PIG_CWD"): string | undefined {
+function envDir(name: "PIG_SESSION_DIR" | "PIG_CWD" | "PIG_HOME"): string | undefined {
   const value = process.env[name]
   return value ? resolve(value) : undefined
 }
@@ -64,11 +65,13 @@ try {
   directory = createMessageDirectoryPort(post, gatewayMod.canonicalizePath)
   const webRoot = values["web-root"]
   const sessionDir = envDir("PIG_SESSION_DIR")
+  const pigHome = envDir("PIG_HOME")
   const cwd = envDir("PIG_CWD")
   gateway = new gatewayMod.default({
     platformPort: directory.port,
     ...(webRoot ? { webRoot } : {}),
     ...(sessionDir ? { sessionDir } : {}),
+    ...(pigHome ? { pigHome } : {}),
     ...(cwd ? { cwd } : {}),
   })
   const port = await gateway.start()

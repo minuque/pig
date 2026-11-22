@@ -43,6 +43,7 @@
             @delete="emit('delete', $event)"
             @settle="emit('settle', $event)"
             @unsettle="emit('unsettle', $event)"
+            @archive="emit('archive', $event)"
             @drag-start="emit('dragStart', section.key, session.id, $event)"
             @sweep-start="emit('sweepStart', section.key, session.id, $event)"
           />
@@ -116,6 +117,7 @@ const emit = defineEmits<{
   delete: [id: string]
   settle: [id: string]
   unsettle: [id: string]
+  archive: [id: string]
   dragStart: [sectionKey: string, id: string, event: PointerEvent]
   sweepStart: [sectionKey: string, id: string, event: PointerEvent]
   toggleSection: [key: string]

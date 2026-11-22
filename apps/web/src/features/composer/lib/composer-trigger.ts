@@ -3,6 +3,9 @@ export type ComposerTrigger =
   | { kind: "command"; start: number; query: string }
   | null
 
+const BLOCK_PREFIX =
+  /^[ \t]*(?:(?:[-*+]|\d{1,9}[.)])[ \t]+(?:\[[ xX]\][ \t]+)?|>[ \t]?|#{1,6}[ \t]+)*$/u
+
 export function composerTriggerAt(text: string, caret: number): ComposerTrigger {
   const before = text.slice(0, caret)
   const start = before.search(/[^\s]*$/)
@@ -21,8 +24,9 @@ export function composerTriggerAt(text: string, caret: number): ComposerTrigger 
   }
 
   const lineStart = before.lastIndexOf("\n", start - 1) + 1
+  const prefix = before.slice(lineStart, start)
 
-  if (token.startsWith("/") && start === lineStart && /^\/[^\s/]*$/.test(token)) {
+  if (token.startsWith("/") && BLOCK_PREFIX.test(prefix) && /^\/[^\s/]*$/.test(token)) {
     return { kind: "command", start, query: token.slice(1) }
   }
 
@@ -31,4 +35,8 @@ export function composerTriggerAt(text: string, caret: number): ComposerTrigger 
 
 export function mentionPathNeedsQuoting(path: string): boolean {
   return /[\s()@"'`$\\]/.test(path)
+}
+
+export function triggerKey(trigger: ComposerTrigger): string {
+  return trigger ? `${trigger.kind}:${trigger.start}:${trigger.query}` : ""
 }

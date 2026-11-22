@@ -14,6 +14,7 @@ export type * from "./types.js"
 
 export {
   BINDING_ENTRY,
+  defaultPigHome,
   defaultRemoteRoot,
   defaultTaskLogRoot,
   parseBinding,

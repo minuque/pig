@@ -10,6 +10,7 @@
     :timings="timings"
   >
     <slot />
+    <template #queue><slot name="queue" /></template>
   </TranscriptBody>
 </template>
 

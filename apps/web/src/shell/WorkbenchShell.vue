@@ -64,6 +64,7 @@
       :open="settingsOpen"
       :initial-pane="settingsPane"
       :refresh-models="pi.refreshModels"
+      :archive="archiveController"
       @update:open="onSettingsToggle"
     />
 
@@ -83,6 +84,8 @@ import { notify } from "@components/layout/notify.js"
 
 import { useLocalWorkspaces } from "@client/local-cwd.js"
 import { useGatewayClient } from "@client/gateway-connection.js"
+import { hydratePreferences } from "@client/preferences.js"
+import { hydrateSessionArchives } from "@client/session-archives.js"
 
 import { Columns2Icon } from "@components/icons/index.js"
 import { useI18n } from "@i18n/index.js"
@@ -97,6 +100,7 @@ import SessionNav from "@features/session-nav/index.vue"
 import { provideNav } from "@features/session-nav/index.js"
 import SettingsDialog from "@features/settings/components/SettingsDialog.vue"
 import { useSettingsDialog } from "@features/settings/hooks/use-settings-dialog.js"
+import type { ArchiveController } from "@features/settings/index.js"
 import Startup from "@features/startup/index.vue"
 import {
   createSessionHub,
@@ -169,6 +173,16 @@ const focused = focusedSession(
 )
 const { settingsOpen, settingsPane, openSettings, closeSettings } = useSettingsDialog()
 const nav = provideNav(pi, cwd, focused)
+const archiveController: ArchiveController = {
+  allSessions: nav.allSessions,
+  settledIds: nav.settledIds,
+  runningIds: nav.runningIds,
+  cardFootById: nav.cardFootById,
+  projectByCwd: nav.projectByCwd,
+  archiveSessions: nav.archiveSessions,
+  unarchiveSessions: nav.unarchiveSessions,
+  deleteSessions: nav.deleteSessions,
+}
 
 provideExtensionUi(pi, focused)
 
@@ -227,7 +241,12 @@ function onSessionDrop(zone: Side, event: Event) {
 }
 
 function initialize() {
-  return Promise.all([left.initialize(), right.initialize()])
+  return Promise.all([
+    left.initialize(),
+    right.initialize(),
+    hydratePreferences(),
+    hydrateSessionArchives(),
+  ])
 }
 
 onMounted(() => {

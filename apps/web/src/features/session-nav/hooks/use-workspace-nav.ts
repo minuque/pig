@@ -10,6 +10,13 @@ import {
 } from "vue"
 import type { SessionMetadata } from "@/types/common-type.js"
 import { errorMessage, PlatformRequestError } from "@client/http.js"
+import {
+  archivedSessionIds,
+  archiveSessions as requestArchiveSessions,
+  removeArchivedSessionLocal,
+  unarchiveSessions as requestUnarchiveSessions,
+} from "@client/session-archives.js"
+import { notify } from "@components/layout/notify.js"
 import { t } from "@i18n/index.js"
 import {
   deleteSession as requestDeleteSession,
@@ -66,8 +73,13 @@ export function useWorkspaceNav(
       cwd: path,
     }
   })
+  const allSessions = computed(() =>
+    sessions.value.filter((session) => !deletingIds.value.has(session.id)),
+  )
   const visibleSessions = computed(() => {
-    const list = sessions.value.filter((session) => !deletingIds.value.has(session.id))
+    const all = allSessions.value
+    const archived = archivedSessionIds.value
+    const list = archived.size === 0 ? all : all.filter((session) => !archived.has(session.id))
     const draft = draftSession.value
     return draft && !list.some((session) => session.id === draft.id) ? [draft, ...list] : list
   })
@@ -230,12 +242,10 @@ export function useWorkspaceNav(
     })
   }
 
-  async function deleteSession(id: string) {
-    error.value = ""
-
+  async function runDeleteSingle(id: string): Promise<boolean> {
     if (admin.isRunning(id)) {
       error.value = t("session.stopRunningBeforeDelete")
-      return
+      return false
     }
 
     setDeleting(id, true)
@@ -251,11 +261,125 @@ export function useWorkspaceNav(
         await new Promise((resolve) => setTimeout(resolve, DELETE_RETRY_MS))
         await requestDeleteSession(id)
       })
-      await admin.refreshSessions()
+      removeArchivedSessionLocal(id)
+      return true
     } catch (cause) {
       error.value = isBusy(cause) ? t("session.stopRunningBeforeDelete") : errorMessage(cause)
+      return false
     } finally {
       setDeleting(id, false)
+    }
+  }
+
+  async function deleteSession(id: string) {
+    error.value = ""
+
+    if (await runDeleteSingle(id)) await admin.refreshSessions()
+  }
+
+  async function deleteSessions(ids: readonly string[]) {
+    error.value = ""
+    const unique = [...new Set(ids)]
+
+    if (unique.length === 0) return
+    let deletedCount = 0
+
+    for (const id of unique) {
+      if (admin.isRunning(id)) continue
+
+      if (await runDeleteSingle(id)) deletedCount += 1
+    }
+
+    if (deletedCount > 0) await admin.refreshSessions()
+
+    if (deletedCount > 1)
+      notify(t("settings.archive.deleteBatchDone", { count: deletedCount }), "info", {
+        transient: true,
+      })
+
+    if (error.value) notify(error.value, "error", { transient: true })
+  }
+
+  function formatArchiveNotice(
+    keySingle: string,
+    keyBatch: string,
+    ids: readonly string[],
+  ): string {
+    if (ids.length > 1) return t(keyBatch, { count: ids.length })
+    const found = sessions.value.find((session) => session.id === ids[0])
+    const title = found?.sessionName?.trim() || t("session.untitled")
+    return t(keySingle, { title })
+  }
+
+  async function archiveSessions(ids: readonly string[], options?: { silent?: boolean }) {
+    const unique = [...new Set(ids)]
+
+    if (unique.length === 0) return
+    const eligible = unique.filter((id) => !admin.isRunning(id))
+
+    if (eligible.length === 0) {
+      notify(t("session.archiveSkippedRunning"), "warning", { transient: true })
+      return
+    }
+
+    try {
+      await requestArchiveSessions(eligible)
+
+      for (const id of eligible) {
+        if (admin.shownIds.value.includes(id)) admin.leave(id)
+      }
+
+      if (options?.silent) return
+
+      const message = formatArchiveNotice(
+        "session.archiveSingleDone",
+        "session.archiveBatchDone",
+        eligible,
+      )
+
+      notify(message, "info", {
+        transient: true,
+        action: {
+          label: t("session.undo"),
+          icon: "undo",
+          run: () => {
+            void unarchiveSessions(eligible, { silent: true })
+          },
+        },
+      })
+    } catch {
+      notify(t("session.archiveFailed"), "error", { transient: true })
+    }
+  }
+
+  async function unarchiveSessions(ids: readonly string[], options?: { silent?: boolean }) {
+    const unique = [...new Set(ids)]
+
+    if (unique.length === 0) return
+
+    try {
+      await requestUnarchiveSessions(unique)
+
+      if (options?.silent) return
+
+      const message = formatArchiveNotice(
+        "session.unarchiveSingleDone",
+        "session.unarchiveBatchDone",
+        unique,
+      )
+
+      notify(message, "info", {
+        transient: true,
+        action: {
+          label: t("session.undo"),
+          icon: "undo",
+          run: () => {
+            void archiveSessions(unique, { silent: true })
+          },
+        },
+      })
+    } catch {
+      notify(t("session.unarchiveFailed"), "error", { transient: true })
     }
   }
 
@@ -263,6 +387,7 @@ export function useWorkspaceNav(
     addingWorkspace,
     workspaces,
     groups,
+    allSessions,
     listedSessions,
     moreBySection,
     revealMore,
@@ -275,6 +400,9 @@ export function useWorkspaceNav(
     addRemoteWorkspace,
     renameSession,
     deleteSession,
+    deleteSessions,
+    archiveSessions,
+    unarchiveSessions,
     draftSessionId: draftSessionIdRef,
     setDraftSession,
   }

@@ -17,6 +17,7 @@ import bash from "@pierre/vscode-icons/svgs/bash.svg?raw"
 import braces from "@pierre/vscode-icons/svgs/braces.svg?raw"
 import code from "@pierre/vscode-icons/svgs/code.svg?raw"
 import docker from "@pierre/vscode-icons/svgs/docker.svg?raw"
+import gear from "@pierre/vscode-icons/svgs/gear.svg?raw"
 import table from "@pierre/vscode-icons/svgs/file-table.svg?raw"
 import text from "@pierre/vscode-icons/svgs/file-text.svg?raw"
 import graphql from "@pierre/vscode-icons/svgs/graphql.svg?raw"
@@ -62,6 +63,7 @@ const ALIASES: [icon: string, hue: Hue, names: string[]][] = [
   ],
   [braces, "orange", ["json", "jsonc", "json5", "jsonl"]],
   [docker, "blue", ["docker", "dockerfile"]],
+  [gear, "orange", ["makefile", "gnumakefile", "make", "mk", "justfile"]],
   [table, "teal", ["csv", "tsv"]],
   [text, "gray", ["text", "txt", "plaintext", "plain"]],
   [graphql, "pink", ["graphql", "gql"]],

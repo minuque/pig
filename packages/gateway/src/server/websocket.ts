@@ -6,6 +6,8 @@ import {
   type ClientMessage,
   type ServerMessage,
   type ServerSnapshot,
+  type SessionArchives,
+  type UserPreferences,
 } from "@pig/protocol"
 import { WebSocket, WebSocketServer, type RawData } from "ws"
 import { GatewayError, type SessionService } from "../pi/runtime-types.js"
@@ -98,6 +100,22 @@ export class ProtocolServer {
     for (const client of this.wss.clients) client.close(1001)
     this.wss.close()
     await this.sessions.close()
+  }
+
+  broadcastPreferences(preferences: UserPreferences) {
+    if (this.closing) return
+    const ready = [...this.connections].filter((connection) => connection.ready)
+
+    for (const connection of ready)
+      connection.send({ type: "event", event: { type: "preferences_changed", preferences } })
+  }
+
+  broadcastSessionArchives(archives: SessionArchives) {
+    if (this.closing) return
+    const ready = [...this.connections].filter((connection) => connection.ready)
+
+    for (const connection of ready)
+      connection.send({ type: "event", event: { type: "session_archives_changed", archives } })
   }
 
   broadcastServerSnapshot() {

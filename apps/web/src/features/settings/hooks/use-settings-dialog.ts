@@ -1,6 +1,6 @@
 import { ref, type InjectionKey, type Ref } from "vue"
 
-export type SettingsPane = "general" | "appearance" | "notifications" | "models"
+export type SettingsPane = "general" | "appearance" | "notifications" | "models" | "archive"
 
 export interface SettingsCrumb {
   label: string

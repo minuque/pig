@@ -23,6 +23,7 @@ const gateway = new Gateway({
   webRoot,
   port: listenPort,
   ...(process.env.PIG_SESSION_DIR ? { sessionDir: resolve(process.env.PIG_SESSION_DIR) } : {}),
+  ...(process.env.PIG_HOME ? { pigHome: resolve(process.env.PIG_HOME) } : {}),
   ...(process.env.PIG_CWD ? { cwd: resolve(process.env.PIG_CWD) } : {}),
 })
 const port = await gateway.start()

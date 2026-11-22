@@ -1,4 +1,5 @@
-import { computed, effectScope, nextTick, type ComputedRef } from "vue"
+import { computed, effectScope, nextTick, watch, type ComputedRef } from "vue"
+import { updatePreferences, userPreferences } from "@client/preferences.js"
 import type { ColorScheme, ThemePreset, ThemePresetId } from "@/types/theme-type.js"
 import { useIsDark, useThemeMode } from "@utils/theme-mode.js"
 import { useThemePreset } from "@utils/theme-preset.js"
@@ -34,8 +35,29 @@ function createTheme(): Theme {
     theme: isDark.value ? ("github-dark" as const) : ("github-light" as const),
   }))
 
+  watch(
+    () => userPreferences.value.theme,
+    (next) => {
+      if (mode.store.value !== next) mode.value = next
+    },
+    { immediate: true, flush: "sync" },
+  )
+  watch(
+    () => userPreferences.value.themePreset,
+    (next) => {
+      if (presetId.value !== next) setPreset(next)
+    },
+    { immediate: true, flush: "sync" },
+  )
+
   function setScheme(next: ColorScheme) {
     mode.value = next
+    updatePreferences({ theme: next })
+  }
+
+  function changePreset(next: ThemePresetId) {
+    setPreset(next)
+    updatePreferences({ themePreset: next })
   }
 
   function toggle() {
@@ -58,7 +80,17 @@ function createTheme(): Theme {
     transition.finished.catch(() => {})
   }
 
-  return { isDark, scheme, presetId, preset, presets, codeBlockProps, setScheme, setPreset, toggle }
+  return {
+    isDark,
+    scheme,
+    presetId,
+    preset,
+    presets,
+    codeBlockProps,
+    setScheme,
+    setPreset: changePreset,
+    toggle,
+  }
 }
 
 export function useColorScheme() {

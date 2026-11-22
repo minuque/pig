@@ -18,6 +18,7 @@ export type SessionOperation =
   | "open"
   | "create"
   | "submit"
+  | "steer"
   | "abort"
   | "setModel"
   | "setThinking"
@@ -48,6 +49,7 @@ export class GatewaySession {
   #id: string | undefined
   #transcript: TranscriptState | undefined
   #unsubscribe: Unsubscribe[] = []
+  readonly #active = new Set<Extract<SessionLifecycle, { status: "busy" }>>()
   readonly #listeners = new Set<(state: SessionState) => void>()
 
   private constructor(private readonly client: GatewayClient) {}
@@ -105,13 +107,13 @@ export class GatewaySession {
 
   async submit(text: string, options?: { attachmentBatch?: string }) {
     const message = text.trim()
+    const batch = options?.attachmentBatch
 
-    if (!message) return
+    if (!message && !batch) return
     const sessionId = this.#require()
 
     if (this.phase !== "idle" && this.phase !== "turn")
       throw new Error(`Session cannot accept input during ${this.phase ?? "unknown"} phase`)
-    const batch = options?.attachmentBatch
     const idle = this.phase === "idle"
 
     if (!idle && batch) throw new Error("Attachments can only ride an idle prompt")
@@ -124,9 +126,26 @@ export class GatewaySession {
     )
   }
 
-  async abort() {
+  async steer(text: string) {
+    const message = text.trim()
+
+    if (!message) return
     const sessionId = this.#require()
     const preempt = this.#lifecycle.status === "busy" && this.#lifecycle.operation === "submit"
+
+    if (this.phase === "idle") throw new Error("There is no active turn to steer")
+    await this.#run(
+      "steer",
+      () => this.client.requestSession({ command: "steer", sessionId, message }),
+      preempt,
+    )
+  }
+
+  async abort() {
+    const sessionId = this.#require()
+    const preempt =
+      this.#lifecycle.status === "busy" &&
+      (this.#lifecycle.operation === "submit" || this.#lifecycle.operation === "steer")
 
     if (this.phase === "idle" && !preempt) return
     await this.#run(
@@ -181,6 +200,7 @@ export class GatewaySession {
     if (this.disposed) return
     const sessionId = this.#id
     this.#lifecycle = { status: "disposed" }
+    this.#active.clear()
     this.#clear()
     this.#notify()
     this.#listeners.clear()
@@ -214,21 +234,19 @@ export class GatewaySession {
 
     if (!preempt && this.#lifecycle.status === "busy")
       throw new Error(`Session is busy with ${this.#lifecycle.operation}`)
-    const previous = this.#lifecycle
-    const busy: SessionLifecycle = { status: "busy", operation }
+    const busy: Extract<SessionLifecycle, { status: "busy" }> = { status: "busy", operation }
+    this.#active.add(busy)
     this.#lifecycle = busy
     this.#notify()
 
     try {
       return await run()
     } finally {
+      this.#active.delete(busy)
+
       if (!this.disposed && this.#lifecycle === busy) {
         this.#lifecycle =
-          preempt && previous.status === "busy"
-            ? previous
-            : this.#id
-              ? { status: "ready" }
-              : { status: "unbound" }
+          [...this.#active].at(-1) ?? (this.#id ? { status: "ready" } : { status: "unbound" })
         this.#notify()
       }
     }

@@ -37,11 +37,20 @@ export interface ContextUsagePreview {
   content: string
 }
 
+export interface ContextUsageTokens {
+  input: number
+  output: number
+  cacheRead: number
+  cacheWrite: number
+  total: number
+}
+
 export interface ContextUsageEstimate {
   used: number
   window: number
   /** 模型可用的 MCP 工具数，含按需加载、不占上下文的 */
   mcpToolCount: number
+  tokens?: ContextUsageTokens
   segments: {
     systemPrompt: number
     memory: number
@@ -54,4 +63,15 @@ export interface ContextUsageEstimate {
     idle: number
   }
   preview?: ContextUsagePreview
+}
+
+/** 已归档会话的持久化映射，键为会话 ID，值为归档时间戳（毫秒） */
+export type SessionArchives = Record<string, number>
+
+/** 更新会话归档状态的增量补丁 */
+export interface SessionArchivesPatch {
+  /** 要归档的会话 ID 列表 */
+  archive?: string[]
+  /** 要恢复（取消归档）的会话 ID 列表 */
+  unarchive?: string[]
 }

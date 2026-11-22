@@ -1,22 +1,18 @@
-import { readonly, shallowRef } from "vue"
-import { readEnum, readNumber, readPref, writeNumber, writePref } from "@utils/storage.js"
+import { computed, effectScope, watch } from "vue"
+import { CODE_SIZES, userPreferences, updatePreferences } from "@client/preferences.js"
 
 export type WelcomeField = "mask" | "off"
 
 export type SizeTier = "s" | "m" | "l"
 
-export const CODE_SIZES: readonly number[] = [10, 11, 12, 13, 14, 15, 16]
+export { CODE_SIZES }
+
 const CODE_SIZE_DEFAULT = 13
-const WELCOME_FIELD_KEY = "pig.welcomeField"
-const UI_FONT_KEY = "pig.uiFont"
-const CODE_FONT_KEY = "pig.codeFont"
-const UI_SIZE_KEY = "pig.uiSize"
-const CODE_SIZE_KEY = "pig.codeSize"
-const welcomeField = shallowRef<WelcomeField>("mask")
-const uiFont = shallowRef("")
-const codeFont = shallowRef("")
-const uiSize = shallowRef<SizeTier>("m")
-const codeSize = shallowRef(CODE_SIZE_DEFAULT)
+const welcomeField = computed(() => userPreferences.value.welcomeField)
+const uiFont = computed(() => userPreferences.value.uiFont)
+const codeFont = computed(() => userPreferences.value.codeFont)
+const uiSize = computed(() => userPreferences.value.uiSize)
+const codeSize = computed(() => userPreferences.value.codeSize)
 let loaded = false
 
 function applyFont(token: "--font-sans" | "--font-mono", family: string): void {
@@ -43,50 +39,42 @@ function applyCodeSize(size: number): void {
 function load(): void {
   if (loaded) return
   loaded = true
-  welcomeField.value = readEnum(WELCOME_FIELD_KEY, ["mask", "off"] as const, "mask")
-  uiFont.value = readPref(UI_FONT_KEY) ?? ""
-  codeFont.value = readPref(CODE_FONT_KEY) ?? ""
-  uiSize.value = readEnum(UI_SIZE_KEY, ["s", "m", "l"] as const, "m")
-  const savedCodeSize = readNumber(CODE_SIZE_KEY)
-  codeSize.value =
-    savedCodeSize && CODE_SIZES.includes(savedCodeSize) ? savedCodeSize : CODE_SIZE_DEFAULT
-  applyFont("--font-sans", uiFont.value)
-  applyFont("--font-mono", codeFont.value)
-  applyUiSize(uiSize.value)
-  applyCodeSize(codeSize.value)
+  effectScope(true).run(() => {
+    watch(
+      [uiFont, codeFont, uiSize, codeSize],
+      ([nextUiFont, nextCodeFont, nextUiSize, nextCodeSize]) => {
+        applyFont("--font-sans", nextUiFont)
+        applyFont("--font-mono", nextCodeFont)
+        applyUiSize(nextUiSize)
+        applyCodeSize(nextCodeSize)
+      },
+      { immediate: true, flush: "sync" },
+    )
+  })
 }
 
 export function useAppearancePrefs() {
   load()
   return {
-    welcomeField: readonly(welcomeField),
-    uiFont: readonly(uiFont),
-    codeFont: readonly(codeFont),
-    uiSize: readonly(uiSize),
-    codeSize: readonly(codeSize),
+    welcomeField,
+    uiFont,
+    codeFont,
+    uiSize,
+    codeSize,
     setWelcomeField(next: WelcomeField) {
-      welcomeField.value = next
-      writePref(WELCOME_FIELD_KEY, next)
+      updatePreferences({ welcomeField: next })
     },
     setUiFont(next: string) {
-      uiFont.value = next
-      writePref(UI_FONT_KEY, next)
-      applyFont("--font-sans", next)
+      updatePreferences({ uiFont: next })
     },
     setCodeFont(next: string) {
-      codeFont.value = next
-      writePref(CODE_FONT_KEY, next)
-      applyFont("--font-mono", next)
+      updatePreferences({ codeFont: next })
     },
     setUiSize(next: SizeTier) {
-      uiSize.value = next
-      writePref(UI_SIZE_KEY, next)
-      applyUiSize(next)
+      updatePreferences({ uiSize: next })
     },
     setCodeSize(next: number) {
-      codeSize.value = next
-      writeNumber(CODE_SIZE_KEY, next)
-      applyCodeSize(next)
+      updatePreferences({ codeSize: next })
     },
   }
 }

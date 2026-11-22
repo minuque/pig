@@ -97,10 +97,10 @@ packages/gateway/src/
 ├── auth/           # 浏览器启动凭证与通行证
 ├── pi/             # Session 运行时、会话索引、transcript、卡片、远程会话
 ├── server/         # HTTP 与 WebSocket 协议端（@pig/protocol）
-└── system/         # directory.ts：目录选择、canonicalizePath（含远程 workspace 键）
+└── system/         # directory.ts：目录选择、canonicalizePath（含远程 workspace 键）；preferences.ts / session-archives.ts：preferences.json 与 session-archives.json 读写与外部热更新
 ```
 
-`test/` 跟 `src/` 同层。运行配置走环境变量：`PORT`（默认 `8787`）、`OPEN=1`（启动后打开浏览器，等价 `--open`）、`PIG_SESSION_DIR`（会话目录，默认用 Pi 的）、`PIG_CWD`（初始工作目录）。
+`test/` 跟 `src/` 同层。运行配置走环境变量：`PORT`（默认 `8787`）、`OPEN=1`（启动后打开浏览器，等价 `--open`）、`PIG_SESSION_DIR`（会话目录，默认用 Pi 的）、`PIG_CWD`（初始工作目录）、`PIG_HOME`（跨设备文件根目录，默认 `~/.pig`，`preferences.json`、`session-archives.json` 等落在里面）。
 
 `server/` 的 HTTP 端按 `@pig/protocol` 的契约表生成：`router.ts` 是声明式 `HttpRouter`，`platform.ts` / `providers.ts` / `fs-routes.ts` 只登记「方法 + 路径 → 处理函数」，参数与响应形状来自 `http.ts`；URL 里的 `:name` 解成契约声明的 `params`。
 

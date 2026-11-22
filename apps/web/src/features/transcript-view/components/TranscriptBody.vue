@@ -39,6 +39,8 @@
                 />
               </template>
             </div>
+
+            <slot name="queue" />
           </div>
         </div>
 
@@ -392,8 +394,11 @@ defineExpose({ showScrollToLatest, scrollToLatest, status: statusProps })
 .transcript {
   box-sizing: border-box;
   grid-column: 1;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   min-width: 0;
+  min-block-size: 100cqh;
   padding-top: 48px;
   padding-bottom: calc(48px + var(--composer-reserve, 0px));
   padding-inline-start: max(var(--space-2xl), calc((100% - var(--content-width)) / 2));
@@ -411,5 +416,11 @@ defineExpose({ showScrollToLatest, scrollToLatest, status: statusProps })
 .timeline-rows {
   box-sizing: border-box;
   width: 100%;
+}
+
+.transcript-list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
 }
 </style>

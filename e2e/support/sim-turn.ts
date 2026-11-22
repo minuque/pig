@@ -19,6 +19,7 @@ export async function installTurnBridge(page: Page, options: { holdPromptReply?:
   let resolvePrompt: ((id: string) => void) | undefined
   const snapshots = new Map<string, SessionSnapshot>()
   const prompted: string[] = []
+  const prompts: string[] = []
   const promptBatches: (string | undefined)[] = []
   const heldReplies = new Map<string, string>()
 
@@ -84,6 +85,7 @@ export async function installTurnBridge(page: Page, options: { holdPromptReply?:
           if (options.holdPromptReply) heldReplies.set(sessionId, message.id)
           else reply(message.id, "prompt", session)
           prompted.push(sessionId)
+          prompts.push(message.command.message)
           promptBatches.push(message.command.attachmentBatch)
           promptSessionId = sessionId
           resolvePrompt?.(sessionId)
@@ -131,6 +133,7 @@ export async function installTurnBridge(page: Page, options: { holdPromptReply?:
   return {
     snapshots,
     prompted,
+    prompts,
     promptBatches,
     connections: () => connections,
     send(message: ServerMessage) {

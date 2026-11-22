@@ -7,6 +7,8 @@ export { default as RunningPigGlyph } from "@components/icons/RunningPigGlyph.vu
 export { default as LanguageIcon } from "@components/icons/LanguageIcon.vue"
 
 export {
+  ArchiveIcon,
+  ArchiveRestoreIcon,
   ArrowDownIcon,
   ArrowDownLeftIcon,
   ArrowLeftIcon,
@@ -28,6 +30,7 @@ export {
   CircleQuestionMarkIcon,
   CloudIcon,
   CopyIcon,
+  CornerUpRightIcon,
   EyeIcon,
   FilePlusIcon,
   FileTextIcon,
@@ -43,6 +46,7 @@ export {
   InfoIcon,
   KeyRoundIcon,
   LinkIcon,
+  ListPlusIcon,
   LoaderIcon,
   Maximize2Icon,
   Minimize2Icon,

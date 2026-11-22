@@ -178,7 +178,7 @@ spacing:
 | 命令面板、警告框 | `--glass-*` |
 | 菜单、下拉、选择框浮层、浮卡、toast | `--float-bg` + `--float-shadow` + `--glass-filter` |
 | 输入卡 | `--composer-bg` + `--glass-filter` + `--composer-inset` + `--composer-shadow`；聚焦只加深外环 |
-| 贴在输入卡上方的浮板（队列、运行状态、命令菜单） | `--bg-raised` + 1px `--border` inset 环，左右缩 `--space-md`，上圆角 `--radius-dialog`，底部伸进输入卡 `--composer-radius`；多块叠放时只有最上一块留圆角 |
+| 贴在输入卡上方的浮板（运行状态、命令菜单） | `--bg-raised` + 1px `--border` inset 环，左右缩 `--space-md`，上圆角 `--radius-dialog`，底部伸进输入卡 `--composer-radius`；多块叠放时只有最上一块留圆角 |
 | 静态卡片 | `--bg-surface` 或 1px `--border` inset 细线，二选一，不加阴影 |
 
 - 环都已写进上面的阴影 token，组件只写一行 `box-shadow: var(--…)`，不补 `border`。

@@ -69,6 +69,7 @@ export function useFileDrop(addDropped: (data: DataTransfer | null) => void) {
   function onWindowFileDrop(event: DragEvent) {
     if (!looksLikeFileDrag(event)) return
     event.preventDefault()
+    dropActive.value = false
   }
 
   useEventListener(window, "dragenter", onWindowFileDrag, { capture: true })
@@ -76,5 +77,9 @@ export function useFileDrop(addDropped: (data: DataTransfer | null) => void) {
   useEventListener(window, "dragover", onWindowFileDrag, { capture: true })
 
   useEventListener(window, "drop", onWindowFileDrop, { capture: true })
+
+  useEventListener(window, "dragend", () => {
+    dropActive.value = false
+  })
   return { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop }
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest"
 import { nextTick, ref } from "vue"
-import type { SessionSnapshot } from "@/types/common-type.js"
+import type { SessionPhase, SessionSnapshot } from "@/types/common-type.js"
 import { useComposerBinding } from "@features/composer/hooks/use-composer-binding.js"
 import type { ComposerVendor } from "@features/composer/type.js"
 
@@ -246,6 +246,36 @@ describe("useComposerBinding", () => {
     expect(setThinking).toHaveBeenCalledTimes(1)
     expect(setThinking).toHaveBeenCalledWith("off")
     expect(preset.value).toEqual({ model: gpt, thinkingLevel: "off" })
+  })
+
+  it("回合运行中锁定换模型：预设写入被忽略，switchLocked 跟随 phase", async () => {
+    const state = ref(snapshot())
+    const phase = ref<SessionPhase>("turn")
+    const setModel = vi.fn(async () => undefined)
+    const { preset, switchLocked } = useComposerBinding({
+      catalog: ref(catalog),
+      defaultModel: ref(null),
+      snapshot: state,
+      phase,
+      setModel,
+      setThinking: vi.fn(async () => undefined),
+    })
+
+    await nextTick()
+    expect(switchLocked.value).toBe(true)
+
+    preset.value = { model: { provider: "b", id: "two" }, thinkingLevel: "low" }
+    await nextTick()
+    expect(setModel).not.toHaveBeenCalled()
+    expect(preset.value).toEqual({ model: { provider: "a", id: "one" }, thinkingLevel: "high" })
+
+    phase.value = "idle"
+    await nextTick()
+    expect(switchLocked.value).toBe(false)
+
+    preset.value = { model: { provider: "b", id: "two" }, thinkingLevel: "low" }
+    await nextTick()
+    expect(setModel).toHaveBeenCalledWith({ provider: "b", id: "two" })
   })
 
   it("setModel 失败时清理 pending 并回落到当前快照模型", async () => {
