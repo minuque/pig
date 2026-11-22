@@ -180,7 +180,7 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     expect(finishedItem).toMatchObject({ startedAt: 5000, endedAt: 5300 })
   })
 
-  it("失败路径：工具失败单列，重试错误信息不丢失", () => {
+  it("失败路径：工具失败单列，重试全失败留一条带次数的报错", () => {
     const work = buildRows([user, tool("t1"), tool("bad", "read", "error"), tool("t2")], false, [
       { userId: "u1", startedAt: 1000, endedAt: 27000, outcome: "error" },
     ]).find(isToolRow)
@@ -190,11 +190,47 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     const errors = buildRows([user, assistant(1, [], "error"), assistant(2, [], "error")], false)
 
     expect(errors.at(-1)).toMatchObject({
-      error: true,
-      retryCount: 2,
-      errorMessage: "请求超时",
-      showTimestamp: true,
+      role: "alert",
+      source: "request",
+      retries: 1,
+      message: "请求超时",
     })
+  })
+
+  it("重试后恢复：失败收成一条可展开的恢复记录，回答照常显示，不留报错", () => {
+    const rows = buildRows([user, assistant(1, [], "error"), text(2, "好了")], false)
+
+    expect(rows.map((row) => row.role)).toEqual(["user", "event", "assistant"])
+    expect(rows[1]).toMatchObject({
+      parts: [{ kind: "retry_recovered", attempts: [{ errorMessage: "请求超时" }] }],
+    })
+  })
+
+  it("两次发送之间来回切换模型不留记录，真正的切换与压缩合成一条", () => {
+    const sonnet = { provider: "anthropic", id: "sonnet" }
+    const gpt = { provider: "openai", id: "gpt-5" }
+    const system = (id: string, event: Extract<TranscriptItem, { role: "system" }>["event"]) =>
+      ({ id, role: "system", event, timestamp: 1100 }) as const
+    const rows = buildRows(
+      [
+        user,
+        text(1, "答"),
+        system("m1", { kind: "model_change", previous: sonnet, model: gpt }),
+        system("m2", { kind: "model_change", previous: gpt, model: sonnet }),
+        system("m3", { kind: "model_change", previous: sonnet, model: gpt }),
+        system("c1", { kind: "compaction", tokensBefore: 1000, summary: "摘要" }),
+      ],
+      false,
+    )
+
+    expect(rows.at(-1)).toMatchObject({
+      role: "event",
+      parts: [
+        { kind: "model", from: { model: sonnet }, to: { model: gpt } },
+        { kind: "compaction" },
+      ],
+    })
+    expect(rows.filter((row) => row.role === "event")).toHaveLength(1)
   })
 
   it("失败路径：中止后显示已停止，残留工具与思考不再显示运行态", () => {
@@ -209,6 +245,6 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     const work = rows.find(isToolRow)
     expect(work?.steps[0]).toMatchObject({ type: "tools", items: [{ running: false }] })
     expect(work?.steps[1]).toMatchObject({ type: "thought", streaming: false })
-    expect(rows.at(-1)).toMatchObject({ aborted: true, showTimestamp: true })
+    expect(rows.at(-1)).toMatchObject({ role: "event", parts: [{ kind: "aborted" }] })
   })
 })

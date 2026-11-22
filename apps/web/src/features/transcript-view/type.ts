@@ -1,4 +1,4 @@
-import type { Task, TurnTiming } from "@/types/common-type.js"
+import type { ModelRef, Task, ThinkingLevel, TurnTiming } from "@/types/common-type.js"
 
 export type TranscriptImage = { data: string; mimeType: string }
 
@@ -20,7 +20,6 @@ export type AssistantRow = {
   timestamp: number
   showTimestamp?: boolean
   errorMessage?: string
-  retryCount?: number
 }
 
 export type ToolCallView = {
@@ -72,7 +71,41 @@ export type TaskNoticeRow = {
   timestamp: number
 }
 
-export type TimelineRow = UserRow | AssistantRow | ToolRow | TaskNoticeRow
+export type ModelSetting = { model?: ModelRef; thinkingLevel?: ThinkingLevel }
+
+export type RetryAttempt = { timestamp: number; errorMessage: string }
+
+export type EventPart =
+  | { kind: "model"; from: ModelSetting; to: ModelSetting }
+  | { kind: "compaction"; tokensBefore: number; summary: string }
+  | { kind: "branch_summary"; summary: string }
+  | { kind: "compaction_failed"; errorMessage: string }
+  | { kind: "retry_recovered"; attempts: RetryAttempt[] }
+  | { kind: "aborted" }
+
+export type EventRow = { id: string; role: "event"; parts: EventPart[]; timestamp: number }
+
+export type AlertRow = {
+  id: string
+  role: "alert"
+  source: "request" | "extension"
+  level: "warning" | "error"
+  message: string
+  retries: number
+  timestamp: number
+}
+
+export type ExtensionRow = {
+  id: string
+  role: "extension"
+  customType: string
+  text: string
+  images: TranscriptImage[]
+  timestamp: number
+}
+
+export type TimelineRow =
+  UserRow | AssistantRow | ToolRow | TaskNoticeRow | EventRow | AlertRow | ExtensionRow
 
 export type TimelineTurn = {
   id: string

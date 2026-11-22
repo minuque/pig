@@ -308,8 +308,17 @@ describe("会话里的非对话事件进时间线", () => {
 
     expect(items.map((item) => (item.role === "system" ? item.event : item.role))).toEqual([
       "user",
-      { kind: "model_change", model: { provider: "openai", id: "gpt-5" } },
-      { kind: "thinking_level_change", thinkingLevel: "low" },
+      {
+        kind: "model_change",
+        model: { provider: "openai", id: "gpt-5" },
+        previous: { provider: "anthropic", id: "claude-sonnet-4-5" },
+      },
+      {
+        kind: "thinking_level_change",
+        thinkingLevel: "low",
+        previous: "high",
+        model: { provider: "openai", id: "gpt-5" },
+      },
       "user",
       { kind: "compaction", tokensBefore: 128_000, summary: "目标与进度" },
       {

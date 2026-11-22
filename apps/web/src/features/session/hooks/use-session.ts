@@ -21,6 +21,7 @@ import {
 import {
   NO_TOOL_STARTS,
   projectTranscriptTimeline,
+  withNotices,
 } from "@features/session/lib/transcript-timeline.js"
 import type { PresetPort, SessionClientState } from "@features/session/type.js"
 
@@ -301,12 +302,14 @@ export function useSessionLifecycle(
   const turnPending = computed(() => submitting.value || running.value)
   const transcript = computed(() => {
     const id = history.activeId.value
-    return projectTranscriptTimeline({
+    const items = projectTranscriptTimeline({
       ...history.timelineSource(id),
       optimisticSends: clientState.value.sends,
       turnPending: turnPending.value,
       toolStartedAt: id ? live.toolStartedAtFor(id) : NO_TOOL_STARTS,
     })
+    const current = snapshot.value
+    return withNotices(items, current && current.id === id ? current.notices : [])
   })
   const sessionCwd = computed(
     () =>

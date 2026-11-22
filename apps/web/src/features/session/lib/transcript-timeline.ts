@@ -1,5 +1,6 @@
 import type {
   AssistantTranscriptItem,
+  SystemTranscriptItem,
   ToolTranscriptItem,
   TranscriptItem,
   TurnTiming,
@@ -194,4 +195,19 @@ export function absorbTranscriptPage(loaded: HistorySlice | undefined, page: His
     ],
     hasMore: base.hasMore,
   }
+}
+
+export function withNotices(
+  items: readonly TranscriptItem[],
+  notices: readonly SystemTranscriptItem[],
+): readonly TranscriptItem[] {
+  if (notices.length === 0) return items
+  const merged = [...items]
+
+  for (const notice of notices) {
+    const at = merged.findIndex((item) => item.timestamp > notice.timestamp)
+    merged.splice(at < 0 ? merged.length : at, 0, notice)
+  }
+
+  return merged
 }

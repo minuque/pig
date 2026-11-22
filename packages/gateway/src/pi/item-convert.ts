@@ -11,8 +11,6 @@ import type {
   UserTranscriptItem,
 } from "@pig/protocol"
 
-import { isThinkingLevel } from "./provider-view.js"
-
 type AgentMessage = Extract<SessionEntry, { type: "message" }>["message"]
 
 type UserMessage = Extract<AgentMessage, { role: "user" }>
@@ -226,12 +224,6 @@ export function toExtensionMessage(customType: string, content: CustomContent): 
 
 function systemEvent(entry: SessionEntry): SystemEvent | undefined {
   switch (entry.type) {
-    case "model_change":
-      return { kind: "model_change", model: { provider: entry.provider, id: entry.modelId } }
-    case "thinking_level_change":
-      return isThinkingLevel(entry.thinkingLevel)
-        ? { kind: "thinking_level_change", thinkingLevel: entry.thinkingLevel }
-        : undefined
     case "compaction":
       return { kind: "compaction", tokensBefore: entry.tokensBefore, summary: entry.summary }
     case "branch_summary":
@@ -243,7 +235,11 @@ function systemEvent(entry: SessionEntry): SystemEvent | undefined {
   }
 }
 
+export function systemItem(entry: SessionEntry, event: SystemEvent): SystemTranscriptItem {
+  return { id: entry.id, role: "system", event, timestamp: Date.parse(entry.timestamp) }
+}
+
 export function toSystemItem(entry: SessionEntry): SystemTranscriptItem | undefined {
   const event = systemEvent(entry)
-  return event && { id: entry.id, role: "system", event, timestamp: Date.parse(entry.timestamp) }
+  return event && systemItem(entry, event)
 }

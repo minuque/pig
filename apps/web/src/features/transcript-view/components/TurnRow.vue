@@ -36,19 +36,41 @@
       />
 
       <TaskNotice v-else-if="row.role === 'task'" :task="row.task" />
+
+      <TimelineEvent
+        v-else-if="row.role === 'event'"
+        :row="row"
+        :open="isExpand(row.id) ?? false"
+        @toggle="emit('toggleExpand', row.id, $event)"
+      />
+
+      <TimelineAlert
+        v-else-if="row.role === 'alert'"
+        :row="row"
+        :open="isExpand(row.id) ?? false"
+        @toggle="emit('toggleExpand', row.id, $event)"
+      />
+
+      <ExtensionMessage
+        v-else-if="row.role === 'extension'"
+        :row="row"
+        :open="isExpand(row.id) ?? false"
+        @toggle="emit('toggleExpand', row.id, $event)"
+      />
     </div>
 
-    <TurnErrorRow v-if="turnError" class="turn-error-row" v-bind="turnError" />
     <slot />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, useTemplateRef } from "vue"
+import { ref, useTemplateRef } from "vue"
 import { useIntersectionObserver } from "@vueuse/core"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import TaskNotice from "@features/transcript-view/components/TaskNotice.vue"
-import TurnErrorRow from "@features/transcript-view/components/TurnErrorRow.vue"
+import ExtensionMessage from "@features/transcript-view/components/events/ExtensionMessage.vue"
+import TimelineAlert from "@features/transcript-view/components/events/TimelineAlert.vue"
+import TimelineEvent from "@features/transcript-view/components/events/TimelineEvent.vue"
 import ToolRun from "@features/transcript-view/components/tool/ToolRun.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
 import { isToolRow } from "@features/transcript-view/lib/transcript-rows.js"
@@ -81,21 +103,6 @@ const { stop } = useIntersectionObserver(
 )
 
 if (shown.value) stop()
-
-const turnError = computed(() => {
-  for (let index = props.turn.rows.length - 1; index >= 0; index -= 1) {
-    const row = props.turn.rows[index]
-
-    if (row?.role !== "assistant" || (!row.error && !row.aborted)) continue
-    return {
-      error: row.error,
-      message: row.errorMessage,
-      retryCount: row.retryCount,
-    }
-  }
-
-  return null
-})
 </script>
 
 <style scoped>
@@ -123,10 +130,6 @@ const turnError = computed(() => {
 }
 
 .row + .row {
-  margin-block-start: 20px;
-}
-
-.turn-error-row {
   margin-block-start: 20px;
 }
 

@@ -92,8 +92,13 @@ export interface TaskTranscriptItem {
 }
 
 export type SystemEvent =
-  | { kind: "model_change"; model: ModelRef }
-  | { kind: "thinking_level_change"; thinkingLevel: ThinkingLevel }
+  | { kind: "model_change"; model: ModelRef; previous: ModelRef }
+  | {
+      kind: "thinking_level_change"
+      thinkingLevel: ThinkingLevel
+      previous: ThinkingLevel
+      model?: ModelRef
+    }
   | { kind: "compaction"; tokensBefore: number; summary: string }
   | { kind: "branch_summary"; summary: string }
   | { kind: "extension_message"; customType: string; content: Array<TextContent | ImageContent> }
