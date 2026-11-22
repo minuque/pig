@@ -5,6 +5,7 @@ import type { Node as ProseMirrorNode } from "@tiptap/pm/model"
 import { Plugin, PluginKey, TextSelection } from "@tiptap/pm/state"
 import { Decoration, DecorationSet } from "@tiptap/pm/view"
 import type { ComposerCommandKind } from "@features/composer/type.js"
+import { createMarkdownExtensions } from "@features/composer/lib/tiptap-markdown.js"
 
 export interface FileMentionOptions {
   onOpenFile?: ((path: string) => void) | undefined
@@ -28,7 +29,7 @@ function commandLabel(name: string, kind: ComposerCommandKind | undefined): stri
 export const ComposerDocument = Node.create({
   name: "doc",
   topNode: true,
-  content: "paragraph+",
+  content: "block+",
 })
 export const ComposerParagraph = Node.create({
   name: "paragraph",
@@ -183,6 +184,7 @@ export function createComposerExtensions(options: FileMentionOptions = {}): Exte
     ComposerParagraph,
     ComposerText,
     ComposerHistory,
+    ...createMarkdownExtensions(),
     FileMentionNode.configure(options),
     CommandChipNode,
     ComposerChipSelection,

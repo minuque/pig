@@ -118,12 +118,14 @@ const field = useTemplateRef("field")
 const composing = ref(false)
 const caret = ref(0)
 const edited = ref(false)
+const inCode = ref(false)
 const showPlaceholder = computed(() => !prompt.value.length && !composing.value)
 const placeholderText = computed(() => props.placeholder ?? t("composer.placeholder"))
 const commandMenu = useCommandMenu({
   prompt,
   caret,
   edited,
+  inCode: () => inCode.value,
   cwd: () => props.cwd,
   onChip: (chip) => field.value?.insertChip(chip),
 })
@@ -148,6 +150,7 @@ const shortcuts = useComposerShortcuts({
 function onCaret(payload: ComposerCaret) {
   caret.value = payload.offset
   edited.value = payload.edited
+  inCode.value = payload.inCode
 }
 
 function onEditorKeydown(event: KeyboardEvent) {

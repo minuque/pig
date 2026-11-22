@@ -1,46 +1,52 @@
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model"
-import { chipToken } from "@features/composer/lib/tiptap-doc.js"
+import {
+  fromProseMirror,
+  type MarkdownToken,
+  writeMarkdown,
+} from "@features/composer/lib/tiptap-blocks.js"
 
-function leafText(node: ProseMirrorNode): string {
-  return chipToken(node.type.name, node.attrs as Record<string, unknown>)
+function tokensOf(doc: ProseMirrorNode): MarkdownToken[] {
+  return writeMarkdown(fromProseMirror(doc)).tokens
 }
 
 export function textOffsetAt(doc: ProseMirrorNode, position: number): number {
-  const from = 1
-  const to = Math.max(from, Math.min(position, doc.content.size))
-  return doc.textBetween(from, to, "\n", leafText).length
+  let offset = 0
+
+  for (const token of tokensOf(doc)) {
+    if (token.length === 0) {
+      if (token.at <= position) offset += token.markdown.length
+      continue
+    }
+
+    if (position <= token.at) break
+
+    if (position < token.at + token.length) {
+      return offset + Math.min(position - token.at, token.markdown.length)
+    }
+
+    offset += token.markdown.length
+  }
+
+  return offset
 }
 
 export function positionAtOffset(doc: ProseMirrorNode, offset: number): number {
   const target = Math.max(0, offset)
   let consumed = 0
-  let resolved: number | undefined
-  let firstBlock = true
 
-  doc.nodesBetween(0, doc.content.size, (node, position) => {
-    if (resolved !== undefined) return false
+  for (const token of tokensOf(doc)) {
+    if (token.length === 0) {
+      consumed += token.markdown.length
 
-    if (node.isBlock) {
-      if (firstBlock) firstBlock = false
-      else consumed += 1
+      if (target <= consumed) return token.at
+      continue
     }
 
-    if (node.isText) {
-      const length = node.text?.length ?? 0
+    const next = consumed + token.markdown.length
 
-      if (target <= consumed + length) resolved = position + (target - consumed)
-      consumed += length
-      return false
-    }
+    if (target <= next) return token.at + Math.min(target - consumed, token.length)
+    consumed = next
+  }
 
-    if (node.isLeaf) {
-      const length = leafText(node).length
-
-      if (target <= consumed + length) resolved = target <= consumed ? position : position + 1
-      consumed += length
-    }
-
-    return true
-  })
-  return resolved ?? doc.content.size
+  return doc.content.size
 }

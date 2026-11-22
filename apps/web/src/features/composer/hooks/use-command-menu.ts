@@ -36,6 +36,7 @@ export interface CommandMenuOptions {
   prompt: Ref<string>
   caret: Ref<number>
   edited: Ref<boolean>
+  inCode(): boolean
   cwd(): string | undefined
   onChip(chip: ChipInsert): void
 }
@@ -113,6 +114,15 @@ export function useCommandMenu(options: CommandMenuOptions): CommandMenuApi {
 
   async function refresh() {
     const dir = options.cwd()
+
+    if (options.inCode()) {
+      close()
+      files.value = []
+      activeId.value = null
+      loading.value = false
+      return
+    }
+
     const next = composerTriggerAt(options.prompt.value, options.caret.value)
 
     if (!next || !dir) {

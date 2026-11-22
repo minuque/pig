@@ -7,10 +7,15 @@ import { watch } from "vue"
 import type { Editor } from "@tiptap/core"
 import { EditorContent, useEditor } from "@tiptap/vue-3"
 import { closeHistory } from "@tiptap/pm/history"
-import { TextSelection } from "@tiptap/pm/state"
+import { TextSelection, type Transaction } from "@tiptap/pm/state"
 import { clipboardFiles } from "@features/composer/hooks/use-composer-attachments.js"
 import { createComposerExtensions } from "@features/composer/lib/tiptap-chips.js"
 import { parsePromptToDoc, serializeDocToPrompt } from "@features/composer/lib/tiptap-doc.js"
+import {
+  handleStructuredEnter,
+  splitLineOnShiftEnter,
+} from "@features/composer/lib/tiptap-enter.js"
+import { isInCodeBlock, isInCodeContext } from "@features/composer/lib/tiptap-markdown.js"
 import { positionAtOffset, textOffsetAt } from "@features/composer/lib/tiptap-offset.js"
 import type { ChipInsert, ComposerCaret } from "@features/composer/type.js"
 
@@ -117,11 +122,41 @@ function sync(edited: boolean) {
 
   const { doc, selection } = instance.state
 
-  emit("caret", { offset: textOffsetAt(doc, selection.from), edited })
+  emit("caret", {
+    offset: textOffsetAt(doc, selection.from),
+    edited,
+    inCode: isInCodeContext(instance.state),
+  })
+}
+
+function isPlainEnter(event: KeyboardEvent): boolean {
+  return (
+    event.key === "Enter" && !event.isComposing && !event.altKey && !event.metaKey && !event.ctrlKey
+  )
+}
+
+function onStructuredEnter(instance: Editor, event: KeyboardEvent): boolean {
+  const { state, view } = instance
+  const dispatch = (tr: Transaction) => view.dispatch(tr.scrollIntoView())
+
+  if (event.shiftKey && !isInCodeBlock(state)) {
+    splitLineOnShiftEnter(state, dispatch)
+    event.preventDefault()
+    return true
+  }
+
+  if (!handleStructuredEnter(state, dispatch)) return false
+  event.preventDefault()
+  return true
 }
 
 function onFieldKeydown(event: KeyboardEvent): boolean {
   shiftHeld = event.shiftKey
+  const instance = editor.value
+  const menuActive = Boolean(props.ariaControls && props.ariaActivedescendant)
+
+  if (instance && !menuActive && isPlainEnter(event) && onStructuredEnter(instance, event))
+    return true
   emit("keydown", event)
   return event.defaultPrevented
 }
@@ -223,6 +258,131 @@ defineExpose({ focus, blur, insertChip, isAtStart, isAtEnd })
 
 .editor :deep(.field p) {
   margin: 0;
+}
+
+.editor :deep(.field) > * + * {
+  margin-top: var(--space-xs);
+}
+
+.editor :deep(.field h1),
+.editor :deep(.field h2),
+.editor :deep(.field h3),
+.editor :deep(.field h4),
+.editor :deep(.field h5),
+.editor :deep(.field h6) {
+  color: var(--fg);
+  font-size: inherit;
+  line-height: 1.35;
+  font-weight: var(--font-weight-semibold);
+}
+
+.editor :deep(.field h1) {
+  font-size: 1.25em;
+}
+
+.editor :deep(.field h2) {
+  font-size: 1.15em;
+}
+
+.editor :deep(.field h4),
+.editor :deep(.field h5),
+.editor :deep(.field h6) {
+  font-weight: var(--font-weight-medium);
+}
+
+.editor :deep(.field h6) {
+  color: var(--fg-secondary);
+}
+
+.editor :deep(.field strong) {
+  font-weight: var(--font-weight-semibold);
+}
+
+.editor :deep(.field em) {
+  font-style: italic;
+}
+
+.editor :deep(.field s) {
+  text-decoration: line-through;
+}
+
+.editor :deep(.field code) {
+  padding: 0.1em 0.35em;
+  border-radius: calc(var(--radius-control) / 2);
+  background: var(--bg-muted);
+  color: inherit;
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+}
+
+.editor :deep(.field pre) {
+  overflow-x: auto;
+  padding: var(--space-xs);
+  border-radius: var(--radius-card);
+  background: var(--bg-surface);
+  font-family: var(--font-mono);
+  font-size: var(--text-code);
+  line-height: 1.5;
+  white-space: pre;
+}
+
+.editor :deep(.field pre code) {
+  padding: 0;
+  background: none;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.editor :deep(.field blockquote) {
+  padding-inline-start: var(--space-xs);
+  border-inline-start: var(--quote-border-width) solid var(--border-subtle);
+  color: var(--fg-secondary);
+}
+
+.editor :deep(.field ul),
+.editor :deep(.field ol) {
+  padding-inline-start: var(--space-lg);
+}
+
+.editor :deep(.field li::marker) {
+  color: var(--fg-muted);
+}
+
+.editor :deep(.field li) > :is(ul, ol) {
+  margin-block: 0;
+}
+
+.editor :deep(.field hr) {
+  border: 0;
+  border-top: var(--border-width) solid var(--border-subtle);
+  margin-block: var(--space-xs);
+}
+
+.editor :deep(.field ul[data-type="taskList"]) {
+  padding-inline-start: 0;
+  list-style: none;
+}
+
+.editor :deep(.field li[data-type="taskItem"]) {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2xs);
+}
+
+.editor :deep(.field li[data-type="taskItem"] > label) {
+  flex: 0 0 auto;
+  user-select: none;
+}
+
+.editor :deep(.field li[data-type="taskItem"] > div) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.editor :deep(.field li[data-type="taskItem"] input[type="checkbox"]) {
+  margin: 0;
+  accent-color: var(--accent-solid);
+  vertical-align: middle;
 }
 
 .editor :deep(.chip) {

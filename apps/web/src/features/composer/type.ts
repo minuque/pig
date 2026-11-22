@@ -45,6 +45,7 @@ export type ComposerChip = ComposerFileChip | ComposerCommandChip
 export interface ComposerCaret {
   offset: number
   edited: boolean
+  inCode: boolean
 }
 
 export interface ChipInsert {
