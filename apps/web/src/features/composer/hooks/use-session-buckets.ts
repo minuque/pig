@@ -1,6 +1,6 @@
 import { getCurrentInstance, inject, provide, ref, type InjectionKey } from "vue"
 
-type BucketName = "queue" | "attachments"
+type BucketName = "queue" | "attachments" | "draft"
 
 export type SharedBuckets = Map<BucketName, Map<string, unknown>>
 

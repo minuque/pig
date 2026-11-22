@@ -32,3 +32,7 @@ export function composerTriggerAt(text: string, caret: number): ComposerTrigger 
 export function mentionPathNeedsQuoting(path: string): boolean {
   return /[\s()@"'`$\\]/.test(path)
 }
+
+export function triggerKey(trigger: ComposerTrigger): string {
+  return trigger ? `${trigger.kind}:${trigger.start}:${trigger.query}` : ""
+}
