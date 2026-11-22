@@ -6,10 +6,10 @@
       :aria-expanded="open"
       @click="emit('toggle', !open)"
     >
-      <PuzzleIcon class="size-icon-sm" aria-hidden="true" />
+      <PuzzleIcon class="size-icon" aria-hidden="true" />
       <span class="extension-type">{{ row.customType }}</span>
       <span v-if="!open && firstLine" class="extension-first">· {{ firstLine }}</span>
-      <ChevronRightIcon class="extension-chevron size-icon-sm" aria-hidden="true" />
+      <ChevronRightIcon class="extension-chevron size-icon" aria-hidden="true" />
     </button>
 
     <CollapsibleContent>
@@ -95,7 +95,6 @@ const nodes = useMarkdownNodes({
 
 .extension-body {
   margin-block-start: var(--space-xs);
-  margin-inline-start: calc(var(--icon-sm) + var(--space-2xs));
 }
 
 .extension-images {

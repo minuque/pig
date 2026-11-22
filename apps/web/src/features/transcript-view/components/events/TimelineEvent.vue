@@ -12,13 +12,13 @@
           <ModelSwitch v-if="part.kind === 'model'" :from="part.from" :to="part.to" />
 
           <span v-else class="event-part">
-            <component :is="PART_ICON[part.kind]" class="size-icon-sm" aria-hidden="true" />
+            <component :is="PART_ICON[part.kind]" class="size-icon" aria-hidden="true" />
             <span class="event-label">{{ partLabel(part) }}</span>
             <span v-if="partDetail(part)" class="event-detail">· {{ partDetail(part) }}</span>
           </span>
         </template>
 
-        <ChevronRightIcon v-if="expandable" class="event-chevron size-icon-sm" aria-hidden="true" />
+        <ChevronRightIcon v-if="expandable" class="event-chevron size-icon" aria-hidden="true" />
       </component>
     </div>
 

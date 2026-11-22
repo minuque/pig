@@ -2,12 +2,12 @@
   <span class="model-switch">
     <span class="model-side">
       <template v-if="changed.model && from.model">
-        <VendorMark :vendor="from.model.provider" :size="12" />
+        <VendorMark :vendor="from.model.provider" :size="14" />
         <span class="model-name">{{ modelName(from.model) }}</span>
       </template>
 
       <template v-else-if="!changed.model && current">
-        <VendorMark :vendor="current.provider" :size="12" />
+        <VendorMark :vendor="current.provider" :size="14" />
         <span class="model-name">{{ modelName(current) }}</span>
       </template>
 
@@ -16,11 +16,11 @@
       </span>
     </span>
 
-    <ArrowRightIcon class="size-icon-sm" aria-hidden="true" />
+    <ArrowRightIcon class="size-icon" aria-hidden="true" />
 
     <span class="model-side">
       <template v-if="changed.model && to.model">
-        <VendorMark :vendor="to.model.provider" :size="12" />
+        <VendorMark :vendor="to.model.provider" :size="14" />
         <span class="model-name">{{ modelName(to.model) }}</span>
       </template>
 

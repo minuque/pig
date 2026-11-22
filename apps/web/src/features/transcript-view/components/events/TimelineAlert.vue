@@ -1,10 +1,10 @@
 <template>
   <Collapsible :open="open" class="timeline-alert" :data-level="row.level" role="alert">
     <button type="button" class="alert-head" :aria-expanded="open" @click="emit('toggle', !open)">
-      <component :is="icon" class="size-icon-sm alert-icon" aria-hidden="true" />
+      <component :is="icon" class="size-icon alert-icon" aria-hidden="true" />
       <span class="alert-label">{{ label }}</span>
       <span v-if="summary" class="alert-summary">· {{ summary }}</span>
-      <ChevronRightIcon class="alert-chevron size-icon-sm" aria-hidden="true" />
+      <ChevronRightIcon class="alert-chevron size-icon" aria-hidden="true" />
     </button>
 
     <CollapsibleContent>
@@ -100,7 +100,6 @@ const summary = computed(() => errorSummary(props.row.message))
 .alert-raw {
   position: relative;
   margin-block-start: var(--space-xs);
-  margin-inline-start: calc(var(--icon-sm) + var(--space-2xs));
 }
 
 .alert-raw pre {
