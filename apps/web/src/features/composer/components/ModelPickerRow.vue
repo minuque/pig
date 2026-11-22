@@ -1,8 +1,9 @@
 <template>
   <div class="model-row" :data-current="current ? '' : undefined">
-    <DropdownMenuItem class="model-item" @select="emit('select', $event)">
+    <DropdownMenuItem class="model-item" :disabled="disabled" @select="emit('select', $event)">
       <VendorMark :vendor="vendorId" :name="vendorName" :size="14" />
       <span class="model-name">{{ vendorId }}/{{ modelName }}</span>
+      <Kbd v-if="shortcut" size="s" variant="soft" class="model-key">{{ shortcut }}</Kbd>
     </DropdownMenuItem>
 
     <button
@@ -27,16 +28,22 @@
 <script setup lang="ts">
 import { useI18n } from "@i18n/index.js"
 import { DropdownMenuItem } from "@components/ui/dropdown-menu/index.js"
+import { Kbd } from "@components/ui/kbd/index.js"
 import VendorMark from "@components/icons/VendorMark.vue"
 import { StarFilledIcon, StarIcon } from "@components/icons/index.js"
 
-defineProps<{
-  vendorId: string
-  vendorName: string
-  modelName: string
-  current: boolean
-  favorite: boolean
-}>()
+withDefaults(
+  defineProps<{
+    vendorId: string
+    vendorName: string
+    modelName: string
+    current: boolean
+    favorite: boolean
+    shortcut?: string
+    disabled?: boolean
+  }>(),
+  { shortcut: "", disabled: false },
+)
 
 const emit = defineEmits<{
   select: [event: Event]
@@ -48,10 +55,9 @@ const { t } = useI18n()
 <style scoped>
 .model-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 20px;
+  grid-template-columns: minmax(0, 1fr) var(--control-sm);
   align-items: center;
-  gap: var(--space-2xs);
-  height: 28px;
+  height: var(--control-sm);
   padding-inline-end: var(--space-2xs);
   border-radius: var(--radius-control);
   transition: background-color var(--duration-fast) var(--ease-out);
@@ -70,7 +76,7 @@ const { t } = useI18n()
   flex: 1 1 auto;
   min-inline-size: 0;
   gap: var(--space-xs);
-  block-size: 28px;
+  block-size: var(--control-sm);
   padding-inline: 6px;
   padding-block: 0;
   border-radius: var(--radius-control);
@@ -94,11 +100,16 @@ const { t } = useI18n()
   white-space: nowrap;
 }
 
+.model-key {
+  flex: none;
+  color: var(--fg-muted);
+}
+
 .fav {
   display: grid;
   place-items: center;
-  width: 20px;
-  height: 20px;
+  inline-size: var(--control-sm);
+  block-size: var(--control-sm);
   padding: 0;
   border: 0;
   border-radius: var(--radius-control);

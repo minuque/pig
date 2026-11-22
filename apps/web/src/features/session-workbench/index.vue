@@ -99,6 +99,7 @@
               :catalog="catalog"
               :attachments="composerAttachments"
               :running="turnPending"
+              :switch-locked="switchLocked"
               :editing-queue="editingQueueId !== null"
               :stop-phase="stopPhase"
               :session-id="sessionId"
@@ -187,7 +188,7 @@ const {
   welcome,
   externalTurn,
 } = useSession()
-const { catalog, preset } = useComposerPreset()
+const { catalog, preset, switchLocked } = useComposerPreset()
 const { groups, lastCwd, addingWorkspace, addWorkspace, addRemoteWorkspace } = useNav()
 const remoteOpen = ref(false)
 const { welcomeField } = useAppearancePrefs()

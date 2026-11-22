@@ -1,9 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
+import { PlatformRequestError } from "@client/http.js"
+import { stageAttachment } from "@client/platform.js"
 import {
   MAX_COMPOSER_ATTACHMENTS,
   clipboardFiles,
   useComposerAttachments,
 } from "@features/composer/hooks/use-composer-attachments.js"
+
+vi.mock("@client/platform.js", () => ({ stageAttachment: vi.fn() }))
 
 function file(name: string, type: string, size = 4): File {
   const created = new File([new Uint8Array(1)], name, { type })
@@ -33,8 +37,11 @@ function transfer(files: File[], folders: string[] = []): DataTransfer {
   return { files, items } as unknown as DataTransfer
 }
 
+const stage = vi.mocked(stageAttachment)
+
 afterEach(() => {
   vi.restoreAllMocks()
+  stage.mockReset()
 })
 
 describe("useComposerAttachments", () => {
@@ -137,5 +144,104 @@ describe("useComposerAttachments", () => {
 
     expect(clipboardFiles(transfer([shot, text]))).toEqual([shot, text])
     expect(clipboardFiles(null)).toEqual([])
+  })
+
+  it("提示能手动关掉", () => {
+    const { error, addFiles, dismissError } = useComposerAttachments()
+
+    addFiles([file("big.png", "image/png", 4 * 1024 * 1024)])
+    expect(error.value).not.toBe("")
+    dismissError()
+    expect(error.value).toBe("")
+  })
+
+  it("发送批次回写每项进度与状态，已上传的项记进 staged 供跳过", () => {
+    const { files, status, progress, errors, addFiles, consumeForSend } = useComposerAttachments()
+
+    addFiles([file("note.md", "text/markdown")])
+    const id = files.value[0]!.id
+    const batch = consumeForSend()
+
+    expect(batch?.staged).toEqual([])
+    batch?.reportProgress?.(id, 40)
+    expect(status.value[id]).toBe("uploading")
+    expect(progress.value[id]).toBe(40)
+
+    batch?.reportProgress?.(id, 100)
+    expect(status.value[id]).toBe("ready")
+    expect(progress.value[id]).toBe(100)
+    expect(consumeForSend()?.staged).toEqual([id])
+
+    batch?.reportProgress?.(id, undefined)
+    expect(status.value[id]).toBeUndefined()
+    expect(progress.value[id]).toBeUndefined()
+
+    batch?.reportError?.(id, "上传失败")
+    expect(status.value[id]).toBe("error")
+    expect(errors.value[id]).toBe("上传失败")
+  })
+
+  it("失败项单独重试只重传这一项，成功后进 ready", async () => {
+    const { files, status, addFiles, consumeForSend, retryItem } = useComposerAttachments()
+
+    addFiles([file("note.md", "text/markdown"), file("other.md", "text/markdown")])
+    const [first, second] = files.value
+    const batch = consumeForSend()
+
+    batch?.reportError?.(first!.id, "上传失败")
+    expect(status.value[first!.id]).toBe("error")
+
+    let release!: (id: string) => void
+
+    stage.mockImplementationOnce(
+      () =>
+        new Promise<string>((resolve) => {
+          release = resolve
+        }),
+    )
+
+    retryItem(first!.id)
+    expect(stage).toHaveBeenCalledTimes(1)
+    expect(stage.mock.calls[0]?.[1]).toBe(first!.file)
+    expect(status.value[first!.id]).toBe("uploading")
+
+    release("staged-1")
+    await vi.waitFor(() => expect(status.value[first!.id]).toBe("ready"))
+    expect(status.value[second!.id]).toBeUndefined()
+  })
+
+  it("重试失败留下每项错误，已完成的项不再重传", async () => {
+    const { files, status, errors, addFiles, consumeForSend, retryItem } = useComposerAttachments()
+
+    addFiles([file("note.md", "text/markdown")])
+    const id = files.value[0]!.id
+    const batch = consumeForSend()
+
+    batch?.reportProgress?.(id, 100)
+    retryItem(id)
+    expect(stage).not.toHaveBeenCalled()
+    expect(status.value[id]).toBe("ready")
+
+    batch?.reportError?.(id, "上传失败")
+    stage.mockRejectedValueOnce(new PlatformRequestError("PAYLOAD_TOO_LARGE", "req-1"))
+    retryItem(id)
+
+    await vi.waitFor(() => expect(stage).toHaveBeenCalledTimes(1))
+    await vi.waitFor(() => expect(status.value[id]).toBe("error"))
+    expect(errors.value[id]).toContain("PAYLOAD_TOO_LARGE")
+  })
+
+  it("删除附件同时清掉它的上传状态", () => {
+    const { files, status, addFiles, consumeForSend, remove } = useComposerAttachments()
+
+    addFiles([file("note.md", "text/markdown")])
+    const id = files.value[0]!.id
+
+    consumeForSend()?.reportProgress?.(id, 30)
+    expect(status.value[id]).toBe("uploading")
+
+    remove(id)
+    expect(files.value).toEqual([])
+    expect(status.value[id]).toBeUndefined()
   })
 })

@@ -12,17 +12,18 @@
       @history-prev="emit('historyPrev')"
       @history-next="emit('historyNext')"
     >
-      <template v-if="attachmentFiles.length || attachmentError" #attachments>
-        <div class="attach-tray">
-          <p v-if="attachmentError" class="attach-error" role="alert">{{ attachmentError }}</p>
-
-          <AttachmentChips
-            :files="attachmentFiles"
-            :progress="attachmentProgress"
-            @remove="attachments.remove"
-            @preview="onPreview"
-          />
-        </div>
+      <template #attachments>
+        <AttachmentTray
+          :files="attachmentFiles"
+          :error="attachmentError"
+          :status="attachmentStatus"
+          :progress="attachmentProgress"
+          :errors="attachmentErrors"
+          @remove="attachments.remove"
+          @retry="attachments.retryItem"
+          @preview="onPreview"
+          @dismiss-error="attachments.dismissError"
+        />
       </template>
 
       <template #left>
@@ -51,14 +52,15 @@
       </template>
 
       <template #tools>
+        <ContextRing v-if="usage" :usage="usage" />
+
         <ModelPicker
           v-model:open="modelPickerOpen"
           v-model:model="model"
           v-model:level="level"
           :catalog="catalog"
-        >
-          <ContextRing v-if="usage" :usage="usage" />
-        </ModelPicker>
+          :locked="switchLocked"
+        />
       </template>
 
       <template #right>
@@ -91,7 +93,7 @@ import { computed, ref, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import AttachmentChips from "@features/composer/components/AttachmentChips.vue"
+import AttachmentTray from "@features/composer/components/AttachmentTray.vue"
 import ComposerPrimaryAction from "@features/composer/components/ComposerPrimaryAction.vue"
 import ContextRing from "@features/composer/components/ContextRing.vue"
 import ModelPicker from "@features/composer/components/ModelPicker.vue"
@@ -118,6 +120,7 @@ const props = withDefaults(
     catalog: ComposerVendor[]
     attachments: ComposerAttachmentsApi
     running?: boolean
+    switchLocked?: boolean
     editingQueue?: boolean
     stopPhase?: StopPhase
     sendDisabled?: boolean
@@ -127,6 +130,7 @@ const props = withDefaults(
   }>(),
   {
     running: false,
+    switchLocked: false,
     editingQueue: false,
     stopPhase: "idle",
     sendDisabled: false,
@@ -165,7 +169,9 @@ const previewItem = ref<ComposerAttachment>()
 const fileInput = useTemplateRef("fileInput")
 const editor = useTemplateRef("editor")
 const attachmentFiles = computed(() => props.attachments.files.value)
+const attachmentStatus = computed(() => props.attachments.status.value)
 const attachmentProgress = computed(() => props.attachments.progress.value)
+const attachmentErrors = computed(() => props.attachments.errors.value)
 const attachmentError = computed(() => props.attachments.error.value)
 const attachmentsFull = computed(() => attachmentFiles.value.length >= MAX_COMPOSER_ATTACHMENTS)
 const hasAttachments = computed(() => attachmentFiles.value.length > 0)
@@ -236,21 +242,6 @@ watch(previewItem, (item, previous) => {
   margin-inline: auto;
   padding: 0;
   background: transparent;
-}
-
-.attach-tray {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2xs);
-  width: 100%;
-  min-width: 0;
-}
-
-.attach-error {
-  margin: 0;
-  color: var(--danger-text);
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
 }
 
 .attach {

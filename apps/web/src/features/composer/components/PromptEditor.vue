@@ -174,6 +174,7 @@ defineExpose({ focus, menuOpen: commandMenu.open, steerHeld: shortcuts.steerHeld
 <style scoped>
 .composer-card {
   overflow: hidden;
+  container-type: inline-size;
   border-radius: var(--composer-radius);
   background: var(--composer-bg);
   backdrop-filter: var(--glass-filter);
@@ -237,5 +238,17 @@ defineExpose({ focus, menuOpen: commandMenu.open, steerHeld: shortcuts.steerHeld
 .footer > .tools {
   flex: 1 1 auto;
   justify-content: flex-end;
+}
+
+@container (max-width: 360px) {
+  .footer {
+    flex-wrap: wrap;
+    row-gap: var(--space-2xs);
+  }
+
+  .footer > .tools {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+  }
 }
 </style>

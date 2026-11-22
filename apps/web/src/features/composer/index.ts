@@ -1,4 +1,4 @@
-import { inject, provide, type InjectionKey, type Ref } from "vue"
+import { computed, inject, provide, type InjectionKey, type Ref } from "vue"
 import type { DefaultModelView, ModelMetadata } from "@/types/common-type.js"
 import { useSessionComposer } from "@features/composer/hooks/use-session-composer.js"
 import type { SessionContext } from "@features/session/index.js"
@@ -8,7 +8,7 @@ export { default as QueuedMessages } from "@features/composer/components/QueuedM
 export type ComposerPresetContext = Pick<
   ReturnType<typeof useSessionComposer>,
   "catalog" | "preset"
->
+> & { switchLocked: Readonly<Ref<boolean>> }
 
 const composerPresetKey: InjectionKey<ComposerPresetContext> = Symbol("composer-preset")
 
@@ -25,9 +25,10 @@ export function bindComposerPreset(
     setModel: session.setModel,
     setThinking: session.setThinking,
   })
+  const switchLocked = computed(() => session.phase.value === "turn")
 
   session.setPresetPort({ createModel, consumeDetachedEdit })
-  return { catalog, preset }
+  return { catalog, preset, switchLocked }
 }
 
 export function provideComposerPreset(context: ComposerPresetContext) {

@@ -1,22 +1,44 @@
 import { computed, getCurrentInstance, onUnmounted, ref, shallowRef, type Ref } from "vue"
-import {
-  INLINE_IMAGE_MIME_PATTERN,
-  MAX_BATCH_ITEMS,
-  MAX_FILE_BYTES,
-  MAX_IMAGE_BYTES,
-} from "@pig/protocol"
+import { MAX_FILE_BYTES, MAX_IMAGE_BYTES } from "@pig/protocol"
 import type { ComposerAttachment, ComposerAttachmentBatch } from "@/types/attachment-type.js"
+import { errorMessage } from "@client/http.js"
+import { stageAttachment } from "@client/platform.js"
 import { t } from "@i18n/index.js"
+import {
+  failedAt,
+  replaceUpload,
+  stagedIds,
+  uploadAt,
+  uploadErrors,
+  uploadPercent,
+  uploadStatus,
+  type AttachmentStatus,
+  type AttachmentUpload,
+  type AttachmentUploads,
+} from "@features/composer/lib/attachment-upload.js"
+import {
+  selectAttachments,
+  type PickedFile,
+  type SkippedFile,
+} from "@features/composer/lib/attachment-select.js"
 import { useSessionBuckets } from "@features/composer/hooks/use-session-buckets.js"
 
 export { MAX_FILE_BYTES, MAX_IMAGE_BYTES }
 
-export const MAX_COMPOSER_ATTACHMENTS = MAX_BATCH_ITEMS
-const MEGABYTE = 1024 * 1024
+export {
+  clipboardFiles,
+  MAX_COMPOSER_ATTACHMENTS,
+} from "@features/composer/lib/attachment-select.js"
+
+export type { AttachmentStatus } from "@features/composer/lib/attachment-upload.js"
+
+const COMPLETE = 100
 
 export interface ComposerAttachmentsApi {
   files: Ref<ComposerAttachment[]>
-  progress: Ref<ReadonlyMap<string, number>>
+  status: Ref<Record<string, AttachmentStatus>>
+  progress: Ref<Record<string, number>>
+  errors: Ref<Record<string, string>>
   error: Ref<string>
   addFiles(input: FileList | File[] | null | undefined): void
   addDropped(data: DataTransfer | null | undefined): void
@@ -24,6 +46,8 @@ export interface ComposerAttachmentsApi {
   consumeForSend(): ComposerAttachmentBatch | undefined
   detach(batch: ComposerAttachmentBatch): void
   settle(batch: ComposerAttachmentBatch): void
+  retryItem(id: string): void
+  dismissError(): void
   setKey(sessionId: string | undefined): void
   handOff(sessionId: string): void
 }
@@ -31,34 +55,33 @@ export interface ComposerAttachmentsApi {
 interface AttachmentStash {
   files: Ref<ComposerAttachment[]>
   error: Ref<string>
-  progress: Ref<Map<string, number>>
+  uploads: Ref<AttachmentUploads>
+  batch: string
 }
 
-function attachmentKey(file: File): string {
-  return `${file.name}\0${file.size}\0${file.type}`
+function release(item: ComposerAttachment) {
+  if (item.url) URL.revokeObjectURL(item.url)
 }
 
-function displayName(file: File): string {
-  return file.name || "attachment"
+function skipText(item: SkippedFile): string {
+  const reason = item.reason
+
+  if (reason.kind === "folder") return `${item.name}（${t("composer.folderNotSupported")}）`
+
+  if (reason.kind === "count")
+    return `${item.name}（${t("composer.maxAttachments", { count: reason.count })}）`
+  return `${item.name}（${t("composer.overSize", { size: reason.size })}）`
 }
 
-export function clipboardFiles(data: DataTransfer | null | undefined): File[] {
-  if (!data) return []
-  const seen = new Set<string>()
-  const picked: File[] = []
-  const push = (file: File | null | undefined) => {
-    if (!file || seen.has(attachmentKey(file))) return
-    seen.add(attachmentKey(file))
-    picked.push(file)
+function toAttachment(picked: PickedFile): ComposerAttachment {
+  return {
+    id: crypto.randomUUID(),
+    name: picked.name,
+    mimeType: picked.mimeType,
+    size: picked.size,
+    url: picked.image ? URL.createObjectURL(picked.file) : "",
+    file: picked.file,
   }
-
-  for (const file of Array.from(data.files)) push(file)
-
-  for (const item of Array.from(data.items)) {
-    if (item.kind === "file") push(item.getAsFile())
-  }
-
-  return picked
 }
 
 export function useComposerAttachments(): ComposerAttachmentsApi {
@@ -66,7 +89,8 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     () => ({
       files: shallowRef([]),
       error: ref(""),
-      progress: ref(new Map()),
+      uploads: ref<AttachmentUploads>({}),
+      batch: crypto.randomUUID(),
     }),
     (stash) => stash.files.value.forEach(release),
     "attachments",
@@ -75,74 +99,27 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
   const sources = new WeakMap<ComposerAttachmentBatch, AttachmentStash>()
   const files = computed(() => bucket().files.value)
   const error = computed(() => bucket().error.value)
-  const progress = computed(() => bucket().progress.value)
+  const status = computed(() => uploadStatus(bucket().uploads.value))
+  const progress = computed(() => uploadPercent(bucket().uploads.value))
+  const errors = computed(() => uploadErrors(bucket().uploads.value))
 
-  function release(item: ComposerAttachment) {
-    if (item.url) URL.revokeObjectURL(item.url)
+  function writeUpload(stash: AttachmentStash, id: string, next: AttachmentUpload | undefined) {
+    stash.uploads.value = replaceUpload(stash.uploads.value, id, next)
   }
 
   function writeProgress(stash: AttachmentStash, id: string, value: number | undefined) {
-    const next = new Map(stash.progress.value)
-
-    if (value === undefined) next.delete(id)
-    else next.set(id, value)
-    stash.progress.value = next
+    writeUpload(stash, id, value === undefined ? undefined : uploadAt(value))
   }
 
   function apply(input: FileList | File[] | null | undefined, folders: readonly string[]) {
     const stash = bucket()
-    const skipped = folders.map((name) => ({
-      name,
-      reason: t("composer.folderNotSupported"),
-    }))
     const current = stash.files.value
-    const keys = new Set(current.map((item) => attachmentKey(item.file)))
-    const added: ComposerAttachment[] = []
+    const { picked, skipped } = selectAttachments(input ? Array.from(input) : [], current, folders)
 
-    for (const file of input ? Array.from(input) : []) {
-      const key = attachmentKey(file)
-
-      if (keys.has(key)) continue
-
-      if (current.length + added.length >= MAX_COMPOSER_ATTACHMENTS) {
-        skipped.push({
-          name: displayName(file),
-          reason: t("composer.maxAttachments", { count: MAX_COMPOSER_ATTACHMENTS }),
-        })
-        continue
-      }
-
-      const mimeType = file.type || "application/octet-stream"
-      const image = INLINE_IMAGE_MIME_PATTERN.test(mimeType)
-      const limit = image ? MAX_IMAGE_BYTES : MAX_FILE_BYTES
-
-      if (file.size > limit) {
-        skipped.push({
-          name: displayName(file),
-          reason: t("composer.overSize", { size: limit / MEGABYTE }),
-        })
-        continue
-      }
-
-      keys.add(key)
-      added.push({
-        id: crypto.randomUUID(),
-        name: displayName(file),
-        mimeType,
-        size: file.size,
-        url: image ? URL.createObjectURL(file) : "",
-        file,
-      })
-    }
-
-    if (added.length) {
-      stash.files.value = [...current, ...added]
-    }
+    if (picked.length) stash.files.value = [...current, ...picked.map(toAttachment)]
 
     stash.error.value = skipped.length
-      ? t("composer.attachmentSkipped", {
-          list: skipped.map((item) => `${item.name}（${item.reason}）`).join("、"),
-        })
+      ? t("composer.attachmentSkipped", { list: skipped.map(skipText).join("、") })
       : ""
   }
 
@@ -198,23 +175,17 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     if (!stash.files.value.length) return undefined
 
     const batch: ComposerAttachmentBatch = {
-      batch: crypto.randomUUID(),
+      batch: stash.batch,
       files: [...stash.files.value],
+      staged: stagedIds(stash.uploads.value),
       reportProgress: (id, value) => writeProgress(stash, id, value),
+      reportError: (id, message) =>
+        writeUpload(stash, id, failedAt(stash.uploads.value[id], message)),
     }
 
+    stash.batch = crypto.randomUUID()
     sources.set(batch, stash)
     return batch
-  }
-
-  function settle(batch: ComposerAttachmentBatch) {
-    const stash = sources.get(batch)
-
-    sources.delete(batch)
-
-    for (const item of batch.files) release(item)
-
-    if (stash) detachFrom(stash, batch)
   }
 
   function detachFrom(stash: AttachmentStash, batch: ComposerAttachmentBatch) {
@@ -222,7 +193,17 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
 
     stash.files.value = stash.files.value.filter((item) => !sent.has(item.id))
     stash.error.value = ""
-    stash.progress.value = new Map()
+    stash.uploads.value = {}
+    stash.batch = crypto.randomUUID()
+  }
+
+  function settle(batch: ComposerAttachmentBatch) {
+    const stash = sources.get(batch)
+
+    sources.delete(batch)
+    batch.files.forEach(release)
+
+    if (stash) detachFrom(stash, batch)
   }
 
   function detach(batch: ComposerAttachmentBatch) {
@@ -231,10 +212,38 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     if (stash) detachFrom(stash, batch)
   }
 
+  async function stageItem(stash: AttachmentStash, item: ComposerAttachment) {
+    writeProgress(stash, item.id, 0)
+
+    try {
+      await stageAttachment(stash.batch, item.file, {
+        onProgress: (ratio) => writeProgress(stash, item.id, ratio * COMPLETE),
+      })
+      writeProgress(stash, item.id, COMPLETE)
+    } catch (failure) {
+      writeUpload(stash, item.id, failedAt(stash.uploads.value[item.id], errorMessage(failure)))
+    }
+  }
+
+  function retryItem(id: string) {
+    const stash = bucket()
+    const item = stash.files.value.find((entry) => entry.id === id)
+    const state = stash.uploads.value[id]?.status
+
+    if (!item || state === "ready" || state === "uploading") return
+    void stageItem(stash, item)
+  }
+
+  function dismissError() {
+    bucket().error.value = ""
+  }
+
   if (getCurrentInstance() && !buckets.shared) onUnmounted(() => buckets.clearAll())
   return {
     files,
+    status,
     progress,
+    errors,
     error,
     addFiles,
     addDropped,
@@ -242,6 +251,8 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     consumeForSend,
     detach,
     settle,
+    retryItem,
+    dismissError,
     setKey: buckets.setKey,
     handOff: buckets.handOff,
   }

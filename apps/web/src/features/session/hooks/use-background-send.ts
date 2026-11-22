@@ -1,6 +1,7 @@
 import type { TranscriptItem } from "@/types/common-type.js"
+import { errorMessage } from "@client/http.js"
 import { discardAttachments, stageAttachment } from "@client/platform.js"
-import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
+import type { ComposerAttachment, ComposerAttachmentBatch } from "@/types/attachment-type.js"
 import type { LiveSubscription } from "@features/session/hooks/use-live-subscriptions.js"
 import { optimisticUserMessage, sessionState } from "@features/session/lib/session-state.js"
 import type { SessionClientState } from "@features/session/type.js"
@@ -9,41 +10,41 @@ export async function stageBatch(
   batch: ComposerAttachmentBatch,
   aborted: () => boolean,
 ): Promise<boolean> {
-  const resetAll = () => batch.files.forEach((item) => batch.reportProgress?.(item.id, undefined))
-
-  try {
-    for (const item of batch.files) {
-      batch.reportProgress?.(item.id, 0)
-      let shown = 0
-      const timer = globalThis.setInterval(() => {
-        shown = Math.min(85, shown + (4 + 7 * Math.random()))
-        batch.reportProgress?.(item.id, Math.round(shown))
-      }, 50)
-
-      try {
-        await stageAttachment(batch.batch, item.file)
-      } finally {
-        globalThis.clearInterval(timer)
-      }
-
-      batch.reportProgress?.(item.id, 100)
-
-      if (aborted()) {
-        resetAll()
-        return false
-      }
+  const staged = new Set(batch.staged ?? [])
+  const pending = batch.files.filter((item) => !staged.has(item.id))
+  const reset = (keep?: ComposerAttachment) => {
+    for (const item of pending) {
+      if (item !== keep) batch.reportProgress?.(item.id, undefined)
     }
+  }
+
+  for (const item of pending) {
+    batch.reportProgress?.(item.id, 0)
+
+    try {
+      await stageAttachment(batch.batch, item.file, {
+        onProgress: (ratio) => batch.reportProgress?.(item.id, ratio * 100),
+      })
+    } catch (error) {
+      reset(item)
+      batch.reportError?.(item.id, errorMessage(error))
+      throw error
+    }
+
+    batch.reportProgress?.(item.id, 100)
 
     if (aborted()) {
-      resetAll()
+      reset()
       return false
     }
-
-    return true
-  } catch (error) {
-    resetAll()
-    throw error
   }
+
+  if (aborted()) {
+    reset()
+    return false
+  }
+
+  return true
 }
 
 export function dropBatch(batch: string | undefined): Promise<void> {

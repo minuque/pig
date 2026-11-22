@@ -10,5 +10,7 @@ export interface ComposerAttachment {
 export interface ComposerAttachmentBatch {
   batch: string
   files: ComposerAttachment[]
+  staged?: readonly string[] | undefined
   reportProgress?(id: string, progress: number | undefined): void
+  reportError?(id: string, message: string): void
 }
