@@ -345,15 +345,90 @@ export async function deleteSession(id: string): Promise<void> {
   await request("POST /api/v1/platform/delete-session", { body: { id } })
 }
 
-export async function stageAttachment(batch: string, file: File): Promise<string> {
+export interface StageAttachmentOptions {
+  signal?: AbortSignal | undefined
+  onProgress?: ((ratio: number) => void) | undefined
+}
+
+function uploadRatio(loaded: number, total: number): number {
+  if (!(total > 0) || !Number.isFinite(loaded)) return 0
+  return Math.min(1, Math.max(0, loaded / total))
+}
+
+function stagedBody(text: string): { id: string; code?: string } {
+  try {
+    const parsed = JSON.parse(text) as { id?: string; code?: string }
+
+    if (typeof parsed.id !== "string") return { id: "" }
+    return typeof parsed.code === "string"
+      ? { id: parsed.id, code: parsed.code }
+      : { id: parsed.id }
+  } catch {
+    return { id: "" }
+  }
+}
+
+export function stageAttachment(
+  batch: string,
+  file: File,
+  options: StageAttachmentOptions = {},
+): Promise<string> {
   const mimeType = file.type || "application/octet-stream"
-  const { id } = await platformRequest<{ id: string }>(
-    routeUrl("POST /api/v1/platform/attachments/stage", {
-      query: { batch, name: file.name, mimeType },
-    }),
-    { method: "POST", body: file, headers: { "content-type": mimeType } },
-  )
-  return id
+  const requestId = crypto.randomUUID()
+  const url = routeUrl("POST /api/v1/platform/attachments/stage", {
+    query: { batch, name: file.name, mimeType },
+  })
+  const aborted = () => new DOMException("Aborted", "AbortError")
+  return new Promise<string>((resolve, reject) => {
+    if (options.signal?.aborted) {
+      reject(aborted())
+      return
+    }
+
+    const xhr = new XMLHttpRequest()
+    const stopListening = () => options.signal?.removeEventListener("abort", abortRequest)
+    const abortRequest = () => xhr.abort()
+
+    xhr.open("POST", url)
+    xhr.setRequestHeader("content-type", mimeType)
+    xhr.setRequestHeader("x-request-id", requestId)
+    options.signal?.addEventListener("abort", abortRequest)
+
+    if (options.onProgress) {
+      const report = options.onProgress
+
+      xhr.upload.onprogress = (event) => report(uploadRatio(event.loaded, event.total))
+    }
+
+    xhr.onabort = () => {
+      stopListening()
+      reject(aborted())
+    }
+
+    xhr.onerror = () => {
+      stopListening()
+      reject(new PlatformRequestError(`HTTP_${xhr.status}`, requestId))
+    }
+
+    xhr.onload = () => {
+      stopListening()
+      const body = stagedBody(xhr.responseText)
+
+      if (xhr.status < 200 || xhr.status >= 300) {
+        reject(new PlatformRequestError(body.code ?? `HTTP_${xhr.status}`, requestId))
+        return
+      }
+
+      if (!body.id) {
+        reject(new PlatformRequestError("INVALID_RESPONSE", requestId))
+        return
+      }
+
+      resolve(body.id)
+    }
+
+    xhr.send(file)
+  })
 }
 
 export async function discardAttachments(batch: string): Promise<void> {

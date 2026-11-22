@@ -3,6 +3,7 @@ export type {
   ComposerCommand,
   ContextUsageEstimate,
   ContextUsagePreview,
+  ContextUsageTokens,
   CustomModelInput,
   CustomProviderInput,
   DefaultModelView,

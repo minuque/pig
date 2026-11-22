@@ -1,52 +1,59 @@
-import { computed, nextTick, onScopeDispose, ref, watch, type Ref } from "vue"
+import { computed, onScopeDispose, ref, useId, watch, type Ref } from "vue"
+import { useI18n } from "@i18n/index.js"
 import { listWorkspaceCommands, searchWorkspaceFiles } from "@client/platform.js"
 import type { ComposerCommand, FileSearchEntry } from "@/types/common-type.js"
-import type {
-  CommandMenuGroup,
-  CommandMenuRow,
-  CommandMenuRowKind,
-} from "@features/composer/components/CommandMenu.vue"
+import type { ChipInsert, CommandMenuGroup, CommandMenuRow } from "@features/composer/type.js"
 import {
   composerTriggerAt,
-  mentionPathNeedsQuoting,
+  triggerKey,
   type ComposerTrigger,
 } from "@features/composer/lib/composer-trigger.js"
+import {
+  BUILTIN_PREFIX,
+  DIR_PREFIX,
+  buildCommandGroups,
+  chipForRow,
+} from "@features/composer/lib/command-menu-groups.js"
 
-const DIR_PREFIX = "dir:"
-const FILE_PREFIX = "file:"
-const SKILL_PREFIX = "skill:"
-const TEMPLATE_PREFIX = "template:"
-const BUILTIN_PREFIX = "builtin:"
-const BUILTIN_COMMANDS = [{ name: "clear", description: "清空输入草稿" }]
+const MENU_ID = "composer-command-menu"
+const SEARCH_DELAY = 150
 
 export interface CommandMenuApi {
   open: Ref<boolean>
+  menuId: string
   groups: Ref<CommandMenuGroup[]>
   activeId: Ref<string | null>
+  activeDescendantId: Ref<string | undefined>
   loading: Ref<boolean>
   emptyText: Ref<string>
   onKeydown(event: KeyboardEvent): boolean
   select(id: string): void
   close(): void
+  dismiss(): void
 }
 
-export interface ChipInsert {
-  kind: "skill" | "template" | "builtin" | "file"
-  label: string
-  token: string
-  start: number
-  triggerLength: number
-  caret: number
+export interface CommandMenuOptions {
+  prompt: Ref<string>
+  caret: Ref<number>
+  edited: Ref<boolean>
+  inCode(): boolean
+  cwd(): string | undefined
+  onChip(chip: ChipInsert): void
+  onReplaceText(start: number, triggerLength: number, text: string): void
 }
 
-export function useCommandMenu(
-  prompt: Ref<string>,
-  caret: Ref<number>,
-  cwd: () => string | undefined,
-  onChip: (chip: ChipInsert) => void,
-): CommandMenuApi {
+let menuSeq = 0
+
+export function commandRowId(id: string, menuId = MENU_ID): string {
+  return `${menuId}-row-${encodeURIComponent(id)}`
+}
+
+export function useCommandMenu(options: CommandMenuOptions): CommandMenuApi {
+  const { t } = useI18n()
+  const menuId = `${MENU_ID}-${useId() || ++menuSeq}`
   const open = ref(false)
   const trigger = ref<ComposerTrigger>(null)
+  const dismissedKey = ref("")
   const files = ref<FileSearchEntry[]>([])
   const skills = ref<ComposerCommand[]>([])
   const prompts = ref<ComposerCommand[]>([])
@@ -54,147 +61,111 @@ export function useCommandMenu(
   const activeId = ref<string | null>(null)
   let fetchSeq = 0
   let skillsFor = ""
-  const fileRows = computed<CommandMenuRow[]>(() =>
-    files.value.map((entry) => ({
-      id: `${entry.kind === "directory" ? DIR_PREFIX : FILE_PREFIX}${entry.path}`,
-      title: entry.path.split("/").filter(Boolean).pop() ?? entry.path,
-      secondary: entry.kind === "directory" ? undefined : parentPath(entry.path),
-      directory: entry.kind === "directory",
-      kind: entry.kind === "directory" ? "directory" : "file",
-      trailing: entry.kind === "directory" ? "目录" : undefined,
-    })),
-  )
+  let debounce: ReturnType<typeof setTimeout> | undefined
+  let fetchController: AbortController | undefined
   const clearApplicable = computed(() => {
     const start = trigger.value?.start
+    const { prompt, caret } = options
 
     if (start === undefined || trigger.value?.kind !== "command") return false
     return prompt.value.trim() === prompt.value.slice(start, caret.value).trim()
   })
-  const commandRows = computed<CommandMenuRow[]>(() => {
-    const query = trigger.value?.kind === "command" ? trigger.value.query.toLowerCase() : ""
-    const templateNames = new Set(prompts.value.map((prompt) => prompt.name))
-    const commands: Array<{
-      key: string
-      name: string
-      description: string
-      hint?: string | undefined
-      kind: CommandMenuRowKind
-    }> = [
-      ...BUILTIN_COMMANDS.filter(
-        (command) => clearApplicable.value && !templateNames.has(command.name),
-      ).map((command) => ({
-        ...command,
-        key: `${BUILTIN_PREFIX}${command.name}`,
-        kind: "builtin" as const,
-      })),
-      ...skills.value.map((skill) => ({
-        key: `${SKILL_PREFIX}${skill.name}`,
-        name: `skill:${skill.name}`,
-        description: skill.description,
-        kind: "skill" as const,
-      })),
-      ...prompts.value.map((prompt) => ({
-        key: `${TEMPLATE_PREFIX}${prompt.name}`,
-        name: prompt.name,
-        description: prompt.description,
-        hint: prompt.argumentHint,
-        kind: "template" as const,
-      })),
-    ]
-    return commands
-      .filter((command) => !query || command.name.toLowerCase().includes(query))
-      .map((command) => ({
-        id: command.key,
-        title: `/${command.name}`,
-        secondary: command.hint ?? command.description,
-        kind: command.kind,
-        trailing: command.key.startsWith(SKILL_PREFIX)
-          ? "技能"
-          : command.key.startsWith(TEMPLATE_PREFIX)
-            ? "模板"
-            : "命令",
-      }))
-  })
-  const groups = computed<CommandMenuGroup[]>(() => {
-    if (trigger.value?.kind === "mention") {
-      return fileRows.value.length ? [{ id: "files", label: "文件", rows: fileRows.value }] : []
-    }
-
-    if (trigger.value?.kind === "command") {
-      const builtin = commandRows.value.filter((row) => row.id.startsWith(BUILTIN_PREFIX))
-      const skill = commandRows.value.filter((row) => row.id.startsWith(SKILL_PREFIX))
-      const template = commandRows.value.filter((row) => row.id.startsWith(TEMPLATE_PREFIX))
-      const next: CommandMenuGroup[] = []
-
-      if (builtin.length) next.push({ id: "builtin", label: "内置", rows: builtin })
-
-      if (template.length) next.push({ id: "templates", label: "模板", rows: template })
-
-      if (skill.length) next.push({ id: "skills", label: "技能", rows: skill })
-      return next
-    }
-
-    return []
-  })
-  const flatRows = computed(() => groups.value.flatMap((group) => group.rows))
+  const groups = computed<CommandMenuGroup[]>(() =>
+    buildCommandGroups({
+      kind: trigger.value?.kind ?? "none",
+      query: trigger.value?.kind === "command" ? trigger.value.query : "",
+      clearApplicable: clearApplicable.value,
+      files: files.value,
+      skills: skills.value,
+      prompts: prompts.value,
+      label: (key) => t(key),
+    }),
+  )
+  const flatRows = computed<CommandMenuRow[]>(() => groups.value.flatMap((group) => group.rows))
   const emptyText = computed(() =>
-    trigger.value?.kind === "mention" ? "没有匹配的文件" : "没有匹配的命令",
+    t(
+      trigger.value?.kind === "mention"
+        ? "composer.commandEmptyFile"
+        : "composer.commandEmptyCommand",
+    ),
+  )
+  const activeDescendantId = computed(() =>
+    activeId.value ? commandRowId(activeId.value, menuId) : undefined,
   )
 
-  watch([prompt, caret, () => cwd()], () => void refresh(), { flush: "post" })
+  watch([options.prompt, options.caret, () => options.cwd()], () => void refresh(), {
+    flush: "post",
+  })
+  watch(flatRows, (rows) => (activeId.value = rows[0]?.id ?? null), { immediate: true })
 
-  let debounce: ReturnType<typeof setTimeout> | undefined
-  let fetchController: AbortController | undefined
-
-  function scheduleFetch(run: (signal: AbortSignal) => Promise<void>, delay: number) {
+  function cancelFetch() {
     if (debounce) clearTimeout(debounce)
+    debounce = undefined
     fetchController?.abort()
-    const controller = new AbortController()
-    fetchController = controller
+    fetchController = undefined
+  }
+
+  function scheduleFetch(run: (signal: AbortSignal) => Promise<void>) {
+    cancelFetch()
+    const controller = (fetchController = new AbortController())
+
     debounce = setTimeout(() => {
       debounce = undefined
       void run(controller.signal)
-    }, delay)
+    }, SEARCH_DELAY)
   }
 
   async function refresh() {
-    const next = composerTriggerAt(prompt.value, caret.value)
-    const dir = cwd()
+    const dir = options.cwd()
 
-    if (!next || !dir) {
-      open.value = false
-      trigger.value = null
+    if (options.inCode()) {
+      close()
       files.value = []
-      cancelFetch()
+      activeId.value = null
+      loading.value = false
       return
     }
 
-    const changed =
-      next.kind !== trigger.value?.kind ||
-      next.query !== trigger.value.query ||
-      next.start !== trigger.value.start
+    const next = composerTriggerAt(options.prompt.value, options.caret.value)
+
+    if (!next || !dir) {
+      close()
+      files.value = []
+      activeId.value = null
+      loading.value = false
+      return
+    }
+
+    const key = triggerKey(next)
+
+    if (dismissedKey.value && dismissedKey.value !== key) dismissedKey.value = ""
+
+    if (dismissedKey.value === key || (!options.edited.value && !open.value)) {
+      open.value = false
+      return
+    }
+
+    const changed = key !== triggerKey(trigger.value)
 
     trigger.value = next
 
     if (!changed && open.value) return
     open.value = true
-    activeId.value = null
+    await load(next.kind, next.query, dir)
+  }
+
+  async function load(kind: "mention" | "command", query: string, dir: string) {
     const seq = ++fetchSeq
 
-    if (next.kind === "mention") {
+    if (kind === "mention") {
       scheduleFetch(async (signal) => {
         loading.value = true
+        const entries = await searchWorkspaceFiles(dir, query, signal).catch(() => [])
 
-        try {
-          const entries = await searchWorkspaceFiles(dir, next.query, signal)
-
-          if (seq === fetchSeq) files.value = entries
-        } catch {
-          if (seq === fetchSeq && !signal.aborted) files.value = []
-        } finally {
-          if (seq === fetchSeq) loading.value = false
-        }
-      }, 150)
+        if (seq !== fetchSeq) return
+        files.value = entries
+        loading.value = false
+      })
       return
     }
 
@@ -206,128 +177,68 @@ export function useCommandMenu(
     }
 
     loading.value = true
+    const loaded = await listWorkspaceCommands(dir).catch(() => undefined)
 
-    try {
-      const loaded = await listWorkspaceCommands(dir)
+    if (seq !== fetchSeq) return
+    skills.value = loaded?.skills ?? []
+    prompts.value = loaded?.prompts ?? []
+    loading.value = false
 
-      if (seq === fetchSeq) {
-        skills.value = loaded.skills
-        prompts.value = loaded.prompts
-
-        if (loaded.skills.length || loaded.prompts.length) skillsFor = dir
-      }
-    } catch {
-      if (seq === fetchSeq) {
-        skills.value = []
-        prompts.value = []
-      }
-    } finally {
-      if (seq === fetchSeq) loading.value = false
-    }
-  }
-
-  function cancelFetch() {
-    if (debounce) clearTimeout(debounce)
-    debounce = undefined
-    fetchController?.abort()
-    fetchController = undefined
-  }
-
-  onScopeDispose(cancelFetch)
-
-  function move(step: 1 | -1) {
-    const rows = flatRows.value
-
-    if (!rows.length) return
-    const index = rows.findIndex((row) => row.id === activeId.value)
-    activeId.value = rows[(index + step + rows.length) % rows.length]?.id ?? rows[0]!.id
+    if (loaded?.skills.length || loaded?.prompts.length) skillsFor = dir
   }
 
   function onKeydown(event: KeyboardEvent): boolean {
-    if (event.isComposing) return false
+    if (event.isComposing || !open.value) return false
 
-    if (!open.value) return false
-
-    switch (event.key) {
-      case "ArrowDown":
-        event.preventDefault()
-        move(1)
-        return true
-      case "ArrowUp":
-        event.preventDefault()
-        move(-1)
-        return true
-      case "Enter":
-      case "Tab": {
-        const id = activeId.value ?? flatRows.value[0]?.id
-
-        if (!id) return false
-        event.preventDefault()
-        select(id)
-        return true
-      }
-
-      case "Escape":
-        event.preventDefault()
-        event.stopPropagation()
-        close()
-        return true
-      default:
-        return false
+    if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+      event.preventDefault()
+      step(event.key === "ArrowDown" ? 1 : -1)
+      return true
     }
+
+    if (event.key !== "Enter" && event.key !== "Tab") return false
+    const id = activeId.value ?? flatRows.value[0]?.id
+
+    if (!id) return false
+    event.preventDefault()
+    select(id)
+    return true
+  }
+
+  function step(offset: number) {
+    const rows = flatRows.value
+    const index = rows.findIndex((row) => row.id === activeId.value)
+
+    activeId.value = rows[(index + offset + rows.length) % rows.length]?.id ?? null
   }
 
   function select(id: string) {
     const start = trigger.value?.start
-    const kind = trigger.value?.kind
 
-    if (start === undefined || !kind) return
+    if (start === undefined) return
 
     if (id.startsWith(DIR_PREFIX)) {
       const prefix = id.slice(DIR_PREFIX.length)
 
-      prompt.value = `${prompt.value.slice(0, start)}@${prefix}${prompt.value.slice(caret.value)}`
-      void nextTick(() => {
-        caret.value = start + prefix.length + 1
-      })
+      options.onReplaceText(start, options.caret.value - start, `@${prefix}`)
       return
     }
 
     if (id.startsWith(BUILTIN_PREFIX)) {
-      prompt.value = ""
-      caret.value = 0
+      options.prompt.value = ""
+      options.caret.value = 0
       close()
       return
     }
 
-    const triggerLength = caret.value - start
-    const base = { start, triggerLength }
+    const chip = chipForRow(id, start, options.caret.value - start)
 
-    if (id.startsWith(SKILL_PREFIX)) {
-      const name = id.slice(SKILL_PREFIX.length)
-      onChip({
-        ...base,
-        kind: "skill",
-        label: name,
-        token: `/skill:${name} `,
-        caret: start + `/skill:${name} `.length,
-      })
-    } else if (id.startsWith(TEMPLATE_PREFIX)) {
-      const name = id.slice(TEMPLATE_PREFIX.length)
-      onChip({
-        ...base,
-        kind: "template",
-        label: name,
-        token: `/${name} `,
-        caret: start + `/${name} `.length,
-      })
-    } else if (id.startsWith(FILE_PREFIX)) {
-      const path = id.slice(FILE_PREFIX.length)
-      const label = path.split("/").filter(Boolean).pop() ?? path
-      const token = mentionPathNeedsQuoting(path) ? `@${JSON.stringify(path)} ` : `@${path} `
-      onChip({ ...base, kind: "file", label, token, caret: start + token.length })
-    }
+    if (chip) options.onChip(chip)
+    close()
+  }
 
+  function dismiss() {
+    dismissedKey.value = triggerKey(trigger.value)
     close()
   }
 
@@ -335,13 +246,20 @@ export function useCommandMenu(
     cancelFetch()
     open.value = false
     trigger.value = null
-    activeId.value = null
   }
 
-  return { open, groups, activeId, loading, emptyText, onKeydown, select, close }
-}
-
-function parentPath(path: string): string | undefined {
-  const at = path.lastIndexOf("/")
-  return at > 0 ? path.slice(0, at) : undefined
+  onScopeDispose(cancelFetch)
+  return {
+    open,
+    menuId,
+    groups,
+    activeId,
+    activeDescendantId,
+    loading,
+    emptyText,
+    onKeydown,
+    select,
+    close,
+    dismiss,
+  }
 }

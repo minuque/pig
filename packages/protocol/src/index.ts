@@ -51,6 +51,7 @@ export type {
   ContextPreviewKey,
   ContextUsageEstimate,
   ContextUsagePreview,
+  ContextUsageTokens,
   SessionCard,
   SessionTranscriptPage,
   TurnTiming,

@@ -294,4 +294,15 @@ describe("composePrompt", () => {
     expect(composed.text).toBe("看图")
     expect(composed.images).toHaveLength(1)
   })
+
+  it("无文字只有文件时不带前导空行", () => {
+    const path = join(tmpdir(), "pig-attachments", "b1", "abcd1234-note.pdf")
+    const composed = composePrompt("", [file("note.pdf", 7, path)])
+
+    expect(composed.text).toBe(
+      ["<attached_files>", `- note.pdf — application/pdf — 7 — ${path}`, "</attached_files>"].join(
+        "\n",
+      ),
+    )
+  })
 })

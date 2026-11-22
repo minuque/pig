@@ -45,6 +45,7 @@ export function useComposerBinding(options: ComposerBindingOptions) {
   const pending = ref<PendingPreset>()
   let syncVersion = 0
   let syncing = false
+  const switchLocked = computed(() => options.phase.value === "turn")
   const basePreset = computed<ComposerPreset | undefined>(() => {
     const snap = options.snapshot.value
 
@@ -156,5 +157,5 @@ export function useComposerBinding(options: ComposerBindingOptions) {
     return chosen
   }
 
-  return { preset, consumeDetachedEdit }
+  return { preset, consumeDetachedEdit, switchLocked }
 }

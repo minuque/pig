@@ -222,13 +222,6 @@
   --glass-footer-border: color-mix(in srgb, var(--fg) 7%, transparent);
   --glass-kbd-bg: color-mix(in srgb, var(--fg) 8%, transparent);
   --edge-fade-band: 24px;
-  --effort-shell: rgba(230, 230, 232, 0.504);
-  --effort-shell-2: rgba(232, 232, 233, 0.357);
-  --effort-label-dim: color-mix(in srgb, #202020 40%, transparent);
-  --effort-tick-on-thumb: rgba(0, 0, 0, 0.45);
-  --effort-thumb: linear-gradient(180deg, #ffffff, #f5f5f5);
-  --effort-thumb-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
-  --effort-fill-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.15);
   /* 外部：色相取自 @pierre/vscode-icons 调色板，浅色 600 档、深色 400 档 */
   --language-gray: #6c6c71;
   --language-red: #d52c36;
@@ -261,6 +254,13 @@
     0 0 0 var(--border-width) color-mix(in srgb, var(--accent-solid) 16%, rgba(0, 0, 0, 0.05)),
     0 1px 2px rgba(0, 0, 0, 0.05),
     0 3px 8px -3px color-mix(in srgb, var(--accent-solid) 16%, rgba(0, 0, 0, 0.1));
+  --slider-badge-bg: var(--fg);
+  --slider-badge-fg: var(--fg-inverse);
+  --slider-grip: color-mix(in srgb, var(--fg) 28%, transparent);
+  --slider-range-bg: var(--bg);
+  --slider-range-shadow: 0 0 0 var(--border-width) var(--border), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --slider-track-bg: var(--bg-surface);
+  --slider-track-ring: inset 0 0 0 var(--border-width) var(--border);
   --theme-wire-light: #ffffff;
   --theme-wire-light-raised: #f7f8f8;
   --theme-wire-dark: #101012;
@@ -362,9 +362,6 @@ html.dark {
     0 24px 72px -20px rgba(0, 0, 0, 0.9);
   --glass-backdrop: color-mix(in srgb, var(--bg) 64%, transparent);
   --float-shadow: 0 0 0 var(--border-width) var(--border), 0 4px 12px -4px rgba(0, 0, 0, 0.32);
-  --effort-shell: #ffffff12;
-  --effort-shell-2: #ffffff1b;
-  --effort-thumb-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
   --language-gray: #adadb1;
   --language-red: #ff6762;
   --language-orange: #ffa359;
@@ -380,11 +377,18 @@ html.dark {
   --session-active-shadow:
     0 0 0 var(--border-width) color-mix(in srgb, var(--accent-solid) 24%, transparent),
     0 1px 2px rgba(0, 0, 0, 0.2);
+  --slider-badge-bg: var(--fg);
+  --slider-badge-fg: var(--fg-inverse);
+  --slider-grip: color-mix(in srgb, var(--fg) 32%, transparent);
+  --slider-range-bg: color-mix(in srgb, var(--white) 10%, var(--bg-raised));
+  --slider-range-shadow:
+    0 0 0 var(--border-width) var(--border-strong), 0 1px 2px rgba(0, 0, 0, 0.28);
+  --slider-track-bg: var(--sidebar);
+  --slider-track-ring: inset 0 0 0 var(--border-width) var(--border-strong);
 
   /* --- 浅色里冻结成字面值、深色取值不同的 token --- */
   --success-text: #3dd68c;
   --chart-other: #606060;
-  --effort-label-dim: color-mix(in srgb, #eeeeee 40%, transparent);
 
   /* --- 色调派生比例 --- */
   --tone-subtle-mix: 16%;

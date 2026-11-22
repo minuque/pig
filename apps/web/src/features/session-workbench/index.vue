@@ -50,10 +50,20 @@
             :running="turnPending"
             :phase="phase"
             :sending="submitting"
-            :stopping="aborting"
+            :stopping="aborting || stopPhase === 'pending'"
             :timings="turnTimings"
           >
             <SessionRail />
+
+            <template #queue>
+              <QueuedPanel
+                :queue="composerQueue"
+                :editing-id="editingQueueId"
+                @edit="beginQueueEdit"
+                @send-now="sendQueued"
+                @remove="removeQueued"
+              />
+            </template>
           </TranscriptView>
         </div>
 
@@ -89,16 +99,22 @@
               :catalog="catalog"
               :attachments="composerAttachments"
               :running="turnPending"
-              :aborting="aborting"
+              :switch-locked="switchLocked"
+              :editing-queue="editingQueueId !== null"
+              :stop-phase="stopPhase"
               :session-id="sessionId"
               :cwd="composerCwd"
               :usage="welcome ? undefined : contextUsage"
               :send-disabled="sendDisabled"
-              :queue="composerQueue"
               @send="sendNow"
-              @send-now="sendQueued"
+              @steer="steer"
               @queue="enqueue"
-              @abort="onAbort"
+              @save-edit="commitQueueEdit"
+              @cancel-queue-edit="cancelQueueEdit"
+              @history-prev="historyPrev"
+              @history-next="historyNext"
+              @open-file="filePane.openFile($event)"
+              @abort="abort"
             />
           </div>
         </div>
@@ -115,7 +131,10 @@ import { Button } from "@components/ui/button/index.js"
 import Composer from "@features/composer/index.vue"
 import { useComposerPreset } from "@features/composer/index.js"
 import { useComposerAttachments } from "@features/composer/hooks/use-composer-attachments.js"
+import { useComposerDraft } from "@features/composer/hooks/use-composer-draft.js"
 import { useComposerQueue } from "@features/composer/hooks/use-composer-queue.js"
+import { useFilePane } from "@features/file-pane/index.js"
+import QueuedPanel from "@features/session-workbench/components/QueuedPanel.vue"
 import { useSound } from "@features/click-sound/index.js"
 import { useI18n } from "@i18n/index.js"
 import { sessionDropTargetAttrs, useNav } from "@features/session-nav/index.js"
@@ -159,6 +178,7 @@ const {
   connected,
   prompt,
   aborting,
+  steer: sessionSteer,
   sessionCwd,
   creating,
   abortSession,
@@ -168,7 +188,7 @@ const {
   welcome,
   externalTurn,
 } = useSession()
-const { catalog, preset } = useComposerPreset()
+const { catalog, preset, switchLocked } = useComposerPreset()
 const { groups, lastCwd, addingWorkspace, addWorkspace, addRemoteWorkspace } = useNav()
 const remoteOpen = ref(false)
 const { welcomeField } = useAppearancePrefs()
@@ -223,6 +243,8 @@ function scrollToLatest(behavior: "auto" | "smooth" = "auto") {
 
 const sound = useSound()
 const composerAttachments = useComposerAttachments()
+const composerDraft = useComposerDraft(prompt)
+const filePane = useFilePane()
 
 useSessionDrop(panel, composerAttachments.addFiles)
 
@@ -233,18 +255,38 @@ watch(
   (id) => {
     composerQueue.setKey(id)
     composerAttachments.setKey(id)
+    composerDraft.setKey(id)
   },
   { immediate: true },
 )
 
-const { deliver, sendNow, sendQueued, enqueue } = useComposerSubmit({
+const {
+  deliver,
+  sendNow,
+  sendQueued,
+  enqueue,
+  steer,
+  abort,
+  stopPhase,
+  editingQueueId,
+  beginQueueEdit,
+  commitQueueEdit,
+  cancelQueueEdit,
+  removeQueued,
+  historyPrev,
+  historyNext,
+} = useComposerSubmit({
   sessionId: () => sessionId.value,
   welcomeCwd: () => welcomeWorkspaceId.value,
+  running: () => turnPending.value,
   prompt,
+  draft: composerDraft,
   queue: composerQueue,
   attachments: composerAttachments,
   scrollToLatest: () => scrollToLatest("auto"),
   submit: sendPrompt,
+  steer: sessionSteer,
+  abort: onAbort,
 })
 const { markAborted } = useTurnFinish({
   sessionId: () => sessionId.value,
@@ -259,6 +301,7 @@ const { markAborted } = useTurnFinish({
 setWelcomeHandoff((id) => {
   composerQueue.handOff(id)
   composerAttachments.handOff(id)
+  composerDraft.handOff(id)
 })
 
 function onAbort() {

@@ -1,389 +1,53 @@
 <template>
-  <div class="effort-card" :style="geometry">
-    <div ref="rootRef" class="root" :data-dragging="dragging ? 'true' : 'false'">
-      <svg class="shell" :viewBox="`0 0 ${track} ${BUMP_H + HEIGHT}`" aria-hidden="true">
-        <defs>
-          <linearGradient :id="gradId" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stop-color="var(--effort-shell)" />
-            <stop offset="1" stop-color="var(--effort-shell-2)" />
-          </linearGradient>
-        </defs>
-
-        <path
-          :d="view.path"
-          :fill="`url(#${gradId})`"
-          stroke="var(--border)"
-          stroke-width="0.5"
-          stroke-linejoin="round"
-          vector-effect="non-scaling-stroke"
-        />
-      </svg>
-
-      <div ref="labelRef" class="label" :style="view.labelStyle">
-        <span :key="view.level" class="swap motion-blur-in">
-          <span class="current">{{ t("composer.thinkingEffort") }}</span>
-          <span class="next">{{ view.levelLabel }}</span>
-        </span>
-      </div>
-
-      <div
-        ref="trackRef"
-        class="track"
-        role="slider"
-        tabindex="0"
-        :aria-label="t('composer.thinkingEffort')"
-        aria-valuemin="0"
-        :aria-valuemax="steps"
-        :aria-valuenow="view.active"
-        :aria-valuetext="view.levelLabel"
-        @pointerdown="onPointerDown"
-        @pointermove="onPointerMove"
-        @pointerup="onPointerUp"
-        @pointercancel="onPointerUp"
-        @keydown="onKeyDown"
-      >
-        <div class="fill" :style="{ width: `${view.fillW}px` }" />
-        <div class="thumb" :style="view.thumbStyle" />
-
-        <span
-          v-for="(level, index) in levels"
-          :key="level"
-          class="tick"
-          :data-on-thumb="onThumb(index) ? 'true' : 'false'"
-          :data-active="index === view.active && !onThumb(index) ? 'true' : 'false'"
-          :style="{
-            left: `${centerFor(index, steps, track)}px`,
-            height: `${tickHeight(index, steps)}px`,
-          }"
-        />
-      </div>
-    </div>
-  </div>
+  <Slider
+    v-if="steps > 0"
+    class="effort-slider"
+    size="s"
+    :model-value="[activeIndex]"
+    :min="0"
+    :max="steps"
+    :step="1"
+    :aria-label="t('composer.thinkingEffort')"
+    :format-value="labelAt"
+    :get-aria-value-text="labelAt"
+    :disabled="disabled"
+    @update:model-value="onUpdate"
+  />
 </template>
 
 <script setup lang="ts">
-import { useResizeObserver } from "@vueuse/core"
-import { computed, nextTick, ref, useId, useTemplateRef, watch } from "vue"
+import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
+import { Slider } from "@components/ui/slider/index.js"
 import { displayThinkingLevel, formatThinkingLevel } from "@features/composer/lib/thinking-level.js"
-import {
-  BUMP_H,
-  centerFor,
-  clamp,
-  DRAG_W,
-  EDGE_PAD,
-  HEIGHT,
-  RADIUS,
-  REST_H,
-  REST_W,
-  plateauFor,
-  shellGeom,
-  shellPath,
-  tickHeight,
-  tween,
-} from "@features/composer/lib/effort-shell.js"
 
-const { t } = useI18n()
 const props = defineProps<{
   levels: readonly string[]
   level: string
+  disabled?: boolean
 }>()
 const emit = defineEmits<{
   "update:level": [value: string]
 }>()
-const gradId = `effort-${useId()}`
-const rootRef = useTemplateRef("rootRef")
-const trackRef = useTemplateRef("trackRef")
-const labelRef = useTemplateRef("labelRef")
-const current = computed(() => displayThinkingLevel(props.level, props.levels))
-const index = computed(() => Math.max(0, props.levels.indexOf(current.value)))
+const { t } = useI18n()
 const steps = computed(() => Math.max(props.levels.length - 1, 0))
-const track = ref(224)
-const display = ref(index.value)
-const open = ref(0)
-const dragging = ref(false)
-const textW = ref(64)
-const plateauW = ref(plateauFor(64))
-const reveal = ref(0)
-const geometry = {
-  "--effort-h": `${HEIGHT}px`,
-  "--effort-root-h": `${BUMP_H + HEIGHT}px`,
-  "--effort-bump-h": `${BUMP_H}px`,
-}
-
-useResizeObserver(rootRef, (entries) => {
-  const width = entries[0]?.contentRect.width ?? 0
-
-  if (width > 0) track.value = width
-})
-
-watch(index, (next) => {
-  if (!dragging.value) display.value = next
-})
-
-const view = computed(() => {
-  const center = centerFor(display.value, steps.value, track.value)
-  const thumbW = REST_W + (DRAG_W - REST_W) * open.value
-  let thumbLeft = center - thumbW / 2
-  let thumbRight = thumbLeft + thumbW
-
-  if (thumbLeft < EDGE_PAD) {
-    thumbLeft = EDGE_PAD
-    thumbRight = thumbLeft + thumbW
-  }
-
-  if (thumbRight > track.value - EDGE_PAD) {
-    thumbRight = track.value - EDGE_PAD
-    thumbLeft = thumbRight - thumbW
-  }
-
-  const active = Math.round(display.value)
-  const level = props.levels[active] ?? ""
-  const plateau = shellGeom(center, plateauW.value, track.value)
-  const labelX = (plateau.topL + plateau.topR) / 2 + (plateau.insetL - plateau.insetR) / 2
-  return {
-    path: shellPath(center, open.value, plateauW.value, track.value),
-    fillW: Math.min(track.value, thumbRight + EDGE_PAD),
-    thumbLeft,
-    thumbRight,
-    active,
-    level,
-    levelLabel: formatThinkingLevel(level),
-    labelStyle: {
-      left: `${labelX}px`,
-      opacity: reveal.value,
-      filter: reveal.value > 0.98 ? undefined : `blur(${((1 - reveal.value) * 3).toFixed(2)}px)`,
-      transform: `translate(-50%, ${3 * (1 - open.value)}px)`,
-    },
-    thumbStyle: {
-      left: `${thumbLeft}px`,
-      width: `${thumbW}px`,
-      height: `${REST_H}px`,
-      marginTop: `${-REST_H / 2}px`,
-    },
-  }
-})
-
-function onThumb(i: number) {
-  const x = centerFor(i, steps.value, track.value)
-  return x >= view.value.thumbLeft + 0.5 && x <= view.value.thumbRight - 0.5
-}
-
-watch(dragging, (isDragging, _, onCleanup) => {
-  const fromOpen = open.value
-  const fromValue = display.value
-  const target = isDragging ? fromValue : Math.round(fromValue)
-
-  onCleanup(
-    tween(0, 1, 220, (e) => {
-      open.value = fromOpen + ((isDragging ? 1 : 0) - fromOpen) * e
-
-      if (!isDragging) display.value = fromValue + (target - fromValue) * e
-    }),
-  )
-})
-
-watch(dragging, (isDragging, _, onCleanup) => {
-  onCleanup(
-    tween(
-      reveal.value,
-      isDragging ? 1 : 0,
-      isDragging ? 132 : 90,
-      (value) => (reveal.value = value),
-      isDragging ? 85 : 0,
-    ),
-  )
-})
-
-watch(
-  () => plateauFor(textW.value),
-  (to, _, onCleanup) => {
-    if (Math.abs(to - plateauW.value) < 0.3) {
-      plateauW.value = to
-      return
-    }
-
-    onCleanup(tween(plateauW.value, to, 90, (value) => (plateauW.value = value)))
-  },
+const activeIndex = computed(() =>
+  Math.max(0, props.levels.indexOf(displayThinkingLevel(props.level, props.levels))),
 )
 
-watch(
-  () => view.value.level,
-  async () => {
-    await nextTick()
-    const w = labelRef.value?.getBoundingClientRect().width ?? 0
-
-    if (w > 0 && Math.abs(w - textW.value) > 0.4) textW.value = w
-  },
-  { flush: "post", immediate: true },
-)
-
-function commit(next: number) {
-  display.value = next
-  const level = props.levels[Math.round(next)]
-
-  if (level && level !== current.value) emit("update:level", level)
+function labelAt(index: number) {
+  return formatThinkingLevel(props.levels[Math.round(index)] ?? "")
 }
 
-function valueFrom(clientX: number) {
-  const rect = trackRef.value?.getBoundingClientRect()
+function onUpdate(values: number[] | undefined) {
+  const next = props.levels[Math.round(values?.[0] ?? 0)]
 
-  if (!rect || steps.value === 0) return 0
-  const ratio = (clientX - rect.left - RADIUS) / (rect.width - RADIUS * 2)
-  return clamp(ratio * steps.value, 0, steps.value)
-}
-
-function onPointerDown(event: PointerEvent) {
-  if (event.button !== 0) return
-  const el = event.currentTarget
-
-  if (el instanceof HTMLElement) el.setPointerCapture(event.pointerId)
-  dragging.value = true
-  commit(valueFrom(event.clientX))
-}
-
-function onPointerMove(event: PointerEvent) {
-  if (dragging.value) commit(valueFrom(event.clientX))
-}
-
-function onPointerUp(event: PointerEvent) {
-  if (!dragging.value) return
-  const el = event.currentTarget
-
-  if (el instanceof HTMLElement && el.hasPointerCapture(event.pointerId)) {
-    el.releasePointerCapture(event.pointerId)
-  }
-
-  dragging.value = false
-}
-
-function onKeyDown(event: KeyboardEvent) {
-  const now = Math.round(display.value)
-  const targets: Record<string, number> = {
-    ArrowRight: Math.min(steps.value, now + 1),
-    ArrowUp: Math.min(steps.value, now + 1),
-    ArrowLeft: Math.max(0, now - 1),
-    ArrowDown: Math.max(0, now - 1),
-    Home: 0,
-    End: steps.value,
-  }
-  const next = targets[event.key]
-
-  if (next === undefined) return
-  event.preventDefault()
-  commit(next)
+  if (next !== undefined) emit("update:level", next)
 }
 </script>
 
 <style scoped>
-.effort-card {
-  padding: var(--space-xs);
-}
-
-.root {
-  position: relative;
-  width: 100%;
-  height: var(--effort-root-h);
-  user-select: none;
-  touch-action: none;
-  font-family: inherit;
-}
-
-.shell {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  pointer-events: none;
-}
-
-.label {
-  position: absolute;
-  top: 0;
-  z-index: var(--z-sticky);
-  display: flex;
-  align-items: center;
-  height: var(--effort-bump-h);
-  font-size: var(--text-meta);
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-.swap {
-  display: flex;
-  gap: 3px;
-}
-
-.current {
-  color: var(--fg);
-}
-
-.next {
-  color: var(--effort-label-dim);
-}
-
-.track {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: var(--effort-h);
-  border-radius: var(--radius-pill);
-  cursor: grab;
-}
-
-.root[data-dragging="true"] .track {
-  cursor: grabbing;
-}
-
-.fill {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  border-radius: var(--radius-pill);
-  background: linear-gradient(90deg, var(--accent-solid), var(--accent-solid-hover));
-  box-shadow: var(--effort-fill-highlight);
-  pointer-events: none;
-}
-
-.thumb {
-  position: absolute;
-  top: 50%;
-  z-index: var(--z-sticky);
-  border-radius: var(--radius-pill);
-  background: var(--effort-thumb);
-  box-shadow: var(--effort-thumb-shadow);
-  pointer-events: none;
-}
-
-.tick {
-  position: absolute;
-  top: 50%;
-  z-index: var(--z-overlay);
-  width: 1.5px;
-  margin-left: -0.75px;
-  border-radius: 1px;
-  background: var(--border-input);
-  transform: translateY(-50%);
-  pointer-events: none;
-}
-
-.tick[data-active="true"] {
-  background: var(--tone-border);
-}
-
-.tick[data-on-thumb="true"] {
-  background: var(--effort-tick-on-thumb);
-}
-
-.track:focus-visible {
-  outline: 2px solid var(--focus-color);
-  outline-offset: 3px;
+.effort-slider {
+  padding: var(--space-xs) 10px var(--space-sm);
 }
 </style>

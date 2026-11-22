@@ -2,7 +2,7 @@ import { computed, getCurrentInstance, onBeforeUnmount, ref, watch, type Compute
 import type { ModelRef, ThinkingLevel } from "@/types/common-type.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
-import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
+import type { ComposerAttachmentBatch, SendAttachmentsHooks } from "@/types/attachment-type.js"
 import { notify } from "@components/layout/notify.js"
 import { t } from "@i18n/index.js"
 import { isChangedElsewhere } from "@features/session/hooks/abortable-open.js"
@@ -193,11 +193,13 @@ export function useSessionLifecycle(
     text: string,
     cwd?: string,
     attachments?: ComposerAttachmentBatch,
+    hooks?: SendAttachmentsHooks,
+    options?: { preserveDraft?: boolean },
   ): Promise<boolean> {
     const normalized = text.trim()
     let thread = clientState.value
 
-    if (!normalized || thread.submitting) return false
+    if ((!normalized && !attachments) || thread.submitting) return false
 
     if (!sessionId.value && (!cwd || creatingCwd.value)) return false
     const epoch = ++thread.epoch
@@ -210,7 +212,8 @@ export function useSessionLifecycle(
     )
 
     thread.sends.push(send)
-    thread.draft = ""
+
+    if (!options?.preserveDraft) thread.draft = ""
 
     try {
       if (!sessionId.value) {
@@ -241,23 +244,26 @@ export function useSessionLifecycle(
       if (epoch !== thread.epoch || remote.value?.id !== sessionId.value) return false
 
       if (attachments && !(await stageAttachments(attachments, thread, epoch))) {
-        await dropBatch(attachments.batch)
+        await dropBatch(attachments)
+        hooks?.onStageDropped?.()
         return false
       }
 
       if (epoch !== thread.epoch || remote.value?.id !== sessionId.value) {
-        await dropBatch(attachments?.batch)
+        await dropBatch(attachments)
+        hooks?.onStageDropped?.()
         return false
       }
 
+      if (attachments) hooks?.onDispatched?.()
       await submitRemote(normalized, attachments?.batch)
       return true
     } catch (error) {
-      await dropBatch(attachments?.batch)
+      await dropBatch(attachments)
 
       if (epoch !== thread.epoch) return false
 
-      if (!thread.draft) thread.draft = previousDraft || text
+      if (!options?.preserveDraft && !thread.draft) thread.draft = previousDraft || text
       const index = thread.sends.findIndex((item) => item.item.id === send.item.id)
 
       if (index >= 0) thread.sends.splice(index, 1)
@@ -271,6 +277,18 @@ export function useSessionLifecycle(
     } finally {
       if (epoch === thread.epoch) thread.submitting = false
     }
+  }
+
+  async function steer(text: string): Promise<boolean> {
+    const normalized = text.trim()
+    const id = sessionId.value
+
+    if (!normalized || !id || !running.value) return false
+    await ensureRemote(id)
+
+    if (sessionId.value !== id || remote.value?.id !== id) return false
+    await remote.value.steer(normalized)
+    return true
   }
 
   async function abortSession() {
@@ -360,6 +378,7 @@ export function useSessionLifecycle(
     aborting,
     createSession,
     sendPrompt,
+    steer,
     setWelcomeHandoff,
     transcriptFor: history.transcriptFor,
     externalTurn,

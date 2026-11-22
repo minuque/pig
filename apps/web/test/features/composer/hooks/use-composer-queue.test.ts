@@ -34,6 +34,34 @@ describe("useComposerQueue", () => {
     expect(queue.shiftFor("s1")?.text).toBe("一")
   })
 
+  it("move 按键重排，update 原地改文字并保留附件预览", () => {
+    const queue = useComposerQueue()
+    const preview = [
+      {
+        id: "f1",
+        name: "shot.png",
+        mimeType: "image/png",
+        size: 3,
+        url: "blob:1",
+        file: new File([new Uint8Array(1)], "shot.png", { type: "image/png" }),
+      },
+    ]
+
+    queue.setKey("s1")
+    queue.enqueue("带图的一条", undefined, preview)
+    queue.enqueue("第二条")
+    queue.move(queue.items.value[1]!.id, -1)
+
+    expect(queue.items.value.map((item) => item.text)).toEqual(["第二条", "带图的一条"])
+
+    const target = queue.items.value[1]!
+
+    queue.update({ id: target.id, text: "改过的文字" })
+
+    expect(queue.items.value[1]!.text).toBe("改过的文字")
+    expect(queue.items.value[1]!.attachmentsPreview).toEqual(preview)
+  })
+
   it("欢迎页的队列交给刚建出的会话，欢迎页回到空", () => {
     const queue = useComposerQueue()
 

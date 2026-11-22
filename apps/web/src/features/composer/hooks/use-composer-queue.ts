@@ -1,5 +1,6 @@
 import { computed, shallowRef, type ComputedRef, type ShallowRef } from "vue"
-import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
+import type { ComposerAttachment, ComposerAttachmentBatch } from "@/types/attachment-type.js"
+import type { QueueDraftPatch } from "@features/composer/type.js"
 import {
   useSessionBuckets,
   type SharedBuckets,
@@ -9,13 +10,16 @@ export interface QueuedPrompt {
   id: string
   text: string
   attachments: ComposerAttachmentBatch | undefined
+  attachmentsPreview: ComposerAttachment[]
 }
 
 export interface ComposerQueueApi {
   items: ComputedRef<QueuedPrompt[]>
-  enqueue(text: string, attachments?: ComposerAttachmentBatch): void
+  enqueue(text: string, attachments?: ComposerAttachmentBatch, preview?: ComposerAttachment[]): void
+  update(patch: QueueDraftPatch): void
   remove(id: string): void
   reorder(id: string, toIndex: number): void
+  move(id: string, delta: -1 | 1): void
   shift(): QueuedPrompt | undefined
   shiftFor(sessionId: string): QueuedPrompt | undefined
   unshiftFor(sessionId: string, item: QueuedPrompt): void
@@ -34,13 +38,36 @@ export function useComposerQueue(store?: SharedBuckets): ComposerQueueApi {
   const bucket = buckets.current
   const items = computed(() => bucket().value)
 
-  function enqueue(text: string, attachments?: ComposerAttachmentBatch) {
+  function enqueue(
+    text: string,
+    attachments?: ComposerAttachmentBatch,
+    preview?: ComposerAttachment[],
+  ) {
     const normalized = text.trim()
 
-    if (!normalized) return
+    if (!normalized && !attachments) return
     const current = bucket().value
 
-    bucket().value = [...current, { id: crypto.randomUUID(), text: normalized, attachments }]
+    bucket().value = [
+      ...current,
+      {
+        id: crypto.randomUUID(),
+        text: normalized,
+        attachments,
+        attachmentsPreview: preview ?? [],
+      },
+    ]
+  }
+
+  function update(patch: QueueDraftPatch) {
+    const normalized = patch.text.trim()
+    const current = bucket().value
+
+    if (!normalized || !current.some((item) => item.id === patch.id)) return
+
+    bucket().value = current.map((item) =>
+      item.id === patch.id ? { ...item, text: normalized } : item,
+    )
   }
 
   function remove(id: string) {
@@ -66,6 +93,14 @@ export function useComposerQueue(store?: SharedBuckets): ComposerQueueApi {
     moved.splice(index, 1)
     moved.splice(target, 0, item)
     bucket().value = moved
+  }
+
+  function move(id: string, delta: -1 | 1) {
+    const current = bucket().value
+    const index = current.findIndex((item) => item.id === id)
+
+    if (index < 0 || index + delta < 0 || index + delta >= current.length) return
+    reorder(id, index + delta)
   }
 
   function shift(): QueuedPrompt | undefined {
@@ -97,8 +132,10 @@ export function useComposerQueue(store?: SharedBuckets): ComposerQueueApi {
   return {
     items,
     enqueue,
+    update,
     remove,
     reorder,
+    move,
     shift,
     shiftFor,
     unshiftFor,

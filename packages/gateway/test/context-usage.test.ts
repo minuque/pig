@@ -43,6 +43,33 @@ describe("estimateContextUsage", () => {
     expect(usage.segments.conversation).toBeGreaterThan(0)
     expect(usage.segments.skills).toBe(0)
     expect(usage.segments.toolResults).toBe(0)
+    expect(usage.tokens).toBeUndefined()
+  })
+
+  it("会话累计用量取 Pi 的统计，负值与非法值归零，不混进上下文占用的分段", () => {
+    const usage = estimateContextUsage(
+      source({
+        getSessionStats: () => ({
+          tokens: { input: 120, output: 30, cacheRead: 800, cacheWrite: -4, total: 950 },
+        }),
+      }),
+    )
+
+    expect(usage.tokens).toEqual({
+      input: 120,
+      output: 30,
+      cacheRead: 800,
+      cacheWrite: 0,
+      total: 950,
+    })
+    expect(usage.used).toBe(300)
+  })
+
+  it("没有会话统计来源时只省去累计用量", () => {
+    const usage = estimateContextUsage(source({ getSessionStats: () => undefined }))
+
+    expect(usage.tokens).toBeUndefined()
+    expect(usage.used).toBe(300)
   })
 
   it("声明给模型的 MCP 工具单列一类，不算进工具定义；按需加载的不占用，但计数并在预览里列出", () => {
