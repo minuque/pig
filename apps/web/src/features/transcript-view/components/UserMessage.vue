@@ -1,9 +1,15 @@
 <template>
   <article class="user">
-    <div v-if="item.text" class="prompt">
+    <div v-if="item.text || item.parts?.length" class="prompt">
       <div ref="body" class="body" :class="{ collapsed: !expanded, fade: !expanded && overflows }">
         <template v-for="(part, index) in parts" :key="index">
           <span v-if="part.kind === 'text'">{{ part.text }}</span>
+
+          <TranscriptContextChip
+            v-else-if="part.kind === 'reference'"
+            :reference="part.reference"
+          />
+
           <TranscriptLinkChip v-else :url="part.text" />
         </template>
       </div>
@@ -36,11 +42,15 @@
 import { useResizeObserver } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue"
+import type { ContextReference } from "@pig/protocol"
 import MessageTimestamp from "@features/transcript-view/components/MessageTimestamp.vue"
+import TranscriptContextChip from "@features/transcript-view/components/TranscriptContextChip.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import TranscriptLinkChip from "@features/transcript-view/components/TranscriptLinkChip.vue"
-import { splitLinkText } from "@features/transcript-view/lib/link-chip.js"
+import { splitLinkText, type LinkTextPart } from "@features/transcript-view/lib/link-chip.js"
 import type { UserRow } from "@features/transcript-view/type.js"
+
+type UserMessagePart = LinkTextPart | { kind: "reference"; reference: ContextReference }
 
 const COLLAPSED_LINES = 12
 const { t } = useI18n()
@@ -50,7 +60,12 @@ const props = defineProps<{
 const body = useTemplateRef("body")
 const expanded = ref(false)
 const overflows = ref(likelyOverflows(props.item.text))
-const parts = computed(() => splitLinkText(props.item.text))
+const parts = computed(() => {
+  const segments = props.item.parts ?? [{ kind: "text" as const, text: props.item.text }]
+  return segments.flatMap<UserMessagePart>((segment) =>
+    segment.kind === "text" ? splitLinkText(segment.text) : [segment],
+  )
+})
 
 function likelyOverflows(text: string): boolean {
   let newlines = 0

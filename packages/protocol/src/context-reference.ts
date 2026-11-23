@@ -10,7 +10,11 @@ const ENVELOPE_TAG = "pig_context"
 const ENTRY_TAG = "context"
 const ENVELOPE_OPEN = `\n\n<${ENVELOPE_TAG} version="1">\n`
 const ENVELOPE_CLOSE = `\n</${ENVELOPE_TAG}>`
-const MARKER = /\[(Session|Reply): ([^[\];\n]*); ref=ctx-\d+\]/g
+const MARKER = /\[(Session|Reply): ([^[\]\n]*); ref=(ctx-\d+)\]/g
+const ENTRY_BLOCK = new RegExp(
+  String.raw`<${ENTRY_TAG} kind="(session|reply)" id="(ctx-\d+)">\n([\s\S]*?)\n</${ENTRY_TAG}>`,
+  "g",
+)
 
 export interface SessionReference {
   kind: "session"
@@ -27,6 +31,9 @@ export interface ReplyReference {
 }
 
 export type ContextReference = SessionReference | ReplyReference
+
+export type ContextTextSegment =
+  { kind: "text"; text: string } | { kind: "reference"; reference: ContextReference }
 
 export interface ContextReferenceMatch {
   reference: ContextReference
@@ -128,6 +135,143 @@ function escapePayload(text: string): string {
   )
 }
 
+function unescapePayload(text: string): string {
+  return text.replace(
+    new RegExp(String.raw`&lt;(?=/?(?:${ENVELOPE_TAG}|${ENTRY_TAG})\b)`, "gi"),
+    "<",
+  )
+}
+
+function parseEnvelopeEntry(kind: "session" | "reply", body: string): ContextReference | undefined {
+  const lines = body.split("\n")
+
+  if (kind === "session") {
+    const titleLine = lines.find((line) => line.startsWith("title: "))
+    const idLine = lines.find((line) => line.startsWith("sessionId: "))
+    const sessionId = idLine?.slice("sessionId: ".length).trim() ?? ""
+
+    if (!titleLine || !ID.test(sessionId)) return undefined
+
+    const label = sanitizeContextLabel(
+      unescapePayload(titleLine.slice("title: ".length)),
+      "session",
+    )
+    return { kind: "session", sessionId, label }
+  }
+
+  const sessionId =
+    lines
+      .find((line) => line.startsWith("sessionId: "))
+      ?.slice("sessionId: ".length)
+      .trim() ?? ""
+  const entryId =
+    lines
+      .find((line) => line.startsWith("entryId: "))
+      ?.slice("entryId: ".length)
+      .trim() ?? ""
+  const quoteIndex = lines.indexOf("quote:")
+
+  if (!ID.test(sessionId) || !ID.test(entryId) || quoteIndex < 0) return undefined
+  const tailIndex = lines.length - 1
+  const tail = lines[tailIndex] ?? ""
+
+  if (
+    tailIndex <= quoteIndex + 1 ||
+    !tail.startsWith(`Read the full response with ${READ_SESSION_TOOL}(`)
+  )
+    return undefined
+
+  const quoted = lines
+    .slice(quoteIndex + 1, tailIndex)
+    .map((line) => (line.startsWith("  ") ? line.slice(2) : line))
+    .join("\n")
+  const text = unescapePayload(quoted)
+
+  if (!text.trim() || text.length > REPLY_QUOTE_MAX) return undefined
+  return { kind: "reply", sessionId, entryId, text, label: replyLabel(text) }
+}
+
+function pushSegment(segments: ContextTextSegment[], next: ContextTextSegment): void {
+  if (next.kind === "text") {
+    if (!next.text) return
+    const last = segments.at(-1)
+
+    if (last?.kind === "text") {
+      segments[segments.length - 1] = { kind: "text", text: last.text + next.text }
+      return
+    }
+  }
+
+  segments.push(next)
+}
+
+function pushPlainOrLinks(segments: ContextTextSegment[], text: string): void {
+  let cursor = 0
+
+  for (const { reference, start, end } of collectContextReferences(text)) {
+    pushSegment(segments, { kind: "text", text: text.slice(cursor, start) })
+    pushSegment(segments, { kind: "reference", reference })
+    cursor = end
+  }
+
+  pushSegment(segments, { kind: "text", text: text.slice(cursor) })
+}
+
+export function splitContextEnvelope(text: string): {
+  body: string
+  references: ReadonlyMap<string, ContextReference>
+} {
+  const open = text.endsWith(ENVELOPE_CLOSE) ? text.lastIndexOf(ENVELOPE_OPEN) : -1
+
+  if (open === -1) return { body: text, references: new Map() }
+  const body = text.slice(0, open)
+  const envelope = text.slice(open + ENVELOPE_OPEN.length, text.length - ENVELOPE_CLOSE.length)
+  const references = new Map<string, ContextReference>()
+
+  for (const match of envelope.matchAll(ENTRY_BLOCK)) {
+    const kind = match[1] as "session" | "reply"
+    const parsed = parseEnvelopeEntry(kind, match[3]!)
+
+    if (parsed) references.set(match[2]!, parsed)
+  }
+
+  return { body, references }
+}
+
+export function splitContextText(
+  body: string,
+  references?: ReadonlyMap<string, ContextReference>,
+): ContextTextSegment[] {
+  const segments: ContextTextSegment[] = []
+
+  if (!references?.size) {
+    pushPlainOrLinks(segments, body)
+    return segments
+  }
+
+  let cursor = 0
+
+  for (const match of body.matchAll(MARKER)) {
+    const start = match.index ?? 0
+    const expectedKind = match[1] === "Session" ? "session" : "reply"
+    const reference = references.get(match[3]!)
+
+    if (!reference || reference.kind !== expectedKind) continue
+
+    if (start > cursor) pushPlainOrLinks(segments, body.slice(cursor, start))
+    pushSegment(segments, { kind: "reference", reference })
+    cursor = start + match[0].length
+  }
+
+  if (cursor < body.length) pushPlainOrLinks(segments, body.slice(cursor))
+  return segments
+}
+
+export function parseContextText(text: string): ContextTextSegment[] {
+  const { body, references } = splitContextEnvelope(text)
+  return splitContextText(body, references)
+}
+
 function referenceKey(reference: ContextReference): string {
   return reference.kind === "session"
     ? `session:${reference.sessionId}`
@@ -185,15 +329,15 @@ export function projectContextForAgent(text: string): string {
 }
 
 export function contextTextForDisplay(text: string): string {
-  const open = text.endsWith(ENVELOPE_CLOSE) ? text.lastIndexOf(ENVELOPE_OPEN) : -1
-  const body = open === -1 ? text : text.slice(0, open).replace(MARKER, "[$1: $2]")
-  let result = ""
-  let cursor = 0
-
-  for (const { reference, start, end } of collectContextReferences(body)) {
-    result += `${body.slice(cursor, start)}[${kindName(reference.kind)}: ${markerLabel(reference.label)}]`
-    cursor = end
-  }
-
-  return result + body.slice(cursor)
+  const { body, references } = splitContextEnvelope(text)
+  const stripDangling = body !== text
+  return splitContextText(body, references)
+    .map((segment) =>
+      segment.kind === "text"
+        ? stripDangling
+          ? segment.text.replace(MARKER, "[$1: $2]")
+          : segment.text
+        : `[${kindName(segment.reference.kind)}: ${markerLabel(segment.reference.label)}]`,
+    )
+    .join("")
 }

@@ -456,27 +456,6 @@ defineExpose({ focus, blur, insertChip, insertMarkdown, replaceRange, isAtStart,
   display: none;
 }
 
-.editor :deep(.chip) {
-  display: inline-flex;
-  align-items: baseline;
-  max-width: 100%;
-  margin-inline: 1px;
-  padding: 1px var(--space-2xs);
-  border-radius: calc(var(--radius-control) / 2);
-  background: var(--info-subtle);
-  color: var(--info-text);
-  font-weight: var(--font-weight-medium);
-  font-size: inherit;
-  line-height: inherit;
-  vertical-align: baseline;
-  user-select: none;
-  cursor: default;
-}
-
-.editor :deep(.chip[data-file-mention]) {
-  cursor: pointer;
-}
-
 .editor :deep(.is-chip-selected) {
   background: var(--bg-selected);
   color: var(--accent-text);

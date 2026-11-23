@@ -555,3 +555,36 @@
     min-block-size: calc(var(--control-lg) + var(--space-2xs));
   }
 }
+
+:where(.inline-chip) {
+  display: inline-flex;
+  align-items: baseline;
+  max-width: 100%;
+  margin-inline: 1px;
+  padding: 1px var(--space-2xs);
+  border-radius: calc(var(--radius-control) / 2);
+  background: var(--info-subtle);
+  color: var(--info-text);
+  font-weight: var(--font-weight-medium);
+  font-size: inherit;
+  line-height: inherit;
+  vertical-align: baseline;
+  text-decoration: none;
+  white-space: normal;
+  user-select: none;
+  cursor: default;
+}
+
+:where(a.inline-chip, button.inline-chip, .inline-chip[data-file-mention]) {
+  cursor: pointer;
+}
+
+:where(a.inline-chip:hover) {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+:where(a.inline-chip:focus-visible, button.inline-chip:focus-visible) {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

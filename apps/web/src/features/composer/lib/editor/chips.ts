@@ -15,7 +15,7 @@ export interface FileMentionOptions {
   onOpenFile?: ((path: string) => void) | undefined
 }
 
-const CHIP_CLASS = "chip"
+const CHIP_CLASS = "chip inline-chip"
 const chipSelectionKey = new PluginKey<DecorationSet>("composerChipSelection")
 
 function attributeSource(name: string): (element: HTMLElement) => string {

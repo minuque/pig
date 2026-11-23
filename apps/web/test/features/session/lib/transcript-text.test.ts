@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest"
+import {
+  formatContextReference,
+  projectContextForAgent,
+  replyReference,
+  sessionReference,
+} from "@pig/protocol"
 import type { TranscriptItem } from "@/types/common-type.js"
-import { userMessageText } from "@features/session/lib/transcript-text.js"
+import { userMessageParts, userMessageText } from "@features/session/lib/transcript-text.js"
 
 function item(partial: Partial<TranscriptItem> & { role: TranscriptItem["role"] }): TranscriptItem {
   return {
@@ -34,5 +40,27 @@ describe("userMessageText", () => {
   it("/skill 无 args 时还原成 /skill:name", () => {
     const expanded = '<skill name="verify" location="x">\nbody\n</skill>'
     expect(userMessageText(user(expanded))).toBe("/skill:verify")
+  })
+
+  it("userMessageParts 剥离扩展块与信封，同时还原上下文引用片段", () => {
+    const session = sessionReference("s1", "旧会话")
+    const reply = replyReference("s1", "e9", "第一行\n第二行")
+    const raw = `${formatContextReference(session)} 结合 ${formatContextReference(reply)} 看`
+    const withFiles = `${raw}\n\n<file name="a.ts">\nexport {}\n</file>`
+    const full = projectContextForAgent(withFiles)
+
+    expect(userMessageText(user(full))).toBe("[Session: 旧会话] 结合 [Reply: 第一行 第二行] 看")
+    expect(userMessageParts(user(full))).toEqual([
+      { kind: "reference", reference: session },
+      { kind: "text", text: " 结合 " },
+      { kind: "reference", reference: reply },
+      { kind: "text", text: " 看" },
+    ])
+    expect(userMessageParts(user(raw))).toEqual([
+      { kind: "reference", reference: session },
+      { kind: "text", text: " 结合 " },
+      { kind: "reference", reference: reply },
+      { kind: "text", text: " 看" },
+    ])
   })
 })

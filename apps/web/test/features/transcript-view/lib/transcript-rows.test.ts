@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import { formatContextReference, projectContextForAgent, sessionReference } from "@pig/protocol"
 import type {
   AssistantTranscriptItem,
   ToolTranscriptItem,
@@ -9,6 +10,7 @@ import type { TurnTiming } from "@/types/common-type.js"
 import {
   createTimelineRowsBuilder,
   isToolRow,
+  reuseTimelineRows,
 } from "@features/transcript-view/lib/transcript-rows.js"
 import { thoughtStepLabel } from "@features/transcript-view/lib/transcript-row-label.js"
 
@@ -262,5 +264,33 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     expect(work?.steps[0]).toMatchObject({ type: "tools", items: [{ running: false }] })
     expect(work?.steps[1]).toMatchObject({ type: "thought", streaming: false })
     expect(rows.at(-1)).toMatchObject({ role: "event", parts: [{ kind: "aborted" }] })
+  })
+
+  it("用户行解析上下文引用供气泡渲染，助手 entryId 替换后不复用旧行", () => {
+    const ref = sessionReference("s-ref", "设计讨论")
+    const refUser: UserTranscriptItem = {
+      id: "u-ref",
+      role: "user",
+      timestamp: 1000,
+      content: [
+        { type: "text", text: projectContextForAgent(`看 ${formatContextReference(ref)}`) },
+      ],
+    }
+    const previous = buildRows([refUser, { ...text(1, "答"), id: "m1" }], false)
+
+    expect(previous[0]).toMatchObject({
+      role: "user",
+      parts: [
+        { kind: "text", text: "看 " },
+        { kind: "reference", reference: ref },
+      ],
+    })
+
+    const next = buildRows([refUser, { ...text(1, "答"), id: "entry-1" }], false)
+    const reused = reuseTimelineRows(previous, next)
+
+    expect(reused[0]).toBe(previous[0])
+    expect(reused[1]).not.toBe(previous[1])
+    expect(reused[1]).toMatchObject({ role: "assistant", entryId: "entry-1" })
   })
 })

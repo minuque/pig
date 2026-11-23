@@ -21,7 +21,12 @@ import {
   isVisibleTranscriptItem,
   transcriptImages,
 } from "@features/transcript-view/lib/transcript-format.js"
-import { transcriptText, userMessageText } from "@features/session/lib/transcript-text.js"
+import {
+  sameContextSegments,
+  transcriptText,
+  userMessageParts,
+  userMessageText,
+} from "@features/session/lib/transcript-text.js"
 import { toolGroupKey } from "@features/transcript-view/lib/tool-summary.js"
 import {
   appendSystemRow,
@@ -67,14 +72,17 @@ function appendTurn({
 }) {
   const turnStart = rows.length
 
-  if (user)
+  if (user) {
+    const parts = userMessageParts(user)
     rows.push({
       id: user.id,
       role: "user",
       text: userMessageText(user),
+      ...(parts.some((part) => part.kind === "reference") ? { parts } : {}),
       images: transcriptImages(user),
       timestamp: user.timestamp,
     })
+  }
 
   const anchor = `tools:${user?.id ?? rest[0]?.id ?? "orphan"}`
   const timing = timings.find((value) => value.userId === user?.id)
@@ -373,6 +381,7 @@ function sameUserRow(left: UserRow, right: UserRow) {
     left.id === right.id &&
     left.text === right.text &&
     left.timestamp === right.timestamp &&
+    sameContextSegments(left.parts, right.parts) &&
     sameImages(left.images, right.images)
   )
 }
@@ -380,6 +389,7 @@ function sameUserRow(left: UserRow, right: UserRow) {
 function sameAssistantRow(left: AssistantRow, right: AssistantRow) {
   return (
     left.id === right.id &&
+    left.entryId === right.entryId &&
     left.text === right.text &&
     left.streaming === right.streaming &&
     left.error === right.error &&
