@@ -257,7 +257,7 @@ test("复制助手回复保留纯文本；划词在选区右下角实时显示�
   await expect(replyCard).toContainText(quote)
   await expect(page.locator(".row-user .reply-comment").last()).toHaveText("直接发送的评论")
   await replyCard.hover()
-  await expect(page.locator('[data-slot="hover-card-content"][data-open]')).toContainText(quote)
+  await expect(page.locator('[data-slot="hover-card-content"][data-open]')).toHaveCount(0)
 })
 
 const REF_SESSION_A_ID = "e2e-ref-a"
@@ -426,11 +426,6 @@ test("刚跑完的回合点引用按钮获真实条目 id，连同会话引用�
         await expect(bubble).not.toContainText("<pig_context")
         await expect(bubble).not.toContainText("pig-context://")
         await expect(bubble).not.toContainText("[Session:")
-
-        await replyCard.hover()
-        await expect(page.locator('[data-slot="hover-card-content"][data-open]')).toContainText(
-          fauxReply(1),
-        )
 
         await sessionChip.hover()
         await expect(page.locator('[data-slot="tooltip-content"][data-open]')).toContainText(

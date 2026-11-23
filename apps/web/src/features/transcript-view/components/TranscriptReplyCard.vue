@@ -4,26 +4,18 @@
     :data-leading="leading || undefined"
     :data-trailing="trailing || undefined"
   >
-    <HoverCard>
-      <HoverCardTrigger as-child>
-        <button
-          type="button"
-          class="reply-card"
-          data-context-kind="reply"
-          :data-session-id="reference.sessionId"
-          :data-entry-id="reference.entryId"
-          :aria-label="t('transcript.goToQuotedReply', { label: reference.label })"
-          @click="onClick"
-        >
-          <span class="reply-card-excerpt">{{ excerpt }}</span>
-          <ArrowUpRightIcon class="reply-card-jump" aria-hidden="true" />
-        </button>
-      </HoverCardTrigger>
-
-      <HoverCardContent side="top" align="start" size="s" max-width="420px">
-        <div class="reply-full-quote">{{ reference.text }}</div>
-      </HoverCardContent>
-    </HoverCard>
+    <button
+      type="button"
+      class="reply-card"
+      data-context-kind="reply"
+      :data-session-id="reference.sessionId"
+      :data-entry-id="reference.entryId"
+      :aria-label="t('transcript.goToQuotedReply', { label: reference.label })"
+      @click="onClick"
+    >
+      <span class="reply-card-excerpt">{{ excerpt }}</span>
+      <ArrowUpRightIcon class="reply-card-jump" aria-hidden="true" />
+    </button>
 
     <span v-if="reference.comment" class="reply-comment">{{ reference.comment }}</span>
   </span>
@@ -34,7 +26,6 @@ import { computed, inject } from "vue"
 import type { ReplyReference } from "@pig/protocol"
 import { useI18n } from "@i18n/index.js"
 import { ArrowUpRightIcon } from "@components/icons/index.js"
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@components/ui/hover-card/index.js"
 import { navigateReplyKey } from "@features/transcript-view/index.js"
 
 const props = withDefaults(
@@ -153,16 +144,6 @@ function onClick() {
 .reply-comment {
   display: block;
   margin-top: var(--space-xs);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.reply-full-quote {
-  max-block-size: 240px;
-  overflow-y: auto;
-  color: var(--fg);
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
