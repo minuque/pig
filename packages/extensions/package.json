@@ -10,13 +10,13 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@pig/environment": "workspace:*"
+    "@pig/environment": "workspace:*",
+    "@pig/protocol": "workspace:*"
   },
   "peerDependencies": {
     "@earendil-works/pi-coding-agent": "*"
   },
   "devDependencies": {
-    "@earendil-works/pi-coding-agent": "1.5.0",
-    "@pig/protocol": "workspace:*"
+    "@earendil-works/pi-coding-agent": "1.5.0"
   }
 }
