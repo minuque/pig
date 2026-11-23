@@ -9,15 +9,14 @@
         <button
           type="button"
           class="reply-card"
-          data-tone="warning"
           data-context-kind="reply"
           :data-session-id="reference.sessionId"
           :data-entry-id="reference.entryId"
           :aria-label="t('transcript.goToQuotedReply', { label: reference.label })"
           @click="onClick"
         >
-          <QuoteIcon class="reply-card-icon" aria-hidden="true" />
           <span class="reply-card-excerpt">{{ excerpt }}</span>
+          <ArrowUpRightIcon class="reply-card-jump" aria-hidden="true" />
         </button>
       </HoverCardTrigger>
 
@@ -34,7 +33,7 @@
 import { computed, inject } from "vue"
 import type { ReplyReference } from "@pig/protocol"
 import { useI18n } from "@i18n/index.js"
-import { QuoteIcon } from "@components/icons/index.js"
+import { ArrowUpRightIcon } from "@components/icons/index.js"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@components/ui/hover-card/index.js"
 import { navigateReplyKey } from "@features/transcript-view/index.js"
 
@@ -72,20 +71,20 @@ function onClick() {
 }
 
 .reply-card {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: var(--space-xs);
   width: 100%;
   min-width: 0;
-  padding: var(--space-2xs) var(--space-xs);
+  padding: var(--space-2xs) var(--space-xs) var(--space-2xs) var(--space-sm);
   border: 0;
-  border-radius: var(--radius-control);
-  background: var(--bg-muted);
-  box-shadow: inset var(--quote-border-width) 0 0 var(--tone-border);
+  border-radius: calc(var(--radius-card) - var(--space-2xs));
+  background: transparent;
   color: var(--fg-secondary);
   font: inherit;
-  font-size: var(--text-body);
-  line-height: var(--text-body--line-height);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
   text-align: start;
   cursor: pointer;
   transition:
@@ -93,24 +92,51 @@ function onClick() {
     color var(--duration-fast) var(--ease-out);
 }
 
+.reply-card::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block: var(--space-2xs);
+  inline-size: var(--quote-border-width);
+  border-radius: var(--radius-pill);
+  background: var(--border-strong);
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
 .reply-card:hover {
-  background: var(--bg-emphasis);
+  background: var(--bg-hover);
   color: var(--fg);
+}
+
+.reply-card:hover::before,
+.reply-card:focus-visible::before {
+  background: var(--accent-solid);
 }
 
 .reply-card:focus-visible {
   outline: none;
-  box-shadow:
-    inset var(--quote-border-width) 0 0 var(--tone-border),
-    var(--focus-ring);
+  box-shadow: var(--focus-ring);
 }
 
-.reply-card-icon {
+.reply-card-jump {
   flex: none;
-  margin-top: 3px;
+  margin-top: 2px;
   inline-size: var(--icon-sm);
   block-size: var(--icon-sm);
-  color: var(--tone-text);
+  color: var(--fg-muted);
+  opacity: 0;
+  transform: translate(-1px, 1px);
+  transition:
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.reply-card:hover .reply-card-jump,
+.reply-card:focus-visible .reply-card-jump {
+  opacity: 1;
+  color: var(--fg);
+  transform: translate(0, 0);
 }
 
 .reply-card-excerpt {
@@ -141,7 +167,9 @@ function onClick() {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .reply-card {
+  .reply-card,
+  .reply-card::before,
+  .reply-card-jump {
     transition: none;
   }
 }
