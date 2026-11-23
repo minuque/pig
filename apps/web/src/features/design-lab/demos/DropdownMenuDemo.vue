@@ -20,7 +20,7 @@
           </DropdownMenuRadioGroup>
 
           <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
+          <DropdownMenuItem color="danger">Delete</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </Variant>
@@ -35,7 +35,7 @@
           <DropdownMenuItem>First item</DropdownMenuItem>
           <DropdownMenuItem>Second item</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">Destructive item</DropdownMenuItem>
+          <DropdownMenuItem color="danger">Danger item</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </Variant>
@@ -72,7 +72,7 @@
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
 import { ref } from "vue"
-import { Button } from "@components/ui/button/index.js"
+import { Button } from "@pig/ui/button"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -83,7 +83,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu/index.js"
+} from "@pig/ui/dropdown-menu"
 
 const showHidden = ref(false)
 const choice = ref("a")

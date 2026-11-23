@@ -59,7 +59,7 @@
       </p>
 
       <div v-if="searching && !names.length && !matches.length" class="file-search-status">
-        <Spinner :size="16" />
+        <Spinner size="m" />
       </div>
 
       <p v-else-if="!searching && !names.length && !matches.length" class="file-search-empty">
@@ -73,8 +73,8 @@
 import { computed, shallowRef, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { searchWorkspaceContents, searchWorkspaceFiles } from "@client/platform.js"
-import { Spinner } from "@components/ui/spinner/index.js"
-import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
+import { Spinner } from "@pig/ui/spinner"
+import { TextFieldRoot, TextFieldSlot } from "@pig/ui/text-field"
 import { SearchIcon } from "@components/icons/index.js"
 import { pathBasename } from "@features/transcript-view/lib/tool-summary.js"
 import { useFilePane } from "@features/file-pane/index.js"

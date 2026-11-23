@@ -43,7 +43,7 @@ import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
 import { ref } from "vue"
 import { SearchIcon } from "@components/icons/index.js"
-import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
+import { TextFieldRoot, TextFieldSlot } from "@pig/ui/text-field"
 
 const value = ref("")
 const search = ref("")

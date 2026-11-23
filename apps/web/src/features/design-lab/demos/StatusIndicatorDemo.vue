@@ -40,5 +40,5 @@
 <script setup lang="ts">
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { StatusIndicator } from "@components/ui/status-indicator/index.js"
+import { StatusIndicator } from "@pig/ui/status-indicator"
 </script>

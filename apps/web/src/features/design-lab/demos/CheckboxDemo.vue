@@ -31,7 +31,7 @@
 import { ref } from "vue"
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { Checkbox } from "@components/ui/checkbox/index.js"
+import { Checkbox } from "@pig/ui/checkbox"
 
 const checked = ref<boolean | "indeterminate">(true)
 const unchecked = ref<boolean | "indeterminate">(false)

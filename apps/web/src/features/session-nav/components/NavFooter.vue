@@ -10,9 +10,14 @@
           color="neutral"
           :aria-label="t('nav.profileMenu')"
         >
-          <span class="footer-mark" aria-hidden="true">
-            <img class="footer-pig" src="/logo-pig.png" alt="" />
-          </span>
+          <img
+            class="footer-logo"
+            src="/pwa-icon-192.png"
+            width="22"
+            height="22"
+            alt=""
+            aria-hidden="true"
+          />
 
           <span class="footer-name">{{ displayName }}</span>
         </Button>
@@ -54,14 +59,14 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { Button, IconButton } from "@components/ui/button/index.js"
+import { Button, IconButton } from "@pig/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+} from "@pig/ui/dropdown-menu"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { useI18n } from "@i18n/index.js"
 import { GlobeIcon, MoonIcon, SettingsIcon, SunIcon } from "@components/icons/index.js"
 import { useGeneralPrefs } from "@features/settings/index.js"
@@ -113,26 +118,18 @@ function toggleLocale() {
   color: var(--fg);
 }
 
-.footer-mark {
+.footer-logo {
   display: block;
   flex: none;
-  overflow: hidden;
-  width: 20px;
-  height: 20px;
-  border-radius: calc(var(--radius-control) / 2);
-  background: var(--brand-mark-bg);
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 
-.footer-pig {
-  display: block;
-  width: 100%;
-  height: 100%;
-  transform-origin: 30% 100%;
-}
-
-.footer-profile:hover .footer-pig,
-.footer-profile:focus-visible .footer-pig {
-  animation: brand-peek var(--mascot-peek-duration) both;
+.footer-profile:hover .footer-logo,
+.footer-profile:focus-visible .footer-logo {
+  transform: scale(1.06) rotate(-3deg);
 }
 
 .profile-value {
@@ -149,9 +146,9 @@ function toggleLocale() {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .footer-profile:hover .footer-pig,
-  .footer-profile:focus-visible .footer-pig {
-    animation: none;
+  .footer-profile:hover .footer-logo,
+  .footer-profile:focus-visible .footer-logo {
+    transform: none;
   }
 }
 </style>

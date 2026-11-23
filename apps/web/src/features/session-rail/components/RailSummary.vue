@@ -117,8 +117,8 @@ import { computed, useId } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { ChevronRightIcon } from "@components/icons/index.js"
 import VendorMark from "@components/icons/VendorMark.vue"
-import { Card } from "@components/ui/card/index.js"
-import { Collapsible, CollapsibleContent } from "@components/ui/collapsible/index.js"
+import { Card } from "@pig/ui/card"
+import { Collapsible, CollapsibleContent } from "@pig/ui/collapsible"
 import {
   ContextMenu,
   ContextMenuCheckboxItem,
@@ -127,7 +127,7 @@ import {
   ContextMenuLabel,
   ContextMenuSeparator,
   ContextMenuTrigger,
-} from "@components/ui/context-menu/index.js"
+} from "@pig/ui/context-menu"
 import type { ContextUsage } from "@features/composer/type.js"
 import { contextSeverity } from "@features/composer/lib/context-usage.js"
 import RailContext from "@features/session-rail/components/RailContext.vue"

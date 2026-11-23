@@ -44,7 +44,7 @@ web
 
 ## Evidence on Hand
 
-- 真实素材：`apps/web/public/logo.png`、`logo-pig.png`、`logo-bg.png` 及 PWA 图标。
+- 真实素材：`apps/web/public/logo.png` 及 PWA 图标。
 - 真实素材：仓库内的 README、`docs/` 说明与界面文案本身就是产品说明来源。
 - 没有用户评价、客户案例、基准数据、定价页。后续工作不得编造这些内容。
 

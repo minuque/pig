@@ -56,7 +56,7 @@ export default defineConfig(
 
   {
     name: "pig/vue-filenames",
-    files: ["**/components/ui/**/*.vue", "**/features/*/index.vue"],
+    files: ["packages/ui/src/ui/**/*.vue", "**/features/*/index.vue"],
     rules: {
       "vue/multi-word-component-names": "off",
     },
@@ -73,6 +73,25 @@ export default defineConfig(
             {
               regex: "^@features/(?!session/)",
               message: "features/session 是状态层，不引用别的 feature。",
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  {
+    name: "pig/ui-layer",
+    files: ["packages/ui/src/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              regex:
+                "^(@/|@(features|client|router|components|style|i18n|utils)/|@vueuse/|.*apps/web)",
+              message: "packages/ui 是独立可复用设计系统包，禁止依赖应用路径或应用工具库。",
             },
           ],
         },

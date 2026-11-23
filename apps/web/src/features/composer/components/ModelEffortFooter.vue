@@ -18,7 +18,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { Slider } from "@components/ui/slider/index.js"
+import { Slider } from "@pig/ui/slider"
 import { displayThinkingLevel, formatThinkingLevel } from "@features/composer/lib/thinking-level.js"
 
 const props = defineProps<{

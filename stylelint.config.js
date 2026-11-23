@@ -35,26 +35,11 @@ export default {
       { ignorePseudoClasses: ["deep", "global", "slotted"] },
     ],
     "selector-pseudo-element-no-unknown": true,
-    "at-rule-no-unknown": [
-      true,
-      {
-        ignoreAtRules: [
-          "theme",
-          "utility",
-          "plugin",
-          "source",
-          "custom-variant",
-          "apply",
-          "reference",
-          "config",
-          "variant",
-        ],
-      },
-    ],
+    "at-rule-no-unknown": true,
   },
   overrides: [
     {
-      files: ["apps/web/src/style/tokens.css"],
+      files: ["apps/web/src/style/tokens.css", "packages/ui/src/styles/tokens.css"],
       rules: { "pig/no-comments": [true, { sectionHeaders: true }] },
     },
     {
@@ -73,6 +58,10 @@ export default {
         ],
         "declaration-property-value-disallowed-list": {
           "z-index": ["/^-?[1-9]\\d*$/"],
+          "font-size": ["/^(?!var\\(--|calc\\(|inherit$|[\\d.]+em$)/"],
+          "border-radius": ["/^(?!var\\(--|calc\\(|min\\(|max\\(|inherit$|0$|50%$|100%$)/"],
+          transition: ["/^(?!none$|inherit$|var\\(--|[\\s\\S]*var\\(--duration-)/"],
+          "transition-duration": ["/^(?!var\\(--duration-|none$|inherit$|0(?:m?s)?$)/"],
         },
         "function-disallowed-list": [
           "rgb",

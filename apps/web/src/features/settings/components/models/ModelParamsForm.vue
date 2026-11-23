@@ -98,10 +98,10 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from "vue"
 
-import { Button, IconButton } from "@components/ui/button/index.js"
+import { Button, IconButton } from "@pig/ui/button"
 import { TrashIcon } from "@components/icons/index.js"
-import { TabsList, TabsRoot, TabsTrigger } from "@components/ui/tabs/index.js"
-import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
+import { TabsList, TabsRoot, TabsTrigger } from "@pig/ui/tabs"
+import { TextFieldRoot, TextFieldSlot } from "@pig/ui/text-field"
 import { updateModelParams } from "@client/platform.js"
 import { errorMessage } from "@client/http.js"
 import { paramsPatchFrom } from "@features/settings/lib/provider-view.js"

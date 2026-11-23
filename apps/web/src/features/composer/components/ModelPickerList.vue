@@ -31,7 +31,7 @@
 import { useVirtualList } from "@vueuse/core"
 import { computed, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { Button } from "@components/ui/button/index.js"
+import { Button } from "@pig/ui/button"
 import ModelPickerRow from "@features/composer/components/ModelPickerRow.vue"
 import type { ModelPickerRow as PickerRow } from "@features/composer/lib/model-preset.js"
 import type { ComposerModel, ComposerVendor } from "@features/composer/type.js"

@@ -1,7 +1,7 @@
 import { useEventListener } from "@vueuse/core"
 import type { MaybeRefOrGetter } from "vue"
 import { t } from "@i18n/index.js"
-import { notifyAction } from "@components/layout/notify.js"
+import { notifyAction } from "@pig/ui/toast"
 import { SESSION_DROP_EVENT, type DroppedSession } from "@features/session-nav/index.js"
 import { sessionReferenceFile } from "@features/session-workbench/lib/session-reference.js"
 

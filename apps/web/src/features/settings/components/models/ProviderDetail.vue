@@ -234,7 +234,7 @@
         <AlertDialogFooter>
           <AlertDialogCancel>{{ t("common.cancel") }}</AlertDialogCancel>
 
-          <AlertDialogAction variant="destructive" @click="logout">
+          <AlertDialogAction color="danger" @click="logout">
             {{ t("settings.models.logout") }}
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -255,10 +255,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@components/ui/alert-dialog/index.js"
-import { Button, IconButton } from "@components/ui/button/index.js"
-import { Badge } from "@components/ui/badge/index.js"
-import { TextFieldRoot } from "@components/ui/text-field/index.js"
+} from "@pig/ui/alert-dialog"
+import { Button, IconButton } from "@pig/ui/button"
+import { Badge } from "@pig/ui/badge"
+import { TextFieldRoot } from "@pig/ui/text-field"
 import {
   CheckIcon,
   CopyIcon,
@@ -276,7 +276,7 @@ import { copyProviderKey, logoutProvider, testProvider } from "@client/platform.
 import { providerStatusBadge } from "@features/settings/lib/provider-view.js"
 import { useI18n } from "@i18n/index.js"
 import type { ProviderView } from "@/types/common-type.js"
-import { CardList, CardRow } from "@components/ui/card/index.js"
+import { CardList, CardRow } from "@pig/ui/card"
 
 type AuthMethod = "apiKey" | "oauth" | "ambient"
 

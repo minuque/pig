@@ -48,16 +48,10 @@ import { computed, ref, shallowRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { listEnvironments } from "@client/platform.js"
 import type { EnvironmentInfo } from "@/types/common-type.js"
-import { Button } from "@components/ui/button/index.js"
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@components/ui/dialog/index.js"
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@components/ui/select/index.js"
-import { TextFieldRoot } from "@components/ui/text-field/index.js"
+import { Button } from "@pig/ui/button"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@pig/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
+import { TextFieldRoot } from "@pig/ui/text-field"
 
 const props = defineProps<{
   open: boolean

@@ -9,7 +9,7 @@ import {
   type Ref,
 } from "vue"
 import { readPref, writePref } from "@utils/storage.js"
-import { dragResize } from "@components/ui/resize-handle/index.js"
+import { dragResize } from "@pig/ui/resize-handle"
 
 export type SidebarState = "expanded" | "offcanvas"
 

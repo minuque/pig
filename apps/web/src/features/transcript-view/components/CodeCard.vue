@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { Card } from "@components/ui/card/index.js"
+import { Card } from "@pig/ui/card"
 </script>
 
 <style scoped>

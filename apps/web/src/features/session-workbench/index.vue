@@ -132,7 +132,7 @@
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue"
 import { useResizeObserver } from "@vueuse/core"
 import { useRoute } from "vue-router"
-import { Button } from "@components/ui/button/index.js"
+import { Button } from "@pig/ui/button"
 import Composer from "@features/composer/index.vue"
 import { useComposerPreset } from "@features/composer/index.js"
 import { useComposerAttachments } from "@features/composer/hooks/use-composer-attachments.js"

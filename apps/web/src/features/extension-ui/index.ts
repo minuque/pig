@@ -1,7 +1,7 @@
 import { inject, provide, shallowRef, watch, type InjectionKey } from "vue"
 import type { ExtensionUiDialog, ExtensionUiRequest, ExtensionUiResponse } from "@pig/protocol"
 import type { useGatewayClient } from "@client/gateway-connection.js"
-import { notify } from "@components/layout/notify.js"
+import { notify } from "@pig/ui/toast"
 import type { FocusedSession } from "@features/split-view/index.js"
 
 type Pending = { sessionId: string; request: ExtensionUiDialog }

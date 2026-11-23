@@ -23,8 +23,8 @@
 import { computed, shallowRef } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { IconButton } from "@pig/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { CheckIcon, CopyIcon } from "@components/icons/index.js"
 
 const props = defineProps<{ text: string; label?: string }>()

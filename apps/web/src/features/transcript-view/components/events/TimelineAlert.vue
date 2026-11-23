@@ -19,7 +19,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { Collapsible, CollapsibleContent } from "@components/ui/collapsible/index.js"
+import { Collapsible, CollapsibleContent } from "@pig/ui/collapsible"
 import {
   ChevronRightIcon,
   CircleExclamationPointIcon,

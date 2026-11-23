@@ -62,8 +62,8 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu/index.js"
-import { Link } from "@components/ui/link/index.js"
+} from "@pig/ui/dropdown-menu"
+import { Link } from "@pig/ui/link"
 import { FolderPlusIcon } from "@components/icons/index.js"
 import ProjectIcon from "@features/session-nav/components/ProjectIcon.vue"
 

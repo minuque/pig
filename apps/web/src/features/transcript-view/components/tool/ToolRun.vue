@@ -47,12 +47,8 @@ import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue"
 import { useIntervalFn } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { ChevronRightIcon } from "@components/icons/index.js"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@components/ui/collapsible/index.js"
-import { RollText } from "@components/ui/roll-text/index.js"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@pig/ui/collapsible"
+import { RollText } from "@pig/ui/roll-text"
 import ToolRunCard from "@features/transcript-view/components/tool/ToolRunCard.vue"
 import ToolThumbs from "@features/transcript-view/components/tool/ToolThumbs.vue"
 import {

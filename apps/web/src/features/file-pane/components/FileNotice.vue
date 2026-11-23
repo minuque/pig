@@ -9,7 +9,7 @@
 </template>
 
 <script setup lang="ts">
-import { Button } from "@components/ui/button/index.js"
+import { Button } from "@pig/ui/button"
 
 defineProps<{ text: string; action?: string | undefined }>()
 

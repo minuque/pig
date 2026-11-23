@@ -59,7 +59,7 @@
 import { computed } from "vue"
 import { useNow } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
-import { IconButton } from "@components/ui/button/index.js"
+import { IconButton } from "@pig/ui/button"
 import {
   CircleCheckIcon,
   SquareCodeIcon,

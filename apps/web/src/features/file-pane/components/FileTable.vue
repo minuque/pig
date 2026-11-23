@@ -23,13 +23,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
-import {
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableRoot,
-  TableRow,
-} from "@components/ui/table/index.js"
+import { TableBody, TableCell, TableHeader, TableRoot, TableRow } from "@pig/ui/table"
 import { parseDelimited } from "@features/file-pane/lib/csv.js"
 
 const ROW_LIMIT = 1_000

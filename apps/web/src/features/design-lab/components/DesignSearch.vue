@@ -33,7 +33,7 @@ import {
   CommandPaletteInput,
   CommandPaletteItem,
   CommandPaletteList,
-} from "@components/ui/command-palette/index.js"
+} from "@pig/ui/command-palette"
 import { NAV, type Label } from "@features/design-lab/lib/nav.js"
 
 const TITLE: Label = { zh: "搜索页面", en: "Search pages" }

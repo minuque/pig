@@ -72,7 +72,7 @@
 
 <script setup lang="ts">
 import { useI18n } from "@i18n/index.js"
-import { Button, IconButton } from "@components/ui/button/index.js"
+import { Button, IconButton } from "@pig/ui/button"
 import { FileTextIcon, XIcon } from "@components/icons/index.js"
 import type { ComposerAttachment } from "@/types/attachment-type.js"
 import { formatFileSize } from "@features/composer/lib/attachment-size.js"

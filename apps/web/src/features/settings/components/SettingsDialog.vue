@@ -139,7 +139,7 @@
 <script setup lang="ts">
 import { computed, nextTick, provide, ref, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { Dialog, DialogClose, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
+import { Dialog, DialogClose, DialogContent, DialogTitle } from "@pig/ui/dialog"
 import {
   ArchiveIcon,
   BellIcon,
@@ -150,9 +150,9 @@ import {
   SlidersHorizontalIcon,
 } from "@components/icons/index.js"
 import { sessionArchives } from "@client/session-archives.js"
-import { Kbd } from "@components/ui/kbd/index.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
+import { Kbd } from "@pig/ui/kbd"
+import { IconButton } from "@pig/ui/button"
+import { TextFieldRoot, TextFieldSlot } from "@pig/ui/text-field"
 import AppearancePane from "./AppearancePane.vue"
 import ArchivePane from "./ArchivePane.vue"
 import GeneralPane from "./GeneralPane.vue"

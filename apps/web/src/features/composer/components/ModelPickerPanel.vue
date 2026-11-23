@@ -106,9 +106,9 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { PopoverContent } from "@components/ui/popover/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { IconButton } from "@pig/ui/button"
+import { PopoverContent } from "@pig/ui/popover"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { RotateCcwIcon, SearchIcon, StarFilledIcon, StarIcon } from "@components/icons/index.js"
 import VendorMark from "@components/icons/VendorMark.vue"
 import ModelEffortFooter from "@features/composer/components/ModelEffortFooter.vue"

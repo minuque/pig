@@ -9,7 +9,7 @@
       <AlertDialogFooter>
         <AlertDialogCancel>{{ t("common.cancel") }}</AlertDialogCancel>
 
-        <AlertDialogAction variant="destructive" @click="emit('confirm')">
+        <AlertDialogAction color="danger" @click="emit('confirm')">
           {{ t("session.deleteTitle") }}
         </AlertDialogAction>
       </AlertDialogFooter>
@@ -28,7 +28,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@components/ui/alert-dialog/index.js"
+} from "@pig/ui/alert-dialog"
 
 defineProps<{
   title: string

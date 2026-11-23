@@ -91,11 +91,11 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { SearchIcon, XIcon } from "@components/icons/index.js"
-import { Button, IconButton } from "@components/ui/button/index.js"
-import { Checkbox } from "@components/ui/checkbox/index.js"
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@components/ui/select/index.js"
-import { TabsList, TabsRoot, TabsTrigger } from "@components/ui/tabs/index.js"
-import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
+import { Button, IconButton } from "@pig/ui/button"
+import { Checkbox } from "@pig/ui/checkbox"
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
+import { TabsList, TabsRoot, TabsTrigger } from "@pig/ui/tabs"
+import { TextFieldRoot, TextFieldSlot } from "@pig/ui/text-field"
 import { ALL_PROJECTS, type QuickRuleChip } from "@features/settings/hooks/use-archive-pane.js"
 import type {
   ArchiveProjectView,

@@ -31,5 +31,5 @@
 <script setup lang="ts">
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { Button } from "@components/ui/button/index.js"
+import { Button } from "@pig/ui/button"
 </script>

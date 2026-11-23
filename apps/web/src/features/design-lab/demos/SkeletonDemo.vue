@@ -30,5 +30,5 @@
 <script setup lang="ts">
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { Skeleton } from "@components/ui/skeleton/index.js"
+import { Skeleton } from "@pig/ui/skeleton"
 </script>

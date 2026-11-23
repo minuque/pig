@@ -17,7 +17,7 @@
 
 <script setup lang="ts">
 import { inject } from "vue"
-import { StatusIndicator, type StatusTone } from "@components/ui/status-indicator/index.js"
+import { StatusIndicator, type StatusTone } from "@pig/ui/status-indicator"
 import { openTaskSessionKey } from "@features/transcript-view/index.js"
 import { taskDetail } from "@features/transcript-view/lib/tool-tasks.js"
 import type { Task } from "@/types/common-type.js"

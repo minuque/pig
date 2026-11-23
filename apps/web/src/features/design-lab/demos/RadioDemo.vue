@@ -76,5 +76,5 @@
 <script setup lang="ts">
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { Radio } from "@components/ui/radio-group/index.js"
+import { Radio } from "@pig/ui/radio-group"
 </script>

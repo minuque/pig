@@ -38,8 +38,8 @@
 import { useI18n } from "@i18n/index.js"
 import { useSound } from "@features/click-sound/index.js"
 import { useGeneralPrefs } from "@features/settings/index.js"
-import { Switch } from "@components/ui/switch/index.js"
-import { CardList, CardRow } from "@components/ui/card/index.js"
+import { Switch } from "@pig/ui/switch"
+import { CardList, CardRow } from "@pig/ui/card"
 
 const { t } = useI18n()
 const { enabled: soundOn, toggle: toggleSound } = useSound()

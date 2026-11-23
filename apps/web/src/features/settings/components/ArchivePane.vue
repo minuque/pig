@@ -126,7 +126,7 @@
         <AlertDialogFooter>
           <AlertDialogCancel>{{ t("common.cancel") }}</AlertDialogCancel>
 
-          <AlertDialogAction variant="destructive" @click="confirmDelete">
+          <AlertDialogAction color="danger" @click="confirmDelete">
             {{ t("settings.archive.deleteConfirmAction") }}
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -149,10 +149,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@components/ui/alert-dialog/index.js"
-import { Badge } from "@components/ui/badge/index.js"
-import { Button } from "@components/ui/button/index.js"
-import { Checkbox } from "@components/ui/checkbox/index.js"
+} from "@pig/ui/alert-dialog"
+import { Badge } from "@pig/ui/badge"
+import { Button } from "@pig/ui/button"
+import { Checkbox } from "@pig/ui/checkbox"
 import ArchiveRow from "@features/settings/components/ArchiveRow.vue"
 import ArchiveToolbar from "@features/settings/components/ArchiveToolbar.vue"
 import { useArchivePane } from "@features/settings/hooks/use-archive-pane.js"
@@ -296,7 +296,7 @@ function archiveGroupStale(group: ArchiveProjectGroup): void {
 
 .project-count {
   flex-shrink: 0;
-  color: var(--fg-subtle);
+  color: var(--fg-muted);
   font-size: var(--text-meta);
 }
 
@@ -332,7 +332,7 @@ function archiveGroupStale(group: ArchiveProjectGroup): void {
 .empty-icon {
   width: 1.5rem;
   height: 1.5rem;
-  color: var(--fg-subtle);
+  color: var(--fg-muted);
 }
 
 .empty-text {

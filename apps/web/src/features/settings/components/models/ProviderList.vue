@@ -79,13 +79,13 @@ import { computed, ref } from "vue"
 
 import { useI18n } from "@i18n/index.js"
 import { PlusIcon, ChevronRightIcon, SearchIcon } from "@components/icons/index.js"
-import { Button } from "@components/ui/button/index.js"
-import { Badge } from "@components/ui/badge/index.js"
-import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
+import { Button } from "@pig/ui/button"
+import { Badge } from "@pig/ui/badge"
+import { TextFieldRoot, TextFieldSlot } from "@pig/ui/text-field"
 import VendorMark from "@components/icons/VendorMark.vue"
 import { groupProviders, providerSourceText } from "@features/settings/lib/provider-view.js"
 import type { ProviderView } from "@/types/common-type.js"
-import { Card, CardList, CardRow } from "@components/ui/card/index.js"
+import { Card, CardList, CardRow } from "@pig/ui/card"
 
 const props = defineProps<{
   providers: ProviderView[]

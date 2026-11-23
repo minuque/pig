@@ -25,7 +25,7 @@
           <ContextMenuSeparator />
           <ContextMenuCheckboxItem v-model="bookmarked">Bookmark</ContextMenuCheckboxItem>
           <ContextMenuSeparator />
-          <ContextMenuItem variant="destructive">Delete</ContextMenuItem>
+          <ContextMenuItem color="danger">Delete</ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
     </Variant>
@@ -68,7 +68,7 @@ import {
   ContextMenuLabel,
   ContextMenuSeparator,
   ContextMenuTrigger,
-} from "@components/ui/context-menu/index.js"
+} from "@pig/ui/context-menu"
 
 const bookmarked = ref(false)
 </script>
