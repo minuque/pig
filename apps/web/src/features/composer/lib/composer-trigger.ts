@@ -33,8 +33,14 @@ export function composerTriggerAt(text: string, caret: number): ComposerTrigger 
   return null
 }
 
+export const COMPOSER_MENTION_MIME = "application/x-pig-mention"
+
 export function mentionPathNeedsQuoting(path: string): boolean {
   return /[\s()@"'`$\\]/.test(path)
+}
+
+export function mentionMarkdown(path: string): string {
+  return mentionPathNeedsQuoting(path) ? `@${JSON.stringify(path)}` : `@${path}`
 }
 
 export function triggerKey(trigger: ComposerTrigger): string {

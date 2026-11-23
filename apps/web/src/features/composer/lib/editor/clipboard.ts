@@ -1,6 +1,7 @@
 import type { Editor, JSONContent } from "@tiptap/core"
 import { NodeSelection, TextSelection } from "@tiptap/pm/state"
 import type { EditorView } from "@tiptap/pm/view"
+import { CONTEXT_REFERENCE_MIME } from "@pig/protocol"
 import { splitPromptSegments } from "@features/composer/lib/editor/chip-tokens.js"
 import { buildTiptapContent } from "@features/composer/lib/editor/doc-parse.js"
 import { markdownOffsetAt } from "@features/composer/lib/editor/doc-offset.js"
@@ -96,7 +97,22 @@ function insertParsed(editor: Editor, view: EditorView, text: string): void {
     .run()
 }
 
+export function insertMarkdownAtEnd(editor: Editor, text: string): void {
+  const { view } = editor
+
+  view.dispatch(view.state.tr.setSelection(TextSelection.atEnd(view.state.doc)))
+  insertParsed(editor, view, padChips(view, text))
+  view.focus()
+}
+
 export function pasteMarkdown(editor: Editor, view: EditorView, data: DataTransfer): boolean {
+  const context = data.getData(CONTEXT_REFERENCE_MIME)
+
+  if (context && view.state.selection.$from.parent.type.spec.code !== true) {
+    insertParsed(editor, view, padChips(view, context))
+    return true
+  }
+
   const composerText = data.getData(COMPOSER_CLIPBOARD_MIME)
   const text = (composerText || data.getData("text/plain")).replace(/\r\n?/g, "\n")
 

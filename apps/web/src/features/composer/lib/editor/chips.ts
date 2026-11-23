@@ -4,7 +4,8 @@ import { keymap } from "@tiptap/pm/keymap"
 import type { EditorState } from "@tiptap/pm/state"
 import { Plugin, PluginKey } from "@tiptap/pm/state"
 import { Decoration, DecorationSet } from "@tiptap/pm/view"
-import { isChipNode } from "@features/composer/lib/editor/chip-tokens.js"
+import { contextReferenceAt, formatContextReference } from "@pig/protocol"
+import { contextReferenceAttrs, isChipNode } from "@features/composer/lib/editor/chip-tokens.js"
 import {
   markAsCompositionReplace,
   UNDO_GROUP_DELAY,
@@ -137,6 +138,44 @@ export const CommandChipNode = Node.create({
         title: `/${label}`,
       }),
       label,
+    ]
+  },
+})
+export const ContextReferenceNode = Node.create({
+  name: "contextReference",
+  inline: true,
+  group: "inline",
+  atom: true,
+  selectable: false,
+  draggable: false,
+  addAttributes: () => ({
+    kind: { default: "session", renderHTML: () => ({}) },
+    sessionId: { default: "", renderHTML: () => ({}) },
+    entryId: { default: null, renderHTML: () => ({}) },
+    text: { default: null, renderHTML: () => ({}) },
+    label: { default: "", renderHTML: () => ({}) },
+  }),
+  parseHTML: () => [
+    {
+      tag: "span[data-context-reference]",
+      getAttrs: (element) => {
+        const source = element.getAttribute("data-context-reference") ?? ""
+        return contextReferenceAt(source, 0)?.reference ?? false
+      },
+    },
+  ],
+  renderHTML: ({ node, HTMLAttributes }) => {
+    const reference = contextReferenceAttrs(node.attrs as Record<string, unknown>)
+    const reply = reference.kind === "reply"
+    return [
+      "span",
+      mergeAttributes(HTMLAttributes, {
+        class: CHIP_CLASS,
+        "data-context-reference": formatContextReference(reference),
+        "data-context-kind": reference.kind,
+        title: reply ? reference.text : reference.label,
+      }),
+      reply ? `“${reference.label}”` : reference.label,
     ]
   },
 })

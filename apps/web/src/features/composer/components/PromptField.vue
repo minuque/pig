@@ -9,7 +9,11 @@ import { EditorContent, useEditor } from "@tiptap/vue-3"
 import { closeHistory } from "@tiptap/pm/history"
 import { type EditorState, TextSelection } from "@tiptap/pm/state"
 import { clipboardFiles } from "@features/composer/hooks/use-composer-attachments.js"
-import { copySelection, pasteMarkdown } from "@features/composer/lib/editor/clipboard.js"
+import {
+  copySelection,
+  insertMarkdownAtEnd,
+  pasteMarkdown,
+} from "@features/composer/lib/editor/clipboard.js"
 import { buildDocJson } from "@features/composer/lib/editor/doc-parse.js"
 import { markdownOffsetAt, positionAtMarkdown } from "@features/composer/lib/editor/doc-offset.js"
 import { serializeEditorDoc } from "@features/composer/lib/editor/doc-serialize.js"
@@ -276,7 +280,11 @@ function replaceRange(start: number, triggerLength: number, text: string) {
   instance.view.focus()
 }
 
-defineExpose({ focus, blur, insertChip, replaceRange, isAtStart, isAtEnd })
+function insertMarkdown(text: string) {
+  if (editor.value && !editor.value.isDestroyed) insertMarkdownAtEnd(editor.value, text)
+}
+
+defineExpose({ focus, blur, insertChip, insertMarkdown, replaceRange, isAtStart, isAtEnd })
 </script>
 
 <style scoped>

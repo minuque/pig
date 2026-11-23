@@ -184,7 +184,14 @@ function onComposerMousedown(e: MouseEvent) {
   focus()
 }
 
-defineExpose({ focus, menuOpen: commandMenu.open, steerHeld: shortcuts.steerHeld })
+const insertMarkdown = (text: string) => field.value?.insertMarkdown(text)
+
+defineExpose({
+  focus,
+  insertMarkdown,
+  menuOpen: commandMenu.open,
+  steerHeld: shortcuts.steerHeld,
+})
 </script>
 
 <style scoped>
