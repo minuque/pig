@@ -7,8 +7,8 @@
         class="startup-logo"
         src="/logo.png"
         alt=""
-        width="96"
-        height="96"
+        width="144"
+        height="144"
         fetchpriority="high"
       />
     </div>
