@@ -23,6 +23,12 @@
   initial-value: 0px;
 }
 
+@property --citation-highlight-opacity {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
 /* ------ 浅色 token ------ */
 :root {
   color-scheme: light;

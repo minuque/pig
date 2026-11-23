@@ -81,6 +81,14 @@ body {
   background-color: var(--bg-selected);
 }
 
+::highlight(pig-reply-jump) {
+  background-color: color-mix(
+    in oklab,
+    var(--accent-solid) calc(var(--citation-highlight-opacity) * 100%),
+    transparent
+  );
+}
+
 code,
 kbd,
 samp,

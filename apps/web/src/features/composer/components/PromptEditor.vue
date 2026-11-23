@@ -117,7 +117,7 @@ const emit = defineEmits<{
   submit: []
   pasteFiles: [files: File[]]
   openFile: [path: string]
-  jumpReply: [target: { sessionId: string; entryId: string }]
+  jumpReply: [target: { sessionId: string; entryId: string; text?: string | undefined }]
   cancelQueueEdit: []
   historyPrev: []
   historyNext: []

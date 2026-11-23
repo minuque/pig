@@ -103,6 +103,7 @@ function onJump() {
   actions?.jumpReply({
     sessionId: reference.value.sessionId,
     entryId: reference.value.entryId,
+    text: reference.value.text,
   })
 }
 

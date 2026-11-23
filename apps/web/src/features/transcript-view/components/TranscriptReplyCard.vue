@@ -53,6 +53,7 @@ function onClick() {
   navigateReply?.({
     sessionId: props.reference.sessionId,
     entryId: props.reference.entryId,
+    text: props.reference.text,
   })
 }
 </script>

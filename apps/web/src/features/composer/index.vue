@@ -167,7 +167,7 @@ const emit = defineEmits<{
   saveEdit: []
   abort: []
   openFile: [path: string]
-  jumpReply: [target: { sessionId: string; entryId: string }]
+  jumpReply: [target: { sessionId: string; entryId: string; text?: string | undefined }]
   cancelQueueEdit: []
   historyPrev: []
   historyNext: []

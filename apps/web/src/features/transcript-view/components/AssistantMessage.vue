@@ -1,7 +1,7 @@
 <template>
   <article
     :data-entry-id="item.entryId || undefined"
-    :data-jump-highlighted="highlighted || undefined"
+    :data-jump-highlighted="highlightMode || undefined"
   >
     <div
       v-if="item.text"
@@ -35,9 +35,9 @@ const props = withDefaults(
     item: AssistantRow
     streaming?: boolean
     sessionId?: string
-    highlighted?: boolean
+    highlightMode?: "range" | "block" | null
   }>(),
-  { streaming: false, sessionId: "", highlighted: false },
+  { streaming: false, sessionId: "", highlightMode: null },
 )
 const nodes = useMarkdownNodes({
   text: () => props.item.text,
@@ -61,8 +61,8 @@ article {
   transition: background-color var(--duration-normal) var(--ease-out);
 }
 
-article[data-jump-highlighted] {
-  background: var(--warning-subtle);
+article[data-jump-highlighted="block"] {
+  background: var(--accent-subtle);
 }
 
 .md-pending {

@@ -40,14 +40,17 @@ export interface QuoteReplyRequest {
   range?: Range | undefined
 }
 
-export interface ReplyJumpTarget {
+export interface ReplyJumpRequest {
   sessionId: string
   entryId: string
+  text?: string | undefined
+}
+
+export interface ReplyJumpTarget extends ReplyJumpRequest {
   seq: number
 }
 
 export const quoteReplyKey: InjectionKey<(request: QuoteReplyRequest) => void> =
   Symbol("quote-reply")
-export const navigateReplyKey: InjectionKey<
-  (target: { sessionId: string; entryId: string }) => void
-> = Symbol("navigate-reply")
+export const navigateReplyKey: InjectionKey<(target: ReplyJumpRequest) => void> =
+  Symbol("navigate-reply")

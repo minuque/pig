@@ -37,7 +37,7 @@
                     shownTurns.has(turn.id) ||
                     forcedTurnId === turn.id
                   "
-                  :highlighted-entry-id="highlightedEntryId"
+                  :highlighted-entry="highlightedEntry"
                   @toggle-expand="onToggleExpand"
                   @toggle-tool="onToggleTool"
                   @shown="shownTurns.add($event)"
@@ -191,6 +191,7 @@ const {
   onPointerDown,
   scrollToLatest,
   scrollToElement,
+  scrollToRange,
   restoreScrollTop,
 } = useTranscriptFollow(scrollerRoot)
 let historyPending = 0
@@ -282,7 +283,7 @@ function pinLatest() {
 
 const { readyFrame } = useTranscriptReveal(rows)
 const runwayId = shallowRef<string>()
-const { forcedTurnId, highlightedEntryId, resetJump } = useTranscriptJump({
+const { forcedTurnId, highlightedEntry, resetJump } = useTranscriptJump({
   sessionId: () => props.sessionId,
   historyReady: () => props.historyReady,
   turns,
@@ -290,6 +291,7 @@ const { forcedTurnId, highlightedEntryId, resetJump } = useTranscriptJump({
   column,
   jumpTarget: () => props.jumpTarget,
   scrollToElement,
+  scrollToRange,
   pinLatest,
   onSettled: (seq) => emit("jumpSettled", seq),
 })

@@ -24,7 +24,7 @@
         :item="row"
         :session-id="sessionId"
         :streaming="running && row.streaming"
-        :highlighted="highlightedEntryId === row.entryId"
+        :highlight-mode="highlightedEntry?.entryId === row.entryId ? highlightedEntry.mode : null"
       />
 
       <ToolRun
@@ -73,6 +73,7 @@ import TimelineEvent from "@features/transcript-view/components/events/TimelineE
 import ToolRun from "@features/transcript-view/components/tool/ToolRun.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
 import { isToolRow } from "@features/transcript-view/lib/transcript-rows.js"
+import type { HighlightedEntry } from "@features/transcript-view/hooks/use-transcript-jump.js"
 import type { TimelineTurn } from "@features/transcript-view/type.js"
 
 const props = defineProps<{
@@ -82,7 +83,7 @@ const props = defineProps<{
   isExpand: (id: string) => boolean | undefined
   expandedTools: Map<string, boolean>
   eager: boolean
-  highlightedEntryId?: string | null
+  highlightedEntry?: HighlightedEntry | null
 }>()
 const emit = defineEmits<{
   toggleExpand: [id: string, open: boolean]

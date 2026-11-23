@@ -5,6 +5,7 @@ import {
   navigateReplyKey,
   quoteReplyKey,
   type QuoteReplyRequest,
+  type ReplyJumpRequest,
   type ReplyJumpTarget,
 } from "@features/transcript-view/index.js"
 
@@ -20,7 +21,7 @@ export function useReplyNavigation(options: UseReplyNavigationOptions) {
   const pendingJump = shallowRef<ReplyJumpTarget | null>(null)
   let jumpSeq = 0
 
-  function jumpToReply(target: { sessionId: string; entryId: string }) {
+  function jumpToReply(target: ReplyJumpRequest) {
     if (!target.sessionId || !target.entryId) return
     jumpSeq += 1
     pendingJump.value = { ...target, seq: jumpSeq }

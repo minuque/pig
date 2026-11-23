@@ -28,7 +28,7 @@ export interface ActiveReplyEdit {
 export interface UseReplyCommentOptions {
   editor: Ref<Editor | undefined>
   onOpenFile(path: string): void
-  onJumpReply(target: { sessionId: string; entryId: string }): void
+  onJumpReply(target: { sessionId: string; entryId: string; text?: string | undefined }): void
   onSubmit(): void
 }
 

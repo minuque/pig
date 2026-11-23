@@ -445,11 +445,22 @@ test("刚跑完的回合点引用按钮获真实条目 id，连同会话引用�
       await checkBubble()
 
       await page.locator('.row-user .reply-card[data-context-kind="reply"]').last().click()
-      await expect(
-        page.locator(
-          `.row-assistant article[data-entry-id="${persistedEntry!.id}"][data-jump-highlighted]`,
-        ),
-      ).toBeVisible()
+
+      const jumpArticle = page.locator(
+        `.row-assistant article[data-entry-id="${persistedEntry!.id}"][data-jump-highlighted="range"]`,
+      )
+
+      await expect(jumpArticle).toBeVisible()
+      expect(await jumpArticle.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(
+        "rgba(0, 0, 0, 0)",
+      )
+      expect(
+        await page.evaluate(() => {
+          const highlight = CSS.highlights?.get("pig-reply-jump")
+          const firstRange = highlight ? [...highlight][0] : undefined
+          return firstRange instanceof Range ? firstRange.toString() : ""
+        }),
+      ).toBe(fauxReply(1))
 
       await page.locator('.row-user .chip[data-context-kind="session"]').last().click()
       await expect(page).toHaveURL(new RegExp(`/sessions/${REF_SESSION_B_ID}$`))
@@ -464,11 +475,22 @@ test("刚跑完的回合点引用按钮获真实条目 id，连同会话引用�
       }, refSource!)
       await field(page).locator('.chip[data-context-kind="reply"] .reply-chip-main').click()
       await expect(page).toHaveURL(new RegExp(`/sessions/${REF_SESSION_A_ID}$`))
-      await expect(
-        page.locator(
-          `.row-assistant article[data-entry-id="${persistedEntry!.id}"][data-jump-highlighted]`,
-        ),
-      ).toBeVisible()
+
+      const crossJumpArticle = page.locator(
+        `.row-assistant article[data-entry-id="${persistedEntry!.id}"][data-jump-highlighted="range"]`,
+      )
+
+      await expect(crossJumpArticle).toBeVisible()
+      expect(await crossJumpArticle.evaluate((el) => getComputedStyle(el).backgroundColor)).toBe(
+        "rgba(0, 0, 0, 0)",
+      )
+      expect(
+        await page.evaluate(() => {
+          const highlight = CSS.highlights?.get("pig-reply-jump")
+          const firstRange = highlight ? [...highlight][0] : undefined
+          return firstRange instanceof Range ? firstRange.toString() : ""
+        }),
+      ).toBe(fauxReply(1))
     },
     undefined,
     async (temp) => ({ createRuntime: () => createReplyRuntime(join(temp, "agent")) }),
