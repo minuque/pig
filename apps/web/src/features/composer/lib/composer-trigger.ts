@@ -3,7 +3,7 @@ export type ComposerTrigger =
   | { kind: "command"; start: number; query: string }
   | null
 
-const BLOCK_PREFIX =
+export const BLOCK_PREFIX =
   /^[ \t]*(?:(?:[-*+]|\d{1,9}[.)])[ \t]+(?:\[[ xX]\][ \t]+)?|>[ \t]?|#{1,6}[ \t]+)*$/u
 
 export function composerTriggerAt(text: string, caret: number): ComposerTrigger {

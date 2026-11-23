@@ -7,16 +7,24 @@ import { watch } from "vue"
 import type { Editor } from "@tiptap/core"
 import { EditorContent, useEditor } from "@tiptap/vue-3"
 import { closeHistory } from "@tiptap/pm/history"
-import { TextSelection, type Transaction } from "@tiptap/pm/state"
+import { type EditorState, TextSelection } from "@tiptap/pm/state"
 import { clipboardFiles } from "@features/composer/hooks/use-composer-attachments.js"
-import { createComposerExtensions } from "@features/composer/lib/tiptap-chips.js"
-import { parsePromptToDoc, serializeDocToPrompt } from "@features/composer/lib/tiptap-doc.js"
+import { copySelection, pasteMarkdown } from "@features/composer/lib/editor/clipboard.js"
+import { buildDocJson } from "@features/composer/lib/editor/doc-parse.js"
+import { markdownOffsetAt, positionAtMarkdown } from "@features/composer/lib/editor/doc-offset.js"
+import { serializeEditorDoc } from "@features/composer/lib/editor/doc-serialize.js"
+import { createComposerExtensions } from "@features/composer/lib/editor/extensions.js"
 import {
-  handleStructuredEnter,
-  splitLineOnShiftEnter,
-} from "@features/composer/lib/tiptap-enter.js"
-import { isInCodeBlock, isInCodeContext } from "@features/composer/lib/tiptap-markdown.js"
-import { positionAtOffset, textOffsetAt } from "@features/composer/lib/tiptap-offset.js"
+  handleEnter,
+  handleTab,
+  selectMarkdownOffset,
+  stepCaretOnArrow,
+} from "@features/composer/lib/editor/keys.js"
+import {
+  inlineMarkdownUnitMarks,
+  MARKDOWN_SOURCE_MARK,
+} from "@features/composer/lib/editor/rich-text.js"
+import { wrapSelectionOnInput } from "@features/composer/lib/editor/surround.js"
 import type { ChipInsert, ComposerCaret } from "@features/composer/type.js"
 
 const PASTE_MAX_LINES = 300
@@ -41,18 +49,21 @@ let syncedText = props.modelValue
 let shiftHeld = false
 let pasteSeq = 0
 const editor = useEditor({
-  content: parsePromptToDoc(props.modelValue),
+  content: buildDocJson(props.modelValue),
   editable: props.disabled !== true,
   extensions: createComposerExtensions({ onOpenFile: (path) => emit("openFile", path) }),
   editorProps: {
     attributes: viewAttributes(),
     handleKeyDown: (_view, event) => onFieldKeydown(event),
+    handleTextInput: (view, from, to, text) => wrapSelectionOnInput(view, from, to, text),
     handlePaste: (_view, event) => onPaste(event),
     handleDOMEvents: {
       keyup: (_view, event) => {
         shiftHeld = event.shiftKey
         return false
       },
+      copy: (view, event) => copySelection(view, event, false),
+      cut: (view, event) => copySelection(view, event, true),
       compositionstart: () => {
         emit("composing", true)
         return false
@@ -86,12 +97,9 @@ watch(
 
     if (next === syncedText || !instance || instance.isDestroyed) return
     syncedText = next
-    instance.commands.setContent(parsePromptToDoc(next), { emitUpdate: false })
+    instance.commands.setContent(buildDocJson(next), { emitUpdate: false })
 
-    if (instance.isFocused) {
-      instance.commands.setTextSelection(Math.max(1, instance.state.doc.content.size - 1))
-    }
-
+    if (instance.isFocused) selectMarkdownOffset(instance, next, next.length)
     sync(true)
   },
 )
@@ -109,13 +117,40 @@ function viewAttributes(): Record<string, string> {
   }
 }
 
+function inShownCode(state: EditorState): boolean {
+  const { $from } = state.selection
+  const source = state.schema.marks[MARKDOWN_SOURCE_MARK]
+
+  if (!source || !$from.parent.inlineContent) return false
+  const text = $from.parent.textBetween(0, $from.parent.content.size, undefined, "￼")
+  const before = inlineMarkdownUnitMarks(text)[$from.parentOffset - 1]
+  return before?.includes("code") === true && !!source.isInSet($from.nodeBefore?.marks ?? [])
+}
+
+function isInCodeContext(state: EditorState): boolean {
+  const { $from, $to, empty } = state.selection
+  const code = state.schema.marks["code"]
+
+  if ($from.parent.type.spec.code === true) return true
+
+  if (
+    code &&
+    (empty ? code.isInSet($from.marks()) : state.doc.rangeHasMark($from.pos, $to.pos, code))
+  ) {
+    return true
+  }
+
+  return inShownCode(state)
+}
+
 function sync(edited: boolean) {
   const instance = editor.value
 
   if (!instance) return
+  const { doc, selection } = instance.state
 
   if (edited) {
-    const text = serializeDocToPrompt(instance.getJSON())
+    const text = serializeEditorDoc(doc).value
 
     if (text !== syncedText) {
       syncedText = text
@@ -123,34 +158,11 @@ function sync(edited: boolean) {
     }
   }
 
-  const { doc, selection } = instance.state
-
   emit("caret", {
-    offset: textOffsetAt(doc, selection.from),
+    offset: markdownOffsetAt(doc, selection.from),
     edited,
     inCode: isInCodeContext(instance.state),
   })
-}
-
-function isPlainEnter(event: KeyboardEvent): boolean {
-  return (
-    event.key === "Enter" && !event.isComposing && !event.altKey && !event.metaKey && !event.ctrlKey
-  )
-}
-
-function onStructuredEnter(instance: Editor, event: KeyboardEvent): boolean {
-  const { state, view } = instance
-  const dispatch = (tr: Transaction) => view.dispatch(tr.scrollIntoView())
-
-  if (event.shiftKey && !isInCodeBlock(state)) {
-    splitLineOnShiftEnter(state, dispatch)
-    event.preventDefault()
-    return true
-  }
-
-  if (!handleStructuredEnter(state, dispatch)) return false
-  event.preventDefault()
-  return true
 }
 
 function onFieldKeydown(event: KeyboardEvent): boolean {
@@ -158,8 +170,12 @@ function onFieldKeydown(event: KeyboardEvent): boolean {
   const instance = editor.value
   const menuActive = Boolean(props.ariaControls && props.ariaActivedescendant)
 
-  if (instance && !menuActive && isPlainEnter(event) && onStructuredEnter(instance, event))
-    return true
+  if (instance && !menuActive) {
+    if (stepCaretOnArrow(instance.view, event)) return true
+
+    if (handleEnter(instance, event) || handleTab(instance, event)) return true
+  }
+
   emit("keydown", event)
   return event.defaultPrevented
 }
@@ -179,10 +195,17 @@ function onPaste(event: ClipboardEvent): boolean {
     (text.split("\n").length > PASTE_MAX_LINES ||
       new TextEncoder().encode(text).length > PASTE_MAX_BYTES)
 
-  if (!oversize) return false
-  pasteSeq += 1
-  emit("pasteFiles", [new File([text], `pasted-${pasteSeq}.txt`, { type: "text/plain" })])
-  return true
+  if (oversize) {
+    pasteSeq += 1
+    emit("pasteFiles", [new File([text], `pasted-${pasteSeq}.txt`, { type: "text/plain" })])
+    return true
+  }
+
+  const instance = editor.value
+
+  if (!instance || !event.clipboardData) return false
+  event.preventDefault()
+  return pasteMarkdown(instance, instance.view, event.clipboardData)
 }
 
 function chipNode(instance: Editor, chip: ChipInsert) {
@@ -207,17 +230,21 @@ function blur() {
 }
 
 function isAtStart(): boolean {
-  const { state } = editor.value ?? {}
-  const selection = state?.selection
+  const selection = editor.value?.state.selection
   return !!selection?.empty && selection.from <= 1
 }
 
 function isAtEnd(): boolean {
-  const { state } = editor.value ?? {}
-  const selection = state?.selection
+  const state = editor.value?.state
 
-  if (!state || !selection) return true
-  return selection.empty && selection.to >= state.doc.content.size - 1
+  if (!state) return true
+  return state.selection.empty && state.selection.to >= state.doc.content.size - 1
+}
+
+function rangeAt(instance: Editor, start: number, length: number) {
+  const { doc } = instance.state
+  const from = positionAtMarkdown(doc, start)
+  return { from, to: Math.max(from, positionAtMarkdown(doc, start + length)) }
 }
 
 function insertChip(chip: ChipInsert) {
@@ -227,9 +254,8 @@ function insertChip(chip: ChipInsert) {
   const node = chipNode(instance, chip)
 
   if (!node) return
+  const { from, to } = rangeAt(instance, chip.start, chip.triggerLength)
   const { state } = instance
-  const from = positionAtOffset(state.doc, chip.start)
-  const to = Math.max(from, positionAtOffset(state.doc, chip.start + chip.triggerLength))
   const tr = closeHistory(state.tr.replaceWith(from, to, [node, instance.schema.text(" ")]))
   const caret = Math.min(from + node.nodeSize + 1, tr.doc.content.size - 1)
 
@@ -242,10 +268,8 @@ function replaceRange(start: number, triggerLength: number, text: string) {
   const instance = editor.value
 
   if (!instance) return
-  const { state } = instance
-  const from = positionAtOffset(state.doc, start)
-  const to = Math.max(from, positionAtOffset(state.doc, start + triggerLength))
-  const tr = state.tr.insertText(text, from, to)
+  const { from, to } = rangeAt(instance, start, triggerLength)
+  const tr = instance.state.tr.insertText(text, from, to)
 
   tr.setSelection(TextSelection.create(tr.doc, from + text.length))
   instance.view.dispatch(tr)
@@ -411,6 +435,17 @@ defineExpose({ focus, blur, insertChip, replaceRange, isAtStart, isAtEnd })
   block-size: 0.95rem;
   accent-color: var(--accent-solid);
   cursor: pointer;
+}
+
+.editor :deep(.field .is-source-marker) {
+  color: var(--fg-muted);
+  font-weight: var(--font-weight-normal);
+  font-style: normal;
+  text-decoration: none;
+}
+
+.editor :deep(.field .is-source-marker-hidden) {
+  display: none;
 }
 
 .editor :deep(.chip) {
