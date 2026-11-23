@@ -12,6 +12,7 @@ export type UserRow = {
 
 export type AssistantRow = {
   id: string
+  entryId: string
   role: "assistant"
   text: string
   streaming: boolean

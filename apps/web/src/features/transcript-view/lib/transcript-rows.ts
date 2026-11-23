@@ -41,6 +41,7 @@ function toolStartedAt(item: ToolTranscriptItem | undefined): number | undefined
 function assistantRow(item: AssistantTranscriptItem, text = transcriptText(item)): AssistantRow {
   return {
     id: item.id,
+    entryId: item.id,
     role: "assistant",
     text,
     streaming: item.status === "streaming",

@@ -186,6 +186,7 @@ export const USER_LONG: UserRow = {
 }
 export const ASSISTANT: AssistantRow = {
   id: "assistant-1",
+  entryId: "assistant-1",
   role: "assistant",
   text: PROSE,
   streaming: false,
