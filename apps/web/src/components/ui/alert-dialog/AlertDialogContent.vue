@@ -15,8 +15,8 @@ import {
 defineOptions({ inheritAttrs: false })
 </script>
 
-<style scoped>
-[data-slot="alert-dialog-content"] {
+<style>
+:where([data-slot="alert-dialog-content"]) {
   position: fixed;
   inset: var(--space-md);
   display: flex;

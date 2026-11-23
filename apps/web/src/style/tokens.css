@@ -241,6 +241,7 @@
   --slider-range-shadow: 0 0 0 var(--border-width) var(--border), 0 1px 2px rgba(0, 0, 0, 0.06);
   --slider-track-bg: var(--bg-surface);
   --slider-track-ring: inset 0 0 0 var(--border-width) var(--border);
+  --switch-thumb-unchecked: var(--bg);
   --theme-wire-light: #ffffff;
   --theme-wire-light-raised: #f7f8f8;
   --theme-wire-dark: #101012;
@@ -348,6 +349,7 @@ html.dark {
     0 0 0 var(--border-width) var(--border-strong), 0 1px 2px rgba(0, 0, 0, 0.28);
   --slider-track-bg: var(--sidebar);
   --slider-track-ring: inset 0 0 0 var(--border-width) var(--border-strong);
+  --switch-thumb-unchecked: var(--fg-muted);
 
   /* --- 浅色里冻结成字面值、深色取值不同的 token --- */
   --success-text: #3dd68c;

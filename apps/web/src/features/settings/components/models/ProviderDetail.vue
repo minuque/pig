@@ -234,7 +234,7 @@
         <AlertDialogFooter>
           <AlertDialogCancel>{{ t("common.cancel") }}</AlertDialogCancel>
 
-          <AlertDialogAction variant="destructive" @click="logout">
+          <AlertDialogAction color="danger" @click="logout">
             {{ t("settings.models.logout") }}
           </AlertDialogAction>
         </AlertDialogFooter>

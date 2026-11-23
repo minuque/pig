@@ -72,6 +72,26 @@
   outline: none;
 }
 
+[data-radius="none"] {
+  border-radius: 0;
+}
+
+[data-radius="small"] {
+  border-radius: calc(var(--radius-control) / 2);
+}
+
+[data-radius="medium"] {
+  border-radius: var(--radius-control);
+}
+
+[data-radius="large"] {
+  border-radius: var(--radius-card);
+}
+
+[data-radius="full"] {
+  border-radius: var(--radius-pill);
+}
+
 :where([data-menu-content]) {
   box-sizing: border-box;
   position: relative;
@@ -157,7 +177,7 @@
   background-color: var(--bg-hover);
 }
 
-:where([data-menu-item][data-variant="destructive"][data-highlighted]) {
+:where([data-menu-item][data-tone="danger"][data-highlighted]) {
   background-color: var(--danger-subtle);
 }
 

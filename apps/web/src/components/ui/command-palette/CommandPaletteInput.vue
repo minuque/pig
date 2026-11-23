@@ -1,7 +1,7 @@
 <template>
   <div data-slot="command-palette-input">
-    <SearchIcon class="size-icon lead" />
-    <CommandInput class="input" :aria-label="placeholder" :placeholder="placeholder" />
+    <SearchIcon class="size-icon" data-slot="command-palette-lead" />
+    <CommandInput :aria-label="placeholder" :placeholder="placeholder" />
   </div>
 </template>
 
@@ -12,21 +12,21 @@ import { SearchIcon } from "@components/icons/index.js"
 defineProps<{ placeholder: string }>()
 </script>
 
-<style scoped>
-[data-slot="command-palette-input"] {
+<style>
+:where([data-slot="command-palette-input"]) {
   display: flex;
   flex: none;
   align-items: center;
   padding: calc(var(--spacing) * 1.5) var(--space-xs);
 }
 
-.lead {
+[data-slot="command-palette-input"] > [data-slot="command-palette-lead"] {
   flex: none;
-  width: var(--space-2xl);
+  inline-size: var(--space-2xl);
   color: var(--fg-muted);
 }
 
-.input {
+:where([data-slot="command-input"]) {
   min-width: 0;
   height: calc(var(--spacing) * 8.5);
   flex: 1;
@@ -37,7 +37,7 @@ defineProps<{ placeholder: string }>()
   font-size: var(--text-body);
 }
 
-.input::placeholder {
+:where([data-slot="command-input"])::placeholder {
   color: var(--fg-muted);
 }
 </style>

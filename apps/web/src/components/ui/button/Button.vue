@@ -22,8 +22,8 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
 import { Polymorphic, type PolymorphicProps } from "@components/ui/primitive/index.js"
-import type { Size, ToneColor } from "@/types/ui-type.js"
-import type { ButtonVariant, Radius } from "./index.js"
+import type { Size, ToneColor, Radius } from "@/types/ui-type.js"
+import type { ButtonVariant } from "./index.js"
 import ButtonContent from "./ButtonContent.vue"
 
 defineOptions({ inheritAttrs: false })
@@ -114,26 +114,6 @@ const props = withDefaults(defineProps<Props>(), {
   height: var(--control-lg);
   gap: var(--space-xs);
   padding-inline: calc(var(--spacing) * 3.5 - var(--border-width));
-}
-
-:where([data-button][data-radius="none"]) {
-  border-radius: 0;
-}
-
-:where([data-button][data-radius="small"]) {
-  border-radius: calc(var(--radius-control) / 2);
-}
-
-:where([data-button][data-radius="medium"]) {
-  border-radius: var(--radius-control);
-}
-
-:where([data-button][data-radius="large"]) {
-  border-radius: var(--radius-card);
-}
-
-:where([data-button][data-radius="full"]) {
-  border-radius: var(--radius-pill);
 }
 
 :where([data-button][data-variant="solid"]) {

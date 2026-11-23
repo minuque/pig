@@ -63,15 +63,14 @@
       </div>
     </Variant>
 
-    <AlertToaster />
+    <Toaster />
   </Story>
 </template>
 
 <script setup lang="ts">
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import AlertToaster from "@components/layout/AlertToaster.vue"
-import { notify } from "@components/layout/notify.js"
+import { Toaster, notify } from "@components/ui/toast/index.js"
 import { Button } from "@components/ui/button/index.js"
 
 const LONG_ERROR =

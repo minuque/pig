@@ -18,10 +18,9 @@
 </template>
 
 <script setup lang="ts">
-import type { ToneColor } from "@/types/ui-type.js"
+import type { ToneColor, Radius } from "@/types/ui-type.js"
 import type { HTMLAttributes } from "vue"
 import { SelectTrigger as SelectTriggerPrimitive, SelectValue } from "@ui-sdk/vue/select"
-import type { Radius } from "@components/ui/button/index.js"
 import { useSelectSize } from "@components/ui/select/select-context.js"
 import { ChevronDownIcon } from "@components/icons/index.js"
 
@@ -77,26 +76,6 @@ const size = useSelectSize()
 
 :where([data-slot="select-trigger"][data-size="l"]) {
   height: var(--control-lg);
-}
-
-:where([data-slot="select-trigger"][data-radius="none"]) {
-  border-radius: 0;
-}
-
-:where([data-slot="select-trigger"][data-radius="small"]) {
-  border-radius: calc(var(--radius-control) / 2);
-}
-
-:where([data-slot="select-trigger"][data-radius="medium"]) {
-  border-radius: var(--radius-control);
-}
-
-:where([data-slot="select-trigger"][data-radius="large"]) {
-  border-radius: var(--radius-card);
-}
-
-:where([data-slot="select-trigger"][data-radius="full"]) {
-  border-radius: var(--radius-pill);
 }
 
 :where([data-slot="select-trigger"]:focus-visible) {

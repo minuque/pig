@@ -136,7 +136,7 @@ spacing:
 
 ### 状态色
 
-- 基础件 `color` 取 `accent` / `neutral` / `info` / `success` / `warning` / `danger`，项目图标与首字母徽章另可取 7 个标识色。组件写成 `data-tone`，只读 `--tone` / `--tone-text` / `--tone-subtle` / `--tone-border`。
+- 基础件 `color` 取 `accent` / `neutral` / `info` / `success` / `warning` / `danger`（统一用 `color="danger"`），项目图标与首字母徽章另可取 7 个标识色。组件写成 `data-tone`，只读 `--tone` / `--tone-text` / `--tone-subtle` / `--tone-border`。
 - 状态族命名 `--*-solid` / `--*-text` / `--*-subtle`（浅底浅色 8%、深色 16%）。
 - 悬停、按下不另定色，叠 `--bg-hover` / `--bg-emphasis`。
 - 默认不加脉冲，`StatusIndicator` 需要引起注意时才开 `pulse`。
@@ -196,7 +196,7 @@ spacing:
 - **显示模型名的地方，前面一律加 `VendorMark`（传模型的 provider）。**
   Why：和模型选择器一致，一眼认出供应商。
   <!-- 2026-11-21：「模型名称前补上模型icon」 -->
-- **通知一律走 `notify()`（`@components/layout/notify.js`），显示在右下角。页面上已能看到同样内容的（如 transcript 里的请求失败行）传 `transient: true`，5 秒后消失；只有页面别处看不到的错误才常驻。**
+- **通知一律走 `notify()`（`@components/ui/toast/index.js`），显示在右下角。页面上已能看到同样内容的（如 transcript 里的请求失败行）传 `transient: true`，5 秒后消失；只有页面别处看不到的错误才常驻。**
   Why：同一条报错在 toast 和页面里各留一份，常驻的 toast 只是重复。
   <!-- 2026-11-21：「显示在右下角」；当前会话出错 toast 改为 5 秒消失，回复「ok」 -->
 - `TextFieldRoot` 的 `invalid` 表达错误态（危险色内环与焦点环）。
@@ -205,7 +205,7 @@ spacing:
 ## 间距与尺寸
 
 - 间距 `--space-2xs/xs/sm/md/lg/xl/2xl` = 4/8/12/16/24/28/32。
-- 控件高 `--control-sm/md/lg` = 28/32/36；图标按钮与侧栏行默认 28，菜单项与输入卡控件 32。
+- 控件高 `--control-sm/md/lg` = 28/32/36；图标按钮与侧栏行 `s`/`m`/`l` 为 24/28/32，按钮/输入框/选择框/滑条/分段标签的 `s`/`m`/`l` 对齐 28/32/36（输入卡控件默认 32）。
 - 图标 `--icon-sm/md/lg/xl` = 12/14/16/32，线宽 `--icon-stroke`。
 - 头部高 `--header-height` 44；macOS 标题条 `--titlebar-inset` 44。
 

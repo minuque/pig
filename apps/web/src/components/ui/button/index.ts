@@ -8,8 +8,6 @@ export type ButtonSize = Size
 
 export type ButtonVariant = "solid" | "secondary" | "outline" | "ghost"
 
-export type Radius = "none" | "small" | "medium" | "large" | "full"
-
 export function buttonAttrs(variant: ButtonVariant = "solid", size: ButtonSize = "m") {
   return {
     "data-button": "",

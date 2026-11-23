@@ -1,10 +1,13 @@
 <template>
-  <CommandItem class="item" :value="value" :disabled="disabled" @select="emit('select')">
-    <span v-if="$slots.icon" class="icon"><slot name="icon" /></span>
+  <CommandItem :value="value" :disabled="disabled" @select="emit('select')">
+    <span v-if="$slots.icon" data-slot="command-palette-item-icon"><slot name="icon" /></span>
 
-    <span class="main">
-      <span class="title"><slot /></span>
-      <span v-if="$slots.description" class="description"><slot name="description" /></span>
+    <span data-slot="command-palette-item-main">
+      <span data-slot="command-palette-item-title"><slot /></span>
+
+      <span v-if="$slots.description" data-slot="command-palette-item-description">
+        <slot name="description" />
+      </span>
     </span>
 
     <slot name="trailing" />
@@ -19,10 +22,10 @@ defineProps<{ value: string; disabled?: boolean }>()
 const emit = defineEmits<{ select: [] }>()
 </script>
 
-<style scoped>
-.item {
+<style>
+:where([data-slot="command-item"]) {
   display: flex;
-  min-height: 28px;
+  min-height: var(--control-sm);
   align-items: center;
   gap: var(--space-xs);
   padding: calc(var(--spacing) * 1.5) var(--space-xs);
@@ -34,16 +37,16 @@ const emit = defineEmits<{ select: [] }>()
   user-select: none;
 }
 
-.item[data-highlighted] {
+:where([data-slot="command-item"][data-highlighted]) {
   background: var(--bg-selected);
 }
 
-.item[data-disabled] {
+:where([data-slot="command-item"][data-disabled]) {
   cursor: default;
   opacity: var(--opacity-disabled);
 }
 
-.icon {
+:where([data-slot="command-palette-item-icon"]) {
   display: flex;
   height: 20px;
   flex: none;
@@ -52,25 +55,25 @@ const emit = defineEmits<{ select: [] }>()
   color: var(--fg-secondary);
 }
 
-.main {
+:where([data-slot="command-palette-item-main"]) {
   display: flex;
   min-width: 0;
   flex: 1;
   flex-direction: column;
 }
 
-.title,
-.description {
+:where([data-slot="command-palette-item-title"]),
+:where([data-slot="command-palette-item-description"]) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.title {
+:where([data-slot="command-palette-item-title"]) {
   line-height: 20px;
 }
 
-.description {
+:where([data-slot="command-palette-item-description"]) {
   color: var(--fg-secondary);
   font-size: var(--text-meta);
 }

@@ -126,7 +126,7 @@
         <AlertDialogFooter>
           <AlertDialogCancel>{{ t("common.cancel") }}</AlertDialogCancel>
 
-          <AlertDialogAction variant="destructive" @click="confirmDelete">
+          <AlertDialogAction color="danger" @click="confirmDelete">
             {{ t("settings.archive.deleteConfirmAction") }}
           </AlertDialogAction>
         </AlertDialogFooter>

@@ -7,7 +7,7 @@ import type { ComposerQueueApi, QueuedPrompt } from "@features/composer/hooks/us
 
 const notify = vi.fn()
 
-vi.mock("@components/layout/notify.js", () => ({ notify }))
+vi.mock("@components/ui/toast/index.js", () => ({ notify }))
 
 const { useComposerSubmit } =
   await import("@features/session-workbench/hooks/use-composer-submit.js")

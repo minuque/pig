@@ -108,7 +108,7 @@
 
       <ContextMenuSeparator />
 
-      <ContextMenuItem variant="destructive" :disabled="row.running" @select="emit('delete', row)">
+      <ContextMenuItem color="danger" :disabled="row.running" @select="emit('delete', row)">
         <TrashIcon />
         {{ t("settings.archive.deleteOne") }}
       </ContextMenuItem>

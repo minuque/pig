@@ -84,7 +84,7 @@
 
               <DropdownMenuSeparator />
 
-              <DropdownMenuItem variant="destructive" @select="deleteOpen = true">
+              <DropdownMenuItem color="danger" @select="deleteOpen = true">
                 <TrashIcon />
                 {{ t("session.deleteTitle") }}
               </DropdownMenuItem>

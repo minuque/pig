@@ -1,7 +1,7 @@
 <template>
   <span
     data-slot="spinner"
-    :data-size="sizeTier"
+    :data-size="size"
     :class="props.class"
     role="status"
     :aria-label="label"
@@ -11,17 +11,17 @@
 </template>
 
 <script setup lang="ts">
-import { computed, type HTMLAttributes } from "vue"
+import type { HTMLAttributes } from "vue"
+import type { Size } from "@/types/ui-type.js"
 
 const props = withDefaults(
   defineProps<{
-    size?: number
+    size?: Size
     label?: string
     class?: HTMLAttributes["class"]
   }>(),
-  { size: 16, class: undefined },
+  { size: "m", class: undefined },
 )
-const sizeTier = computed(() => (props.size <= 12 ? "s" : props.size <= 16 ? "m" : "l"))
 </script>
 
 <style>

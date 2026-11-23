@@ -5,23 +5,23 @@
     <DialogContent data-command-palette class="glass-panel">
       <DialogTitle class="sr-only">{{ title }}</DialogTitle>
 
-      <Command v-model:query="query" class="body" :filter="false">
+      <Command v-model:query="query" data-command-palette-body :filter="false">
         <slot />
       </Command>
 
-      <footer class="footer">
-        <span class="hint">
+      <footer data-slot="command-palette-footer">
+        <span data-slot="command-palette-hint">
           <Kbd size="s"><ArrowUpIcon /></Kbd>
           <Kbd size="s"><ArrowDownIcon /></Kbd>
           {{ t("common.navigate") }}
         </span>
 
-        <span class="hint">
+        <span data-slot="command-palette-hint">
           <Kbd size="s">Enter</Kbd>
           {{ t("common.select") }}
         </span>
 
-        <span class="hint">
+        <span data-slot="command-palette-hint">
           <Kbd size="s">Esc</Kbd>
           {{ t("common.close") }}
         </span>
@@ -44,7 +44,7 @@ const query = defineModel<string>("query", { default: "" })
 const { t } = useI18n()
 </script>
 
-<style scoped>
+<style>
 [data-command-palette] {
   position: fixed;
   inset-block: max(10vh, var(--space-md)) auto;
@@ -58,14 +58,14 @@ const { t } = useI18n()
   overflow: hidden;
 }
 
-.body {
+:where([data-command-palette-body]) {
   display: flex;
   min-height: 0;
   flex: 1;
   flex-direction: column;
 }
 
-.footer {
+:where([data-slot="command-palette-footer"]) {
   display: flex;
   flex: none;
   flex-wrap: wrap;
@@ -79,13 +79,13 @@ const { t } = useI18n()
   font-weight: var(--font-weight-medium);
 }
 
-.hint {
+:where([data-slot="command-palette-hint"]) {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2xs);
 }
 
-.hint [data-slot="kbd"] {
+[data-slot="command-palette-hint"] > [data-slot="kbd"] {
   min-width: 20px;
   height: 20px;
   padding-inline: var(--space-2xs);
@@ -98,7 +98,7 @@ const { t } = useI18n()
   font-weight: var(--font-weight-medium);
 }
 
-.hint [data-slot="kbd"] svg {
+[data-slot="command-palette-hint"] > [data-slot="kbd"] svg {
   width: var(--icon-sm);
   height: var(--icon-sm);
 }

@@ -1,16 +1,16 @@
 <template>
-  <span ref="stack" class="roll-text" :class="{ 'is-gliding': gliding }">
+  <span ref="stack" data-slot="roll-text" :data-gliding="gliding || undefined">
     <TransitionGroup
       name="label-roll"
       tag="span"
-      class="roll-text-slots"
+      data-slot="roll-text-slots"
       @after-leave="onLeaveDone"
     >
       <span
         v-for="slot in slots"
         :key="slot.id"
-        :data-slot="slot.id"
-        class="roll-text-slot"
+        :data-roll-id="slot.id"
+        data-slot="roll-text-slot"
         :class="{ shimmer: slot.live && plain }"
         :data-text="slot.live && plain ? slot.text : undefined"
       >
@@ -71,7 +71,7 @@ watch([() => props.text, () => Boolean(props.live)], async ([text, live]) => {
   }
 
   await nextTick()
-  const target = node.querySelector<HTMLElement>(`[data-slot="${slot.id}"]`)
+  const target = node.querySelector<HTMLElement>(`[data-roll-id="${slot.id}"]`)
   const width = target?.getBoundingClientRect().width ?? 0
 
   if (!width || Math.abs(width - from) < 0.5) {
@@ -118,22 +118,22 @@ function prefersReducedMotion() {
 }
 </script>
 
-<style scoped>
-.roll-text {
+<style>
+:where([data-slot="roll-text"]) {
   display: inline-flex;
   min-width: 0;
   max-width: 100%;
   overflow: clip;
 }
 
-.roll-text-slots {
+:where([data-slot="roll-text-slots"]) {
   display: inline-grid;
   align-items: center;
   justify-items: start;
   min-width: 0;
 }
 
-.roll-text-slot {
+:where([data-slot="roll-text-slot"]) {
   grid-area: 1 / 1;
   min-width: 0;
   max-width: 100%;
@@ -142,7 +142,7 @@ function prefersReducedMotion() {
   white-space: nowrap;
 }
 
-.roll-text.is-gliding .roll-text-slot {
+:where([data-slot="roll-text"][data-gliding] [data-slot="roll-text-slot"]) {
   max-width: none;
 }
 </style>

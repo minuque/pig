@@ -1,6 +1,6 @@
 import { computed, shallowReactive, shallowRef } from "vue"
 import type { TranscriptItem } from "@/types/common-type.js"
-import { notifyAction } from "@components/layout/notify.js"
+import { notifyAction } from "@components/ui/toast/index.js"
 import { errorMessage } from "@client/http.js"
 import { t } from "@i18n/index.js"
 import { sessionTranscript } from "@client/platform.js"

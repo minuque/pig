@@ -10,8 +10,8 @@ import { AlertDialogDescription as AlertDialogDescriptionPrimitive } from "@ui-s
 defineOptions({ inheritAttrs: false })
 </script>
 
-<style scoped>
-[data-slot="alert-dialog-description"] {
+<style>
+:where([data-slot="alert-dialog-description"]) {
   max-height: min(24rem, 60dvh);
   min-height: 0;
   margin: 0;

@@ -59,7 +59,7 @@
       </p>
 
       <div v-if="searching && !names.length && !matches.length" class="file-search-status">
-        <Spinner :size="16" />
+        <Spinner size="m" />
       </div>
 
       <p v-else-if="!searching && !names.length && !matches.length" class="file-search-empty">

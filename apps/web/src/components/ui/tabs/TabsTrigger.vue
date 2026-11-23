@@ -50,7 +50,7 @@ const variant = inject(TABS_VARIANT, ref("underline"))
 }
 
 :where([data-slot="tabs-tab"][data-variant="segmented"]:focus-visible) {
-  outline: none;
-  box-shadow: var(--focus-ring);
+  outline: 2px solid var(--focus-color);
+  outline-offset: -2px;
 }
 </style>

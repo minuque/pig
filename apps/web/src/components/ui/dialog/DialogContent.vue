@@ -16,7 +16,7 @@
         variant="ghost"
         color="neutral"
         :aria-label="t('common.close')"
-        class="dlg-close"
+        data-dialog-close
       >
         <XIcon class="size-icon" />
       </IconButton>
@@ -103,21 +103,19 @@ const widthStyle = computed(() =>
 :where([data-slot="dialog-content"] [data-slot="dialog-title"]) {
   margin-block-end: var(--space-sm);
 }
-</style>
 
-<style scoped>
-.dlg-close {
+:where([data-slot="dialog-content"]) > [data-dialog-close] {
   position: absolute;
   inset-block-start: calc(var(--space-md) - (var(--space-lg) - var(--icon-md)) / 2);
   inset-inline-end: calc(var(--space-md) - (var(--space-lg) - var(--icon-md)) / 2);
 }
 
-[data-size="s"] > .dlg-close {
+:where([data-slot="dialog-content"][data-size="s"]) > [data-dialog-close] {
   inset-block-start: calc(var(--space-sm) - (var(--space-lg) - var(--icon-md)) / 2);
   inset-inline-end: calc(var(--space-sm) - (var(--space-lg) - var(--icon-md)) / 2);
 }
 
-[data-size="l"] > .dlg-close {
+:where([data-slot="dialog-content"][data-size="l"]) > [data-dialog-close] {
   inset-block-start: calc(var(--space-lg) - (var(--space-lg) - var(--icon-md)) / 2);
   inset-inline-end: calc(var(--space-lg) - (var(--space-lg) - var(--icon-md)) / 2);
 }

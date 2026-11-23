@@ -1,8 +1,7 @@
 <template>
   <MenuItem
     :data-inset="inset ? '' : undefined"
-    :data-variant="variant"
-    :data-tone="variant === 'destructive' ? 'danger' : color"
+    :data-tone="color"
     data-menu-item
     :class="props.class"
   >
@@ -20,10 +19,9 @@ const props = withDefaults(
   defineProps<{
     class?: HTMLAttributes["class"]
     inset?: boolean
-    variant?: "default" | "destructive"
     shortcut?: string
     color?: ToneColor
   }>(),
-  { class: undefined, variant: "default" },
+  { class: undefined },
 )
 </script>

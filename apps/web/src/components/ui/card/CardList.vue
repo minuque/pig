@@ -1,5 +1,5 @@
 <template>
-  <Card size="m" class="card-list">
+  <Card size="m" data-card-list>
     <slot />
   </Card>
 </template>
@@ -9,7 +9,7 @@ import Card from "./Card.vue"
 </script>
 
 <style>
-.card-list {
+[data-card-list] {
   --card-border-radius: var(--radius-dialog);
   display: flex;
   flex-direction: column;

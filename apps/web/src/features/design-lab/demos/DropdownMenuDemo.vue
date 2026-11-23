@@ -20,7 +20,7 @@
           </DropdownMenuRadioGroup>
 
           <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">Delete</DropdownMenuItem>
+          <DropdownMenuItem color="danger">Delete</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </Variant>
@@ -35,7 +35,7 @@
           <DropdownMenuItem>First item</DropdownMenuItem>
           <DropdownMenuItem>Second item</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem variant="destructive">Destructive item</DropdownMenuItem>
+          <DropdownMenuItem color="danger">Danger item</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </Variant>

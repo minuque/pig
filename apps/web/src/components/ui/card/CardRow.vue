@@ -2,7 +2,7 @@
   <Polymorphic
     :as="as"
     :as-child="asChild"
-    class="card-row"
+    data-slot="card-row"
     :data-bleed="bleed || undefined"
     :data-interactive="interactive || undefined"
   >
@@ -25,23 +25,23 @@ withDefaults(
 </script>
 
 <style>
-.card-row {
+:where([data-slot="card-row"]) {
   padding-inline: var(--card-padding);
 }
 
-.card-row[data-bleed] {
+:where([data-slot="card-row"][data-bleed]) {
   padding-inline: 0;
 }
 
-.card-row + .card-row {
+:where([data-slot="card-row"]) + :where([data-slot="card-row"]) {
   box-shadow: var(--separator-top);
 }
 
-.card-row[data-interactive] {
+:where([data-slot="card-row"][data-interactive]) {
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
-.card-row[data-interactive]:hover {
+:where([data-slot="card-row"][data-interactive]:hover) {
   background-color: var(--bg-hover);
 }
 </style>

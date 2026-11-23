@@ -17,8 +17,7 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
 import { Polymorphic, type PolymorphicProps } from "@components/ui/primitive/index.js"
-import type { Radius } from "@components/ui/button/index.js"
-import type { Size, ToneColor } from "@/types/ui-type.js"
+import type { Size, ToneColor, Radius } from "@/types/ui-type.js"
 
 defineOptions({ inheritAttrs: false })
 
@@ -78,26 +77,6 @@ const props = withDefaults(
   gap: var(--space-xs);
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
-}
-
-:where([data-slot="badge"][data-radius="none"]) {
-  border-radius: 0;
-}
-
-:where([data-slot="badge"][data-radius="small"]) {
-  border-radius: calc(var(--radius-control) / 2);
-}
-
-:where([data-slot="badge"][data-radius="medium"]) {
-  border-radius: var(--radius-control);
-}
-
-:where([data-slot="badge"][data-radius="large"]) {
-  border-radius: var(--radius-card);
-}
-
-:where([data-slot="badge"][data-radius="full"]) {
-  border-radius: var(--radius-pill);
 }
 
 :where([data-slot="badge"][data-variant="solid"]) {

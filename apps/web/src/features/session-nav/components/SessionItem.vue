@@ -220,7 +220,7 @@
 
         <ContextMenuSeparator />
 
-        <ContextMenuItem variant="destructive" @select="deleteOpen = true">
+        <ContextMenuItem color="danger" @select="deleteOpen = true">
           <TrashIcon />
           {{ t("session.deleteTitle") }}
         </ContextMenuItem>

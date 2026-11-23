@@ -12,8 +12,8 @@ const props = withDefaults(defineProps<{ class?: HTMLAttributes["class"] }>(), {
 })
 </script>
 
-<style scoped>
-[data-slot="alert-dialog-footer"] {
+<style>
+:where([data-slot="alert-dialog-footer"]) {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-xs);

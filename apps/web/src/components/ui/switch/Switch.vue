@@ -79,8 +79,8 @@ const emit = defineEmits<{ "update:modelValue": [value: boolean] }>()
   transform-origin: right center;
 }
 
-html.dark :where([data-slot="switch-thumb"][data-unchecked]) {
-  background-color: var(--fg-muted);
+:where([data-slot="switch-thumb"][data-unchecked]) {
+  background-color: var(--switch-thumb-unchecked);
 }
 
 :where([data-slot="switch"]:active:not([data-disabled]))

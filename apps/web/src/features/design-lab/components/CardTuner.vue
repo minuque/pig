@@ -10,7 +10,7 @@
 
       <MarkdownContent :nodes="nodes" />
 
-      <Banner variant="surface" size="s" color="destructive">
+      <Banner variant="surface" size="s" color="danger">
         <template #icon><CircleExclamationPointIcon /></template>
         <template #title>出错了</template>
         Banner 的边框不读卡片变量，放在这里作对照。

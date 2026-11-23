@@ -26,10 +26,10 @@
           Warning banner body text.
         </Banner>
 
-        <Banner color="destructive">
+        <Banner color="danger">
           <template #icon><CircleExclamationPointIcon /></template>
-          <template #title>Destructive</template>
-          Destructive banner body text.
+          <template #title>Danger</template>
+          Danger banner body text.
         </Banner>
       </div>
     </Variant>

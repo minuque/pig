@@ -1,8 +1,8 @@
 <template>
   <template v-if="loading">
-    <span class="button-label" aria-hidden="true"><slot /></span>
+    <span data-slot="button-label" aria-hidden="true"><slot /></span>
     <span class="sr-only"><slot /></span>
-    <span class="button-spinner"><Spinner :size="spinnerSize" /></span>
+    <span data-slot="button-spinner"><Spinner :size="spinnerSize" /></span>
   </template>
 
   <slot v-else />
@@ -17,16 +17,16 @@ const props = withDefaults(defineProps<{ loading?: boolean; size?: Size }>(), {
   loading: false,
   size: "m",
 })
-const spinnerSize = computed(() => (props.size === "s" ? 12 : 16))
+const spinnerSize = computed<Size>(() => (props.size === "s" ? "s" : "m"))
 </script>
 
-<style scoped>
-.button-label {
+<style>
+:where([data-slot="button-label"]) {
   display: contents;
   visibility: hidden;
 }
 
-.button-spinner {
+:where([data-slot="button-spinner"]) {
   position: absolute;
   inset: 0;
   display: flex;

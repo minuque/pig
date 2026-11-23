@@ -12,8 +12,8 @@ const props = withDefaults(defineProps<{ class?: HTMLAttributes["class"] }>(), {
 })
 </script>
 
-<style scoped>
-[data-slot="alert-dialog-header"] {
+<style>
+:where([data-slot="alert-dialog-header"]) {
   display: flex;
   min-height: 0;
   flex-direction: column;

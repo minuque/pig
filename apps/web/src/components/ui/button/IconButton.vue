@@ -21,8 +21,8 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
 import { Polymorphic, type PolymorphicProps } from "@components/ui/primitive/index.js"
-import type { Size, ToneColor } from "@/types/ui-type.js"
-import type { ButtonVariant, Radius } from "./index.js"
+import type { Size, ToneColor, Radius } from "@/types/ui-type.js"
+import type { ButtonVariant } from "./index.js"
 import ButtonContent from "./ButtonContent.vue"
 
 defineOptions({ inheritAttrs: false })
@@ -60,7 +60,7 @@ const props = withDefaults(defineProps<Props>(), {
 }
 
 :where([data-slot="icon-button"][data-size="l"]) {
-  height: var(--control-lg);
-  inline-size: var(--control-lg);
+  height: var(--control-md);
+  inline-size: var(--control-md);
 }
 </style>

@@ -6,7 +6,7 @@
     :class="props.class"
     v-bind="$attrs"
   >
-    <div class="table-scroll">
+    <div data-slot="table-scroll">
       <table data-slot="table-element">
         <slot />
       </table>
@@ -30,14 +30,12 @@ const props = withDefaults(
 )
 </script>
 
-<style scoped>
-.table-scroll {
+<style>
+:where([data-slot="table-scroll"]) {
   max-width: 100%;
   overflow-x: auto;
 }
-</style>
 
-<style>
 :where([data-slot="table"][data-variant="surface"]) {
   position: relative;
   overflow: hidden;

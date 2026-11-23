@@ -2,7 +2,7 @@
   <AlertDialogClose
     value="confirm"
     v-bind="{ ...$attrs, ...buttonAttrs('solid') }"
-    :data-tone="variant === 'destructive' ? 'danger' : undefined"
+    :data-tone="color"
     :class="props.class"
   >
     <slot />
@@ -13,14 +13,15 @@
 import type { HTMLAttributes } from "vue"
 import { AlertDialogClose } from "@ui-sdk/vue/alert-dialog"
 import { buttonAttrs } from "@components/ui/button/index.js"
+import type { ToneColor } from "@/types/ui-type.js"
 
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
   defineProps<{
     class?: HTMLAttributes["class"]
-    variant?: "default" | "destructive"
+    color?: ToneColor
   }>(),
-  { class: undefined, variant: "default" },
+  { class: undefined },
 )
 </script>

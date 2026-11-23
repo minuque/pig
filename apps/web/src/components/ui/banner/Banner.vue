@@ -1,10 +1,9 @@
 <template>
   <Polymorphic
     data-slot="banner"
-    :data-color="color"
     :data-size="size"
     :data-variant="variant"
-    :data-tone="tone"
+    :data-tone="color"
     :data-dismissible="dismissible || undefined"
     :data-has-icon="Boolean($slots.icon) || undefined"
     :as="as"
@@ -39,11 +38,10 @@
 
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-import { computed } from "vue"
 import { Polymorphic, type PolymorphicProps } from "@components/ui/primitive/index.js"
 import { useI18n } from "@i18n/index.js"
 import { XIcon } from "@components/icons/index.js"
-import type { Size, Tone } from "@/types/ui-type.js"
+import type { Size } from "@/types/ui-type.js"
 import { type BannerColor, type BannerVariant } from "./index.js"
 
 const { t } = useI18n()
@@ -68,14 +66,6 @@ const props = withDefaults(defineProps<Props>(), {
   class: undefined,
 })
 const emit = defineEmits<{ close: [] }>()
-const TONE_BY_COLOR: Record<BannerColor, Tone> = {
-  neutral: "neutral",
-  info: "info",
-  success: "success",
-  warning: "warning",
-  destructive: "danger",
-}
-const tone = computed(() => TONE_BY_COLOR[props.color])
 </script>
 
 <style>

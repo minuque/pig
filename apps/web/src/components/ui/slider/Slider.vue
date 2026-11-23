@@ -168,7 +168,7 @@ function thumbAriaLabel(index: number, total: number) {
 
 :where([data-slot="slider-field"][data-size="s"]) :where([data-slot="slider-shell"]) {
   border-radius: var(--radius-control);
-  block-size: 24px;
+  block-size: var(--control-sm);
 }
 
 :where([data-slot="slider-field"][data-size="l"]) :where([data-slot="slider-shell"]) {
@@ -230,7 +230,8 @@ function thumbAriaLabel(index: number, total: number) {
 }
 
 :where([data-slot="slider-thumb"]:has(:focus-visible)) {
-  box-shadow: var(--focus-ring);
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
 }
 
 :where([data-slot="slider-thumb"][data-disabled]) {

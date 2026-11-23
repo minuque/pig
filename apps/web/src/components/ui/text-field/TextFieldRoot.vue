@@ -26,8 +26,7 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
 import { ref } from "vue"
-import type { Size, ToneColor } from "@/types/ui-type.js"
-import type { Radius } from "@components/ui/button/index.js"
+import type { Size, ToneColor, Radius } from "@/types/ui-type.js"
 
 defineOptions({ inheritAttrs: false })
 
@@ -101,32 +100,12 @@ function onPointerDown(event: PointerEvent) {
   outline: none;
 }
 
-:where([data-slot="text-field-root"][data-radius="none"]) {
-  border-radius: 0;
-}
-
-:where([data-slot="text-field-root"][data-radius="small"]) {
-  border-radius: calc(var(--radius-control) / 2);
-}
-
-:where([data-slot="text-field-root"][data-radius="medium"]) {
-  border-radius: var(--radius-control);
-}
-
-:where([data-slot="text-field-root"][data-radius="large"]) {
-  border-radius: var(--radius-card);
-}
-
-:where([data-slot="text-field-root"][data-radius="full"]) {
-  border-radius: var(--radius-pill);
-}
-
 :where([data-slot="text-field-root"]) ::selection {
   background-color: var(--bg-selected);
 }
 
 :where([data-slot="text-field-root"][data-size="s"]) {
-  height: var(--space-lg);
+  height: var(--control-sm);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }

@@ -1,13 +1,13 @@
 <template>
-  <CommandEmpty class="empty"><slot /></CommandEmpty>
+  <CommandEmpty><slot /></CommandEmpty>
 </template>
 
 <script setup lang="ts">
 import { CommandEmpty } from "@ui-sdk/vue/command"
 </script>
 
-<style scoped>
-.empty {
+<style>
+:where([data-slot="command-empty"]) {
   margin: 0;
   padding-block: calc(var(--spacing) * 10);
   color: var(--fg-secondary);
@@ -15,7 +15,7 @@ import { CommandEmpty } from "@ui-sdk/vue/command"
   text-align: center;
 }
 
-.empty:not([data-empty]) {
+:where([data-slot="command-empty"]:not([data-empty])) {
   display: none;
 }
 </style>

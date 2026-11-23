@@ -150,7 +150,7 @@ provide(TABS_VARIANT, toRef(props, "variant"))
   display: inline-flex;
   align-items: stretch;
   align-self: flex-start;
-  block-size: calc(var(--spacing) * 9);
+  block-size: var(--control-md);
   padding-inline: 2px;
   border-radius: var(--radius-card);
   background: var(--sidebar);
@@ -160,7 +160,7 @@ provide(TABS_VARIANT, toRef(props, "variant"))
 }
 
 :where([data-slot="tabs-list"][data-variant="segmented"][data-size="s"]) {
-  block-size: calc(var(--spacing) * 6.5);
+  block-size: var(--control-sm);
   border-radius: var(--radius-control);
   font-size: var(--text-meta);
 }

@@ -1,9 +1,9 @@
 <template>
   <span
     data-slot="status-indicator"
-    class="status-indicator"
     :class="props.class"
     :data-status="status"
+    :data-tone="tone"
     :data-appearance="appearance"
     :data-size="size"
     :role="ariaLabel && !label ? 'status' : undefined"
@@ -11,49 +11,58 @@
   >
     <span
       v-if="appearance === 'dot'"
-      class="status-dot"
+      data-slot="status-dot"
       :class="{ 'status-pulse': pulse }"
       aria-hidden="true"
     />
 
     <svg
       v-else-if="status === 'running'"
-      class="status-spinner motion-spin"
+      data-slot="status-spinner"
+      class="motion-spin"
       viewBox="0 0 24 24"
       aria-hidden="true"
     >
-      <circle class="status-track" cx="12" cy="12" r="10" pathLength="100" />
-      <circle class="status-arc" cx="12" cy="12" r="10" pathLength="100" />
+      <circle data-slot="status-track" cx="12" cy="12" r="10" pathLength="100" />
+      <circle data-slot="status-arc" cx="12" cy="12" r="10" pathLength="100" />
     </svg>
 
-    <CircleCheckIcon v-else-if="status === 'success'" class="status-glyph" aria-hidden="true" />
+    <CircleCheckIcon v-else-if="status === 'success'" data-slot="status-glyph" aria-hidden="true" />
 
     <CircleExclamationPointIcon
       v-else-if="status === 'error' || status === 'warning'"
-      class="status-glyph"
+      data-slot="status-glyph"
       aria-hidden="true"
     />
 
-    <PenIcon v-else-if="status === 'draft'" class="status-glyph" aria-hidden="true" />
-    <CircleDashedIcon v-else class="status-glyph" aria-hidden="true" />
-    <span v-if="label" class="status-label">{{ label }}</span>
+    <PenIcon v-else-if="status === 'draft'" data-slot="status-glyph" aria-hidden="true" />
+    <CircleDashedIcon v-else data-slot="status-glyph" aria-hidden="true" />
+    <span v-if="label" data-slot="status-label">{{ label }}</span>
   </span>
 </template>
 
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
+import { computed, type HTMLAttributes } from "vue"
 import {
   CircleCheckIcon,
   CircleDashedIcon,
   CircleExclamationPointIcon,
   PenIcon,
 } from "@components/icons/index.js"
-import type { Size } from "@/types/ui-type.js"
+import type { Size, Tone } from "@/types/ui-type.js"
 
 export type StatusTone = "idle" | "running" | "waiting" | "success" | "warning" | "error" | "draft"
 
 export type StatusAppearance = "dot" | "icon"
 
+const STATUS_TONE_MAP: Partial<Record<StatusTone, Tone>> = {
+  running: "info",
+  waiting: "warning",
+  success: "success",
+  warning: "warning",
+  error: "danger",
+  draft: "warning",
+}
 const props = withDefaults(
   defineProps<{
     status: StatusTone
@@ -73,10 +82,11 @@ const props = withDefaults(
     class: undefined,
   },
 )
+const tone = computed(() => STATUS_TONE_MAP[props.status])
 </script>
 
-<style scoped>
-.status-indicator {
+<style>
+:where([data-slot="status-indicator"]) {
   display: inline-flex;
   flex: none;
   align-items: center;
@@ -84,7 +94,7 @@ const props = withDefaults(
   color: var(--fg-muted);
 }
 
-.status-dot {
+:where([data-slot="status-dot"]) {
   display: block;
   inline-size: var(--space-xs);
   block-size: var(--space-xs);
@@ -92,51 +102,57 @@ const props = withDefaults(
   background: currentColor;
 }
 
-.status-indicator[data-size="s"] .status-dot {
+:where([data-slot="status-indicator"][data-size="s"] [data-slot="status-dot"]) {
   inline-size: calc(var(--space-2xs) * 1.5);
   block-size: calc(var(--space-2xs) * 1.5);
 }
 
-.status-indicator[data-size="l"] .status-dot {
+:where([data-slot="status-indicator"][data-size="l"] [data-slot="status-dot"]) {
   inline-size: calc(var(--space-2xs) * 2.5);
   block-size: calc(var(--space-2xs) * 2.5);
 }
 
-.status-spinner,
-.status-glyph {
+:where([data-slot="status-spinner"]),
+:where([data-slot="status-glyph"]) {
   display: block;
   flex: none;
   inline-size: var(--icon-md);
   block-size: var(--icon-md);
 }
 
-.status-indicator[data-size="s"] :is(.status-spinner, .status-glyph) {
+:where(
+  [data-slot="status-indicator"][data-size="s"]
+    :is([data-slot="status-spinner"], [data-slot="status-glyph"])
+) {
   inline-size: var(--icon-sm);
   block-size: var(--icon-sm);
 }
 
-.status-indicator[data-size="l"] :is(.status-spinner, .status-glyph) {
+:where(
+  [data-slot="status-indicator"][data-size="l"]
+    :is([data-slot="status-spinner"], [data-slot="status-glyph"])
+) {
   inline-size: var(--icon-lg);
   block-size: var(--icon-lg);
 }
 
-.status-track,
-.status-arc {
+:where([data-slot="status-track"]),
+:where([data-slot="status-arc"]) {
   fill: none;
   stroke-width: 3;
 }
 
-.status-track {
+:where([data-slot="status-track"]) {
   stroke: var(--bg-emphasis);
 }
 
-.status-arc {
+:where([data-slot="status-arc"]) {
   stroke: currentColor;
   stroke-linecap: round;
   stroke-dasharray: 26 74;
 }
 
-.status-label {
+:where([data-slot="status-label"]) {
   color: var(--fg);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-medium);
@@ -144,47 +160,15 @@ const props = withDefaults(
   white-space: nowrap;
 }
 
-.status-indicator[data-appearance="icon"] .status-label {
+:where([data-slot="status-indicator"][data-appearance="icon"] [data-slot="status-label"]) {
   color: currentColor;
 }
 
-.status-indicator[data-appearance="dot"][data-status="running"] {
-  color: var(--info-solid);
+:where([data-slot="status-indicator"][data-tone][data-appearance="dot"]) {
+  color: var(--tone);
 }
 
-.status-indicator[data-appearance="icon"][data-status="running"] {
-  color: var(--info-text);
-}
-
-.status-indicator[data-appearance="dot"][data-status="success"] {
-  color: var(--success-solid);
-}
-
-.status-indicator[data-appearance="icon"][data-status="success"] {
-  color: var(--success-text);
-}
-
-.status-indicator[data-appearance="dot"]:is(
-    [data-status="waiting"],
-    [data-status="warning"],
-    [data-status="draft"]
-  ) {
-  color: var(--warning-solid);
-}
-
-.status-indicator[data-appearance="icon"]:is(
-    [data-status="waiting"],
-    [data-status="warning"],
-    [data-status="draft"]
-  ) {
-  color: var(--warning-text);
-}
-
-.status-indicator[data-appearance="dot"][data-status="error"] {
-  color: var(--danger-solid);
-}
-
-.status-indicator[data-appearance="icon"][data-status="error"] {
-  color: var(--danger-text);
+:where([data-slot="status-indicator"][data-tone][data-appearance="icon"]) {
+  color: var(--tone-text);
 }
 </style>

@@ -150,7 +150,7 @@
         <AlertDialogFooter>
           <AlertDialogCancel>{{ t("common.cancel") }}</AlertDialogCancel>
 
-          <AlertDialogAction variant="destructive" @click="remove">
+          <AlertDialogAction color="danger" @click="remove">
             {{ t("settings.models.deleteProvider") }}
           </AlertDialogAction>
         </AlertDialogFooter>

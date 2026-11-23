@@ -1,6 +1,6 @@
 import { onBeforeUnmount, ref, watch, type Ref } from "vue"
 import type { ComposerAttachmentBatch, SendAttachmentsHooks } from "@/types/attachment-type.js"
-import { notify } from "@components/layout/notify.js"
+import { notify } from "@components/ui/toast/index.js"
 import { t } from "@i18n/index.js"
 import type { ComposerAttachmentsApi } from "@features/composer/hooks/use-composer-attachments.js"
 import type { ComposerDraftApi } from "@features/composer/hooks/use-composer-draft.js"

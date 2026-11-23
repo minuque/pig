@@ -28,7 +28,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue"
-import { notifyAction } from "@components/layout/notify.js"
+import { notifyAction } from "@components/ui/toast/index.js"
 import { EyeIcon } from "@components/icons/index.js"
 import { errorMessage } from "@client/http.js"
 import { Button } from "@components/ui/button/index.js"

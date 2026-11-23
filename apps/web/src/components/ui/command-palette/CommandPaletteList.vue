@@ -1,5 +1,5 @@
 <template>
-  <CommandList class="list">
+  <CommandList>
     <slot />
   </CommandList>
 </template>
@@ -8,8 +8,8 @@
 import { CommandList } from "@ui-sdk/vue/command"
 </script>
 
-<style scoped>
-.list {
+<style>
+:where([data-slot="command-list"]) {
   max-height: min(28rem, 70vh);
   min-height: 0;
   flex: 1;
@@ -19,7 +19,7 @@ import { CommandList } from "@ui-sdk/vue/command"
   scrollbar-width: thin;
 }
 
-.list:not(:empty) {
+:where([data-slot="command-list"]:not(:empty)) {
   padding: var(--space-xs);
   scroll-padding-block: var(--space-xs);
 }

@@ -10,8 +10,8 @@ import { AlertDialogTitle as AlertDialogTitlePrimitive } from "@ui-sdk/vue/alert
 defineOptions({ inheritAttrs: false })
 </script>
 
-<style scoped>
-[data-slot="alert-dialog-title"] {
+<style>
+:where([data-slot="alert-dialog-title"]) {
   flex: none;
   margin: 0;
   font-size: var(--text-title);

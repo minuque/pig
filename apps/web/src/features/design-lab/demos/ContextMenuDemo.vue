@@ -25,7 +25,7 @@
           <ContextMenuSeparator />
           <ContextMenuCheckboxItem v-model="bookmarked">Bookmark</ContextMenuCheckboxItem>
           <ContextMenuSeparator />
-          <ContextMenuItem variant="destructive">Delete</ContextMenuItem>
+          <ContextMenuItem color="danger">Delete</ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
     </Variant>

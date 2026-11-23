@@ -1,6 +1,5 @@
 <template>
   <ToastRegion
-    class="toast-region"
     :toaster="noticeToaster"
     side="bottom"
     align="end"
@@ -9,12 +8,12 @@
     :aria-label="t('common.notifications')"
   >
     <template #default="{ toast }">
-      <Toast class="toast-item">
+      <Toast>
         <ToastClose>
           <template #render="{ props }">
             <AsChildSlot :part-props="props">
               <IconButton
-                class="toast-close"
+                data-toast-close
                 type="button"
                 size="s"
                 variant="ghost"
@@ -27,20 +26,19 @@
           </template>
         </ToastClose>
 
-        <div class="toast-body">
-          <div class="toast-head">
-            <span class="toast-icon" :data-tone="LEVEL_TONE[noticeOf(toast).level]">
+        <div data-slot="toast-body">
+          <div data-slot="toast-head">
+            <span data-slot="toast-icon" :data-tone="LEVEL_TONE[noticeOf(toast).level]">
               <component :is="LEVEL_ICON[noticeOf(toast).level]" />
             </span>
 
-            <ToastTitle class="toast-title">
+            <ToastTitle>
               {{ headline(noticeOf(toast)) }}
             </ToastTitle>
           </div>
 
           <ToastDescription
             v-if="noticeOf(toast).title || noticeOf(toast).level === 'error'"
-            class="toast-text"
             :data-clamp="noticeOf(toast).message.length > CLAMP_CHARS || undefined"
             :title="
               noticeOf(toast).message.length > CLAMP_CHARS ? noticeOf(toast).message : undefined
@@ -53,7 +51,7 @@
         <ToastAction v-if="noticeOf(toast).action">
           <template #render="{ props }">
             <AsChildSlot :part-props="props">
-              <Button class="toast-action" size="s" variant="solid">
+              <Button data-toast-action size="s" variant="solid">
                 <Undo2Icon v-if="noticeOf(toast).action?.icon === 'undo'" />
                 <ArrowUpRightIcon v-else />
                 {{ noticeOf(toast).action?.label }}
@@ -80,12 +78,7 @@ import {
 import { useI18n } from "@i18n/index.js"
 import { Button, IconButton } from "@components/ui/button/index.js"
 import { AsChildSlot } from "@components/ui/primitive/index.js"
-import {
-  noticeOf,
-  noticeToaster,
-  type Notice,
-  type NoticeLevel,
-} from "@components/layout/notify.js"
+import { noticeOf, noticeToaster, type Notice, type NoticeLevel } from "./notify.js"
 import {
   ArrowUpRightIcon,
   CircleCheckIcon,
@@ -145,7 +138,7 @@ function headline(notice: Notice): string {
 </script>
 
 <style>
-.toast-region {
+:where([data-slot="toast-region"]) {
   inset: auto var(--space-md) var(--space-md) auto;
   inline-size: min(var(--toast-width), calc(100vw - 2 * var(--space-md)));
   margin: 0;
@@ -157,13 +150,13 @@ function headline(notice: Notice): string {
   outline: none;
 }
 
-.toast-region [data-slot="toast-list"] {
+:where([data-slot="toast-region"] [data-slot="toast-list"]) {
   display: flex;
   flex-direction: column-reverse;
   gap: var(--space-sm);
 }
 
-.toast-item {
+:where([data-slot="toast"]) {
   position: relative;
   display: flex;
   align-items: center;
@@ -183,7 +176,7 @@ function headline(notice: Notice): string {
   translate: var(--toast-swipe-x, 0) var(--toast-swipe-y, 0);
 }
 
-.toast-body {
+:where([data-slot="toast-body"]) {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -191,13 +184,13 @@ function headline(notice: Notice): string {
   min-inline-size: 0;
 }
 
-.toast-head {
+:where([data-slot="toast-head"]) {
   display: flex;
   gap: var(--space-xs);
   min-inline-size: 0;
 }
 
-.toast-icon {
+:where([data-slot="toast-icon"]) {
   display: flex;
   flex-shrink: 0;
   align-items: center;
@@ -205,18 +198,18 @@ function headline(notice: Notice): string {
   color: var(--tone-text);
 }
 
-.toast-icon svg {
+:where([data-slot="toast-icon"] svg) {
   inline-size: var(--icon-lg);
   block-size: var(--icon-lg);
 }
 
-.toast-title {
+:where([data-slot="toast-title"]) {
   min-inline-size: 0;
   font-weight: var(--font-weight-medium);
   overflow-wrap: anywhere;
 }
 
-.toast-text {
+:where([data-slot="toast-description"]) {
   min-inline-size: 0;
   margin: 0;
   color: var(--fg-secondary);
@@ -224,49 +217,49 @@ function headline(notice: Notice): string {
   user-select: text;
 }
 
-.toast-text[data-clamp] {
+:where([data-slot="toast-description"][data-clamp]) {
   display: -webkit-box;
   overflow: hidden;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
 }
 
-.toast-action {
+:where([data-toast-action]) {
   flex-shrink: 0;
 }
 
-.toast-item .toast-close {
+[data-slot="toast"] > [data-toast-close] {
   position: absolute;
   inset-block-start: var(--space-2xs);
   inset-inline-end: var(--space-2xs);
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .toast-item {
+  :where([data-slot="toast"]) {
     transition:
       translate var(--duration-slow) var(--ease-out),
       opacity var(--duration-fast) var(--ease-out);
   }
 
-  .toast-item[data-swiping] {
+  :where([data-slot="toast"][data-swiping]) {
     transition: none;
   }
 
-  .toast-item[data-starting-style] {
+  :where([data-slot="toast"][data-starting-style]) {
     opacity: 0;
     translate: calc(100% + var(--space-md)) 0;
   }
 
-  .toast-item[data-ending-style] {
+  :where([data-slot="toast"][data-ending-style]) {
     opacity: 0;
     transition-duration: var(--duration-fast);
   }
 
-  .toast-item[data-ending-style][data-swipe-direction="right"] {
+  :where([data-slot="toast"][data-ending-style][data-swipe-direction="right"]) {
     translate: calc(100% + var(--space-md)) 0;
   }
 
-  .toast-item[data-ending-style][data-swipe-direction="down"] {
+  :where([data-slot="toast"][data-ending-style][data-swipe-direction="down"]) {
     translate: 0 calc(100% + var(--space-md));
   }
 }

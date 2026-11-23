@@ -28,7 +28,7 @@
         <AlertDialogFooter>
           <AlertDialogCancel>{{ t("common.cancel") }}</AlertDialogCancel>
 
-          <AlertDialogAction variant="destructive" @click="bridge.close()">
+          <AlertDialogAction color="danger" @click="bridge.close()">
             {{ t("window.close") }}
           </AlertDialogAction>
         </AlertDialogFooter>

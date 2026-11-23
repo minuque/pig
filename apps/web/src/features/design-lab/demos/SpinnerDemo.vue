@@ -2,17 +2,17 @@
   <Story title="Spinner">
     <Variant title="Sizes">
       <div style="display: flex; align-items: center; gap: 16px">
-        <Spinner :size="12" label="Small loading" />
-        <Spinner :size="16" label="Medium loading" />
-        <Spinner :size="20" label="Large loading" />
+        <Spinner size="s" label="Small loading" />
+        <Spinner size="m" label="Medium loading" />
+        <Spinner size="l" label="Large loading" />
       </div>
     </Variant>
 
     <Variant title="Colors">
       <div style="display: flex; align-items: center; gap: 16px">
-        <Spinner :size="20" label="Default loading" />
-        <Spinner :size="20" label="Indigo loading" style="color: var(--tone)" />
-        <Spinner :size="20" label="Red loading" style="color: var(--danger-solid)" />
+        <Spinner size="l" label="Default loading" />
+        <Spinner size="l" label="Indigo loading" style="color: var(--tone)" />
+        <Spinner size="l" label="Red loading" style="color: var(--danger-solid)" />
       </div>
     </Variant>
   </Story>

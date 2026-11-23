@@ -393,7 +393,7 @@ function easePath(value: string): string {
 
 .stack span {
   block-size: 3px;
-  border-radius: 1px;
+  border-radius: var(--radius-pill);
   background: var(--bg-emphasis);
 }
 

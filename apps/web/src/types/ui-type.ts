@@ -2,6 +2,8 @@ export type Size = "s" | "m" | "l"
 
 export type MenuSize = "s" | "m"
 
+export type Radius = "none" | "small" | "medium" | "large" | "full"
+
 export type Tone = "accent" | "neutral" | "info" | "success" | "warning" | "danger"
 
 export type IdentityHue = "indigo" | "cyan" | "green" | "amber" | "orange" | "red" | "violet"
