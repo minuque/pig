@@ -1,37 +1,37 @@
 <template>
   <SwitchRoot
-    data-slot="switch"
-    v-bind="forwarded"
+    v-bind="modelValue === undefined ? {} : { checked: modelValue }"
+    :disabled="disabled"
     :data-tone="color"
     :data-size="size"
     :class="props.class"
+    @checked-change="(next: boolean) => emit('update:modelValue', next)"
   >
-    <SwitchThumb data-slot="switch-thumb" />
+    <SwitchThumb />
   </SwitchRoot>
 </template>
 
 <script setup lang="ts">
-import type { SwitchRootEmits, SwitchRootProps } from "reka-ui"
-import type { ComputedRef, HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { SwitchRoot, SwitchThumb, useForwardPropsEmits } from "reka-ui"
+import type { HTMLAttributes } from "vue"
+import { Switch as SwitchRoot, SwitchThumb } from "@ui-sdk/vue/switch"
 import type { Size, ToneColor } from "@/types/ui-type.js"
 
 const props = withDefaults(
-  defineProps<
-    SwitchRootProps<boolean> & {
-      class?: HTMLAttributes["class"]
-      size?: Size
-      color?: ToneColor
-    }
-  >(),
-  { class: undefined, size: "m" },
+  defineProps<{
+    modelValue?: boolean | undefined
+    disabled?: boolean
+    class?: HTMLAttributes["class"]
+    size?: Size
+    color?: ToneColor
+  }>(),
+  {
+    modelValue: undefined,
+    disabled: false,
+    class: undefined,
+    size: "m",
+  },
 )
-const emits = defineEmits<SwitchRootEmits<boolean>>()
-const delegatedProps = reactiveOmit(props, "class", "size", "color")
-const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
-  SwitchRootProps<boolean>
->
+const emit = defineEmits<{ "update:modelValue": [value: boolean] }>()
 </script>
 
 <style>
@@ -50,7 +50,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
     box-shadow var(--duration-normal) var(--ease-out);
 }
 
-:where([data-slot="switch"][data-state="checked"]) {
+:where([data-slot="switch"][data-checked]) {
   background-color: var(--tone);
 }
 
@@ -75,16 +75,16 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<
   transition: transform var(--duration-fast) var(--ease-out);
 }
 
-:where([data-slot="switch-thumb"][data-state="checked"]) {
+:where([data-slot="switch-thumb"][data-checked]) {
   transform-origin: right center;
 }
 
-html.dark :where([data-slot="switch-thumb"][data-state="unchecked"]) {
+html.dark :where([data-slot="switch-thumb"][data-unchecked]) {
   background-color: var(--fg-muted);
 }
 
 :where([data-slot="switch"]:active:not([data-disabled]))
-  :where([data-slot="switch-thumb"][data-state="unchecked"]) {
+  :where([data-slot="switch-thumb"][data-unchecked]) {
   transform: scaleX(1.1);
 }
 
@@ -98,13 +98,12 @@ html.dark :where([data-slot="switch-thumb"][data-state="unchecked"]) {
   block-size: calc(calc(var(--spacing) * 3.5) - 2px);
 }
 
-:where([data-slot="switch"][data-size="s"])
-  :where([data-slot="switch-thumb"][data-state="checked"]) {
+:where([data-slot="switch"][data-size="s"]) :where([data-slot="switch-thumb"][data-checked]) {
   transform: translateX(calc(calc(var(--spacing) * 3.5) - 4px));
 }
 
 :where([data-slot="switch"][data-size="s"]:active:not([data-disabled]))
-  :where([data-slot="switch-thumb"][data-state="checked"]) {
+  :where([data-slot="switch-thumb"][data-checked]) {
   transform: translateX(calc(calc(var(--spacing) * 3.5) - 4px)) scaleX(1.1);
 }
 
@@ -118,13 +117,12 @@ html.dark :where([data-slot="switch-thumb"][data-state="unchecked"]) {
   block-size: calc(calc(var(--spacing) * 4) - 2px);
 }
 
-:where([data-slot="switch"][data-size="m"])
-  :where([data-slot="switch-thumb"][data-state="checked"]) {
+:where([data-slot="switch"][data-size="m"]) :where([data-slot="switch-thumb"][data-checked]) {
   transform: translateX(calc(calc(var(--spacing) * 4) - 4px));
 }
 
 :where([data-slot="switch"][data-size="m"]:active:not([data-disabled]))
-  :where([data-slot="switch-thumb"][data-state="checked"]) {
+  :where([data-slot="switch-thumb"][data-checked]) {
   transform: translateX(calc(calc(var(--spacing) * 4) - 4px)) scaleX(1.1);
 }
 
@@ -138,13 +136,12 @@ html.dark :where([data-slot="switch-thumb"][data-state="unchecked"]) {
   block-size: calc(calc(var(--spacing) * 5) - 2px);
 }
 
-:where([data-slot="switch"][data-size="l"])
-  :where([data-slot="switch-thumb"][data-state="checked"]) {
+:where([data-slot="switch"][data-size="l"]) :where([data-slot="switch-thumb"][data-checked]) {
   transform: translateX(calc(calc(var(--spacing) * 5) - 4px));
 }
 
 :where([data-slot="switch"][data-size="l"]:active:not([data-disabled]))
-  :where([data-slot="switch-thumb"][data-state="checked"]) {
+  :where([data-slot="switch-thumb"][data-checked]) {
   transform: translateX(calc(calc(var(--spacing) * 5) - 4px)) scaleX(1.1);
 }
 </style>

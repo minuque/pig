@@ -1,5 +1,5 @@
 <template>
-  <AlertDialog :open="Boolean(pending)" @update:open="(open) => !open && cancel()">
+  <AlertDialog :open="Boolean(pending)" @update:open="(open: boolean) => !open && cancel()">
     <AlertDialogContent v-if="pending" class="extension-dialog">
       <AlertDialogHeader>
         <AlertDialogTitle>{{ pending.request.title }}</AlertDialogTitle>
@@ -44,7 +44,6 @@
       <AlertDialogFooter>
         <AlertDialogCancel @click="cancel">{{ t("common.cancel") }}</AlertDialogCancel>
 
-        <!-- 外部：AlertDialogAction 先触发关闭，关闭回调会把这次回答当成取消 -->
         <Button
           v-if="pending.request.method === 'confirm'"
           @click="reply({ id: pending.request.id, confirmed: true })"

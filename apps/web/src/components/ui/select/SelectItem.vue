@@ -1,20 +1,15 @@
 <template>
-  <SelectItem data-slot="select-item" v-bind="forwarded" :class="props.class">
-    <SelectItemText><slot /></SelectItemText>
-  </SelectItem>
+  <SelectItemPrimitive :value="value" v-bind="$attrs">
+    <slot />
+  </SelectItemPrimitive>
 </template>
 
 <script setup lang="ts">
-import type { SelectItemProps } from "reka-ui"
-import type { ComputedRef, HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { SelectItem, SelectItemText, useForwardProps } from "reka-ui"
+import { SelectItem as SelectItemPrimitive } from "@ui-sdk/vue/select"
 
-const props = withDefaults(defineProps<SelectItemProps & { class?: HTMLAttributes["class"] }>(), {
-  class: undefined,
-})
-const delegatedProps = reactiveOmit(props, "class")
-const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectItemProps>
+defineOptions({ inheritAttrs: false })
+
+defineProps<{ value: string }>()
 </script>
 
 <style>
@@ -42,7 +37,7 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectItemProps
   cursor: default;
 }
 
-:where([data-slot="select-item"][data-state="checked"]:not([data-highlighted])) {
+:where([data-slot="select-item"][data-selected]:not([data-highlighted])) {
   background-color: var(--bg-emphasis);
   color: var(--fg);
 }

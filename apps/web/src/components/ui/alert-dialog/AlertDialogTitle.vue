@@ -1,21 +1,13 @@
 <template>
-  <AlertDialogTitle data-slot="alert-dialog-title" v-bind="forwardedProps" :class="props.class">
+  <AlertDialogTitlePrimitive v-bind="$attrs">
     <slot />
-  </AlertDialogTitle>
+  </AlertDialogTitlePrimitive>
 </template>
 
 <script setup lang="ts">
-import type { AlertDialogTitleProps } from "reka-ui"
-import type { ComputedRef, HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { AlertDialogTitle, useForwardProps } from "reka-ui"
+import { AlertDialogTitle as AlertDialogTitlePrimitive } from "@ui-sdk/vue/alert-dialog"
 
-const props = withDefaults(
-  defineProps<AlertDialogTitleProps & { class?: HTMLAttributes["class"] }>(),
-  { class: undefined },
-)
-const delegatedProps = reactiveOmit(props, "class")
-const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<AlertDialogTitleProps>
+defineOptions({ inheritAttrs: false })
 </script>
 
 <style scoped>

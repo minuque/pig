@@ -1,56 +1,51 @@
 <template>
-  <DialogPortal>
-    <DialogOverlay :align="align" :style="widthStyle">
-      <DialogContent
-        data-slot="dialog-content"
-        :data-size="size"
-        v-bind="{ ...$attrs, ...forwarded }"
-        :class="props.class"
-      >
-        <slot />
+  <DialogBackdrop class="reveal-overlay" />
 
-        <DialogClose
-          v-if="showCloseButton"
-          data-button
-          data-slot="icon-button"
-          data-size="s"
-          data-variant="ghost"
-          data-tone="neutral"
-          :aria-label="t('common.close')"
-          class="dlg-close"
-        >
-          <XIcon class="size-icon" />
-        </DialogClose>
-      </DialogContent>
-    </DialogOverlay>
-  </DialogPortal>
+  <DialogContentPrimitive
+    :data-size="size"
+    :data-align="align"
+    v-bind="$attrs"
+    :class="props.class"
+    :style="widthStyle"
+  >
+    <slot />
+
+    <DialogClose v-if="showCloseButton" as-child>
+      <IconButton
+        size="s"
+        variant="ghost"
+        color="neutral"
+        :aria-label="t('common.close')"
+        class="dlg-close"
+      >
+        <XIcon class="size-icon" />
+      </IconButton>
+    </DialogClose>
+  </DialogContentPrimitive>
 </template>
 
 <script setup lang="ts">
-import type { DialogContentEmits, DialogContentProps } from "reka-ui"
-import type { ComputedRef, HTMLAttributes } from "vue"
+import type { HTMLAttributes } from "vue"
 import { computed } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { DialogClose, DialogContent, DialogPortal, useForwardPropsEmits } from "reka-ui"
+import { DialogBackdrop, DialogContent as DialogContentPrimitive } from "@ui-sdk/vue/dialog"
 import { useI18n } from "@i18n/index.js"
 import type { Size } from "@/types/ui-type.js"
+import { IconButton } from "@components/ui/button/index.js"
 import { XIcon } from "@components/icons/index.js"
-import DialogOverlay from "./DialogOverlay.vue"
+import DialogClose from "./DialogClose.vue"
 
 defineOptions({
   inheritAttrs: false,
 })
 
 const props = withDefaults(
-  defineProps<
-    DialogContentProps & {
-      class?: HTMLAttributes["class"]
-      showCloseButton?: boolean
-      size?: Size
-      maxWidth?: string
-      align?: "start" | "center"
-    }
-  >(),
+  defineProps<{
+    class?: HTMLAttributes["class"]
+    showCloseButton?: boolean
+    size?: Size
+    maxWidth?: string
+    align?: "start" | "center"
+  }>(),
   {
     class: undefined,
     showCloseButton: true,
@@ -58,29 +53,40 @@ const props = withDefaults(
     align: "center",
   },
 )
-const emits = defineEmits<DialogContentEmits>()
 const { t } = useI18n()
-const delegatedProps = reactiveOmit(props, "class", "showCloseButton", "size", "maxWidth", "align")
-const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<DialogContentProps>
 const widthStyle = computed(() =>
   props.maxWidth ? { "--dialog-max-width": props.maxWidth } : undefined,
 )
 </script>
 
 <style>
+:where([data-slot="dialog-backdrop"]) {
+  position: fixed;
+  inset: 0;
+  background-color: var(--overlay);
+}
+
 :where([data-slot="dialog-content"]) {
-  position: relative;
-  z-index: var(--z-raise);
+  position: fixed;
+  inset-block: var(--space-2xl) max(var(--space-2xl), 6vh);
+  inset-inline: var(--space-md);
   box-sizing: border-box;
-  width: 100%;
+  block-size: fit-content;
+  max-block-size: calc(100dvh - var(--space-2xl) - max(var(--space-2xl), 6vh));
+  max-inline-size: var(--dialog-max-width, 600px);
   margin: auto;
   overflow: auto;
-  max-inline-size: var(--dialog-max-width, 600px);
+  overscroll-behavior: contain;
   padding: var(--space-md);
   border-radius: var(--radius-dialog);
   background-color: var(--bg);
   box-shadow: var(--shadow-dialog);
+  color: var(--fg);
   outline: none;
+}
+
+:where([data-slot="dialog-content"][data-align="start"]) {
+  margin-block-start: 0;
 }
 
 :where([data-slot="dialog-content"][data-size="s"]) {

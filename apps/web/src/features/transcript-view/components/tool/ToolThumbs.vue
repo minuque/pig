@@ -1,6 +1,6 @@
 <template>
   <span v-if="images.length" class="tool-thumbs">
-    <Tooltip v-for="(image, i) in shown" :key="i" :delay-duration="150">
+    <Tooltip v-for="(image, i) in shown" :key="i" :delay="150">
       <TooltipTrigger as-child>
         <button
           type="button"

@@ -1,15 +1,15 @@
 <template>
-  <ListboxContent data-slot="command-palette-list">
+  <CommandList class="list">
     <slot />
-  </ListboxContent>
+  </CommandList>
 </template>
 
 <script setup lang="ts">
-import { ListboxContent } from "reka-ui"
+import { CommandList } from "@ui-sdk/vue/command"
 </script>
 
 <style scoped>
-[data-slot="command-palette-list"] {
+.list {
   max-height: min(28rem, 70vh);
   min-height: 0;
   flex: 1;
@@ -19,7 +19,7 @@ import { ListboxContent } from "reka-ui"
   scrollbar-width: thin;
 }
 
-[data-slot="command-palette-list"]:not(:empty) {
+.list:not(:empty) {
   padding: var(--space-xs);
   scroll-padding-block: var(--space-xs);
 }

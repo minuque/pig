@@ -1,5 +1,6 @@
 <template>
-  <Primitive
+  <Polymorphic
+    v-bind="$attrs"
     data-slot="link"
     :as="as"
     :as-child="asChild"
@@ -8,24 +9,22 @@
     :data-underline-style="underlineStyle"
     :data-tone="color"
     :class="[weightClass, truncate && 'truncate', props.class]"
-    v-bind="$attrs"
   >
     <slot />
-  </Primitive>
+  </Polymorphic>
 </template>
 
 <script setup lang="ts">
-import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
 import { computed } from "vue"
-import { Primitive } from "reka-ui"
+import { Polymorphic, type PolymorphicProps } from "@components/ui/primitive/index.js"
 import type { Size, ToneColor } from "@/types/ui-type.js"
 
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
   defineProps<
-    PrimitiveProps & {
+    PolymorphicProps & {
       class?: HTMLAttributes["class"]
       size?: Size
       weight?: "regular" | "medium" | "bold"

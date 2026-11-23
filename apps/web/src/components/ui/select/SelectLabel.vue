@@ -1,24 +1,17 @@
 <template>
-  <SelectLabel data-slot="select-label" v-bind="forwarded" :class="props.class">
+  <SelectGroupLabel v-bind="$attrs">
     <slot />
-  </SelectLabel>
+  </SelectGroupLabel>
 </template>
 
 <script setup lang="ts">
-import type { SelectLabelProps } from "reka-ui"
-import type { ComputedRef, HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { SelectLabel, useForwardProps } from "reka-ui"
+import { SelectGroupLabel } from "@ui-sdk/vue/select"
 
-const props = withDefaults(defineProps<SelectLabelProps & { class?: HTMLAttributes["class"] }>(), {
-  class: undefined,
-})
-const delegatedProps = reactiveOmit(props, "class")
-const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectLabelProps>
+defineOptions({ inheritAttrs: false })
 </script>
 
 <style>
-:where([data-slot="select-label"]) {
+:where([data-slot="select-group-label"]) {
   display: flex;
   align-items: center;
   box-sizing: border-box;
@@ -31,7 +24,7 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<SelectLabelProp
   cursor: default;
 }
 
-:where([data-slot="select-content"][data-size="s"]) :where([data-slot="select-label"]) {
+:where([data-slot="select-content"][data-size="s"]) :where([data-slot="select-group-label"]) {
   block-size: var(--space-lg);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);

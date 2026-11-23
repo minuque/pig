@@ -11,51 +11,66 @@
 
     <div data-slot="slider-shell">
       <SliderRoot
-        v-slot="{ modelValue }"
-        v-bind="forwarded"
-        data-slot="slider"
-        thumb-alignment="contain"
+        v-slot="{ state }"
+        v-bind="rootProps"
+        :min="min"
+        :max="max"
+        :step="step"
+        :orientation="orientation"
+        :disabled="disabled"
+        @value-change="onValueChange"
       >
-        <SliderTrack data-slot="slider-track">
-          <SliderRange data-slot="slider-range" />
-        </SliderTrack>
+        <SliderControl>
+          <SliderTrack>
+            <SliderIndicator />
 
-        <SliderThumb
-          v-for="(value, index) in modelValue ?? []"
-          :key="index"
-          data-slot="slider-thumb"
-          :data-edge="edgeOf(value)"
-          :aria-label="thumbAriaLabel(index, modelValue?.length ?? 0)"
-          :aria-labelledby="thumbLabelledby"
-          :aria-valuetext="getAriaValueText?.(value)"
-        >
-          <span data-slot="slider-grip" aria-hidden="true" />
+            <SliderThumb
+              v-for="(value, index) in valuesOf(state.value)"
+              :key="index"
+              :index="index"
+              :data-edge="edgeOf(value)"
+              :aria-label="thumbAriaLabel(index, valuesOf(state.value).length)"
+              :aria-labelledby="thumbLabelledby"
+            >
+              <span data-slot="slider-grip" aria-hidden="true" />
 
-          <span v-if="showValueBadge" data-slot="slider-badge" aria-hidden="true">
-            {{ format(value) }}
-          </span>
-        </SliderThumb>
+              <span v-if="showValueBadge" data-slot="slider-badge" aria-hidden="true">
+                {{ format(value) }}
+              </span>
+            </SliderThumb>
+          </SliderTrack>
+        </SliderControl>
       </SliderRoot>
     </div>
 
     <div v-if="showBounds" data-slot="slider-bounds" aria-hidden="true">
-      <span>{{ format(rangeMin) }}</span>
-      <span>{{ format(rangeMax) }}</span>
+      <span>{{ format(min) }}</span>
+      <span>{{ format(max) }}</span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { SliderRootEmits, SliderRootProps } from "reka-ui"
-import type { ComputedRef, HTMLAttributes } from "vue"
+import type { HTMLAttributes } from "vue"
 import { computed, useAttrs, useId } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { SliderRange, SliderRoot, SliderThumb, SliderTrack, useForwardPropsEmits } from "reka-ui"
+import {
+  Slider as SliderRoot,
+  SliderControl,
+  SliderIndicator,
+  SliderThumb,
+  SliderTrack,
+} from "@ui-sdk/vue/slider"
 import type { Size, ToneColor } from "@/types/ui-type.js"
 
 defineOptions({ inheritAttrs: false })
 
-interface SliderProps extends SliderRootProps {
+interface SliderProps {
+  modelValue?: number[] | undefined
+  min?: number
+  max?: number
+  step?: number
+  orientation?: "horizontal" | "vertical"
+  disabled?: boolean
   class?: HTMLAttributes["class"]
   size?: Size
   color?: ToneColor
@@ -68,30 +83,24 @@ interface SliderProps extends SliderRootProps {
 }
 
 const props = withDefaults(defineProps<SliderProps>(), {
+  modelValue: undefined,
+  min: 0,
+  max: 100,
+  step: 1,
+  orientation: "horizontal",
+  disabled: false,
   class: undefined,
   size: "m",
-  orientation: "horizontal",
   showValueBadge: true,
   showBounds: true,
 })
-const emits = defineEmits<SliderRootEmits>()
-const delegatedProps = reactiveOmit(
-  props,
-  "class",
-  "size",
-  "color",
-  "label",
-  "formatValue",
-  "getAriaLabel",
-  "getAriaValueText",
-  "showValueBadge",
-  "showBounds",
-)
-const forwarded = useForwardPropsEmits(delegatedProps, emits) as ComputedRef<SliderRootProps>
+const emit = defineEmits<{ "update:modelValue": [value: number[]] }>()
 const attrs = useAttrs()
 const labelId = useId()
-const rangeMin = computed(() => props.min ?? 0)
-const rangeMax = computed(() => props.max ?? 100)
+const rootProps = computed(() => ({
+  ...(props.modelValue === undefined ? {} : { value: props.modelValue }),
+  ...(props.getAriaValueText ? { format: props.getAriaValueText } : {}),
+}))
 const thumbLabelledby = computed(
   () => (attrs["aria-labelledby"] as string | undefined) ?? (props.label ? labelId : undefined),
 )
@@ -102,14 +111,22 @@ const passAttrs = computed(() => {
   return rest
 })
 
+function valuesOf(value: number | number[]) {
+  return Array.isArray(value) ? value : [value]
+}
+
+function onValueChange(value: number | number[]) {
+  emit("update:modelValue", valuesOf(value))
+}
+
 function format(value: number) {
   return props.formatValue?.(value) ?? String(value)
 }
 
 function edgeOf(value: number) {
-  if (value <= rangeMin.value) return "start"
+  if (value <= props.min) return "start"
 
-  if (value >= rangeMax.value) return "end"
+  if (value >= props.max) return "end"
   return undefined
 }
 
@@ -159,13 +176,16 @@ function thumbAriaLabel(index: number, total: number) {
 }
 
 :where([data-slot="slider"]) {
-  position: relative;
+  block-size: 100%;
+  inline-size: 100%;
+}
+
+:where([data-slot="slider-control"]) {
   display: flex;
   align-items: center;
   block-size: 100%;
   inline-size: 100%;
   user-select: none;
-  touch-action: none;
 }
 
 :where([data-slot="slider-track"]) {
@@ -175,33 +195,32 @@ function thumbAriaLabel(index: number, total: number) {
   margin-inline: 8px;
 }
 
-:where([data-slot="slider-range"]) {
-  position: absolute;
-  inset-block: 0;
-  margin-inline: -8px;
+:where([data-slot="slider-indicator"]) {
+  box-sizing: content-box;
+  margin-inline-start: -8px;
+  padding-inline-end: 16px;
   background: var(--slider-range-bg);
   box-shadow: var(--slider-range-shadow);
 }
 
-:where([data-slot="slider-field"][data-tone]) :where([data-slot="slider-range"]) {
+:where([data-slot="slider-field"][data-tone]) :where([data-slot="slider-indicator"]) {
   background: var(--tone);
 }
 
 :where([data-slot="slider-thumb"]) {
   display: block;
-  inset-block-start: 0;
   outline: 0;
   cursor: grab;
   inline-size: 16px;
   block-size: 100%;
 }
 
-:where([data-slot="slider-range"]),
+:where([data-slot="slider-indicator"]),
 :where([data-slot="slider-thumb"]) {
   border-radius: calc(var(--radius-card) - 3px);
 }
 
-:where([data-slot="slider-field"][data-size="s"]) :where([data-slot="slider-range"]),
+:where([data-slot="slider-field"][data-size="s"]) :where([data-slot="slider-indicator"]),
 :where([data-slot="slider-field"][data-size="s"]) :where([data-slot="slider-thumb"]) {
   border-radius: calc(var(--radius-control) - 3px);
 }
@@ -210,7 +229,7 @@ function thumbAriaLabel(index: number, total: number) {
   cursor: grabbing;
 }
 
-:where([data-slot="slider-thumb"]:focus-visible) {
+:where([data-slot="slider-thumb"]:has(:focus-visible)) {
   box-shadow: var(--focus-ring);
 }
 

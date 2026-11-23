@@ -1,55 +1,46 @@
 <template>
-  <PopoverPortal>
-    <PopoverContentPrimitive
-      data-slot="popover-content"
-      :side-offset="8"
-      :collision-padding="10"
-      :data-size="size"
-      v-bind="{ ...$attrs, ...forwarded }"
-      class="reveal-menu"
-      :class="props.class"
-      :style="{ maxInlineSize: props.maxWidth }"
-    >
-      <slot />
-    </PopoverContentPrimitive>
-  </PopoverPortal>
+  <PopoverContentPrimitive
+    :side-offset="8"
+    :collision-padding="10"
+    :data-size="size"
+    v-bind="$attrs"
+    class="reveal-menu"
+    :class="props.class"
+    :style="{ maxInlineSize: props.maxWidth }"
+  >
+    <slot />
+  </PopoverContentPrimitive>
 </template>
 
 <script setup lang="ts">
-import type { PopoverContentProps } from "reka-ui"
-import type { ComputedRef, HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { PopoverContent as PopoverContentPrimitive, PopoverPortal, useForwardProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
+import { PopoverContent as PopoverContentPrimitive } from "@ui-sdk/vue/popover"
 import type { Size } from "@/types/ui-type.js"
 
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
-  defineProps<
-    PopoverContentProps & {
-      class?: HTMLAttributes["class"]
-      size?: Size
-      maxWidth?: string
-    }
-  >(),
+  defineProps<{
+    class?: HTMLAttributes["class"]
+    size?: Size
+    maxWidth?: string
+  }>(),
   { class: undefined, size: "m", maxWidth: "480px" },
 )
-const delegatedProps = reactiveOmit(props, "class", "size", "maxWidth")
-const forwarded = useForwardProps(delegatedProps) as ComputedRef<PopoverContentProps>
 </script>
 
 <style>
 :where([data-slot="popover-content"]) {
   box-sizing: border-box;
-  position: relative;
-  z-index: var(--z-popover);
   overflow: auto;
-  min-inline-size: var(--reka-popover-trigger-width);
+  min-inline-size: var(--anchor-width);
+  max-block-size: var(--available-height);
   background-color: var(--float-bg);
   box-shadow: var(--float-shadow);
   backdrop-filter: var(--glass-filter);
+  color: var(--fg);
   outline: 0;
-  transform-origin: var(--reka-popover-content-transform-origin);
+  transform-origin: var(--transform-origin);
 }
 
 :where([data-slot="popover-content"][data-size="s"]) {

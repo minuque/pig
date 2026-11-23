@@ -8,7 +8,7 @@
       'is-swept': swept,
     }"
   >
-    <ContextMenu :modal="false" :press-open-delay="500" @update:open="onMenuOpenChange">
+    <ContextMenu :modal="false" @update:open="onMenuOpenChange">
       <ContextMenuTrigger as-child>
         <component
           :is="placeholder ? 'div' : RouterLink"
@@ -448,39 +448,15 @@ function onCardDblclick(event: MouseEvent) {
   void startRename()
 }
 
-function openContextMenuAt(target: HTMLElement, clientX: number, clientY: number) {
-  target.dispatchEvent(
-    new MouseEvent("contextmenu", {
-      bubbles: true,
-      cancelable: true,
-      clientX,
-      clientY,
-      view: window,
-    }),
-  )
-}
-
 function onRowAction() {
   if (props.settled) emit("unsettle", props.session.id)
   else emit("settle", props.session.id)
 }
 
 function onCardKeydown(event: KeyboardEvent) {
-  if (props.placeholder) return
-
-  if (event.key === "F2") {
-    event.preventDefault()
-    void startRename()
-    return
-  }
-
-  if (event.key !== "F10" || !event.shiftKey) return
+  if (props.placeholder || event.key !== "F2") return
   event.preventDefault()
-  const el = event.currentTarget
-
-  if (!(el instanceof HTMLElement)) return
-  const rect = el.getBoundingClientRect()
-  openContextMenuAt(el, rect.left + 8, rect.top + 8)
+  void startRename()
 }
 
 function confirmDelete() {
@@ -543,17 +519,13 @@ function confirmDelete() {
   padding-inline: 10px;
 }
 
-.session-item:hover :where(.session-card:not(.active, [data-state="open"])) {
+.session-item:hover :where(.session-card:not(.active, [data-open])) {
   background: var(--bg-hover);
 }
 
-.session-card[data-state="open"],
+.session-card[data-open],
 .session-card.active {
   background: var(--bg-selected);
-}
-
-.session-card.active {
-  box-shadow: var(--session-active-shadow);
 }
 
 .session-item .session-card.is-placeholder {
@@ -661,7 +633,7 @@ function confirmDelete() {
 }
 
 .session-item:hover .title,
-.session-card[data-state="open"] .title,
+.session-card[data-open] .title,
 .session-card.active .title {
   color: var(--fg);
 }

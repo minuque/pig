@@ -1,14 +1,9 @@
 <template>
-  <DropdownMenuGroup v-bind="forwardedProps" data-menu-group>
+  <MenuGroup data-menu-group>
     <slot />
-  </DropdownMenuGroup>
+  </MenuGroup>
 </template>
 
 <script setup lang="ts">
-import type { DropdownMenuGroupProps } from "reka-ui"
-import type { ComputedRef } from "vue"
-import { DropdownMenuGroup, useForwardProps } from "reka-ui"
-
-const props = defineProps<DropdownMenuGroupProps>()
-const forwardedProps = useForwardProps(props) as ComputedRef<DropdownMenuGroupProps>
+import { MenuGroup } from "@ui-sdk/vue/menu"
 </script>

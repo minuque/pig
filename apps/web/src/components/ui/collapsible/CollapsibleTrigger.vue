@@ -1,16 +1,16 @@
 <template>
-  <CollapsibleTrigger
-    v-bind="props.asChild ? forwarded : { ...forwarded, 'data-slot': 'collapsible-trigger' }"
-  >
+  <CollapsibleTrigger>
+    <template v-if="asChild" #render="{ props: partProps }">
+      <AsChildSlot :part-props="partProps"><slot /></AsChildSlot>
+    </template>
+
     <slot />
   </CollapsibleTrigger>
 </template>
 
 <script setup lang="ts">
-import type { CollapsibleTriggerProps } from "reka-ui"
-import type { ComputedRef } from "vue"
-import { CollapsibleTrigger, useForwardProps } from "reka-ui"
+import { CollapsibleTrigger } from "@ui-sdk/vue/collapsible"
+import { AsChildSlot } from "@components/ui/primitive/index.js"
 
-const props = defineProps<CollapsibleTriggerProps>()
-const forwarded = useForwardProps(props) as ComputedRef<CollapsibleTriggerProps>
+withDefaults(defineProps<{ asChild?: boolean }>(), { asChild: false })
 </script>

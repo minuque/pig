@@ -78,8 +78,7 @@ export function groupTitle(group: string): Label {
   return { zh: group, en: GROUP_EN[group] ?? group }
 }
 
-const KNOB =
-  /^--(radix|reka|base-|card-|table-|radius-\d+$|space-\d+$|focus-\d+$|default-|dialog-content)/
+const KNOB = /^--(base-|card-|table-|radius-\d+$|space-\d+$|focus-\d+$|default-|dialog-content)/
 const PLACES = placed(tokensCss)
 
 function placed(css: string): Omit<Token, "value">[] {

@@ -472,7 +472,7 @@ function confirmDelete(): void {
 
 .crumb-current:hover .crumb-more,
 .crumb-current:focus-within .crumb-more,
-.crumb-more[data-state="open"] {
+.crumb-more[data-open] {
   opacity: 1;
 }
 

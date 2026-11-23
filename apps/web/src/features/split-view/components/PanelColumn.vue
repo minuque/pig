@@ -1,38 +1,40 @@
 <template>
   <div ref="column" class="panel-column">
-    <SplitterGroup
+    <Resizable
       :key="layoutKey"
-      direction="vertical"
+      orientation="vertical"
       :auto-save-id="`pig.panels.${layoutKey}`"
       class="panel-column-group"
     >
       <template v-for="(kind, index) in host.visible.value" :key="kind">
-        <SplitterResizeHandle v-if="index > 0" as-child class="panel-column-handle">
-          <ResizeHandle />
-        </SplitterResizeHandle>
+        <ResizableHandle v-if="index > 0">
+          <template #render="{ props: part }">
+            <ResizeHandle v-bind="part" class="panel-column-handle" />
+          </template>
+        </ResizableHandle>
 
-        <SplitterPanel
-          :order="index + 1"
-          :min-size="PANEL_MIN_HEIGHT"
-          size-unit="px"
+        <ResizablePanel
+          :id="`${side}-${kind}`"
+          :min-size="`${PANEL_MIN_HEIGHT}px`"
           class="panel-column-slot"
         >
           <div :ref="(el) => mount(kind, el)" class="panel-column-mount"></div>
-        </SplitterPanel>
+        </ResizablePanel>
       </template>
-    </SplitterGroup>
+    </Resizable>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, useTemplateRef } from "vue"
 import { useResizeObserver } from "@vueuse/core"
-import { SplitterGroup, SplitterPanel, SplitterResizeHandle } from "reka-ui"
+import { Resizable, ResizableHandle, ResizablePanel } from "@ui-sdk/vue/resizable"
 import { ResizeHandle } from "@components/ui/resize-handle/index.js"
 import { PANEL_MIN_HEIGHT } from "@features/split-view/lib/panel-stack.js"
-import type { PanelHost, PanelKind } from "@features/split-view/index.js"
+import { usePaneSide, type PanelHost, type PanelKind } from "@features/split-view/index.js"
 
 const props = defineProps<{ host: PanelHost }>()
+const side = usePaneSide()
 const column = useTemplateRef("column")
 const layoutKey = computed(() => props.host.visible.value.join("-"))
 
@@ -65,6 +67,9 @@ function mount(kind: PanelKind, el: unknown) {
 
 .panel-column-group {
   flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .panel-column-slot,

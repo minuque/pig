@@ -32,10 +32,10 @@
         <span>{{ t("nav.search") }}</span>
       </Button>
 
-      <DropdownMenu v-model:open="scopeOpen" :modal="false">
+      <Popover v-model:open="scopeOpen">
         <Tooltip>
           <TooltipTrigger as-child>
-            <DropdownMenuTrigger as-child>
+            <PopoverTrigger as-child>
               <IconButton
                 class="nav-btn nav-tool"
                 type="button"
@@ -45,19 +45,20 @@
               >
                 <ListFilterIcon class="size-icon-lg" />
               </IconButton>
-            </DropdownMenuTrigger>
+            </PopoverTrigger>
           </TooltipTrigger>
 
           <TooltipContent>{{ t("session.filterByWorkspace") }}</TooltipContent>
         </Tooltip>
 
         <ScopeMenu
+          :open="scopeOpen"
           :groups="groups"
           :scope-filter="scopeFilter"
           @update:scope-filter="emit('update:scopeFilter', $event)"
           @settings="openIconDialog"
         />
-      </DropdownMenu>
+      </Popover>
 
       <Tooltip>
         <TooltipTrigger as-child>
@@ -121,7 +122,7 @@ import {
   ListFilterIcon,
 } from "@components/icons/index.js"
 import { Button, IconButton } from "@components/ui/button/index.js"
-import { DropdownMenu, DropdownMenuTrigger } from "@components/ui/dropdown-menu/index.js"
+import { Popover, PopoverTrigger } from "@components/ui/popover/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 
 defineProps<{
@@ -209,7 +210,7 @@ html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]
 
 .nav-tool[data-slot]:hover,
 .nav-tool[data-slot]:focus-visible,
-.nav-tool[data-slot][data-state="open"] {
+.nav-tool[data-slot][data-open] {
   color: var(--fg);
 }
 </style>

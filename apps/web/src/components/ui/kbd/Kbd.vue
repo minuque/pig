@@ -1,28 +1,27 @@
 <template>
-  <Primitive
+  <Polymorphic
+    v-bind="$attrs"
     data-slot="kbd"
     :data-size="size"
     :data-variant="variant"
     :as="as"
     :as-child="asChild"
     :class="props.class"
-    v-bind="$attrs"
   >
     <slot />
-  </Primitive>
+  </Polymorphic>
 </template>
 
 <script setup lang="ts">
-import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
-import { Primitive } from "reka-ui"
+import { Polymorphic, type PolymorphicProps } from "@components/ui/primitive/index.js"
 import type { Size } from "@/types/ui-type.js"
 
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
   defineProps<
-    PrimitiveProps & {
+    PolymorphicProps & {
       class?: HTMLAttributes["class"]
       size?: Size
       variant?: "surface" | "soft"
@@ -81,13 +80,11 @@ const props = withDefaults(
     background-color var(--duration-fast);
 }
 
-:where([data-slot="kbd"][data-variant="surface"]:is(:any-link, button):is([data-state="open"])) {
+:where([data-slot="kbd"][data-variant="surface"]:is(:any-link, button):is([data-open])) {
   background-color: var(--bg-surface);
 }
 
-:where(
-  [data-slot="kbd"][data-variant="surface"]:is(:any-link, button):active:not([data-state="open"])
-) {
+:where([data-slot="kbd"][data-variant="surface"]:is(:any-link, button):active:not([data-open])) {
   padding-top: 0.05em;
   padding-bottom: 0;
   background-color: var(--bg-hover);
@@ -98,13 +95,11 @@ const props = withDefaults(
   background-color: var(--bg-muted);
 }
 
-:where([data-slot="kbd"][data-variant="soft"]:is(:any-link, button):is([data-state="open"])) {
+:where([data-slot="kbd"][data-variant="soft"]:is(:any-link, button):is([data-open])) {
   background-color: var(--bg-hover);
 }
 
-:where(
-  [data-slot="kbd"][data-variant="soft"]:is(:any-link, button):active:not([data-state="open"])
-) {
+:where([data-slot="kbd"][data-variant="soft"]:is(:any-link, button):active:not([data-open])) {
   background-color: var(--bg-emphasis);
 }
 

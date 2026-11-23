@@ -1,79 +1,91 @@
 <template>
-  <ToastProvider swipe-direction="right" :label="t('common.notifications')">
-    <ToastRoot
-      v-for="item in noticeQueue"
-      :key="item.id"
-      class="toast-item"
-      :open="item.open"
-      :data-level="item.level"
-      :type="item.level === 'error' ? 'foreground' : 'background'"
-      :duration="item.level === 'error' && !item.transient ? Infinity : PASSING_MS"
-      @update:open="(open) => open || dismissNotice(item.id)"
-    >
-      <ToastClose as-child>
-        <IconButton
-          class="toast-close"
-          type="button"
-          size="s"
-          variant="ghost"
-          color="neutral"
-          :aria-label="t('common.close')"
-        >
-          <XIcon class="size-icon" />
-        </IconButton>
-      </ToastClose>
+  <ToastRegion
+    class="toast-region"
+    :toaster="noticeToaster"
+    side="bottom"
+    align="end"
+    expanded
+    :max-visible="Infinity"
+    :aria-label="t('common.notifications')"
+  >
+    <template #default="{ toast }">
+      <Toast class="toast-item">
+        <ToastClose>
+          <template #render="{ props }">
+            <AsChildSlot :part-props="props">
+              <IconButton
+                class="toast-close"
+                type="button"
+                size="s"
+                variant="ghost"
+                color="neutral"
+                :aria-label="t('common.close')"
+              >
+                <XIcon class="size-icon" />
+              </IconButton>
+            </AsChildSlot>
+          </template>
+        </ToastClose>
 
-      <div class="toast-body">
-        <div class="toast-head">
-          <span class="toast-icon" :data-tone="LEVEL_TONE[item.level]">
-            <component :is="LEVEL_ICON[item.level]" />
-          </span>
+        <div class="toast-body">
+          <div class="toast-head">
+            <span class="toast-icon" :data-tone="LEVEL_TONE[noticeOf(toast).level]">
+              <component :is="LEVEL_ICON[noticeOf(toast).level]" />
+            </span>
 
-          <ToastTitle class="toast-title">
-            {{ item.title ?? (item.level === "error" ? t("common.error") : item.message) }}
-          </ToastTitle>
+            <ToastTitle class="toast-title">
+              {{ headline(noticeOf(toast)) }}
+            </ToastTitle>
+          </div>
+
+          <ToastDescription
+            v-if="noticeOf(toast).title || noticeOf(toast).level === 'error'"
+            class="toast-text"
+            :data-clamp="noticeOf(toast).message.length > CLAMP_CHARS || undefined"
+            :title="
+              noticeOf(toast).message.length > CLAMP_CHARS ? noticeOf(toast).message : undefined
+            "
+          >
+            {{ noticeOf(toast).message }}
+          </ToastDescription>
         </div>
 
-        <ToastDescription
-          v-if="item.title || item.level === 'error'"
-          class="toast-text"
-          :data-clamp="item.message.length > CLAMP_CHARS || undefined"
-          :title="item.message.length > CLAMP_CHARS ? item.message : undefined"
-        >
-          {{ item.message }}
-        </ToastDescription>
-      </div>
-
-      <ToastAction v-if="item.action" as-child :alt-text="item.action.label">
-        <Button class="toast-action" size="s" variant="solid" @click="item.action.run()">
-          <Undo2Icon v-if="item.action.icon === 'undo'" />
-          <ArrowUpRightIcon v-else />
-          {{ item.action.label }}
-        </Button>
-      </ToastAction>
-    </ToastRoot>
-
-    <ToastPortal>
-      <ToastViewport class="toast-viewport" />
-    </ToastPortal>
-  </ToastProvider>
+        <ToastAction v-if="noticeOf(toast).action">
+          <template #render="{ props }">
+            <AsChildSlot :part-props="props">
+              <Button class="toast-action" size="s" variant="solid">
+                <Undo2Icon v-if="noticeOf(toast).action?.icon === 'undo'" />
+                <ArrowUpRightIcon v-else />
+                {{ noticeOf(toast).action?.label }}
+              </Button>
+            </AsChildSlot>
+          </template>
+        </ToastAction>
+      </Toast>
+    </template>
+  </ToastRegion>
 </template>
 
 <script setup lang="ts">
 import type { Component } from "vue"
+import { useEventListener } from "@vueuse/core"
 import {
+  Toast,
   ToastAction,
   ToastClose,
   ToastDescription,
-  ToastPortal,
-  ToastProvider,
-  ToastRoot,
+  ToastRegion,
   ToastTitle,
-  ToastViewport,
-} from "reka-ui"
+} from "@ui-sdk/vue/toast"
 import { useI18n } from "@i18n/index.js"
 import { Button, IconButton } from "@components/ui/button/index.js"
-import { dismissNotice, noticeQueue, type NoticeLevel } from "@components/layout/notify.js"
+import { AsChildSlot } from "@components/ui/primitive/index.js"
+import {
+  noticeOf,
+  noticeToaster,
+  type Notice,
+  type NoticeLevel,
+} from "@components/layout/notify.js"
 import {
   ArrowUpRightIcon,
   CircleCheckIcon,
@@ -85,7 +97,6 @@ import {
 } from "@components/icons/index.js"
 import type { Tone } from "@/types/ui-type.js"
 
-const PASSING_MS = 5_000
 const CLAMP_CHARS = 180
 const { t } = useI18n()
 const LEVEL_TONE: Record<NoticeLevel, Tone> = {
@@ -100,23 +111,56 @@ const LEVEL_ICON: Record<NoticeLevel, Component> = {
   warning: TriangleAlertIcon,
   error: CircleExclamationPointIcon,
 }
+let pointerX = Number.NaN
+let pointerY = Number.NaN
+
+useEventListener(
+  window,
+  "pointermove",
+  (event: PointerEvent) => {
+    pointerX = event.clientX
+    pointerY = event.clientY
+  },
+  { passive: true },
+)
+
+useEventListener(
+  document,
+  "pointerenter",
+  (event: PointerEvent) => {
+    if (
+      event.target instanceof Element &&
+      event.target.matches('[data-slot="toast-region"]') &&
+      event.clientX === pointerX &&
+      event.clientY === pointerY
+    )
+      event.stopPropagation()
+  },
+  { capture: true },
+)
+
+function headline(notice: Notice): string {
+  return notice.title ?? (notice.level === "error" ? t("common.error") : notice.message)
+}
 </script>
 
 <style>
-.toast-viewport {
-  position: fixed;
-  inset-block-end: var(--space-md);
-  inset-inline-end: var(--space-md);
-  z-index: var(--z-modal);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
+.toast-region {
+  inset: auto var(--space-md) var(--space-md) auto;
   inline-size: min(var(--toast-width), calc(100vw - 2 * var(--space-md)));
   margin: 0;
   padding: 0;
-  list-style: none;
+  overflow: visible;
+  border: 0;
+  background: transparent;
   pointer-events: none;
   outline: none;
+}
+
+.toast-region [data-slot="toast-list"] {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: var(--space-sm);
 }
 
 .toast-item {
@@ -136,6 +180,7 @@ const LEVEL_ICON: Record<NoticeLevel, Component> = {
   backdrop-filter: var(--glass-filter);
   pointer-events: auto;
   user-select: none;
+  translate: var(--toast-swipe-x, 0) var(--toast-swipe-y, 0);
 }
 
 .toast-body {
@@ -173,6 +218,7 @@ const LEVEL_ICON: Record<NoticeLevel, Component> = {
 
 .toast-text {
   min-inline-size: 0;
+  margin: 0;
   color: var(--fg-secondary);
   overflow-wrap: anywhere;
   user-select: text;
@@ -195,26 +241,33 @@ const LEVEL_ICON: Record<NoticeLevel, Component> = {
   inset-inline-end: var(--space-2xs);
 }
 
-.toast-item[data-swipe="move"] {
-  translate: var(--reka-toast-swipe-move-x) 0;
-}
-
-.toast-item[data-swipe="cancel"] {
-  translate: 0 0;
-  transition: translate var(--duration-fast) var(--ease-out);
-}
-
 @media (prefers-reduced-motion: no-preference) {
-  .toast-item[data-state="open"] {
-    animation: toast-in var(--duration-slow) var(--ease-out);
+  .toast-item {
+    transition:
+      translate var(--duration-slow) var(--ease-out),
+      opacity var(--duration-fast) var(--ease-out);
   }
 
-  .toast-item[data-state="closed"] {
-    animation: overlay-out var(--duration-fast) var(--ease-out) forwards;
+  .toast-item[data-swiping] {
+    transition: none;
   }
 
-  .toast-item[data-swipe="end"] {
-    animation: toast-swipe-out var(--duration-fast) var(--ease-out) forwards;
+  .toast-item[data-starting-style] {
+    opacity: 0;
+    translate: calc(100% + var(--space-md)) 0;
+  }
+
+  .toast-item[data-ending-style] {
+    opacity: 0;
+    transition-duration: var(--duration-fast);
+  }
+
+  .toast-item[data-ending-style][data-swipe-direction="right"] {
+    translate: calc(100% + var(--space-md)) 0;
+  }
+
+  .toast-item[data-ending-style][data-swipe-direction="down"] {
+    translate: 0 calc(100% + var(--space-md));
   }
 }
 </style>

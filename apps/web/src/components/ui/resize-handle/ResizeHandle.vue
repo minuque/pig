@@ -49,7 +49,7 @@
 
 .resize-handle:hover::after,
 .resize-handle:focus-visible::after,
-.resize-handle[data-state="drag"]::after {
+.resize-handle[data-dragging]::after {
   opacity: 1;
 }
 
@@ -57,7 +57,7 @@
   outline: none;
 }
 
-.resize-handle[data-state="drag"]::after {
+.resize-handle[data-dragging]::after {
   background: var(--fg-secondary);
 }
 

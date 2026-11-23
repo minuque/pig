@@ -1,25 +1,25 @@
 <template>
-  <RadioGroupItem data-slot="radio-cards-item" v-bind="forwarded" :class="props.class">
+  <Radio data-radio-cards-item :value="value" :disabled="disabled" :class="props.class">
     <slot />
-  </RadioGroupItem>
+  </Radio>
 </template>
 
 <script setup lang="ts">
-import type { RadioGroupItemProps } from "reka-ui"
-import type { ComputedRef, HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { RadioGroupItem, useForwardProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
+import { Radio } from "@ui-sdk/vue/radio"
 
 const props = withDefaults(
-  defineProps<RadioGroupItemProps & { class?: HTMLAttributes["class"] }>(),
-  { class: undefined },
+  defineProps<{
+    value: string
+    disabled?: boolean
+    class?: HTMLAttributes["class"]
+  }>(),
+  { disabled: false, class: undefined },
 )
-const delegatedProps = reactiveOmit(props, "class")
-const forwarded = useForwardProps(delegatedProps) as ComputedRef<RadioGroupItemProps>
 </script>
 
 <style>
-:where([data-slot="radio-cards-item"]) {
+:where([data-radio-cards-item]) {
   position: relative;
   display: flex;
   align-items: center;
@@ -37,56 +37,55 @@ const forwarded = useForwardProps(delegatedProps) as ComputedRef<RadioGroupItemP
   cursor: pointer;
 }
 
-:where([data-slot="radio-cards"][data-size="s"]) :where([data-slot="radio-cards-item"]) {
+:where([data-radio-cards][data-size="s"]) :where([data-radio-cards-item]) {
   padding: 10px var(--space-sm);
 }
 
-:where([data-slot="radio-cards"][data-size="l"]) :where([data-slot="radio-cards-item"]) {
+:where([data-radio-cards][data-size="l"]) :where([data-radio-cards-item]) {
   padding: 20px var(--space-lg);
   border-radius: var(--radius-card);
 }
 
-:where([data-slot="radio-cards-item"]) > * {
+:where([data-radio-cards-item]) > * {
   pointer-events: none;
 }
 
-:where([data-slot="radio-cards-item"]) > :where(svg) {
+:where([data-radio-cards-item]) > :where(svg) {
   flex-shrink: 0;
 }
 
-:where([data-slot="radio-cards-item"]:focus-visible) {
+:where([data-radio-cards-item]:focus-visible) {
   outline: 2px solid var(--focus-color);
   outline-offset: -2px;
 }
 
-:where([data-slot="radio-cards-item"][data-state="checked"]) {
+:where([data-radio-cards-item][data-checked]) {
   box-shadow: inset 0 0 0 var(--border-width) var(--tone);
 }
 
-:where([data-slot="radio-cards-item"]:disabled) {
+:where([data-radio-cards-item][data-disabled]) {
   cursor: default;
   color: var(--fg-muted);
   background-image: linear-gradient(var(--bg-muted), var(--bg-muted));
 }
 
-:where([data-slot="radio-cards-item"]:disabled[data-state="checked"]) {
+:where([data-radio-cards-item][data-disabled][data-checked]) {
   box-shadow: inset 0 0 0 var(--border-width) var(--border-input);
 }
 
-:where([data-slot="radio-cards"][data-variant="surface"]) :where([data-slot="radio-cards-item"]) {
+:where([data-radio-cards][data-variant="surface"]) :where([data-radio-cards-item]) {
   background-color: var(--bg-raised);
   box-shadow: inset 0 0 0 var(--border-width) var(--border);
 }
 
 @media (hover: hover) {
-  :where([data-slot="radio-cards"][data-variant="surface"])
-    :where([data-slot="radio-cards-item"]:not(:disabled):not([data-state="checked"]):hover) {
+  :where([data-radio-cards][data-variant="surface"])
+    :where([data-radio-cards-item]:not([data-disabled], [data-checked]):hover) {
     box-shadow: inset 0 0 0 var(--border-width) var(--border-strong);
   }
 }
 
-:where([data-slot="radio-cards"][data-variant="surface"])
-  :where([data-slot="radio-cards-item"][data-state="checked"]) {
+:where([data-radio-cards][data-variant="surface"]) :where([data-radio-cards-item][data-checked]) {
   box-shadow: inset 0 0 0 var(--border-width) var(--tone);
 }
 </style>

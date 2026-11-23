@@ -244,16 +244,13 @@
   --mascot-shadow: rgba(0, 0, 0, 0.2);
   --mascot-peek-duration: 640ms;
   --float-bg: color-mix(in srgb, var(--bg-raised) 84%, transparent);
-  --float-shadow: 0 0 0 var(--border-width) var(--border), 0 4px 12px -4px rgba(0, 0, 0, 0.08);
+  --float-ring: rgba(0, 0, 0, 0.1);
+  --float-shadow: 0 0 0 var(--border-width) var(--float-ring), 0 4px 12px -4px rgba(0, 0, 0, 0.08);
   --menu-item-gap: calc(var(--spacing) / 2);
   --minimap-marker: color-mix(in srgb, var(--fg-secondary) 35%, transparent);
   --nav-inline: var(--space-xs);
   --quote-border-width: 2px;
   --rail-width: 280px;
-  --session-active-shadow:
-    0 0 0 var(--border-width) color-mix(in srgb, var(--accent-solid) 16%, rgba(0, 0, 0, 0.05)),
-    0 1px 2px rgba(0, 0, 0, 0.05),
-    0 3px 8px -3px color-mix(in srgb, var(--accent-solid) 16%, rgba(0, 0, 0, 0.1));
   --slider-badge-bg: var(--fg);
   --slider-badge-fg: var(--fg-inverse);
   --slider-grip: color-mix(in srgb, var(--fg) 28%, transparent);
@@ -361,7 +358,8 @@ html.dark {
     0 0 0 var(--border-width) var(--border), inset 0 1px rgba(255, 255, 255, 0.05),
     0 24px 72px -20px rgba(0, 0, 0, 0.9);
   --glass-backdrop: color-mix(in srgb, var(--bg) 64%, transparent);
-  --float-shadow: 0 0 0 var(--border-width) var(--border), 0 4px 12px -4px rgba(0, 0, 0, 0.32);
+  --float-ring: rgba(255, 255, 255, 0.12);
+  --float-shadow: 0 0 0 var(--border-width) var(--float-ring), 0 4px 12px -4px rgba(0, 0, 0, 0.32);
   --language-gray: #adadb1;
   --language-red: #ff6762;
   --language-orange: #ffa359;
@@ -374,9 +372,6 @@ html.dark {
   --language-purple: #d568ea;
   --language-pink: #ff678d;
   --mascot-shadow: rgba(0, 0, 0, 0.5);
-  --session-active-shadow:
-    0 0 0 var(--border-width) color-mix(in srgb, var(--accent-solid) 24%, transparent),
-    0 1px 2px rgba(0, 0, 0, 0.2);
   --slider-badge-bg: var(--fg);
   --slider-badge-fg: var(--fg-inverse);
   --slider-grip: color-mix(in srgb, var(--fg) 32%, transparent);

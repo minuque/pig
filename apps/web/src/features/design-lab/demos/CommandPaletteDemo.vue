@@ -3,22 +3,24 @@
     <Variant title="Default">
       <Button variant="outline" @click="open = true">Open palette</Button>
 
-      <CommandPalette v-model:open="open" title="Commands">
-        <CommandPaletteInput v-model="query" placeholder="Type a command" />
+      <CommandPalette v-model:open="open" v-model:query="query" title="Commands">
+        <CommandPaletteInput placeholder="Type a command" />
+        <CommandPaletteEmpty>No results found</CommandPaletteEmpty>
 
         <CommandPaletteList>
-          <CommandPaletteGroupLabel v-if="matches.length">Actions</CommandPaletteGroupLabel>
-          <CommandPaletteEmpty v-if="!matches.length">No results found</CommandPaletteEmpty>
+          <CommandPaletteGroup>
+            <CommandPaletteGroupLabel>Actions</CommandPaletteGroupLabel>
 
-          <CommandPaletteItem
-            v-for="item in matches"
-            :key="item"
-            :value="item"
-            @select="open = false"
-          >
-            <template #icon><SquareCodeIcon class="size-icon" /></template>
-            {{ item }}
-          </CommandPaletteItem>
+            <CommandPaletteItem
+              v-for="item in matches"
+              :key="item"
+              :value="item"
+              @select="open = false"
+            >
+              <template #icon><SquareCodeIcon class="size-icon" /></template>
+              {{ item }}
+            </CommandPaletteItem>
+          </CommandPaletteGroup>
         </CommandPaletteList>
       </CommandPalette>
     </Variant>
@@ -34,6 +36,7 @@ import { SquareCodeIcon } from "@components/icons/index.js"
 import {
   CommandPalette,
   CommandPaletteEmpty,
+  CommandPaletteGroup,
   CommandPaletteGroupLabel,
   CommandPaletteInput,
   CommandPaletteItem,

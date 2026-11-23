@@ -1,25 +1,13 @@
 <template>
-  <AlertDialogDescription
-    data-slot="alert-dialog-description"
-    v-bind="forwardedProps"
-    :class="props.class"
-  >
+  <AlertDialogDescriptionPrimitive v-bind="$attrs">
     <slot />
-  </AlertDialogDescription>
+  </AlertDialogDescriptionPrimitive>
 </template>
 
 <script setup lang="ts">
-import type { AlertDialogDescriptionProps } from "reka-ui"
-import type { ComputedRef, HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { AlertDialogDescription, useForwardProps } from "reka-ui"
+import { AlertDialogDescription as AlertDialogDescriptionPrimitive } from "@ui-sdk/vue/alert-dialog"
 
-const props = withDefaults(
-  defineProps<AlertDialogDescriptionProps & { class?: HTMLAttributes["class"] }>(),
-  { class: undefined },
-)
-const delegatedProps = reactiveOmit(props, "class")
-const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<AlertDialogDescriptionProps>
+defineOptions({ inheritAttrs: false })
 </script>
 
 <style scoped>

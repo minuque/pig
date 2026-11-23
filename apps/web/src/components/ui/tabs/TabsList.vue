@@ -1,11 +1,5 @@
 <template>
-  <TabsList
-    data-slot="tabs-list"
-    :data-variant="variant"
-    :data-size="size"
-    :data-tone="color"
-    :class="props.class"
-  >
+  <TabsList :data-variant="variant" :data-size="size" :data-tone="color" :class="props.class">
     <slot />
     <TabsIndicator v-if="variant === 'segmented'" class="segmented-indicator" />
   </TabsList>
@@ -15,7 +9,7 @@
 import type { ToneColor } from "@/types/ui-type.js"
 import type { HTMLAttributes } from "vue"
 import { provide, toRef } from "vue"
-import { TabsIndicator, TabsList } from "reka-ui"
+import { TabsIndicator, TabsList } from "@ui-sdk/vue/tabs"
 import { TABS_VARIANT, type TabsVariant } from "./context.js"
 
 const props = withDefaults(
@@ -57,7 +51,7 @@ provide(TABS_VARIANT, toRef(props, "variant"))
   line-height: var(--text-body--line-height);
 }
 
-:where([data-slot="tabs-list"][data-variant="underline"]) :where([data-slot="tabs-trigger"]) {
+:where([data-slot="tabs-list"][data-variant="underline"]) :where([data-slot="tabs-tab"]) {
   position: relative;
   display: flex;
   align-items: center;
@@ -70,37 +64,36 @@ provide(TABS_VARIANT, toRef(props, "variant"))
 }
 
 :where([data-slot="tabs-list"][data-variant="underline"][data-size="s"])
-  :where([data-slot="tabs-trigger"]) {
+  :where([data-slot="tabs-tab"]) {
   height: var(--space-2xl);
   padding-inline: var(--space-2xs);
 }
 
 :where([data-slot="tabs-list"][data-variant="underline"][data-size="m"])
-  :where([data-slot="tabs-trigger"]) {
+  :where([data-slot="tabs-tab"]) {
   height: var(--control-lg);
 }
 
 @media (hover: hover) {
-  :where([data-slot="tabs-list"][data-variant="underline"])
-    :where([data-slot="tabs-trigger"]:hover) {
+  :where([data-slot="tabs-list"][data-variant="underline"]) :where([data-slot="tabs-tab"]:hover) {
     color: var(--fg);
   }
 
   :where([data-slot="tabs-list"][data-variant="underline"])
-    :where([data-slot="tabs-trigger"]:hover)
+    :where([data-slot="tabs-tab"]:hover)
     :where([data-slot="tabs-trigger-inner"]) {
     background-color: var(--bg-muted);
   }
 }
 
 :where([data-slot="tabs-list"][data-variant="underline"])
-  :where([data-slot="tabs-trigger"][data-state="active"]) {
+  :where([data-slot="tabs-tab"][data-selected]) {
   color: var(--fg);
   font-weight: var(--font-weight-medium);
 }
 
 :where([data-slot="tabs-list"][data-variant="underline"])
-  :where([data-slot="tabs-trigger"][data-state="active"])::before {
+  :where([data-slot="tabs-tab"][data-selected])::before {
   content: "";
   position: absolute;
   inset-inline: 0;
@@ -111,12 +104,12 @@ provide(TABS_VARIANT, toRef(props, "variant"))
 }
 
 :where([data-slot="tabs-list"][data-variant="underline"])
-  :where([data-slot="tabs-trigger"]:focus-visible) {
+  :where([data-slot="tabs-tab"]:focus-visible) {
   outline: none;
 }
 
 :where([data-slot="tabs-list"][data-variant="underline"])
-  :where([data-slot="tabs-trigger"]:focus-visible)
+  :where([data-slot="tabs-tab"]:focus-visible)
   :where([data-slot="tabs-trigger-inner"]) {
   outline: 2px solid var(--focus-color);
   outline-offset: -2px;
@@ -177,14 +170,19 @@ provide(TABS_VARIANT, toRef(props, "variant"))
   z-index: var(--z-behind);
   inset-block: 2px;
   inset-inline-start: 0;
-  inline-size: var(--reka-tabs-indicator-size);
+  inline-size: var(--active-tab-width);
   border-radius: calc(var(--radius-card) - 2px);
   background: var(--bg-raised);
   box-shadow: 0 0 0 var(--border-width) var(--border-strong);
-  transform: translateX(var(--reka-tabs-indicator-position));
+  transform: translateX(var(--active-tab-left));
   transition-property: transform, inline-size;
   transition-duration: var(--duration-normal);
   transition-timing-function: var(--ease-out);
+}
+
+:where([data-slot="tabs-list"][data-variant="segmented"])
+  .segmented-indicator[data-activation-direction="none"] {
+  transition: none;
 }
 
 :where([data-slot="tabs-list"][data-variant="segmented"][data-size="s"]) .segmented-indicator {

@@ -171,7 +171,6 @@ import { CardList, CardRow } from "@components/ui/card/index.js"
 import PresetSwatches from "./PresetSwatches.vue"
 import SchemeCards from "./SchemeCards.vue"
 
-// 外部：Select 的值不能是空串，默认字体用占位值
 const DEFAULT = "__default__"
 const { t } = useI18n()
 const { chatWidth, setChatWidth } = useGeneralPrefs()
@@ -213,7 +212,6 @@ function fontList(list: readonly string[], current: string): string[] {
   return current && !list.includes(current) ? [current, ...list] : [...list]
 }
 
-// 外部：浏览器要求在用户操作里读取本机字体，所以下拉打开时才加载
 function onFontsOpen(open: boolean) {
   if (open) void load()
 }
@@ -241,7 +239,6 @@ const tiers = computed<{ id: SizeTier; label: string }[]>(() => [
   { id: "l", label: t("settings.sizeL") },
 ])
 const codeSizes = CODE_SIZES
-/* 外部：SelectValue 缓存的选中项文字不会跟着切语言更新 */
 const welcomeLabel = computed(
   () => fields.value.find((option) => option.id === welcomeField.value)?.label ?? "",
 )

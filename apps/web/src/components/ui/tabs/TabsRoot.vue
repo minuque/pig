@@ -1,16 +1,28 @@
 <template>
-  <TabsRoot data-slot="tabs" v-bind="forwarded">
+  <TabsRoot
+    v-bind="valueProps"
+    :activation="activationMode"
+    @update:value="(next: string | null) => next !== null && emit('update:modelValue', next)"
+  >
     <slot />
   </TabsRoot>
 </template>
 
 <script setup lang="ts">
-import type { TabsRootEmits, TabsRootProps } from "reka-ui"
-import type { ComputedRef } from "vue"
-import { TabsRoot, useForwardPropsEmits } from "reka-ui"
+import { computed } from "vue"
+import { Tabs as TabsRoot } from "@ui-sdk/vue/tabs"
 
-const props = defineProps<TabsRootProps>()
-const emits = defineEmits<TabsRootEmits>()
-// 外部：reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，须 cast 到组件 props 类型
-const forwarded = useForwardPropsEmits(props, emits) as ComputedRef<TabsRootProps>
+const props = withDefaults(
+  defineProps<{
+    modelValue?: string | undefined
+    defaultValue?: string | undefined
+    activationMode?: "automatic" | "manual"
+  }>(),
+  { modelValue: undefined, defaultValue: undefined, activationMode: "automatic" },
+)
+const emit = defineEmits<{ "update:modelValue": [value: string] }>()
+const valueProps = computed(() => ({
+  ...(props.modelValue === undefined ? {} : { value: props.modelValue }),
+  ...(props.defaultValue === undefined ? {} : { defaultValue: props.defaultValue }),
+}))
 </script>

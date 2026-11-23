@@ -1,16 +1,18 @@
 <template>
-  <DialogTrigger
-    v-bind="props.asChild ? forwardedProps : { ...forwardedProps, 'data-slot': 'dialog-trigger' }"
-  >
-    <slot />
-  </DialogTrigger>
+  <DialogTriggerPrimitive v-bind="$attrs">
+    <template v-if="asChild" #render="{ props: partProps }">
+      <AsChildSlot :part-props="partProps"><slot /></AsChildSlot>
+    </template>
+
+    <template v-else #default><slot /></template>
+  </DialogTriggerPrimitive>
 </template>
 
 <script setup lang="ts">
-import type { DialogTriggerProps } from "reka-ui"
-import type { ComputedRef } from "vue"
-import { DialogTrigger, useForwardProps } from "reka-ui"
+import { DialogTrigger as DialogTriggerPrimitive } from "@ui-sdk/vue/dialog"
+import { AsChildSlot } from "@components/ui/primitive/index.js"
 
-const props = defineProps<DialogTriggerProps>()
-const forwardedProps = useForwardProps(props) as ComputedRef<DialogTriggerProps>
+defineOptions({ inheritAttrs: false })
+
+defineProps<{ asChild?: boolean }>()
 </script>

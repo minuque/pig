@@ -1,5 +1,6 @@
 <template>
-  <Primitive
+  <Polymorphic
+    v-bind="$attrs"
     data-slot="badge"
     :data-size="size"
     :data-variant="variant"
@@ -8,16 +9,14 @@
     :as="as"
     :as-child="asChild"
     :class="props.class"
-    v-bind="$attrs"
   >
     <slot />
-  </Primitive>
+  </Polymorphic>
 </template>
 
 <script setup lang="ts">
-import type { PrimitiveProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
-import { Primitive } from "reka-ui"
+import { Polymorphic, type PolymorphicProps } from "@components/ui/primitive/index.js"
 import type { Radius } from "@components/ui/button/index.js"
 import type { Size, ToneColor } from "@/types/ui-type.js"
 
@@ -25,7 +24,7 @@ defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
   defineProps<
-    Pick<PrimitiveProps, "as" | "asChild"> & {
+    Pick<PolymorphicProps, "as" | "asChild"> & {
       size?: Size
       variant?: "solid" | "soft" | "surface" | "outline"
       color?: ToneColor

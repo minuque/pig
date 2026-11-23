@@ -1,15 +1,11 @@
 <template>
-  <DropdownMenuContent
-    bare
+  <PopoverContent
     side="top"
     align="end"
     :side-offset="6"
     :collision-padding="16"
+    :initial-focus="() => searchRef"
     class="picker-menu"
-    @open-auto-focus.prevent="nextTick(focusSearch)"
-    @pointer-down-outside="onPointerDownOutside"
-    @focus-outside="onFocusOutside"
-    @close-auto-focus="onCloseAutoFocus"
   >
     <div class="picker" @keydown.capture="onPanelKeydown">
       <div class="tabs-bar">
@@ -104,14 +100,14 @@
         @update:level="emit('update:level', $event)"
       />
     </div>
-  </DropdownMenuContent>
+  </PopoverContent>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, useTemplateRef } from "vue"
+import { computed, useTemplateRef } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@components/ui/button/index.js"
-import { DropdownMenuContent } from "@components/ui/dropdown-menu/index.js"
+import { PopoverContent } from "@components/ui/popover/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
 import { RotateCcwIcon, SearchIcon, StarFilledIcon, StarIcon } from "@components/icons/index.js"
 import VendorMark from "@components/icons/VendorMark.vue"
@@ -155,10 +151,6 @@ const {
   cycleScope,
   onPanelKeydown,
   onSearchKeydown: searchKeydown,
-  onPointerDownOutside,
-  onFocusOutside,
-  onCloseAutoFocus,
-  focusSearch,
 } = useModelPickerPanel(
   open,
   () => current.value.vendor?.id,
@@ -224,8 +216,7 @@ function onSearchKeydown(event: KeyboardEvent) {
   searchKeydown(event)
 }
 
-function onSelectModel(event: Event, provider: string, id: string) {
-  event.preventDefault()
+function onSelectModel(provider: string, id: string) {
   pick(provider, id)
 
   if (!query.value.trim()) return
@@ -238,13 +229,14 @@ function onSelectModel(event: Event, provider: string, id: string) {
   inline-size: min(320px, calc(100vw - var(--space-lg)));
   min-inline-size: min(320px, calc(100vw - var(--space-lg)));
   max-inline-size: min(320px, calc(100vw - var(--space-lg)));
+  padding: 0;
   overflow: hidden;
 }
 
 .picker {
   display: flex;
   flex-direction: column;
-  max-height: var(--reka-dropdown-menu-content-available-height, 70vh);
+  max-height: var(--popup-available-height, 70vh);
 }
 
 .tabs-bar {

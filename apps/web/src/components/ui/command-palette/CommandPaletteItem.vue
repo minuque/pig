@@ -1,10 +1,5 @@
 <template>
-  <ListboxItem
-    data-slot="command-palette-item"
-    :value="value"
-    :disabled="disabled"
-    @select="emit('select')"
-  >
+  <CommandItem class="item" :value="value" :disabled="disabled" @select="emit('select')">
     <span v-if="$slots.icon" class="icon"><slot name="icon" /></span>
 
     <span class="main">
@@ -13,20 +8,19 @@
     </span>
 
     <slot name="trailing" />
-  </ListboxItem>
+  </CommandItem>
 </template>
 
 <script setup lang="ts">
-import type { AcceptableValue } from "reka-ui"
-import { ListboxItem } from "reka-ui"
+import { CommandItem } from "@ui-sdk/vue/command"
 
-defineProps<{ value: AcceptableValue; disabled?: boolean }>()
+defineProps<{ value: string; disabled?: boolean }>()
 
 const emit = defineEmits<{ select: [] }>()
 </script>
 
 <style scoped>
-[data-slot="command-palette-item"] {
+.item {
   display: flex;
   min-height: 28px;
   align-items: center;
@@ -40,11 +34,11 @@ const emit = defineEmits<{ select: [] }>()
   user-select: none;
 }
 
-[data-slot="command-palette-item"][data-highlighted] {
+.item[data-highlighted] {
   background: var(--bg-selected);
 }
 
-[data-slot="command-palette-item"][data-disabled] {
+.item[data-disabled] {
   cursor: default;
   opacity: var(--opacity-disabled);
 }

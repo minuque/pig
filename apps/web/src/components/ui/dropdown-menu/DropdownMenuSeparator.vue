@@ -1,22 +1,12 @@
 <template>
-  <DropdownMenuSeparator
-    data-slot="dropdown-menu-separator"
-    v-bind="forwardedProps"
-    data-menu-separator
-    :class="props.class"
-  />
+  <MenuSeparator data-menu-separator :class="props.class" />
 </template>
 
 <script setup lang="ts">
-import type { DropdownMenuSeparatorProps } from "reka-ui"
-import type { ComputedRef, HTMLAttributes } from "vue"
-import { reactiveOmit } from "@vueuse/core"
-import { DropdownMenuSeparator, useForwardProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
+import { MenuSeparator } from "@ui-sdk/vue/menu"
 
-const props = withDefaults(
-  defineProps<DropdownMenuSeparatorProps & { class?: HTMLAttributes["class"] }>(),
-  { class: undefined },
-)
-const delegatedProps = reactiveOmit(props, "class")
-const forwardedProps = useForwardProps(delegatedProps) as ComputedRef<DropdownMenuSeparatorProps>
+const props = withDefaults(defineProps<{ class?: HTMLAttributes["class"] }>(), {
+  class: undefined,
+})
 </script>

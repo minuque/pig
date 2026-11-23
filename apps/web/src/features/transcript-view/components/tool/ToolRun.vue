@@ -160,11 +160,8 @@ onBeforeUnmount(() => {
 
 .tool-run-body {
   overflow: visible;
+  transition: none;
   min-width: 0;
-}
-
-.tool-run-body[data-state] {
-  animation: none;
 }
 
 .tool-run-head {

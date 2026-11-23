@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { PopoverRoot } from "reka-ui"
+import { Popover as PopoverRoot } from "@ui-sdk/vue/popover"
 
 defineOptions({ inheritAttrs: false })
 </script>

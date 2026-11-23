@@ -1,17 +1,15 @@
 <template>
   <div data-slot="command-palette-input">
     <SearchIcon class="size-icon lead" />
-    <ListboxFilter v-model="model" class="input" auto-focus v-bind="$attrs" />
+    <CommandInput class="input" :aria-label="placeholder" :placeholder="placeholder" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ListboxFilter } from "reka-ui"
+import { CommandInput } from "@ui-sdk/vue/command"
 import { SearchIcon } from "@components/icons/index.js"
 
-defineOptions({ inheritAttrs: false })
-
-const model = defineModel<string>({ default: "" })
+defineProps<{ placeholder: string }>()
 </script>
 
 <style scoped>

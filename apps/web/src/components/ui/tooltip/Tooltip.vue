@@ -1,16 +1,11 @@
 <template>
-  <TooltipRoot v-slot="slotProps" data-slot="tooltip" v-bind="forwarded">
-    <slot v-bind="slotProps" />
+  <TooltipRoot :delay="400" v-bind="$attrs">
+    <slot />
   </TooltipRoot>
 </template>
 
 <script setup lang="ts">
-import type { TooltipRootEmits, TooltipRootProps } from "reka-ui"
-import type { ComputedRef } from "vue"
-import { TooltipRoot, useForwardPropsEmits } from "reka-ui"
+import { Tooltip as TooltipRoot } from "@ui-sdk/vue/tooltip"
 
-const props = defineProps<TooltipRootProps>()
-const emits = defineEmits<TooltipRootEmits>()
-// 外部：reka-ui 的 WithOptionalBooleans 与 exactOptionalPropertyTypes 不兼容，须 cast 到组件 props 类型
-const forwarded = useForwardPropsEmits(props, emits) as ComputedRef<TooltipRootProps>
+defineOptions({ inheritAttrs: false })
 </script>

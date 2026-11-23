@@ -1,9 +1,16 @@
 <template>
   <div class="model-row" :data-current="current ? '' : undefined">
-    <DropdownMenuItem class="model-item" :disabled="disabled" @select="emit('select', $event)">
+    <button
+      type="button"
+      class="model-item"
+      data-menu-item
+      :data-disabled="disabled ? '' : undefined"
+      :disabled="disabled"
+      @click="emit('select')"
+    >
       <VendorMark :vendor="vendorId" :name="vendorName" :size="14" />
       <span class="model-name">{{ vendorId }}/{{ modelName }}</span>
-    </DropdownMenuItem>
+    </button>
 
     <button
       type="button"
@@ -15,8 +22,7 @@
       "
       :aria-pressed="favorite"
       :class="{ on: favorite }"
-      @pointerdown.stop
-      @click.stop="emit('toggleFavorite')"
+      @click="emit('toggleFavorite')"
     >
       <StarFilledIcon v-if="favorite" />
       <StarIcon v-else />
@@ -26,7 +32,6 @@
 
 <script setup lang="ts">
 import { useI18n } from "@i18n/index.js"
-import { DropdownMenuItem } from "@components/ui/dropdown-menu/index.js"
 import VendorMark from "@components/icons/VendorMark.vue"
 import { StarFilledIcon, StarIcon } from "@components/icons/index.js"
 
@@ -43,7 +48,7 @@ withDefaults(
 )
 
 const emit = defineEmits<{
-  select: [event: Event]
+  select: []
   toggleFavorite: []
 }>()
 const { t } = useI18n()
@@ -76,17 +81,15 @@ const { t } = useI18n()
   block-size: var(--control-sm);
   padding-inline: 6px;
   padding-block: 0;
+  border: 0;
   border-radius: var(--radius-control);
+  background: transparent;
   color: var(--fg);
+  font-family: inherit;
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
+  text-align: start;
   cursor: pointer;
-}
-
-.model-item:hover,
-.model-item:focus,
-.model-item[data-highlighted] {
-  background: transparent;
 }
 
 .model-name {

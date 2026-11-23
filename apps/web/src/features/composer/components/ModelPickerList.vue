@@ -1,6 +1,6 @@
 <template>
   <div v-bind="containerProps" class="groups">
-    <DropdownMenuGroup v-if="items.length" v-bind="wrapperProps">
+    <div v-if="items.length" v-bind="wrapperProps">
       <ModelPickerRow
         v-for="row in list"
         :key="`${row.data.vendor.id}/${row.data.model.id}`"
@@ -10,10 +10,10 @@
         :current="isCurrent(row.data.vendor.id, row.data.model.id)"
         :favorite="favorites.has(`${row.data.vendor.id}/${row.data.model.id}`)"
         :disabled="disabled"
-        @select="emit('select', $event, row.data.vendor.id, row.data.model.id)"
+        @select="emit('select', row.data.vendor.id, row.data.model.id)"
         @toggle-favorite="emit('toggleFavorite', row.data.vendor.id, row.data.model.id)"
       />
-    </DropdownMenuGroup>
+    </div>
 
     <div v-else-if="!catalog.length" class="empty empty-setup">
       {{ t("composer.noModelsConfigured") }}
@@ -32,7 +32,6 @@ import { useVirtualList } from "@vueuse/core"
 import { computed, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Button } from "@components/ui/button/index.js"
-import { DropdownMenuGroup } from "@components/ui/dropdown-menu/index.js"
 import ModelPickerRow from "@features/composer/components/ModelPickerRow.vue"
 import type { ModelPickerRow as PickerRow } from "@features/composer/lib/model-preset.js"
 import type { ComposerModel, ComposerVendor } from "@features/composer/type.js"
@@ -51,7 +50,7 @@ const props = withDefaults(
   { model: undefined, emptyText: "", disabled: false },
 )
 const emit = defineEmits<{
-  select: [event: Event, provider: string, id: string]
+  select: [provider: string, id: string]
   toggleFavorite: [provider: string, id: string]
   configure: []
 }>()
