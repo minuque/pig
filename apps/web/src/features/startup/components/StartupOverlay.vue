@@ -3,16 +3,14 @@
     <div class="drag-strip"></div>
 
     <div class="startup-content">
-      <div class="startup-mark">
-        <img
-          class="startup-logo"
-          src="/logo-pig.png"
-          alt=""
-          width="88"
-          height="88"
-          fetchpriority="low"
-        />
-      </div>
+      <img
+        class="startup-logo"
+        src="/logo.png"
+        alt=""
+        width="96"
+        height="96"
+        fetchpriority="high"
+      />
     </div>
   </div>
 </template>

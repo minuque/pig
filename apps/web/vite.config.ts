@@ -20,6 +20,7 @@ export default defineConfig({
           "index.html",
           "assets/index-*.{js,css}",
           "assets/WorkbenchShell-*.{js,css}",
+          "logo.png",
           "pwa-icon-*.png",
         ],
         maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,

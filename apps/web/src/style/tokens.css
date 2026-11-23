@@ -192,7 +192,6 @@
   /* ====== 组件层：按组件前缀排列，只给单个组件或一类内容用 ====== */
   --card-surface: transparent;
   --favorite: #fbbf24;
-  --brand-mark-bg: #5d77d0 url("/logo-bg.png") center / cover;
   --chart-system: #3e63dd;
   --chart-memory: #6e56cf;
   --chart-skills: #d6409f;
@@ -234,15 +233,6 @@
   --language-indigo: #693acf;
   --language-purple: #a631be;
   --language-pink: #d32a61;
-  --mascot-body: #fde3b4;
-  --mascot-snout: #fda88e;
-  --mascot-eye: #012d47;
-  --mascot-sweat: #6fb6ff;
-  --mascot-heat: #f5a896;
-  --mascot-heat-snout: #e0735e;
-  --mascot-shade: rgba(196, 128, 60, 0.32);
-  --mascot-shadow: rgba(0, 0, 0, 0.2);
-  --mascot-peek-duration: 640ms;
   --float-bg: color-mix(in srgb, var(--bg-raised) 84%, transparent);
   --float-ring: rgba(0, 0, 0, 0.1);
   --float-shadow: 0 0 0 var(--border-width) var(--float-ring), 0 4px 12px -4px rgba(0, 0, 0, 0.08);
@@ -371,7 +361,6 @@ html.dark {
   --language-indigo: #9d6afb;
   --language-purple: #d568ea;
   --language-pink: #ff678d;
-  --mascot-shadow: rgba(0, 0, 0, 0.5);
   --slider-badge-bg: var(--fg);
   --slider-badge-fg: var(--fg-inverse);
   --slider-grip: color-mix(in srgb, var(--fg) 32%, transparent);
