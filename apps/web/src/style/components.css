@@ -558,7 +558,8 @@
 
 :where(.inline-chip) {
   display: inline-flex;
-  align-items: baseline;
+  align-items: center;
+  gap: var(--space-2xs);
   max-width: 100%;
   margin-inline: 1px;
   padding: 1px var(--space-2xs);
@@ -570,16 +571,35 @@
   line-height: inherit;
   vertical-align: baseline;
   text-decoration: none;
-  white-space: normal;
+  white-space: nowrap;
   user-select: none;
   cursor: default;
+}
+
+:where(.inline-chip[data-tone]) {
+  background: var(--tone-subtle);
+  color: var(--tone-text);
+}
+
+:where(.inline-chip-icon) {
+  flex: none;
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
+  color: currentColor;
+}
+
+:where(.inline-chip-label) {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 :where(a.inline-chip, button.inline-chip, .inline-chip[data-file-mention]) {
   cursor: pointer;
 }
 
-:where(a.inline-chip:hover) {
+:where(a.inline-chip:hover, button.inline-chip:hover) {
   text-decoration: underline;
   text-decoration-style: dotted;
 }

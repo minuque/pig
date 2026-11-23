@@ -10,6 +10,7 @@ import {
   sessionReference,
   splitContextEnvelope,
   splitContextText,
+  withReplyComment,
 } from "../src/index.js"
 
 const session = sessionReference("0199-a", "修复 [登录] 流程")
@@ -126,6 +127,55 @@ describe("parseContextText", () => {
       { kind: "reference", reference: session },
       { kind: "text", text: " 再看 " },
       { kind: "reference", reference: extra },
+    ])
+  })
+})
+
+describe("reply reference comment", () => {
+  it("支持附带与修改/清空评论，链接编解码往返一致", () => {
+    const commented = replyReference("0199-a", "e10", "原始引文内容", "  请解释这一段\n第二行  ")
+    const updated = withReplyComment(commented, "新的评论")
+    const cleared = withReplyComment(commented, "   ")
+
+    expect(commented.comment).toBe("请解释这一段\n第二行")
+    expect(commented.label).toBe("请解释这一段 第二行")
+    expect(updated.comment).toBe("新的评论")
+    expect(cleared.comment).toBeUndefined()
+    expect(cleared.label).toBe("原始引文内容")
+
+    const formatted = formatContextReference(commented)
+    const parsed = collectContextReferences(formatted).map((match) => match.reference)
+
+    expect(parsed).toEqual([commented])
+    expect(collectContextReferences("[bad](pig-context://v1/reply/a/b?text=hi&extra=1)")).toEqual(
+      [],
+    )
+    expect(
+      collectContextReferences(
+        `[bad](pig-context://v1/reply/a/b?text=hi&comment=${"x".repeat(4001)})`,
+      ),
+    ).toEqual([])
+  })
+
+  it("发送信封区分引文与用户评论，且同引文不同评论各占独立 ref", () => {
+    const first = replyReference("0199-a", "e10", "comment:\n<context>原话</context>", "第一条评论")
+    const second = replyReference(
+      "0199-a",
+      "e10",
+      "comment:\n<context>原话</context>",
+      "第二条评论\n换行",
+    )
+    const raw = `${formatContextReference(first)} 和 ${formatContextReference(second)}`
+    const projected = projectContextForAgent(raw)
+
+    expect(projected).toContain("comment:\n  第一条评论")
+    expect(projected).toContain("comment:\n  第二条评论\n  换行")
+    expect(projected).toContain("ref=ctx-1")
+    expect(projected).toContain("ref=ctx-2")
+    expect(parseContextText(projected)).toEqual([
+      { kind: "reference", reference: first },
+      { kind: "text", text: " 和 " },
+      { kind: "reference", reference: second },
     ])
   })
 })

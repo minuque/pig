@@ -18,6 +18,7 @@
       @submit="submitIntent"
       @paste-files="attachments.addFiles"
       @open-file="emit('openFile', $event)"
+      @jump-reply="emit('jumpReply', $event)"
       @cancel-queue-edit="emit('cancelQueueEdit')"
       @history-prev="emit('historyPrev')"
       @history-next="emit('historyNext')"
@@ -125,6 +126,7 @@ import type {
   ComposerPreset,
   ComposerVendor,
   ContextUsage,
+  ReplyInsertRequest,
   StopPhase,
 } from "@features/composer/type.js"
 import { PaperclipIcon } from "@components/icons/index.js"
@@ -165,6 +167,7 @@ const emit = defineEmits<{
   saveEdit: []
   abort: []
   openFile: [path: string]
+  jumpReply: [target: { sessionId: string; entryId: string }]
   cancelQueueEdit: []
   historyPrev: []
   historyNext: []
@@ -198,9 +201,10 @@ const split = trySplitView()
 const side = usePaneSide()
 const isPaneActive = () => !split || split.focused.value === side
 const insertMarkdown = (markdown: string) => editor.value?.insertMarkdown(markdown)
+const insertReply = (request: ReplyInsertRequest) => editor.value?.insertReply(request)
 const mentionDrop = useMentionDrop(insertMarkdown)
 
-defineExpose({ insertMarkdown })
+defineExpose({ insertMarkdown, insertReply })
 
 watch(
   () => props.sessionId,
@@ -213,7 +217,11 @@ useComposerAbortHotkey({
   active: isPaneActive,
   running: () => props.running,
   stopping: () => props.stopPhase === "pending",
-  blocked: () => Boolean(previewItem.value) || modelPickerOpen.value || props.editingQueue,
+  blocked: () =>
+    Boolean(previewItem.value) ||
+    modelPickerOpen.value ||
+    props.editingQueue ||
+    Boolean(editor.value?.replyCommentOpen),
   menuOpen: () => editor.value?.menuOpen ?? false,
   abort: () => emit("abort"),
 })

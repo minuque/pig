@@ -6,6 +6,7 @@ export interface TranscriptPositionOptions {
   readScrollTop: () => number | undefined
   restore: (top: number) => void
   pinLatest: () => void
+  skipAutoPosition?: () => boolean
   onSessionChange?: () => void
 }
 
@@ -35,6 +36,8 @@ export function useTranscriptPosition(options: TranscriptPositionOptions) {
 
     if (!target || target !== options.sessionId() || !options.ready()) return
     pendingSession.value = undefined
+
+    if (options.skipAutoPosition?.()) return
     const saved = memory.get(target)
 
     if (saved !== undefined) options.restore(saved)

@@ -30,3 +30,22 @@ export const openFileKey: InjectionKey<{
 export { transcriptModelsKey } from "@features/transcript-view/lib/transcript-models.js"
 
 export { default as TranscriptStatus } from "@features/transcript-view/components/TranscriptStatus.vue"
+
+export interface QuoteReplyRequest {
+  sessionId: string
+  entryId: string
+  text: string
+  anchor: HTMLElement
+}
+
+export interface ReplyJumpTarget {
+  sessionId: string
+  entryId: string
+  seq: number
+}
+
+export const quoteReplyKey: InjectionKey<(request: QuoteReplyRequest) => void> =
+  Symbol("quote-reply")
+export const navigateReplyKey: InjectionKey<
+  (target: { sessionId: string; entryId: string }) => void
+> = Symbol("navigate-reply")

@@ -1,21 +1,33 @@
 <template>
   <EditorContent v-if="editor" class="editor" :editor="editor" />
+
+  <ReplyCommentPopover
+    :open="reply.replyCommentOpen.value"
+    :reference="reply.activeEdit.value?.reference ?? null"
+    :anchor="reply.activeEdit.value?.anchor ?? null"
+    :side="reply.activeEdit.value?.side ?? 'top'"
+    @save="reply.save"
+    @auto-save="reply.autoSave"
+    @save-and-send="reply.saveAndSend"
+    @cancel="reply.cancel"
+    @dismiss="reply.dismiss"
+  />
 </template>
 
 <script setup lang="ts">
 import { watch } from "vue"
-import type { Editor } from "@tiptap/core"
 import { EditorContent, useEditor } from "@tiptap/vue-3"
-import { closeHistory } from "@tiptap/pm/history"
-import { type EditorState, TextSelection } from "@tiptap/pm/state"
+import ReplyCommentPopover from "@features/composer/components/ReplyCommentPopover.vue"
 import { clipboardFiles } from "@features/composer/hooks/use-composer-attachments.js"
+import { useReplyComment } from "@features/composer/hooks/use-reply-comment.js"
+import { insertComposerChip, replaceComposerRange } from "@features/composer/lib/editor/chips.js"
 import {
   copySelection,
+  handlePromptPaste,
   insertMarkdownAtEnd,
-  pasteMarkdown,
 } from "@features/composer/lib/editor/clipboard.js"
 import { buildDocJson } from "@features/composer/lib/editor/doc-parse.js"
-import { markdownOffsetAt, positionAtMarkdown } from "@features/composer/lib/editor/doc-offset.js"
+import { markdownOffsetAt } from "@features/composer/lib/editor/doc-offset.js"
 import { serializeEditorDoc } from "@features/composer/lib/editor/doc-serialize.js"
 import { createComposerExtensions } from "@features/composer/lib/editor/extensions.js"
 import {
@@ -24,15 +36,10 @@ import {
   selectMarkdownOffset,
   stepCaretOnArrow,
 } from "@features/composer/lib/editor/keys.js"
-import {
-  inlineMarkdownUnitMarks,
-  MARKDOWN_SOURCE_MARK,
-} from "@features/composer/lib/editor/rich-text.js"
+import { isInCodeContext } from "@features/composer/lib/editor/markdown-source.js"
 import { wrapSelectionOnInput } from "@features/composer/lib/editor/surround.js"
 import type { ChipInsert, ComposerCaret } from "@features/composer/type.js"
 
-const PASTE_MAX_LINES = 300
-const PASTE_MAX_BYTES = 12_288
 const props = defineProps<{
   modelValue: string
   ariaPlaceholder?: string | undefined
@@ -48,10 +55,11 @@ const emit = defineEmits<{
   composing: [value: boolean]
   blur: []
   openFile: [path: string]
+  jumpReply: [target: { sessionId: string; entryId: string }]
+  submit: []
 }>()
 let syncedText = props.modelValue
 let shiftHeld = false
-let pasteSeq = 0
 const editor = useEditor({
   content: buildDocJson(props.modelValue),
   editable: props.disabled !== true,
@@ -81,6 +89,12 @@ const editor = useEditor({
   onTransaction: ({ transaction }) => sync(transaction.docChanged),
   onBlur: () => emit("blur"),
 })
+const reply = useReplyComment({
+  editor,
+  onOpenFile: (path) => emit("openFile", path),
+  onJumpReply: (target) => emit("jumpReply", target),
+  onSubmit: () => emit("submit"),
+})
 
 watch(viewAttributes, (attributes) => {
   const instance = editor.value
@@ -91,7 +105,11 @@ watch(viewAttributes, (attributes) => {
 
 watch(
   () => props.disabled,
-  (disabled) => editor.value?.setEditable(disabled !== true, false),
+  (disabled) => {
+    editor.value?.setEditable(disabled !== true, false)
+
+    if (disabled) reply.dismiss()
+  },
 )
 
 watch(
@@ -121,32 +139,6 @@ function viewAttributes(): Record<string, string> {
   }
 }
 
-function inShownCode(state: EditorState): boolean {
-  const { $from } = state.selection
-  const source = state.schema.marks[MARKDOWN_SOURCE_MARK]
-
-  if (!source || !$from.parent.inlineContent) return false
-  const text = $from.parent.textBetween(0, $from.parent.content.size, undefined, "￼")
-  const before = inlineMarkdownUnitMarks(text)[$from.parentOffset - 1]
-  return before?.includes("code") === true && !!source.isInSet($from.nodeBefore?.marks ?? [])
-}
-
-function isInCodeContext(state: EditorState): boolean {
-  const { $from, $to, empty } = state.selection
-  const code = state.schema.marks["code"]
-
-  if ($from.parent.type.spec.code === true) return true
-
-  if (
-    code &&
-    (empty ? code.isInSet($from.marks()) : state.doc.rangeHasMark($from.pos, $to.pos, code))
-  ) {
-    return true
-  }
-
-  return inShownCode(state)
-}
-
 function sync(edited: boolean) {
   const instance = editor.value
 
@@ -154,6 +146,7 @@ function sync(edited: boolean) {
   const { doc, selection } = instance.state
 
   if (edited) {
+    reply.syncActive()
     const text = serializeEditorDoc(doc).value
 
     if (text !== syncedText) {
@@ -185,44 +178,16 @@ function onFieldKeydown(event: KeyboardEvent): boolean {
 }
 
 function onPaste(event: ClipboardEvent): boolean {
-  const files = clipboardFiles(event.clipboardData)
-
-  if (files.length) {
-    emit("pasteFiles", files)
-    return true
-  }
-
-  if (shiftHeld) return false
-  const text = event.clipboardData?.getData("text/plain") ?? ""
-  const oversize =
-    text.length > 0 &&
-    (text.split("\n").length > PASTE_MAX_LINES ||
-      new TextEncoder().encode(text).length > PASTE_MAX_BYTES)
-
-  if (oversize) {
-    pasteSeq += 1
-    emit("pasteFiles", [new File([text], `pasted-${pasteSeq}.txt`, { type: "text/plain" })])
-    return true
-  }
-
   const instance = editor.value
 
-  if (!instance || !event.clipboardData) return false
-  event.preventDefault()
-  return pasteMarkdown(instance, instance.view, event.clipboardData)
-}
-
-function chipNode(instance: Editor, chip: ChipInsert) {
-  const { nodes } = instance.schema
-
-  if (chip.kind === "file") {
-    return nodes["fileMention"]?.create({ path: chip.path ?? chip.label, label: chip.label })
-  }
-
-  return nodes["commandChip"]?.create({
-    name: chip.label,
-    kind: chip.kind === "skill" ? "skill" : null,
-  })
+  if (!instance) return false
+  return handlePromptPaste(
+    instance,
+    event,
+    shiftHeld,
+    (files) => emit("pasteFiles", files),
+    clipboardFiles,
+  )
 }
 
 function focus() {
@@ -245,46 +210,29 @@ function isAtEnd(): boolean {
   return state.selection.empty && state.selection.to >= state.doc.content.size - 1
 }
 
-function rangeAt(instance: Editor, start: number, length: number) {
-  const { doc } = instance.state
-  const from = positionAtMarkdown(doc, start)
-  return { from, to: Math.max(from, positionAtMarkdown(doc, start + length)) }
-}
-
 function insertChip(chip: ChipInsert) {
-  const instance = editor.value
-
-  if (!instance) return
-  const node = chipNode(instance, chip)
-
-  if (!node) return
-  const { from, to } = rangeAt(instance, chip.start, chip.triggerLength)
-  const { state } = instance
-  const tr = closeHistory(state.tr.replaceWith(from, to, [node, instance.schema.text(" ")]))
-  const caret = Math.min(from + node.nodeSize + 1, tr.doc.content.size - 1)
-
-  tr.setSelection(TextSelection.create(tr.doc, Math.max(1, caret)))
-  instance.view.dispatch(tr)
-  instance.view.focus()
+  if (editor.value) insertComposerChip(editor.value, chip)
 }
 
 function replaceRange(start: number, triggerLength: number, text: string) {
-  const instance = editor.value
-
-  if (!instance) return
-  const { from, to } = rangeAt(instance, start, triggerLength)
-  const tr = instance.state.tr.insertText(text, from, to)
-
-  tr.setSelection(TextSelection.create(tr.doc, from + text.length))
-  instance.view.dispatch(tr)
-  instance.view.focus()
+  if (editor.value) replaceComposerRange(editor.value, start, triggerLength, text)
 }
 
 function insertMarkdown(text: string) {
   if (editor.value && !editor.value.isDestroyed) insertMarkdownAtEnd(editor.value, text)
 }
 
-defineExpose({ focus, blur, insertChip, insertMarkdown, replaceRange, isAtStart, isAtEnd })
+defineExpose({
+  focus,
+  blur,
+  insertChip,
+  insertMarkdown,
+  insertReply: reply.insertReply,
+  replyCommentOpen: reply.replyCommentOpen,
+  replaceRange,
+  isAtStart,
+  isAtEnd,
+})
 </script>
 
 <style scoped>
@@ -388,9 +336,62 @@ defineExpose({ focus, blur, insertChip, insertMarkdown, replaceRange, isAtStart,
   color: var(--fg-secondary);
 }
 
-.editor :deep(.field ul),
-.editor :deep(.field ol) {
+.editor :deep(.field ul) {
   padding-inline-start: var(--space-lg);
+  list-style-type: disc;
+}
+
+.editor :deep(.field ul ul) {
+  list-style-type: circle;
+}
+
+.editor :deep(.field ul ul ul) {
+  list-style-type: square;
+}
+
+.editor :deep(.field ol) {
+  padding-inline-start: max(var(--space-lg), 3ch);
+  list-style-type: decimal;
+}
+
+.editor :deep(.field ol:has(> li[data-marker-width="3"])) {
+  padding-inline-start: max(var(--space-lg), 4ch);
+}
+
+.editor :deep(.field ol:has(> li[data-marker-width="4"])) {
+  padding-inline-start: max(var(--space-lg), 5ch);
+}
+
+.editor :deep(.field ol:has(> li[data-marker-width="5"])) {
+  padding-inline-start: max(var(--space-lg), 6ch);
+}
+
+.editor :deep(.field ol:has(> li[data-marker-width="6"])) {
+  padding-inline-start: max(var(--space-lg), 7ch);
+}
+
+.editor :deep(.field ol:has(> li[data-marker-width="7"])) {
+  padding-inline-start: max(var(--space-lg), 8ch);
+}
+
+.editor :deep(.field ol:has(> li[data-marker-width="8"])) {
+  padding-inline-start: max(var(--space-lg), 9ch);
+}
+
+.editor :deep(.field ol:has(> li[data-marker-width="9"])) {
+  padding-inline-start: max(var(--space-lg), 10ch);
+}
+
+.editor :deep(.field ol:has(> li[data-marker-width="10"])) {
+  padding-inline-start: max(var(--space-lg), 11ch);
+}
+
+.editor :deep(.field ol > li::marker) {
+  font-variant-numeric: tabular-nums;
+}
+
+.editor :deep(.field ol > li[data-marker]::marker) {
+  content: attr(data-marker) " ";
 }
 
 .editor :deep(.field li::marker) {
@@ -407,9 +408,13 @@ defineExpose({ focus, blur, insertChip, insertMarkdown, replaceRange, isAtStart,
   margin-block: var(--space-xs);
 }
 
+.editor :deep(.field ul[data-type="taskList"]),
+.editor :deep(.field ul[data-type="taskList"] ul[data-type="taskList"]) {
+  list-style: none;
+}
+
 .editor :deep(.field ul[data-type="taskList"]) {
   padding-inline-start: 0;
-  list-style: none;
 }
 
 .editor :deep(.field ul[data-type="taskList"] ul[data-type="taskList"]) {
@@ -456,7 +461,12 @@ defineExpose({ focus, blur, insertChip, insertMarkdown, replaceRange, isAtStart,
   display: none;
 }
 
-.editor :deep(.is-chip-selected) {
+.editor :deep(.chip-node) {
+  display: inline;
+}
+
+.editor :deep(.is-chip-selected.inline-chip),
+.editor :deep(.is-chip-selected .inline-chip) {
   background: var(--bg-selected);
   color: var(--accent-text);
 }

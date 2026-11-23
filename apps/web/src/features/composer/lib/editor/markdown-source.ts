@@ -18,7 +18,11 @@ import {
 import { StepMap } from "@tiptap/pm/transform"
 import { Decoration, DecorationSet, type EditorView } from "@tiptap/pm/view"
 import { caretTakesMarksBefore } from "@features/composer/lib/editor/doc-offset.js"
-import { MARKDOWN_SOURCE_MARK, type RichTextMark } from "@features/composer/lib/editor/rich-text.js"
+import {
+  inlineMarkdownUnitMarks,
+  MARKDOWN_SOURCE_MARK,
+  type RichTextMark,
+} from "@features/composer/lib/editor/rich-text.js"
 import {
   collapseMarkdownSource,
   collapseRegion,
@@ -326,3 +330,24 @@ export const ComposerMarkdownSource = TiptapMark.create({
     return [markdownSourcePlugin(this.type), replayPlugin]
   },
 })
+
+export function isInCodeContext(state: EditorState): boolean {
+  const { $from, $to, empty } = state.selection
+  const code = state.schema.marks["code"]
+
+  if ($from.parent.type.spec.code === true) return true
+
+  if (
+    code &&
+    (empty ? code.isInSet($from.marks()) : state.doc.rangeHasMark($from.pos, $to.pos, code))
+  ) {
+    return true
+  }
+
+  const source = state.schema.marks[MARKDOWN_SOURCE_MARK]
+
+  if (!source || !$from.parent.inlineContent) return false
+  const text = $from.parent.textBetween(0, $from.parent.content.size, undefined, "￼")
+  const before = inlineMarkdownUnitMarks(text)[$from.parentOffset - 1]
+  return before?.includes("code") === true && !!source.isInSet($from.nodeBefore?.marks ?? [])
+}

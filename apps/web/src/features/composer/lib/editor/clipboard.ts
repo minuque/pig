@@ -1,7 +1,6 @@
 import type { Editor, JSONContent } from "@tiptap/core"
 import { NodeSelection, TextSelection } from "@tiptap/pm/state"
 import type { EditorView } from "@tiptap/pm/view"
-import { CONTEXT_REFERENCE_MIME } from "@pig/protocol"
 import { splitPromptSegments } from "@features/composer/lib/editor/chip-tokens.js"
 import { buildTiptapContent } from "@features/composer/lib/editor/doc-parse.js"
 import { markdownOffsetAt } from "@features/composer/lib/editor/doc-offset.js"
@@ -15,6 +14,41 @@ import { markAsClipboardEdit } from "@features/composer/lib/editor/undo-grouping
 
 export const COMPOSER_CLIPBOARD_MIME = "application/x-pig-composer"
 const NESTED = new Set(["listItem", "taskItem", "blockquote"])
+const PASTE_MAX_LINES = 300
+const PASTE_MAX_BYTES = 12_288
+let pasteSeq = 0
+
+export function handlePromptPaste(
+  editor: Editor,
+  event: ClipboardEvent,
+  shiftHeld: boolean,
+  onFiles: (files: File[]) => void,
+  extractFiles: (data: DataTransfer | null) => File[],
+): boolean {
+  const files = extractFiles(event.clipboardData)
+
+  if (files.length) {
+    onFiles(files)
+    return true
+  }
+
+  if (shiftHeld) return false
+  const text = event.clipboardData?.getData("text/plain") ?? ""
+  const oversize =
+    text.length > 0 &&
+    (text.split("\n").length > PASTE_MAX_LINES ||
+      new TextEncoder().encode(text).length > PASTE_MAX_BYTES)
+
+  if (oversize) {
+    pasteSeq += 1
+    onFiles([new File([text], `pasted-${pasteSeq}.txt`, { type: "text/plain" })])
+    return true
+  }
+
+  if (!event.clipboardData) return false
+  event.preventDefault()
+  return pasteMarkdown(editor, editor.view, event.clipboardData)
+}
 
 export function copySelection(view: EditorView, event: ClipboardEvent, cut: boolean): boolean {
   const { clipboardData } = event
@@ -106,13 +140,6 @@ export function insertMarkdownAtEnd(editor: Editor, text: string): void {
 }
 
 export function pasteMarkdown(editor: Editor, view: EditorView, data: DataTransfer): boolean {
-  const context = data.getData(CONTEXT_REFERENCE_MIME)
-
-  if (context && view.state.selection.$from.parent.type.spec.code !== true) {
-    insertParsed(editor, view, padChips(view, context))
-    return true
-  }
-
   const composerText = data.getData(COMPOSER_CLIPBOARD_MIME)
   const text = (composerText || data.getData("text/plain")).replace(/\r\n?/g, "\n")
 

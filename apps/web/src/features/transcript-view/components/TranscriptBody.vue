@@ -32,7 +32,12 @@
                   :running="running"
                   :is-expand="isExpand"
                   :expanded-tools="expandedTools"
-                  :eager="turnIndex >= turns.length - EAGER_TURNS || shownTurns.has(turn.id)"
+                  :eager="
+                    turnIndex >= turns.length - EAGER_TURNS ||
+                    shownTurns.has(turn.id) ||
+                    forcedTurnId === turn.id
+                  "
+                  :highlighted-entry-id="highlightedEntryId"
                   @toggle-expand="onToggleExpand"
                   @toggle-tool="onToggleTool"
                   @shown="shownTurns.add($event)"
@@ -68,10 +73,12 @@ import TranscriptMinimap from "@features/transcript-view/components/TranscriptMi
 import TurnRow from "@features/transcript-view/components/TurnRow.vue"
 import { useTranscriptExpand } from "@features/transcript-view/hooks/use-transcript-expand.js"
 import { useTranscriptFollow } from "@features/transcript-view/hooks/use-transcript-follow.js"
+import { useTranscriptJump } from "@features/transcript-view/hooks/use-transcript-jump.js"
 import { useTranscriptMinimap } from "@features/transcript-view/hooks/use-transcript-minimap.js"
 import { useTranscriptPosition } from "@features/transcript-view/hooks/use-transcript-position.js"
 import { useTranscriptReveal } from "@features/transcript-view/hooks/use-transcript-edge.js"
 import { TRANSCRIPT_SESSION_ID } from "@features/transcript-view/hooks/use-full-tool-output.js"
+import type { ReplyJumpTarget } from "@features/transcript-view/index.js"
 import type { SessionPhase, TranscriptItem } from "@/types/common-type.js"
 import type { TurnTiming } from "@/types/common-type.js"
 import { MINIMAP_MIN_ITEMS } from "@features/transcript-view/lib/transcript-minimap.js"
@@ -97,9 +104,14 @@ const props = withDefaults(
     sending?: boolean
     stopping?: boolean
     timings?: readonly TurnTiming[] | undefined
+    jumpTarget?: ReplyJumpTarget | null
+    historyReady?: boolean
   }>(),
-  { sending: false, stopping: false },
+  { sending: false, stopping: false, jumpTarget: null, historyReady: true },
 )
+const emit = defineEmits<{
+  jumpSettled: [seq: number]
+}>()
 
 provide(TRANSCRIPT_SESSION_ID, toRef(props, "sessionId"))
 
@@ -268,6 +280,17 @@ function pinLatest() {
 
 const { readyFrame } = useTranscriptReveal(rows)
 const runwayId = shallowRef<string>()
+const { forcedTurnId, highlightedEntryId, resetJump } = useTranscriptJump({
+  sessionId: () => props.sessionId,
+  historyReady: () => props.historyReady,
+  turns,
+  shownTurns,
+  column,
+  jumpTarget: () => props.jumpTarget,
+  scrollToElement,
+  pinLatest,
+  onSettled: (seq) => emit("jumpSettled", seq),
+})
 
 useTranscriptPosition({
   sessionId: () => props.sessionId,
@@ -275,7 +298,9 @@ useTranscriptPosition({
   readScrollTop: () => scrollerRoot()?.scrollTop,
   restore: restoreScrollTop,
   pinLatest,
+  skipAutoPosition: () => props.jumpTarget?.sessionId === props.sessionId,
   onSessionChange: () => {
+    resetJump()
     runwayId.value = undefined
     rowsBuilder.reset()
     reset()

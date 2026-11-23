@@ -63,4 +63,16 @@ describe("userMessageText", () => {
       { kind: "text", text: " 看" },
     ])
   })
+
+  it("userMessageParts 与 userMessageText 保留回复引用中的评论", () => {
+    const reply = replyReference("s1", "e9", "原始回答内容", "请重点看这一句")
+    const raw = `${formatContextReference(reply)} 补充说明`
+    const full = projectContextForAgent(raw)
+
+    expect(userMessageText(user(full))).toBe("[Reply: 请重点看这一句] 补充说明")
+    expect(userMessageParts(user(full))).toEqual([
+      { kind: "reference", reference: reply },
+      { kind: "text", text: " 补充说明" },
+    ])
+  })
 })

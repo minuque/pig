@@ -26,7 +26,7 @@ async function openComplex(page: Page, gateway: { entryUrl: string; workspaceId:
 
 const field = (page: Page) => page.getByRole("textbox", { name: "Prompt" })
 
-test("文件树里的文件与目录拖到输入卡成为 @ chip，提交原文带路径", async ({
+test("文件树里的文件与目录拖到输入卡成为 @ chip，带图标与语义色且使用 Tooltip，提交原文带路径", async ({
   page,
   complexGateway,
 }) => {
@@ -44,15 +44,51 @@ test("文件树里的文件与目录拖到输入卡成为 @ chip，提交原文�
   await pane.locator('.file-tree-row[data-path="src/example.ts"]').dragTo(prompt)
   await pane.locator('.file-tree-row[data-path="src/nested"]').dragTo(prompt)
 
+  const fileChip = prompt.locator('.chip[data-file-mention="src/example.ts"]')
+  const dirChip = prompt.locator('.chip[data-file-mention="src/nested"]')
+
   await expect(prompt.locator(".chip[data-file-mention]")).toHaveText(["example.ts", "nested"])
+  await expect(fileChip).toHaveAttribute("data-tone", "info")
+  await expect(dirChip).toHaveAttribute("data-tone", "info")
+  await expect(fileChip).not.toHaveAttribute("title")
+  await expect(dirChip).not.toHaveAttribute("title")
+  await expect(fileChip.locator("svg")).toHaveCount(1)
+  await expect(dirChip.locator("svg")).toHaveCount(1)
   await expect(page.locator(".attach-tray .chip")).toHaveCount(0)
 
+  await fileChip.hover()
+  await expect(page.locator('[data-slot="tooltip-content"][data-open]')).toContainText(
+    "src/example.ts",
+  )
+
+  await prompt.pressSequentially("/clear")
+  await prompt.press("Escape")
+  await prompt.press("Control+a")
+  await prompt.press("Delete")
+  await prompt.evaluate((element) => {
+    const data = new DataTransfer()
+    data.setData("text/plain", "/clear ")
+    element.dispatchEvent(
+      new ClipboardEvent("paste", { bubbles: true, cancelable: true, clipboardData: data }),
+    )
+  })
+  const cmdChip = prompt.locator('.chip[data-command-chip="clear"]')
+  await expect(cmdChip).toHaveAttribute("data-tone", "accent")
+  await expect(cmdChip).not.toHaveAttribute("title")
+  await expect(cmdChip.locator("svg")).toHaveCount(1)
+  await cmdChip.hover()
+  await expect(page.locator('[data-slot="tooltip-content"][data-open]')).toContainText("/clear")
+
+  await prompt.press("Control+a")
+  await prompt.press("Delete")
+  await pane.locator('.file-tree-row[data-path="src/example.ts"]').dragTo(prompt)
+  await pane.locator('.file-tree-row[data-path="src/nested"]').dragTo(prompt)
   await prompt.press("Control+Enter")
   await expect.poll(() => bridge.prompts.length).toBe(1)
   expect(bridge.prompts[0]?.trim()).toBe("@src/example.ts @src/nested")
 })
 
-test("复制助手回复的一段，粘到输入卡成为回复引用 chip；切走再回来草稿不丢，提交原文带引用", async ({
+test("复制助手回复保留纯文本；点击右下角引用按钮在弹层编写评论、支持取消撤回与二次编辑", async ({
   page,
   complexGateway,
 }) => {
@@ -60,42 +96,96 @@ test("复制助手回复的一段，粘到输入卡成为回复引用 chip；切
   const bridge = await installTurnBridge(page)
 
   await openComplex(page, complexGateway)
-  const paragraph = page.locator(".row-assistant p", { hasText: "已写入时间线" }).last()
+  const assistantRow = page.locator(".row-assistant").last()
+  const paragraph = assistantRow.locator("p", { hasText: "已写入时间线" }).last()
   const quote = (await paragraph.textContent())!.trim()
   const copied = await paragraph.evaluate((element, mime) => {
     const selection = document.getSelection()!
     selection.selectAllChildren(element)
     const data = new DataTransfer()
-
-    element.dispatchEvent(
-      new ClipboardEvent("copy", { bubbles: true, cancelable: true, clipboardData: data }),
-    )
-    return { plain: data.getData("text/plain"), context: data.getData(mime) }
+    const event = new ClipboardEvent("copy", {
+      bubbles: true,
+      cancelable: true,
+      clipboardData: data,
+    })
+    const dispatched = element.dispatchEvent(event)
+    return {
+      intercepted: !dispatched || event.defaultPrevented,
+      selectedText: selection.toString(),
+      context: data.getData(mime),
+      types: Array.from(data.types),
+    }
   }, CONTEXT_MIME)
 
-  expect(copied.plain.trim()).toBe(quote)
-  expect(copied.context).toMatch(
-    new RegExp(`^\\[.+\\]\\(pig-context://v1/reply/${COMPLEX_SESSION_ID}/[^/?]+\\?text=`),
-  )
+  expect(copied.intercepted).toBe(false)
+  expect(copied.selectedText.trim()).toBe(quote)
+  expect(copied.context).toBe("")
+  expect(copied.types).not.toContain(CONTEXT_MIME)
 
   const prompt = field(page)
   await prompt.click()
-  await prompt.evaluate(
-    (element, entries) => {
-      const data = new DataTransfer()
+  await prompt.evaluate((element, plain) => {
+    const data = new DataTransfer()
+    data.setData("text/plain", plain)
+    element.dispatchEvent(
+      new ClipboardEvent("paste", { bubbles: true, cancelable: true, clipboardData: data }),
+    )
+  }, copied.selectedText)
+  await expect(prompt).toContainText(quote)
+  await expect(prompt.locator('.chip[data-context-kind="reply"]')).toHaveCount(0)
+  await prompt.press("Control+a")
+  await prompt.press("Delete")
 
-      for (const [type, value] of Object.entries(entries)) data.setData(type, value)
-      element.dispatchEvent(
-        new ClipboardEvent("paste", { bubbles: true, cancelable: true, clipboardData: data }),
-      )
-    },
-    { "text/plain": copied.plain, [CONTEXT_MIME]: copied.context },
-  )
+  const quoteButton = assistantRow.locator("[data-quote-reply-button]")
+  await expect(quoteButton).toBeVisible()
+  await quoteButton.click()
 
-  const chip = prompt.locator('.chip[data-context-kind="reply"]')
-  await expect(chip).toHaveCount(1)
-  await expect(chip).toHaveAttribute("title", copied.plain)
-  await prompt.pressSequentially("这里展开说说")
+  const popover = page.locator('[data-slot="popover-content"].reply-popover')
+  await expect(popover).toBeVisible()
+  await expect(prompt.locator('.chip[data-context-kind="reply"]')).toHaveCount(1)
+
+  await popover.locator("textarea").press("Escape")
+  await expect(popover).toHaveCount(0)
+  await expect(prompt.locator('.chip[data-context-kind="reply"]')).toHaveCount(0)
+
+  await paragraph.evaluate((element) => {
+    const selection = document.getSelection()!
+    selection.selectAllChildren(element)
+  })
+  await quoteButton.click()
+  await expect(popover).toBeVisible()
+  await expect(popover).toContainText(quote)
+
+  const commentInput = popover.locator("textarea")
+  await commentInput.fill("第一版评论")
+  await commentInput.press("Enter")
+  await expect(popover).toHaveCount(0)
+
+  const replyChip = prompt.locator('.chip[data-context-kind="reply"]')
+  await expect(replyChip).toHaveCount(1)
+  await expect(replyChip).toHaveAttribute("data-tone", "warning")
+  await expect(replyChip).not.toHaveAttribute("title")
+  await expect(replyChip).toContainText("第一版评论")
+  await expect(replyChip.locator("svg")).toHaveCount(2)
+
+  await replyChip.hover()
+  const hoverCard = page.locator('[data-slot="hover-card-content"][data-open]')
+  await expect(hoverCard).toContainText(quote)
+  await expect(hoverCard).toContainText("第一版评论")
+
+  await replyChip.locator("[data-reply-edit-trigger]").click()
+  await expect(popover).toBeVisible()
+  await popover.locator("textarea").fill("未确认的修改")
+  await popover.locator("textarea").press("Escape")
+  await expect(popover).toHaveCount(0)
+  await expect(replyChip).toContainText("第一版评论")
+
+  await replyChip.locator("[data-reply-edit-trigger]").click()
+  await expect(popover).toBeVisible()
+  await popover.locator("textarea").fill("点击外部自动保存")
+  await page.locator(".composer-card .footer").click()
+  await expect(popover).toHaveCount(0)
+  await expect(replyChip).toContainText("点击外部自动保存")
 
   await page.locator(".nav-head").getByRole("button", { name: "新建会话", exact: true }).click()
   await expect(field(page).locator(".chip")).toHaveCount(0)
@@ -103,17 +193,25 @@ test("复制助手回复的一段，粘到输入卡成为回复引用 chip；切
     .locator(".session-card", { has: page.getByText(COMPLEX_SESSION_NAME, { exact: true }) })
     .click()
   await expect(page).toHaveURL(new RegExp(`/sessions/${COMPLEX_SESSION_ID}$`))
-  await expect(field(page).locator('.chip[data-context-kind="reply"]')).toHaveCount(1)
+  await expect(field(page).locator('.chip[data-context-kind="reply"]')).toContainText(
+    "点击外部自动保存",
+  )
 
-  await field(page).click()
-  await field(page).press("Control+Enter")
+  await field(page).locator('.chip[data-context-kind="reply"] [data-reply-edit-trigger]').click()
+  await expect(popover).toBeVisible()
+  await popover.locator("textarea").fill("直接发送的评论")
+  await popover.locator("textarea").press("Control+Enter")
+
   await expect.poll(() => bridge.prompts.length).toBe(1)
-  expect(bridge.prompts[0]).toBe(`${copied.context} 这里展开说说`)
+  expect(bridge.prompts[0]).toContain("pig-context://v1/reply/")
+  expect(bridge.prompts[0]).toContain("comment=")
 
-  const bubbleChip = page.locator('.row-user .chip[data-context-kind="reply"]').last()
-  await expect(bubbleChip).toBeVisible()
-  await bubbleChip.hover()
-  await expect(page.locator('[data-slot="hover-card-content"]')).toContainText(copied.plain)
+  const replyCard = page.locator('.row-user .reply-card[data-context-kind="reply"]').last()
+  await expect(replyCard).toBeVisible()
+  await expect(replyCard).toContainText(quote)
+  await expect(page.locator(".row-user .reply-comment").last()).toHaveText("直接发送的评论")
+  await replyCard.hover()
+  await expect(page.locator('[data-slot="hover-card-content"][data-open]')).toContainText(quote)
 })
 
 const REF_SESSION_A_ID = "e2e-ref-a"
@@ -151,34 +249,6 @@ function seedRefSession(sessionDir: string, cwd: string, id: string, title: stri
   return file
 }
 
-async function copyElementWithContext(element: Locator) {
-  return element.evaluate((node, mime) => {
-    const selection = document.getSelection()!
-    selection.selectAllChildren(node)
-    const data = new DataTransfer()
-
-    node.dispatchEvent(
-      new ClipboardEvent("copy", { bubbles: true, cancelable: true, clipboardData: data }),
-    )
-    return { plain: data.getData("text/plain"), context: data.getData(mime) }
-  }, CONTEXT_MIME)
-}
-
-async function pasteWithContext(element: Locator, plain: string, context: string) {
-  await element.click()
-  await element.evaluate(
-    (node, entries) => {
-      const data = new DataTransfer()
-
-      for (const [type, value] of Object.entries(entries)) data.setData(type, value)
-      node.dispatchEvent(
-        new ClipboardEvent("paste", { bubbles: true, cancelable: true, clipboardData: data }),
-      )
-    },
-    { "text/plain": plain, [CONTEXT_MIME]: context },
-  )
-}
-
 async function dragSidebarCardTo(page: Page, from: Locator, point: { x: number; y: number }) {
   const start = await from.boundingBox()
 
@@ -190,7 +260,7 @@ async function dragSidebarCardTo(page: Page, from: Locator, point: { x: number; 
   await page.mouse.up()
 }
 
-test("刚跑完的回合直接复制回复引用获真实条目 id，连同会话引用发送并在气泡与刷新后可悬停/跳转", async ({
+test("刚跑完的回合点引用按钮获真实条目 id，连同会话引用发送后块级卡片与跨会话跳转及刷新都正常", async ({
   page,
 }) => {
   test.setTimeout(120_000)
@@ -214,18 +284,25 @@ test("刚跑完的回合直接复制回复引用获真实条目 id，连同会�
       await prompt.fill("请给出一句测试回复")
       await prompt.press("Control+Enter")
 
-      const firstReply = page.locator(".row-assistant p", { hasText: fauxReply(1) }).last()
+      const firstReplyRow = page.locator(".row-assistant").last()
+      const firstReply = firstReplyRow.locator("p", { hasText: fauxReply(1) }).last()
       await expect(firstReply).toBeVisible({ timeout: 30_000 })
-      await expect(page.locator(".row-assistant").last().locator(".message-stamp")).toBeVisible({
-        timeout: 30_000,
-      })
+      await expect(firstReplyRow.locator(".message-stamp")).toBeVisible({ timeout: 30_000 })
 
-      const copied = await copyElementWithContext(firstReply)
+      await firstReplyRow.locator("[data-quote-reply-button]").click()
+      const popover = page.locator('[data-slot="popover-content"].reply-popover')
+      await expect(popover).toBeVisible()
+      await popover.locator("textarea").fill("请结合这段继续说明")
+      await popover.locator("textarea").press("Enter")
+      await expect(popover).toHaveCount(0)
+
+      const composerReplyChip = prompt.locator('.chip[data-context-kind="reply"]')
+      await expect(composerReplyChip).toHaveCount(1)
+      const refSource = await composerReplyChip.getAttribute("data-context-reference")
       const match = new RegExp(`pig-context://v1/reply/${REF_SESSION_A_ID}/([^/?]+)\\?`).exec(
-        copied.context,
+        refSource ?? "",
       )
 
-      expect(copied.plain.trim()).toBe(fauxReply(1))
       expect(match?.[1]).toBeTruthy()
       expect(match?.[1]).not.toMatch(/^m\d+$/)
 
@@ -242,9 +319,6 @@ test("刚跑完的回合直接复制回复引用获真实条目 id，连同会�
 
       expect(match?.[1]).toBe(persistedEntry?.id)
 
-      await pasteWithContext(prompt, copied.plain, copied.context)
-      await expect(prompt.locator('.chip[data-context-kind="reply"]')).toHaveCount(1)
-
       const composerBox = await page.locator(".composer-card").boundingBox()
       expect(composerBox).not.toBeNull()
       await dragSidebarCardTo(
@@ -252,27 +326,41 @@ test("刚跑完的回合直接复制回复引用获真实条目 id，连同会�
         page.locator(".session-card", { hasText: REF_SESSION_B_NAME }).first(),
         { x: composerBox!.x + composerBox!.width / 2, y: composerBox!.y - 40 },
       )
-      await expect(prompt.locator('.chip[data-context-kind="session"]')).toHaveText(
-        REF_SESSION_B_NAME,
-      )
+      const composerSessionChip = prompt.locator('.chip[data-context-kind="session"]')
+      await expect(composerSessionChip).toHaveText(REF_SESSION_B_NAME)
+      await expect(composerSessionChip).toHaveAttribute("data-tone", "success")
+      await expect(composerSessionChip).not.toHaveAttribute("title")
+      await expect(composerSessionChip.locator("svg")).toHaveCount(1)
 
-      await prompt.pressSequentially("请结合这两处回答")
       await prompt.press("Control+Enter")
       await expect(page.getByText(fauxReply(2), { exact: true })).toBeVisible({ timeout: 30_000 })
 
       const checkBubble = async () => {
         const bubble = page.locator(".row-user").last()
-        const replyChip = bubble.locator('.chip[data-context-kind="reply"]')
+        const replyCard = bubble.locator('.reply-card[data-context-kind="reply"]')
+        const replyComment = bubble.locator(".reply-comment")
         const sessionChip = bubble.locator('.chip[data-context-kind="session"]')
 
-        await expect(replyChip).toHaveCount(1)
+        await expect(replyCard).toHaveCount(1)
+        await expect(replyCard).toContainText(fauxReply(1))
+        await expect(replyComment).toHaveText("请结合这段继续说明")
         await expect(sessionChip).toHaveText(REF_SESSION_B_NAME)
+        await expect(sessionChip).toHaveAttribute("data-tone", "success")
+        await expect(sessionChip).not.toHaveAttribute("title")
+        await expect(sessionChip.locator("svg")).toHaveCount(1)
         await expect(bubble).not.toContainText("<pig_context")
         await expect(bubble).not.toContainText("pig-context://")
         await expect(bubble).not.toContainText("[Session:")
 
-        await replyChip.hover()
-        await expect(page.locator('[data-slot="hover-card-content"]')).toContainText(fauxReply(1))
+        await replyCard.hover()
+        await expect(page.locator('[data-slot="hover-card-content"][data-open]')).toContainText(
+          fauxReply(1),
+        )
+
+        await sessionChip.hover()
+        await expect(page.locator('[data-slot="tooltip-content"][data-open]')).toContainText(
+          REF_SESSION_B_NAME,
+        )
       }
 
       await checkBubble()
@@ -281,8 +369,31 @@ test("刚跑完的回合直接复制回复引用获真实条目 id，连同会�
       await expect(page.getByText(fauxReply(2), { exact: true })).toBeVisible({ timeout: 30_000 })
       await checkBubble()
 
+      await page.locator('.row-user .reply-card[data-context-kind="reply"]').last().click()
+      await expect(
+        page.locator(
+          `.row-assistant article[data-entry-id="${persistedEntry!.id}"][data-jump-highlighted]`,
+        ),
+      ).toBeVisible()
+
       await page.locator('.row-user .chip[data-context-kind="session"]').last().click()
       await expect(page).toHaveURL(new RegExp(`/sessions/${REF_SESSION_B_ID}$`))
+
+      await field(page).click()
+      await field(page).evaluate((element, source) => {
+        const data = new DataTransfer()
+        data.setData("text/plain", source)
+        element.dispatchEvent(
+          new ClipboardEvent("paste", { bubbles: true, cancelable: true, clipboardData: data }),
+        )
+      }, refSource!)
+      await field(page).locator('.chip[data-context-kind="reply"] .reply-chip-main').click()
+      await expect(page).toHaveURL(new RegExp(`/sessions/${REF_SESSION_A_ID}$`))
+      await expect(
+        page.locator(
+          `.row-assistant article[data-entry-id="${persistedEntry!.id}"][data-jump-highlighted]`,
+        ),
+      ).toBeVisible()
     },
     undefined,
     async (temp) => ({ createRuntime: () => createReplyRuntime(join(temp, "agent")) }),

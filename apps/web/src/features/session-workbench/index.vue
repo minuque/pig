@@ -52,6 +52,9 @@
             :sending="submitting"
             :stopping="aborting || stopPhase === 'pending'"
             :timings="turnTimings"
+            :jump-target="pendingJump"
+            :history-ready="!sessionPending"
+            @jump-settled="onJumpSettled"
           >
             <SessionRail />
 
@@ -73,23 +76,11 @@
           :class="{ 'is-hero': welcome, 'settle-in': settleIn, 'beside-rail': railDocked }"
         >
           <div class="composer-stack">
-            <div class="session-floating-controls" :class="{ shown: showScrollToLatest }">
-              <span class="scroll-latest">
-                <Button
-                  class="scroll-latest-button"
-                  type="button"
-                  variant="solid"
-                  color="neutral"
-                  size="s"
-                  radius="full"
-                  @click="scrollToLatest('smooth')"
-                >
-                  <LoaderIcon v-if="turnPending" class="size-icon is-spinning" />
-                  <ArrowDownIcon v-else class="size-icon" />
-                  {{ t("transcript.scrollToBottom") }}
-                </Button>
-              </span>
-            </div>
+            <ScrollLatestButton
+              :shown="showScrollToLatest"
+              :pending="turnPending"
+              @click="scrollToLatest('smooth')"
+            />
 
             <ExternalTurnNotice />
 
@@ -116,6 +107,7 @@
               @history-prev="historyPrev"
               @history-next="historyNext"
               @open-file="filePane.openFile($event)"
+              @jump-reply="jumpToReply"
               @abort="abort"
             >
               <template v-if="transcriptStatus" #plate>
@@ -133,7 +125,6 @@
 import { computed, onMounted, ref, useTemplateRef, watch } from "vue"
 import { useResizeObserver } from "@vueuse/core"
 import { useRoute } from "vue-router"
-import { Button } from "@components/ui/button/index.js"
 import Composer from "@features/composer/index.vue"
 import { useComposerPreset } from "@features/composer/index.js"
 import { useComposerAttachments } from "@features/composer/hooks/use-composer-attachments.js"
@@ -141,6 +132,7 @@ import { useComposerDraft } from "@features/composer/hooks/use-composer-draft.js
 import { useComposerQueue } from "@features/composer/hooks/use-composer-queue.js"
 import { useFilePane } from "@features/file-pane/index.js"
 import QueuedPanel from "@features/session-workbench/components/QueuedPanel.vue"
+import ScrollLatestButton from "@features/session-workbench/components/ScrollLatestButton.vue"
 import { useSound } from "@features/click-sound/index.js"
 import { useI18n } from "@i18n/index.js"
 import { sessionDropTargetAttrs, useNav } from "@features/session-nav/index.js"
@@ -154,6 +146,7 @@ import { useComposerDock } from "@features/session-workbench/hooks/use-composer-
 import { useComposerReserve } from "@features/session-workbench/hooks/use-composer-reserve.js"
 import { useComposerSubmit } from "@features/session-workbench/hooks/use-composer-submit.js"
 import { useFileDrop } from "@features/session-workbench/hooks/use-file-drop.js"
+import { useReplyNavigation } from "@features/session-workbench/hooks/use-reply-navigation.js"
 import { useSessionDrop } from "@features/session-workbench/hooks/use-session-drop.js"
 import { useTurnFinish } from "@features/session-workbench/hooks/use-turn-finish.js"
 import { useWelcomeWorkspace } from "@features/session-workbench/hooks/use-welcome-workspace.js"
@@ -162,7 +155,7 @@ import SessionRail from "@features/session-rail/index.vue"
 import { useSessionRail } from "@features/session-rail/index.js"
 import RemoteWorkspaceDialog from "@features/remote-workspace/index.vue"
 import { prefetchTranscriptView, TranscriptStatus } from "@features/transcript-view/index.js"
-import { ArrowDownIcon, FilePlusIcon, LoaderIcon } from "@components/icons/index.js"
+import { FilePlusIcon } from "@components/icons/index.js"
 
 onMounted(() => {
   if (typeof requestIdleCallback === "function")
@@ -180,6 +173,7 @@ const {
   phase,
   submitting,
   turnPending,
+  sessionPending,
   connectionError,
   connected,
   prompt,
@@ -255,6 +249,10 @@ const composerAttachments = useComposerAttachments()
 const composerDraft = useComposerDraft(prompt)
 const filePane = useFilePane()
 const composer = useTemplateRef("composer")
+const { pendingJump, jumpToReply, onJumpSettled } = useReplyNavigation({
+  sessionId,
+  onQuote: (request) => composer.value?.insertReply(request),
+})
 
 useSessionDrop(panel, (markdown) => composer.value?.insertMarkdown(markdown))
 
@@ -438,48 +436,6 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
   pointer-events: auto;
 }
 
-.session-floating-controls {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline: 0;
-  z-index: var(--z-raise);
-  display: flex;
-  justify-content: center;
-  height: 0;
-  overflow: visible;
-  pointer-events: none;
-  opacity: 0;
-  translate: 0 var(--space-2xs);
-  transition:
-    opacity var(--duration-fast) var(--ease-out),
-    translate var(--duration-normal) var(--ease-spring);
-}
-
-.session-floating-controls.shown {
-  opacity: 1;
-  translate: 0 0;
-}
-
-.session-floating-controls.shown .scroll-latest {
-  pointer-events: auto;
-}
-
-.scroll-latest {
-  display: flex;
-  align-self: flex-start;
-  translate: 0 calc(-100% - var(--space-sm));
-}
-
-.scroll-latest-button {
-  background-color: var(--bg-inverse);
-  color: var(--fg-inverse);
-}
-
-.scroll-latest-button:hover {
-  background-color: var(--bg-inverse-hover);
-  background-image: none;
-}
-
 @media (max-width: 900px) {
   .composer-bar {
     padding-inline: var(--space-sm);
@@ -487,10 +443,6 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .session-floating-controls {
-    transition: none;
-  }
-
   .drop-guide {
     transition: none;
   }

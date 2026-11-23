@@ -47,7 +47,12 @@ function sameContextReference(left: ContextReference, right: ContextReference): 
     return false
 
   if (left.kind === "session") return true
-  return right.kind === "reply" && left.entryId === right.entryId && left.text === right.text
+  return (
+    right.kind === "reply" &&
+    left.entryId === right.entryId &&
+    left.text === right.text &&
+    (left.comment ?? "") === (right.comment ?? "")
+  )
 }
 
 export function sameContextSegments(

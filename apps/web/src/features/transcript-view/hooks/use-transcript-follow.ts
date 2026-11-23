@@ -405,7 +405,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     glideToBottom()
   }
 
-  function scrollToElement(el: HTMLElement) {
+  function scrollToElement(el: HTMLElement, block: ScrollLogicalPosition = "start") {
     detachFollow()
     atBottom.value = false
     visuallyAtBottom.value = false
@@ -419,7 +419,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
       navTimer = window.setTimeout(finishNavigate, COOLDOWN_MS)
     }
 
-    el.scrollIntoView({ block: "start", behavior: userScrollBehavior() })
+    el.scrollIntoView({ block, behavior: userScrollBehavior() })
   }
 
   function restoreScrollTop(top: number) {

@@ -64,6 +64,7 @@ export {
   PinOffIcon,
   PuzzleIcon,
   PlusIcon,
+  QuoteIcon,
   RotateCcwClockIcon,
   RotateCcwIcon,
   SearchIcon,

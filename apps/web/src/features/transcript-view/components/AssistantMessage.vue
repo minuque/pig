@@ -1,6 +1,12 @@
 <template>
-  <article ref="root" @copy="onCopy">
-    <MarkdownContent v-if="item.text" :nodes="nodes" :streaming="streaming" />
+  <article
+    :data-entry-id="item.entryId || undefined"
+    :data-jump-highlighted="highlighted || undefined"
+  >
+    <div v-if="item.text" ref="content">
+      <MarkdownContent :nodes="nodes" :streaming="streaming" />
+    </div>
+
     <div v-else-if="streaming" class="md-pending" aria-hidden="true"></div>
 
     <MessageTimestamp
@@ -9,13 +15,40 @@
       :timestamp="item.timestamp"
       :text="item.text"
       pinned
-    />
+    >
+      <template #actions>
+        <Tooltip v-if="canQuote">
+          <TooltipTrigger as-child>
+            <IconButton
+              type="button"
+              size="s"
+              variant="ghost"
+              color="neutral"
+              class="quote-button"
+              data-quote-reply-button
+              :aria-label="t('transcript.quoteReply')"
+              @pointerdown.prevent
+              @mousedown.prevent
+              @click.stop="onQuoteClick"
+            >
+              <QuoteIcon class="size-icon" />
+            </IconButton>
+          </TooltipTrigger>
+
+          <TooltipContent>{{ t("transcript.quoteReply") }}</TooltipContent>
+        </Tooltip>
+      </template>
+    </MessageTimestamp>
   </article>
 </template>
 
 <script setup lang="ts">
-import { useTemplateRef } from "vue"
-import { CONTEXT_REFERENCE_MIME, formatContextReference, replyReference } from "@pig/protocol"
+import { computed, inject, useTemplateRef } from "vue"
+import { useI18n } from "@i18n/index.js"
+import { QuoteIcon } from "@components/icons/index.js"
+import { IconButton } from "@components/ui/button/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { quoteReplyKey } from "@features/transcript-view/index.js"
 import MessageTimestamp from "@features/transcript-view/components/MessageTimestamp.vue"
 import MarkdownContent from "@features/transcript-view/components/markdown/MarkdownContent.vue"
 import { useMarkdownNodes } from "@features/transcript-view/hooks/use-markdown-nodes.js"
@@ -26,46 +59,89 @@ const props = withDefaults(
     item: AssistantRow
     streaming?: boolean
     sessionId?: string
+    highlighted?: boolean
   }>(),
-  { streaming: false, sessionId: "" },
+  { streaming: false, sessionId: "", highlighted: false },
 )
-const root = useTemplateRef("root")
+const { t } = useI18n()
+const quoteReply = inject(quoteReplyKey, undefined)
+const content = useTemplateRef("content")
 const nodes = useMarkdownNodes({
   text: () => props.item.text,
   streaming: () => props.streaming,
   cacheKey: () => (props.sessionId ? `${props.sessionId}/${props.item.id}` : props.item.id),
 })
+const canQuote = computed(() =>
+  Boolean(
+    quoteReply &&
+    !props.streaming &&
+    !props.item.streaming &&
+    props.sessionId &&
+    props.item.entryId &&
+    props.item.text.trim(),
+  ),
+)
 
-function onCopy(event: ClipboardEvent) {
+function selectedTextInMessage(): string {
   const selection = document.getSelection()
-  const range = selection && !selection.isCollapsed ? selection.getRangeAt(0) : undefined
-  const box = root.value
+  const box = content.value
 
-  if (!event.clipboardData || !range || !box || !props.sessionId || props.item.streaming) return
+  if (!selection || selection.isCollapsed || selection.rangeCount === 0 || !box) return ""
+  const range = selection.getRangeAt(0)
 
-  if (!box.contains(range.startContainer) || !box.contains(range.endContainer)) return
-  const text = selection!.toString()
+  if (!box.contains(range.startContainer) || !box.contains(range.endContainer)) return ""
+  const text = selection.toString()
+  return text.trim() ? text : ""
+}
 
-  if (!text.trim()) return
-  const html = document.createElement("div")
+function onQuoteClick(event: MouseEvent) {
+  const anchor = event.currentTarget
 
-  html.append(range.cloneContents())
-  event.preventDefault()
-  event.clipboardData.setData("text/plain", text)
-  event.clipboardData.setData("text/html", html.innerHTML)
-  event.clipboardData.setData(
-    CONTEXT_REFERENCE_MIME,
-    formatContextReference(replyReference(props.sessionId, props.item.entryId, text)),
-  )
+  if (!(anchor instanceof HTMLElement) || !quoteReply || !props.sessionId || !props.item.entryId) {
+    return
+  }
+
+  const quote = selectedTextInMessage() || props.item.text
+
+  if (!quote.trim()) return
+  quoteReply({
+    sessionId: props.sessionId,
+    entryId: props.item.entryId,
+    text: quote,
+    anchor,
+  })
 }
 </script>
 
 <style scoped>
+article {
+  border-radius: var(--radius-card);
+  transition: background-color var(--duration-normal) var(--ease-out);
+}
+
+article[data-jump-highlighted] {
+  background: var(--warning-subtle);
+}
+
 .md-pending {
   min-height: calc(var(--text-body) * 1.625);
 }
 
 .message-stamp {
   margin-top: var(--space-sm);
+}
+
+.quote-button {
+  color: var(--fg-secondary);
+}
+
+.quote-button:hover {
+  color: var(--fg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  article {
+    transition: none;
+  }
 }
 </style>

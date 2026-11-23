@@ -159,12 +159,14 @@ export function contextReferenceAttrs(attrs: Record<string, unknown>): ContextRe
   const label = String(attrs["label"] ?? "")
 
   if (attrs["kind"] !== "reply") return { kind: "session", sessionId, label }
+  const comment = typeof attrs["comment"] === "string" ? attrs["comment"].trim() : ""
   return {
     kind: "reply",
     sessionId,
     entryId: String(attrs["entryId"] ?? ""),
     text: String(attrs["text"] ?? ""),
     label,
+    ...(comment ? { comment } : {}),
   }
 }
 

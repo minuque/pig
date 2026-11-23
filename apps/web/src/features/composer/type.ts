@@ -89,6 +89,13 @@ export interface QueueDraftPatch {
   attachments?: ComposerAttachmentBatch | undefined
 }
 
+export interface ReplyInsertRequest {
+  sessionId: string
+  entryId: string
+  text: string
+  anchor: HTMLElement
+}
+
 export type {
   ContextUsage,
   ContextUsageSegment,
