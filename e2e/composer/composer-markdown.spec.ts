@@ -59,9 +59,9 @@ test("行内标记与围栏代码块按 Markdown 渲染并原样提交", async (
   await prompt.click()
   await prompt.pressSequentially("**粗体** 和 `代码`")
   await expect(prompt.locator("strong")).toHaveText("粗体")
-  await expect(prompt.locator("code")).toHaveText("代码")
 
   await prompt.press("Shift+Enter")
+  await expect(prompt.locator("code")).toHaveText("代码")
   await prompt.pressSequentially("```ts")
   await prompt.press("Enter")
   await prompt.pressSequentially("const a = 1")
