@@ -1,5 +1,13 @@
 <template>
-  <form class="prompt" @submit.prevent="submitIntent">
+  <form
+    class="prompt"
+    :data-mention-over="mentionDrop.over.value || undefined"
+    @submit.prevent="submitIntent"
+    @dragenter.capture="mentionDrop.onDrag"
+    @dragover.capture="mentionDrop.onDrag"
+    @dragleave="mentionDrop.onLeave"
+    @drop.capture="mentionDrop.onDrop"
+  >
     <PromptEditor
       ref="editor"
       v-model:prompt="prompt"
@@ -107,6 +115,7 @@ import PreviewDialog from "@features/preview/index.vue"
 import { trySplitView, usePaneSide } from "@features/split-view/index.js"
 import type { ComposerAttachment } from "@/types/attachment-type.js"
 import { useComposerAbortHotkey } from "@features/composer/hooks/use-composer-abort-hotkey.js"
+import { useMentionDrop } from "@features/composer/hooks/use-mention-drop.js"
 import {
   MAX_COMPOSER_ATTACHMENTS,
   type ComposerAttachmentsApi,
@@ -188,6 +197,10 @@ const steerHeld = computed(() => editor.value?.steerHeld ?? false)
 const split = trySplitView()
 const side = usePaneSide()
 const isPaneActive = () => !split || split.focused.value === side
+const insertMarkdown = (markdown: string) => editor.value?.insertMarkdown(markdown)
+const mentionDrop = useMentionDrop(insertMarkdown)
+
+defineExpose({ insertMarkdown })
 
 watch(
   () => props.sessionId,
@@ -254,5 +267,12 @@ watch(previewItem, (item, previous) => {
   margin-inline: auto;
   padding: 0;
   background: transparent;
+}
+
+.prompt:is([data-mention-over], [data-session-drop-over]) :deep(.composer-card) {
+  box-shadow:
+    0 0 0 var(--border-width) var(--accent-solid),
+    var(--composer-inset),
+    var(--composer-shadow);
 }
 </style>

@@ -1,19 +1,24 @@
 import { useEventListener } from "@vueuse/core"
-import type { MaybeRefOrGetter } from "vue"
-import { t } from "@i18n/index.js"
-import { notifyAction } from "@components/layout/notify.js"
+import type { Ref } from "vue"
+import { formatContextReference, sessionReference } from "@pig/protocol"
 import { SESSION_DROP_EVENT, type DroppedSession } from "@features/session-nav/index.js"
-import { sessionReferenceFile } from "@features/session-workbench/lib/session-reference.js"
 
-export function useSessionDrop(
-  target: MaybeRefOrGetter<HTMLElement | null | undefined>,
-  addFiles: (files: File[]) => void,
-): void {
-  useEventListener(target, SESSION_DROP_EVENT, (event: Event) => {
-    const sessions = (event as CustomEvent<readonly DroppedSession[]>).detail
+interface ReferenceTarget {
+  $el: HTMLElement
+  insertMarkdown(markdown: string): void
+}
 
-    void Promise.all(sessions.map(sessionReferenceFile))
-      .then(addFiles)
-      .catch(() => notifyAction(t("composer.sessionReferenceFailed")))
-  })
+export function useSessionDrop(composer: Readonly<Ref<ReferenceTarget | null>>): void {
+  useEventListener(
+    () => composer.value?.$el,
+    SESSION_DROP_EVENT,
+    (event: Event) => {
+      const sessions = (event as CustomEvent<readonly DroppedSession[]>).detail
+      const markdown = sessions
+        .map((session) => formatContextReference(sessionReference(session.id, session.title)))
+        .join(" ")
+
+      if (markdown) composer.value?.insertMarkdown(markdown)
+    },
+  )
 }

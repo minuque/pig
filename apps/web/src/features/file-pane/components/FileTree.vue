@@ -20,6 +20,8 @@
         :data-path="item.value"
         :data-active="item.value === active || undefined"
         :style="{ insetBlockStart: `${index * ROW_HEIGHT}px` }"
+        draggable="true"
+        @dragstart="onDragStart($event, item.value)"
         @dblclick="!item.children && pane.openFile(item.value, { pin: true })"
       >
         <TreeItemLabel v-slot="{ state }" class="file-tree-label">
@@ -56,6 +58,7 @@ import { useI18n } from "@i18n/index.js"
 import { listWorkspaceDir } from "@client/platform.js"
 import LanguageIcon from "@components/icons/LanguageIcon.vue"
 import { ChevronRightIcon, FolderIcon, FolderOpenIcon } from "@components/icons/index.js"
+import { COMPOSER_MENTION_MIME, mentionMarkdown } from "@features/composer/lib/composer-trigger.js"
 import { ancestors } from "@features/file-pane/lib/tree.js"
 import { useFilePane } from "@features/file-pane/index.js"
 import type { DirectoryEntry } from "@/types/common-type.js"
@@ -113,6 +116,12 @@ async function refresh() {
 
 function onScroll(event: Event) {
   scrollTop.value = (event.currentTarget as HTMLElement).scrollTop
+}
+
+function onDragStart(event: DragEvent, path: string) {
+  if (!event.dataTransfer) return
+  event.dataTransfer.effectAllowed = "copy"
+  event.dataTransfer.setData(COMPOSER_MENTION_MIME, mentionMarkdown(path))
 }
 
 function onAction(value: string) {

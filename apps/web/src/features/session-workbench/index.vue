@@ -3,7 +3,6 @@
     ref="panel"
     class="session-panel"
     :class="{ 'is-drop-active': dropActive }"
-    v-bind="sessionDropTargetAttrs"
     @dragenter="onDragEnter"
     @dragover="onDragOver"
     @dragleave="onDragLeave"
@@ -94,6 +93,8 @@
             <ExternalTurnNotice />
 
             <Composer
+              ref="composer"
+              v-bind="sessionDropTargetAttrs"
               v-model:prompt="prompt"
               v-model:preset="preset"
               :catalog="catalog"
@@ -253,8 +254,9 @@ const sound = useSound()
 const composerAttachments = useComposerAttachments()
 const composerDraft = useComposerDraft(prompt)
 const filePane = useFilePane()
+const composer = useTemplateRef("composer")
 
-useSessionDrop(panel, composerAttachments.addFiles)
+useSessionDrop(composer)
 
 const composerQueue = useComposerQueue()
 
@@ -343,8 +345,7 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.session-panel.is-drop-active .drop-guide,
-.session-panel[data-session-drop-over] .drop-guide {
+.session-panel.is-drop-active .drop-guide {
   opacity: 1;
 }
 
