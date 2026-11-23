@@ -28,11 +28,11 @@
 
 <script setup lang="ts">
 import { ref } from "vue"
-import { notifyAction } from "@components/ui/toast/index.js"
+import { notifyAction } from "@pig/ui/toast"
 import { EyeIcon } from "@components/icons/index.js"
 import { errorMessage } from "@client/http.js"
-import { Button } from "@components/ui/button/index.js"
-import { Banner } from "@components/ui/banner/index.js"
+import { Button } from "@pig/ui/button"
+import { Banner } from "@pig/ui/banner"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -42,7 +42,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@components/ui/alert-dialog/index.js"
+} from "@pig/ui/alert-dialog"
 import { useI18n } from "@i18n/index.js"
 import { useSession } from "@features/session/index.js"
 

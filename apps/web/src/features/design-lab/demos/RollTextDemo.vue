@@ -23,8 +23,8 @@
 import { ref } from "vue"
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { Button } from "@components/ui/button/index.js"
-import { RollText } from "@components/ui/roll-text/index.js"
+import { Button } from "@pig/ui/button"
+import { RollText } from "@pig/ui/roll-text"
 
 const labels = ["Reading files", "Running checks", "All checks passed"]
 const index = ref(0)

@@ -149,10 +149,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@components/ui/alert-dialog/index.js"
-import { Badge } from "@components/ui/badge/index.js"
-import { Button } from "@components/ui/button/index.js"
-import { Checkbox } from "@components/ui/checkbox/index.js"
+} from "@pig/ui/alert-dialog"
+import { Badge } from "@pig/ui/badge"
+import { Button } from "@pig/ui/button"
+import { Checkbox } from "@pig/ui/checkbox"
 import ArchiveRow from "@features/settings/components/ArchiveRow.vue"
 import ArchiveToolbar from "@features/settings/components/ArchiveToolbar.vue"
 import { useArchivePane } from "@features/settings/hooks/use-archive-pane.js"

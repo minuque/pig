@@ -48,7 +48,7 @@
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
 import { ref } from "vue"
-import { Button } from "@components/ui/button/index.js"
+import { Button } from "@pig/ui/button"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -58,7 +58,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@components/ui/alert-dialog/index.js"
+} from "@pig/ui/alert-dialog"
 
 const deleteOpen = ref(false)
 const largeOpen = ref(false)

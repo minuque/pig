@@ -59,14 +59,14 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { Button, IconButton } from "@components/ui/button/index.js"
+import { Button, IconButton } from "@pig/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+} from "@pig/ui/dropdown-menu"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { useI18n } from "@i18n/index.js"
 import { GlobeIcon, MoonIcon, SettingsIcon, SunIcon } from "@components/icons/index.js"
 import { useGeneralPrefs } from "@features/settings/index.js"

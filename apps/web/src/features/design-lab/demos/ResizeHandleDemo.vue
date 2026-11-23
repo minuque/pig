@@ -31,7 +31,7 @@
 import { ref } from "vue"
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { dragResize, ResizeHandle } from "@components/ui/resize-handle/index.js"
+import { dragResize, ResizeHandle } from "@pig/ui/resize-handle"
 
 const leftWidth = ref(180)
 const dragging = ref(false)

@@ -52,7 +52,7 @@
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
 import { ref } from "vue"
-import { RadioCards, RadioCardsItem } from "@components/ui/radio-cards/index.js"
+import { RadioCards, RadioCardsItem } from "@pig/ui/radio-cards"
 
 const value = ref("a")
 </script>

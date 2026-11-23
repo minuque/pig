@@ -41,7 +41,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@components/ui/alert-dialog/index.js"
+} from "@pig/ui/alert-dialog"
 import FileNotice from "@features/file-pane/components/FileNotice.vue"
 import { useFilePane } from "@features/file-pane/index.js"
 

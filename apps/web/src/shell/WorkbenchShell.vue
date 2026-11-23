@@ -79,7 +79,7 @@ import { computed, onBeforeUnmount, onMounted, provide, shallowRef, useTemplateR
 import { useEventListener, useResizeObserver } from "@vueuse/core"
 import { useRoute, useRouter } from "vue-router"
 import AppLayout from "@components/layout/AppLayout.vue"
-import { Toaster, notify } from "@components/ui/toast/index.js"
+import { Toaster, notify } from "@pig/ui/toast"
 
 import { useLocalWorkspaces } from "@client/local-cwd.js"
 import { useGatewayClient } from "@client/gateway-connection.js"

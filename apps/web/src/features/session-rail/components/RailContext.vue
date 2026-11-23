@@ -64,7 +64,7 @@
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { Link } from "@components/ui/link/index.js"
+import { Link } from "@pig/ui/link"
 import {
   contextUsageSummary,
   formatTokenCount,

@@ -50,7 +50,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { IconButton } from "@components/ui/button/index.js"
+import { IconButton } from "@pig/ui/button"
 import { XIcon } from "@components/icons/index.js"
 import type { ComposerAttachment } from "@/types/attachment-type.js"
 import AttachmentChip from "@features/composer/components/AttachmentChip.vue"

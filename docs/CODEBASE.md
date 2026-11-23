@@ -11,6 +11,7 @@ packages/gateway/      Thin Host：平台接入与本地安全
 packages/protocol/     gateway 与 web 之间的 WS 消息与 HTTP 数据形状，只有类型
 packages/extensions/   pig 内置的 pi 扩展，只用公开 Extension API，只由 gateway 加载
 packages/environment/  工具运行的环境：本机或 SSH；执行命令、读写文件、搜索、环境列表
+packages/ui/           可复用的 Vue 3 设计系统：基础 token、主题色板派生与无业务基础组件
 e2e/                   浏览器 UI 旅程（Playwright，跨 Web 构建物与 Gateway）
 scripts/               开发、构建、发版、架构看板与 check 入口
 docs/                  设计、产品与代码库文档；架构看板的数据与生成结果
@@ -20,14 +21,13 @@ docs/                  设计、产品与代码库文档；架构看板的数据
 
 ```
 apps/web/src/
-├── App.vue         # 主题与路由出口
+├── App.vue         # 主题、UI 文案注入与路由出口
 ├── assets/         # 字体等静态资源
-├── style/          # 全局样式：app.css 是入口，tokens.css 定 token，components.css 是原子类
+├── style/          # 应用样式：app.css 先引 @pig/ui/styles/index.css，再叠应用 token 与分片
 ├── client/         # 网络、凭证、传输、本地目录偏好
 ├── components/
 │   ├── icons/      # 图标：Lucide 注册表、语言与供应商标
-│   ├── layout/     # 壳层
-│   └── ui/         # 基础件：@ui-sdk/vue 的行为 + 自持外观
+│   └── layout/     # 壳层
 ├── features/       # 领域模块
 ├── shell/          # 应用壳：启动门、布局与全局弹层的组合
 ├── i18n/           # 文案与语言切换
@@ -44,13 +44,22 @@ apps/web/src/
 
 ### style/
 
-`app.css` 只做入口，按顺序引重置与各分片；`reset.css` 归零浏览器默认值（放在 `base` 层，不压库样式），`tokens.css` 放全局 token、深浅覆盖与 `data-tone` → `--tone-*` 的色调槽位（token 都挂在文档根上，顶层弹层不用另包容器）；组件外观写在各自 SFC 的 `data-*` 规则里，`desktop.css` 放桌面壳的拖拽与弹层规则，`markdown.css` 是助手正文（Comark 渲染）的排版，`mermaid.css` 把 pele 图的主题变量接到 token，`components.css` 是布局、排版、颜色与圆角的原子类加共用组件类，`globals.css` 放字体文件与文档基线（body 的底与字色、原生元素行为、焦点环默认、滚动条）。`globals.css` 不分层且排在最后：库的默认值比 `reset.css` 的 `base` 层优先，要靠它压住。
+`app.css` 只做入口，先引 `@pig/ui/styles/index.css`（内部依次加载 `base` 层重置、设计系统 `tokens.css`、通用动效 `motion.css` 与原子/菜单基类 `components.css`），再顺序叠加应用的 `tokens.css`、`motion.css`、`markdown.css`（Comark 正文排版）、`mermaid.css`（pele 图主题映射）、`desktop.css`（桌面壳拖拽与弹层规则）和 `globals.css`（字体文件与文档基线）。
 
-`components.css` 只保留全站共用的基础工具类（`truncate`、`select-none`、`sr-only`、`font-*`、`size-icon*`）、毛玻璃壳类（`surface-float`、`glass-backdrop`、`glass-panel`）以及菜单基础样式（`:where([data-menu-*])`），值只读 `tokens.css` 的 token；具体组件布局与间距直接写在各自 SFC 的 scoped 样式里，不再维护全套原子工具类。新增类名前先确认名字没有被任何 scoped 块当作业务类名用过。
+### packages/ui
 
-### components/ui/
+可独立跨项目复用的 Vue 3 设计系统（导出为 `@pig/ui`、`@pig/ui/theme`、`@pig/ui/styles` 与 `@pig/ui/<component>`）：
 
-基础件共用的尺寸档类型在 `@/types/ui-type.js`：`Size` 是 s / m / l，菜单另用 `MenuSize` 的 s / m。基础件的 props 照 Radix Themes 的语义（`size`、`variant`、`color`、`highContrast`、`radius`），尺寸档只有 s / m / l 三档。`components/ui/` 只放基础件（@ui-sdk/vue 的行为 + 自持外观），业务样式不回流到这里。
+```
+packages/ui/src/
+├── index.ts        # 聚合导出 core、theme 与全部基础组件
+├── core/           # 基础尺寸/色调/圆角类型，以及 provideUiLabels / useUiLabels 文案注入
+├── theme/          # 主题类型与 OKLCH 配色派生（不依赖存储或业务状态）
+├── styles/         # reset、通用 tokens、通用动效与基础工具/菜单类
+└── ui/             # 31 组无业务基础组件（@ui-sdk/vue 行为 + data-slot / data-tone 外观）
+```
+
+业务代码只从 `@pig/ui` 或 `@pig/ui/<component>` 引入基础类型与组件；`packages/ui` 内通过 `eslint` 的 `pig/ui-layer` 与 `css-tokens` 保证不回流应用路径、应用 token 与文案库。
 
 ### features/\<module\>/
 

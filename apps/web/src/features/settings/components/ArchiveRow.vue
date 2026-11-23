@@ -120,18 +120,18 @@
 import { computed } from "vue"
 import { ArchiveIcon, ArchiveRestoreIcon, TrashIcon } from "@components/icons/index.js"
 import VendorMark from "@components/icons/VendorMark.vue"
-import { Badge } from "@components/ui/badge/index.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { Checkbox } from "@components/ui/checkbox/index.js"
+import { Badge } from "@pig/ui/badge"
+import { IconButton } from "@pig/ui/button"
+import { Checkbox } from "@pig/ui/checkbox"
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuTrigger,
-} from "@components/ui/context-menu/index.js"
-import { StatusIndicator } from "@components/ui/status-indicator/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+} from "@pig/ui/context-menu"
+import { StatusIndicator } from "@pig/ui/status-indicator"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { formatRelativeAge, type ArchiveSessionRow } from "@features/settings/lib/archive-view.js"
 import { useI18n } from "@i18n/index.js"
 

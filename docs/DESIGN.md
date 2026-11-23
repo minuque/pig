@@ -75,7 +75,7 @@ spacing:
 
 ## Token 分层
 
-`apps/web/src/style/tokens.css` 分三层，组件只读后两层：
+`packages/ui/src/styles/tokens.css`（设计系统共用）与 `apps/web/src/style/tokens.css`（应用专属）分三层，组件只读后两层：
 
 1. **原色阶**：7 个标识色 `--hue-*` 与色调派生参数（`--tone-*` 比例与悬停混合目标色），不引外部色板，由 `data-tone` 槽位消费。
 2. **语义层**：全站共用，一个概念一个词：`fg`、`bg`、`border`、`accent`、状态 `-text` / `-subtle`。
@@ -183,7 +183,7 @@ spacing:
 | 静态卡片 | `--bg-surface` 或 1px `--border` inset 细线，二选一，不加阴影 |
 
 - 环都已写进上面的阴影 token，组件只写一行 `box-shadow: var(--…)`，不补 `border`。
-- 分行卡片用 `CardList` + `CardRow`（`@components/ui/card`），不自写行线与内边距。
+- 分行卡片用 `CardList` + `CardRow`（`@pig/ui/card`），不自写行线与内边距。
 
 ## 控件
 
@@ -196,7 +196,7 @@ spacing:
 - **显示模型名的地方，前面一律加 `VendorMark`（传模型的 provider）。**
   Why：和模型选择器一致，一眼认出供应商。
   <!-- 2026-11-21：「模型名称前补上模型icon」 -->
-- **通知一律走 `notify()`（`@components/ui/toast/index.js`），显示在右下角。页面上已能看到同样内容的（如 transcript 里的请求失败行）传 `transient: true`，5 秒后消失；只有页面别处看不到的错误才常驻。**
+- **通知一律走 `notify()`（`@pig/ui/toast`），显示在右下角。页面上已能看到同样内容的（如 transcript 里的请求失败行）传 `transient: true`，5 秒后消失；只有页面别处看不到的错误才常驻。**
   Why：同一条报错在 toast 和页面里各留一份，常驻的 toast 只是重复。
   <!-- 2026-11-21：「显示在右下角」；当前会话出错 toast 改为 5 秒消失，回复「ok」 -->
 - `TextFieldRoot` 的 `invalid` 表达错误态（危险色内环与焦点环）。

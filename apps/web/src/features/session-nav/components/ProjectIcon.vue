@@ -16,7 +16,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { Badge } from "@components/ui/badge/index.js"
+import { Badge } from "@pig/ui/badge"
 import { FolderIcon } from "@components/icons/index.js"
 import { PROJECT_ICONS } from "@components/icons/project-icons.js"
 import { projectMonogram, workspaceName } from "@features/session-nav/lib/format.js"

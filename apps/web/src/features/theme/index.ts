@@ -1,6 +1,6 @@
 import { computed, effectScope, nextTick, watch, type ComputedRef } from "vue"
 import { updatePreferences, userPreferences } from "@client/preferences.js"
-import type { ColorScheme, ThemePreset, ThemePresetId } from "@/types/theme-type.js"
+import type { ColorScheme, ThemePreset, ThemePresetId } from "@pig/ui/theme"
 import { useIsDark, useThemeMode } from "@utils/theme-mode.js"
 import { useThemePreset } from "@utils/theme-preset.js"
 

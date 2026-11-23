@@ -72,7 +72,7 @@
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
 import { ref } from "vue"
-import { Button } from "@components/ui/button/index.js"
+import { Button } from "@pig/ui/button"
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -83,7 +83,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu/index.js"
+} from "@pig/ui/dropdown-menu"
 
 const showHidden = ref(false)
 const choice = ref("a")

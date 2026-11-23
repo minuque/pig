@@ -66,13 +66,13 @@ import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue"
 import { useResizeObserver } from "@vueuse/core"
 import { Tabs, TabsList, TabsTab } from "@ui-sdk/vue/tabs"
 import { useI18n } from "@i18n/index.js"
-import { IconButton } from "@components/ui/button/index.js"
+import { IconButton } from "@pig/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu/index.js"
+} from "@pig/ui/dropdown-menu"
 import { ChevronDownIcon, XIcon } from "@components/icons/index.js"
 import { pathBasename } from "@features/transcript-view/lib/tool-summary.js"
 import { useFilePane } from "@features/file-pane/index.js"

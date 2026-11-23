@@ -34,9 +34,9 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { TableRoot } from "@components/ui/table/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { IconButton } from "@pig/ui/button"
+import { TableRoot } from "@pig/ui/table"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { Maximize2Icon } from "@components/icons/index.js"
 import PreviewDialog from "@features/preview/index.vue"
 import { headingBefore } from "@features/transcript-view/lib/nearest-heading.js"

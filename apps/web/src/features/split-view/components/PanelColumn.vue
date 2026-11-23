@@ -29,7 +29,7 @@
 import { computed, useTemplateRef } from "vue"
 import { useResizeObserver } from "@vueuse/core"
 import { Resizable, ResizableHandle, ResizablePanel } from "@ui-sdk/vue/resizable"
-import { ResizeHandle } from "@components/ui/resize-handle/index.js"
+import { ResizeHandle } from "@pig/ui/resize-handle"
 import { PANEL_MIN_HEIGHT } from "@features/split-view/lib/panel-stack.js"
 import { usePaneSide, type PanelHost, type PanelKind } from "@features/split-view/index.js"
 

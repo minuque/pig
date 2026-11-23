@@ -16,7 +16,7 @@ import {
   removeArchivedSessionLocal,
   unarchiveSessions as requestUnarchiveSessions,
 } from "@client/session-archives.js"
-import { notify } from "@components/ui/toast/index.js"
+import { notify } from "@pig/ui/toast"
 import { t } from "@i18n/index.js"
 import {
   deleteSession as requestDeleteSession,

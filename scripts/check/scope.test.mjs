@@ -45,10 +45,14 @@ describe("classifyTouched", () => {
     assert.deepEqual(scope.packages, [])
   })
 
-  it("改 gateway 连带检查依赖它的 desktop", () => {
+  it("改上游包连带检查依赖它的包", () => {
     assert.deepEqual(classifyTouched(["packages/gateway/src/cli.ts"]).packages, [
       "@pig/gateway",
       "@pig/desktop",
+    ])
+    assert.deepEqual(classifyTouched(["packages/ui/src/ui/button/Button.vue"]).packages, [
+      "@pig/ui",
+      "@pig/web",
     ])
     assert.deepEqual(classifyTouched(["apps/web/src/App.vue"]).packages, ["@pig/web"])
   })
@@ -98,6 +102,8 @@ describe("classifyTouched", () => {
   it("UI 改动（模板与样式）标记为 ui，纯数据不算", () => {
     assert.equal(classifyTouched(["apps/web/src/App.vue"]).ui, true)
     assert.equal(classifyTouched(["apps/web/src/style/app.css"]).ui, true)
+    assert.equal(classifyTouched(["packages/ui/src/ui/button/Button.vue"]).ui, true)
+    assert.equal(classifyTouched(["packages/ui/src/theme/palette.ts"]).ui, false)
     assert.equal(classifyTouched(["apps/web/src/features/theme/index.ts"]).ui, false)
     assert.equal(classifyTouched(["packages/gateway/src/cli.ts"]).ui, false)
   })

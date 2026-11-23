@@ -92,8 +92,8 @@
 <script setup lang="ts">
 import { computed, shallowRef, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { Popover, PopoverContent } from "@components/ui/popover/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { Popover, PopoverContent } from "@pig/ui/popover"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import type { TranscriptMinimapItem } from "@features/transcript-view/type.js"
 import {
   MINIMAP_RAIL_PITCH,

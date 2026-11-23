@@ -68,7 +68,7 @@ import {
   ContextMenuLabel,
   ContextMenuSeparator,
   ContextMenuTrigger,
-} from "@components/ui/context-menu/index.js"
+} from "@pig/ui/context-menu"
 
 const bookmarked = ref(false)
 </script>

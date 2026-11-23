@@ -21,5 +21,5 @@
 <script setup lang="ts">
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { Spinner } from "@components/ui/spinner/index.js"
+import { Spinner } from "@pig/ui/spinner"
 </script>

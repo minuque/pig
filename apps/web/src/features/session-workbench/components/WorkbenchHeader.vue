@@ -166,9 +166,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@components/ui/dropdown-menu/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { IconButton } from "@components/ui/button/index.js"
+} from "@pig/ui/dropdown-menu"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
+import { IconButton } from "@pig/ui/button"
 import ProjectIcon from "@features/session-nav/components/ProjectIcon.vue"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import RailToggle from "@features/session-rail/components/RailToggle.vue"

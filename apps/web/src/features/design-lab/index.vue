@@ -105,8 +105,8 @@ import {
   FileTextIcon,
   SearchIcon,
 } from "@components/icons/index.js"
-import { Button } from "@components/ui/button/index.js"
-import { TabsList, TabsRoot, TabsTrigger } from "@components/ui/tabs/index.js"
+import { Button } from "@pig/ui/button"
+import { TabsList, TabsRoot, TabsTrigger } from "@pig/ui/tabs"
 import { useColorScheme } from "@features/theme/index.js"
 import { useGeneralPrefs } from "@features/settings/index.js"
 import DesignGuide from "@features/design-lab/components/DesignGuide.vue"

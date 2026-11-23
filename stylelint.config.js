@@ -39,7 +39,7 @@ export default {
   },
   overrides: [
     {
-      files: ["apps/web/src/style/tokens.css"],
+      files: ["apps/web/src/style/tokens.css", "packages/ui/src/styles/tokens.css"],
       rules: { "pig/no-comments": [true, { sectionHeaders: true }] },
     },
     {

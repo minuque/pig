@@ -1,10 +1,13 @@
 import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
-import { DERIVED_THEME_TOKENS } from "@utils/theme-palette.js"
 
-const tokensCss = readFileSync(
+const appTokensCss = readFileSync(
   fileURLToPath(new URL("../../src/style/tokens.css", import.meta.url)),
+  "utf8",
+)
+const uiTokensCss = readFileSync(
+  fileURLToPath(new URL("../../../../packages/ui/src/styles/tokens.css", import.meta.url)),
   "utf8",
 )
 
@@ -27,36 +30,18 @@ function varsBySelector(css: string, selector: string): Map<string, string> {
   return vars
 }
 
-describe("tokens.css contract", () => {
-  const rootVars = varsBySelector(tokensCss, ":root")
-  const darkVars = varsBySelector(tokensCss, "html.dark")
+describe("apps/web tokens.css contract", () => {
+  const appRootVars = varsBySelector(appTokensCss, ":root")
+  const appDarkVars = varsBySelector(appTokensCss, "html.dark")
+  const uiRootVars = varsBySelector(uiTokensCss, ":root")
 
-  it("包含主题派生所需的全部基础变量", () => {
-    for (const token of DERIVED_THEME_TOKENS)
-      expect(rootVars.has(token), `missing ${token} in :root`).toBe(true)
+  it("html.dark 中的应用级覆写都在 apps/web :root 中有定义", () => {
+    for (const token of appDarkVars.keys())
+      expect(appRootVars.has(token), `dark override ${token} missing in apps/web :root`).toBe(true)
   })
 
-  it("固定控件三档高度与核心切换变量契约", () => {
-    expect(rootVars.get("--control-sm")).toBe("28px")
-    expect(rootVars.get("--control-md")).toBe("32px")
-    expect(rootVars.get("--control-lg")).toBe("36px")
-
-    for (const token of ["--switch-thumb-unchecked", "--tone-hover-target"]) {
-      expect(rootVars.has(token), `missing ${token} in :root`).toBe(true)
-      expect(darkVars.has(token), `missing ${token} in html.dark`).toBe(true)
-    }
-  })
-
-  it("六个基础色调均提供 --tone 与 --tone-text", () => {
-    for (const tone of ["accent", "info", "success", "warning", "danger", "neutral"]) {
-      const toneVars = varsBySelector(tokensCss, `[data-tone="${tone}"]`)
-      expect(toneVars.get("--tone"), `missing --tone for ${tone}`).toBeTruthy()
-      expect(toneVars.get("--tone-text"), `missing --tone-text for ${tone}`).toBeTruthy()
-    }
-  })
-
-  it("html.dark 中的每项覆写都在 :root 中有基线定义", () => {
-    for (const token of darkVars.keys())
-      expect(rootVars.has(token), `dark override ${token} missing in :root`).toBe(true)
+  it("不与 @pig/ui 的 :root 设计变量重名冲突", () => {
+    for (const token of appRootVars.keys())
+      expect(uiRootVars.has(token), `duplicate :root token ${token} with @pig/ui`).toBe(false)
   })
 })

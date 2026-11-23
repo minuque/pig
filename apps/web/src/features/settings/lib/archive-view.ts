@@ -1,6 +1,6 @@
 import type { ComputedRef } from "vue"
 import type { SessionArchives, SessionMetadata } from "@/types/common-type.js"
-import type { ToneColor } from "@/types/ui-type.js"
+import type { ToneColor } from "@pig/ui"
 
 export const STALE_SESSION_DAYS = 7
 export const STALE_SESSION_MS = STALE_SESSION_DAYS * 24 * 60 * 60 * 1000

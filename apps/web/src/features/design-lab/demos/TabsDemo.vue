@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { TabsContent, TabsList, TabsRoot, TabsTrigger } from "@components/ui/tabs/index.js"
+import { TabsContent, TabsList, TabsRoot, TabsTrigger } from "@pig/ui/tabs"
 
 const SIZES = ["s", "m"] as const
 </script>

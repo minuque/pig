@@ -46,9 +46,9 @@
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { useGeneralPrefs, type UiLocale } from "@features/settings/index.js"
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@components/ui/select/index.js"
-import { TextFieldRoot } from "@components/ui/text-field/index.js"
-import { CardList, CardRow } from "@components/ui/card/index.js"
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
+import { TextFieldRoot } from "@pig/ui/text-field"
+import { CardList, CardRow } from "@pig/ui/card"
 
 const { t } = useI18n()
 const { locale, userName, setUserName, setLocale } = useGeneralPrefs()

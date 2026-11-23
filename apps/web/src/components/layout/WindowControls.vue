@@ -49,9 +49,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@components/ui/alert-dialog/index.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+} from "@pig/ui/alert-dialog"
+import { IconButton } from "@pig/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { useI18n } from "@i18n/index.js"
 
 const platform = document.documentElement.dataset.pigDesktopPlatform

@@ -1,5 +1,8 @@
 export const PACKAGES = [
   { id: "@pig/protocol", prefix: "packages/protocol/" },
+  { id: "@pig/environment", prefix: "packages/environment/" },
+  { id: "@pig/extensions", prefix: "packages/extensions/" },
+  { id: "@pig/ui", prefix: "packages/ui/" },
   { id: "@pig/web", prefix: "apps/web/" },
   { id: "@pig/desktop", prefix: "apps/desktop/" },
   { id: "@pig/gateway", prefix: "packages/gateway/" },
@@ -7,6 +10,7 @@ export const PACKAGES = [
 const PACKAGE_DEPENDENTS = {
   "@pig/gateway": ["@pig/desktop"],
   "@pig/protocol": ["@pig/web", "@pig/gateway", "@pig/desktop"],
+  "@pig/ui": ["@pig/web"],
 }
 const NEW_SESSION = "e2e/conversation/new-session.spec.ts"
 const SPLIT_VIEW = "e2e/workbench/split-view.spec.ts"
@@ -53,7 +57,7 @@ const E2E_BY_AREA = [
   { prefix: "apps/web/src/components/layout/", specs: [NEW_SESSION] },
   { prefix: "apps/web/src/style/", specs: [NEW_SESSION] },
   { prefix: "apps/web/src/features/theme/", specs: [NEW_SESSION] },
-  { prefix: "apps/web/src/components/ui/", specs: [NEW_SESSION] },
+  { prefix: "packages/ui/src/", specs: [NEW_SESSION] },
 ]
 const WEB_FALLBACK_SPECS = [NEW_SESSION]
 const ROOT_TOOLING =
@@ -114,7 +118,9 @@ export function classifyTouched(files) {
   const stylelintFiles = normalized.filter((file) => STYLELINTABLE.test(file))
   const vueFiles = normalized.filter((file) => file.endsWith(".vue"))
   const ui = normalized.some(
-    (file) => file.startsWith("apps/web/src/") && (file.endsWith(".vue") || file.endsWith(".css")),
+    (file) =>
+      (file.startsWith("apps/web/src/") || file.startsWith("packages/ui/src/")) &&
+      (file.endsWith(".vue") || file.endsWith(".css")),
   )
   return {
     packages,

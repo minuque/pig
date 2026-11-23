@@ -1,20 +1,7 @@
 import assert from "node:assert/strict"
-import fs from "node:fs"
-import path from "node:path"
 import { describe, it } from "node:test"
 
-import { auditCssTokens } from "./css-tokens.mjs"
-
-function walk(dir, out = []) {
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const full = path.join(dir, entry.name)
-
-    if (entry.isDirectory()) walk(full, out)
-    else out.push(full)
-  }
-
-  return out
-}
+import { auditCssTokens, auditRepoCssTokens, collectRootTokens } from "./css-tokens.mjs"
 
 describe("auditCssTokens", () => {
   it("检出未定义的 CSS 变量并指出文件", () => {
@@ -76,22 +63,21 @@ describe("auditCssTokens", () => {
     assert.deepEqual(result.unusedTokens, ["--orphan-a", "--orphan-b"])
   })
 
-  it("仓库现状无未定义变量且无死变量", () => {
-    const root = process.cwd()
-    const tokensPath = path.join(root, "apps/web/src/style/tokens.css")
-    const srcDir = path.join(root, "apps/web/src")
-    const paths = [
-      path.join(root, "apps/web/index.html"),
-      ...walk(srcDir).filter((file) => /\.(vue|css|ts)$/.test(file) && file !== tokensPath),
-    ]
-    const result = auditCssTokens({
-      tokensCss: fs.readFileSync(tokensPath, "utf8"),
-      files: paths.map((filePath) => ({
-        path: path.relative(root, filePath).replace(/\\/g, "/"),
-        content: fs.readFileSync(filePath, "utf8"),
-      })),
-    })
+  it("collectRootTokens 只采集 :root 声明而不误收其它选择器", () => {
+    const vars = collectRootTokens(`
+      :root { --a: 1; --b: 2; }
+      html.dark { --c: 3; }
+      :root, [data-tone="accent"] { --d: 4; }
+    `)
 
+    assert.deepEqual([...vars].sort(), ["--a", "--b", "--d"])
+  })
+
+  it("仓库现状 @pig/ui 自洽、无重复 :root 变量且无未定义或死变量", () => {
+    const result = auditRepoCssTokens(process.cwd())
+
+    assert.deepEqual(result.uiUndefinedRefs, [])
+    assert.deepEqual(result.duplicateRootTokens, [])
     assert.deepEqual(result.undefinedRefs, [])
     assert.deepEqual(result.unusedTokens, [])
   })

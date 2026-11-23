@@ -69,6 +69,6 @@
 <script setup lang="ts">
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { Button } from "@components/ui/button/index.js"
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@components/ui/hover-card/index.js"
+import { Button } from "@pig/ui/button"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@pig/ui/hover-card"
 </script>

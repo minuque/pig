@@ -51,8 +51,8 @@
 <script setup lang="ts">
 import { computed, type Component } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { IconButton } from "@pig/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import type { ComposerAttachment } from "@/types/attachment-type.js"
 import { formatFileSize } from "@features/composer/lib/attachment-size.js"
 import type { QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"

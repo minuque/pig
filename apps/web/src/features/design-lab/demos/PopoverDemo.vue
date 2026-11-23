@@ -60,13 +60,8 @@
 <script setup lang="ts">
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { Button } from "@components/ui/button/index.js"
-import {
-  Popover,
-  PopoverClose,
-  PopoverContent,
-  PopoverTrigger,
-} from "@components/ui/popover/index.js"
+import { Button } from "@pig/ui/button"
+import { Popover, PopoverClose, PopoverContent, PopoverTrigger } from "@pig/ui/popover"
 </script>
 
 <style scoped>

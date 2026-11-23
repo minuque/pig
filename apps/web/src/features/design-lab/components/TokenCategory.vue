@@ -139,8 +139,8 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { SearchIcon } from "@components/icons/index.js"
-import { CardList, CardRow } from "@components/ui/card/index.js"
-import { TextFieldRoot, TextFieldSlot } from "@components/ui/text-field/index.js"
+import { CardList, CardRow } from "@pig/ui/card"
+import { TextFieldRoot, TextFieldSlot } from "@pig/ui/text-field"
 import { useGeneralPrefs } from "@features/settings/index.js"
 import type { Label } from "@features/design-lab/lib/nav.js"
 import {

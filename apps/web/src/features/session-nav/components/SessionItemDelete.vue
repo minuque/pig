@@ -28,7 +28,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@components/ui/alert-dialog/index.js"
+} from "@pig/ui/alert-dialog"
 
 defineProps<{
   title: string

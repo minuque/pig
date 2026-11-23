@@ -33,7 +33,7 @@
 <script setup lang="ts">
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { IconButton } from "@components/ui/button/index.js"
+import { IconButton } from "@pig/ui/button"
 import { CopyIcon } from "@components/icons/index.js"
 
 const VARIANTS = ["solid", "secondary", "outline", "ghost"] as const

@@ -25,13 +25,7 @@
 <script setup lang="ts">
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import {
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableRoot,
-  TableRow,
-} from "@components/ui/table/index.js"
+import { TableBody, TableCell, TableHeader, TableRoot, TableRow } from "@pig/ui/table"
 
 const variants = ["surface", "ghost"] as const
 const rows = [

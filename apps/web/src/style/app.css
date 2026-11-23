@@ -1,10 +1,7 @@
-@layer ui-sdk;
-
-@import "./reset.css" layer(base);
+@import "@pig/ui/styles/index.css";
 @import "./tokens.css";
 @import "./motion.css";
 @import "./markdown.css";
 @import "./mermaid.css";
-@import "./components.css";
 @import "./desktop.css";
 @import "./globals.css";

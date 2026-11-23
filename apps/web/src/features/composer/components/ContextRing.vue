@@ -53,8 +53,8 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@components/ui/hover-card/index.js"
+import { IconButton } from "@pig/ui/button"
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@pig/ui/hover-card"
 import {
   contextSeverity,
   contextUsageSummary,

@@ -103,13 +103,9 @@
 import { computed, nextTick, ref, useTemplateRef, watch, type ComponentPublicInstance } from "vue"
 import { useNow } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
-import { IconButton } from "@components/ui/button/index.js"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@components/ui/collapsible/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { IconButton } from "@pig/ui/button"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@pig/ui/collapsible"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { SquareIcon } from "@components/icons/index.js"
 import { formatTokenCount } from "@features/composer/lib/context-usage.js"
 import type { OpenChild } from "@features/session-rail/index.js"

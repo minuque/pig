@@ -33,7 +33,7 @@
 import { computed, shallowRef, useTemplateRef, watch, watchEffect } from "vue"
 import { useResizeObserver } from "@vueuse/core"
 import { Resizable, ResizableHandle, ResizablePanel } from "@ui-sdk/vue/resizable"
-import { ResizeHandle } from "@components/ui/resize-handle/index.js"
+import { ResizeHandle } from "@pig/ui/resize-handle"
 import PanelColumn from "@features/split-view/components/PanelColumn.vue"
 import { SPLIT_CHAT_MIN } from "@features/split-view/lib/split-state.js"
 import { usePaneSide, type PanelHost } from "@features/split-view/index.js"

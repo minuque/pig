@@ -15,7 +15,7 @@
 import { computed, inject } from "vue"
 import type { ElementNode } from "comark"
 import { textContent } from "comark/utils"
-import { Link } from "@components/ui/link/index.js"
+import { Link } from "@pig/ui/link"
 import TranscriptLinkChip from "@features/transcript-view/components/TranscriptLinkChip.vue"
 import MarkdownFileLink from "@features/transcript-view/components/markdown/MarkdownFileLink.vue"
 import { isFileLinkLabel } from "@features/transcript-view/lib/file-link.js"

@@ -104,10 +104,10 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
 
-import { Button, IconButton } from "@components/ui/button/index.js"
-import { Link } from "@components/ui/link/index.js"
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@components/ui/select/index.js"
-import { TextFieldRoot } from "@components/ui/text-field/index.js"
+import { Button, IconButton } from "@pig/ui/button"
+import { Link } from "@pig/ui/link"
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
+import { TextFieldRoot } from "@pig/ui/text-field"
 import {
   CheckIcon,
   CopyIcon,
@@ -117,7 +117,7 @@ import {
 } from "@components/icons/index.js"
 import { useI18n } from "@i18n/index.js"
 import type { LoginState } from "@features/settings/lib/provider-login.js"
-import { Card } from "@components/ui/card/index.js"
+import { Card } from "@pig/ui/card"
 
 const props = defineProps<{ state: LoginState; kind: "api_key" | "oauth" }>()
 const emit = defineEmits<{ answer: [value: string]; cancel: [] }>()

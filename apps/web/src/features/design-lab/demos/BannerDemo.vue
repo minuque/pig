@@ -99,5 +99,5 @@ import {
   CircleExclamationPointIcon,
   CircleQuestionMarkIcon,
 } from "@components/icons/index.js"
-import { Banner } from "@components/ui/banner/index.js"
+import { Banner } from "@pig/ui/banner"
 </script>

@@ -41,7 +41,7 @@ const CHECK_STEPS = [
   { name: "stylelint", args: ["exec", "stylelint", "**/*.{css,vue}"] },
   {
     name: "vue-template",
-    args: ["exec", "tsx", "scripts/check/vue-template.ts", "apps/web/src"],
+    args: ["exec", "tsx", "scripts/check/vue-template.ts", "apps/web/src", "packages/ui/src"],
   },
   { name: "css-tokens", args: ["exec", "node", "scripts/check/css-tokens.mjs"] },
   { name: "typecheck", args: ["typecheck"] },
@@ -157,7 +157,7 @@ async function checkTouched(scope, files, label = "check:touched") {
     ...fileSteps("vue-template", ["exec", "tsx", "scripts/check/vue-template.ts"], scope.vueFiles),
   )
 
-  if (scope.packages.includes("@pig/web") || scope.scripts)
+  if (scope.packages.includes("@pig/web") || scope.packages.includes("@pig/ui") || scope.scripts)
     steps.push({ name: "css-tokens", args: ["exec", "node", "scripts/check/css-tokens.mjs"] })
 
   if (scope.scripts) {

@@ -42,7 +42,7 @@ import {
   CommandPaletteInput,
   CommandPaletteItem,
   CommandPaletteList,
-} from "@components/ui/command-palette/index.js"
+} from "@pig/ui/command-palette"
 import { SquareCodeIcon } from "@components/icons/index.js"
 
 const props = defineProps<{

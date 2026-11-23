@@ -74,9 +74,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@components/ui/alert-dialog/index.js"
-import { Button } from "@components/ui/button/index.js"
-import { TextFieldRoot } from "@components/ui/text-field/index.js"
+} from "@pig/ui/alert-dialog"
+import { Button } from "@pig/ui/button"
+import { TextFieldRoot } from "@pig/ui/text-field"
 import { useExtensionUi } from "@features/extension-ui/index.js"
 
 const { t } = useI18n()

@@ -30,8 +30,8 @@
 import { computed, inject } from "vue"
 import { FolderIcon } from "@components/icons/index.js"
 import LanguageIcon from "@components/icons/LanguageIcon.vue"
-import { Link } from "@components/ui/link/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { Link } from "@pig/ui/link"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { openFileKey } from "@features/transcript-view/index.js"
 import {
   fileExtension,

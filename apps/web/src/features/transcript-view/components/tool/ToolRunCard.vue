@@ -20,7 +20,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { CardList, CardRow } from "@components/ui/card/index.js"
+import { CardList, CardRow } from "@pig/ui/card"
 import ToolRow from "@features/transcript-view/components/tool/ToolRow.vue"
 import ToolThoughtRow from "@features/transcript-view/components/tool/ToolThoughtRow.vue"
 import type {

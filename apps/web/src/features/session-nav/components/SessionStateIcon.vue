@@ -10,7 +10,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { StatusIndicator, type StatusTone } from "@components/ui/status-indicator/index.js"
+import { StatusIndicator, type StatusTone } from "@pig/ui/status-indicator"
 import { useI18n } from "@i18n/index.js"
 import type { SidebarStateGlyph } from "@features/session-nav/type.js"
 
