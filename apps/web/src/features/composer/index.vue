@@ -269,7 +269,8 @@ watch(previewItem, (item, previous) => {
   background: transparent;
 }
 
-.prompt:is([data-mention-over], [data-session-drop-over]) :deep(.composer-card) {
+.prompt[data-mention-over] :deep(.composer-card),
+:global(.session-panel[data-session-drop-over]) .prompt :deep(.composer-card) {
   box-shadow:
     0 0 0 var(--border-width) var(--accent-solid),
     var(--composer-inset),

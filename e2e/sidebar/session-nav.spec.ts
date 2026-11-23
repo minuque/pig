@@ -126,7 +126,7 @@ test("按住行尾标记完成按钮往下扫，扫过的会话一起标记完�
   await expect(page.locator('.session-section[data-key="settled"] .section-count')).toHaveText("3")
 })
 
-test("会话拖出侧栏落到输入卡成为会话引用 chip，提交原文带引用；落到别处取消", async ({
+test("会话拖出侧栏落到会话面板插入引用 chip，提交渲染为气泡 chip；落到面板外取消", async ({
   page,
   navGateway,
 }) => {
@@ -143,12 +143,13 @@ test("会话拖出侧栏落到输入卡成为会话引用 chip，提交原文带
   const composer = await page.locator(".composer-card").boundingBox()
 
   expect(composer).not.toBeNull()
-  await dragCardTo(page, source, { x: composer!.x + composer!.width / 2, y: composer!.y - 40 })
+  await dragCardTo(page, source, { x: composer!.x + composer!.width / 2, y: 12 })
   await expect(page.locator(".drag-ghost")).toHaveCount(0)
   await expect(prompt.locator(".chip")).toHaveCount(0)
+  await expect(page.locator(".workbench-pane")).toHaveCount(1)
   await expect(section(page).locator(".session-card").first()).toContainText(`${FILLER_PREFIX} 6`)
 
-  await dragCard(page, source, prompt)
+  await dragCardTo(page, source, { x: composer!.x + composer!.width / 2, y: composer!.y - 40 })
   await expect(prompt.locator('.chip[data-context-kind="session"]')).toHaveText(
     `${FILLER_PREFIX} 6`,
   )
@@ -159,5 +160,8 @@ test("会话拖出侧栏落到输入卡成为会话引用 chip，提交原文带
   await expect.poll(() => bridge.prompts.length).toBe(1)
   expect(bridge.prompts[0]?.trim()).toBe(
     `[${FILLER_PREFIX} 6](pig-context://v1/session/e2e-filler-5)`,
+  )
+  await expect(page.locator('.row-user .chip[data-context-kind="session"]').last()).toHaveText(
+    `${FILLER_PREFIX} 6`,
   )
 })

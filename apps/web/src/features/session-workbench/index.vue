@@ -3,6 +3,7 @@
     ref="panel"
     class="session-panel"
     :class="{ 'is-drop-active': dropActive }"
+    v-bind="sessionDropTargetAttrs"
     @dragenter="onDragEnter"
     @dragover="onDragOver"
     @dragleave="onDragLeave"
@@ -94,7 +95,6 @@
 
             <Composer
               ref="composer"
-              v-bind="sessionDropTargetAttrs"
               v-model:prompt="prompt"
               v-model:preset="preset"
               :catalog="catalog"
@@ -256,7 +256,7 @@ const composerDraft = useComposerDraft(prompt)
 const filePane = useFilePane()
 const composer = useTemplateRef("composer")
 
-useSessionDrop(composer)
+useSessionDrop(panel, (markdown) => composer.value?.insertMarkdown(markdown))
 
 const composerQueue = useComposerQueue()
 
