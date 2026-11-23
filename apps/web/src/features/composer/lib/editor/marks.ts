@@ -12,6 +12,7 @@ import {
   type Transaction,
 } from "@tiptap/pm/state"
 import { ReplaceStep } from "@tiptap/pm/transform"
+import { codeSpanRule } from "@features/composer/lib/editor/code-span.js"
 import {
   inlineMarkdownUnitMarks,
   MARKDOWN_SOURCE_MARK,
@@ -184,21 +185,31 @@ function codePairPlugin(type: MarkType): Plugin<CodePair[]> {
   })
 }
 
-function backslashesBefore(state: EditorState, pos: number): number {
+function plainTextBefore(state: EditorState, pos: number): string {
   const $pos = state.doc.resolve(pos)
-  const text = $pos.parent.textBetween(0, $pos.parentOffset, undefined, "￼")
-  let count = 0
+  let text = ""
 
-  while (text[text.length - 1 - count] === "\\") count += 1
-  return count
+  $pos.parent.forEach((node, offset) => {
+    if (offset >= $pos.parentOffset) return
+    const length = Math.min(node.nodeSize, $pos.parentOffset - offset)
+    const plain = node.isText && node.marks.length === 0
+
+    text += plain ? node.text!.slice(0, length) : "￼".repeat(length)
+  })
+  return text
 }
 
-function parsesAs(source: string, delimiter: number, mark: RichTextMark): boolean {
-  const units = inlineMarkdownUnitMarks(source)
-  return units.every((marks, index) => {
-    const isDelimiter = index < delimiter || index >= source.length - delimiter
-    return isDelimiter ? marks === null : marks?.includes(mark) === true
-  })
+function parsesAs(text: string, start: number, delimiter: number, mark: RichTextMark): boolean {
+  const units = inlineMarkdownUnitMarks(text)
+
+  for (let index = start; index < text.length; index += 1) {
+    const isDelimiter = index < start + delimiter || index >= text.length - delimiter
+    const marks = units[index]
+
+    if (isDelimiter ? marks !== null : marks?.includes(mark) !== true) return false
+  }
+
+  return true
 }
 
 function flankingMarkRule(find: RegExp, type: MarkType, delimiter: number): InputRule {
@@ -207,25 +218,14 @@ function flankingMarkRule(find: RegExp, type: MarkType, delimiter: number): Inpu
     find,
     handler: (props) => {
       const { state, range, match } = props
-      const code = state.schema.marks["code"]
-      const textStart = range.from + delimiter
-      const textEnd = range.from + match[0].length - delimiter
 
       if (touchesMarkdownSource(state, range.from, range.to)) return null
+      const text = plainTextBefore(state, range.to)
 
-      if (
-        code &&
-        (state.doc.rangeHasMark(range.from, textStart, code) ||
-          state.doc.rangeHasMark(textEnd, state.selection.from, code))
-      ) {
+      if (!parsesAs(text, text.length - match[0].length, delimiter, type.name as RichTextMark)) {
         return null
       }
 
-      if (literalBackticksBefore(state.doc.resolve(range.from)) % 2 === 1) return null
-
-      if (backslashesBefore(state, range.from) % 2 === 1) return null
-
-      if (!parsesAs(match[0], delimiter, type.name as RichTextMark)) return null
       return rule.handler(props)
     },
   })
@@ -241,21 +241,7 @@ export const ComposerCode = Code.extend({
     return [...(this.parent?.() ?? []), codePairPlugin(this.type)]
   },
   addInputRules() {
-    return (this.parent?.() ?? []).map(
-      (rule) =>
-        new InputRule({
-          find: rule.find,
-          undoable: rule.undoable,
-          handler: (props) => {
-            const $from = props.state.doc.resolve(props.range.from)
-
-            if (literalBackticksBefore($from) % 2 === 1) return null
-
-            if (touchesMarkdownSource(props.state, props.range.from, props.range.to)) return null
-            return rule.handler(props)
-          },
-        }),
-    )
+    return [codeSpanRule(this.type)]
   },
 })
 export const ComposerBold = Bold.extend({

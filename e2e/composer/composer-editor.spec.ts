@@ -63,6 +63,22 @@ test("中文句中的粗体实时渲染，提交原文", async ({ page, complexG
   expect(bridge.prompts[0]).toBe("这是**粗体**呀，那是*斜体*了")
 })
 
+test("多反引号行内代码边输入边渲染，内容含反引号也原样提交", async ({ page, complexGateway }) => {
+  test.setTimeout(120_000)
+  const bridge = await installTurnBridge(page)
+
+  await openComposer(page, complexGateway)
+  const prompt = field(page)
+
+  await prompt.click()
+  await prompt.pressSequentially("看 ``a`b`` 和 `` `x` `` 了")
+  await expect(prompt.locator("code")).toHaveText(["a`b", "`x`"])
+
+  await prompt.press("Control+Enter")
+  await expect.poll(() => bridge.prompts.length).toBe(1)
+  expect(bridge.prompts[0]).toBe("看 ``a`b`` 和 `` `x` `` 了")
+})
+
 test("光标碰到样式时显出 Markdown 标记，离开后收回", async ({ page, complexGateway }) => {
   test.setTimeout(120_000)
   const bridge = await installTurnBridge(page)
@@ -128,7 +144,7 @@ test("连续输入合成一步撤销，粘贴单独成步", async ({ page, compl
   await expect(prompt).toHaveText("")
 })
 
-test("复制带 chip 的内容粘回输入卡仍是 chip，纯文本粘贴保持文字", async ({
+test("复制带 chip 的内容粘回仍是 chip，纯文本粘贴的路径与命令也转 chip，代码里不转", async ({
   page,
   complexGateway,
 }) => {
@@ -158,9 +174,15 @@ test("复制带 chip 的内容粘回输入卡仍是 chip，纯文本粘贴保持
   })
   await expect(chips).toHaveCount(2)
 
-  await pasteInto(prompt, { "text/plain": "@note.md" })
-  await expect(chips).toHaveCount(2)
-  await expect(prompt).toContainText("@note.md")
+  await pasteInto(prompt, { "text/plain": copied["plain"] ?? "" })
+  await expect(chips).toHaveCount(3)
+
+  await pasteInto(prompt, { "text/plain": "`@note.md`" })
+  await expect(chips).toHaveCount(3)
+  await expect(prompt.locator("code")).toContainText("@note.md")
+
+  await pasteInto(prompt, { "text/plain": "\n/clear 清空" })
+  await expect(prompt.locator("[data-command-chip]")).toHaveText(["clear"])
 })
 
 test("列表项里 Tab 缩进、Shift+Tab 退回，提交缩进后的 Markdown", async ({

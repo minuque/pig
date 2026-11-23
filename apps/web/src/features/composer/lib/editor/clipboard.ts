@@ -66,8 +66,8 @@ function padChips(view: EditorView, text: string): string {
   return padded
 }
 
-function insertParsed(editor: Editor, view: EditorView, text: string, chips: boolean): void {
-  const blocks = buildTiptapContent(text, { chips, blocks: !hasNestedAncestor(view) })
+function insertParsed(editor: Editor, view: EditorView, text: string): void {
+  const blocks = buildTiptapContent(text, { blocks: !hasNestedAncestor(view) })
   const single = blocks.length === 1 && blocks[0]?.["type"] === "paragraph"
   const content = (single ? (blocks[0]?.["content"] ?? []) : blocks) as JSONContent[]
 
@@ -98,8 +98,7 @@ function insertParsed(editor: Editor, view: EditorView, text: string, chips: boo
 
 export function pasteMarkdown(editor: Editor, view: EditorView, data: DataTransfer): boolean {
   const composerText = data.getData(COMPOSER_CLIPBOARD_MIME)
-  const chips = composerText.length > 0
-  const text = (chips ? composerText : data.getData("text/plain")).replace(/\r\n?/g, "\n")
+  const text = (composerText || data.getData("text/plain")).replace(/\r\n?/g, "\n")
 
   if (!text) return false
   const { $from } = view.state.selection
@@ -108,10 +107,10 @@ export function pasteMarkdown(editor: Editor, view: EditorView, data: DataTransf
   const sourceType = view.state.schema.marks[MARKDOWN_SOURCE_MARK]
   const tokens = splitPromptSegments(text).some((segment) => segment.type !== "text")
 
-  if (sourceType?.isInSet($from.marks()) && !text.includes("\n") && !(chips && tokens)) {
+  if (sourceType?.isInSet($from.marks()) && !text.includes("\n") && !tokens) {
     return insertPlain(view, text)
   }
 
-  insertParsed(editor, view, chips ? padChips(view, text) : text, chips)
+  insertParsed(editor, view, padChips(view, text))
   return true
 }

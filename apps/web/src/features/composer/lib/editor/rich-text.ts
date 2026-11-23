@@ -78,15 +78,70 @@ function literalUnderscoreRuns(text: string): Set<number> {
   return literal
 }
 
-function codeSpanEnd(text: string, index: number): number {
-  const run = /^`+/.exec(text.slice(index))![0]
-  const close = text.indexOf(run, index + run.length)
-  const closes =
-    run.length === 1 &&
-    close > index + 1 &&
-    !text.slice(index, close).includes("\n") &&
-    text[close + 1] !== "`"
-  return closes ? close : -1
+export interface CodeSpan {
+  end: number
+  contentStart: number
+  contentEnd: number
+}
+
+function backtickRun(text: string, index: number): number {
+  let end = index
+
+  while (text[end] === "`") end += 1
+  return end - index
+}
+
+export function codeSpanAt(text: string, index: number): CodeSpan | null {
+  const run = backtickRun(text, index)
+  let cursor = index + run
+
+  while (cursor < text.length) {
+    const close = text.indexOf("`", cursor)
+    const lineEnd = text.indexOf("\n", cursor)
+
+    if (close === -1 || (lineEnd !== -1 && lineEnd < close)) return null
+    const length = backtickRun(text, close)
+
+    if (length === run) {
+      const content = text.slice(index + run, close)
+      const strip = content.length > 1 && /^ [\s\S]* $/.test(content) && /[^ ]/.test(content)
+      const pad = strip ? 1 : 0
+      return { end: close + run, contentStart: index + run + pad, contentEnd: close - pad }
+    }
+
+    cursor = close + length
+  }
+
+  return null
+}
+
+export function codeSpanEndingAt(
+  text: string,
+): (CodeSpan & { start: number; run: number; pendingRun: number }) | null {
+  let index = 0
+  let pendingRun = 0
+
+  while (index < text.length) {
+    if (text[index] === "\\") {
+      index += 2
+      continue
+    }
+
+    if (text[index] !== "`") {
+      index += 1
+      continue
+    }
+
+    const span = codeSpanAt(text, index)
+    const run = backtickRun(text, index)
+
+    if (span?.end === text.length) return { ...span, start: index, run, pendingRun }
+
+    if (!span) pendingRun = Math.max(pendingRun, run)
+    index = span ? span.end : index + run
+  }
+
+  return null
 }
 
 function parsePieces(text: string): SourcePiece[] {
@@ -113,15 +168,16 @@ function parsePieces(text: string): SourcePiece[] {
     }
 
     if (char === "`") {
-      const close = codeSpanEnd(text, index)
-      const run = /^`+/.exec(text.slice(index))![0].length
+      const span = codeSpanAt(text, index)
 
-      if (close === -1) {
+      if (!span) {
+        const run = backtickRun(text, index)
+
         push(index, index + run)
         index += run
       } else {
-        push(index + 1, close, ["code"])
-        index = close + 1
+        push(span.contentStart, span.contentEnd, ["code"])
+        index = span.end
       }
 
       continue

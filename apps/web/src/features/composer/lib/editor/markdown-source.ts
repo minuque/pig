@@ -134,9 +134,9 @@ function regionDecorations(doc: ProseMirrorNode, region: TextRange, hide: boolea
       let from = start
       let to = end
 
-      if (units[from - 1] === null && text[from - 1] === "`") codeTicks.add((from -= 1))
+      while (units[from - 1] === null && "` ".includes(text[from - 1]!)) codeTicks.add((from -= 1))
 
-      if (units[to] === null && text[to] === "`") codeTicks.add(to++)
+      while (units[to] === null && "` ".includes(text[to] ?? "_")) codeTicks.add(to++)
       const attrs = { nodeName: "code", dir: "ltr" }
 
       decorations.push(Decoration.inline(region.from + from, region.from + to, attrs))

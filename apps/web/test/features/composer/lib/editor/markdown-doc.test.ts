@@ -104,6 +104,48 @@ describe("行内强调按左右侧判定", () => {
   })
 })
 
+describe("行内代码的多反引号围栏", () => {
+  const codeDoc = (text: string) =>
+    schema.nodeFromJSON({
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [
+            { type: "text", text: "看 " },
+            { type: "text", text, marks: [{ type: "code" }] },
+          ],
+        },
+      ],
+    })
+
+  it("N 个反引号开、N 个闭，内容可含更短的反引号串", () => {
+    expect(marksOf("看 ``a`b`` 这里")).toEqual([
+      ["看 ", []],
+      ["a`b", ["code"]],
+      [" 这里", []],
+    ])
+    expect(roundTrip("看 ``a`b`` 这里")).toBe("看 ``a`b`` 这里")
+    expect(marksOf("``a`` 和 ```")).toEqual([
+      ["a", ["code"]],
+      [" 和 ```", []],
+    ])
+  })
+
+  it("首尾各一个空格时去掉，全是空格时保留", () => {
+    expect(marksOf("`` `x` ``")).toEqual([["`x`", ["code"]]])
+    expect(marksOf("` a `")).toEqual([["a", ["code"]]])
+    expect(marksOf("`  `")).toEqual([["  ", ["code"]]])
+  })
+
+  it.each(["a`b", "`", "``x``", " a ", "a ``` b"])("代码内容 %j 序列化后解析回同一段", (text) => {
+    const markdown = serializeEditorDoc(codeDoc(text)).value
+
+    expect(marksOf(markdown).at(-1)).toEqual([text, ["code"]])
+    expect(roundTrip(markdown)).toBe(markdown)
+  })
+})
+
 describe("chip 解析", () => {
   it("@路径与带引号路径成为文件 chip，往返不变", () => {
     const raw = '看下 @src/a.ts 和 @"my notes/周报.md"'
@@ -116,6 +158,7 @@ describe("chip 解析", () => {
     expect(chipsOf("发给 user@example.com 或 a@b.ts")).toEqual([])
     expect(chipsOf("在 @src/ 下面找")).toEqual([])
     expect(chipsOf("安装 `@pig/protocol` 包")).toEqual([])
+    expect(chipsOf("对比 `` `@src/a.ts` `` 写法")).toEqual([])
   })
 
   it("行首或列表标记后的 /命令 成为命令 chip，行中不算", () => {

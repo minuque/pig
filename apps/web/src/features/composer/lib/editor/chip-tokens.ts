@@ -1,6 +1,7 @@
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model"
 import { basename } from "@features/composer/lib/command-menu-groups.js"
 import { BLOCK_PREFIX, mentionPathNeedsQuoting } from "@features/composer/lib/composer-trigger.js"
+import { codeSpanAt } from "@features/composer/lib/editor/rich-text.js"
 
 export type PromptSegment =
   | { type: "text"; text: string }
@@ -61,12 +62,13 @@ function commandAt(text: string, start: number, lineStart: number): PromptSegmen
 }
 
 function codeSpanEnd(text: string, index: number): number {
-  const run = /^`+/u.exec(text.slice(index))![0]
-  const lineEnd = text.indexOf("\n", index)
-  const close = text.indexOf(run, index + run.length)
-  const found =
-    close !== -1 && (lineEnd === -1 || close < lineEnd) && text[close + run.length] !== "`"
-  return found ? close + run.length : index + run.length
+  const span = codeSpanAt(text, index)
+
+  if (span) return span.end
+  let end = index
+
+  while (text[end] === "`") end += 1
+  return end
 }
 
 export function splitPromptSegments(text: string): PromptSegment[] {

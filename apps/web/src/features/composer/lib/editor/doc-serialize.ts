@@ -209,8 +209,61 @@ function commonLength(left: readonly RichTextMark[], right: readonly RichTextMar
   return index
 }
 
-function delimiters(marks: readonly RichTextMark[]): string {
-  return marks.map((mark) => RICH_TEXT_DELIMITERS[mark]).join("")
+interface CodeFence {
+  open: string
+  close: string
+}
+
+function codeFence(text: string): CodeFence {
+  const longest = Math.max(0, ...[...text.matchAll(/`+/g)].map((match) => match[0].length))
+  const fence = "`".repeat(longest + 1)
+  const stripped = /^ [\s\S]* $/.test(text) && /[^ ]/.test(text)
+  const pad = text.startsWith("`") || text.endsWith("`") || stripped ? " " : ""
+  return { open: `${fence}${pad}`, close: `${pad}${fence}` }
+}
+
+function sourceOf(child: ProseMirrorNode): string {
+  return child.isText ? child.text! : chipSource(child)
+}
+
+function codeFences(
+  children: readonly ProseMirrorNode[],
+  ordered: readonly RichTextMark[][],
+): Array<CodeFence | undefined> {
+  const fences: Array<CodeFence | undefined> = Array.from({ length: children.length })
+  let start = -1
+  let text = ""
+
+  children.forEach((child, index) => {
+    if (!ordered[index]!.includes("code")) return
+
+    if (start === -1) {
+      start = index
+      text = ""
+    }
+
+    text += sourceOf(child)
+    const next = ordered[index + 1] ?? []
+    const closes = commonLength(ordered[index]!, next) <= ordered[index]!.indexOf("code")
+
+    if (!closes) return
+    fences.fill(codeFence(text), start, index + 1)
+    start = -1
+  })
+  return fences
+}
+
+function delimiters(
+  marks: readonly RichTextMark[],
+  fence: CodeFence | undefined,
+  closing: boolean,
+): string {
+  return marks
+    .map((mark) => {
+      if (mark !== "code" || !fence) return RICH_TEXT_DELIMITERS[mark]
+      return closing ? fence.close : fence.open
+    })
+    .join("")
 }
 
 function appendInline(container: ProseMirrorNode, contentStart: number, acc: Accumulator): void {
@@ -218,6 +271,7 @@ function appendInline(container: ProseMirrorNode, contentStart: number, acc: Acc
 
   dropEdgeWhitespaceMarks(children)
   const ordered = orderMarks(children)
+  const fences = codeFences(children, ordered)
   let inlineOffset = 0
 
   children.forEach((child, index) => {
@@ -225,9 +279,12 @@ function appendInline(container: ProseMirrorNode, contentStart: number, acc: Acc
 
     inlineOffset += child.nodeSize
     const marks = ordered[index]!
-    const open = delimiters(marks.slice(commonLength(marks, ordered[index - 1] ?? [])))
-    const close = delimiters(marks.slice(commonLength(marks, ordered[index + 1] ?? [])).reverse())
-    const source = child.isText ? child.text! : chipSource(child)
+    const fence = fences[index]
+    const opened = marks.slice(commonLength(marks, ordered[index - 1] ?? []))
+    const closed = marks.slice(commonLength(marks, ordered[index + 1] ?? [])).reverse()
+    const open = delimiters(opened, fence, false)
+    const close = delimiters(closed, fence, true)
+    const source = sourceOf(child)
     const docLen = child.isText ? source.length : 1
     const mdText = open + source + close
 
