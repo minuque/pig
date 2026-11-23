@@ -6,6 +6,26 @@ export {
   MAX_IMAGE_BYTES,
 } from "./attachments.js"
 
+export {
+  collectContextReferences,
+  CONTEXT_LABEL_MAX,
+  CONTEXT_REFERENCE_MIME,
+  contextReferenceAt,
+  contextTextForDisplay,
+  formatContextReference,
+  projectContextForAgent,
+  READ_SESSION_TOOL,
+  REPLY_QUOTE_MAX,
+  replyLabel,
+  replyReference,
+  sanitizeContextLabel,
+  sessionReference,
+  type ContextReference,
+  type ContextReferenceMatch,
+  type ReplyReference,
+  type SessionReference,
+} from "./context-reference.js"
+
 export type { ExtensionUiDialog, ExtensionUiRequest, ExtensionUiResponse } from "./extension-ui.js"
 
 export type {
