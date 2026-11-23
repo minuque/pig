@@ -43,6 +43,7 @@ const CHECK_STEPS = [
     name: "vue-template",
     args: ["exec", "tsx", "scripts/check/vue-template.ts", "apps/web/src"],
   },
+  { name: "css-tokens", args: ["exec", "node", "scripts/check/css-tokens.mjs"] },
   { name: "typecheck", args: ["typecheck"] },
   { name: "test", args: ["test"] },
 ]
@@ -155,6 +156,9 @@ async function checkTouched(scope, files, label = "check:touched") {
   steps.push(
     ...fileSteps("vue-template", ["exec", "tsx", "scripts/check/vue-template.ts"], scope.vueFiles),
   )
+
+  if (scope.packages.includes("@pig/web") || scope.scripts)
+    steps.push({ name: "css-tokens", args: ["exec", "node", "scripts/check/css-tokens.mjs"] })
 
   if (scope.scripts) {
     steps.push({

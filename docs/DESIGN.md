@@ -212,7 +212,7 @@ spacing:
 ## 层级
 
 - 局部容器内：`--z-behind` / `--z-raise` / `--z-sticky` / `--z-overlay` = -1 / 1 / 2 / 3。
-- 全局浮层：`--z-resizer` / `--z-window-controls` / `--z-menu` / `--z-drawer` / `--z-modal` / `--z-popover` / `--z-drag` = 1 / 1 / 10 / 20 / 30 / 35 / 40。菜单、下拉、浮卡、提示挂 body，取 `--z-popover`。
+- 全局浮层：`--z-resizer` / `--z-window-controls` / `--z-drawer` / `--z-modal` / `--z-popover` / `--z-drag` = 1 / 1 / 20 / 30 / 35 / 40。菜单、下拉、浮卡、提示挂 body，取 `--z-popover`。
 - stylelint 禁止 SFC 里写 `--*` 声明与非零数字 `z-index`。
 
 ## 动画

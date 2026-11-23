@@ -81,6 +81,26 @@ export default defineConfig(
   },
 
   {
+    name: "pig/ui-layer",
+    files: ["apps/web/src/components/ui/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              regex:
+                "^(@(features|client|router)/|@components/layout/|@/(features|client|router|shell|components/layout)/|(\\.\\./)+.*(features|client|router|shell|components/layout)/)",
+              message:
+                "components/ui 是基础设计系统层，禁止引用业务功能、客户端状态、路由或布局层。",
+            },
+          ],
+        },
+      ],
+    },
+  },
+
+  {
     name: "pig/vue-parser",
     files: ["**/*.vue"],
     languageOptions: {

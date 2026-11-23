@@ -58,6 +58,10 @@ export default {
         ],
         "declaration-property-value-disallowed-list": {
           "z-index": ["/^-?[1-9]\\d*$/"],
+          "font-size": ["/^(?!var\\(--|calc\\(|inherit$|[\\d.]+em$)/"],
+          "border-radius": ["/^(?!var\\(--|calc\\(|min\\(|max\\(|inherit$|0$|50%$|100%$)/"],
+          transition: ["/^(?!none$|inherit$|var\\(--|[\\s\\S]*var\\(--duration-)/"],
+          "transition-duration": ["/^(?!var\\(--duration-|none$|inherit$|0(?:m?s)?$)/"],
         },
         "function-disallowed-list": [
           "rgb",
