@@ -5,6 +5,7 @@ export interface TranscriptState {
   readonly progressItems: ReadonlyMap<string, TranscriptItem>
   readonly progressOrder: readonly string[]
   readonly toolCallBuffers: ReadonlyMap<string, string>
+  readonly replacedIds: ReadonlyMap<string, string>
 }
 
 type Json = string | number | boolean | null | Json[] | { [key: string]: Json }
@@ -17,12 +18,16 @@ function parsePartialInput(value: string): Json {
   }
 }
 
-export function createTranscriptState(snapshot: SessionSnapshot): TranscriptState {
+export function createTranscriptState(
+  snapshot: SessionSnapshot,
+  replacedIds: ReadonlyMap<string, string> = new Map(),
+): TranscriptState {
   return {
     snapshot: structuredClone(snapshot),
     progressItems: new Map(),
     progressOrder: [],
     toolCallBuffers: new Map(),
+    replacedIds: new Map(replacedIds),
   }
 }
 
@@ -31,17 +36,40 @@ export function applyTranscriptSnapshot(
   snapshot: SessionSnapshot,
 ): TranscriptState {
   if (state.snapshot.id === snapshot.id && snapshot.revision < state.snapshot.revision) return state
-  return createTranscriptState(snapshot)
+  return createTranscriptState(
+    snapshot,
+    state.snapshot.id === snapshot.id ? state.replacedIds : new Map(),
+  )
 }
 
-function setProgressItem(state: TranscriptState, item: TranscriptItem): TranscriptState {
+function setProgressItem(
+  state: TranscriptState,
+  item: TranscriptItem,
+  replaces?: string,
+): TranscriptState {
   const progressItems = new Map(state.progressItems)
-  const progressOrder = progressItems.has(item.id)
-    ? state.progressOrder
-    : [...state.progressOrder, item.id]
+  let progressOrder = state.progressOrder
+  let replacedIds = state.replacedIds
+
+  if (replaces && replaces !== item.id) {
+    progressItems.delete(replaces)
+    replacedIds = new Map(state.replacedIds).set(replaces, item.id)
+
+    if (progressItems.has(item.id)) {
+      progressOrder = progressOrder.filter((id) => id !== replaces)
+    } else {
+      const at = progressOrder.indexOf(replaces)
+      progressOrder =
+        at >= 0
+          ? progressOrder.map((id, index) => (index === at ? item.id : id))
+          : [...progressOrder, item.id]
+    }
+  } else if (!progressItems.has(item.id)) {
+    progressOrder = [...progressOrder, item.id]
+  }
 
   progressItems.set(item.id, structuredClone(item))
-  return { ...state, progressItems, progressOrder }
+  return { ...state, progressItems, progressOrder, replacedIds }
 }
 
 export function applyTranscriptProgress(
@@ -53,10 +81,13 @@ export function applyTranscriptProgress(
 
   if (progress.type === "item_finished") {
     const toolCallBuffers = new Map(state.toolCallBuffers)
+    const prefixes = [progress.item.id, progress.replaces].filter(
+      (id): id is string => typeof id === "string" && id.length > 0,
+    )
 
     for (const key of toolCallBuffers.keys())
-      if (key.startsWith(`${progress.item.id}:`)) toolCallBuffers.delete(key)
-    return setProgressItem({ ...state, toolCallBuffers }, progress.item)
+      if (prefixes.some((id) => key.startsWith(`${id}:`))) toolCallBuffers.delete(key)
+    return setProgressItem({ ...state, toolCallBuffers }, progress.item, progress.replaces)
   }
 
   const item =
@@ -89,9 +120,10 @@ export function applyTranscriptProgress(
 }
 
 export function selectTranscript(state: TranscriptState): readonly TranscriptItem[] {
-  const transcript = state.snapshot.transcript.map(
-    (item) => state.progressItems.get(item.id) ?? item,
-  )
+  const transcript = state.snapshot.transcript.map((item) => {
+    const targetId = state.replacedIds.get(item.id) ?? item.id
+    return state.progressItems.get(targetId) ?? item
+  })
   const ids = new Set(transcript.map((item) => item.id))
 
   for (const id of state.progressOrder) {

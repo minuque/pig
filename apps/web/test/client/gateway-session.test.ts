@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from "vitest"
-import type { Command, ServerEvent, SessionSnapshot } from "@pig/protocol"
+import type {
+  AssistantTranscriptItem,
+  Command,
+  ServerEvent,
+  SessionSnapshot,
+  TranscriptProgress,
+} from "@pig/protocol"
 import type { GatewayClient } from "@client/gateway-client.js"
 import { GatewaySession } from "@client/gateway-session.js"
 
@@ -54,6 +60,11 @@ function createClient() {
     for (const listener of listeners) listener({ type: "session_snapshot", snapshot: next })
   }
 
+  function emitProgress(progress: TranscriptProgress) {
+    for (const listener of listeners)
+      listener({ type: "session_progress", sessionId: "s1", progress })
+  }
+
   function resolveCommand(name: Command["command"], next: SessionSnapshot) {
     const resolve = resolvers.get(name)?.shift()
 
@@ -61,7 +72,7 @@ function createClient() {
     resolve(next)
   }
 
-  return { client, commands, emitSnapshot, resolveCommand }
+  return { client, commands, emitSnapshot, emitProgress, resolveCommand }
 }
 
 describe("GatewaySession", () => {
@@ -105,5 +116,51 @@ describe("GatewaySession", () => {
     await abortPromise
 
     expect(session.state.lifecycle).toEqual({ status: "ready" })
+  })
+
+  it("流式助手条目收到 replaces 后原地换成真实 id，不留临时 id 且跨快照保留映射", async () => {
+    const { client, emitSnapshot, emitProgress } = createClient()
+    const session = await GatewaySession.open(client, "s1")
+    const streaming: AssistantTranscriptItem = {
+      id: "m1",
+      role: "assistant",
+      content: [{ type: "text", text: "" }],
+      model: { provider: "anthropic", id: "claude-sonnet" },
+      timestamp: 10,
+      status: "streaming",
+    }
+
+    emitProgress({ type: "item_started", item: streaming })
+    emitProgress({
+      type: "assistant_delta",
+      messageId: "m1",
+      contentIndex: 0,
+      kind: "text",
+      delta: "你好",
+    })
+    emitSnapshot(
+      snapshot({
+        phase: "turn",
+        revision: 2,
+        transcript: [{ ...streaming, content: [{ type: "text", text: "你好" }] }],
+      }),
+    )
+    emitProgress({
+      type: "item_finished",
+      replaces: "m1",
+      item: {
+        ...streaming,
+        id: "entry-1",
+        content: [{ type: "text", text: "你好" }],
+        status: "complete",
+        stopReason: "stop",
+      },
+    })
+
+    expect(session.state.transcript.map((item) => item.id)).toEqual(["entry-1"])
+    expect(session.state.replacedIds?.get("m1")).toBe("entry-1")
+
+    emitSnapshot(snapshot({ phase: "idle", revision: 3, transcript: [] }))
+    expect(session.state.replacedIds?.get("m1")).toBe("entry-1")
   })
 })

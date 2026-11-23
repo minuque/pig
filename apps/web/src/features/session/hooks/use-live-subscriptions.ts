@@ -33,6 +33,19 @@ export function hasRunningTasks(sub: LiveSubscription): boolean {
   )
 }
 
+function renameLiveItem(items: Map<string, TranscriptItem>, oldId: string, newId: string): void {
+  if (!items.has(oldId) || oldId === newId) return
+
+  const renamed = [...items.entries()].flatMap(([id, item]): [string, TranscriptItem][] => {
+    if (id !== oldId) return [[id, item]]
+    return items.has(newId) ? [] : [[newId, { ...item, id: newId } as TranscriptItem]]
+  })
+
+  items.clear()
+
+  for (const [id, item] of renamed) items.set(id, item)
+}
+
 interface LiveDeps {
   history: HistoryStore
   discard(session: GatewaySession): Promise<void>
@@ -170,6 +183,11 @@ export function useLiveSubscriptions(deps: LiveDeps) {
     }
     const coalesced = coalesceByFrame<SessionState>(publish, 8)
     const unsubscribe = session.subscribe((nextState) => {
+      if (nextState.replacedIds) {
+        for (const [oldId, newId] of nextState.replacedIds)
+          renameLiveItem(sub.liveItems, oldId, newId)
+      }
+
       for (const item of nextState.transcript) {
         sub.liveItems.set(item.id, item)
         recordToolStartedAt(sub.toolStartedAt, item)

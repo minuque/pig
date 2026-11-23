@@ -36,6 +36,7 @@ export interface SessionState {
   readonly lifecycle: SessionLifecycle
   readonly snapshot?: SessionSnapshot
   readonly transcript: readonly TranscriptItem[]
+  readonly replacedIds?: ReadonlyMap<string, string>
 }
 
 export interface CreateSessionOptions {
@@ -94,6 +95,7 @@ export class GatewaySession {
     return {
       lifecycle: this.#lifecycle,
       ...(this.#transcript ? { snapshot: this.#transcript.snapshot } : {}),
+      ...(this.#transcript?.replacedIds.size ? { replacedIds: this.#transcript.replacedIds } : {}),
       transcript: this.#transcript ? selectTranscript(this.#transcript) : [],
     }
   }

@@ -134,4 +134,6 @@ export type TranscriptProgress =
   | {
       type: "item_finished"
       item: CompleteAssistant | ErrorAssistant | AbortedAssistant | CompleteTool | ErrorTool
+      /** 落盘后换成会话条目 id：此前流式阶段用的临时 id。 */
+      replaces?: string
     }
