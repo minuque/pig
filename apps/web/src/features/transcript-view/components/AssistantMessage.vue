@@ -3,7 +3,11 @@
     :data-entry-id="item.entryId || undefined"
     :data-jump-highlighted="highlighted || undefined"
   >
-    <div v-if="item.text" ref="content">
+    <div
+      v-if="item.text"
+      :data-assistant-citation-source="canQuote ? item.entryId : undefined"
+      :data-assistant-citation-session="canQuote ? sessionId : undefined"
+    >
       <MarkdownContent :nodes="nodes" :streaming="streaming" />
     </div>
 
@@ -15,40 +19,12 @@
       :timestamp="item.timestamp"
       :text="item.text"
       pinned
-    >
-      <template #actions>
-        <Tooltip v-if="canQuote">
-          <TooltipTrigger as-child>
-            <IconButton
-              type="button"
-              size="s"
-              variant="ghost"
-              color="neutral"
-              class="quote-button"
-              data-quote-reply-button
-              :aria-label="t('transcript.quoteReply')"
-              @pointerdown.prevent
-              @mousedown.prevent
-              @click.stop="onQuoteClick"
-            >
-              <QuoteIcon class="size-icon" />
-            </IconButton>
-          </TooltipTrigger>
-
-          <TooltipContent>{{ t("transcript.quoteReply") }}</TooltipContent>
-        </Tooltip>
-      </template>
-    </MessageTimestamp>
+    />
   </article>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, useTemplateRef } from "vue"
-import { useI18n } from "@i18n/index.js"
-import { QuoteIcon } from "@components/icons/index.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
-import { quoteReplyKey } from "@features/transcript-view/index.js"
+import { computed } from "vue"
 import MessageTimestamp from "@features/transcript-view/components/MessageTimestamp.vue"
 import MarkdownContent from "@features/transcript-view/components/markdown/MarkdownContent.vue"
 import { useMarkdownNodes } from "@features/transcript-view/hooks/use-markdown-nodes.js"
@@ -63,9 +39,6 @@ const props = withDefaults(
   }>(),
   { streaming: false, sessionId: "", highlighted: false },
 )
-const { t } = useI18n()
-const quoteReply = inject(quoteReplyKey, undefined)
-const content = useTemplateRef("content")
 const nodes = useMarkdownNodes({
   text: () => props.item.text,
   streaming: () => props.streaming,
@@ -73,7 +46,6 @@ const nodes = useMarkdownNodes({
 })
 const canQuote = computed(() =>
   Boolean(
-    quoteReply &&
     !props.streaming &&
     !props.item.streaming &&
     props.sessionId &&
@@ -81,36 +53,6 @@ const canQuote = computed(() =>
     props.item.text.trim(),
   ),
 )
-
-function selectedTextInMessage(): string {
-  const selection = document.getSelection()
-  const box = content.value
-
-  if (!selection || selection.isCollapsed || selection.rangeCount === 0 || !box) return ""
-  const range = selection.getRangeAt(0)
-
-  if (!box.contains(range.startContainer) || !box.contains(range.endContainer)) return ""
-  const text = selection.toString()
-  return text.trim() ? text : ""
-}
-
-function onQuoteClick(event: MouseEvent) {
-  const anchor = event.currentTarget
-
-  if (!(anchor instanceof HTMLElement) || !quoteReply || !props.sessionId || !props.item.entryId) {
-    return
-  }
-
-  const quote = selectedTextInMessage() || props.item.text
-
-  if (!quote.trim()) return
-  quoteReply({
-    sessionId: props.sessionId,
-    entryId: props.item.entryId,
-    text: quote,
-    anchor,
-  })
-}
 </script>
 
 <style scoped>
@@ -129,14 +71,6 @@ article[data-jump-highlighted] {
 
 .message-stamp {
   margin-top: var(--space-sm);
-}
-
-.quote-button {
-  color: var(--fg-secondary);
-}
-
-.quote-button:hover {
-  color: var(--fg);
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -53,6 +53,7 @@
       </div>
     </div>
 
+    <AssistantSelectionToolbar :viewport="viewport" />
     <SessionLoading v-if="!readyFrame" />
   </div>
 </template>
@@ -68,6 +69,7 @@ import {
   useTemplateRef,
   watch,
 } from "vue"
+import AssistantSelectionToolbar from "@features/transcript-view/components/AssistantSelectionToolbar.vue"
 import SessionLoading from "@features/transcript-view/components/SessionLoading.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
 import TurnRow from "@features/transcript-view/components/TurnRow.vue"

@@ -1,3 +1,4 @@
+import type { Anchor } from "@ui-sdk/core"
 import type { InjectionKey } from "vue"
 
 export { transcriptText, userMessageText } from "@features/session/lib/transcript-text.js"
@@ -35,7 +36,8 @@ export interface QuoteReplyRequest {
   sessionId: string
   entryId: string
   text: string
-  anchor: HTMLElement
+  anchor: Anchor
+  range?: Range | undefined
 }
 
 export interface ReplyJumpTarget {

@@ -8,7 +8,6 @@
     :aria-label="t('transcript.messageActions')"
   >
     <CopyButton v-if="text" :text="text" />
-    <slot name="actions" />
 
     <Tooltip>
       <TooltipTrigger as-child>

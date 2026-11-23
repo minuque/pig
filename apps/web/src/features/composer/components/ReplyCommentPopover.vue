@@ -4,7 +4,7 @@
       v-if="open && reference && anchor"
       :anchor="anchor"
       :side="side"
-      align="start"
+      :align="align"
       size="s"
       max-width="360px"
       :initial-focus="() => input"
@@ -67,8 +67,7 @@
 
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue"
-import type { Side } from "@ui-sdk/core"
-import type { ChangeDetails } from "@ui-sdk/core"
+import type { Align, Anchor, ChangeDetails, Side } from "@ui-sdk/core"
 import type { PopoverOpenChangeReason } from "@ui-sdk/core/popover"
 import { REPLY_COMMENT_MAX, type ReplyReference } from "@pig/protocol"
 import { useI18n } from "@i18n/index.js"
@@ -81,10 +80,11 @@ const props = withDefaults(
   defineProps<{
     open: boolean
     reference: ReplyReference | null
-    anchor: HTMLElement | null
+    anchor: Anchor | null
     side?: Side
+    align?: Align
   }>(),
-  { side: "top" },
+  { side: "top", align: "start" },
 )
 const emit = defineEmits<{
   save: [comment: string]

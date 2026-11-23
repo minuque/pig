@@ -77,6 +77,10 @@ body {
   background-color: var(--bg-selected);
 }
 
+::highlight(pig-reply-comment-source) {
+  background-color: var(--bg-selected);
+}
+
 code,
 kbd,
 samp,

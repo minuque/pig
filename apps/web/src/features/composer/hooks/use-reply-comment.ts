@@ -1,6 +1,6 @@
-import { computed, nextTick, provide, shallowRef, type Ref } from "vue"
+import { computed, nextTick, onBeforeUnmount, provide, shallowRef, watch, type Ref } from "vue"
 import type { Editor } from "@tiptap/core"
-import type { Side } from "@ui-sdk/core"
+import type { Align, Anchor, Side } from "@ui-sdk/core"
 import { replyReference, type ReplyReference } from "@pig/protocol"
 import { composerChipActionsKey } from "@features/composer/lib/editor/chip-actions.js"
 import {
@@ -13,11 +13,15 @@ import {
 } from "@features/composer/lib/editor/reply-citation.js"
 import type { ReplyInsertRequest } from "@features/composer/type.js"
 
+const COMMENT_HIGHLIGHT_NAME = "pig-reply-comment-source"
+
 export interface ActiveReplyEdit {
   citeId: string
   reference: ReplyReference
-  anchor: HTMLElement
+  anchor: Anchor
   side: Side
+  align: Align
+  range?: Range | undefined
   removeOnCancel: InsertedSpaces | null
 }
 
@@ -32,6 +36,26 @@ export function useReplyComment(options: UseReplyCommentOptions) {
   const activeEdit = shallowRef<ActiveReplyEdit | null>(null)
   const replyCommentOpen = computed(() => activeEdit.value !== null)
 
+  function clearSourceHighlight() {
+    if (typeof CSS === "undefined" || !CSS.highlights) return
+    CSS.highlights.delete(COMMENT_HIGHLIGHT_NAME)
+  }
+
+  watch(
+    () => activeEdit.value?.range,
+    (range) => {
+      clearSourceHighlight()
+
+      if (!range || range.collapsed || typeof Highlight === "undefined") return
+
+      if (typeof CSS === "undefined" || !CSS.highlights) return
+      CSS.highlights.set(COMMENT_HIGHLIGHT_NAME, new Highlight(range))
+    },
+    { flush: "post" },
+  )
+
+  onBeforeUnmount(clearSourceHighlight)
+
   provide(composerChipActionsKey, {
     editingCiteId: computed(() => activeEdit.value?.citeId ?? null),
     openFile: options.onOpenFile,
@@ -42,6 +66,7 @@ export function useReplyComment(options: UseReplyCommentOptions) {
         reference,
         anchor,
         side: "top",
+        align: "start",
         removeOnCancel: null,
       }
     },
@@ -60,6 +85,8 @@ export function useReplyComment(options: UseReplyCommentOptions) {
       reference,
       anchor: request.anchor,
       side: "bottom",
+      align: "end",
+      range: request.range,
       removeOnCancel: inserted.insertedSpaces,
     }
   }

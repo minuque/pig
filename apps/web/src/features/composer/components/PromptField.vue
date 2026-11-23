@@ -6,6 +6,7 @@
     :reference="reply.activeEdit.value?.reference ?? null"
     :anchor="reply.activeEdit.value?.anchor ?? null"
     :side="reply.activeEdit.value?.side ?? 'top'"
+    :align="reply.activeEdit.value?.align ?? 'start'"
     @save="reply.save"
     @auto-save="reply.autoSave"
     @save-and-send="reply.saveAndSend"

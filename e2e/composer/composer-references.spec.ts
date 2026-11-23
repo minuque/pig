@@ -26,6 +26,39 @@ async function openComplex(page: Page, gateway: { entryUrl: string; workspaceId:
 
 const field = (page: Page) => page.getByRole("textbox", { name: "Prompt" })
 
+async function selectElementTextByDrag(page: Page, target: Locator) {
+  await target.scrollIntoViewIfNeeded()
+
+  const coords = await target.evaluate((element) => {
+    const range = document.createRange()
+    range.selectNodeContents(element)
+
+    const rects = Array.from(range.getClientRects()).filter(
+      (rect) => rect.width > 0 || rect.height > 0,
+    )
+    const first = rects[0] ?? element.getBoundingClientRect()
+    const last = rects[rects.length - 1] ?? first
+    return {
+      startX: first.left + 1,
+      startY: first.top + first.height / 2,
+      endX: last.right + 8,
+      endY: last.top + last.height / 2,
+      lastRect: {
+        left: last.left,
+        top: last.top,
+        right: last.right,
+        bottom: last.bottom,
+      },
+    }
+  })
+
+  await page.mouse.move(coords.startX, coords.startY)
+  await page.mouse.down()
+  await page.mouse.move(coords.endX, coords.endY, { steps: 8 })
+  await page.mouse.up()
+  return coords.lastRect
+}
+
 test("文件树里的文件与目录拖到输入卡成为 @ chip，带图标与语义色且使用 Tooltip，提交原文带路径", async ({
   page,
   complexGateway,
@@ -88,7 +121,7 @@ test("文件树里的文件与目录拖到输入卡成为 @ chip，带图标与�
   expect(bridge.prompts[0]?.trim()).toBe("@src/example.ts @src/nested")
 })
 
-test("复制助手回复保留纯文本；点击右下角引用按钮在弹层编写评论、支持取消撤回与二次编辑", async ({
+test("复制助手回复保留纯文本；划词在选区右下角实时显示引用按钮并在弹层编写评论、支持取消撤回与二次编辑", async ({
   page,
   complexGateway,
 }) => {
@@ -136,22 +169,35 @@ test("复制助手回复保留纯文本；点击右下角引用按钮在弹层�
   await prompt.press("Control+a")
   await prompt.press("Delete")
 
-  const quoteButton = assistantRow.locator("[data-quote-reply-button]")
+  await page.evaluate(() => window.getSelection()?.removeAllRanges())
+  await expect(page.locator("[data-quote-reply-button]")).toHaveCount(0)
+
+  const selectionRect = await selectElementTextByDrag(page, paragraph)
+  const quoteButton = page.locator("[data-quote-reply-button]")
   await expect(quoteButton).toBeVisible()
+  const buttonBox = await quoteButton.boundingBox()
+  expect(buttonBox).not.toBeNull()
+  expect(Math.abs(buttonBox!.x - selectionRect.right)).toBeLessThan(24)
+  expect(buttonBox!.y).toBeGreaterThanOrEqual(selectionRect.bottom - 2)
+  expect(buttonBox!.y).toBeLessThanOrEqual(selectionRect.bottom + 24)
+
   await quoteButton.click()
+  await expect(quoteButton).toHaveCount(0)
 
   const popover = page.locator('[data-slot="popover-content"].reply-popover')
   await expect(popover).toBeVisible()
+  const popoverBox = await popover.boundingBox()
+  expect(popoverBox).not.toBeNull()
+  expect(popoverBox!.y).toBeGreaterThanOrEqual(selectionRect.bottom - 2)
+  expect(popoverBox!.y).toBeLessThanOrEqual(selectionRect.bottom + 40)
   await expect(prompt.locator('.chip[data-context-kind="reply"]')).toHaveCount(1)
 
   await popover.locator("textarea").press("Escape")
   await expect(popover).toHaveCount(0)
   await expect(prompt.locator('.chip[data-context-kind="reply"]')).toHaveCount(0)
 
-  await paragraph.evaluate((element) => {
-    const selection = document.getSelection()!
-    selection.selectAllChildren(element)
-  })
+  await selectElementTextByDrag(page, paragraph)
+  await expect(quoteButton).toBeVisible()
   await quoteButton.click()
   await expect(popover).toBeVisible()
   await expect(popover).toContainText(quote)
@@ -284,12 +330,41 @@ test("刚跑完的回合点引用按钮获真实条目 id，连同会话引用�
       await prompt.fill("请给出一句测试回复")
       await prompt.press("Control+Enter")
 
+      const initialReply = page.locator(".row-assistant").first().locator("p").first()
       const firstReplyRow = page.locator(".row-assistant").last()
       const firstReply = firstReplyRow.locator("p", { hasText: fauxReply(1) }).last()
       await expect(firstReply).toBeVisible({ timeout: 30_000 })
       await expect(firstReplyRow.locator(".message-stamp")).toBeVisible({ timeout: 30_000 })
 
-      await firstReplyRow.locator("[data-quote-reply-button]").click()
+      await initialReply.scrollIntoViewIfNeeded()
+
+      const crossCoords = await page.evaluate(
+        ([startNode, endNode]) => {
+          const r1 = document.createRange()
+          r1.selectNodeContents(startNode!)
+          const r2 = document.createRange()
+          r2.selectNodeContents(endNode!)
+          const b1 = r1.getBoundingClientRect()
+          const b2 = r2.getBoundingClientRect()
+          return {
+            startX: b1.left + 1,
+            startY: b1.top + b1.height / 2,
+            endX: b2.right + 8,
+            endY: b2.top + b2.height / 2,
+          }
+        },
+        [await initialReply.elementHandle(), await firstReply.elementHandle()],
+      )
+
+      await page.mouse.move(crossCoords.startX, crossCoords.startY)
+      await page.mouse.down()
+      await page.mouse.move(crossCoords.endX, crossCoords.endY, { steps: 6 })
+      await page.mouse.up()
+      await expect(page.locator("[data-quote-reply-button]")).toHaveCount(0)
+
+      await page.evaluate(() => window.getSelection()?.removeAllRanges())
+      await selectElementTextByDrag(page, firstReply)
+      await page.locator("[data-quote-reply-button]").click()
       const popover = page.locator('[data-slot="popover-content"].reply-popover')
       await expect(popover).toBeVisible()
       await popover.locator("textarea").fill("请结合这段继续说明")

@@ -1,3 +1,4 @@
+import type { Anchor } from "@ui-sdk/core"
 import type { Component } from "vue"
 import type { ComposerAttachment, ComposerAttachmentBatch } from "@/types/attachment-type.js"
 
@@ -93,7 +94,8 @@ export interface ReplyInsertRequest {
   sessionId: string
   entryId: string
   text: string
-  anchor: HTMLElement
+  anchor: Anchor
+  range?: Range | undefined
 }
 
 export type {
