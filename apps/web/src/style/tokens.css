@@ -11,21 +11,22 @@
   initial-value: transparent;
 }
 
-@property --edge-fade-top {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: 0px;
-}
-
-@property --edge-fade-bottom {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: 0px;
-}
-
 /* ------ 浅色 token ------ */
 :root {
   color-scheme: light;
+
+  /* ====== 原色阶：标识色与色调派生参数，组件不直接读 ====== */
+  --tone-subtle-mix: 8%;
+  --tone-border-mix: 35%;
+  --tone-text-lightness: 53%;
+  --tone-hover-target: #000000;
+  --hue-indigo: #3e63dd;
+  --hue-cyan: #00a2c7;
+  --hue-green: #30a46c;
+  --hue-amber: #ffc53d;
+  --hue-orange: #f76b15;
+  --hue-red: #e5484d;
+  --hue-violet: #6e56cf;
 
   /* ====== 语义层：全站共用，组件只读这一层与下面的组件层 ====== */
 
@@ -59,7 +60,6 @@
   --accent-solid: #5e6ad2;
   --accent-solid-hover: #4c56b8;
   --accent-text: #3a5bc7;
-  --accent-subtle: color-mix(in srgb, var(--accent-solid) 11%, transparent);
   --bg-hover: color-mix(in srgb, var(--fg) 6%, transparent);
   --bg-selected: color-mix(in srgb, var(--accent-solid) 11%, transparent);
   --bg-muted: color-mix(in srgb, var(--fg) 5%, transparent);
@@ -69,9 +69,7 @@
   --opacity-disabled: 0.55;
   --focus-color: var(--accent-text);
   --focus-ring: 0 0 0 2px var(--focus-color);
-  --focus-ring-danger: 0 0 0 2px var(--danger-text);
   --scrollbar-color: #d9d9d9;
-  --scrollbar-color-hover: rgba(0, 0, 0, 0.27);
   --button-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.16);
   --button-pressed: inset 0 1px 0 rgba(0, 0, 0, 0.08);
   --control-bg: var(--bg-raised);
@@ -79,9 +77,7 @@
   --control-shadow: 0 0 0 var(--border-width) var(--control-border), 0 1px 2px rgba(0, 0, 0, 0.05);
   --outline-ring: color-mix(in srgb, currentColor 24%, transparent);
   --outline-shadow: 0 0 0 var(--border-width) var(--outline-ring), 0 1px 2px rgba(0, 0, 0, 0.05);
-  --thumb-shadow-subtle: rgba(0, 0, 0, 0.05);
   --thumb-shadow: rgba(0, 0, 0, 0.1);
-  --thumb-ring: rgba(0, 0, 0, 0.2);
 
   /* --- 状态 --- */
   --success-solid: #30a46c;
@@ -168,7 +164,6 @@
   --titlebar-inset: 0px;
   --titlebar-controls-inset: 0px;
   --header-height: 44px;
-  --banner-width: clamp(20rem, 50vw, 40rem);
   --toast-width: 22rem;
   --content-width: 768px;
   --dialog-width-sm: 420px;
@@ -208,8 +203,6 @@
   --composer-border-hover: rgba(0, 0, 0, 0.13);
   --composer-inset: inset 0 1px 0 rgba(255, 255, 255, 0.72);
   --composer-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 4px 12px -4px rgba(0, 0, 0, 0.05);
-  --composer-dock-in: 250ms;
-  --composer-dock-out: 250ms;
   --composer-radius: 18px;
   --composer-reserve: 7rem;
   --glass-bg: color-mix(in srgb, var(--bg) 80%, transparent);
@@ -254,18 +247,6 @@
   --theme-wire-dark-raised: #17171a;
   --traffic-lights-width: 68px;
   --transcript-tool-max: 400px;
-
-  /* --- 色调派生比例 --- */
-  --tone-subtle-mix: 8%;
-  --tone-border-mix: 35%;
-  --tone-text-lightness: 53%;
-  --hue-indigo: #3e63dd;
-  --hue-cyan: #00a2c7;
-  --hue-green: #30a46c;
-  --hue-amber: #ffc53d;
-  --hue-orange: #f76b15;
-  --hue-red: #e5484d;
-  --hue-violet: #6e56cf;
 }
 
 html[data-pig-desktop-platform="darwin"] {
@@ -322,11 +303,9 @@ html.dark {
   --accent-solid: #5e6ad2;
   --accent-solid-hover: #6b77dc;
   --accent-text: #9eb1ff;
-  --accent-subtle: color-mix(in srgb, var(--accent-solid) 16%, transparent);
   --bg-hover: color-mix(in srgb, var(--white) 6%, transparent);
   --bg-selected: color-mix(in srgb, var(--accent-solid) 16%, transparent);
   --scrollbar-color: #2a2a2a;
-  --scrollbar-color-hover: rgba(255, 255, 255, 0.33);
 
   /* --- 状态 --- */
   --info-text: #4ccce6;
@@ -378,6 +357,7 @@ html.dark {
   --tone-subtle-mix: 16%;
   --tone-border-mix: 48%;
   --tone-text-lightness: 79%;
+  --tone-hover-target: #ffffff;
 }
 
 html.dark:is(:not([data-theme-preset]), [data-theme-preset="linear"]) {
@@ -409,7 +389,7 @@ html[data-chat-width="full"] {
 [data-tone] {
   --tone-subtle: color-mix(in srgb, var(--tone) var(--tone-subtle-mix), transparent);
   --tone-border: color-mix(in srgb, var(--tone) var(--tone-border-mix), transparent);
-  --tone-hover: color-mix(in srgb, var(--tone) 90%, transparent);
+  --tone-hover: color-mix(in srgb, var(--tone) 90%, var(--tone-hover-target));
   --tone-shadow: color-mix(in srgb, var(--tone) 24%, transparent);
   --tint: var(--tone-text);
 }
@@ -418,6 +398,7 @@ html[data-chat-width="full"] {
 [data-tone="accent"] {
   --tone: var(--accent-solid);
   --tone-text: var(--accent-text);
+  --tone-hover: var(--accent-solid-hover);
 }
 
 [data-tone="info"] {

@@ -35,22 +35,7 @@ export default {
       { ignorePseudoClasses: ["deep", "global", "slotted"] },
     ],
     "selector-pseudo-element-no-unknown": true,
-    "at-rule-no-unknown": [
-      true,
-      {
-        ignoreAtRules: [
-          "theme",
-          "utility",
-          "plugin",
-          "source",
-          "custom-variant",
-          "apply",
-          "reference",
-          "config",
-          "variant",
-        ],
-      },
-    ],
+    "at-rule-no-unknown": true,
   },
   overrides: [
     {

@@ -11,11 +11,12 @@ colors:
   link-dark: "#4CCCE6"
   window-light: "#FFFFFF"
   sidebar-light: "#F7F8F8"
-  overlay-light: "#FBFBFC"
+  card-light: "#F7F8F8"
+  raised-light: "#FBFBFC"
   window-dark: "#101012"
   sidebar-dark: "#0D0D0E"
   card-dark: "#17171A"
-  overlay-dark: "#1C1C1F"
+  raised-dark: "#1C1C1F"
   ink-light: "#282A30"
   ink-secondary-light: "#4C5159"
   ink-muted-light: "#6A707C"
@@ -76,9 +77,9 @@ spacing:
 
 `apps/web/src/style/tokens.css` 分三层，组件只读后两层：
 
-1. **原值**：各色彩家族的实色与文字色、7 个标识色 `--hue-*`，只写 hex / rgba，不引外部色板。
+1. **原色阶**：7 个标识色 `--hue-*` 与色调派生参数（`--tone-*` 比例与悬停混合目标色），不引外部色板，由 `data-tone` 槽位消费。
 2. **语义层**：全站共用，一个概念一个词：`fg`、`bg`、`border`、`accent`、状态 `-text` / `-subtle`。
-3. **组件层**：只给一类组件用，以组件名开头（`--composer-*`、`--glass-*`、`--language-*`、`--mascot-*`）。能用语义档就不进这一层。
+3. **组件层**：只给一类组件用，以组件名开头（`--composer-*`、`--glass-*`、`--language-*`、`--slider-*`）。能用语义档就不进这一层。
 
 新 token 写进对应分区注释下，`/design` 页按这些注释分组。
 
@@ -107,10 +108,10 @@ spacing:
 | token | 浅色 | 深色 | 用途 |
 | --- | --- | --- | --- |
 | `--accent-solid` / `-hover` | `#5E6AD2` / `#4C56B8` | `#5E6AD2` / `#6B77DC` | 主按钮、发送键、指示器、选中描边；字配 `--fg-on-accent` |
-| `--accent-text` | indigo-11 | indigo-11 | 强调文字、`--focus-color` / `--focus-ring` |
+| `--accent-text` | `#3A5BC7` | `#9EB1FF` | 强调文字、`--focus-color` / `--focus-ring` |
 | `--bg-selected` | accent 11% | accent 16%（默认预设实色 `#1A2143`） | 选中底 |
 | `--bg-hover` | fg 6% | white 6% | 悬停底 |
-| `--info-*` | `#0B6F88` | cyan-11 | 链接 `--link`、运行状态、转圈、进度条、用量环 |
+| `--info-*` | `#0B6F88` | `#4CCCE6` | 链接 `--link`、运行状态、转圈、进度条、用量环 |
 
 - 外观预设（`paper` / `ocean` / `grove` / `iris`）由 `utils/theme-palette.ts` 从 `canvas + accent` 推导表面、文字与强调色阶；`--tone-*` 读推导结果。
 - 发送键强调色实心，停止键 `--danger-solid`，不可用时换 `--bg-emphasis` 底配 `--fg-secondary`，不降透明度。「滚动到底」用反色 `--bg-inverse` / `--fg-inverse`。
@@ -142,7 +143,7 @@ spacing:
 
 ### 例外
 
-`--language-*`（代码块语言图标）、Mermaid 深色配色（`mermaid.css`）、`--mascot-*`、`--favorite`、`--brand-mark-bg`、`--theme-wire-*` 与强度滑条渐变：语义档没有对应值，可以直接写色。
+`--language-*`（代码块语言图标）、Mermaid 深色配色（`mermaid.css`）、`--favorite`、`--theme-wire-*` 与强度滑条渐变：语义档没有对应值，可以直接写色。
 
 ## 字号
 

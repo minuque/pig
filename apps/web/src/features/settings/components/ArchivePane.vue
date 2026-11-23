@@ -296,7 +296,7 @@ function archiveGroupStale(group: ArchiveProjectGroup): void {
 
 .project-count {
   flex-shrink: 0;
-  color: var(--fg-subtle);
+  color: var(--fg-muted);
   font-size: var(--text-meta);
 }
 
@@ -332,7 +332,7 @@ function archiveGroupStale(group: ArchiveProjectGroup): void {
 .empty-icon {
   width: 1.5rem;
   height: 1.5rem;
-  color: var(--fg-subtle);
+  color: var(--fg-muted);
 }
 
 .empty-text {

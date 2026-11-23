@@ -277,7 +277,7 @@ function onPrimaryAction(): void {
 .meta-item + .meta-item::before {
   content: "·";
   margin-inline-end: var(--space-2xs);
-  color: var(--fg-subtle);
+  color: var(--fg-muted);
 }
 
 .meta-model {
