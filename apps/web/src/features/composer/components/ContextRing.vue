@@ -53,6 +53,21 @@
             <span class="legend-tokens">{{ formatTokenCount(segment.tokens) }}</span>
           </li>
         </ul>
+
+        <div class="card-foot">
+          <Button
+            type="button"
+            size="s"
+            variant="ghost"
+            color="neutral"
+            class="card-compact"
+            :disabled="compactDisabled"
+            @click="emit('compact')"
+          >
+            <Minimize2Icon aria-hidden="true" />
+            {{ t("composer.compactContext") }}
+          </Button>
+        </div>
       </div>
     </HoverCardContent>
   </HoverCard>
@@ -61,7 +76,8 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { IconButton } from "@pig/ui/button"
+import { Button, IconButton } from "@pig/ui/button"
+import { Minimize2Icon } from "@components/icons/index.js"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@pig/ui/hover-card"
 import {
   contextSeverity,
@@ -71,7 +87,8 @@ import {
 } from "@features/composer/lib/context-usage.js"
 import type { ContextUsage } from "@features/composer/type.js"
 
-const props = defineProps<{ usage: ContextUsage }>()
+const props = defineProps<{ usage: ContextUsage; compactDisabled?: boolean }>()
+const emit = defineEmits<{ compact: [] }>()
 const { t } = useI18n()
 const severity = computed(() => contextSeverity(props.usage.percent))
 const segments = computed(() =>
@@ -180,6 +197,18 @@ const share = (tokens: number) =>
   margin: 0;
   color: var(--fg);
   font-variant-numeric: tabular-nums;
+}
+
+.card-foot {
+  padding-block-start: var(--space-xs);
+  border-block-start: var(--border-width) solid var(--border-subtle);
+}
+
+.card-compact {
+  height: var(--control-xs);
+  margin-inline-start: calc(var(--space-2xs) * -1);
+  padding-inline: var(--space-2xs);
+  font-size: var(--text-meta);
 }
 
 .card-legend {

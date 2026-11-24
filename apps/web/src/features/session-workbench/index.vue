@@ -109,6 +109,7 @@
               @open-file="filePane.openFile($event)"
               @jump-reply="jumpToReply"
               @abort="abort"
+              @compact="compact"
             >
               <template v-if="transcriptStatus" #plate>
                 <TranscriptStatus v-bind="transcriptStatus" :activity="snapshot?.activity" />
@@ -270,6 +271,7 @@ watch(
 
 const {
   deliver,
+  compact,
   sendNow,
   sendQueued,
   enqueue,

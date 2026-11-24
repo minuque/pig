@@ -77,7 +77,12 @@
           :locked="switchLocked"
         />
 
-        <ContextRing v-if="usage" :usage="usage" />
+        <ContextRing
+          v-if="usage"
+          :usage="usage"
+          :compact-disabled="running"
+          @compact="emit('compact')"
+        />
       </template>
 
       <template #right>
@@ -169,6 +174,7 @@ const emit = defineEmits<{
   queue: [text: string]
   saveEdit: []
   abort: []
+  compact: []
   openFile: [path: string]
   jumpReply: [target: { sessionId: string; entryId: string; text?: string | undefined }]
   cancelQueueEdit: []
