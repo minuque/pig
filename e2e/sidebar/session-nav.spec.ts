@@ -24,8 +24,14 @@ test("行尾标记完成按钮把会话收进已完成段", async ({ page, navGa
   const settled = page.locator('.session-section[data-key="settled"]')
   await expect(settled.locator(".section-count")).toHaveText("1")
 
-  await settled.locator(".section-toggle").click()
+  const toggle = settled.locator(".section-toggle")
+  await toggle.click()
+  await expect(toggle).toHaveAttribute("aria-expanded", "true")
   await expect(settled.locator(".session-card")).toContainText(`${FILLER_PREFIX} 6`)
+
+  await toggle.click()
+  await expect(toggle).toHaveAttribute("aria-expanded", "false")
+  await expect(settled.locator(".session-card")).toHaveCount(0)
 })
 
 test("搜索弹层过滤并跳到选中会话", async ({ page, navGateway }) => {
