@@ -11,11 +11,25 @@
 
   <SettingsDialog v-model:open="settingsOpen" />
   <Toaster />
+
+  <Button
+    :as="RouterLink"
+    to="/design"
+    variant="secondary"
+    color="neutral"
+    size="s"
+    class="lab-back"
+  >
+    <ArrowLeftIcon class="size-icon-sm" />
+    Design
+  </Button>
 </template>
 
 <script setup lang="ts">
 import { computed, provide, ref, shallowRef } from "vue"
-import { onBeforeRouteLeave } from "vue-router"
+import { onBeforeRouteLeave, RouterLink } from "vue-router"
+import { ArrowLeftIcon } from "@components/icons/index.js"
+import { Button } from "@pig/ui/button"
 import AppLayout from "@components/layout/AppLayout.vue"
 import { Toaster } from "@pig/ui/toast"
 import { provideSharedBuckets } from "@features/composer/hooks/use-session-buckets.js"
@@ -61,6 +75,13 @@ onBeforeRouteLeave((to) => to.path.startsWith("/design"))
 </script>
 
 <style scoped>
+.lab-back {
+  position: fixed;
+  z-index: var(--z-drawer);
+  inset-block-end: var(--space-md);
+  inset-inline-end: var(--space-md);
+}
+
 .split-area {
   position: relative;
   display: flex;
