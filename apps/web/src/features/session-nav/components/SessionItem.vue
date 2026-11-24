@@ -124,7 +124,7 @@
                           class="title-vendor"
                           :vendor="foot.model.provider"
                           :name="foot.model.id"
-                          :size="12"
+                          :size="14"
                         />
                       </template>
                     </span>
