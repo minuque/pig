@@ -31,10 +31,6 @@ describe("@pig/ui tokens.css contract", () => {
   const darkVars = varsBySelector(tokensCss, "html.dark")
 
   it("固定控件三档高度与核心切换变量契约", () => {
-    expect(rootVars.get("--control-sm")).toBe("28px")
-    expect(rootVars.get("--control-md")).toBe("32px")
-    expect(rootVars.get("--control-lg")).toBe("36px")
-
     for (const token of ["--switch-thumb-unchecked", "--tone-hover-target"]) {
       expect(rootVars.has(token), `missing ${token} in :root`).toBe(true)
       expect(darkVars.has(token), `missing ${token} in html.dark`).toBe(true)

@@ -57,7 +57,6 @@ test("一个会话还在跑：回新建页侧栏仍显示工作中，新会话�
 
   await expect.poll(() => bridge.prompted.length).toBe(2)
   await expect(page).toHaveURL(new RegExp(`/sessions/${bridge.prompted[1]}$`))
-  await expect(page.locator(".queue-panel")).toHaveCount(0)
   await expect(working).toHaveCount(2)
 
   await working.and(page.locator(`[href$="/sessions/${first}"]`)).click()

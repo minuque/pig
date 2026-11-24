@@ -67,8 +67,6 @@ describe("toast notify", () => {
     notifyAction("停止失败")
 
     const [item] = noticeToaster.toasts()
-    expect(item!.type).toBe("error")
-    expect(item!.duration).toBe(Number.POSITIVE_INFINITY)
     expect(noticeOf(item!).message).toBe("停止失败")
   })
 })

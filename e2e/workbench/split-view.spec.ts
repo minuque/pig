@@ -83,6 +83,5 @@ test("分屏：删除另一侧开着的空闲会话，那一侧回到新会话�
   await expect(target).toHaveCount(0)
   await expect(right.locator("h1.hero-title")).toBeVisible()
   await expect(page.getByText("会话仍在运行，请先停止再删除。")).toHaveCount(0)
-  await expect(target).toHaveCount(0)
   await expect(page).toHaveURL(new RegExp(`${leftHref}$`))
 })

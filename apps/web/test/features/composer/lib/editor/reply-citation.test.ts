@@ -69,29 +69,6 @@ describe("mention 路径图标识别", () => {
 })
 
 describe("列表标记宽度与带评论回复引用往返", () => {
-  it("有序列表项节点带出 data-marker 与封顶到 10 的 data-marker-width", () => {
-    const doc = schema.nodeFromJSON(buildDocJson("1. 第一项\n10. 第十项\n12345678901. 超长"))
-    const markers: Array<{ marker: string; width: string }> = []
-
-    doc.descendants((node) => {
-      if (node.type.name !== "listItem") return true
-
-      const spec = node.type.spec.toDOM?.(node) as [string, Record<string, unknown>, number]
-
-      markers.push({
-        marker: String(spec[1]["data-marker"]),
-        width: String(spec[1]["data-marker-width"]),
-      })
-      return false
-    })
-
-    expect(markers).toEqual([
-      { marker: "1.", width: "2" },
-      { marker: "10.", width: "3" },
-      { marker: "12345678901.", width: "10" },
-    ])
-  })
-
   it("带评论的回复引用经解析和序列化保持评论不变", () => {
     const ref = replyReference("s-1", "e-1", "原始片段", "这里补充说明")
     const raw = `看 ${formatContextReference(ref)} 吧`

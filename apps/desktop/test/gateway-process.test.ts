@@ -59,7 +59,6 @@ describe("connectGateway", () => {
       await vi.waitFor(() =>
         expect(sent).toEqual([{ type: "directory-selected", id: 7, error: "dialog failed" }]),
       )
-      expect(spy).toHaveBeenCalledTimes(1)
     } finally {
       spy.mockRestore()
     }

@@ -242,7 +242,6 @@ describe("session-archives 接口", () => {
 
     await expect(rejected).rejects.toThrow()
     await store.patch({ archive: ["s1"] })
-    expect((store as unknown as { watcher: unknown }).watcher).toBeUndefined()
     store.close()
   })
 

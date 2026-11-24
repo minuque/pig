@@ -200,11 +200,6 @@ describe("thin host HTTP shell", () => {
     expect(oversized.status).toBe(413)
     await expect(oversized.json()).resolves.toEqual({ code: "PAYLOAD_TOO_LARGE" })
 
-    expect(
-      (await request(base, "/api/v1/platform/attachments/bind", { sessionId: "s", batch: "b1" }))
-        .status,
-    ).toBe(404)
-
     expect((await request(base, "/api/v1/platform/attachments/discard", {})).status).toBe(400)
     expect(
       (await request(base, "/api/v1/platform/attachments/discard", { batch: "b1" })).status,

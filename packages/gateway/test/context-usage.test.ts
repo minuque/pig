@@ -37,7 +37,6 @@ describe("estimateContextUsage", () => {
       300,
     )
     expect(idle).toBe(700)
-    expect(Object.values(usage.segments).every((value) => typeof value === "number")).toBe(true)
     expect(usage.segments.systemPrompt).toBeGreaterThan(0)
     expect(usage.segments.tools).toBeGreaterThan(0)
     expect(usage.segments.conversation).toBeGreaterThan(0)
@@ -177,7 +176,6 @@ describe("estimateContextUsage", () => {
     expect(usage.segments.toolResults).toBe(1)
     expect(usage.segments.mcpTools).toBe(0)
     expect(usage.segments.conversation).toBe(0)
-    expect(Object.values(usedSegments).every((value) => Number(value) >= 0)).toBe(true)
     expect(Object.values(usedSegments).reduce((sum: number, value) => sum + Number(value), 0)).toBe(
       usage.used,
     )

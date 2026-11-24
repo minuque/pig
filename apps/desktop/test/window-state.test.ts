@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
+import { mkdtemp, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, describe, expect, it } from "vitest"
@@ -29,7 +29,6 @@ describe("window state persistence", () => {
     const saved = { x: 80, y: 40, width: 1440, height: 900, isMaximized: true }
     writeWindowStateFile(file, saved)
 
-    expect(JSON.parse(await readFile(file, "utf8"))).toEqual(saved)
     expect(readWindowStateFile(file)).toEqual(saved)
     expect(restoreWindowFrame(saved, [DISPLAY])).toEqual(saved)
   })

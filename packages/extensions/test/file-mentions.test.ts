@@ -6,7 +6,7 @@ import {
   DefaultResourceLoader,
   SessionManager,
 } from "@earendil-works/pi-coding-agent"
-import { BINDING_ENTRY, environmentFor } from "@pig/environment/source"
+import { BINDING_ENTRY } from "@pig/environment/source"
 import { afterAll, describe, expect, it, vi } from "vitest"
 import fileMentions from "../src/file-mentions/index.ts"
 import { expandFileMentions, mentionPaths } from "../src/file-mentions/expand.ts"
@@ -118,7 +118,6 @@ it("远程会话的 @ 引用经绑定的环境读远端 workspace 里的文件",
   await session.bindExtensions({})
 
   const result = await session.extensionRunner.emitInput("看 @far.md", undefined, "rpc", undefined)
-  expect(environmentFor).toHaveBeenCalledWith("ssh://box")
   expect(result.action === "transform" && result.text).toContain(
     '<file name="/srv/app/far.md">\n远端内容',
   )

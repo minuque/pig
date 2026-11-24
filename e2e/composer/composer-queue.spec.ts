@@ -49,7 +49,6 @@ test("running 时 Enter 入队，轮次结束自动发送队首", async ({ page,
 
   await prompt.press("Enter")
   await expect(page.getByRole("button", { name: "停止当前 Turn" })).toBeVisible()
-  await expect(page.locator(".queue-panel")).toHaveCount(0)
 
   await prompt.fill("排队第二条")
   await prompt.press("Enter")

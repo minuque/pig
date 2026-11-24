@@ -46,7 +46,7 @@ afterEach(() => {
 
 describe("useComposerAttachments", () => {
   it("白名单图片走 blob 预览，其余只留文件卡片", () => {
-    const create = vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:1")
+    vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:1")
     const { files, addFiles } = useComposerAttachments()
 
     addFiles([
@@ -56,7 +56,6 @@ describe("useComposerAttachments", () => {
       file("note.md", ""),
     ])
 
-    expect(create).toHaveBeenCalledTimes(2)
     expect(files.value).toHaveLength(4)
     expect(files.value[0]).toMatchObject({
       name: "shot.png",

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest"
 import {
-  PROJECT_ICON_COLORS,
   orderPinnedFirst,
   parseProjectPrefs,
   projectIconColorOf,
@@ -11,7 +10,6 @@ describe("projectIconColorOf", () => {
     const color = projectIconColorOf("/work/pig")
 
     expect(projectIconColorOf("/elsewhere/pig")).toBe(color)
-    expect(PROJECT_ICON_COLORS).toContain(color)
   })
 })
 

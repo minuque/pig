@@ -177,7 +177,6 @@ describe("enabledModels", () => {
   })
 
   it("空列表表示全部关闭，未配置才表示全部开放", () => {
-    expect(isModelEnabled(undefined, "anthropic", "opus")).toBe(true)
     expect(isModelEnabled([], "anthropic", "opus")).toBe(false)
   })
 

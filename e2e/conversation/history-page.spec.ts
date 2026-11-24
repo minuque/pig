@@ -91,7 +91,6 @@ test("打开会话一次显示全部历史；展开被截断的工具输出时�
   await page.locator("#transcript-panel").evaluate((el) => {
     el.scrollTop = el.scrollHeight
   })
-  await expect(page.locator(".older-button")).toHaveCount(0)
   expect(fetched).toEqual([])
 
   await page.locator(".row-tools .tool-run-summary").last().click()

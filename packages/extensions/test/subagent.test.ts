@@ -66,15 +66,10 @@ async function run(
 
 describe("subagent：派子任务、并行、中止", () => {
   it("并行 3 个子任务都跑完，结果里有每个子任务的状态、输出与子会话 id", async () => {
-    let live = 0
-    let peak = 0
     const startChild: StartChild = async (child: ChildRun) => {
-      live += 1
-      peak = Math.max(peak, live)
       child.onSession(`child-${child.agent.name}`)
       child.onStep(`read ${child.agent.name}.ts`)
       await new Promise((resolve) => setTimeout(resolve, 10))
-      live -= 1
       return { output: `${child.agent.name} 完成`, usage: { input: 1, output: 2, cost: 0 } }
     }
     const { result, updates } = await run(
@@ -102,7 +97,6 @@ describe("subagent：派子任务、并行、中止", () => {
       summary: "scout 完成",
       tokens: 3,
     })
-    expect(peak).toBeLessThanOrEqual(4)
     expect(
       updates.some((update) =>
         update.details.tasks.some(

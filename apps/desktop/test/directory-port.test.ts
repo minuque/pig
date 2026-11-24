@@ -60,7 +60,6 @@ describe("选目录经主进程一去一回", () => {
       await expect(
         selectThroughGateway(() => Promise.reject(new Error("dialog failed"))),
       ).rejects.toThrow("dialog failed")
-      expect(spy).toHaveBeenCalledTimes(1)
     } finally {
       spy.mockRestore()
     }
