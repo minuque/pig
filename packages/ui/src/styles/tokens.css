@@ -146,6 +146,7 @@
   --duration-slow: 300ms;
 
   /* --- 图标与控件高 --- */
+  --control-xs: 24px;
   --control-sm: 28px;
   --control-md: 32px;
   --control-lg: 36px;
@@ -288,16 +289,15 @@ html.dark:is(:not([data-theme-preset]), [data-theme-preset="linear"]) {
   --bg-selected: #1a2143;
 }
 
-html[data-ui-size="s"] {
+html[data-density="compact"] {
   --text-meta: 11px;
   --text-body: 13px;
   --text-title: 15px;
-}
-
-html[data-ui-size="l"] {
-  --text-meta: 13px;
-  --text-body: 15px;
-  --text-title: 17px;
+  --spacing: 3.5px;
+  --control-xs: 20px;
+  --control-sm: 24px;
+  --control-md: 28px;
+  --control-lg: 32px;
 }
 
 html[data-chat-width="wide"] {

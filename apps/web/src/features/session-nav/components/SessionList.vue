@@ -431,7 +431,7 @@ onUpdated(() => {
   align-items: center;
   gap: var(--space-2xs);
   max-width: 240px;
-  height: 28px;
+  height: var(--control-sm);
   padding-inline: var(--space-xs);
   border-radius: var(--radius-control);
   background: var(--bg-raised);

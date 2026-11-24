@@ -166,7 +166,7 @@ function itemBind(session: SidebarSession) {
   align-items: center;
   gap: var(--space-xs);
   width: 100%;
-  height: 32px;
+  height: var(--control-md);
   min-width: 0;
   padding-inline: 10px;
   border: 0;
@@ -241,7 +241,7 @@ function itemBind(session: SidebarSession) {
   align-items: center;
   gap: 10px;
   width: 100%;
-  height: 36px;
+  height: var(--control-lg);
   padding-inline: 10px;
   border: 0;
   border-radius: var(--radius-control);

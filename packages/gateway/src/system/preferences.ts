@@ -13,7 +13,7 @@ const DEBOUNCE_MS = 80
 const THEME_MODES = ["auto", "light", "dark"] as const
 const THEME_PRESETS = ["linear", "paper", "ocean", "grove", "iris"] as const
 const WELCOME_FIELDS = ["mask", "off"] as const
-const UI_SIZES = ["s", "m", "l"] as const
+const DENSITIES = ["compact", "normal"] as const
 const LOCALES = ["en", "zh-CN"] as const
 const CHAT_WIDTHS = ["comfortable", "wide", "full"] as const
 export const CODE_SIZES = [10, 11, 12, 13, 14, 15, 16] as const
@@ -24,7 +24,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   welcomeField: "mask",
   uiFont: "",
   codeFont: "",
-  uiSize: "m",
+  density: "normal",
   codeSize: 13,
   locale: "zh-CN",
   chatWidth: "comfortable",
@@ -96,7 +96,7 @@ function normalizePreferences(raw: Record<string, unknown>): UserPreferences {
     welcomeField: oneOf(raw.welcomeField, WELCOME_FIELDS, DEFAULT_PREFERENCES.welcomeField),
     uiFont: text(raw.uiFont, DEFAULT_PREFERENCES.uiFont),
     codeFont: text(raw.codeFont, DEFAULT_PREFERENCES.codeFont),
-    uiSize: oneOf(raw.uiSize, UI_SIZES, DEFAULT_PREFERENCES.uiSize),
+    density: oneOf(raw.density, DENSITIES, DEFAULT_PREFERENCES.density),
     codeSize: codeSize ?? DEFAULT_PREFERENCES.codeSize,
     locale: oneOf(raw.locale, LOCALES, DEFAULT_PREFERENCES.locale),
     chatWidth: oneOf(raw.chatWidth, CHAT_WIDTHS, DEFAULT_PREFERENCES.chatWidth),
@@ -130,7 +130,8 @@ function pickPatch(input: Record<string, unknown>): UserPreferencesPatch {
 
   if (patchEntry(input, "codeFont")) patch.codeFont = requiredText("codeFont", input.codeFont)
 
-  if (patchEntry(input, "uiSize")) patch.uiSize = requiredOneOf("uiSize", input.uiSize, UI_SIZES)
+  if (patchEntry(input, "density"))
+    patch.density = requiredOneOf("density", input.density, DENSITIES)
 
   if (patchEntry(input, "codeSize")) {
     const size = CODE_SIZES.find((item) => item === input.codeSize)

@@ -147,13 +147,13 @@ spacing:
 
 ## 字号
 
-| token | 默认 | S | L | 用途 |
-| --- | --- | --- | --- | --- |
-| `--text-meta` | 12 | 11 | 13 | 辅助信息、分组标题、时间、标签 |
-| `--text-body` | 14 | 13 | 15 | 正文、按钮、菜单、列表行 |
-| `--text-title` | 16 | 15 | 17 | 会话标题、弹层标题 |
-| `--text-heading` | 24 | 24 | 24 | 页面大标题 |
-| `--text-code` | 13 等宽 | 12 | 14 | 代码、路径、快捷键（可单独设 10–16） |
+| token | normal | compact | 用途 |
+| --- | --- | --- | --- |
+| `--text-meta` | 12 | 11 | 辅助信息、分组标题、时间、标签 |
+| `--text-body` | 14 | 13 | 正文、按钮、菜单、列表行 |
+| `--text-title` | 16 | 15 | 会话标题、弹层标题 |
+| `--text-heading` | 24 | 24 | 页面大标题 |
+| `--text-code` | 13 等宽 | 13 | 代码、路径、快捷键（可单独设 10–16） |
 
 - 字重只用 400、500、600。
 - 对话区 Markdown 与项目缩写字母不受这几档约束。
@@ -204,10 +204,11 @@ spacing:
 
 ## 间距与尺寸
 
-- 间距 `--space-2xs/xs/sm/md/lg/xl/2xl` = 4/8/12/16/24/28/32。
-- 控件高 `--control-sm/md/lg` = 28/32/36；图标按钮与侧栏行 `s`/`m`/`l` 为 24/28/32，按钮/输入框/选择框/滑条/分段标签的 `s`/`m`/`l` 对齐 28/32/36（输入卡控件默认 32）。
-- 图标 `--icon-sm/md/lg/xl` = 12/14/16/32，线宽 `--icon-stroke`。
-- 头部高 `--header-height` 44；macOS 标题条 `--titlebar-inset` 44。
+- 布局密度 `normal` / `compact` 写在 `html[data-density]`；组件尺寸只有 `s`/`m` 两档。下列值写作 normal / compact。
+- 间距 `--space-2xs/xs/sm/md/lg/xl/2xl` 由 `--spacing` 派生 = 4/8/12/16/24/28/32；compact 下 `--spacing` 为 3.5px。
+- 控件高 `--control-xs/sm/md/lg` = 24/28/32/36，compact 各减 4。图标按钮与侧栏行 `s`/`m` 取 `xs`/`sm`，按钮/输入框/选择框/滑条/分段标签的 `s`/`m` 取 `sm`/`md`（输入卡控件默认 `m`）。行高不写死，读这组 token。
+- 图标 `--icon-sm/md/lg/xl` = 12/14/16/32，线宽 `--icon-stroke`，两档相同。
+- 头部高 `--header-height` 44 / 40；macOS 标题条 `--titlebar-inset` 44，两档相同。
 
 ## 层级
 

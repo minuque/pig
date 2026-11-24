@@ -5,7 +5,7 @@ export type UserThemePreset = "linear" | "paper" | "ocean" | "grove" | "iris"
 
 export type UserWelcomeField = "mask" | "off"
 
-export type UserUiSize = "s" | "m" | "l"
+export type UserDensity = "compact" | "normal"
 
 export type UserLocale = "en" | "zh-CN"
 
@@ -24,7 +24,7 @@ export interface UserPreferences {
   welcomeField: UserWelcomeField
   uiFont: string
   codeFont: string
-  uiSize: UserUiSize
+  density: UserDensity
   codeSize: number
   locale: UserLocale
   chatWidth: UserChatWidth

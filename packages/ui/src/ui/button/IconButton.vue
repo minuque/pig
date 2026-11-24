@@ -50,8 +50,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 <style>
 :where([data-slot="icon-button"][data-size="s"]) {
-  height: var(--space-lg);
-  inline-size: var(--space-lg);
+  height: var(--control-xs);
+  inline-size: var(--control-xs);
 }
 
 :where([data-slot="icon-button"][data-size="m"]) {

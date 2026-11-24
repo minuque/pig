@@ -11,7 +11,7 @@ import { getPreferences, patchPreferences } from "./platform.js"
 export const THEME_MODES = ["auto", "light", "dark"] as const
 export const THEME_PRESETS = ["linear", "paper", "ocean", "grove", "iris"] as const
 export const WELCOME_FIELDS = ["mask", "off"] as const
-export const UI_SIZES = ["s", "m", "l"] as const
+export const DENSITIES = ["compact", "normal"] as const
 export const CODE_SIZES = [10, 11, 12, 13, 14, 15, 16] as const
 export const LOCALES = ["en", "zh-CN"] as const
 export const CHAT_WIDTHS = ["comfortable", "wide", "full"] as const
@@ -22,7 +22,7 @@ const KEYS = {
   welcomeField: "pig.welcomeField",
   uiFont: "pig.uiFont",
   codeFont: "pig.codeFont",
-  uiSize: "pig.uiSize",
+  density: "pig.density",
   codeSize: "pig.codeSize",
   locale: "pig.locale",
   chatWidth: "pig.chatWidth",
@@ -38,7 +38,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   welcomeField: "mask",
   uiFont: "",
   codeFont: "",
-  uiSize: "m",
+  density: "normal",
   codeSize: 13,
   locale: "zh-CN",
   chatWidth: "comfortable",
@@ -106,7 +106,7 @@ function readStored(): UserPreferences {
     ),
     uiFont: readPref(KEYS.uiFont) ?? "",
     codeFont: readPref(KEYS.codeFont) ?? "",
-    uiSize: pick(readPref(KEYS.uiSize), UI_SIZES, DEFAULT_PREFERENCES.uiSize),
+    density: pick(readPref(KEYS.density), DENSITIES, DEFAULT_PREFERENCES.density),
     codeSize: readCodeSize(),
     locale: pick(readPref(KEYS.locale), LOCALES, DEFAULT_PREFERENCES.locale),
     chatWidth: pick(readPref(KEYS.chatWidth), CHAT_WIDTHS, DEFAULT_PREFERENCES.chatWidth),
@@ -124,7 +124,7 @@ const SCALAR_KEYS = [
   "welcomeField",
   "uiFont",
   "codeFont",
-  "uiSize",
+  "density",
   "codeSize",
   "locale",
   "chatWidth",
@@ -157,7 +157,7 @@ function writeMirror(preferences: UserPreferences): void {
   writePref(KEYS.welcomeField, preferences.welcomeField)
   writePref(KEYS.uiFont, preferences.uiFont)
   writePref(KEYS.codeFont, preferences.codeFont)
-  writePref(KEYS.uiSize, preferences.uiSize)
+  writePref(KEYS.density, preferences.density)
   writePref(KEYS.codeSize, String(preferences.codeSize))
   writePref(KEYS.locale, preferences.locale)
   writePref(KEYS.chatWidth, preferences.chatWidth)

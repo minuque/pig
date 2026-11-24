@@ -58,6 +58,6 @@ export type {
   UserThemeMode,
   UserThemePreset,
   UserTranscriptItem,
-  UserUiSize,
+  UserDensity,
   UserWelcomeField,
 } from "@pig/protocol"

@@ -61,19 +61,19 @@
           </Select>
         </CardRow>
 
-        <CardRow id="setting-ui-size" class="row">
+        <CardRow id="setting-density" class="row">
           <div class="copy">
-            <h3 class="label">{{ t("settings.uiSize") }}</h3>
-            <p class="desc">{{ t("settings.uiSizeHint") }}</p>
+            <h3 class="label">{{ t("settings.density") }}</h3>
+            <p class="desc">{{ t("settings.densityHint") }}</p>
           </div>
 
-          <Select :model-value="uiSize" @update:model-value="onUiSize">
-            <SelectTrigger class="setting-select" :aria-label="t('settings.uiSize')">
-              {{ uiSizeLabel }}
+          <Select :model-value="density" @update:model-value="onDensity">
+            <SelectTrigger class="setting-select" :aria-label="t('settings.density')">
+              {{ densityLabel }}
             </SelectTrigger>
 
             <SelectContent>
-              <SelectItem v-for="option in tiers" :key="option.id" :value="option.id">
+              <SelectItem v-for="option in densities" :key="option.id" :value="option.id">
                 {{ option.label }}
               </SelectItem>
             </SelectContent>
@@ -162,7 +162,7 @@ import {
   useAppearancePrefs,
   useGeneralPrefs,
   type ChatWidth,
-  type SizeTier,
+  type Density,
   type WelcomeField,
 } from "@features/settings/index.js"
 import { useLocalFonts } from "@features/settings/hooks/use-local-fonts.js"
@@ -178,12 +178,12 @@ const {
   welcomeField,
   uiFont,
   codeFont,
-  uiSize,
+  density,
   codeSize,
   setWelcomeField,
   setUiFont,
   setCodeFont,
-  setUiSize,
+  setDensity,
   setCodeSize,
 } = useAppearancePrefs()
 const { families, mono, load } = useLocalFonts()
@@ -196,8 +196,8 @@ function onCodeFont(value: string) {
   setCodeFont(value === DEFAULT ? "" : value)
 }
 
-function onUiSize(value: string) {
-  setUiSize(value as SizeTier)
+function onDensity(value: string) {
+  setDensity(value as Density)
 }
 
 function onCodeSize(value: string) {
@@ -233,10 +233,9 @@ const widths = computed<{ id: ChatWidth; label: string }[]>(() => [
   { id: "wide", label: t("settings.chatWidthWide") },
   { id: "full", label: t("settings.chatWidthFull") },
 ])
-const tiers = computed<{ id: SizeTier; label: string }[]>(() => [
-  { id: "s", label: t("settings.sizeS") },
-  { id: "m", label: t("settings.sizeM") },
-  { id: "l", label: t("settings.sizeL") },
+const densities = computed<{ id: Density; label: string }[]>(() => [
+  { id: "normal", label: t("settings.densityNormal") },
+  { id: "compact", label: t("settings.densityCompact") },
 ])
 const codeSizes = CODE_SIZES
 const welcomeLabel = computed(
@@ -245,8 +244,8 @@ const welcomeLabel = computed(
 const widthLabel = computed(
   () => widths.value.find((option) => option.id === chatWidth.value)?.label ?? "",
 )
-const uiSizeLabel = computed(
-  () => tiers.value.find((option) => option.id === uiSize.value)?.label ?? "",
+const densityLabel = computed(
+  () => densities.value.find((option) => option.id === density.value)?.label ?? "",
 )
 const codeSizeLabel = computed(() => `${codeSize.value}px`)
 </script>

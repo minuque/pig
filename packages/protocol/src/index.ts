@@ -55,7 +55,7 @@ export type {
   UserRailSection,
   UserThemeMode,
   UserThemePreset,
-  UserUiSize,
+  UserDensity,
   UserWelcomeField,
 } from "./preferences.js"
 

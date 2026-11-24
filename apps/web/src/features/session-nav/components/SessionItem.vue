@@ -507,7 +507,7 @@ function confirmDelete() {
 .session-card.card {
   flex-direction: column;
   gap: var(--space-2xs);
-  min-height: 60px;
+  min-height: calc(var(--control-lg) + var(--space-lg));
   padding: var(--space-xs) 10px;
 }
 
@@ -515,7 +515,7 @@ function confirmDelete() {
   flex-direction: row;
   align-items: center;
   gap: 10px;
-  height: 36px;
+  height: var(--control-lg);
   padding-inline: 10px;
 }
 

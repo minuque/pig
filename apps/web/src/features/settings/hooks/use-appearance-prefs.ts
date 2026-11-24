@@ -3,7 +3,7 @@ import { CODE_SIZES, userPreferences, updatePreferences } from "@client/preferen
 
 export type WelcomeField = "mask" | "off"
 
-export type SizeTier = "s" | "m" | "l"
+export type Density = "compact" | "normal"
 
 export { CODE_SIZES }
 
@@ -11,7 +11,7 @@ const CODE_SIZE_DEFAULT = 13
 const welcomeField = computed(() => userPreferences.value.welcomeField)
 const uiFont = computed(() => userPreferences.value.uiFont)
 const codeFont = computed(() => userPreferences.value.codeFont)
-const uiSize = computed(() => userPreferences.value.uiSize)
+const density = computed(() => userPreferences.value.density)
 const codeSize = computed(() => userPreferences.value.codeSize)
 let loaded = false
 
@@ -23,9 +23,9 @@ function applyFont(token: "--font-sans" | "--font-mono", family: string): void {
   else style.setProperty(token, `${JSON.stringify(family)}, var(${token}-default)`)
 }
 
-function applyUiSize(size: SizeTier): void {
+function applyDensity(density: Density): void {
   if (typeof document === "undefined") return
-  document.documentElement.dataset.uiSize = size
+  document.documentElement.dataset.density = density
 }
 
 function applyCodeSize(size: number): void {
@@ -41,11 +41,11 @@ function load(): void {
   loaded = true
   effectScope(true).run(() => {
     watch(
-      [uiFont, codeFont, uiSize, codeSize],
-      ([nextUiFont, nextCodeFont, nextUiSize, nextCodeSize]) => {
+      [uiFont, codeFont, density, codeSize],
+      ([nextUiFont, nextCodeFont, nextDensity, nextCodeSize]) => {
         applyFont("--font-sans", nextUiFont)
         applyFont("--font-mono", nextCodeFont)
-        applyUiSize(nextUiSize)
+        applyDensity(nextDensity)
         applyCodeSize(nextCodeSize)
       },
       { immediate: true, flush: "sync" },
@@ -59,7 +59,7 @@ export function useAppearancePrefs() {
     welcomeField,
     uiFont,
     codeFont,
-    uiSize,
+    density,
     codeSize,
     setWelcomeField(next: WelcomeField) {
       updatePreferences({ welcomeField: next })
@@ -70,8 +70,8 @@ export function useAppearancePrefs() {
     setCodeFont(next: string) {
       updatePreferences({ codeFont: next })
     },
-    setUiSize(next: SizeTier) {
-      updatePreferences({ uiSize: next })
+    setDensity(next: Density) {
+      updatePreferences({ density: next })
     },
     setCodeSize(next: number) {
       updatePreferences({ codeSize: next })
