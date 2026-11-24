@@ -209,3 +209,39 @@ test("会话拖出侧栏落到会话面板插入引用 chip，提交渲染为气
     `${FILLER_PREFIX} 6`,
   )
 })
+
+test("侧栏手柄左右悬停命中区即使紧挨滚动条也能拖开和拖窄", async ({ page, navGateway }) => {
+  await enter(page, navGateway)
+  await section(page)
+    .locator(".session-card", { hasText: `${FILLER_PREFIX} 1` })
+    .click()
+  await expect(page).toHaveURL(/\/sessions\/e2e-filler-0$/)
+  await expect(page.locator(".transcript-viewport")).toBeVisible({ timeout: 30_000 })
+
+  const sidebar = page.locator(".sidebar")
+  const resizer = page.locator(".resizer")
+  const sidebarBox = (await sidebar.boundingBox())!
+  const resizerBox = (await resizer.boundingBox())!
+  const y = Math.round(resizerBox.y + resizerBox.height / 2)
+
+  await page.mouse.move(resizerBox.x - 4, y)
+  await expect(resizer).toHaveAttribute("data-hovering", "")
+  await page.mouse.down()
+  await page.mouse.move(resizerBox.x - 4 + 60, y, { steps: 6 })
+  await expect(resizer).toHaveAttribute("data-dragging", "")
+  await page.mouse.up()
+
+  const grownBox = (await sidebar.boundingBox())!
+  expect(grownBox.width - sidebarBox.width).toBeGreaterThanOrEqual(45)
+
+  const grownResizerBox = (await resizer.boundingBox())!
+  await page.mouse.move(grownResizerBox.x + 4, y)
+  await expect(resizer).toHaveAttribute("data-hovering", "")
+  await page.mouse.down()
+  await page.mouse.move(grownResizerBox.x + 4 - 40, y, { steps: 6 })
+  await expect(resizer).toHaveAttribute("data-dragging", "")
+  await page.mouse.up()
+
+  const shrunkBox = (await sidebar.boundingBox())!
+  expect(grownBox.width - shrunkBox.width).toBeGreaterThanOrEqual(25)
+})

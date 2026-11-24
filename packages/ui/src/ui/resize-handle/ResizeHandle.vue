@@ -5,10 +5,32 @@
 <style>
 :where([data-slot="resizable-handle"]) {
   position: relative;
+  z-index: var(--z-resizer);
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
 }
 
 :where([data-slot="resizable-handle"]:focus-visible) {
   outline: none;
+}
+
+:where([data-slot="resizable-handle"]:not([data-disabled]))::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 50%;
+  inline-size: max(100%, var(--space-sm));
+  translate: -50% 0;
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+:where([data-slot="resizable-handle"][data-orientation="vertical"]:not([data-disabled]))::before {
+  inset-block: 50% auto;
+  inset-inline: 0;
+  inline-size: auto;
+  block-size: max(100%, var(--space-sm));
+  translate: 0 -50%;
 }
 
 :where([data-slot="resizable-handle"])::after {
