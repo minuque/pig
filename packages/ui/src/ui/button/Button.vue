@@ -103,6 +103,8 @@ const props = withDefaults(
 
 :where([data-button]:not([data-icon-button])[data-size="s"]) {
   height: var(--control-sm);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
   gap: calc(var(--spacing) * 1.5);
   padding-inline: calc(var(--spacing) * 2.5 - var(--border-width));
 }

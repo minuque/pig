@@ -286,7 +286,6 @@ const actions = computed<RowAction[]>(() => {
   height: var(--control-xs);
   padding-inline: var(--space-2xs);
   color: inherit;
-  font-size: var(--text-meta);
 }
 
 .row-grip {
