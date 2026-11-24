@@ -20,28 +20,14 @@
       <span class="file-size">{{ formatFileSize(item.size) }}</span>
     </template>
 
-    <span
-      v-if="status === 'uploading' && !item.url"
-      class="track"
-      role="progressbar"
+    <Progress
+      v-if="status === 'uploading'"
+      class="progress"
+      :value="progress"
       :aria-label="item.name"
-      aria-valuemin="0"
-      aria-valuemax="100"
-      :aria-valuenow="progress"
     >
-      <span class="fill" :style="{ inlineSize: `${progress}%` }" />
-    </span>
-
-    <span
-      v-else-if="status === 'uploading'"
-      class="fill"
-      role="progressbar"
-      :aria-label="item.name"
-      aria-valuemin="0"
-      aria-valuemax="100"
-      :aria-valuenow="progress"
-      :style="{ inlineSize: `${progress}%` }"
-    />
+      <ProgressIndicator class="fill" />
+    </Progress>
 
     <Button
       v-if="status === 'error'"
@@ -77,6 +63,7 @@ import { FileTextIcon, XIcon } from "@components/icons/index.js"
 import type { ComposerAttachment } from "@/types/attachment-type.js"
 import { formatFileSize } from "@features/composer/lib/attachment-size.js"
 import type { AttachmentStatus } from "@features/composer/lib/attachment-upload.js"
+import { Progress, ProgressIndicator } from "@pig/ui/progress"
 
 withDefaults(
   defineProps<{
@@ -166,7 +153,7 @@ const { t } = useI18n()
   font-variant-numeric: tabular-nums;
 }
 
-.track {
+.progress {
   flex: none;
   inline-size: 40px;
   block-size: 3px;
@@ -182,11 +169,14 @@ const { t } = useI18n()
   transition: inline-size var(--duration-fast) linear;
 }
 
-.chip--media .fill {
+.chip--media .progress {
   position: absolute;
   inset-block-end: 0;
-  inset-inline-start: 0;
+  inset-inline: 0;
+  inline-size: auto;
   block-size: 2px;
+  border-radius: 0;
+  background: transparent;
 }
 
 .retry {

@@ -4,7 +4,7 @@
     class="stamp"
     :data-pinned="pinned || undefined"
     :data-copy-before="copyBefore || undefined"
-    role="toolbar"
+    role="group"
     :aria-label="t('transcript.messageActions')"
   >
     <CopyButton v-if="text" :text="text" />

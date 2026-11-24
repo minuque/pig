@@ -56,7 +56,7 @@ packages/ui/src/
 ├── core/           # 基础尺寸/色调/圆角类型，以及 provideUiLabels / useUiLabels 文案注入
 ├── theme/          # 主题模式类型
 ├── styles/         # reset、通用 tokens、通用动效与基础工具/菜单类
-└── ui/             # 31 组无业务基础组件（@ui-sdk/vue 行为 + data-slot / data-tone 外观）
+└── ui/             # 35 组无业务基础组件（@ui-sdk/vue 行为 + data-slot / data-tone 外观）
 ```
 
 业务代码只从 `@pig/ui` 或 `@pig/ui/<component>` 引入基础类型与组件；`packages/ui` 内通过 `eslint` 的 `pig/ui-layer` 与 `css-tokens` 保证不回流应用路径、应用 token 与文案库。

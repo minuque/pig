@@ -5,23 +5,18 @@
       <span class="ctx-percent">{{ usage.percent }}%</span>
     </div>
 
-    <div
-      class="ctx-meter"
-      role="meter"
-      :aria-valuenow="usage.percent"
-      aria-valuemin="0"
-      aria-valuemax="100"
-      :aria-label="t('rail.context')"
-    >
-      <i
-        v-for="segment in used"
-        :key="segment.id"
-        :style="{
-          inlineSize: `${segmentShare(segment.tokens, usage.window)}%`,
-          background: segment.color,
-        }"
-      />
-    </div>
+    <Meter :value="usage.percent" :format="{ style: 'percent' }" :aria-label="t('rail.context')">
+      <MeterTrack class="ctx-meter">
+        <i
+          v-for="segment in used"
+          :key="segment.id"
+          :style="{
+            inlineSize: `${segmentShare(segment.tokens, usage.window)}%`,
+            background: segment.color,
+          }"
+        />
+      </MeterTrack>
+    </Meter>
 
     <ul class="ctx-legend">
       <li
@@ -68,6 +63,7 @@
 import { computed, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Link } from "@pig/ui/link"
+import { Meter, MeterTrack } from "@pig/ui/meter"
 import {
   contextUsageSummary,
   formatTokenCount,

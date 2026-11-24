@@ -48,41 +48,38 @@
     </div>
 
     <form v-if="state.prompt" class="login-form" @submit.prevent="submit">
-      <label class="login-label" :for="state.prompt.id">{{ state.prompt.message }}</label>
+      <Field class="login-field">
+        <FieldLabel class="login-label">{{ state.prompt.message }}</FieldLabel>
 
-      <Select
-        v-if="state.prompt.type === 'select'"
-        size="m"
-        :model-value="value"
-        @update:model-value="(v: unknown) => (value = String(v))"
-      >
-        <SelectTrigger
-          :id="state.prompt.id"
-          class="login-select"
-          :aria-label="state.prompt.message"
+        <Select
+          v-if="state.prompt.type === 'select'"
+          size="m"
+          :model-value="value"
+          @update:model-value="(v: unknown) => (value = String(v))"
+        >
+          <SelectTrigger class="login-select" />
+
+          <SelectContent>
+            <SelectItem v-for="option in state.prompt.options" :key="option.id" :value="option.id">
+              {{ option.label }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+
+        <TextFieldRoot
+          v-else
+          v-model="value"
+          size="m"
+          class="login-input"
+          :type="state.prompt.type === 'secret' ? 'password' : 'text'"
+          :placeholder="state.prompt.placeholder ?? ''"
+          autocomplete="off"
         />
 
-        <SelectContent>
-          <SelectItem v-for="option in state.prompt.options" :key="option.id" :value="option.id">
-            {{ option.label }}
-          </SelectItem>
-        </SelectContent>
-      </Select>
-
-      <TextFieldRoot
-        v-else
-        :id="state.prompt.id"
-        v-model="value"
-        size="m"
-        class="login-input"
-        :type="state.prompt.type === 'secret' ? 'password' : 'text'"
-        :placeholder="state.prompt.placeholder ?? ''"
-        autocomplete="off"
-      />
-
-      <p v-if="state.prompt.type === 'manual_code'" class="hint">
-        {{ t("settings.models.pasteHint") }}
-      </p>
+        <FieldDescription v-if="state.prompt.type === 'manual_code'" class="hint">
+          {{ t("settings.models.pasteHint") }}
+        </FieldDescription>
+      </Field>
 
       <div class="login-actions">
         <Button size="s" variant="outline" type="button" @click="emit('cancel')">
@@ -107,6 +104,7 @@ import { computed, ref, watch } from "vue"
 import { Button, IconButton } from "@pig/ui/button"
 import { Link } from "@pig/ui/link"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
+import { Field, FieldDescription, FieldLabel } from "@pig/ui/field"
 import { TextFieldRoot } from "@pig/ui/text-field"
 import {
   CheckIcon,
@@ -234,6 +232,12 @@ async function copy(text: string) {
 }
 
 .login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.login-field {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);

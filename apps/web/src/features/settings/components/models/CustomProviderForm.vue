@@ -22,11 +22,11 @@
       <h3 class="sec-title">{{ t("settings.models.basicInfo") }}</h3>
 
       <div class="form-grid">
-        <label class="field">
-          <span class="field-label">
+        <Field class="field">
+          <FieldLabel class="field-label">
             {{ t("settings.models.providerId") }}
             <span class="required">*</span>
-          </span>
+          </FieldLabel>
 
           <TextFieldRoot
             v-model="draft.id"
@@ -35,18 +35,18 @@
             :disabled="isEdit"
             :invalid="errorField === 'id'"
           />
-        </label>
+        </Field>
 
-        <label class="field">
-          <span class="field-label">{{ t("settings.models.displayName") }}</span>
+        <Field class="field">
+          <FieldLabel class="field-label">{{ t("settings.models.displayName") }}</FieldLabel>
           <TextFieldRoot v-model="draft.name" size="s" class="field-input" />
-        </label>
+        </Field>
 
-        <label class="field">
-          <span class="field-label">
+        <Field class="field">
+          <FieldLabel class="field-label">
             {{ t("settings.models.baseUrl") }}
             <span class="required">*</span>
-          </span>
+          </FieldLabel>
 
           <TextFieldRoot
             v-model="draft.baseUrl"
@@ -54,13 +54,13 @@
             class="field-input"
             :invalid="errorField === 'baseUrl'"
           />
-        </label>
+        </Field>
 
         <div class="field">
-          <span class="field-label">
+          <FieldLabel class="field-label">
             {{ t("settings.models.apiType") }}
             <span class="required">*</span>
-          </span>
+          </FieldLabel>
 
           <Select
             size="s"
@@ -77,8 +77,8 @@
           </Select>
         </div>
 
-        <label class="field span-2">
-          <span class="field-label">{{ t("settings.models.apiKey") }}</span>
+        <Field class="field span-2">
+          <FieldLabel class="field-label">{{ t("settings.models.apiKey") }}</FieldLabel>
 
           <TextFieldRoot
             v-model="draft.apiKey"
@@ -88,7 +88,7 @@
             autocomplete="off"
             :placeholder="keyPlaceholder"
           />
-        </label>
+        </Field>
       </div>
 
       <p class="hint">{{ t("settings.models.apiKeyHint") }}</p>
@@ -175,6 +175,7 @@ import {
 import { Button } from "@pig/ui/button"
 import { Badge } from "@pig/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
+import { Field, FieldLabel } from "@pig/ui/field"
 import { TextFieldRoot } from "@pig/ui/text-field"
 import VendorMark from "@components/icons/VendorMark.vue"
 import CustomModelCard from "@features/settings/components/models/CustomModelCard.vue"

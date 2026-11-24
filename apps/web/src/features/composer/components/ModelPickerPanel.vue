@@ -9,23 +9,31 @@
   >
     <div class="picker" @keydown.capture="onPanelKeydown">
       <div class="tabs-bar">
-        <div class="tabs">
+        <ToggleGroup
+          class="tabs"
+          :aria-label="t('composer.modelScope')"
+          :value="[scope]"
+          :deselectable="false"
+          @value-change="(next: string[]) => next[0] && selectScope(next[0])"
+        >
           <Tooltip>
             <TooltipTrigger>
               <template #render="{ props: part }">
-                <IconButton
-                  v-bind="part"
-                  type="button"
-                  class="tab-btn"
-                  size="m"
-                  variant="ghost"
-                  :aria-label="t('composer.favoriteModels')"
-                  :data-current="scope === FAVORITES_SCOPE ? '' : undefined"
-                  @click="selectScope(FAVORITES_SCOPE)"
-                >
-                  <StarFilledIcon v-if="scope === FAVORITES_SCOPE" class="size-icon-lg" />
-                  <StarIcon v-else class="size-icon-lg" />
-                </IconButton>
+                <Toggle v-bind="part" :value="FAVORITES_SCOPE">
+                  <template #render="{ props: toggle }">
+                    <IconButton
+                      v-bind="toggle"
+                      type="button"
+                      class="tab-btn"
+                      size="m"
+                      variant="ghost"
+                      :aria-label="t('composer.favoriteModels')"
+                    >
+                      <StarFilledIcon v-if="scope === FAVORITES_SCOPE" class="size-icon-lg" />
+                      <StarIcon v-else class="size-icon-lg" />
+                    </IconButton>
+                  </template>
+                </Toggle>
               </template>
             </TooltipTrigger>
 
@@ -35,24 +43,26 @@
           <Tooltip v-for="vendor in catalog" :key="vendor.id">
             <TooltipTrigger>
               <template #render="{ props: part }">
-                <IconButton
-                  v-bind="part"
-                  type="button"
-                  class="tab-btn"
-                  size="m"
-                  variant="ghost"
-                  :aria-label="vendor.name"
-                  :data-current="scope === vendor.id ? '' : undefined"
-                  @click="selectScope(vendor.id)"
-                >
-                  <VendorMark :vendor="vendor.id" :name="vendor.name" :size="16" />
-                </IconButton>
+                <Toggle v-bind="part" :value="vendor.id">
+                  <template #render="{ props: toggle }">
+                    <IconButton
+                      v-bind="toggle"
+                      type="button"
+                      class="tab-btn"
+                      size="m"
+                      variant="ghost"
+                      :aria-label="vendor.name"
+                    >
+                      <VendorMark :vendor="vendor.id" :name="vendor.name" :size="16" />
+                    </IconButton>
+                  </template>
+                </Toggle>
               </template>
             </TooltipTrigger>
 
             <TooltipContent>{{ vendor.name }}</TooltipContent>
           </Tooltip>
-        </div>
+        </ToggleGroup>
 
         <Tooltip v-if="current.levels.length">
           <TooltipTrigger>
@@ -117,6 +127,7 @@ import { computed, useTemplateRef } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@pig/ui/button"
 import { PopoverContent } from "@pig/ui/popover"
+import { Toggle, ToggleGroup } from "@pig/ui/toggle"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { RotateCcwIcon, SearchIcon, StarFilledIcon, StarIcon } from "@components/icons/index.js"
 import VendorMark from "@components/icons/VendorMark.vue"
@@ -294,11 +305,11 @@ function onSelectModel(provider: string, id: string) {
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.tab-btn[data-current] {
+.tab-btn[data-pressed] {
   color: var(--fg);
 }
 
-.tab-btn[data-current]::after {
+.tab-btn[data-pressed]::after {
   opacity: 1;
 }
 

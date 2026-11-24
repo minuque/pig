@@ -13,8 +13,8 @@
     </div>
 
     <div class="grid">
-      <label class="field">
-        <span class="field-label">{{ t("settings.models.maxTokens") }}</span>
+      <Field class="field">
+        <FieldLabel class="field-label">{{ t("settings.models.maxTokens") }}</FieldLabel>
 
         <TextFieldRoot
           v-model="form.maxTokens"
@@ -24,10 +24,10 @@
           :invalid="invalid.includes('maxTokens')"
           @update:model-value="dirty = true"
         />
-      </label>
+      </Field>
 
-      <label class="field">
-        <span class="field-label">{{ t("settings.models.contextWindow") }}</span>
+      <Field class="field">
+        <FieldLabel class="field-label">{{ t("settings.models.contextWindow") }}</FieldLabel>
 
         <TextFieldRoot
           v-model="form.contextWindow"
@@ -37,7 +37,7 @@
           :invalid="invalid.includes('contextWindow')"
           @update:model-value="dirty = true"
         />
-      </label>
+      </Field>
     </div>
 
     <div class="param-head">
@@ -101,6 +101,7 @@ import { reactive, ref, watch } from "vue"
 import { Button, IconButton } from "@pig/ui/button"
 import { TrashIcon } from "@components/icons/index.js"
 import { TabsList, TabsRoot, TabsTrigger } from "@pig/ui/tabs"
+import { Field, FieldLabel } from "@pig/ui/field"
 import { TextFieldRoot, TextFieldSlot } from "@pig/ui/text-field"
 import { updateModelParams } from "@client/platform.js"
 import { errorMessage } from "@client/http.js"

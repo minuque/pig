@@ -4,37 +4,49 @@
       <DialogTitle>{{ t("session.projectIcon") }}</DialogTitle>
       <DialogDescription>{{ path ? workspaceName(path) : "" }}</DialogDescription>
 
-      <div class="icon-colors" role="group" :aria-label="t('session.iconColor')">
-        <IconButton
-          v-for="color in PROJECT_ICON_COLORS"
-          :key="color"
-          type="button"
-          size="s"
-          :variant="draft.color === color ? 'secondary' : 'ghost'"
-          :color="projectIconTone(color)"
-          :aria-label="color"
-          :aria-pressed="draft.color === color"
-          @click="pick({ ...draft, color })"
-        >
-          <span class="swatch" :data-tone="projectIconTone(color)" />
-        </IconButton>
-      </div>
+      <ToggleGroup
+        class="icon-colors"
+        :aria-label="t('session.iconColor')"
+        :value="[draft.color]"
+        :deselectable="false"
+        @value-change="(next: string[]) => pickColor(next[0])"
+      >
+        <Toggle v-for="color in PROJECT_ICON_COLORS" :key="color" :value="color">
+          <template #render="{ props: part, state }">
+            <IconButton
+              v-bind="part"
+              size="s"
+              :variant="state.pressed ? 'secondary' : 'ghost'"
+              :color="projectIconTone(color)"
+              :aria-label="color"
+            >
+              <span class="swatch" :data-tone="projectIconTone(color)" />
+            </IconButton>
+          </template>
+        </Toggle>
+      </ToggleGroup>
 
-      <div class="icon-grid" role="group" :aria-label="t('session.projectIcon')">
-        <IconButton
-          v-for="(icon, name) in PROJECT_ICONS"
-          :key="name"
-          type="button"
-          size="m"
-          :variant="current?.name === name ? 'secondary' : 'ghost'"
-          :color="projectIconTone(draft.color)"
-          :aria-label="name"
-          :aria-pressed="current?.name === name"
-          @click="pick({ ...draft, name })"
-        >
-          <component :is="icon" class="size-icon-lg" />
-        </IconButton>
-      </div>
+      <ToggleGroup
+        class="icon-grid"
+        :aria-label="t('session.projectIcon')"
+        :value="current ? [current.name] : []"
+        :deselectable="false"
+        @value-change="(next: string[]) => pickName(next[0])"
+      >
+        <Toggle v-for="(icon, name) in PROJECT_ICONS" :key="name" :value="name">
+          <template #render="{ props: part, state }">
+            <IconButton
+              v-bind="part"
+              size="m"
+              :variant="state.pressed ? 'secondary' : 'ghost'"
+              :color="projectIconTone(draft.color)"
+              :aria-label="name"
+            >
+              <component :is="icon" class="size-icon-lg" />
+            </IconButton>
+          </template>
+        </Toggle>
+      </ToggleGroup>
 
       <div class="icon-actions">
         <Button
@@ -62,6 +74,7 @@ import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Button, IconButton } from "@pig/ui/button"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@pig/ui/dialog"
+import { Toggle, ToggleGroup } from "@pig/ui/toggle"
 import { PROJECT_ICONS } from "@components/icons/project-icons.js"
 import { workspaceName } from "@features/session-nav/lib/format.js"
 import {
@@ -80,6 +93,16 @@ const draft = computed<ProjectIconChoice>(() => current.value ?? { name: "folder
 
 function pick(choice: ProjectIconChoice): void {
   if (props.path) setIcon(props.path, choice)
+}
+
+function pickColor(color: string | undefined): void {
+  const next = PROJECT_ICON_COLORS.find((item) => item === color)
+
+  if (next) pick({ ...draft.value, color: next })
+}
+
+function pickName(name: string | undefined): void {
+  if (name && name in PROJECT_ICONS) pick({ ...draft.value, name })
 }
 
 function reset(): void {

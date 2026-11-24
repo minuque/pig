@@ -7,7 +7,7 @@
     data-menu-content
     class="scope-menu"
   >
-    <div data-menu-viewport @keydown="onKeydown">
+    <div data-menu-viewport>
       <div class="scope-search">
         <SearchIcon class="search-icon" />
 
@@ -17,24 +17,32 @@
           type="text"
           :placeholder="t('session.searchProjects')"
           :aria-label="t('session.searchProjects')"
+          @keydown.down.prevent="focusFirstToggle"
         />
       </div>
 
-      <div class="scope-projects">
+      <ToggleGroup
+        ref="projectsRef"
+        class="scope-projects"
+        multiple
+        orientation="vertical"
+        :aria-label="t('session.filterByWorkspace')"
+        :value="selected"
+        @value-change="onSelect"
+      >
         <div v-if="!needle" class="scope-item" data-menu-item>
-          <button
-            type="button"
-            class="scope-toggle"
-            :aria-pressed="scopeFilter.size === 0"
-            @click="emit('update:scopeFilter', new Set())"
-          >
-            <span class="scope-icon">
-              <FolderIcon class="size-icon-lg" />
-              <span v-if="scopeFilter.size === 0" class="check-badge"><CheckIcon /></span>
-            </span>
+          <Toggle :value="ALL_PROJECTS">
+            <template #render="{ props: part, state }">
+              <button v-bind="part" type="button" class="scope-toggle">
+                <span class="scope-icon">
+                  <FolderIcon class="size-icon-lg" />
+                  <span v-if="state.pressed" class="check-badge"><CheckIcon /></span>
+                </span>
 
-            <span class="scope-name">{{ t("session.allProjects") }}</span>
-          </button>
+                <span class="scope-name">{{ t("session.allProjects") }}</span>
+              </button>
+            </template>
+          </Toggle>
         </div>
 
         <div
@@ -43,22 +51,21 @@
           class="scope-item scope-row"
           data-menu-item
         >
-          <button
-            type="button"
-            class="scope-toggle"
-            :aria-pressed="scopeFilter.has(group.canonicalPath)"
-            @click="toggleProject(group.canonicalPath)"
-          >
-            <span class="scope-icon">
-              <ProjectIcon :path="group.canonicalPath" class="size-icon-lg" />
+          <Toggle :value="group.canonicalPath">
+            <template #render="{ props: part, state }">
+              <button v-bind="part" type="button" class="scope-toggle">
+                <span class="scope-icon">
+                  <ProjectIcon :path="group.canonicalPath" class="size-icon-lg" />
 
-              <span v-if="scopeFilter.has(group.canonicalPath)" class="check-badge">
-                <CheckIcon />
-              </span>
-            </span>
+                  <span v-if="state.pressed" class="check-badge">
+                    <CheckIcon />
+                  </span>
+                </span>
 
-            <span class="scope-name">{{ workspaceName(group.canonicalPath) }}</span>
-          </button>
+                <span class="scope-name">{{ workspaceName(group.canonicalPath) }}</span>
+              </button>
+            </template>
+          </Toggle>
 
           <span class="scope-actions">
             <Tooltip>
@@ -109,7 +116,7 @@
         </div>
 
         <p v-if="!matched.length" class="scope-empty">{{ t("session.noMatchingProjects") }}</p>
-      </div>
+      </ToggleGroup>
     </div>
   </PopoverContent>
 </template>
@@ -120,6 +127,7 @@ import { useI18n } from "@i18n/index.js"
 import { workspaceName } from "@features/session-nav/index.js"
 import { IconButton } from "@pig/ui/button"
 import { PopoverContent } from "@pig/ui/popover"
+import { Toggle, ToggleGroup } from "@pig/ui/toggle"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import {
   CheckIcon,
@@ -133,6 +141,7 @@ import { useProjectPrefs } from "@features/session-nav/hooks/use-project-prefs.j
 import { orderPinnedFirst } from "@features/session-nav/lib/project-prefs.js"
 import type { SessionGroup } from "@features/session-nav/type.js"
 
+const ALL_PROJECTS = "all-projects"
 const props = defineProps<{
   open: boolean
   groups: readonly SessionGroup[]
@@ -145,8 +154,10 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const query = shallowRef("")
 const searchRef = useTemplateRef<HTMLInputElement>("searchRef")
+const projectsRef = useTemplateRef<{ $el: HTMLElement }>("projectsRef")
 const { prefs, isPinned, togglePinned } = useProjectPrefs()
 const needle = computed(() => query.value.trim().toLowerCase())
+const selected = computed(() => (props.scopeFilter.size ? [...props.scopeFilter] : [ALL_PROJECTS]))
 const matched = computed(() =>
   orderPinnedFirst(props.groups, prefs.value.pinned).filter((group) =>
     workspaceName(group.canonicalPath).toLowerCase().includes(needle.value),
@@ -167,27 +178,13 @@ watch(
   },
 )
 
-function onKeydown(event: KeyboardEvent): void {
-  if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return
-
-  const stops = [
-    searchRef.value,
-    ...(event.currentTarget as HTMLElement).querySelectorAll<HTMLElement>(".scope-toggle"),
-  ]
-  const index = stops.indexOf(document.activeElement as HTMLElement)
-  const next = stops.at((index + (event.key === "ArrowDown" ? 1 : -1)) % stops.length)
-
-  if (!next) return
-  event.preventDefault()
-  next.focus()
+function focusFirstToggle(): void {
+  projectsRef.value?.$el.querySelector<HTMLElement>(".scope-toggle")?.focus()
 }
 
-function toggleProject(canonicalPath: string): void {
-  const next = new Set(props.scopeFilter)
-
-  if (next.has(canonicalPath)) next.delete(canonicalPath)
-  else next.add(canonicalPath)
-  emit("update:scopeFilter", next)
+function onSelect(next: string[]): void {
+  const cleared = next.includes(ALL_PROJECTS) && props.scopeFilter.size > 0
+  emit("update:scopeFilter", new Set(cleared ? [] : next.filter((path) => path !== ALL_PROJECTS)))
 }
 </script>
 

@@ -5,37 +5,36 @@
     data-testid="timeline-minimap"
     :style="{ width: hitAreaWidth, height: railHeight }"
   >
-    <div
+    <Toolbar
       ref="stage"
+      orientation="vertical"
       class="minimap-stage"
+      :aria-label="t('transcript.minimapLabel')"
       @focusout="onStageFocusOut"
-      @keydown="onStageKeydown"
       @mouseleave="onStageMouseLeave"
     >
       <Tooltip>
         <TooltipTrigger>
           <template #render="{ props: part }">
-            <button
+            <ToolbarButton
               v-bind="part"
               class="minimap-nav is-previous"
-              type="button"
               :aria-label="t('transcript.minimapPrevious')"
               :disabled="!previousItem"
               @click="previousItem && emit('select', previousItem)"
             >
               <ChevronUpIcon class="size-icon-sm" />
-            </button>
+            </ToolbarButton>
           </template>
         </TooltipTrigger>
 
         <TooltipContent side="top">{{ t("transcript.minimapPrevious") }}</TooltipContent>
       </Tooltip>
 
-      <button
+      <ToolbarButton
         v-for="(item, index) in items"
         :key="item.id"
         class="minimap-tick"
-        type="button"
         :aria-label="tickLabel(index, item)"
         :style="tickStyle(index)"
         @mouseenter="hoverIndex = index"
@@ -50,27 +49,26 @@
           }"
           :style="{ scale: `${stripScale(index)} 1` }"
         ></span>
-      </button>
+      </ToolbarButton>
 
       <Tooltip>
         <TooltipTrigger>
           <template #render="{ props: part }">
-            <button
+            <ToolbarButton
               v-bind="part"
               class="minimap-nav is-next"
-              type="button"
               :aria-label="t('transcript.minimapNext')"
               :disabled="!nextItem"
               @click="nextItem && emit('select', nextItem)"
             >
               <ChevronDownIcon class="size-icon-sm" />
-            </button>
+            </ToolbarButton>
           </template>
         </TooltipTrigger>
 
         <TooltipContent side="bottom">{{ t("transcript.minimapNext") }}</TooltipContent>
       </Tooltip>
-    </div>
+    </Toolbar>
 
     <Popover :open="hoverIndex !== null" @update:open="onPreviewOpenChange">
       <PopoverContent
@@ -99,6 +97,7 @@
 import { computed, shallowRef, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Popover, PopoverContent } from "@pig/ui/popover"
+import { Toolbar, ToolbarButton } from "@pig/ui/toolbar"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import type { TranscriptMinimapItem } from "@features/transcript-view/type.js"
 import {
@@ -119,7 +118,7 @@ const emit = defineEmits<{
   select: [item: TranscriptMinimapItem]
 }>()
 const { t } = useI18n()
-const stage = useTemplateRef("stage")
+const stage = useTemplateRef<{ $el: HTMLElement }>("stage")
 const hoverIndex = shallowRef<number | null>(null)
 const pinnedIndex = shallowRef(0)
 const inView = computed(() => new Set(props.inViewIds))
@@ -156,7 +155,7 @@ const anchorEl = computed<HTMLElement | null>(() => {
   const index = hoverIndex.value
 
   if (index === null) return null
-  return stage.value?.querySelectorAll<HTMLElement>(".minimap-tick")[index] ?? null
+  return stage.value?.$el.querySelectorAll<HTMLElement>(".minimap-tick")[index] ?? null
 })
 const hitAreaWidth = computed(() => (props.hitStripWidth > 0 ? `${MINIMAP_RAIL_WIDTH}px` : "0px"))
 const railHeight = computed(() => resolveMinimapHeightStyle(props.items.length))
@@ -187,24 +186,6 @@ function stripScale(index: number): number {
   return 0.333
 }
 
-function onStageKeydown(event: KeyboardEvent) {
-  if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return
-  const ticks = [...(stage.value?.querySelectorAll<HTMLButtonElement>(".minimap-tick") ?? [])]
-
-  if (!ticks.length) return
-  const last = ticks.length - 1
-  const at = ticks.indexOf(document.activeElement as HTMLButtonElement)
-  let next: number
-
-  if (event.key === "Home") next = 0
-  else if (event.key === "End") next = last
-  else if (at < 0) next = 0
-  else next = Math.min(last, Math.max(0, at + (event.key === "ArrowDown" ? 1 : -1)))
-
-  event.preventDefault()
-  ticks[next]?.focus()
-}
-
 function onStageFocusOut(event: FocusEvent) {
   const root = event.currentTarget
   const next = event.relatedTarget
@@ -223,7 +204,7 @@ function onStageMouseLeave(event: MouseEvent) {
 function onPreviewLeave(event: MouseEvent) {
   const next = event.relatedTarget
 
-  if (next instanceof Node && stage.value?.contains(next)) return
+  if (next instanceof Node && stage.value?.$el.contains(next)) return
   hoverIndex.value = null
 }
 
@@ -325,12 +306,12 @@ function onPreviewOpenChange(open: boolean) {
   opacity: 1;
 }
 
-.minimap-nav:hover:not(:disabled) {
+.minimap-nav:hover:not([data-disabled]) {
   background: var(--bg-hover);
   color: var(--fg);
 }
 
-.minimap-nav:disabled {
+.minimap-nav[data-disabled] {
   opacity: var(--opacity-disabled);
   cursor: default;
 }

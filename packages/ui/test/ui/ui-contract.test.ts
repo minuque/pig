@@ -160,11 +160,11 @@ describe("UI component contracts", () => {
     expect(cardHtml).toContain("data-bleed")
     expect(cardHtml).toContain("data-interactive")
 
-    expect(fieldHtml).toContain('data-slot="text-field-root"')
+    expect(fieldHtml).toContain("data-text-field")
     expect(fieldHtml).toContain('data-size="s"')
     expect(fieldHtml).toContain('data-radius="medium"')
     expect(fieldHtml).toContain("data-invalid")
-    expect(fieldHtml).toContain('data-slot="text-field-input"')
+    expect(fieldHtml).toContain("data-text-field-input")
     expect(fieldHtml).toContain('aria-invalid="true"')
   })
 })

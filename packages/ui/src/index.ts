@@ -26,13 +26,19 @@ export * from "./ui/dialog/index.js"
 
 export * from "./ui/dropdown-menu/index.js"
 
+export * from "./ui/field/index.js"
+
 export * from "./ui/hover-card/index.js"
 
 export * from "./ui/kbd/index.js"
 
 export * from "./ui/link/index.js"
 
+export * from "./ui/meter/index.js"
+
 export * from "./ui/popover/index.js"
+
+export * from "./ui/progress/index.js"
 
 export * from "./ui/radio-cards/index.js"
 
@@ -61,5 +67,9 @@ export * from "./ui/tabs/index.js"
 export * from "./ui/text-field/index.js"
 
 export * from "./ui/toast/index.js"
+
+export * from "./ui/toggle/index.js"
+
+export * from "./ui/toolbar/index.js"
 
 export * from "./ui/tooltip/index.js"

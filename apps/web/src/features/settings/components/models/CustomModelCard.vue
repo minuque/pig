@@ -34,37 +34,37 @@
       <CollapsibleContent>
         <div class="card-body">
           <div class="field-grid">
-            <label class="field">
-              <span class="field-label">{{ t("settings.models.modelId") }}</span>
+            <Field class="field">
+              <FieldLabel class="field-label">{{ t("settings.models.modelId") }}</FieldLabel>
               <TextFieldRoot v-model="model.id" size="s" class="field-input" />
-            </label>
+            </Field>
 
-            <label class="field">
-              <span class="field-label">{{ t("settings.models.displayName") }}</span>
+            <Field class="field">
+              <FieldLabel class="field-label">{{ t("settings.models.displayName") }}</FieldLabel>
               <TextFieldRoot v-model="model.name" size="s" class="field-input" />
-            </label>
+            </Field>
 
-            <label class="field">
-              <span class="field-label">{{ t("settings.models.contextWindow") }}</span>
+            <Field class="field">
+              <FieldLabel class="field-label">{{ t("settings.models.contextWindow") }}</FieldLabel>
               <TextFieldRoot v-model="model.contextWindow" size="s" class="field-input" />
-            </label>
+            </Field>
 
-            <label class="field">
-              <span class="field-label">{{ t("settings.models.maxTokens") }}</span>
+            <Field class="field">
+              <FieldLabel class="field-label">{{ t("settings.models.maxTokens") }}</FieldLabel>
               <TextFieldRoot v-model="model.maxTokens" size="s" class="field-input" />
-            </label>
+            </Field>
           </div>
 
           <div class="field-grid">
-            <div class="field field-inline">
-              <span class="field-label">{{ t("settings.models.imageInput") }}</span>
+            <Field class="field field-inline">
+              <FieldLabel class="field-label">{{ t("settings.models.imageInput") }}</FieldLabel>
               <span class="switch-box"><Switch v-model="model.image" size="s" /></span>
-            </div>
+            </Field>
 
-            <div class="field field-inline">
-              <span class="field-label">{{ t("settings.models.reasoning") }}</span>
+            <Field class="field field-inline">
+              <FieldLabel class="field-label">{{ t("settings.models.reasoning") }}</FieldLabel>
               <span class="switch-box"><Switch v-model="model.reasoning" size="s" /></span>
-            </div>
+            </Field>
           </div>
         </div>
       </CollapsibleContent>
@@ -77,6 +77,7 @@ import { ref } from "vue"
 
 import { ChevronRightIcon, TrashIcon } from "@components/icons/index.js"
 import { Switch } from "@pig/ui/switch"
+import { Field, FieldLabel } from "@pig/ui/field"
 import { TextFieldRoot } from "@pig/ui/text-field"
 import VendorMark from "@components/icons/VendorMark.vue"
 import { IconButton } from "@pig/ui/button"

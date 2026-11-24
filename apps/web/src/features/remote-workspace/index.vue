@@ -6,11 +6,11 @@
       <p v-if="loaded && !hosts.length" class="remote-hint">{{ t("remote.noHosts") }}</p>
 
       <form v-else class="remote-form" @submit.prevent="submit">
-        <label class="remote-field">
-          <span>{{ t("remote.host") }}</span>
+        <Field class="remote-field">
+          <FieldLabel>{{ t("remote.host") }}</FieldLabel>
 
           <Select v-model="host">
-            <SelectTrigger :aria-label="t('remote.host')" />
+            <SelectTrigger />
 
             <SelectContent>
               <SelectItem v-for="item in hosts" :key="item.id" :value="item.id">
@@ -18,14 +18,16 @@
               </SelectItem>
             </SelectContent>
           </Select>
-        </label>
+        </Field>
 
-        <label class="remote-field">
-          <span>{{ t("remote.path") }}</span>
+        <Field class="remote-field" v-bind="failed ? { invalid: true } : {}">
+          <FieldLabel>{{ t("remote.path") }}</FieldLabel>
           <TextFieldRoot v-model="path" placeholder="/home/me/project" autofocus />
-        </label>
 
-        <p v-if="failed" class="remote-error" role="alert">{{ t("remote.notFound") }}</p>
+          <FieldError v-if="failed" match class="remote-error">
+            {{ t("remote.notFound") }}
+          </FieldError>
+        </Field>
 
         <div class="remote-actions">
           <DialogClose>
@@ -53,6 +55,7 @@ import type { EnvironmentInfo } from "@/types/common-type.js"
 import { Button } from "@pig/ui/button"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@pig/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
+import { Field, FieldError, FieldLabel } from "@pig/ui/field"
 import { TextFieldRoot } from "@pig/ui/text-field"
 
 const props = defineProps<{

@@ -17,7 +17,9 @@ test("远程目录：选主机与目录，@ 搜到远端文件，会话按「主
 
   await dialog.getByPlaceholder("/home/me/project").fill("/no/such/dir")
   await dialog.getByRole("button", { name: "添加" }).click()
-  await expect(dialog.getByRole("alert")).toBeVisible()
+  const pathInput = dialog.getByPlaceholder("/home/me/project")
+  await expect(pathInput).toHaveAttribute("aria-invalid", "true")
+  await expect(pathInput).toHaveAccessibleDescription("这台主机上没有这个目录，或连不上主机")
 
   await dialog.getByPlaceholder("/home/me/project").fill(remotePathOf(remoteGateway.workspaceDir))
   await dialog.getByRole("button", { name: "添加" }).click()
