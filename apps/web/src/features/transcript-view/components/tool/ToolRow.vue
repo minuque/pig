@@ -160,8 +160,8 @@ function openTarget(event: MouseEvent) {
 }
 
 const images = computed(() => toolCallImages(props.call))
-const { isDark, codeBlockProps } = useColorScheme()
-const warm = () => warmToolHighlight(props.call, isDark.value, codeBlockProps.value.theme)
+const { codeBlockProps } = useColorScheme()
+const warm = () => warmToolHighlight(props.call, codeBlockProps.value.theme)
 </script>
 
 <style scoped>

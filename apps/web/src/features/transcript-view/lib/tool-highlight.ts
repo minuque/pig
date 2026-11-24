@@ -1,5 +1,4 @@
 import {
-  commandCodeTheme,
   highlightCodeTokens,
   isHighlightable,
 } from "@features/transcript-view/lib/code-highlight.js"
@@ -10,13 +9,13 @@ import type { ToolCallView } from "@features/transcript-view/type.js"
 
 type CodeTheme = Parameters<typeof highlightCodeTokens>[2]
 
-export function warmToolHighlight(call: ToolCallView, dark: boolean, codeTheme: CodeTheme): void {
+export function warmToolHighlight(call: ToolCallView, codeTheme: CodeTheme): void {
   const variant = toolCallVariant(call)
 
   if (variant === "command") {
     const command = toolCommand(call.input)
 
-    if (command) void highlightCodeTokens(command, "bash", commandCodeTheme(dark)).catch(() => {})
+    if (command) void highlightCodeTokens(command, "bash", codeTheme).catch(() => {})
     return
   }
 
