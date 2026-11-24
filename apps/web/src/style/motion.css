@@ -31,8 +31,8 @@
 
 .startup-logo {
   display: block;
-  width: 144px;
-  height: 144px;
+  width: 112px;
+  height: 112px;
   object-fit: contain;
   pointer-events: none;
   user-select: none;
