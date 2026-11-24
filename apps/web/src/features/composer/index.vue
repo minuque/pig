@@ -69,8 +69,6 @@
       </template>
 
       <template #tools>
-        <ContextRing v-if="usage" :usage="usage" />
-
         <ModelPicker
           v-model:open="modelPickerOpen"
           v-model:model="model"
@@ -78,6 +76,8 @@
           :catalog="catalog"
           :locked="switchLocked"
         />
+
+        <ContextRing v-if="usage" :usage="usage" />
       </template>
 
       <template #right>

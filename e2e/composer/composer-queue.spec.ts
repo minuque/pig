@@ -130,7 +130,7 @@ test("队列排序：拖拽手柄与键盘抓取都能换位", async ({ page, co
   await expect(rows.nth(1)).toContainText("第二条排队")
 })
 
-test("队列超过 3 条：展开与收起", async ({ page, complexGateway }) => {
+test("队列超过 2 条：折叠与展开", async ({ page, complexGateway }) => {
   test.setTimeout(120_000)
   await installTurnBridge(page)
   await openSession(page, complexGateway)
@@ -141,17 +141,17 @@ test("队列超过 3 条：展开与收起", async ({ page, complexGateway }) =>
 
   await enqueue(page, ["排队一", "排队二", "排队三", "排队四"])
 
-  const expand = page.getByRole("button", { name: "展开其余 1 条" })
+  const expand = page.getByRole("button", { name: "显示全部 4 条排队消息" })
 
-  await expect(rows).toHaveCount(3)
-  await expect(rows.nth(2)).toContainText("排队三")
+  await expect(rows).toHaveCount(2)
+  await expect(rows.nth(1)).toContainText("排队二")
   await expect(expand).toHaveAttribute("aria-expanded", "false")
 
   await expand.click()
   await expect(rows).toHaveCount(4)
   await expect(rows.nth(3)).toContainText("排队四")
 
-  await page.getByRole("button", { name: "收起队列" }).click()
-  await expect(rows).toHaveCount(3)
+  await page.getByRole("button", { name: "收起", exact: true }).click()
+  await expect(rows).toHaveCount(2)
   await expect(expand).toHaveAttribute("aria-expanded", "false")
 })

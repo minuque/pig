@@ -44,7 +44,6 @@ export {
   InfoIcon,
   KeyRoundIcon,
   LinkIcon,
-  ListPlusIcon,
   LoaderIcon,
   Maximize2Icon,
   Minimize2Icon,

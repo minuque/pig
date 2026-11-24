@@ -27,13 +27,13 @@
       type="button"
       class="queue-toggle"
       :aria-expanded="expanded"
+      @pointerdown.prevent
       @click="expanded = !expanded"
     >
       {{
-        expanded
-          ? t("composer.queueShowLess")
-          : t("composer.queueShowAll", { count: items.length - VISIBLE_ROWS })
+        expanded ? t("composer.queueShowLess") : t("composer.queueShowAll", { count: items.length })
       }}
+      <ChevronDownIcon class="queue-toggle-icon" :class="{ 'is-open': expanded }" />
     </button>
   </div>
 </template>
@@ -42,11 +42,12 @@
 import { computed, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { SortableList, type ReorderMessage } from "@pig/ui/sortable-list"
+import { ChevronDownIcon } from "@components/icons/index.js"
 import QueuedMessageRow from "@features/composer/components/QueuedMessageRow.vue"
 import type { ComposerAttachment } from "@/types/attachment-type.js"
 import type { QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
 
-const VISIBLE_ROWS = 3
+const VISIBLE_ROWS = 2
 const { t } = useI18n()
 const props = defineProps<{ items: QueuedPrompt[]; editingId: string | null }>()
 const emit = defineEmits<{
@@ -110,6 +111,9 @@ function onReorder(next: string[]) {
 }
 
 .queue-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
   padding: 0;
   border: 0;
   background: none;
@@ -121,5 +125,21 @@ function onReorder(next: string[]) {
 
 .queue-toggle:hover {
   color: var(--fg);
+}
+
+.queue-toggle-icon {
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.queue-toggle-icon.is-open {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .queue-toggle-icon {
+    transition: none;
+  }
 }
 </style>

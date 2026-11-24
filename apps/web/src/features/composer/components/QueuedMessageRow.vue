@@ -62,7 +62,7 @@
         class="row-send"
         @click="emit('sendNow')"
       >
-        <ForwardIcon aria-hidden="true" />
+        <ArrowUpIcon aria-hidden="true" />
         {{ t("composer.queueSendNow") }}
       </Button>
 
@@ -100,8 +100,8 @@ import type { ComposerAttachment } from "@/types/attachment-type.js"
 import { formatFileSize } from "@features/composer/lib/attachment-size.js"
 import type { QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
 import {
+  ArrowUpIcon,
   FileTextIcon,
-  ForwardIcon,
   GripVerticalIcon,
   PenIcon,
   XIcon,
@@ -280,6 +280,13 @@ const actions = computed<RowAction[]>(() => {
   padding-inline: var(--space-2xs);
   font-variant-numeric: tabular-nums;
   user-select: none;
+}
+
+.row-send {
+  height: var(--control-xs);
+  padding-inline: var(--space-2xs);
+  color: inherit;
+  font-size: var(--text-meta);
 }
 
 .row-grip {

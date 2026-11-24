@@ -66,7 +66,7 @@ import {
   ArrowUpIcon,
   CheckIcon,
   CornerUpRightIcon,
-  ListPlusIcon,
+  ForwardIcon,
   LoaderIcon,
   SquareIcon,
 } from "@components/icons/index.js"
@@ -78,7 +78,7 @@ const MODES: Record<PrimaryMode, { icon: Component; key: string }> = {
   stopping: { icon: LoaderIcon, key: "stopping" },
   stop: { icon: SquareIcon, key: "stopTurn" },
   steer: { icon: CornerUpRightIcon, key: "steer" },
-  queue: { icon: ListPlusIcon, key: "queuePrompt" },
+  queue: { icon: ForwardIcon, key: "queuePrompt" },
   send: { icon: ArrowUpIcon, key: "sendPrompt" },
 }
 const props = defineProps<{
