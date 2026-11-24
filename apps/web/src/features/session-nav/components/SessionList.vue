@@ -22,83 +22,85 @@
           'is-scrolled': scrolled,
         }"
       >
-        <div
-          v-if="sections.length"
-          ref="windowEl"
-          class="session-window"
-          @scroll.passive="onScroll"
-        >
-          <div
-            v-if="state.moving"
-            class="drag-label"
-            :class="{ 'is-target': state.to === 'pinned' }"
-          >
-            <span class="drag-label-text">{{ t("session.pinned") }}</span>
-            <span class="drag-label-line" aria-hidden="true"></span>
-          </div>
+        <ScrollArea v-if="sections.length" class="session-window">
+          <ScrollAreaViewport ref="windowRef" class="session-viewport" @scroll.passive="onScroll">
+            <ScrollAreaContent class="session-content">
+              <div
+                v-if="state.moving"
+                class="drag-label"
+                :class="{ 'is-target': state.to === 'pinned' }"
+              >
+                <span class="drag-label-text">{{ t("session.pinned") }}</span>
+                <span class="drag-label-line" aria-hidden="true"></span>
+              </div>
 
-          <SessionSection
-            v-bind="sectionBind(pinnedSection ?? emptyPinned, state)"
-            :class="{ 'pinned-drop': !pinnedSection }"
-            v-on="sectionOn"
-          />
+              <SessionSection
+                v-bind="sectionBind(pinnedSection ?? emptyPinned, state)"
+                :class="{ 'pinned-drop': !pinnedSection }"
+                v-on="sectionOn"
+              />
 
-          <div
-            v-if="state.moving"
-            class="drag-label"
-            :class="{ 'is-target': state.to === 'active' }"
-          >
-            <span class="drag-label-text">{{ t("session.sectionInbox") }}</span>
-            <span class="drag-label-line" aria-hidden="true"></span>
-          </div>
+              <div
+                v-if="state.moving"
+                class="drag-label"
+                :class="{ 'is-target': state.to === 'active' }"
+              >
+                <span class="drag-label-text">{{ t("session.sectionInbox") }}</span>
+                <span class="drag-label-line" aria-hidden="true"></span>
+              </div>
 
-          <SessionSection
-            v-if="activeSection"
-            v-bind="sectionBind(activeSection, state)"
-            v-on="sectionOn"
-          />
+              <SessionSection
+                v-if="activeSection"
+                v-bind="sectionBind(activeSection, state)"
+                v-on="sectionOn"
+              />
 
-          <div class="session-edge-bottom edge-veil-bottom" aria-hidden="true"></div>
-        </div>
+              <div class="session-edge-bottom edge-veil-bottom" aria-hidden="true"></div>
+            </ScrollAreaContent>
+          </ScrollAreaViewport>
+
+          <ScrollAreaScrollbar />
+        </ScrollArea>
 
         <div v-else class="session-empty">{{ t("session.empty") }}</div>
 
-        <div v-if="shelfSections.length" class="session-shelves">
-          <SessionSection
-            v-for="section in shelfSections"
-            :key="section.key"
-            v-bind="sectionBind(section, state)"
-            v-on="sectionOn"
-          />
-        </div>
+        <ScrollArea v-if="shelfSections.length" class="session-shelves">
+          <ScrollAreaViewport class="session-viewport">
+            <ScrollAreaContent class="session-content">
+              <SessionSection
+                v-for="section in shelfSections"
+                :key="section.key"
+                v-bind="sectionBind(section, state)"
+                v-on="sectionOn"
+              />
+            </ScrollAreaContent>
+          </ScrollAreaViewport>
 
-        <Teleport to="body">
-          <div
-            v-if="dropOut.ghost.value"
-            class="drag-ghost"
-            :style="{
-              transform: `translate(${dropOut.ghost.value.x + 12}px, ${dropOut.ghost.value.y + 12}px)`,
-            }"
-          >
-            <MessageSquareIcon class="size-icon" />
-            <span class="drag-ghost-title">{{ dropOut.ghost.value.title }}</span>
-          </div>
-        </Teleport>
+          <ScrollAreaScrollbar />
+        </ScrollArea>
+
+        <SessionDragGhost :ghost="dropOut.ghost.value" />
       </nav>
     </template>
   </TransferListsRoot>
 </template>
 
 <script setup lang="ts">
-import { computed, onUpdated, shallowRef } from "vue"
+import { computed, onUpdated, shallowRef, useTemplateRef } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { MessageSquareIcon } from "@components/icons/index.js"
+import {
+  ScrollArea,
+  ScrollAreaContent,
+  ScrollAreaScrollbar,
+  ScrollAreaViewport,
+} from "@pig/ui/scroll-area"
 import {
   TransferListsRoot,
   type TransferChangeDetails,
   type TransferLists,
   type TransferMessage,
 } from "@pig/ui/transfer-lists"
+import SessionDragGhost from "@features/session-nav/components/SessionDragGhost.vue"
 import SessionSection from "@features/session-nav/components/SessionSection.vue"
 import { useRowSweep } from "@features/session-nav/hooks/use-row-sweep.js"
 import { useSessionDropOut } from "@features/session-nav/hooks/use-session-drop-out.js"
@@ -186,7 +188,8 @@ const lists = computed<TransferLists>(() =>
 )
 const listEl = shallowRef<HTMLElement>()
 const scrolled = shallowRef(false)
-const windowEl = shallowRef<HTMLElement>()
+const windowRef = useTemplateRef<{ $el: HTMLElement }>("windowRef")
+const windowEl = computed(() => windowRef.value?.$el)
 const dropOut = useSessionDropOut({
   bounds: () => listEl.value,
   title: (id) => sessionsById.value.get(id)?.title,
@@ -336,7 +339,7 @@ onUpdated(() => {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  padding-inline-start: calc(var(--nav-inline) - var(--space-2xs));
+  padding-inline: calc(var(--nav-inline) - var(--space-2xs));
 }
 
 .nav-body::before {
@@ -356,45 +359,45 @@ onUpdated(() => {
   opacity: 1;
 }
 
-.session-window {
-  position: relative;
+.session-window,
+.session-shelves {
   display: flex;
-  flex: 1;
   flex-direction: column;
   min-height: 0;
-  overflow-x: hidden;
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-gutter: stable;
-  scrollbar-color: transparent transparent;
+}
+
+.session-window {
+  flex: 1;
+}
+
+.session-shelves {
+  flex: none;
+  max-height: 60%;
+  background: var(--sidebar);
+}
+
+.session-viewport {
+  flex: 1;
+  min-height: 0;
+}
+
+.session-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
   padding-inline: var(--space-2xs);
+}
+
+.session-window .session-content {
   padding-block-start: var(--space-2xs);
 }
 
-.session-window:hover,
-.session-shelves:hover {
-  scrollbar-color: var(--scrollbar-thumb) transparent;
+.session-shelves .session-content {
+  padding-block-end: var(--space-2xs);
 }
 
 .session-edge-bottom {
   background: linear-gradient(to top, var(--sidebar), transparent);
-}
-
-.session-shelves {
-  position: relative;
-  display: flex;
-  flex: none;
-  flex-direction: column;
-  min-height: 0;
-  max-height: 60%;
-  overflow-x: hidden;
-  overflow-y: auto;
-  padding-inline: var(--space-2xs);
-  padding-block-end: var(--space-2xs);
-  background: var(--sidebar);
-  scrollbar-width: thin;
-  scrollbar-gutter: stable;
-  scrollbar-color: transparent transparent;
 }
 
 .session-shelves :deep(.section-head) {
@@ -455,33 +458,6 @@ onUpdated(() => {
 
 :global(html[data-session-dragging] [data-drag-preview]) {
   opacity: 0;
-}
-
-.drag-ghost {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: var(--z-drag);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2xs);
-  max-width: 240px;
-  height: var(--control-sm);
-  padding-inline: var(--space-xs);
-  border-radius: var(--radius-control);
-  background: var(--bg-raised);
-  box-shadow: var(--shadow-popover);
-  color: var(--fg);
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
-  pointer-events: none;
-}
-
-.drag-ghost-title {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .session-empty {
