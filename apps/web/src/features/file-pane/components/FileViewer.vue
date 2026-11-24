@@ -30,7 +30,7 @@
     <video v-else-if="kind === 'video'" :src="rawUrl" controls class="file-viewer-media" />
     <audio v-else-if="kind === 'audio'" :src="rawUrl" controls class="file-viewer-audio" />
     <iframe v-else-if="kind === 'pdf'" :src="rawUrl" :title="path" class="file-viewer-pdf" />
-    <div v-else-if="loading" class="file-viewer-status"><Spinner :size="24" /></div>
+    <div v-else-if="loading" class="file-viewer-status"><Spinner size="l" /></div>
     <FileNotice v-else-if="failure" :text="failure" />
 
     <FileNotice
@@ -71,9 +71,9 @@ import { computed, shallowRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { fileRawUrl, readWorkspaceFile } from "@client/platform.js"
 import { PlatformRequestError } from "@client/http.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { Spinner } from "@components/ui/spinner/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { IconButton } from "@pig/ui/button"
+import { Spinner } from "@pig/ui/spinner"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { SquareCodeIcon, EyeIcon } from "@components/icons/index.js"
 import MarkdownContent from "@features/transcript-view/components/markdown/MarkdownContent.vue"
 import { useMarkdownNodes } from "@features/transcript-view/hooks/use-markdown-nodes.js"

@@ -10,7 +10,7 @@
 
       <MarkdownContent :nodes="nodes" />
 
-      <Banner variant="surface" size="s" color="destructive">
+      <Banner variant="surface" size="s" color="danger">
         <template #icon><CircleExclamationPointIcon /></template>
         <template #title>出错了</template>
         Banner 的边框不读卡片变量，放在这里作对照。
@@ -94,12 +94,12 @@
 <script setup lang="ts">
 import { computed, reactive, ref, shallowRef, watch } from "vue"
 import { useClipboard } from "@vueuse/core"
-import { Button } from "@components/ui/button/index.js"
-import { Banner } from "@components/ui/banner/index.js"
-import { CardList, CardRow } from "@components/ui/card/index.js"
-import { TabsList, TabsRoot, TabsTrigger } from "@components/ui/tabs/index.js"
-import { Slider } from "@components/ui/slider/index.js"
-import { Switch } from "@components/ui/switch/index.js"
+import { Button } from "@pig/ui/button"
+import { Banner } from "@pig/ui/banner"
+import { CardList, CardRow } from "@pig/ui/card"
+import { TabsList, TabsRoot, TabsTrigger } from "@pig/ui/tabs"
+import { Slider } from "@pig/ui/slider"
+import { Switch } from "@pig/ui/switch"
 import { CircleExclamationPointIcon } from "@components/icons/index.js"
 import tokensCss from "@style/tokens.css?raw"
 import MarkdownContent from "@features/transcript-view/components/markdown/MarkdownContent.vue"

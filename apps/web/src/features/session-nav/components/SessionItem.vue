@@ -220,7 +220,7 @@
 
         <ContextMenuSeparator />
 
-        <ContextMenuItem variant="destructive" @select="deleteOpen = true">
+        <ContextMenuItem color="danger" @select="deleteOpen = true">
           <TrashIcon />
           {{ t("session.deleteTitle") }}
         </ContextMenuItem>
@@ -247,8 +247,8 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuTrigger,
-} from "@components/ui/context-menu/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+} from "@pig/ui/context-menu"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import SessionStateIcon from "@features/session-nav/components/SessionStateIcon.vue"
 import { sessionGlyph } from "@features/session-nav/lib/status-cycle.js"

@@ -63,8 +63,8 @@
 import { ref } from "vue"
 
 import { ChevronRightIcon } from "@components/icons/index.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { Switch } from "@components/ui/switch/index.js"
+import { IconButton } from "@pig/ui/button"
+import { Switch } from "@pig/ui/switch"
 import VendorMark from "@components/icons/VendorMark.vue"
 import ModelParamsForm from "@features/settings/components/models/ModelParamsForm.vue"
 import { errorMessage } from "@client/http.js"
@@ -72,12 +72,8 @@ import { setModelEnabled } from "@client/platform.js"
 import { modelMeta } from "@features/settings/lib/provider-view.js"
 import { useI18n } from "@i18n/index.js"
 import type { ProviderModelView, ProviderView } from "@/types/common-type.js"
-import { CardList, CardRow } from "@components/ui/card/index.js"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@components/ui/collapsible/index.js"
+import { CardList, CardRow } from "@pig/ui/card"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@pig/ui/collapsible"
 
 const props = defineProps<{ provider: ProviderView }>()
 const emit = defineEmits<{ changed: [] }>()

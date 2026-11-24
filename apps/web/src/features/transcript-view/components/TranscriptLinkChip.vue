@@ -24,8 +24,8 @@
 import { computed } from "vue"
 import { LinkIcon } from "@components/icons/index.js"
 import VendorMark from "@components/icons/VendorMark.vue"
-import { Link } from "@components/ui/link/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { Link } from "@pig/ui/link"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { linkSite, shortUrlLabel } from "@features/transcript-view/lib/link-chip.js"
 
 const props = defineProps<{

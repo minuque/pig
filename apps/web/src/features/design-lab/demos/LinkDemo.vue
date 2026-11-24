@@ -43,5 +43,5 @@
 <script setup lang="ts">
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { Link } from "@components/ui/link/index.js"
+import { Link } from "@pig/ui/link"
 </script>

@@ -26,10 +26,10 @@
           Warning banner body text.
         </Banner>
 
-        <Banner color="destructive">
+        <Banner color="danger">
           <template #icon><CircleExclamationPointIcon /></template>
-          <template #title>Destructive</template>
-          Destructive banner body text.
+          <template #title>Danger</template>
+          Danger banner body text.
         </Banner>
       </div>
     </Variant>
@@ -99,5 +99,5 @@ import {
   CircleExclamationPointIcon,
   CircleQuestionMarkIcon,
 } from "@components/icons/index.js"
-import { Banner } from "@components/ui/banner/index.js"
+import { Banner } from "@pig/ui/banner"
 </script>

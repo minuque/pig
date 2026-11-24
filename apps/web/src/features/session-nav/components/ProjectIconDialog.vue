@@ -58,14 +58,8 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { Button, IconButton } from "@components/ui/button/index.js"
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogTitle,
-} from "@components/ui/dialog/index.js"
+import { Button, IconButton } from "@pig/ui/button"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@pig/ui/dialog"
 import { PROJECT_ICONS } from "@components/icons/project-icons.js"
 import { workspaceName } from "@features/session-nav/lib/format.js"
 import {

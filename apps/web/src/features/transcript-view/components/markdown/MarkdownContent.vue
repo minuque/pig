@@ -14,7 +14,7 @@
 <script lang="ts">
 import { h, type FunctionalComponent } from "vue"
 import type { MarkdownDocument as ComarkDocument, Node } from "comark"
-import { TableBody, TableCell, TableHeader, TableRow } from "@components/ui/table/index.js"
+import { TableBody, TableCell, TableHeader, TableRow } from "@pig/ui/table"
 import MarkdownCodeBlock from "@features/transcript-view/components/markdown/MarkdownCodeBlock.vue"
 import MarkdownInlineCode from "@features/transcript-view/components/markdown/MarkdownInlineCode.vue"
 import MarkdownLink from "@features/transcript-view/components/markdown/MarkdownLink.vue"

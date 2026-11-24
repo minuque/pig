@@ -105,8 +105,8 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { IconButton } from "@pig/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import AttachmentTray from "@features/composer/components/AttachmentTray.vue"
 import ComposerPrimaryAction from "@features/composer/components/ComposerPrimaryAction.vue"
 import ContextRing from "@features/composer/components/ContextRing.vue"

@@ -16,6 +16,7 @@
     "@lobehub/icons-static-svg": "1.95.0",
     "@lucide/vue": "1.72.0",
     "@panzoom/panzoom": "4.6.2",
+    "@pig/ui": "workspace:*",
     "@pierre/vscode-icons": "0.0.9",
     "@tiptap/core": "3.35.0",
     "@tiptap/extension-blockquote": "3.35.0",

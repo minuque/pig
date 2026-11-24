@@ -46,8 +46,8 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { Dialog, DialogContent, DialogTitle } from "@components/ui/dialog/index.js"
+import { IconButton } from "@pig/ui/button"
+import { Dialog, DialogContent, DialogTitle } from "@pig/ui/dialog"
 import { ChevronLeftIcon, ChevronRightIcon } from "@components/icons/index.js"
 
 defineOptions({ inheritAttrs: false })

@@ -33,10 +33,10 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import type { ColorScheme } from "@/types/theme-type.js"
+import type { ColorScheme } from "@pig/ui/theme"
 import { useI18n } from "@i18n/index.js"
 import { useColorScheme } from "@features/theme/index.js"
-import { RadioCards, RadioCardsItem } from "@components/ui/radio-cards/index.js"
+import { RadioCards, RadioCardsItem } from "@pig/ui/radio-cards"
 
 const { t } = useI18n()
 const { isDark, scheme, setScheme } = useColorScheme()

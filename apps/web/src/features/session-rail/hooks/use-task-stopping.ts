@@ -1,5 +1,5 @@
 import { ref } from "vue"
-import { notify } from "@components/layout/notify.js"
+import { notify } from "@pig/ui/toast"
 import { t } from "@i18n/index.js"
 
 export function useTaskStopping(stop: (taskId: string) => Promise<void>) {

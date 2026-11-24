@@ -12,7 +12,7 @@ export const layers: Record<string, Layer[]> = {
   "": [
     { name: "应用", note: "界面与桌面壳", dirs: ["apps/web", "apps/desktop"] },
     { name: "服务", note: "网关与扩展", dirs: ["packages/gateway", "packages/extensions"] },
-    { name: "底座", note: "协议与环境", dirs: ["packages/protocol", "packages/environment"] },
+    { name: "底座", note: "协议、环境与设计系统", dirs: ["packages/protocol", "packages/environment", "packages/ui"] },
   ],
   "apps/web": [
     { name: "入口", note: "启动与路由", dirs: ["", "router", "shell"] },
@@ -44,8 +44,13 @@ export const layers: Record<string, Layer[]> = {
       ],
     },
     { name: "状态", note: "会话状态，不引用别的功能", dirs: ["features/session"] },
-    { name: "组件", note: "通用 UI", dirs: ["components/layout", "components/ui", "components/icons"] },
+    { name: "组件", note: "应用布局与图标", dirs: ["components/layout", "components/icons"] },
     { name: "底座", note: "谁都能用", dirs: ["client", "types", "i18n", "utils"] },
+  ],
+  "packages/ui": [
+    { name: "入口", note: "包统一导出", dirs: [""] },
+    { name: "组件", note: "无业务基础控件", dirs: ["ui"] },
+    { name: "主题与底座", note: "色板派生、类型与文案注入", dirs: ["theme", "core"] },
   ],
   "apps/desktop": [
     { name: "入口", note: "开发启动脚本", dirs: [""] },

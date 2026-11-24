@@ -72,8 +72,8 @@ import type { PopoverOpenChangeReason } from "@ui-sdk/core/popover"
 import { REPLY_COMMENT_MAX, type ReplyReference } from "@pig/protocol"
 import { useI18n } from "@i18n/index.js"
 import { QuoteIcon } from "@components/icons/index.js"
-import { Button } from "@components/ui/button/index.js"
-import { Popover, PopoverContent } from "@components/ui/popover/index.js"
+import { Button } from "@pig/ui/button"
+import { Popover, PopoverContent } from "@pig/ui/popover"
 import { resolveReplyCommentDismissal } from "@features/composer/lib/editor/reply-citation.js"
 
 const props = withDefaults(
@@ -243,7 +243,7 @@ function onOpenChange(nextOpen: boolean, details: ChangeDetails<PopoverOpenChang
 }
 
 .reply-input[aria-invalid="true"] {
-  box-shadow: var(--focus-ring-danger);
+  box-shadow: 0 0 0 2px var(--danger-text);
 }
 
 .reply-input::placeholder {

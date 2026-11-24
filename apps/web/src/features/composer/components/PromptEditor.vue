@@ -90,8 +90,8 @@ export { shouldSubmitOnKeydown } from "@features/composer/hooks/use-composer-sho
 <script setup lang="ts">
 import { computed, ref, useTemplateRef } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { Button } from "@components/ui/button/index.js"
-import { Kbd } from "@components/ui/kbd/index.js"
+import { Button } from "@pig/ui/button"
+import { Kbd } from "@pig/ui/kbd"
 import { useCommandMenu } from "@features/composer/hooks/use-command-menu.js"
 import {
   shouldSubmitOnKeydown,

@@ -23,7 +23,7 @@
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
 import { ref } from "vue"
-import { Switch } from "@components/ui/switch/index.js"
+import { Switch } from "@pig/ui/switch"
 
 const on = ref(true)
 const off = ref(false)

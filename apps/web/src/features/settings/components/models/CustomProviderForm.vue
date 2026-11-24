@@ -150,7 +150,7 @@
         <AlertDialogFooter>
           <AlertDialogCancel>{{ t("common.cancel") }}</AlertDialogCancel>
 
-          <AlertDialogAction variant="destructive" @click="remove">
+          <AlertDialogAction color="danger" @click="remove">
             {{ t("settings.models.deleteProvider") }}
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -171,11 +171,11 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@components/ui/alert-dialog/index.js"
-import { Button } from "@components/ui/button/index.js"
-import { Badge } from "@components/ui/badge/index.js"
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@components/ui/select/index.js"
-import { TextFieldRoot } from "@components/ui/text-field/index.js"
+} from "@pig/ui/alert-dialog"
+import { Button } from "@pig/ui/button"
+import { Badge } from "@pig/ui/badge"
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
+import { TextFieldRoot } from "@pig/ui/text-field"
 import VendorMark from "@components/icons/VendorMark.vue"
 import CustomModelCard from "@features/settings/components/models/CustomModelCard.vue"
 import {

@@ -1,5 +1,6 @@
 import { nextTick, onMounted, ref, watch } from "vue"
-import tokensCss from "@style/tokens.css?raw"
+import uiTokensCss from "@pig/ui/styles/tokens.css?raw"
+import appTokensCss from "@style/tokens.css?raw"
 import { useColorScheme } from "@features/theme/index.js"
 import type { Label } from "@features/design-lab/lib/nav.js"
 
@@ -79,7 +80,7 @@ export function groupTitle(group: string): Label {
 }
 
 const KNOB = /^--(base-|card-|table-|radius-\d+$|space-\d+$|focus-\d+$|default-|dialog-content)/
-const PLACES = placed(tokensCss)
+const PLACES = placed(`${uiTokensCss}\n${appTokensCss}`)
 
 function placed(css: string): Omit<Token, "value">[] {
   const blocks = css.match(/:root\s*\{[^}]*\}/g) ?? []

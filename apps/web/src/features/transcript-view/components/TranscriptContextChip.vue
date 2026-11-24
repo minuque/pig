@@ -23,7 +23,7 @@
 import { RouterLink } from "vue-router"
 import type { ContextReference } from "@pig/protocol"
 import { MessageSquareIcon } from "@components/icons/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import TranscriptReplyCard from "@features/transcript-view/components/TranscriptReplyCard.vue"
 
 defineProps<{

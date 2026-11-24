@@ -112,9 +112,9 @@
 import { computed, shallowRef, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { workspaceName } from "@features/session-nav/index.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { PopoverContent } from "@components/ui/popover/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { IconButton } from "@pig/ui/button"
+import { PopoverContent } from "@pig/ui/popover"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import {
   CheckIcon,
   FolderIcon,

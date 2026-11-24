@@ -1,11 +1,11 @@
 <template>
   <div class="session-loading">
-    <Spinner :size="24" />
+    <Spinner size="l" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { Spinner } from "@components/ui/spinner/index.js"
+import { Spinner } from "@pig/ui/spinner"
 </script>
 
 <style scoped>

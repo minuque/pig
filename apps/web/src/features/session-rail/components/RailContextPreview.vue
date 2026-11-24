@@ -20,7 +20,7 @@
       </Tooltip>
     </template>
 
-    <div v-if="loading" class="ctx-preview-status"><Spinner :size="24" /></div>
+    <div v-if="loading" class="ctx-preview-status"><Spinner size="l" /></div>
     <FileCode v-else-if="source" path="context.md" :text="body" />
     <MarkdownContent v-else :nodes="nodes" />
   </PreviewDialog>
@@ -30,9 +30,9 @@
 import { computed, ref, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { contextPreview } from "@client/platform.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { Spinner } from "@components/ui/spinner/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { IconButton } from "@pig/ui/button"
+import { Spinner } from "@pig/ui/spinner"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { EyeIcon, SquareCodeIcon } from "@components/icons/index.js"
 import FileCode from "@features/file-pane/components/FileCode.vue"
 import PreviewDialog from "@features/preview/index.vue"

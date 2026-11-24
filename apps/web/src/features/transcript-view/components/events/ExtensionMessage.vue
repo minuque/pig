@@ -31,7 +31,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { Collapsible, CollapsibleContent } from "@components/ui/collapsible/index.js"
+import { Collapsible, CollapsibleContent } from "@pig/ui/collapsible"
 import { ChevronRightIcon, PuzzleIcon } from "@components/icons/index.js"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import MarkdownContent from "@features/transcript-view/components/markdown/MarkdownContent.vue"

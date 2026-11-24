@@ -166,8 +166,8 @@ import {
   type WelcomeField,
 } from "@features/settings/index.js"
 import { useLocalFonts } from "@features/settings/hooks/use-local-fonts.js"
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@components/ui/select/index.js"
-import { CardList, CardRow } from "@components/ui/card/index.js"
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
+import { CardList, CardRow } from "@pig/ui/card"
 import PresetSwatches from "./PresetSwatches.vue"
 import SchemeCards from "./SchemeCards.vue"
 

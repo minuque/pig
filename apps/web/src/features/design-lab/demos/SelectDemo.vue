@@ -94,7 +94,7 @@ import {
   SelectLabel,
   SelectSeparator,
   SelectTrigger,
-} from "@components/ui/select/index.js"
+} from "@pig/ui/select"
 
 const value = ref("apple")
 const empty = ref("")

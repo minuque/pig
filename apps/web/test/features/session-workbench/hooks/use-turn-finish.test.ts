@@ -5,7 +5,7 @@ import { useComposerQueue } from "@features/composer/hooks/use-composer-queue.js
 
 const notify = vi.fn()
 
-vi.mock("@components/layout/notify.js", () => ({ notify }))
+vi.mock("@pig/ui/toast", () => ({ notify }))
 
 const { useTurnFinish } = await import("@features/session-workbench/hooks/use-turn-finish.js")
 const scopes: EffectScope[] = []

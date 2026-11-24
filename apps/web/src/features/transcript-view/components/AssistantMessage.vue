@@ -62,7 +62,7 @@ article {
 }
 
 article[data-jump-highlighted="block"] {
-  background: var(--accent-subtle);
+  background: var(--bg-selected);
 }
 
 .md-pending {

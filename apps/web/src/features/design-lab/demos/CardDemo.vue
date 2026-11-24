@@ -99,15 +99,9 @@ pnpm check:touched</pre>
 <script setup lang="ts">
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { Card, CardList, CardRow } from "@components/ui/card/index.js"
-import { Switch } from "@components/ui/switch/index.js"
-import {
-  TableBody,
-  TableCell,
-  TableHeader,
-  TableRoot,
-  TableRow,
-} from "@components/ui/table/index.js"
+import { Card, CardList, CardRow } from "@pig/ui/card"
+import { Switch } from "@pig/ui/switch"
+import { TableBody, TableCell, TableHeader, TableRoot, TableRow } from "@pig/ui/table"
 import { ChevronRightIcon } from "@components/icons/index.js"
 import CodeCard from "@features/transcript-view/components/CodeCard.vue"
 

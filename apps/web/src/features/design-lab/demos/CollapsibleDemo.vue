@@ -28,12 +28,8 @@
 import { ref } from "vue"
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { Button } from "@components/ui/button/index.js"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@components/ui/collapsible/index.js"
+import { Button } from "@pig/ui/button"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@pig/ui/collapsible"
 
 const open = ref(true)
 </script>

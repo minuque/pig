@@ -13,7 +13,7 @@ import type {
 const NOW = Date.now()
 export const PROSE = `## 改动摘要
 
-把卡片外观收进 \`style/rt.css\`，**所有类卡片组件**共用一组变量：
+把卡片外观收进 \`style/tokens.css\`，**所有类卡片组件**共用一组变量：
 
 - 外环用 \`--border\`，行间分隔用 \`--separator-top\`
 - 圆角统一为 \`--radius-card\`
@@ -34,9 +34,8 @@ export const card = { ring: "--border", radius: "--radius-card" }
 
 \`\`\`mermaid
 flowchart LR
-  tokens[tokens.css] --> rt[rt.css]
-  rt --> card[Card]
-  rt --> table[Table]
+  tokens[tokens.css] --> card[Card]
+  tokens --> table[Table]
 \`\`\`
 
 \`\`\`mermaid
@@ -96,7 +95,7 @@ const STEPS: ToolRow["steps"] = [
     call(
       "read-1",
       "read",
-      { path: "apps/web/src/style/rt.css" },
+      { path: "apps/web/src/style/tokens.css" },
       ':where([data-slot="card"]) {\n  --card-border-radius: var(--radius-card);\n}',
     ),
   ]),
@@ -104,7 +103,7 @@ const STEPS: ToolRow["steps"] = [
     call(
       "grep-1",
       "grep",
-      { pattern: "--radius-code", path: "apps/web/src" },
+      { pattern: "--radius-card", path: "apps/web/src" },
       "CodeCard.vue:14\nMarkdownTable.vue:53",
     ),
   ]),
@@ -114,8 +113,8 @@ const STEPS: ToolRow["steps"] = [
       "edit",
       {
         path: "apps/web/src/style/tokens.css",
-        oldText: "  --radius-card: calc(var(--radius) + 4px);\n  --radius-code: 0.65rem;",
-        newText: "  --radius-card: 0.65rem;",
+        oldText: "  --radius-control: 6px;\n  --radius-code: 0.65rem;",
+        newText: "  --radius-card: var(--radius-card);",
       },
       "Applied 1 edit",
     ),

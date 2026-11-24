@@ -31,5 +31,5 @@
 <script setup lang="ts">
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { Badge } from "@components/ui/badge/index.js"
+import { Badge } from "@pig/ui/badge"
 </script>

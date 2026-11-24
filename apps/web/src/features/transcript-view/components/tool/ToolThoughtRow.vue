@@ -25,11 +25,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { ChevronRightIcon } from "@components/icons/index.js"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@components/ui/collapsible/index.js"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@pig/ui/collapsible"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import { thoughtStepLabel } from "@features/transcript-view/lib/transcript-row-label.js"
 import type { ThoughtStep } from "@features/transcript-view/type.js"

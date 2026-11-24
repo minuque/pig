@@ -16,7 +16,7 @@
       aria-hidden="true"
     />
 
-    <RunningPigGlyph v-else class="turn-status-pig" :state="pigState" />
+    <StatusIndicator v-else appearance="icon" :status="busy ? 'running' : 'idle'" size="s" />
 
     <span class="turn-status-label">
       <RollText :text="label" :live="busy" />
@@ -38,8 +38,9 @@
 import { computed, onBeforeUnmount, shallowRef, watch } from "vue"
 import { useIntervalFn } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
-import { Minimize2Icon, RotateCcwIcon, RunningPigGlyph } from "@components/icons/index.js"
-import { RollText } from "@components/ui/roll-text/index.js"
+import { Minimize2Icon, RotateCcwIcon } from "@components/icons/index.js"
+import { RollText } from "@pig/ui/roll-text"
+import { StatusIndicator } from "@pig/ui/status-indicator"
 import FlowNumber from "@features/transcript-view/components/FlowNumber.vue"
 import { formatElapsed } from "@utils/time.js"
 import type { SessionActivity, SessionPhase } from "@/types/common-type.js"
@@ -180,18 +181,6 @@ const elapsedLabel = computed(() => {
   if (!busy.value || !shown.value || start === undefined) return ""
   return formatElapsed(now.value - start, { showMs: false })
 })
-const pigState = computed<"idle" | "run" | "long" | "xlong">(() => {
-  if (busy.value) {
-    const s = elapsedSeconds.value
-
-    if (s >= 600) return "xlong"
-
-    if (s >= 300) return "long"
-    return "run"
-  }
-
-  return "idle"
-})
 const tokensLabel = computed(() => {
   const tokens = props.outputTokens
 
@@ -222,11 +211,6 @@ const tokensLabel = computed(() => {
 .turn-status[data-tone] {
   background-image: linear-gradient(var(--tone-subtle), var(--tone-subtle));
   box-shadow: inset 0 0 0 var(--border-width) var(--tone-border);
-}
-
-.turn-status-pig {
-  flex: none;
-  height: calc(var(--text-meta) * var(--text-meta--line-height));
 }
 
 .turn-status-icon {

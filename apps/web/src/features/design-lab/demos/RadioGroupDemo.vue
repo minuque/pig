@@ -46,7 +46,7 @@
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
 import { ref } from "vue"
-import { RadioGroup, RadioGroupItem } from "@components/ui/radio-group/index.js"
+import { RadioGroup, RadioGroupItem } from "@pig/ui/radio-group"
 
 const value = ref("a")
 </script>

@@ -39,7 +39,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import PreviewDialog, { type PreviewImage } from "@features/preview/index.vue"
 
 const MAX = 3

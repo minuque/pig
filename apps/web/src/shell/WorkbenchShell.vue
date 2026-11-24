@@ -71,7 +71,7 @@
     <ExtensionUi />
   </Startup>
 
-  <AlertToaster />
+  <Toaster />
 </template>
 
 <script setup lang="ts">
@@ -79,8 +79,7 @@ import { computed, onBeforeUnmount, onMounted, provide, shallowRef, useTemplateR
 import { useEventListener, useResizeObserver } from "@vueuse/core"
 import { useRoute, useRouter } from "vue-router"
 import AppLayout from "@components/layout/AppLayout.vue"
-import AlertToaster from "@components/layout/AlertToaster.vue"
-import { notify } from "@components/layout/notify.js"
+import { Toaster, notify } from "@pig/ui/toast"
 
 import { useLocalWorkspaces } from "@client/local-cwd.js"
 import { useGatewayClient } from "@client/gateway-connection.js"

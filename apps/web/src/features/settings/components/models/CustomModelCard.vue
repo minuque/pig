@@ -76,14 +76,14 @@
 import { ref } from "vue"
 
 import { ChevronRightIcon, TrashIcon } from "@components/icons/index.js"
-import { Switch } from "@components/ui/switch/index.js"
-import { TextFieldRoot } from "@components/ui/text-field/index.js"
+import { Switch } from "@pig/ui/switch"
+import { TextFieldRoot } from "@pig/ui/text-field"
 import VendorMark from "@components/icons/VendorMark.vue"
-import { IconButton } from "@components/ui/button/index.js"
+import { IconButton } from "@pig/ui/button"
 import { useI18n } from "@i18n/index.js"
 import type { CustomModelDraft } from "@features/settings/lib/provider-view.js"
-import { CardList } from "@components/ui/card/index.js"
-import { Collapsible, CollapsibleContent } from "@components/ui/collapsible/index.js"
+import { CardList } from "@pig/ui/card"
+import { Collapsible, CollapsibleContent } from "@pig/ui/collapsible"
 
 const model = defineModel<CustomModelDraft>({ required: true })
 

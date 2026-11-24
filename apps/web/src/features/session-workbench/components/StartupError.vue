@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue"
-import { Button } from "@components/ui/button/index.js"
+import { Button } from "@pig/ui/button"
 import { useI18n } from "@i18n/index.js"
 import { useStartupError } from "@features/startup/index.js"
 import { CircleExclamationPointIcon } from "@components/icons/index.js"

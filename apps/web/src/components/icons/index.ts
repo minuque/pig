@@ -2,8 +2,6 @@
 import { Star, type LucideProps } from "@lucide/vue"
 import { h, type FunctionalComponent } from "vue"
 
-export { default as RunningPigGlyph } from "@components/icons/RunningPigGlyph.vue"
-
 export { default as LanguageIcon } from "@components/icons/LanguageIcon.vue"
 
 export {

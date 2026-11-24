@@ -57,7 +57,7 @@
 import { computed } from "vue"
 import { RouterLink } from "vue-router"
 import { ChevronRightIcon } from "@components/icons/index.js"
-import { Card } from "@components/ui/card/index.js"
+import { Card } from "@pig/ui/card"
 import { useGeneralPrefs } from "@features/settings/index.js"
 import TokenPreview from "@features/design-lab/components/TokenPreview.vue"
 import { NAV, type Label } from "@features/design-lab/lib/nav.js"

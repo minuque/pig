@@ -23,7 +23,7 @@
 import { computed } from "vue"
 import { useNow } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import CopyButton from "@features/transcript-view/components/CopyButton.vue"
 import { formatRelative } from "@utils/time.js"
 

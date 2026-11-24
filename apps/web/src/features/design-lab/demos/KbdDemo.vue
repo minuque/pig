@@ -30,5 +30,5 @@
 <script setup lang="ts">
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { Kbd } from "@components/ui/kbd/index.js"
+import { Kbd } from "@pig/ui/kbd"
 </script>

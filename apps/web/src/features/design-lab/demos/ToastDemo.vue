@@ -63,16 +63,15 @@
       </div>
     </Variant>
 
-    <AlertToaster />
+    <Toaster />
   </Story>
 </template>
 
 <script setup lang="ts">
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import AlertToaster from "@components/layout/AlertToaster.vue"
-import { notify } from "@components/layout/notify.js"
-import { Button } from "@components/ui/button/index.js"
+import { Toaster, notify } from "@pig/ui/toast"
+import { Button } from "@pig/ui/button"
 
 const LONG_ERROR =
   '402: {"message":"Insufficient Balance (request_id: 28067d88-18aa-4bbd-83e5-899e93121d0e)","type":"insufficient_balance_error","param":null,"code":"invalid_request_error"} — the provider rejected this turn before any output was produced.'

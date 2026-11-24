@@ -31,7 +31,7 @@
 import { computed, ref } from "vue"
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { Button } from "@components/ui/button/index.js"
+import { Button } from "@pig/ui/button"
 import { SquareCodeIcon } from "@components/icons/index.js"
 import {
   CommandPalette,
@@ -41,7 +41,7 @@ import {
   CommandPaletteInput,
   CommandPaletteItem,
   CommandPaletteList,
-} from "@components/ui/command-palette/index.js"
+} from "@pig/ui/command-palette"
 
 const ITEMS = ["New session", "Open project", "Toggle sidebar", "Settings", "Switch model"]
 const open = ref(false)

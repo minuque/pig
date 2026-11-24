@@ -34,7 +34,7 @@
 import { computed, provide } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { leftPanelKey, useLeftPanel } from "@components/layout/hooks/use-left-panel.js"
-import { ResizeHandle } from "@components/ui/resize-handle/index.js"
+import { ResizeHandle } from "@pig/ui/resize-handle"
 import WindowControls from "@components/layout/WindowControls.vue"
 
 defineSlots<{

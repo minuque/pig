@@ -121,9 +121,9 @@ import {
   PanelLeftIcon,
   ListFilterIcon,
 } from "@components/icons/index.js"
-import { Button, IconButton } from "@components/ui/button/index.js"
-import { Popover, PopoverTrigger } from "@components/ui/popover/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { Button, IconButton } from "@pig/ui/button"
+import { Popover, PopoverTrigger } from "@pig/ui/popover"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 
 defineProps<{
   groups: readonly SessionGroup[]

@@ -1,6 +1,6 @@
 import { PROJECT_ICONS } from "@components/icons/project-icons.js"
 import { workspaceName } from "@features/session-nav/lib/format.js"
-import type { ToneColor } from "@/types/ui-type.js"
+import type { ToneColor } from "@pig/ui"
 
 export const PROJECT_ICON_COLORS = [
   "gray",

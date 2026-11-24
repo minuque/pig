@@ -1,14 +1,15 @@
 import { computed, effectScope, onScopeDispose, shallowRef, watch, type ComputedRef } from "vue"
-import type { ThemePreset, ThemePresetId } from "@/types/theme-type.js"
-import { readEnum, writePref } from "@utils/storage.js"
-import { useIsDark } from "@utils/theme-mode.js"
 import {
   DEFAULT_THEME_PRESET_ID,
   DERIVED_THEME_TOKENS,
   deriveThemeTokens,
   getThemePreset,
   THEME_PRESETS,
-} from "@utils/theme-palette.js"
+  type ThemePreset,
+  type ThemePresetId,
+} from "@pig/ui/theme"
+import { readEnum, writePref } from "@utils/storage.js"
+import { useIsDark } from "@utils/theme-mode.js"
 
 const STORAGE_KEY = "pig.themePreset"
 const PRESET_IDS = THEME_PRESETS.map((preset) => preset.id) as readonly ThemePresetId[]

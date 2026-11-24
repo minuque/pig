@@ -23,7 +23,7 @@
 import { computed } from "vue"
 import { NodeViewWrapper, nodeViewProps } from "@tiptap/vue-3"
 import { BlocksIcon, SquareCodeIcon } from "@components/icons/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 
 const props = defineProps(nodeViewProps)
 const name = computed(() => String(props.node.attrs["name"] ?? ""))

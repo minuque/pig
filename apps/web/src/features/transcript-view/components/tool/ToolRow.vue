@@ -65,12 +65,8 @@
 <script setup lang="ts">
 import { computed, inject } from "vue"
 import { ChevronRightIcon } from "@components/icons/index.js"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@components/ui/collapsible/index.js"
-import { RollText } from "@components/ui/roll-text/index.js"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@pig/ui/collapsible"
+import { RollText } from "@pig/ui/roll-text"
 import ToolCommandBody from "@features/transcript-view/components/tool/ToolCommandBody.vue"
 import ToolFileBody from "@features/transcript-view/components/tool/ToolFileBody.vue"
 import ToolGenericBody from "@features/transcript-view/components/tool/ToolGenericBody.vue"

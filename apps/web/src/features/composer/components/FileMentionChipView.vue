@@ -26,7 +26,7 @@ import { computed, inject } from "vue"
 import { NodeViewWrapper, nodeViewProps } from "@tiptap/vue-3"
 import { FolderIcon } from "@components/icons/index.js"
 import LanguageIcon from "@components/icons/LanguageIcon.vue"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { composerChipActionsKey } from "@features/composer/lib/editor/chip-actions.js"
 import {
   isDirectoryMentionPath,

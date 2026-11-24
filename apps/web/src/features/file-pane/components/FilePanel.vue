@@ -93,10 +93,10 @@ import { computed, shallowRef, useTemplateRef } from "vue"
 import { useResizeObserver } from "@vueuse/core"
 import { readPref, writePref } from "@utils/storage.js"
 import { useI18n } from "@i18n/index.js"
-import { IconButton } from "@components/ui/button/index.js"
-import { Card } from "@components/ui/card/index.js"
-import { ResizeHandle, dragResize } from "@components/ui/resize-handle/index.js"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@components/ui/tooltip/index.js"
+import { IconButton } from "@pig/ui/button"
+import { Card } from "@pig/ui/card"
+import { ResizeHandle, dragResize } from "@pig/ui/resize-handle"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import {
   ArrowLeftIcon,
   Maximize2Icon,

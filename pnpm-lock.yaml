@@ -272,6 +272,9 @@ importers:
       '@pierre/vscode-icons':
         specifier: 0.0.9
         version: 0.0.9
+      '@pig/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
       '@tiptap/core':
         specifier: 3.35.0
         version: 3.35.0(@tiptap/pm@3.35.0)
@@ -425,6 +428,31 @@ importers:
         version: 4.23.13
 
   packages/protocol: {}
+
+  packages/ui:
+    dependencies:
+      '@lucide/vue':
+        specifier: 1.72.0
+        version: 1.72.0(vue@3.5.42(typescript@6.0.3))
+      '@ui-sdk/core':
+        specifier: 0.1.0-beta.14
+        version: 0.1.0-beta.14
+      '@ui-sdk/vue':
+        specifier: 0.1.0-beta.14
+        version: 0.1.0-beta.14(@ui-sdk/core@0.1.0-beta.14)(vue@3.5.42(typescript@6.0.3))
+    devDependencies:
+      '@vitejs/plugin-vue':
+        specifier: 6.0.8
+        version: 6.0.8(vite@8.3.0(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.13)(yaml@2.9.0))(vue@3.5.42(typescript@6.0.3))
+      vite:
+        specifier: 8.3.0
+        version: 8.3.0(@types/node@24.13.3)(esbuild@0.28.1)(jiti@2.7.0)(terser@5.50.0)(tsx@4.23.13)(yaml@2.9.0)
+      vue:
+        specifier: 3.5.42
+        version: 3.5.42(typescript@6.0.3)
+      vue-tsc:
+        specifier: 3.3.11
+        version: 3.3.11(typescript@6.0.3)
 
 packages:
 

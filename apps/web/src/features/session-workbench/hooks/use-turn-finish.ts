@@ -4,7 +4,7 @@ import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
 import type { ComposerQueueApi } from "@features/composer/hooks/use-composer-queue.js"
 import { endedCleanly } from "@features/session/index.js"
 import { notifyTurnDone } from "@features/settings/index.js"
-import { notify } from "@components/layout/notify.js"
+import { notify } from "@pig/ui/toast"
 import { t } from "@i18n/index.js"
 
 interface TurnFinishDeps {
