@@ -254,7 +254,14 @@ const ComposerListItem = ListItem.extend({
   },
   renderHTML({ node, HTMLAttributes }) {
     const marker = String(node.attrs["marker"])
-    return ["li", mergeAttributes(HTMLAttributes, { "data-marker": marker }), 0]
+    return [
+      "li",
+      mergeAttributes(HTMLAttributes, {
+        "data-marker": marker,
+        "data-marker-width": Math.min(marker.length, 10),
+      }),
+      0,
+    ]
   },
 })
 const ComposerBulletList = BulletList.extend({

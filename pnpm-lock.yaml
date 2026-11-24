@@ -388,13 +388,13 @@ importers:
       '@pig/environment':
         specifier: workspace:*
         version: link:../environment
+      '@pig/protocol':
+        specifier: workspace:*
+        version: link:../protocol
     devDependencies:
       '@earendil-works/pi-coding-agent':
         specifier: 1.5.0
         version: 1.5.0(@aws-sdk/credential-provider-node@3.972.94)(@smithy/signature-v4@5.7.5)(supports-color@10.2.2)(ws@8.21.3)(zod@3.25.76)
-      '@pig/protocol':
-        specifier: workspace:*
-        version: link:../protocol
 
   packages/gateway:
     dependencies:

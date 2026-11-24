@@ -1,3 +1,4 @@
+import type { Anchor } from "@ui-sdk/core"
 import type { InjectionKey } from "vue"
 
 export { transcriptText, userMessageText } from "@features/session/lib/transcript-text.js"
@@ -30,3 +31,26 @@ export const openFileKey: InjectionKey<{
 export { transcriptModelsKey } from "@features/transcript-view/lib/transcript-models.js"
 
 export { default as TranscriptStatus } from "@features/transcript-view/components/TranscriptStatus.vue"
+
+export interface QuoteReplyRequest {
+  sessionId: string
+  entryId: string
+  text: string
+  anchor: Anchor
+  range?: Range | undefined
+}
+
+export interface ReplyJumpRequest {
+  sessionId: string
+  entryId: string
+  text?: string | undefined
+}
+
+export interface ReplyJumpTarget extends ReplyJumpRequest {
+  seq: number
+}
+
+export const quoteReplyKey: InjectionKey<(request: QuoteReplyRequest) => void> =
+  Symbol("quote-reply")
+export const navigateReplyKey: InjectionKey<(target: ReplyJumpRequest) => void> =
+  Symbol("navigate-reply")

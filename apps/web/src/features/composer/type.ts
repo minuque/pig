@@ -1,3 +1,4 @@
+import type { Anchor } from "@ui-sdk/core"
 import type { Component } from "vue"
 import type { ComposerAttachment, ComposerAttachmentBatch } from "@/types/attachment-type.js"
 
@@ -87,6 +88,14 @@ export interface QueueDraftPatch {
   id: string
   text: string
   attachments?: ComposerAttachmentBatch | undefined
+}
+
+export interface ReplyInsertRequest {
+  sessionId: string
+  entryId: string
+  text: string
+  anchor: Anchor
+  range?: Range | undefined
 }
 
 export type {

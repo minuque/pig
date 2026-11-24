@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest"
+import { formatContextReference, replyReference, sessionReference } from "@pig/protocol"
 import { getSchema } from "@tiptap/core"
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model"
 import { buildDocJson } from "@features/composer/lib/editor/doc-parse.js"
@@ -21,6 +22,9 @@ function chipsOf(raw: string): string[] {
     if (node.type.name === "fileMention") chips.push(`file:${String(node.attrs["path"])}`)
 
     if (node.type.name === "commandChip") chips.push(`command:${String(node.attrs["name"])}`)
+
+    if (node.type.name === "contextReference")
+      chips.push(`${String(node.attrs["kind"])}:${String(node.attrs["sessionId"])}`)
   })
   return chips
 }
@@ -167,6 +171,22 @@ describe("chip 解析", () => {
     expect(roundTrip("- /skill:review 看下")).toBe("- /skill:review 看下")
     expect(chipsOf("看下 /clear")).toEqual([])
     expect(chipsOf("/usr/bin/env node")).toEqual([])
+  })
+
+  it("会话引用与回复引用成为 chip，在列表与强调里也原样往返", () => {
+    const session = formatContextReference(sessionReference("s-1", "修登录"))
+    const reply = formatContextReference(replyReference("s-2", "e1", "第一段 (含括号)\n第二段"))
+    const raw = `- 看 ${session} 和 **${reply}** 再说`
+
+    expect(chipsOf(raw)).toEqual(["session:s-1", "reply:s-2"])
+    expect(roundTrip(raw)).toBe(raw)
+  })
+
+  it("行内代码里的引用链接、未知协议的链接保持文字", () => {
+    const session = formatContextReference(sessionReference("s-1", "修登录"))
+
+    expect(chipsOf(`\`${session}\``)).toEqual([])
+    expect(chipsOf("[x](pig-context://v1/thread/a)")).toEqual([])
   })
 
   it("代码块里的 @ 与 / 保持文字", () => {

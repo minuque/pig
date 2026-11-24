@@ -1,3 +1,4 @@
+import type { ContextTextSegment } from "@pig/protocol"
 import type { ModelRef, Task, ThinkingLevel, TurnTiming } from "@/types/common-type.js"
 
 export type TranscriptImage = { data: string; mimeType: string }
@@ -6,12 +7,14 @@ export type UserRow = {
   id: string
   role: "user"
   text: string
+  parts?: readonly ContextTextSegment[]
   images: TranscriptImage[]
   timestamp: number
 }
 
 export type AssistantRow = {
   id: string
+  entryId: string
   role: "assistant"
   text: string
   streaming: boolean

@@ -37,6 +37,7 @@ export async function createResourceLoader(
     additionalExtensionPaths: [
       "turn-timing",
       "file-mentions",
+      "context-references",
       "subagent",
       "remote-workspace",
       "tasks",

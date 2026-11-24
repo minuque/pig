@@ -37,8 +37,8 @@ describe("用户扩展一律不加载", () => {
     const loader = await createResourceLoader(cwd, { agentDir })
 
     expect(existsSync(marker)).toBe(false)
-    expect(loader.getExtensions().extensions.flatMap((e) => [...e.tools.keys()])).toContain(
-      "subagent",
+    expect(loader.getExtensions().extensions.flatMap((e) => [...e.tools.keys()])).toEqual(
+      expect.arrayContaining(["subagent", "read_session"]),
     )
     expect(loader.getSkills().skills.map((skill) => skill.name)).toContain("probe-skill")
   })

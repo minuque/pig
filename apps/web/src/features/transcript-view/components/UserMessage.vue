@@ -1,9 +1,22 @@
 <template>
   <article class="user">
-    <div v-if="item.text" class="prompt">
+    <div v-if="item.text || item.parts?.length" class="prompt">
       <div ref="body" class="body" :class="{ collapsed: !expanded, fade: !expanded && overflows }">
         <template v-for="(part, index) in parts" :key="index">
           <span v-if="part.kind === 'text'">{{ part.text }}</span>
+
+          <TranscriptReplyCard
+            v-else-if="part.kind === 'reference' && part.reference.kind === 'reply'"
+            :reference="part.reference"
+            :leading="index === 0"
+            :trailing="index === parts.length - 1"
+          />
+
+          <TranscriptContextChip
+            v-else-if="part.kind === 'reference'"
+            :reference="part.reference"
+          />
+
           <TranscriptLinkChip v-else :url="part.text" />
         </template>
       </div>
@@ -36,11 +49,16 @@
 import { useResizeObserver } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { computed, nextTick, onMounted, ref, useTemplateRef, watch } from "vue"
+import type { ContextReference } from "@pig/protocol"
 import MessageTimestamp from "@features/transcript-view/components/MessageTimestamp.vue"
+import TranscriptContextChip from "@features/transcript-view/components/TranscriptContextChip.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import TranscriptLinkChip from "@features/transcript-view/components/TranscriptLinkChip.vue"
-import { splitLinkText } from "@features/transcript-view/lib/link-chip.js"
+import TranscriptReplyCard from "@features/transcript-view/components/TranscriptReplyCard.vue"
+import { splitLinkText, type LinkTextPart } from "@features/transcript-view/lib/link-chip.js"
 import type { UserRow } from "@features/transcript-view/type.js"
+
+type UserMessagePart = LinkTextPart | { kind: "reference"; reference: ContextReference }
 
 const COLLAPSED_LINES = 12
 const { t } = useI18n()
@@ -50,7 +68,23 @@ const props = defineProps<{
 const body = useTemplateRef("body")
 const expanded = ref(false)
 const overflows = ref(likelyOverflows(props.item.text))
-const parts = computed(() => splitLinkText(props.item.text))
+const isReplyRef = (part: UserMessagePart | undefined) =>
+  part?.kind === "reference" && part.reference.kind === "reply"
+const parts = computed(() => {
+  const segments = props.item.parts ?? [{ kind: "text" as const, text: props.item.text }]
+  const raw = segments.flatMap<UserMessagePart>((segment) =>
+    segment.kind === "text" ? splitLinkText(segment.text) : [segment],
+  )
+  return raw.flatMap<UserMessagePart>((part, index) => {
+    if (part.kind !== "text") return [part]
+    let text = part.text
+
+    if (isReplyRef(raw[index - 1])) text = text.replace(/^ /, "")
+
+    if (isReplyRef(raw[index + 1])) text = text.replace(/ $/, "")
+    return text ? [{ kind: "text", text }] : []
+  })
+})
 
 function likelyOverflows(text: string): boolean {
   let newlines = 0

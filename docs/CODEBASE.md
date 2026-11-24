@@ -129,7 +129,7 @@ SDK 跟版：
 
 ## packages/extensions
 
-`src/` 下五个内置扩展：`turn-timing`、`file-mentions`、`subagent`、`tasks`、`remote-workspace`。它们只用公开 Extension API，只由 gateway 加载，不注册到 pi TUI。新增扩展先确认公开 API 够用，不够就不要塞私有接口。
+`src/` 下六个内置扩展：`turn-timing`、`file-mentions`、`context-references`（会话与回复引用的信封、`read_session` 工具）、`subagent`、`tasks`、`remote-workspace`。它们只用公开 Extension API，只由 gateway 加载，不注册到 pi TUI。新增扩展先确认公开 API 够用，不够就不要塞私有接口。
 
 ## packages/environment
 

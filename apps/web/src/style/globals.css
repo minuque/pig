@@ -77,6 +77,18 @@ body {
   background-color: var(--bg-selected);
 }
 
+::highlight(pig-reply-comment-source) {
+  background-color: var(--bg-selected);
+}
+
+::highlight(pig-reply-jump) {
+  background-color: color-mix(
+    in oklab,
+    var(--accent-solid) calc(var(--citation-highlight-opacity) * 100%),
+    transparent
+  );
+}
+
 code,
 kbd,
 samp,
@@ -111,4 +123,61 @@ p {
   --scrollbar-thumb: var(--scrollbar-color);
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+.inline-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  max-width: 100%;
+  margin-inline: 1px;
+  padding: 1px var(--space-2xs);
+  border-radius: calc(var(--radius-control) / 2);
+  background: var(--info-subtle);
+  color: var(--info-text);
+  font-weight: var(--font-weight-medium);
+  font-size: inherit;
+  line-height: inherit;
+  vertical-align: baseline;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  cursor: default;
+}
+
+.inline-chip[data-tone] {
+  background: var(--tone-subtle);
+  color: var(--tone-text);
+}
+
+.inline-chip-icon {
+  flex: none;
+  inline-size: var(--icon-sm);
+  block-size: var(--icon-sm);
+  color: currentColor;
+}
+
+.inline-chip-label {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+a.inline-chip,
+button.inline-chip,
+.inline-chip[data-file-mention] {
+  cursor: pointer;
+}
+
+a.inline-chip:hover,
+button.inline-chip:hover {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+}
+
+a.inline-chip:focus-visible,
+button.inline-chip:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }

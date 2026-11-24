@@ -12,6 +12,7 @@ import {
   ComposerParagraph,
   ComposerText,
   CommandChipNode,
+  ContextReferenceNode,
   FileMentionNode,
   type FileMentionOptions,
 } from "@features/composer/lib/editor/chips.js"
@@ -34,6 +35,7 @@ export function createComposerExtensions(options: FileMentionOptions = {}): Exte
     ComposerUndoGrouping,
     FileMentionNode.configure(options),
     CommandChipNode,
+    ContextReferenceNode,
     ComposerChipSelection,
     ComposerMarkdownSource,
     ComposerItalic,

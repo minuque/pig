@@ -48,6 +48,8 @@
             @composing="composing = $event"
             @blur="commandMenu.close()"
             @open-file="emit('openFile', $event)"
+            @jump-reply="emit('jumpReply', $event)"
+            @submit="emit('submit')"
           />
 
           <div v-if="showPlaceholder" class="field-placeholder" aria-hidden="true">
@@ -98,7 +100,7 @@ import {
 import { trySplitView, usePaneSide } from "@features/split-view/index.js"
 import CommandMenu from "@features/composer/components/CommandMenu.vue"
 import PromptField from "@features/composer/components/PromptField.vue"
-import type { ComposerCaret } from "@features/composer/type.js"
+import type { ComposerCaret, ReplyInsertRequest } from "@features/composer/type.js"
 
 const props = defineProps<{
   placeholder?: string | undefined
@@ -115,6 +117,7 @@ const emit = defineEmits<{
   submit: []
   pasteFiles: [files: File[]]
   openFile: [path: string]
+  jumpReply: [target: { sessionId: string; entryId: string; text?: string | undefined }]
   cancelQueueEdit: []
   historyPrev: []
   historyNext: []
@@ -184,7 +187,18 @@ function onComposerMousedown(e: MouseEvent) {
   focus()
 }
 
-defineExpose({ focus, menuOpen: commandMenu.open, steerHeld: shortcuts.steerHeld })
+const insertMarkdown = (text: string) => field.value?.insertMarkdown(text)
+const insertReply = (request: ReplyInsertRequest) => field.value?.insertReply(request)
+const replyCommentOpen = computed(() => field.value?.replyCommentOpen ?? false)
+
+defineExpose({
+  focus,
+  insertMarkdown,
+  insertReply,
+  replyCommentOpen,
+  menuOpen: commandMenu.open,
+  steerHeld: shortcuts.steerHeld,
+})
 </script>
 
 <style scoped>

@@ -14,6 +14,7 @@ const PACKAGE_DEPENDENTS = {
 }
 const NEW_SESSION = "e2e/conversation/new-session.spec.ts"
 const SPLIT_VIEW = "e2e/workbench/split-view.spec.ts"
+const REFERENCES = "e2e/composer/composer-references.spec.ts"
 const E2E_BY_AREA = [
   { prefix: "apps/web/src/features/composer/", specs: ["e2e/composer/"] },
   {
@@ -23,11 +24,18 @@ const E2E_BY_AREA = [
       "e2e/conversation/turn-progress.spec.ts",
       "e2e/conversation/history-page.spec.ts",
       "e2e/conversation/transcript-minimap.spec.ts",
+      REFERENCES,
     ],
   },
   {
     prefix: "apps/web/src/features/session-workbench/",
-    specs: ["e2e/conversation/one-turn.spec.ts", NEW_SESSION, "e2e/sidebar/workspace.spec.ts"],
+    specs: [
+      "e2e/conversation/one-turn.spec.ts",
+      NEW_SESSION,
+      "e2e/sidebar/workspace.spec.ts",
+      "e2e/sidebar/session-nav.spec.ts",
+      REFERENCES,
+    ],
   },
   {
     prefix: "apps/web/src/features/session/",
@@ -49,7 +57,10 @@ const E2E_BY_AREA = [
     prefix: "apps/web/src/features/session-rail/",
     specs: ["e2e/workbench/subagent-rail.spec.ts"],
   },
-  { prefix: "apps/web/src/features/file-pane/", specs: ["e2e/workbench/file-pane.spec.ts"] },
+  {
+    prefix: "apps/web/src/features/file-pane/",
+    specs: ["e2e/workbench/file-pane.spec.ts", REFERENCES],
+  },
   { prefix: "apps/web/src/features/split-view/", specs: [SPLIT_VIEW, NEW_SESSION] },
   { prefix: "apps/web/src/shell/", specs: [SPLIT_VIEW, NEW_SESSION] },
   { prefix: "apps/web/src/features/settings/", specs: ["e2e/settings/"] },

@@ -24,6 +24,7 @@
         :item="row"
         :session-id="sessionId"
         :streaming="running && row.streaming"
+        :highlight-mode="highlightedEntry?.entryId === row.entryId ? highlightedEntry.mode : null"
       />
 
       <ToolRun
@@ -62,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, useTemplateRef } from "vue"
+import { ref, useTemplateRef, watch } from "vue"
 import { useIntersectionObserver } from "@vueuse/core"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import TaskNotice from "@features/transcript-view/components/TaskNotice.vue"
@@ -72,6 +73,7 @@ import TimelineEvent from "@features/transcript-view/components/events/TimelineE
 import ToolRun from "@features/transcript-view/components/tool/ToolRun.vue"
 import UserMessage from "@features/transcript-view/components/UserMessage.vue"
 import { isToolRow } from "@features/transcript-view/lib/transcript-rows.js"
+import type { HighlightedEntry } from "@features/transcript-view/hooks/use-transcript-jump.js"
 import type { TimelineTurn } from "@features/transcript-view/type.js"
 
 const props = defineProps<{
@@ -81,6 +83,7 @@ const props = defineProps<{
   isExpand: (id: string) => boolean | undefined
   expandedTools: Map<string, boolean>
   eager: boolean
+  highlightedEntry?: HighlightedEntry | null
 }>()
 const emit = defineEmits<{
   toggleExpand: [id: string, open: boolean]
@@ -101,6 +104,15 @@ const { stop } = useIntersectionObserver(
 )
 
 if (shown.value) stop()
+
+watch(
+  () => props.eager,
+  (eager) => {
+    if (!eager || shown.value) return
+    shown.value = true
+    stop()
+  },
+)
 </script>
 
 <style scoped>

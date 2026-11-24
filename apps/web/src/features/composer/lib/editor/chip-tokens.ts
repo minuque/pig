@@ -1,12 +1,14 @@
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model"
+import { contextReferenceAt, formatContextReference, type ContextReference } from "@pig/protocol"
 import { basename } from "@features/composer/lib/command-menu-groups.js"
-import { BLOCK_PREFIX, mentionPathNeedsQuoting } from "@features/composer/lib/composer-trigger.js"
+import { BLOCK_PREFIX, mentionMarkdown } from "@features/composer/lib/composer-trigger.js"
 import { codeSpanAt } from "@features/composer/lib/editor/rich-text.js"
 
 export type PromptSegment =
   | { type: "text"; text: string }
   | { type: "mention"; path: string; source: string }
   | { type: "command"; name: string; skill: boolean; source: string }
+  | { type: "context"; reference: ContextReference; source: string }
 
 export interface ChipJson {
   type: string
@@ -61,6 +63,11 @@ function commandAt(text: string, start: number, lineStart: number): PromptSegmen
   return { type: "command", name, skill, source: `/${raw}` }
 }
 
+function contextAt(text: string, start: number): PromptSegment | undefined {
+  const match = contextReferenceAt(text, start)
+  return match && { type: "context", reference: match.reference, source: match.source }
+}
+
 function codeSpanEnd(text: string, index: number): number {
   const span = codeSpanAt(text, index)
 
@@ -100,6 +107,8 @@ export function splitPromptSegments(text: string): PromptSegment[] {
 
     if (char === "/") token = commandAt(text, index, lineStart)
 
+    if (char === "[") token = contextAt(text, index)
+
     if (!token || token.type === "text") {
       plain += char
       index += 1
@@ -120,6 +129,8 @@ export function chipJson(segment: Exclude<PromptSegment, { type: "text" }>): Chi
     return { type: "fileMention", attrs: { path: segment.path, label: basename(segment.path) } }
   }
 
+  if (segment.type === "context")
+    return { type: "contextReference", attrs: { ...segment.reference } }
   return {
     type: "commandChip",
     attrs: { name: segment.name, kind: segment.skill ? "skill" : null },
@@ -129,9 +140,10 @@ export function chipJson(segment: Exclude<PromptSegment, { type: "text" }>): Chi
 export function chipSource(node: ProseMirrorNode): string {
   const attrs = node.attrs as Record<string, unknown>
 
-  if (node.type.name === "fileMention") {
-    const path = String(attrs["path"] ?? "")
-    return mentionPathNeedsQuoting(path) ? `@${JSON.stringify(path)}` : `@${path}`
+  if (node.type.name === "fileMention") return mentionMarkdown(String(attrs["path"] ?? ""))
+
+  if (node.type.name === "contextReference") {
+    return formatContextReference(contextReferenceAttrs(attrs))
   }
 
   if (node.type.name === "commandChip") {
@@ -140,6 +152,22 @@ export function chipSource(node: ProseMirrorNode): string {
   }
 
   return ""
+}
+
+export function contextReferenceAttrs(attrs: Record<string, unknown>): ContextReference {
+  const sessionId = String(attrs["sessionId"] ?? "")
+  const label = String(attrs["label"] ?? "")
+
+  if (attrs["kind"] !== "reply") return { kind: "session", sessionId, label }
+  const comment = typeof attrs["comment"] === "string" ? attrs["comment"].trim() : ""
+  return {
+    kind: "reply",
+    sessionId,
+    entryId: String(attrs["entryId"] ?? ""),
+    text: String(attrs["text"] ?? ""),
+    label,
+    ...(comment ? { comment } : {}),
+  }
 }
 
 export function isChipNode(node: ProseMirrorNode | null | undefined): boolean {

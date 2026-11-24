@@ -1,7 +1,9 @@
-import type { AgentSessionEvent } from "@earendil-works/pi-coding-agent"
+import type { AgentSession, AgentSessionEvent } from "@earendil-works/pi-coding-agent"
 import { SessionManager } from "@earendil-works/pi-coding-agent"
 import type { TranscriptProgress } from "@pig/protocol"
 import { describe, expect, it } from "vitest"
+import type { SessionRuntimeEvent } from "../src/pi/runtime-types.js"
+import { PiHostSession } from "../src/pi/session-runtime.js"
 import { TranscriptProjection } from "../src/pi/transcript.js"
 
 type TestMessage = Parameters<SessionManager["appendMessage"]>[0]
@@ -327,5 +329,67 @@ describe("会话里的非对话事件进时间线", () => {
         content: [{ type: "text", text: "发现 2 处空指针" }],
       },
     ])
+  })
+})
+
+describe("PiHostSession: 实时条目替换为落盘 id", () => {
+  it("message_end 后落盘助手消息，item_finished 带真实 entryId 与 replaces", async () => {
+    const manager = SessionManager.inMemory("/tmp")
+    const listeners = new Set<(event: AgentSessionEvent) => void>()
+    const session = {
+      sessionId: manager.getSessionId(),
+      isIdle: true,
+      isCompacting: false,
+      retryAttempt: 0,
+      isStreaming: false,
+      model: { provider: "test-provider", id: "test-model" },
+      thinkingLevel: "off",
+      state: { streamingMessage: undefined },
+      sessionManager: manager,
+      extensionRunner: { hasHandlers: () => false },
+      getSteeringMessages: () => [],
+      subscribe: (listener: (event: AgentSessionEvent) => void) => {
+        listeners.add(listener)
+        return () => listeners.delete(listener)
+      },
+      dispose: () => {},
+    } as unknown as AgentSession
+    const host = new PiHostSession(session)
+    const events: SessionRuntimeEvent[] = []
+    const stop = host.subscribe((event) => events.push(event))
+    const streaming = assistantMessage({ content: [{ type: "text", text: "" }] })
+    const final = assistantMessage({
+      stopReason: "stop",
+      content: [{ type: "text", text: "完整回复" }],
+    })
+
+    for (const listener of listeners)
+      listener({ type: "message_start", message: streaming } as AgentSessionEvent)
+
+    for (const listener of listeners)
+      listener({ type: "message_end", message: final } as AgentSessionEvent)
+    const entryId = manager.appendMessage(final)
+
+    await Promise.resolve()
+
+    const started = events.find(
+      (event): event is Extract<SessionRuntimeEvent, { type: "progress" }> =>
+        event.type === "progress" && event.progress.type === "item_started",
+    )
+    const finished = events.find(
+      (event): event is Extract<SessionRuntimeEvent, { type: "progress" }> =>
+        event.type === "progress" && event.progress.type === "item_finished",
+    )
+
+    expect(started?.progress.type).toBe("item_started")
+    expect(finished?.progress).toMatchObject({
+      type: "item_finished",
+      replaces: "m1",
+      item: { id: entryId, role: "assistant", status: "complete" },
+    })
+    expect(manager.getEntry(entryId)).toMatchObject({ type: "message", message: final })
+
+    stop()
+    await host.dispose()
   })
 })

@@ -1,5 +1,13 @@
 <template>
-  <form class="prompt" @submit.prevent="submitIntent">
+  <form
+    class="prompt"
+    :data-mention-over="mentionDrop.over.value || undefined"
+    @submit.prevent="submitIntent"
+    @dragenter.capture="mentionDrop.onDrag"
+    @dragover.capture="mentionDrop.onDrag"
+    @dragleave="mentionDrop.onLeave"
+    @drop.capture="mentionDrop.onDrop"
+  >
     <PromptEditor
       ref="editor"
       v-model:prompt="prompt"
@@ -10,6 +18,7 @@
       @submit="submitIntent"
       @paste-files="attachments.addFiles"
       @open-file="emit('openFile', $event)"
+      @jump-reply="emit('jumpReply', $event)"
       @cancel-queue-edit="emit('cancelQueueEdit')"
       @history-prev="emit('historyPrev')"
       @history-next="emit('historyNext')"
@@ -107,6 +116,7 @@ import PreviewDialog from "@features/preview/index.vue"
 import { trySplitView, usePaneSide } from "@features/split-view/index.js"
 import type { ComposerAttachment } from "@/types/attachment-type.js"
 import { useComposerAbortHotkey } from "@features/composer/hooks/use-composer-abort-hotkey.js"
+import { useMentionDrop } from "@features/composer/hooks/use-mention-drop.js"
 import {
   MAX_COMPOSER_ATTACHMENTS,
   type ComposerAttachmentsApi,
@@ -116,6 +126,7 @@ import type {
   ComposerPreset,
   ComposerVendor,
   ContextUsage,
+  ReplyInsertRequest,
   StopPhase,
 } from "@features/composer/type.js"
 import { PaperclipIcon } from "@components/icons/index.js"
@@ -156,6 +167,7 @@ const emit = defineEmits<{
   saveEdit: []
   abort: []
   openFile: [path: string]
+  jumpReply: [target: { sessionId: string; entryId: string; text?: string | undefined }]
   cancelQueueEdit: []
   historyPrev: []
   historyNext: []
@@ -188,6 +200,11 @@ const steerHeld = computed(() => editor.value?.steerHeld ?? false)
 const split = trySplitView()
 const side = usePaneSide()
 const isPaneActive = () => !split || split.focused.value === side
+const insertMarkdown = (markdown: string) => editor.value?.insertMarkdown(markdown)
+const insertReply = (request: ReplyInsertRequest) => editor.value?.insertReply(request)
+const mentionDrop = useMentionDrop(insertMarkdown)
+
+defineExpose({ insertMarkdown, insertReply })
 
 watch(
   () => props.sessionId,
@@ -200,7 +217,11 @@ useComposerAbortHotkey({
   active: isPaneActive,
   running: () => props.running,
   stopping: () => props.stopPhase === "pending",
-  blocked: () => Boolean(previewItem.value) || modelPickerOpen.value || props.editingQueue,
+  blocked: () =>
+    Boolean(previewItem.value) ||
+    modelPickerOpen.value ||
+    props.editingQueue ||
+    Boolean(editor.value?.replyCommentOpen),
   menuOpen: () => editor.value?.menuOpen ?? false,
   abort: () => emit("abort"),
 })
@@ -254,5 +275,13 @@ watch(previewItem, (item, previous) => {
   margin-inline: auto;
   padding: 0;
   background: transparent;
+}
+
+.prompt[data-mention-over] :deep(.composer-card),
+:global(.session-panel[data-session-drop-over]) .prompt :deep(.composer-card) {
+  box-shadow:
+    0 0 0 var(--border-width) var(--accent-solid),
+    var(--composer-inset),
+    var(--composer-shadow);
 }
 </style>

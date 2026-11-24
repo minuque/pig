@@ -405,7 +405,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     glideToBottom()
   }
 
-  function scrollToElement(el: HTMLElement) {
+  function scrollToElement(el: HTMLElement, block: ScrollLogicalPosition = "start") {
     detachFollow()
     atBottom.value = false
     visuallyAtBottom.value = false
@@ -419,7 +419,42 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
       navTimer = window.setTimeout(finishNavigate, COOLDOWN_MS)
     }
 
-    el.scrollIntoView({ block: "start", behavior: userScrollBehavior() })
+    el.scrollIntoView({ block, behavior: userScrollBehavior() })
+  }
+
+  function scrollToRange(range: Range) {
+    detachFollow()
+    atBottom.value = false
+    visuallyAtBottom.value = false
+    const root = getRoot()
+
+    if (!root) return
+    const rangeRect = range.getBoundingClientRect()
+    const rootRect = root.getBoundingClientRect()
+
+    if (rangeRect.height <= 0) {
+      const container = range.startContainer
+      const el = container instanceof HTMLElement ? container : container.parentElement
+
+      if (el) scrollToElement(el, "center")
+      return
+    }
+
+    navigating = true
+    navRoot = root
+    onNavEnd = () => finishNavigate()
+    navRoot.addEventListener("scrollend", onNavEnd, { once: true })
+    navTimer = window.setTimeout(finishNavigate, COOLDOWN_MS)
+    const maxTop = Math.max(0, root.scrollHeight - root.clientHeight)
+    const top = Math.min(
+      maxTop,
+      Math.max(
+        0,
+        root.scrollTop + rangeRect.top - rootRect.top - Math.min(140, root.clientHeight / 3),
+      ),
+    )
+
+    root.scrollTo({ top, behavior: userScrollBehavior() })
   }
 
   function restoreScrollTop(top: number) {
@@ -453,6 +488,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     onPointerDown,
     scrollToLatest,
     scrollToElement,
+    scrollToRange,
     restoreScrollTop,
   }
 }

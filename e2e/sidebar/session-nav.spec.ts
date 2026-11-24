@@ -1,6 +1,7 @@
 import type { Locator, Page } from "@playwright/test"
 import { expect, seedWorkspace, test, type E2eGateway } from "../support/fixtures.js"
 import { FILLER_PREFIX } from "../support/prebuild-session.js"
+import { installTurnBridge } from "../support/sim-turn.js"
 
 async function enter(page: Page, gateway: E2eGateway) {
   await page.emulateMedia({ reducedMotion: "reduce" })
@@ -54,6 +55,17 @@ test("搜索弹层过滤并跳到选中会话", async ({ page, navGateway }) => 
   await input.press("Enter")
   await expect(page).toHaveURL(/\/sessions\/e2e-filler-2$/)
 })
+
+async function dragCardTo(page: Page, from: Locator, point: { x: number; y: number }) {
+  const start = await from.boundingBox()
+
+  expect(start).not.toBeNull()
+  await page.mouse.move(start!.x + start!.width / 2, start!.y + start!.height / 2)
+  await page.mouse.down()
+  await page.mouse.move(point.x, point.y, { steps: 12 })
+  await expect(page.locator(".drag-ghost")).toBeVisible()
+  await page.mouse.up()
+}
 
 async function dragCard(page: Page, from: Locator, to: Locator, at: "center" | "below" = "center") {
   const start = await from.boundingBox()
@@ -114,17 +126,42 @@ test("按住行尾标记完成按钮往下扫，扫过的会话一起标记完�
   await expect(page.locator('.session-section[data-key="settled"] .section-count')).toHaveText("3")
 })
 
-test("会话拖出侧栏落到会话面板，变成输入卡的附件", async ({ page, navGateway }) => {
+test("会话拖出侧栏落到会话面板插入引用 chip，提交渲染为气泡 chip；落到面板外取消", async ({
+  page,
+  navGateway,
+}) => {
+  const bridge = await installTurnBridge(page)
+
   await enter(page, navGateway)
+  await section(page)
+    .locator(".session-card", { hasText: `${FILLER_PREFIX} 1` })
+    .click()
+  await expect(page).toHaveURL(/\/sessions\/e2e-filler-0$/)
 
-  await dragCard(
-    page,
-    section(page).locator(".session-card").first(),
-    page.locator(".session-panel"),
+  const prompt = page.getByRole("textbox", { name: "Prompt" })
+  const source = section(page).locator(".session-card", { hasText: `${FILLER_PREFIX} 6` })
+  const composer = await page.locator(".composer-card").boundingBox()
+
+  expect(composer).not.toBeNull()
+  await dragCardTo(page, source, { x: composer!.x + composer!.width / 2, y: 12 })
+  await expect(page.locator(".drag-ghost")).toHaveCount(0)
+  await expect(prompt.locator(".chip")).toHaveCount(0)
+  await expect(page.locator(".workbench-pane")).toHaveCount(1)
+  await expect(section(page).locator(".session-card").first()).toContainText(`${FILLER_PREFIX} 6`)
+
+  await dragCardTo(page, source, { x: composer!.x + composer!.width / 2, y: composer!.y - 40 })
+  await expect(prompt.locator('.chip[data-context-kind="session"]')).toHaveText(
+    `${FILLER_PREFIX} 6`,
   )
-
-  await expect(
-    page.locator(".attach-tray .chip", { hasText: `${FILLER_PREFIX} 6.md` }),
-  ).toHaveCount(1)
   await expect(section(page).locator(".session-card")).toHaveCount(6)
+  await expect(page.locator(".attach-tray .chip")).toHaveCount(0)
+
+  await prompt.press("Control+Enter")
+  await expect.poll(() => bridge.prompts.length).toBe(1)
+  expect(bridge.prompts[0]?.trim()).toBe(
+    `[${FILLER_PREFIX} 6](pig-context://v1/session/e2e-filler-5)`,
+  )
+  await expect(page.locator('.row-user .chip[data-context-kind="session"]').last()).toHaveText(
+    `${FILLER_PREFIX} 6`,
+  )
 })

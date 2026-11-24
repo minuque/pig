@@ -14,6 +14,41 @@ import { markAsClipboardEdit } from "@features/composer/lib/editor/undo-grouping
 
 export const COMPOSER_CLIPBOARD_MIME = "application/x-pig-composer"
 const NESTED = new Set(["listItem", "taskItem", "blockquote"])
+const PASTE_MAX_LINES = 300
+const PASTE_MAX_BYTES = 12_288
+let pasteSeq = 0
+
+export function handlePromptPaste(
+  editor: Editor,
+  event: ClipboardEvent,
+  shiftHeld: boolean,
+  onFiles: (files: File[]) => void,
+  extractFiles: (data: DataTransfer | null) => File[],
+): boolean {
+  const files = extractFiles(event.clipboardData)
+
+  if (files.length) {
+    onFiles(files)
+    return true
+  }
+
+  if (shiftHeld) return false
+  const text = event.clipboardData?.getData("text/plain") ?? ""
+  const oversize =
+    text.length > 0 &&
+    (text.split("\n").length > PASTE_MAX_LINES ||
+      new TextEncoder().encode(text).length > PASTE_MAX_BYTES)
+
+  if (oversize) {
+    pasteSeq += 1
+    onFiles([new File([text], `pasted-${pasteSeq}.txt`, { type: "text/plain" })])
+    return true
+  }
+
+  if (!event.clipboardData) return false
+  event.preventDefault()
+  return pasteMarkdown(editor, editor.view, event.clipboardData)
+}
 
 export function copySelection(view: EditorView, event: ClipboardEvent, cut: boolean): boolean {
   const { clipboardData } = event
@@ -94,6 +129,14 @@ function insertParsed(editor: Editor, view: EditorView, text: string): void {
     })
     .scrollIntoView()
     .run()
+}
+
+export function insertMarkdownAtEnd(editor: Editor, text: string): void {
+  const { view } = editor
+
+  view.dispatch(view.state.tr.setSelection(TextSelection.atEnd(view.state.doc)))
+  insertParsed(editor, view, padChips(view, text))
+  view.focus()
 }
 
 export function pasteMarkdown(editor: Editor, view: EditorView, data: DataTransfer): boolean {

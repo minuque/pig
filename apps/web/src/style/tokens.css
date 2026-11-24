@@ -5,6 +5,12 @@
   initial-value: 280px;
 }
 
+@property --citation-highlight-opacity {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
 /* ------ 浅色 token ------ */
 :root {
   /* ====== 语义层：全站共用，组件只读这一层与下面的组件层 ====== */

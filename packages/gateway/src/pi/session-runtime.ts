@@ -384,14 +384,28 @@ export class PiHostSession implements SessionRuntime {
     this.trackActivity(event)
     const progress = this.projection.progress(event)
 
-    if (progress) this.forwardProgress(progress)
-
     if (event.type === "message_end") {
-      queueMicrotask(() => this.broadcastSnapshot())
+      queueMicrotask(() => {
+        if (this.disposed) return
+
+        if (progress) this.forwardProgress(this.withEntryId(progress, event.message))
+        this.broadcastSnapshot()
+      })
       return
     }
 
+    if (progress) this.forwardProgress(progress)
+
     if (!SNAPSHOT_SKIP_EVENTS.has(event.type)) this.broadcastSnapshot()
+  }
+
+  private withEntryId(progress: TranscriptProgress, message: unknown): TranscriptProgress {
+    if (progress.type !== "item_finished" || progress.item.role !== "assistant") return progress
+    const leaf = this.session.sessionManager.getLeafEntry?.()
+
+    if (leaf?.type !== "message" || leaf.message !== message || leaf.id === progress.item.id)
+      return progress
+    return { ...progress, item: { ...progress.item, id: leaf.id }, replaces: progress.item.id }
   }
 
   private forwardProgress(progress: TranscriptProgress): void {
