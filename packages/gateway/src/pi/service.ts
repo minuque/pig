@@ -17,6 +17,7 @@ import type {
   ModelChannels,
   ModelMetadata,
   SessionCard,
+  WorkspaceGit,
   SessionMetadata,
   TranscriptItem,
 } from "@pig/protocol"
@@ -28,6 +29,7 @@ import { AttachmentStore } from "./attachments.js"
 import { selectComposerPrompts } from "./composer-commands.js"
 import { ProviderService } from "./provider-service.js"
 import { SessionCardCache } from "./session-card.js"
+import { readWorkspaceGit } from "./workspace-git.js"
 import { SessionIndex, type IndexedSession } from "./session-index.js"
 import { recentSessionCwd, sessionListName } from "./session-label.js"
 import { BINDING_ENTRY, parseRemoteKey } from "./remote-session.js"
@@ -130,6 +132,20 @@ export class PiHostService implements SessionService {
     this.sessionsCache = undefined
     const infos = await this.refreshSessionPaths()
     return this.cards.list(infos)
+  }
+
+  async listWorkspaceGit(): Promise<Record<string, WorkspaceGit>> {
+    const infos = await this.refreshSessionPaths()
+    const workspaces = [
+      ...new Set(infos.flatMap((info) => (info.cwd ? [canonicalizePath(info.cwd)] : []))),
+    ]
+    const entries = await Promise.all(
+      workspaces.map(async (workspace) => {
+        const git = await readWorkspaceGit(workspace).catch(() => undefined)
+        return git ? ([[workspace, git]] as const) : []
+      }),
+    )
+    return Object.fromEntries(entries.flat())
   }
 
   listModels(): Promise<{ models: ModelMetadata[]; defaultModel: DefaultModelView | null }> {

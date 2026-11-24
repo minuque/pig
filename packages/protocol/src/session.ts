@@ -8,6 +8,12 @@ export interface SessionCard {
   outcome?: "complete" | "error"
 }
 
+export interface WorkspaceGit {
+  branch: string
+  detached: boolean
+  worktree: boolean
+}
+
 export type TurnTiming = { userId: string; startedAt: number } & (
   | { outcome: "running"; endedAt?: never }
   | { outcome: "complete" | "error" | "aborted"; endedAt: number }

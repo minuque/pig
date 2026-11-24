@@ -78,6 +78,7 @@ export type {
   ContextUsagePreview,
   ContextUsageTokens,
   SessionCard,
+  WorkspaceGit,
   SessionTranscriptPage,
   TurnTiming,
   SessionArchives,
