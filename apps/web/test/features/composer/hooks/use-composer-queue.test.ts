@@ -34,7 +34,7 @@ describe("useComposerQueue", () => {
     expect(queue.shiftFor("s1")?.text).toBe("一")
   })
 
-  it("move 按键重排，update 原地改文字并保留附件预览", () => {
+  it("reorder 重排，update 原地改文字并保留附件预览", () => {
     const queue = useComposerQueue()
     const preview = [
       {
@@ -50,7 +50,7 @@ describe("useComposerQueue", () => {
     queue.setKey("s1")
     queue.enqueue("带图的一条", undefined, preview)
     queue.enqueue("第二条")
-    queue.move(queue.items.value[1]!.id, -1)
+    queue.reorder(queue.items.value[1]!.id, 0)
 
     expect(queue.items.value.map((item) => item.text)).toEqual(["第二条", "带图的一条"])
 

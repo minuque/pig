@@ -15,9 +15,6 @@
         :key="item.id"
         :item="item"
         :editing="editingId === item.id"
-        :can-up="canMove(item.id, -1)"
-        :can-down="canMove(item.id, 1)"
-        @move="emit('move', item.id, $event)"
         @edit="emit('edit', item)"
         @send-now="emit('sendNow', item)"
         @remove="emit('remove', item.id)"
@@ -54,7 +51,6 @@ const { t } = useI18n()
 const props = defineProps<{ items: QueuedPrompt[]; editingId: string | null }>()
 const emit = defineEmits<{
   reorder: [id: string, toIndex: number]
-  move: [id: string, delta: -1 | 1]
   edit: [item: QueuedPrompt]
   sendNow: [item: QueuedPrompt]
   remove: [id: string]
@@ -92,11 +88,6 @@ function onReorder(next: string[]) {
   )
 
   if (moved) emit("reorder", moved, next.indexOf(moved))
-}
-
-function canMove(id: string, delta: -1 | 1) {
-  const index = props.items.findIndex((item) => item.id === id)
-  return index >= 0 && index + delta >= 0 && index + delta < props.items.length
 }
 </script>
 

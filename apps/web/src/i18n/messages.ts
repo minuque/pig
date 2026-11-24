@@ -316,8 +316,6 @@ export const zh = {
     queueEdit: "编辑",
     queueRemove: "移除：{text}",
     queueSendNow: "立即发送",
-    queueMoveUp: "上移：{text}",
-    queueMoveDown: "下移：{text}",
     queueDrag: "拖动排序",
     queueGrab: "已拿起{label}，第 {position} 条，共 {total} 条。方向键移动，空格放下，Esc 取消",
     queueMoveTo: "{label}移到第 {position} 条，共 {total} 条",
@@ -880,8 +878,6 @@ export const en: Messages = {
     queueEdit: "Edit",
     queueRemove: "Remove: {text}",
     queueSendNow: "Send now",
-    queueMoveUp: "Move up: {text}",
-    queueMoveDown: "Move down: {text}",
     queueDrag: "Reorder",
     queueGrab:
       "Picked up {label}, item {position} of {total}. Use the arrow keys to move, Space to drop, Escape to cancel",

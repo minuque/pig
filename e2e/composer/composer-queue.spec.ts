@@ -101,7 +101,7 @@ test("队列编辑：草稿原位保留，Enter 保存、Escape 取消", async (
   await expect(page.locator('[data-testid="turn-status"]')).toBeVisible()
 })
 
-test("队列排序：拖拽手柄与键盘上移下移都能换位", async ({ page, complexGateway }) => {
+test("队列排序：拖拽手柄与键盘抓取都能换位", async ({ page, complexGateway }) => {
   test.setTimeout(120_000)
   await installTurnBridge(page)
   await openSession(page, complexGateway)
@@ -112,16 +112,6 @@ test("队列排序：拖拽手柄与键盘上移下移都能换位", async ({ pa
 
   await enqueue(page, ["第一条排队", "第二条排队"])
   await expect(rows).toHaveCount(2)
-
-  await expect(page.getByRole("button", { name: "上移：第一条排队" })).toBeDisabled()
-  await expect(page.getByRole("button", { name: "下移：第二条排队" })).toBeDisabled()
-
-  await page.getByRole("button", { name: "上移：第二条排队" }).click()
-  await expect(rows.nth(0)).toContainText("第二条排队")
-  await expect(rows.nth(1)).toContainText("第一条排队")
-
-  await page.getByRole("button", { name: "下移：第二条排队" }).click()
-  await expect(rows.nth(0)).toContainText("第一条排队")
 
   await rows
     .nth(1)

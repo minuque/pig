@@ -52,6 +52,20 @@
         <TooltipContent>{{ t("composer.queueDrag") }}</TooltipContent>
       </Tooltip>
 
+      <time class="row-time" :datetime="new Date(item.createdAt).toISOString()">{{ time }}</time>
+
+      <Button
+        type="button"
+        size="s"
+        variant="ghost"
+        color="neutral"
+        class="row-send"
+        @click="emit('sendNow')"
+      >
+        <ForwardIcon aria-hidden="true" />
+        {{ t("composer.queueSendNow") }}
+      </Button>
+
       <Tooltip v-for="action in actions" :key="action.id">
         <TooltipTrigger>
           <template #render="{ props: part }">
@@ -62,8 +76,7 @@
               variant="ghost"
               color="neutral"
               :aria-label="action.label"
-              :disabled="action.disabled ?? false"
-              @click="action.run?.()"
+              @click="action.run()"
             >
               <component :is="action.icon" aria-hidden="true" />
             </IconButton>
@@ -79,7 +92,7 @@
 <script setup lang="ts">
 import { computed, type Component } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { IconButton } from "@pig/ui/button"
+import { Button, IconButton } from "@pig/ui/button"
 import { Card } from "@pig/ui/card"
 import { SortableListHandle, SortableListItem } from "@pig/ui/sortable-list"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
@@ -87,63 +100,44 @@ import type { ComposerAttachment } from "@/types/attachment-type.js"
 import { formatFileSize } from "@features/composer/lib/attachment-size.js"
 import type { QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
 import {
-  ForwardIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
   FileTextIcon,
+  ForwardIcon,
   GripVerticalIcon,
   PenIcon,
-  TrashIcon,
+  XIcon,
 } from "@components/icons/index.js"
 
 interface RowAction {
   id: string
   icon: Component
   label: string
-  disabled?: boolean
-  run?: () => void
+  run: () => void
 }
 
 const props = defineProps<{
   item: QueuedPrompt
   editing: boolean
-  canUp: boolean
-  canDown: boolean
 }>()
 const emit = defineEmits<{
-  move: [delta: -1 | 1]
   edit: []
   sendNow: []
   remove: []
   preview: [item: ComposerAttachment]
 }>()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const images = computed(() => props.item.attachmentsPreview.filter((file) => file.url))
 const files = computed(() => props.item.attachmentsPreview.filter((file) => !file.url))
+const time = computed(() =>
+  new Intl.DateTimeFormat(locale.value, {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(props.item.createdAt),
+)
 const actions = computed<RowAction[]>(() => {
   const labelText =
     props.item.text || props.item.attachmentsPreview.map((file) => file.name).join(", ")
   return [
-    {
-      id: "up",
-      icon: ChevronUpIcon,
-      label: t("composer.queueMoveUp", { text: labelText }),
-      disabled: !props.canUp,
-      run: () => emit("move", -1),
-    },
-    {
-      id: "down",
-      icon: ChevronDownIcon,
-      label: t("composer.queueMoveDown", { text: labelText }),
-      disabled: !props.canDown,
-      run: () => emit("move", 1),
-    },
-    {
-      id: "send",
-      icon: ForwardIcon,
-      label: t("composer.queueSendNow"),
-      run: () => emit("sendNow"),
-    },
     {
       id: "edit",
       icon: PenIcon,
@@ -152,7 +146,7 @@ const actions = computed<RowAction[]>(() => {
     },
     {
       id: "remove",
-      icon: TrashIcon,
+      icon: XIcon,
       label: t("composer.queueRemove", { text: labelText }),
       run: () => emit("remove"),
     },
@@ -277,10 +271,25 @@ const actions = computed<RowAction[]>(() => {
 .row-actions {
   display: flex;
   align-items: center;
+  gap: var(--space-2xs);
+  color: var(--fg-muted);
+  font-size: var(--text-meta);
+}
+
+.row-time {
+  padding-inline: var(--space-2xs);
+  font-variant-numeric: tabular-nums;
+  user-select: none;
 }
 
 .row-grip {
   cursor: grab;
   touch-action: none;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.row:is(:hover, :focus-within, [data-grabbed]) .row-grip {
+  opacity: 1;
 }
 </style>

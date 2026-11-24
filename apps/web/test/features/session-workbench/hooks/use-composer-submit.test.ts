@@ -157,6 +157,7 @@ describe("useComposerSubmit", () => {
       text: "插队引导",
       attachments: undefined,
       attachmentsPreview: [],
+      createdAt: 0,
     }
 
     editingQueueId.value = "q1"
@@ -176,6 +177,7 @@ describe("useComposerSubmit", () => {
       text: "带附件",
       attachments: { batch: "b1", files: [] },
       attachmentsPreview: [],
+      createdAt: 0,
     }
 
     composer.sendQueued(item)
@@ -194,6 +196,7 @@ describe("useComposerSubmit", () => {
       text: "立即发出",
       attachments: undefined,
       attachmentsPreview: [],
+      createdAt: 0,
     }
 
     composer.sendQueued(item)

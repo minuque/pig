@@ -11,6 +11,7 @@ export interface QueuedPrompt {
   text: string
   attachments: ComposerAttachmentBatch | undefined
   attachmentsPreview: ComposerAttachment[]
+  createdAt: number
 }
 
 export interface ComposerQueueApi {
@@ -19,7 +20,6 @@ export interface ComposerQueueApi {
   update(patch: QueueDraftPatch): void
   remove(id: string): void
   reorder(id: string, toIndex: number): void
-  move(id: string, delta: -1 | 1): void
   shift(): QueuedPrompt | undefined
   shiftFor(sessionId: string): QueuedPrompt | undefined
   unshiftFor(sessionId: string, item: QueuedPrompt): void
@@ -55,6 +55,7 @@ export function useComposerQueue(store?: SharedBuckets): ComposerQueueApi {
         text: normalized,
         attachments,
         attachmentsPreview: preview ?? [],
+        createdAt: Date.now(),
       },
     ]
   }
@@ -95,14 +96,6 @@ export function useComposerQueue(store?: SharedBuckets): ComposerQueueApi {
     bucket().value = moved
   }
 
-  function move(id: string, delta: -1 | 1) {
-    const current = bucket().value
-    const index = current.findIndex((item) => item.id === id)
-
-    if (index < 0 || index + delta < 0 || index + delta >= current.length) return
-    reorder(id, index + delta)
-  }
-
   function shift(): QueuedPrompt | undefined {
     return shiftFrom(bucket())
   }
@@ -135,7 +128,6 @@ export function useComposerQueue(store?: SharedBuckets): ComposerQueueApi {
     update,
     remove,
     reorder,
-    move,
     shift,
     shiftFor,
     unshiftFor,

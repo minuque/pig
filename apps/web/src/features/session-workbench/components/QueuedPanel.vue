@@ -4,7 +4,6 @@
     :items="queue.items.value"
     :editing-id="editingId"
     @reorder="queue.reorder"
-    @move="queue.move"
     @edit="emit('edit', $event)"
     @send-now="emit('sendNow', $event)"
     @remove="emit('remove', $event)"
