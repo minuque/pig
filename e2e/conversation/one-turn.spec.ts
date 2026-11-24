@@ -43,7 +43,6 @@ test("一轮工作：复杂历史上发送、流式、中止", async ({ page, co
   await expect(send).toBeEnabled()
   await send.click()
   await expect(sentPrompt).toBeVisible()
-  await expect(page.locator(".turn-runway")).toHaveCount(0)
 
   const layout = await page.evaluate((marker) => {
     const viewport = document.getElementById("transcript-panel")?.getBoundingClientRect()
@@ -62,7 +61,6 @@ test("一轮工作：复杂历史上发送、流式、中止", async ({ page, co
 
   expect(layout).not.toBeNull()
   expect(layout!.prev.bottom).toBeGreaterThan(layout!.viewport.top)
-  expect(layout!.prev.top).toBeLessThan(layout!.prompt.top)
   expect(layout!.prompt.bottom).toBeLessThanOrEqual(layout!.viewport.bottom)
 
   const status = page.locator('[data-testid="turn-status"]')

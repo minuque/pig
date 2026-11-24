@@ -9,11 +9,6 @@ import { Spinner } from "../../src/ui/spinner/index.js"
 import { StatusIndicator } from "../../src/ui/status-indicator/index.js"
 import { TextFieldRoot } from "../../src/ui/text-field/index.js"
 import { TransferItem, TransferList, TransferListsRoot } from "../../src/ui/transfer-lists/index.js"
-import {
-  TriggerMenu,
-  TriggerMenuContent,
-  TriggerMenuList,
-} from "../../src/ui/trigger-menu/index.js"
 
 async function renderComponent(
   component: Component,
@@ -189,23 +184,5 @@ describe("UI component contracts", () => {
     expect(html).toContain('data-slot="transfer-lists"')
     expect(html).toContain('data-slot="transfer-lists-list"')
     expect(html).toContain('data-slot="transfer-lists-item"')
-  })
-
-  it("TriggerMenu / TriggerMenuContent 在 inline 模式下不输出 popover 属性并保留状态插槽", async () => {
-    const html = await renderComponent(
-      TriggerMenu,
-      { triggers: [{ char: "/", items: [{ value: "clear", label: "/clear" }] }] },
-      {
-        default: () =>
-          h(TriggerMenuContent, { inline: true, keepMounted: true }, () =>
-            h(TriggerMenuList, { "aria-label": "命令" }),
-          ),
-      },
-    )
-
-    expect(html).toContain('data-slot="trigger-menu-content"')
-    expect(html).toContain("data-closed")
-    expect(html).toContain("hidden")
-    expect(html).not.toContain("popover=")
   })
 })

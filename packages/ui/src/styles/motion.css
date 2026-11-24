@@ -201,14 +201,6 @@
   transition-duration: 100ms;
 }
 
-.reveal-overlay {
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-.reveal-overlay:is([data-starting-style], [data-ending-style], [data-closed]) {
-  opacity: 0;
-}
-
 .collapsible-content {
   overflow: hidden;
   height: var(--collapsible-panel-height);
@@ -283,8 +275,7 @@
     transition: none;
   }
 
-  .reveal-menu,
-  .reveal-overlay {
+  .reveal-menu {
     transition: none;
     animation: none;
     transform: none;
