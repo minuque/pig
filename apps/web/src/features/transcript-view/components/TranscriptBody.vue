@@ -27,7 +27,6 @@
               <template v-for="(turn, turnIndex) in turns" :key="turn.id">
                 <TurnRow
                   :turn="turn"
-                  :class="{ 'turn-runway': turn.id === runwayId }"
                   :session-id="sessionId"
                   :running="running"
                   :is-expand="isExpand"
@@ -282,7 +281,6 @@ function pinLatest() {
 }
 
 const { readyFrame } = useTranscriptReveal(rows)
-const runwayId = shallowRef<string>()
 const { forcedTurnId, highlightedEntry, resetJump } = useTranscriptJump({
   sessionId: () => props.sessionId,
   historyReady: () => props.historyReady,
@@ -305,32 +303,15 @@ useTranscriptPosition({
   skipAutoPosition: () => props.jumpTarget?.sessionId === props.sessionId,
   onSessionChange: () => {
     resetJump()
-    runwayId.value = undefined
     rowsBuilder.reset()
     reset()
   },
 })
 
-function userTurnAppended(previous: readonly TimelineTurn[], next: readonly TimelineTurn[]) {
-  return (
-    previous.length > 0 &&
-    next.length === previous.length + 1 &&
-    next.at(-2)?.id === previous.at(-1)?.id &&
-    next.at(-1)?.rows[0]?.role === "user"
-  )
-}
-
 watch(turns, (next, prev) => {
   const previous = prev ?? []
 
   if (previous.length === 0 && next.length > 0) return
-
-  if (userTurnAppended(previous, next)) {
-    runwayId.value = next.at(-1)?.id
-
-    if (atBottom.value) void nextTick(() => scrollToLatest("smooth"))
-    return
-  }
 
   if (historyPrepended(previous, next) && !atBottom.value) {
     const root = scrollerRoot()
@@ -394,10 +375,6 @@ defineExpose({ showScrollToLatest, scrollToLatest, status: statusProps })
 
 .transcript-edge-top {
   background: linear-gradient(to bottom, var(--bg), transparent);
-}
-
-.turn-runway {
-  min-height: calc(100cqh - 48px - var(--edge-fade-band) - var(--composer-reserve, 0px));
 }
 
 .transcript-viewport:has(.code-more-menu) {

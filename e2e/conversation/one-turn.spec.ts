@@ -37,12 +37,33 @@ test("一轮工作：复杂历史上发送、流式、中止", async ({ page, co
 
   const prompt = page.getByRole("textbox", { name: "Prompt" })
   const send = page.locator("button.send")
+  const sentPrompt = page.locator(".row-user").getByText(TURN_PROMPT, { exact: true }).first()
+
   await prompt.fill(TURN_PROMPT)
   await expect(send).toBeEnabled()
   await send.click()
-  await expect(
-    page.locator(".row-user").getByText(TURN_PROMPT, { exact: true }).first(),
-  ).toBeVisible()
+  await expect(sentPrompt).toBeVisible()
+  await expect(page.locator(".turn-runway")).toHaveCount(0)
+
+  const layout = await page.evaluate((marker) => {
+    const viewport = document.getElementById("transcript-panel")?.getBoundingClientRect()
+    const assistants = Array.from(document.querySelectorAll(".row-assistant p"))
+    const prev = assistants.filter((el) => el.textContent?.includes("已写入时间线")).at(-1)
+    const users = Array.from(document.querySelectorAll(".row-user"))
+    const promptNode = users.filter((el) => el.textContent?.includes(marker)).at(-1)
+
+    if (!viewport || !prev || !promptNode) return null
+    return {
+      viewport,
+      prev: prev.getBoundingClientRect(),
+      prompt: promptNode.getBoundingClientRect(),
+    }
+  }, TURN_PROMPT)
+
+  expect(layout).not.toBeNull()
+  expect(layout!.prev.bottom).toBeGreaterThan(layout!.viewport.top)
+  expect(layout!.prev.top).toBeLessThan(layout!.prompt.top)
+  expect(layout!.prompt.bottom).toBeLessThanOrEqual(layout!.viewport.bottom)
 
   const status = page.locator('[data-testid="turn-status"]')
 
