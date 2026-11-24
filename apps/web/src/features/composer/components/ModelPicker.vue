@@ -9,7 +9,7 @@
                 v-bind="part"
                 variant="ghost"
                 color="neutral"
-                size="m"
+                size="s"
                 class="selector"
                 :disabled="disabled"
                 :aria-label="t('composer.selectModel', { model: triggerText })"
@@ -26,6 +26,8 @@
                   <span class="selector-name">{{ label }}</span>
                   <RollText v-if="effortLabel" class="selector-effort" :text="effortLabel" />
                 </span>
+
+                <slot name="trailing" />
               </Button>
             </template>
           </PopoverTrigger>

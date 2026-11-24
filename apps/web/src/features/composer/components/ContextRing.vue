@@ -2,12 +2,10 @@
   <HoverCard>
     <HoverCardTrigger>
       <template #render="{ props: part }">
-        <IconButton
+        <span
           v-bind="part"
-          type="button"
-          size="s"
-          variant="ghost"
-          color="neutral"
+          class="ring-trigger"
+          role="img"
           :aria-label="`${t('composer.contextUsageBreakdown')} ${usage.percent}%`"
         >
           <svg
@@ -27,12 +25,12 @@
               :stroke-dasharray="`${usage.percent} 100`"
             />
           </svg>
-        </IconButton>
+        </span>
       </template>
     </HoverCardTrigger>
 
     <HoverCardContent side="top" align="end" size="s">
-      <div class="usage-card">
+      <div class="usage-card" @click.stop @pointerdown.stop @keydown.stop>
         <div class="card-head">
           <span class="card-total">{{ contextUsageSummary(usage) }}</span>
           <span class="card-percent">{{ usage.percent }}%</span>
@@ -76,7 +74,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { Button, IconButton } from "@pig/ui/button"
+import { Button } from "@pig/ui/button"
 import { Minimize2Icon } from "@components/icons/index.js"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@pig/ui/hover-card"
 import {
@@ -118,6 +116,11 @@ const share = (tokens: number) =>
 </script>
 
 <style scoped>
+.ring-trigger {
+  display: inline-flex;
+  flex: none;
+}
+
 .context-ring {
   display: block;
   flex: none;

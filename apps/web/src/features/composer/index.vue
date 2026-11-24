@@ -75,14 +75,16 @@
           v-model:level="level"
           :catalog="catalog"
           :locked="switchLocked"
-        />
-
-        <ContextRing
-          v-if="usage"
-          :usage="usage"
-          :compact-disabled="running"
-          @compact="emit('compact')"
-        />
+        >
+          <template #trailing>
+            <ContextRing
+              v-if="usage"
+              :usage="usage"
+              :compact-disabled="running"
+              @compact="emit('compact')"
+            />
+          </template>
+        </ModelPicker>
       </template>
 
       <template #right>
