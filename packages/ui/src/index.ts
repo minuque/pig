@@ -18,6 +18,8 @@ export * from "./ui/checkbox/index.js"
 
 export * from "./ui/collapsible/index.js"
 
+export * from "./ui/command/index.js"
+
 export * from "./ui/command-palette/index.js"
 
 export * from "./ui/context-menu/index.js"

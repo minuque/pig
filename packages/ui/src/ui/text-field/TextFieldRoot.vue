@@ -8,14 +8,16 @@
     :data-invalid="invalid || undefined"
     :class="props.class"
   >
-    <Input
-      ref="inputRef"
-      data-text-field-input
-      spellcheck="false"
-      :aria-invalid="invalid || undefined"
-      v-bind="{ ...$attrs, ...(modelValue === undefined ? {} : { value: String(modelValue) }) }"
-      @value-change="(value: string) => emit('update:modelValue', value)"
-    />
+    <slot name="input" :props="inputProps()">
+      <Input
+        ref="inputRef"
+        v-bind="{
+          ...inputProps(),
+          ...(modelValue === undefined ? {} : { value: String(modelValue) }),
+        }"
+        @value-change="(value: string) => emit('update:modelValue', value)"
+      />
+    </slot>
 
     <slot />
   </InputGroup>
@@ -23,7 +25,7 @@
 
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-import { useTemplateRef } from "vue"
+import { useAttrs, useTemplateRef } from "vue"
 import { Input, InputGroup } from "@ui-sdk/vue/input"
 import type { Size, ToneColor, Radius } from "../../core/types.js"
 
@@ -43,6 +45,16 @@ const props = withDefaults(
 )
 const emit = defineEmits<{ "update:modelValue": [value: string] }>()
 const input = useTemplateRef<{ $el: HTMLInputElement }>("inputRef")
+const attrs = useAttrs()
+
+function inputProps() {
+  return {
+    ...attrs,
+    "data-text-field-input": "",
+    spellcheck: false,
+    ...(props.invalid && { "aria-invalid": true }),
+  }
+}
 
 defineExpose({ focus: () => input.value?.$el.focus() })
 </script>

@@ -10,61 +10,61 @@
 
       <div class="settings-shell">
         <nav class="settings-nav" :aria-label="t('settings.title')">
-          <TextFieldRoot
-            ref="searchInput"
-            v-model="query"
-            size="m"
-            variant="soft"
-            color="neutral"
-            class="settings-search"
-            type="text"
-            :placeholder="t('settings.search')"
-            :aria-label="t('settings.search')"
-            @update:model-value="activeResult = 0"
-            @keydown="onSearchKeydown"
-          >
-            <TextFieldSlot side="left">
-              <SearchIcon class="size-icon" />
-            </TextFieldSlot>
+          <Command v-model:query="query" :filter="false" @action="openResultByKey">
+            <TextFieldRoot size="m" variant="soft" color="neutral" class="settings-search">
+              <template #input="{ props: field }">
+                <CommandInput
+                  ref="searchInput"
+                  v-bind="field"
+                  type="text"
+                  :placeholder="t('settings.search')"
+                  :aria-label="t('settings.search')"
+                  @keydown.escape="onSearchEscape"
+                />
+              </template>
 
-            <TextFieldSlot side="right">
-              <IconButton
-                v-if="searching"
-                type="button"
-                size="s"
-                variant="ghost"
-                color="neutral"
-                class="search-clear"
-                :aria-label="t('settings.clearSearch')"
-                @click="clearSearch(true)"
-              >
-                <XIcon class="size-icon-sm" />
-              </IconButton>
+              <TextFieldSlot side="left">
+                <SearchIcon class="size-icon" />
+              </TextFieldSlot>
 
-              <Kbd v-else class="search-kbd" size="s">/</Kbd>
-            </TextFieldSlot>
-          </TextFieldRoot>
+              <TextFieldSlot side="right">
+                <IconButton
+                  v-if="searching"
+                  type="button"
+                  size="s"
+                  variant="ghost"
+                  color="neutral"
+                  class="search-clear"
+                  :aria-label="t('settings.clearSearch')"
+                  @click="clearSearch(true)"
+                >
+                  <XIcon class="size-icon-sm" />
+                </IconButton>
 
-          <template v-if="searching">
-            <p v-if="!results.length" class="settings-search-empty">
-              {{ t("settings.searchEmpty") }}
-            </p>
+                <Kbd v-else class="search-kbd" size="s">/</Kbd>
+              </TextFieldSlot>
+            </TextFieldRoot>
 
-            <button
-              v-for="(result, index) in results"
-              :key="`${result.pane}-${result.title}`"
-              type="button"
-              class="search-result"
-              :class="{ on: index === activeResult }"
-              @mousemove="activeResult = index"
-              @click="openResult(result)"
-            >
-              <span class="result-title">{{ result.title }}</span>
-              <span class="result-section">{{ result.section }}</span>
-            </button>
-          </template>
+            <template v-if="searching">
+              <CommandEmpty class="settings-search-empty">
+                {{ t("settings.searchEmpty") }}
+              </CommandEmpty>
 
-          <template v-else>
+              <CommandList :aria-label="t('settings.search')">
+                <CommandItem
+                  v-for="result in results"
+                  :key="resultKey(result)"
+                  :value="resultKey(result)"
+                  class="search-result"
+                >
+                  <span class="result-title">{{ result.title }}</span>
+                  <span class="result-section">{{ result.section }}</span>
+                </CommandItem>
+              </CommandList>
+            </template>
+          </Command>
+
+          <template v-if="!searching">
             <button
               v-for="item in tabs"
               :key="item.id"
@@ -153,6 +153,7 @@ import {
   SlidersHorizontalIcon,
 } from "@components/icons/index.js"
 import { sessionArchives } from "@client/session-archives.js"
+import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from "@pig/ui/command"
 import { Kbd } from "@pig/ui/kbd"
 import { IconButton } from "@pig/ui/button"
 import { TextFieldRoot, TextFieldSlot } from "@pig/ui/text-field"
@@ -216,8 +217,7 @@ const crumbs = computed<SettingsCrumb[]>(() => {
   return [...base, ...items]
 })
 const query = ref("")
-const activeResult = ref(0)
-const searchInput = useTemplateRef<{ focus: () => void }>("searchInput")
+const searchInput = useTemplateRef<{ $el: HTMLInputElement }>("searchInput")
 const searchEntries = computed<SettingsSearchEntry[]>(() => [
   {
     id: "setting-user-name",
@@ -306,43 +306,22 @@ const searchEntries = computed<SettingsSearchEntry[]>(() => [
 const results = computed(() => matchSettings(searchEntries.value, query.value))
 const searching = computed(() => query.value.trim().length > 0)
 
-watch(results, (list) => {
-  if (activeResult.value < list.length) return
-  activeResult.value = Math.max(0, list.length - 1)
-})
-
 function clearSearch(focus = false) {
   query.value = ""
-  activeResult.value = 0
 
-  if (focus) searchInput.value?.focus()
+  if (focus) searchInput.value?.$el.focus()
 }
 
-function onSearchKeydown(event: KeyboardEvent) {
-  if (event.isComposing) return
+function onSearchEscape(event: KeyboardEvent) {
+  if (searching.value) event.stopPropagation()
+}
 
-  if (event.key === "Escape" && searching.value) {
-    event.preventDefault()
-    event.stopPropagation()
-    clearSearch(true)
-    return
-  }
+function resultKey(result: SettingsSearchEntry): string {
+  return `${result.pane}-${result.title}`
+}
 
-  const list = results.value
-
-  if (!list.length) return
-
-  if (event.key === "ArrowDown" || event.key === "ArrowUp") {
-    event.preventDefault()
-    const step = event.key === "ArrowDown" ? 1 : -1
-    activeResult.value = (activeResult.value + step + list.length) % list.length
-    return
-  }
-
-  if (event.key !== "Enter") return
-  event.preventDefault()
-
-  const item = list[activeResult.value]
+function openResultByKey(key: string) {
+  const item = results.value.find((result) => resultKey(result) === key)
 
   if (item) void openResult(item)
 }
@@ -350,7 +329,6 @@ function onSearchKeydown(event: KeyboardEvent) {
 async function openResult(item: SettingsSearchEntry) {
   active.value = item.pane
   query.value = ""
-  activeResult.value = 0
   await nextTick()
   const root = scroller.value
 
@@ -380,7 +358,7 @@ function onShellKeydown(event: KeyboardEvent) {
   }
 
   event.preventDefault()
-  searchInput.value?.focus()
+  searchInput.value?.$el.focus()
 }
 
 function select(pane: Pane) {
@@ -507,7 +485,7 @@ watch(active, async () => {
   cursor: default;
 }
 
-.settings-dialog .search-result.on {
+.settings-dialog .search-result[data-highlighted] {
   background: var(--bg-selected);
 }
 
