@@ -15,7 +15,7 @@
 
 ## 文档
 
-- [`docs/DESIGN.md`](docs/DESIGN.md) — 设计规则：token 分层、七条规则与颜色、字号、圆角取值
+- [`docs/DESIGN.md`](docs/DESIGN.md) — 设计偏好与规则；取值见 design-lab
 - [`docs/PRODUCT.md`](docs/PRODUCT.md) — 产品定位：用户、能力与约束、边界
 - [`docs/CODEBASE.md`](docs/CODEBASE.md) — 代码库结构与模块规范，含运行配置的环境变量
 - [`AGENTS.md`](AGENTS.md) — 提交与协作规则

@@ -1,224 +1,65 @@
----
-name: pig 工作台
-description: 本机 Pi agent 的多会话并行工作台界面
-colors:
-  primary: "#5E6AD2"
-  primary-dark: "#5E6AD2"
-  primary-hover-light: "#4C56B8"
-  primary-hover-dark: "#6B77DC"
-  primary-on: "#FFFFFF"
-  link-light: "#0B6F88"
-  link-dark: "#4CCCE6"
-  window-light: "#FFFFFF"
-  sidebar-light: "#F7F8F8"
-  card-light: "#F7F8F8"
-  raised-light: "#FBFBFC"
-  window-dark: "#101012"
-  sidebar-dark: "#0D0D0E"
-  card-dark: "#17171A"
-  raised-dark: "#1C1C1F"
-  ink-light: "#282A30"
-  ink-secondary-light: "#4C5159"
-  ink-muted-light: "#6A707C"
-  ink-dark: "#E8EAED"
-  ink-secondary-dark: "#9DA4AE"
-  ink-muted-dark: "#7C8490"
-typography:
-  heading:
-    fontFamily: "Inter Variable, -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
-    fontSize: "24px"
-    fontWeight: 600
-    lineHeight: 1.3
-    letterSpacing: "-0.2px"
-  title:
-    fontFamily: "Inter Variable, -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
-    fontSize: "16px"
-    fontWeight: 500
-    lineHeight: 1.4
-  body:
-    fontFamily: "Inter Variable, -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
-    fontSize: "14px"
-    fontWeight: 400
-    lineHeight: 1.5
-  meta:
-    fontFamily: "Inter Variable, -apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif"
-    fontSize: "12px"
-    fontWeight: 400
-    lineHeight: 1.4
-  code:
-    fontFamily: "JetBrains Mono, ui-monospace, SF Mono, Menlo, Consolas, PingFang SC, Microsoft YaHei, monospace"
-    fontSize: "13px"
-    fontWeight: 400
-    lineHeight: "24.5px"
-rounded:
-  control: "6px"
-  card: "8px"
-  dialog: "12px"
-  pill: "9999px"
-spacing:
-  2xs: "4px"
-  xs: "8px"
-  sm: "12px"
-  md: "16px"
-  lg: "24px"
-  xl: "28px"
-  2xl: "32px"
----
-
 # Design System: pig 工作台
 
-## 基调
+只记偏好与规则。token 取值、组件外观与整页效果以 design-lab（`/design`）为准，本文不抄数值。
 
-克制、安静。表面、文字、强调色取 Linear 的冷灰与靛（`#5E6AD2`）；悬停走中性灰，选中铺极淡的靛；cyan 只给链接与进行中。
+## 偏好
+
+克制、安静。表面、文字、强调色取 Linear 的冷灰与靛；悬停走中性灰，选中铺极淡的靛；cyan 只给链接与进行中。
 
 优先级：解决问题 > 易于使用 > 简洁美观。UI 不抢注意力，靠布局和控件本身说话，不靠说明文字和装饰。
 
-## Token 分层
+## Token 与样式写法
 
-`packages/ui/src/styles/tokens.css`（设计系统共用）与 `apps/web/src/style/tokens.css`（应用专属）分三层，组件只读后两层：
-
-1. **原色阶**：7 个标识色 `--hue-*` 与色调派生参数（`--tone-*` 比例与悬停混合目标色），不引外部色板，由 `data-tone` 槽位消费。
-2. **语义层**：全站共用，一个概念一个词：`fg`、`bg`、`border`、`accent`、状态 `-text` / `-subtle`。
-3. **组件层**：只给一类组件用，以组件名开头（`--composer-*`、`--glass-*`、`--language-*`、`--slider-*`）。能用语义档就不进这一层。
-
-新 token 写进对应分区注释下，`/design` 页按这些注释分组。
-
-## 样式写法
-
-- 基础件用平铺、最小的 `:where([data-slot=…])` 写默认外观；颜色经 `data-tone` 读 `--tone-*`。
-- 业务处的微调写 SFC scoped 样式，选择器带 data 属性压过 `:where()`，不用 `!important`，模板里不堆工具类。
-- 组件只读 `tokens.css` 的 token，动画只用 `motion.css` 的类与 `@keyframes`；缺档先补这两个文件再写组件。SFC 不声明 `--*`，不写裸 hex / rgb / `color-mix`。
+- `packages/ui/src/styles/tokens.css`（设计系统）与 `apps/web/src/style/tokens.css`（应用）分三层：原色阶 → 语义层（`fg`、`bg`、`border`、`accent`、状态 `-text` / `-subtle`）→ 组件层（以组件名开头）。组件只读后两层，能用语义档就不进组件层。
+- 新 token 写进对应分区注释下，`/design` 按这些注释分组。
+- 基础件用平铺、最小的 `:where([data-slot=…])` 写默认外观，颜色经 `data-tone` 读 `--tone-*`。
+- 业务微调写 SFC scoped 样式，选择器带 data 属性压过 `:where()`；不用 `!important`，模板里不堆工具类。
+- SFC 不声明 `--*`，不写裸 hex / rgb / `color-mix`，不写非零 `z-index`；动画只用 `motion.css` 的类与 `@keyframes`。缺档先补 token 再写组件。
+- 尺寸不写死：高度、行高、间距读 `--control-*`、`--space-*`、`--text-*`，图标读 `--icon-*`。
 
 ## 规则
 
 1. **一页一个强调色。** 强调色只给主操作、焦点、选中底；活动态走 cyan；卡片、区块不铺强调色。
-2. **最多 4 种字号。** 层级靠字重和三级文字色。
-3. **默认扁平，有阴影就用环。** 只有浮起来的层才有阴影和毛玻璃；有阴影的表面用 `box-shadow: 0 0 0 var(--border-width) …` 画环，不写 `border`（`border` 会在圆角内侧留割裂线）。
-4. **不卡片套卡片。** 卡片里分组用标题加分割线。
-5. **圆角同心。** 内层 = 外层 − 内边距。
-6. **规范只有一套。** 按钮、间距、圆角、分割线、弹窗、动画、阴影全站共用。业务组件用基础件时不补外观（圆形、描边、阴影、毛玻璃），尺寸只取组件自带档位。
+2. **最多 4 种字号。** 层级靠字重（400 / 500 / 600）和三级文字色。对话区 Markdown 不受此约束。
+3. **默认扁平，有阴影就用环。** 只有浮起来的层才有阴影和毛玻璃；环写进阴影 token，组件只写一行 `box-shadow: var(--…)`，不补 `border`。
+4. **不卡片套卡片。** 卡片里分组用标题加分割线；分行卡片用 `CardList` + `CardRow`。
+5. **圆角同心。** 内层 = 外层 − 内边距，太小用 `max()` 兜到 `--radius-control` 一半。
+6. **规范只有一套。** 业务组件用基础件时不补外观（圆形、描边、阴影、毛玻璃），尺寸只取组件自带的 `s` / `m`。
    Why：补出来的外观让同一种控件在不同地方长得不一样。
-   <!-- 2026-11-21：「关闭按钮默认用 s size」，去掉 toast 关闭键的圆形外挂样式 -->
 7. **能用产品表达的，不加文案。** 纯图标按钮的 tooltip 是它的名字，不重复可见文字。
+8. **布局密度两档。** `html[data-density]` 取 `normal`（默认）或 `compact`；compact 只改 token，组件不按密度写分支。
 
 ## 颜色
 
-### 强调色与活动态
-
-| token | 浅色 | 深色 | 用途 |
-| --- | --- | --- | --- |
-| `--accent-solid` / `-hover` | `#5E6AD2` / `#4C56B8` | `#5E6AD2` / `#6B77DC` | 主按钮、发送键、指示器、选中描边；字配 `--fg-on-accent` |
-| `--accent-text` | `#3A5BC7` | `#9EB1FF` | 强调文字、`--focus-color` / `--focus-ring` |
-| `--bg-selected` | accent 11% | accent 16%（默认预设实色 `#1A2143`） | 选中底 |
-| `--bg-hover` | fg 6% | white 6% | 悬停底 |
-| `--info-*` | `#0B6F88` | `#4CCCE6` | 链接 `--link`、运行状态、转圈、进度条、用量环 |
-
-- 外观预设（`paper` / `ocean` / `grove` / `iris`）由 `utils/theme-palette.ts` 从 `canvas + accent` 推导表面、文字与强调色阶；`--tone-*` 读推导结果。
-- 发送键强调色实心，停止键 `--danger-solid`，不可用时换 `--bg-emphasis` 底配 `--fg-secondary`，不降透明度。「滚动到底」用反色 `--bg-inverse` / `--fg-inverse`。
-
-### 中性色
-
-| 层 | 浅色 | 深色 | token |
-| --- | --- | --- | --- |
-| 窗口、主区 | `#FFFFFF` | `#101012` | `--bg` |
-| 侧栏、抽屉、设置导航 | `#F7F8F8` | `#0D0D0E` | `--sidebar` |
-| 卡片、输入卡、气泡 | `#F7F8F8` | `#17171A` | `--bg-surface` |
-| 浮起的实色表面 | `#FBFBFC` | `#1C1C1F` | `--bg-raised` |
-
-| 文字 | 浅色 | 深色 | 用途 |
-| --- | --- | --- | --- |
-| `--fg` | `#282A30` | `#E8EAED` | 正文、标题 |
-| `--fg-secondary` | `#4C5159` | `#9DA4AE` | 次要信息 |
-| `--fg-muted` | `#6A707C` | `#7C8490` | 占位、时间戳、弱图标 |
-
-- 描边：`--border-subtle` / `--border` / `--border-strong`，浅色 black alpha，深色 white `4.5% / 7% / 13%`。分割线只用 1px `--border-subtle`。
-- 控件外框 `--border-input`；遮罩 `--overlay`；`color="neutral"` 读 `--bg-muted` / `--fg-secondary`。
-
-### 状态色
-
-- 基础件 `color` 取 `accent` / `neutral` / `info` / `success` / `warning` / `danger`（统一用 `color="danger"`），项目图标与首字母徽章另可取 7 个标识色。组件写成 `data-tone`，只读 `--tone` / `--tone-text` / `--tone-subtle` / `--tone-border`。
-- 状态族命名 `--*-solid` / `--*-text` / `--*-subtle`（浅底浅色 8%、深色 16%）。
-- 悬停、按下不另定色，叠 `--bg-hover` / `--bg-emphasis`。
+- 基础件 `color` 取 `accent` / `neutral` / `info` / `success` / `warning` / `danger`，项目图标与首字母徽章另可取 7 个标识色。
+- 悬停、按下不另定色，叠 `--bg-hover` / `--bg-emphasis`。分割线只用 `--border-subtle`。
+- 发送键强调色实心，停止键 `--danger-solid`；不可用时换 `--bg-emphasis` 底配 `--fg-secondary`，不降透明度。
 - 默认不加脉冲，`StatusIndicator` 需要引起注意时才开 `pulse`。
+- 例外：`--language-*`、Mermaid 深色配色、`--favorite`、`--theme-wire-*` 与强度滑条渐变可以直接写色。
 
-### 例外
+## 表面
 
-`--language-*`（代码块语言图标）、Mermaid 深色配色（`mermaid.css`）、`--favorite`、`--theme-wire-*` 与强度滑条渐变：语义档没有对应值，可以直接写色。
-
-## 字号
-
-| token | normal | compact | 用途 |
-| --- | --- | --- | --- |
-| `--text-meta` | 12 | 11 | 辅助信息、分组标题、时间、标签 |
-| `--text-body` | 14 | 13 | 正文、按钮、菜单、列表行 |
-| `--text-title` | 16 | 15 | 会话标题、弹层标题 |
-| `--text-heading` | 24 | 24 | 页面大标题 |
-| `--text-code` | 13 等宽 | 13 | 代码、路径、快捷键（可单独设 10–16） |
-
-- 字重只用 400、500、600。
-- 对话区 Markdown 与项目缩写字母不受这几档约束。
-
-## 圆角
-
-| token | 值 | 给谁 |
-| --- | --- | --- |
-| `--radius-control` | 6 | 按钮、图标按钮、选择框、输入框、标签、菜单项、侧栏行 |
-| `--radius-card` | 8 | 卡片、面板、代码块、浮层、工具卡片 |
-| `--radius-dialog` | 12 | 对话框、命令面板、设置里的分行卡片 |
-| `--composer-radius` | 18 | 输入卡 |
-| `--radius-pill` | 9999 | 胶囊、圆形按钮 |
-
-嵌套写 `calc(外层 - 内边距)`，太小用 `max()` 兜到 `--radius-control` 一半。菜单例外：外 8、内边距 4、项 6。
-
-## 阴影与表面
-
-| 表面 | 写法 |
-| --- | --- |
-| 提示、悬停卡、拖拽中的行、滚动到底按钮 | `--shadow-popover` |
-| 对话框、抽屉、图片预览 | `--shadow-dialog` |
-| 命令面板、警告框 | `--glass-*` |
-| 菜单、下拉、选择框浮层、浮卡、toast | `--float-bg` + `--float-shadow` + `--glass-filter` |
-| 输入卡 | `--composer-bg` + `--glass-filter` + `--composer-inset` + `--composer-shadow`；聚焦只加深外环 |
-| 贴在输入卡上方的浮板（运行状态、命令菜单） | `--bg-raised` + 1px `--border` inset 环，左右缩 `--space-md`，上圆角 `--radius-dialog`，底部伸进输入卡 `--composer-radius`；多块叠放时只有最上一块留圆角 |
-| 静态卡片 | `--bg-surface` 或 1px `--border` inset 细线，二选一，不加阴影 |
-
-- 环都已写进上面的阴影 token，组件只写一行 `box-shadow: var(--…)`，不补 `border`。
-- 分行卡片用 `CardList` + `CardRow`（`@pig/ui/card`），不自写行线与内边距。
+- 提示、悬停卡、拖拽中的行：`--shadow-popover`；对话框、抽屉、图片预览：`--shadow-dialog`。
+- 菜单、下拉、浮卡、toast：`--float-bg` + `--float-shadow` + `--glass-filter`；命令面板、警告框：`--glass-*`。
+- 贴在输入卡上方的浮板：`--bg-raised` + 环，上圆角 `--radius-dialog`，底部伸进输入卡；多块叠放时只有最上一块留圆角。
+- 静态卡片：`--bg-surface` 或细线环二选一，不加阴影。
+- 菜单、下拉、浮卡、提示挂 body，取 `--z-popover`。
 
 ## 控件
 
-- 按钮四变体：`solid` 主操作（一页一个）、`secondary`（`--bg-muted` 底）、`outline`（透明底，单环 `--outline-shadow`，环色取文字色：浅色 24%、深色 16%）、`ghost`（悬停才铺 `--bg-hover`）。
-- 选择框 surface 变体读 `--control-bg` + `--control-shadow`（一圈环加淡投影，不加内高光）；输入框 surface 背景同读 `--control-bg`。
-- outline / ghost 的图标常态 `--fg-muted`，悬停、选中（`data-active` / `aria-pressed`）、展开、弹层打开时随文字提亮。
-- **可交互的行、触发器、图标按钮：常态 `--fg-secondary` 或 `--fg-muted`，悬停、展开、选中时文字和图标一律提亮到 `--fg`，状态色绝不与常态同色。侧栏行整行悬停只提亮标题，meta 与行内按钮等到自己被悬停才提亮。**
+- 按钮四变体：`solid` 主操作（一页一个）、`secondary`、`outline`、`ghost`（悬停才铺底）。
+- **可交互的行、触发器、图标按钮：常态 `--fg-secondary` 或 `--fg-muted`，悬停、展开、选中时文字和图标提亮到 `--fg`，状态色绝不与常态同色。侧栏行整行悬停只提亮标题，meta 与行内按钮等到自己被悬停才提亮。**
   Why：状态色与常态一样，就看不出能点、已展开或已选中。
-  <!-- 2026-11-21：「tool-run 和 tool-row hover/expanded 状态色缺失」「为啥这5个按钮 selected/hover 颜色亮度要弱一档」 -->
-- **显示模型名的地方，前面一律加 `VendorMark`（传模型的 provider）。**
+- **显示模型名的地方，前面一律加 `VendorMark`。**
   Why：和模型选择器一致，一眼认出供应商。
-  <!-- 2026-11-21：「模型名称前补上模型icon」 -->
-- **通知一律走 `notify()`（`@pig/ui/toast`），显示在右下角。页面上已能看到同样内容的（如 transcript 里的请求失败行）传 `transient: true`，5 秒后消失；只有页面别处看不到的错误才常驻。**
+- **通知一律走 `notify()`（`@pig/ui/toast`），显示在右下角。页面上已能看到同样内容的传 `transient: true`，5 秒后消失；只有页面别处看不到的错误才常驻。**
   Why：同一条报错在 toast 和页面里各留一份，常驻的 toast 只是重复。
-  <!-- 2026-11-21：「显示在右下角」；当前会话出错 toast 改为 5 秒消失，回复「ok」 -->
-- `TextFieldRoot` 的 `invalid` 表达错误态（危险色内环与焦点环）。
+- 关闭按钮默认 `s`。`TextFieldRoot` 用 `invalid` 表达错误态。
 - 设置行 = 标题 + 一行说明 + 控件。项目缩写用灰色 soft Badge。
-
-## 间距与尺寸
-
-- 布局密度 `normal` / `compact` 写在 `html[data-density]`；组件尺寸只有 `s`/`m` 两档。下列值写作 normal / compact。
-- 间距 `--space-2xs/xs/sm/md/lg/xl/2xl` 由 `--spacing` 派生 = 4/8/12/16/24/28/32；compact 下 `--spacing` 为 3.5px。
-- 控件高 `--control-xs/sm/md/lg` = 24/28/32/36，compact 各减 4。图标按钮与侧栏行 `s`/`m` 取 `xs`/`sm`，按钮/输入框/选择框/滑条/分段标签的 `s`/`m` 取 `sm`/`md`（输入卡控件默认 `m`）。行高不写死，读这组 token。
-- 图标 `--icon-sm/md/lg/xl` = 12/14/16/32，线宽 `--icon-stroke`，两档相同。
-- 头部高 `--header-height` 44 / 40；macOS 标题条 `--titlebar-inset` 44，两档相同。
-
-## 层级
-
-- 局部容器内：`--z-behind` / `--z-raise` / `--z-sticky` / `--z-overlay` = -1 / 1 / 2 / 3。
-- 全局浮层：`--z-resizer` / `--z-window-controls` / `--z-drawer` / `--z-modal` / `--z-popover` / `--z-drag` = 1 / 1 / 20 / 30 / 35 / 40。菜单、下拉、浮卡、提示挂 body，取 `--z-popover`。
-- stylelint 禁止 SFC 里写 `--*` 声明与非零数字 `z-index`。
 
 ## 动画
 
-浮层进 140ms、出 100ms，只动透明度与位移；对话框用 `scale` 0.98 → 1 加透明度；主题切换 200ms cross-fade。动效只表达在跑、层级变化、状态切换，遵守 `prefers-reduced-motion`。
+浮层只动透明度与位移，对话框加轻微 `scale`。动效只表达在跑、层级变化、状态切换，遵守 `prefers-reduced-motion`。
 
 ## 不要
 

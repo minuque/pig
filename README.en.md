@@ -15,7 +15,7 @@
 
 ## Docs
 
-- [`docs/DESIGN.md`](docs/DESIGN.md) — design rules: token layers, the seven rules, colour, type and radius values
+- [`docs/DESIGN.md`](docs/DESIGN.md) — design preferences and rules; values live in the design lab
 - [`docs/PRODUCT.md`](docs/PRODUCT.md) — product: users, capabilities and constraints, boundaries
 - [`docs/CODEBASE.md`](docs/CODEBASE.md) — codebase structure and module conventions, including the env vars for running
 - [`AGENTS.md`](AGENTS.md) — commit and collaboration rules

@@ -12,7 +12,8 @@
 ## 文档
 
 - 代码库结构与领域边界：[`docs/CODEBASE.md`](docs/CODEBASE.md)
-- 设计规则：[`docs/DESIGN.md`](docs/DESIGN.md)，改 UI 前读并遵守。只记跨组件的取值与规则，改值只改表格；新规则须用户提出或确认，每条不超过两行，先合并已有条目。
+- 设计规则：[`docs/DESIGN.md`](docs/DESIGN.md)，改 UI 前读并遵守。只记偏好与规则，不抄 token 取值（以 design-lab `/design` 为准）；新规则须用户提出或确认，每条不超过两行，先合并已有条目。
+- design-lab 业务场景只维护「整页」一个 demo（`features/design-lab/demos/FullPageDemo.vue`），新场景加进它的 fixture。
 - 产品定位与约束：[`docs/PRODUCT.md`](docs/PRODUCT.md)
 
 ## worktree
