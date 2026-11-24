@@ -6,90 +6,83 @@
     @select="commandMenu.onSelect"
     @open-change="onMenuOpenChange"
   >
-    <TriggerMenuContent
-      class="command-menu"
-      :anchor="plates"
-      side="top"
-      align="start"
-      :side-offset="-18"
-      @mousedown.prevent
-    >
-      <CommandMenu
-        :rows="commandMenu.rows.value"
-        :empty-text="commandMenu.emptyText(menuTrigger)"
-      />
-    </TriggerMenuContent>
-  </TriggerMenu>
+    <div class="composer" @mousedown="onComposerMousedown">
+      <div class="composer-plates" :class="{ 'has-menu': menuOpen }">
+        <TriggerMenuContent inline class="command-menu" @mousedown.prevent.stop>
+          <CommandMenu
+            :rows="commandMenu.rows.value"
+            :empty-text="commandMenu.emptyText(menuTrigger)"
+          />
+        </TriggerMenuContent>
 
-  <div class="composer" @mousedown="onComposerMousedown">
-    <div ref="plates" class="composer-plates" :class="{ 'has-menu': menuOpen }">
-      <slot name="plate" />
-    </div>
+        <slot name="plate" />
+      </div>
 
-    <div class="composer-card">
-      <div class="body">
-        <div v-if="props.editingQueue || props.disabledReason" class="notice" role="status">
-          {{ props.editingQueue ? t("composer.queueEditing") : props.disabledReason }}
-          <Button
-            v-if="props.editingQueue"
-            type="button"
-            size="s"
-            variant="ghost"
-            color="neutral"
-            @click="emit('cancelQueueEdit')"
-          >
-            {{ t("composer.queueEditCancel") }}
-            <Kbd size="s" variant="soft">Esc</Kbd>
-          </Button>
+      <div class="composer-card">
+        <div class="body">
+          <div v-if="props.editingQueue || props.disabledReason" class="notice" role="status">
+            {{ props.editingQueue ? t("composer.queueEditing") : props.disabledReason }}
+            <Button
+              v-if="props.editingQueue"
+              type="button"
+              size="s"
+              variant="ghost"
+              color="neutral"
+              @click="emit('cancelQueueEdit')"
+            >
+              {{ t("composer.queueEditCancel") }}
+              <Kbd size="s" variant="soft">Esc</Kbd>
+            </Button>
+          </div>
+
+          <slot name="attachments" />
+
+          <div class="field-wrap">
+            <PromptField
+              ref="field"
+              v-model="prompt"
+              :disabled="props.disabled"
+              :aria-placeholder="placeholderText"
+              :menu-open="menuOpen"
+              @caret="onCaret"
+              @keydown="onEditorKeydown"
+              @paste-files="emit('pasteFiles', $event)"
+              @composing="composing = $event"
+              @open-file="emit('openFile', $event)"
+              @jump-reply="emit('jumpReply', $event)"
+              @submit="emit('submit')"
+            />
+
+            <div v-if="showPlaceholder" class="field-placeholder" aria-hidden="true">
+              <template v-if="props.placeholder">{{ props.placeholder }}</template>
+
+              <template v-else>
+                <span>{{ t("composer.placeholderPrefix") }}</span>
+                <Kbd size="s" variant="soft">/</Kbd>
+                <span>{{ t("composer.placeholderCommand") }}</span>
+                <Kbd size="s" variant="soft">@</Kbd>
+                <span>{{ t("composer.placeholderMention") }}</span>
+              </template>
+            </div>
+          </div>
         </div>
 
-        <slot name="attachments" />
+        <div class="footer">
+          <div class="cluster">
+            <slot name="left" />
+          </div>
 
-        <div class="field-wrap">
-          <PromptField
-            ref="field"
-            v-model="prompt"
-            :disabled="props.disabled"
-            :aria-placeholder="placeholderText"
-            :menu-open="menuOpen"
-            @caret="onCaret"
-            @keydown="onEditorKeydown"
-            @paste-files="emit('pasteFiles', $event)"
-            @composing="composing = $event"
-            @open-file="emit('openFile', $event)"
-            @jump-reply="emit('jumpReply', $event)"
-            @submit="emit('submit')"
-          />
+          <div class="cluster tools">
+            <slot name="tools" />
+          </div>
 
-          <div v-if="showPlaceholder" class="field-placeholder" aria-hidden="true">
-            <template v-if="props.placeholder">{{ props.placeholder }}</template>
-
-            <template v-else>
-              <span>{{ t("composer.placeholderPrefix") }}</span>
-              <Kbd size="s" variant="soft">/</Kbd>
-              <span>{{ t("composer.placeholderCommand") }}</span>
-              <Kbd size="s" variant="soft">@</Kbd>
-              <span>{{ t("composer.placeholderMention") }}</span>
-            </template>
+          <div class="cluster">
+            <slot name="right" />
           </div>
         </div>
       </div>
-
-      <div class="footer">
-        <div class="cluster">
-          <slot name="left" />
-        </div>
-
-        <div class="cluster tools">
-          <slot name="tools" />
-        </div>
-
-        <div class="cluster">
-          <slot name="right" />
-        </div>
-      </div>
     </div>
-  </div>
+  </TriggerMenu>
 </template>
 
 <script lang="ts">
@@ -141,7 +134,6 @@ const side = usePaneSide()
 const isPaneActive = () => !split || split.focused.value === side
 const showPlaceholder = computed(() => !prompt.value.length && !composing.value)
 const placeholderText = computed(() => props.placeholder ?? t("composer.placeholder"))
-const plates = useTemplateRef<HTMLElement>("plates")
 const menuOpen = ref(false)
 const menuTrigger = ref<string | null>(null)
 const menuController = createTriggerMenuController()
@@ -227,14 +219,17 @@ defineExpose({
 <style scoped>
 .composer {
   position: relative;
+  z-index: var(--z-raise);
   width: 100%;
   margin-inline: auto;
 }
 
 .command-menu {
+  position: absolute;
+  inset-inline: 0;
+  bottom: calc(100% - var(--composer-radius));
   display: flex;
   flex-direction: column;
-  inline-size: var(--anchor-width);
   max-height: calc(280px + var(--composer-radius));
   overflow: hidden;
   padding-bottom: var(--composer-radius);

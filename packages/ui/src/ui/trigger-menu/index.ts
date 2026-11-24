@@ -1,6 +1,6 @@
+export { TriggerMenu, TriggerMenuContent } from "./trigger-menu.js"
+
 export {
-  TriggerMenu,
-  TriggerMenuContent,
   TriggerMenuEmpty,
   TriggerMenuGroup,
   TriggerMenuGroupLabel,
