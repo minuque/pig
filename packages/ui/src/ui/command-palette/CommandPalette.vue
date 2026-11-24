@@ -55,6 +55,7 @@ const labels = useUiLabels()
   min-height: 0;
   flex-direction: column;
   margin-inline: auto;
+  padding: 0;
   overflow: hidden;
 }
 
