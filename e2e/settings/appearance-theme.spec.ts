@@ -49,3 +49,87 @@ test("深浅模式切换立即生效", async ({ page, gateway }) => {
     expect(snap.computedBg).toBe("#101012")
   }).toPass()
 })
+
+type DialogCloseTrace = {
+  backdrop: number[]
+  content: number[]
+}
+
+type TraceWindow = Window & {
+  __dialogCloseTrace?: Promise<DialogCloseTrace>
+}
+
+test("深色模式下关闭设置弹窗时遮罩与内容单调淡出不回闪", async ({ page, gateway }) => {
+  await seedWorkspace(page, gateway.workspaceId)
+  await page.goto(gateway.entryUrl)
+  await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
+
+  await page.locator(".nav-footer").getByRole("button", { name: "设置" }).click()
+  await page.locator(".settings-nav").getByRole("button", { name: "外观" }).click()
+  await page.getByRole("radio", { name: "深色" }).click()
+
+  await expect(async () => {
+    const settled = await page.evaluate(() => {
+      const dark = document.documentElement.classList.contains("dark")
+      const backdrop = document.querySelector('[data-slot="dialog-backdrop"]')
+      const content = document.querySelector('[data-slot="dialog-content"]')
+
+      if (!dark || !backdrop || !content) return false
+
+      if (
+        backdrop.hasAttribute("data-starting-style") ||
+        content.hasAttribute("data-starting-style")
+      )
+        return false
+      return getComputedStyle(backdrop).opacity === "1" && getComputedStyle(content).opacity === "1"
+    })
+
+    expect(settled).toBe(true)
+  }).toPass()
+
+  await page.evaluate(() => {
+    const w = window as TraceWindow
+    const backdrop = document.querySelector('[data-slot="dialog-backdrop"]')
+    const content = document.querySelector('[data-slot="dialog-content"]')
+    const visible = (el: Element | null) =>
+      el !== null && el.isConnected && getComputedStyle(el).display !== "none"
+
+    w.__dialogCloseTrace = new Promise<DialogCloseTrace>((resolve) => {
+      const trace: DialogCloseTrace = { backdrop: [], content: [] }
+      const deadline = performance.now() + 1500
+
+      function sample() {
+        const hasBackdrop = visible(backdrop)
+        const hasContent = visible(content)
+
+        if (hasBackdrop && backdrop) trace.backdrop.push(Number(getComputedStyle(backdrop).opacity))
+
+        if (hasContent && content) trace.content.push(Number(getComputedStyle(content).opacity))
+
+        if ((!hasBackdrop && !hasContent) || performance.now() >= deadline) {
+          resolve(trace)
+          return
+        }
+
+        requestAnimationFrame(sample)
+      }
+
+      requestAnimationFrame(sample)
+    })
+  })
+
+  await page.keyboard.press("Escape")
+  await expect(page.locator(".settings-dialog")).toBeHidden()
+
+  const trace = await page.evaluate(() => (window as TraceWindow).__dialogCloseTrace!)
+  expect(trace.backdrop.length).toBeGreaterThanOrEqual(2)
+  expect(trace.content.length).toBeGreaterThanOrEqual(2)
+  expect(trace.backdrop.at(-1)!).toBeLessThan(0.9)
+  expect(trace.content.at(-1)!).toBeLessThan(0.9)
+
+  for (const series of [trace.backdrop, trace.content]) {
+    for (let i = 1; i < series.length; i += 1) {
+      expect(series[i]!).toBeLessThanOrEqual(series[i - 1]! + 0.001)
+    }
+  }
+})

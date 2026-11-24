@@ -36,21 +36,29 @@
 
 :is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]):is(
   [data-starting-style],
-  [data-ending-style]
+  [data-ending-style],
+  [data-closed]
 ) {
   scale: 0.98;
   opacity: 0;
 }
 
-:is([data-slot="dialog-content"], [data-slot="alert-dialog-content"])[data-ending-style] {
+:is([data-slot="dialog-content"], [data-slot="alert-dialog-content"]):is(
+  [data-ending-style],
+  [data-closed]
+) {
   transition-timing-function: var(--ease-out);
 }
 
-[data-slot="alert-dialog-backdrop"] {
+:is([data-slot="dialog-backdrop"], [data-slot="alert-dialog-backdrop"]) {
   transition: opacity var(--duration-normal) var(--ease-in-out);
 }
 
-[data-slot="alert-dialog-backdrop"]:is([data-starting-style], [data-ending-style]) {
+:is([data-slot="dialog-backdrop"], [data-slot="alert-dialog-backdrop"]):is(
+  [data-starting-style],
+  [data-ending-style],
+  [data-closed]
+) {
   opacity: 0;
 }
 
@@ -197,7 +205,7 @@
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.reveal-overlay:is([data-starting-style], [data-ending-style]) {
+.reveal-overlay:is([data-starting-style], [data-ending-style], [data-closed]) {
   opacity: 0;
 }
 
@@ -284,7 +292,7 @@
     scale: 1;
   }
 
-  [data-slot="alert-dialog-backdrop"] {
+  :is([data-slot="dialog-backdrop"], [data-slot="alert-dialog-backdrop"]) {
     transition: none;
   }
 

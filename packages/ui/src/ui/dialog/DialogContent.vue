@@ -1,5 +1,5 @@
 <template>
-  <DialogBackdrop class="reveal-overlay" />
+  <DialogBackdrop />
 
   <DialogContentPrimitive
     :data-size="size"
