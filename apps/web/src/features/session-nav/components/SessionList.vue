@@ -64,20 +64,14 @@
 
         <div v-else class="session-empty">{{ t("session.empty") }}</div>
 
-        <ScrollArea v-if="shelfSections.length" class="session-shelves">
-          <ScrollAreaViewport class="session-viewport">
-            <ScrollAreaContent class="session-content">
-              <SessionSection
-                v-for="section in shelfSections"
-                :key="section.key"
-                v-bind="sectionBind(section, state)"
-                v-on="sectionOn"
-              />
-            </ScrollAreaContent>
-          </ScrollAreaViewport>
-
-          <ScrollAreaScrollbar />
-        </ScrollArea>
+        <div v-if="shelfSections.length" class="session-shelves">
+          <SessionSection
+            v-for="section in shelfSections"
+            :key="section.key"
+            v-bind="sectionBind(section, state)"
+            v-on="sectionOn"
+          />
+        </div>
 
         <SessionDragGhost :ghost="dropOut.ghost.value" />
       </nav>
@@ -373,7 +367,7 @@ onUpdated(() => {
 .session-shelves {
   flex: none;
   max-height: 60%;
-  background: var(--sidebar);
+  padding-block-end: var(--space-2xs);
 }
 
 .session-viewport {
@@ -392,18 +386,8 @@ onUpdated(() => {
   padding-block-start: var(--space-2xs);
 }
 
-.session-shelves .session-content {
-  padding-block-end: var(--space-2xs);
-}
-
 .session-edge-bottom {
   background: linear-gradient(to top, var(--sidebar), transparent);
-}
-
-.session-shelves :deep(.section-head) {
-  position: sticky;
-  top: 0;
-  background: var(--sidebar);
 }
 
 .drag-label {
