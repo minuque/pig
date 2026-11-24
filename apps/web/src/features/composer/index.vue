@@ -48,7 +48,7 @@
               <IconButton
                 v-bind="part"
                 type="button"
-                size="m"
+                size="s"
                 variant="ghost"
                 color="neutral"
                 class="press-scale"

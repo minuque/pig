@@ -5,7 +5,7 @@
         <IconButton
           v-bind="part"
           type="button"
-          size="m"
+          size="s"
           variant="ghost"
           color="neutral"
           :aria-label="`${t('composer.contextUsageBreakdown')} ${usage.percent}%`"

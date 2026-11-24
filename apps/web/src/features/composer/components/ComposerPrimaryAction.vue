@@ -133,6 +133,16 @@ function onPrimary() {
   gap: var(--space-xs);
 }
 
+.send {
+  inline-size: var(--control-md);
+  height: var(--control-md);
+}
+
+.send > svg {
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
+}
+
 .send:disabled {
   opacity: 1;
   background: var(--bg-emphasis);
