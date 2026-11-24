@@ -9,6 +9,7 @@
 - 用 ui-sdk 前，装了 ui-sdk skill 就先按它走，并读 `node_modules/@ui-sdk/vue/docs/llms.txt`；新建组件时再按标题搜 `node_modules/@ui-sdk/vue/docs/core.md`，并读同目录的 `rendering.md`。
 - 依赖缺陷不用 `patchedDependencies`、`patch-package`、本地 vendor 补丁。
 - 单测只验证产品假设和数据路径（编排与状态转换），只测实现细节的不写；整页浏览器旅程写在 `e2e/`。
+- 不写恒真断言（已删除的类名、路由、属性不存在），同一用例不重复断言同一事实；删功能时连同针对它的负断言一起删。
 
 ## 文档
 
