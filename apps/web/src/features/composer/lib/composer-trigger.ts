@@ -42,7 +42,3 @@ export function mentionPathNeedsQuoting(path: string): boolean {
 export function mentionMarkdown(path: string): string {
   return mentionPathNeedsQuoting(path) ? `@${JSON.stringify(path)}` : `@${path}`
 }
-
-export function triggerKey(trigger: ComposerTrigger): string {
-  return trigger ? `${trigger.kind}:${trigger.start}:${trigger.query}` : ""
-}

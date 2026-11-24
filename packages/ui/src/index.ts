@@ -77,3 +77,5 @@ export * from "./ui/toggle/index.js"
 export * from "./ui/toolbar/index.js"
 
 export * from "./ui/tooltip/index.js"
+
+export * from "./ui/trigger-menu/index.js"

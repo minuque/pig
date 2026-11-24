@@ -1,81 +1,82 @@
 <template>
-  <div
-    :id="menuId"
-    class="command-menu"
-    role="listbox"
-    :aria-label="t('composer.commandMenuLabel')"
-    @mousedown.prevent
-  >
-    <div class="command-scroll">
-      <div class="command-body">
-        <template v-if="groups.length">
-          <div v-for="group in groups" :key="group.id" class="command-group">
-            <p v-if="group.label" class="command-label">{{ group.label }}</p>
+  <div class="command-scroll">
+    <div class="command-body">
+      <TriggerMenuList v-slot="{ state }" :aria-label="t('composer.commandMenuLabel')">
+        <TriggerMenuGroup
+          v-for="group in state.items as TriggerMenuDataGroup[]"
+          :key="group.label ?? 'items'"
+          class="command-group"
+        >
+          <TriggerMenuGroupLabel v-if="group.label" class="command-label">
+            {{ group.label }}
+          </TriggerMenuGroupLabel>
 
-            <div
-              v-for="row in group.rows"
-              :id="rowElementId(row.id)"
-              :key="row.id"
-              role="option"
-              class="command-row"
-              :aria-selected="row.id === activeId"
-              @mousemove="emit('highlight', row.id)"
-              @click="emit('select', row.id)"
-            >
+          <TriggerMenuItem
+            v-for="item in group.items as TriggerMenuDataItem[]"
+            :key="item.value"
+            :value="item.value"
+            :label="item.label"
+            class="command-row"
+          >
+            <template v-if="rows.get(item.value)" #default>
               <component
-                :is="rowIcon(row)"
-                v-bind="rowIconProps(row)"
+                :is="rowIcon(rows.get(item.value)!)"
+                v-bind="rowIconProps(rows.get(item.value)!)"
                 class="command-icon"
                 aria-hidden="true"
               />
 
               <span class="command-main">
-                <span class="command-title">{{ row.title }}</span>
+                <span class="command-title">{{ item.label }}</span>
 
-                <span v-if="row.secondary" class="command-secondary" :title="row.secondary">
-                  {{ row.secondary }}
+                <span
+                  v-if="rows.get(item.value)?.secondary"
+                  class="command-secondary"
+                  :title="rows.get(item.value)?.secondary"
+                >
+                  {{ rows.get(item.value)?.secondary }}
                 </span>
               </span>
-            </div>
-          </div>
-        </template>
+            </template>
+          </TriggerMenuItem>
+        </TriggerMenuGroup>
+      </TriggerMenuList>
 
-        <p v-else class="command-status" role="status">{{ statusText }}</p>
-      </div>
+      <TriggerMenuEmpty v-slot="{ state }" class="command-status">
+        {{ state.loading ? t("composer.commandLoading") : emptyText }}
+      </TriggerMenuEmpty>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, watch, type Component } from "vue"
+import type { Component } from "vue"
 import { useI18n } from "@i18n/index.js"
+import {
+  TriggerMenuEmpty,
+  TriggerMenuGroup,
+  TriggerMenuGroupLabel,
+  TriggerMenuItem,
+  TriggerMenuList,
+  type TriggerMenuDataGroup,
+  type TriggerMenuDataItem,
+} from "@pig/ui/trigger-menu"
 import { SquareCodeIcon, FileTextIcon, FolderIcon, BlocksIcon } from "@components/icons/index.js"
 import LanguageIcon from "@components/icons/LanguageIcon.vue"
-import type { CommandMenuGroup, CommandMenuRow } from "@features/composer/type.js"
+import type { CommandMenuRow } from "@features/composer/type.js"
 
 const KIND_ICONS: Record<string, Component> = {
   skill: BlocksIcon,
   builtin: SquareCodeIcon,
   directory: FolderIcon,
 }
-const props = withDefaults(
-  defineProps<{
-    groups: CommandMenuGroup[]
-    activeId: string | null
-    menuId?: string
-    loading?: boolean
-    emptyText?: string
-  }>(),
-  { menuId: "composer-command-menu", loading: false },
-)
-const emit = defineEmits<{
-  select: [id: string]
-  highlight: [id: string]
+
+defineProps<{
+  rows: ReadonlyMap<string, CommandMenuRow>
+  emptyText: string
 }>()
+
 const { t } = useI18n()
-const statusText = computed(() =>
-  props.loading ? t("composer.commandLoading") : (props.emptyText ?? t("composer.commandEmpty")),
-)
 
 function rowIcon(row: CommandMenuRow) {
   if (row.kind === "file") return LanguageIcon
@@ -90,38 +91,9 @@ function rowLanguage(name: string): string {
   const dot = name.lastIndexOf(".")
   return (dot > 0 ? name.slice(dot + 1) : name).toLowerCase()
 }
-
-function rowElementId(id: string): string {
-  return `${props.menuId}-row-${encodeURIComponent(id)}`
-}
-
-watch(
-  () => props.activeId,
-  async (id) => {
-    if (!id) return
-    await nextTick()
-    document.getElementById(rowElementId(id))?.scrollIntoView({ block: "nearest" })
-  },
-)
 </script>
 
 <style scoped>
-.command-menu {
-  position: absolute;
-  inset-inline: 0;
-  bottom: calc(100% - var(--composer-radius));
-  display: flex;
-  flex-direction: column;
-  max-height: calc(280px + var(--composer-radius));
-  overflow: hidden;
-  padding-bottom: var(--composer-radius);
-  border-radius: var(--radius-dialog) var(--radius-dialog) 0 0;
-  background-color: var(--bg-raised);
-  box-shadow: inset 0 0 0 var(--border-width) var(--border);
-  color: var(--fg);
-  font-size: var(--text-body);
-}
-
 .command-scroll {
   flex: 1 1 auto;
   min-height: 0;
@@ -160,8 +132,7 @@ watch(
   transition: background var(--duration-fast) var(--ease-out);
 }
 
-.command-row:hover,
-.command-row[aria-selected="true"] {
+.command-row[data-highlighted] {
   background: var(--bg-hover);
 }
 

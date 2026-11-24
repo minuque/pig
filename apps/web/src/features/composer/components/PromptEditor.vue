@@ -1,17 +1,28 @@
 <template>
-  <div class="composer" @mousedown="onComposerMousedown">
-    <div class="composer-plates">
+  <TriggerMenu
+    v-bind="field?.triggerEditor ? { editor: field.triggerEditor } : {}"
+    :triggers="commandMenu.triggers"
+    :controller="menuController"
+    @select="commandMenu.onSelect"
+    @open-change="onMenuOpenChange"
+  >
+    <TriggerMenuContent
+      class="command-menu"
+      :anchor="plates"
+      side="top"
+      align="start"
+      :side-offset="-18"
+      @mousedown.prevent
+    >
       <CommandMenu
-        v-if="commandMenu.open.value"
-        :groups="commandMenu.groups.value"
-        :active-id="commandMenu.activeId.value"
-        :loading="commandMenu.loading.value"
-        :empty-text="commandMenu.emptyText.value"
-        :menu-id="commandMenu.menuId"
-        @select="commandMenu.select"
-        @highlight="(id) => (commandMenu.activeId.value = id)"
+        :rows="commandMenu.rows.value"
+        :empty-text="commandMenu.emptyText(menuTrigger)"
       />
+    </TriggerMenuContent>
+  </TriggerMenu>
 
+  <div class="composer" @mousedown="onComposerMousedown">
+    <div ref="plates" class="composer-plates" :class="{ 'has-menu': menuOpen }">
       <slot name="plate" />
     </div>
 
@@ -40,13 +51,11 @@
             v-model="prompt"
             :disabled="props.disabled"
             :aria-placeholder="placeholderText"
-            :aria-controls="commandMenu.open.value ? commandMenu.menuId : undefined"
-            :aria-activedescendant="commandMenu.activeDescendantId.value"
+            :menu-open="menuOpen"
             @caret="onCaret"
             @keydown="onEditorKeydown"
             @paste-files="emit('pasteFiles', $event)"
             @composing="composing = $event"
-            @blur="commandMenu.close()"
             @open-file="emit('openFile', $event)"
             @jump-reply="emit('jumpReply', $event)"
             @submit="emit('submit')"
@@ -98,6 +107,7 @@ import {
   useComposerShortcuts,
 } from "@features/composer/hooks/use-composer-shortcuts.js"
 import { trySplitView, usePaneSide } from "@features/split-view/index.js"
+import { TriggerMenu, TriggerMenuContent, createTriggerMenuController } from "@pig/ui/trigger-menu"
 import CommandMenu from "@features/composer/components/CommandMenu.vue"
 import PromptField from "@features/composer/components/PromptField.vue"
 import type { ComposerCaret, ReplyInsertRequest } from "@features/composer/type.js"
@@ -125,17 +135,20 @@ const emit = defineEmits<{
 const field = useTemplateRef("field")
 const composing = ref(false)
 const caret = ref(0)
-const edited = ref(false)
 const inCode = ref(false)
 const split = trySplitView()
 const side = usePaneSide()
 const isPaneActive = () => !split || split.focused.value === side
 const showPlaceholder = computed(() => !prompt.value.length && !composing.value)
 const placeholderText = computed(() => props.placeholder ?? t("composer.placeholder"))
+const plates = useTemplateRef<HTMLElement>("plates")
+const menuOpen = ref(false)
+const menuTrigger = ref<string | null>(null)
+const menuController = createTriggerMenuController()
 const commandMenu = useCommandMenu({
   prompt,
   caret,
-  edited,
+  markdownOffset: (pos) => field.value?.markdownOffset(pos) ?? 0,
   inCode: () => inCode.value,
   cwd: () => props.cwd,
   hasSession: () => props.hasSession ?? false,
@@ -146,8 +159,8 @@ const commandMenu = useCommandMenu({
 })
 const shortcuts = useComposerShortcuts({
   active: isPaneActive,
-  menuOpen: () => commandMenu.open.value,
-  closeMenu: () => commandMenu.dismiss(),
+  menuOpen: () => menuOpen.value,
+  closeMenu: () => menuController.close(),
   cancelQueueEdit: () => {
     if (!props.editingQueue) return false
     emit("cancelQueueEdit")
@@ -165,12 +178,22 @@ const shortcuts = useComposerShortcuts({
 
 function onCaret(payload: ComposerCaret) {
   caret.value = payload.offset
-  edited.value = payload.edited
   inCode.value = payload.inCode
 }
 
+function onMenuOpenChange(
+  open: boolean,
+  details: { trigger: string | null; canceled?: boolean; cancel(): void },
+) {
+  commandMenu.onOpenChange(open, details)
+
+  if (details.canceled) return
+  menuOpen.value = open
+  menuTrigger.value = details.trigger
+}
+
 function onEditorKeydown(event: KeyboardEvent) {
-  if (commandMenu.onKeydown(event) || shortcuts.onKeydown(event)) return
+  if (shortcuts.onKeydown(event)) return
 
   if (!shouldSubmitOnKeydown(event)) return
   event.preventDefault()
@@ -196,7 +219,7 @@ defineExpose({
   insertMarkdown,
   insertReply,
   replyCommentOpen,
-  menuOpen: commandMenu.open,
+  menuOpen,
   steerHeld: shortcuts.steerHeld,
 })
 </script>
@@ -208,12 +231,26 @@ defineExpose({
   margin-inline: auto;
 }
 
+.command-menu {
+  display: flex;
+  flex-direction: column;
+  inline-size: var(--anchor-width);
+  max-height: calc(280px + var(--composer-radius));
+  overflow: hidden;
+  padding-bottom: var(--composer-radius);
+  border-radius: var(--radius-dialog) var(--radius-dialog) 0 0;
+  background-color: var(--bg-raised);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border);
+  color: var(--fg);
+  font-size: var(--text-body);
+}
+
 .composer-plates {
   position: relative;
   margin-inline: var(--space-md);
 }
 
-.composer-plates:has(.command-menu) :slotted(.turn-status) {
+.composer-plates.has-menu :slotted(.turn-status) {
   border-radius: 0;
 }
 

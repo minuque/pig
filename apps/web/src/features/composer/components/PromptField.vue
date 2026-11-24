@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from "vue"
+import { computed, watch } from "vue"
 import { EditorContent, useEditor } from "@tiptap/vue-3"
 import ReplyCommentPopover from "@features/composer/components/ReplyCommentPopover.vue"
 import { clipboardFiles } from "@features/composer/hooks/use-composer-attachments.js"
@@ -38,14 +38,14 @@ import {
   stepCaretOnArrow,
 } from "@features/composer/lib/editor/keys.js"
 import { isInCodeContext } from "@features/composer/lib/editor/markdown-source.js"
+import { createTriggerAdapter } from "@features/composer/lib/editor/trigger-adapter.js"
 import { wrapSelectionOnInput } from "@features/composer/lib/editor/surround.js"
 import type { ChipInsert, ComposerCaret } from "@features/composer/type.js"
 
 const props = defineProps<{
   modelValue: string
   ariaPlaceholder?: string | undefined
-  ariaControls?: string | undefined
-  ariaActivedescendant?: string | undefined
+  menuOpen?: boolean | undefined
   disabled?: boolean | undefined
 }>()
 const emit = defineEmits<{
@@ -61,6 +61,8 @@ const emit = defineEmits<{
 }>()
 let syncedText = props.modelValue
 let shiftHeld = false
+let external = false
+const MENU_KEYS = new Set(["ArrowUp", "ArrowDown", "Enter", "Tab", "Escape"])
 const editor = useEditor({
   content: buildDocJson(props.modelValue),
   editable: props.disabled !== true,
@@ -77,6 +79,7 @@ const editor = useEditor({
       },
       copy: (view, event) => copySelection(view, event, false),
       cut: (view, event) => copySelection(view, event, true),
+      keydown: (_view, event) => Boolean(props.menuOpen) && MENU_KEYS.has(event.key),
       compositionstart: () => {
         emit("composing", true)
         return false
@@ -90,6 +93,11 @@ const editor = useEditor({
   onTransaction: ({ transaction }) => sync(transaction.docChanged),
   onBlur: () => emit("blur"),
 })
+const triggerEditor = computed(() =>
+  editor.value
+    ? createTriggerAdapter(editor.value, { external: () => external, submit: () => emit("submit") })
+    : undefined,
+)
 const reply = useReplyComment({
   editor,
   onOpenFile: (path) => emit("openFile", path),
@@ -120,7 +128,9 @@ watch(
 
     if (next === syncedText || !instance || instance.isDestroyed) return
     syncedText = next
+    external = true
     instance.commands.setContent(buildDocJson(next), { emitUpdate: false })
+    external = false
 
     if (instance.isFocused) selectMarkdownOffset(instance, next, next.length)
     sync(true)
@@ -135,8 +145,6 @@ function viewAttributes(): Record<string, string> {
     "aria-label": "Prompt",
     "aria-autocomplete": "list",
     ...(props.ariaPlaceholder ? { "aria-placeholder": props.ariaPlaceholder } : {}),
-    ...(props.ariaControls ? { "aria-controls": props.ariaControls } : {}),
-    ...(props.ariaActivedescendant ? { "aria-activedescendant": props.ariaActivedescendant } : {}),
   }
 }
 
@@ -166,9 +174,8 @@ function sync(edited: boolean) {
 function onFieldKeydown(event: KeyboardEvent): boolean {
   shiftHeld = event.shiftKey
   const instance = editor.value
-  const menuActive = Boolean(props.ariaControls && props.ariaActivedescendant)
 
-  if (instance && !menuActive) {
+  if (instance) {
     if (stepCaretOnArrow(instance.view, event)) return true
 
     if (handleEnter(instance, event) || handleTab(instance, event)) return true
@@ -223,7 +230,14 @@ function insertMarkdown(text: string) {
   if (editor.value && !editor.value.isDestroyed) insertMarkdownAtEnd(editor.value, text)
 }
 
+function markdownOffset(pos: number): number {
+  const instance = editor.value
+  return instance ? markdownOffsetAt(instance.state.doc, pos) : 0
+}
+
 defineExpose({
+  triggerEditor,
+  markdownOffset,
   focus,
   blur,
   insertChip,
