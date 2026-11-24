@@ -217,7 +217,6 @@ export function sidebarItemProps(
     settled: section.kind === "settled",
     variant: section.kind === "settled" ? "slim" : "card",
     startedAt: ctx.runningSince[session.id],
-    draggable: !draft,
     state: ctx.cardFootById.get(session.id)?.state,
     placeholder: draft,
   } as const

@@ -165,7 +165,7 @@ export function useComposerShortcuts(options: ComposerShortcutsOptions): Compose
     options.pasteFiles(files)
   }
 
-  useEventListener(window, "keydown", onWindowKeydown, { capture: true })
+  useEventListener(window, "keydown", onWindowKeydown)
   useEventListener(window, "keyup", onWindowKeyup)
   useEventListener(window, "paste", onWindowPaste)
   useEventListener(window, "blur", shortcuts.releaseModifiers)

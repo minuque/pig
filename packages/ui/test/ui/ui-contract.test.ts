@@ -8,6 +8,7 @@ import { Card, CardList, CardRow } from "../../src/ui/card/index.js"
 import { Spinner } from "../../src/ui/spinner/index.js"
 import { StatusIndicator } from "../../src/ui/status-indicator/index.js"
 import { TextFieldRoot } from "../../src/ui/text-field/index.js"
+import { TransferItem, TransferList, TransferListsRoot } from "../../src/ui/transfer-lists/index.js"
 
 async function renderComponent(
   component: Component,
@@ -166,5 +167,22 @@ describe("UI component contracts", () => {
     expect(fieldHtml).toContain("data-invalid")
     expect(fieldHtml).toContain("data-text-field-input")
     expect(fieldHtml).toContain('aria-invalid="true"')
+  })
+
+  it("TransferListsRoot / TransferList / TransferItem 输出分组与列表项插槽", async () => {
+    const html = await renderComponent(
+      TransferListsRoot,
+      { defaultValue: { pinned: ["a"], active: ["b"] } },
+      {
+        default: () => [
+          h(TransferList, { value: "pinned" }, () => [h(TransferItem, { value: "a" }, () => "A")]),
+          h(TransferList, { value: "active" }, () => [h(TransferItem, { value: "b" }, () => "B")]),
+        ],
+      },
+    )
+
+    expect(html).toContain('data-slot="transfer-lists"')
+    expect(html).toContain('data-slot="transfer-lists-list"')
+    expect(html).toContain('data-slot="transfer-lists-item"')
   })
 })

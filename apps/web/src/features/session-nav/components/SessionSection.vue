@@ -4,92 +4,82 @@
     @update:open="(next: boolean) => next !== open && emit('toggleSection', section.key)"
   >
     <template #render="{ props: part }">
-      <section
-        v-bind="part"
-        class="session-section"
-        :class="{ 'is-sorting': sorting }"
-        :data-key="section.key"
-      >
-        <div
-          v-if="isShelf"
-          class="section-head"
-          :class="{ 'is-sorting': sorting, 'is-drop-target': dropTarget }"
-          :data-drag-key="`${section.key}-head`"
-          :style="shiftStyle(`${section.key}-head`)"
+      <section v-bind="part" class="session-section" :data-key="section.key">
+        <component
+          :is="list ? TransferList : 'div'"
+          v-bind="list ? { value: list } : {}"
+          class="section-body"
         >
-          <CollapsibleTrigger>
-            <template #render="{ props: trigger }">
-              <button v-bind="trigger" class="section-toggle" type="button">
-                <span class="section-label">{{ section.label }}</span>
-                <span class="section-rule" aria-hidden="true"></span>
-                <span class="section-count">{{ section.total }}</span>
-                <ChevronDownIcon class="size-icon-sm section-chevron" />
-              </button>
-            </template>
-          </CollapsibleTrigger>
-        </div>
+          <div v-if="isShelf" class="section-head">
+            <CollapsibleTrigger>
+              <template #render="{ props: trigger }">
+                <button v-bind="trigger" class="section-toggle" type="button">
+                  <span class="section-label">{{ section.label }}</span>
+                  <span class="section-rule" aria-hidden="true"></span>
+                  <span class="section-count">{{ section.total }}</span>
+                  <ChevronDownIcon class="size-icon-sm section-chevron" />
+                </button>
+              </template>
+            </CollapsibleTrigger>
+          </div>
 
-        <CollapsibleContent class="section-panel">
-          <TransitionGroup :name="motion ? 'list-reveal' : 'none'" tag="ul" class="section-rows">
-            <li
-              v-for="session in section.sessions"
-              :key="session.id"
-              class="session-row"
-              :class="{ 'is-drag-source': dragId === session.id }"
-              :style="shiftStyle(session.id)"
-              :data-id="session.id"
-              :data-drag-key="session.id"
-              data-drag-item="row"
-            >
-              <SessionItem
-                v-bind="itemBind(session)"
-                :swept="swept.has(session.id)"
-                @navigate="emit('navigate', $event)"
-                @open="emit('open', $event)"
-                @prime="emit('prime', $event)"
-                @toggle-pinned="emit('togglePinned', $event)"
-                @rename="(id, name) => emit('rename', id, name)"
-                @delete="emit('delete', $event)"
-                @settle="emit('settle', $event)"
-                @unsettle="emit('unsettle', $event)"
-                @archive="emit('archive', $event)"
-                @drag-start="emit('dragStart', section.key, session.id, $event)"
-                @sweep-start="emit('sweepStart', section.key, session.id, $event)"
-              />
-            </li>
-
-            <li
-              v-if="
-                section.kind === 'settled' &&
-                (section.shown < section.total || (moreBySection[section.key] ?? 0) > 0)
-              "
-              :key="`more:${section.key}`"
-              class="session-row more-row"
-              :data-drag-key="`more:${section.key}`"
-              :style="shiftStyle(`more:${section.key}`)"
-            >
-              <button
-                v-if="section.shown < section.total"
-                class="more-button"
-                type="button"
-                @click="emit('revealMore', section.key)"
+          <CollapsibleContent class="section-panel">
+            <TransitionGroup :name="motion ? 'list-reveal' : 'none'" tag="ul" class="section-rows">
+              <component
+                :is="list ? TransferItem : 'li'"
+                v-for="session in rows"
+                :key="session.id"
+                v-bind="list ? { value: session.id } : {}"
+                class="session-row"
+                :data-id="session.id"
               >
-                <ChevronDownIcon class="size-icon-lg more-icon" />
-                {{ t("common.showMore") }}
-              </button>
+                <SessionItem
+                  v-bind="itemBind(session)"
+                  :swept="swept.has(session.id)"
+                  @navigate="emit('navigate', $event)"
+                  @open="emit('open', $event)"
+                  @prime="emit('prime', $event)"
+                  @toggle-pinned="emit('togglePinned', $event)"
+                  @rename="(id, name) => emit('rename', id, name)"
+                  @delete="emit('delete', $event)"
+                  @settle="emit('settle', $event)"
+                  @unsettle="emit('unsettle', $event)"
+                  @archive="emit('archive', $event)"
+                  @sweep-start="emit('sweepStart', section.key, session.id, $event)"
+                />
+              </component>
 
-              <button
-                v-else
-                class="more-button"
-                type="button"
-                @click="emit('collapseGroup', section.key)"
+              <li
+                v-if="
+                  section.kind === 'settled' &&
+                  (section.shown < section.total || (moreBySection[section.key] ?? 0) > 0)
+                "
+                :key="`more:${section.key}`"
+                class="session-row more-row"
               >
-                <ChevronDownIcon class="size-icon-lg more-icon is-up" />
-                {{ t("common.collapse") }}
-              </button>
-            </li>
-          </TransitionGroup>
-        </CollapsibleContent>
+                <button
+                  v-if="section.shown < section.total"
+                  class="more-button"
+                  type="button"
+                  @click="emit('revealMore', section.key)"
+                >
+                  <ChevronDownIcon class="size-icon-lg more-icon" />
+                  {{ t("common.showMore") }}
+                </button>
+
+                <button
+                  v-else
+                  class="more-button"
+                  type="button"
+                  @click="emit('collapseGroup', section.key)"
+                >
+                  <ChevronDownIcon class="size-icon-lg more-icon is-up" />
+                  {{ t("common.collapse") }}
+                </button>
+              </li>
+            </TransitionGroup>
+          </CollapsibleContent>
+        </component>
       </section>
     </template>
   </Collapsible>
@@ -99,6 +89,7 @@
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@pig/ui/collapsible"
+import { TransferItem, TransferList } from "@pig/ui/transfer-lists"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import { ChevronDownIcon } from "@components/icons/index.js"
 import { sidebarItemProps } from "@features/session-nav/lib/session-list.js"
@@ -111,10 +102,9 @@ const props = defineProps<{
   cardFootById: ReadonlyMap<string, SidebarRowFoot>
   pinnedIds: ReadonlySet<string>
   runningSince: Record<string, number>
-  dragId: string | undefined
-  offsets: ReadonlyMap<string, number>
-  sorting: boolean
-  dropTarget: boolean
+  list?: string | undefined
+  order?: readonly string[] | undefined
+  sessionsById: ReadonlyMap<string, SidebarSession>
   motion: boolean
   swept: ReadonlySet<string>
   moreBySection: Record<string, number>
@@ -129,7 +119,6 @@ const emit = defineEmits<{
   settle: [id: string]
   unsettle: [id: string]
   archive: [id: string]
-  dragStart: [sectionKey: string, id: string, event: PointerEvent]
   sweepStart: [sectionKey: string, id: string, event: PointerEvent]
   toggleSection: [key: string]
   revealMore: [key: string]
@@ -138,11 +127,11 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const isShelf = computed(() => props.section.kind === "working" || props.section.kind === "settled")
 const open = computed(() => (isShelf.value ? props.expandedSections.has(props.section.key) : true))
-
-function shiftStyle(key: string): Record<string, string> | undefined {
-  const shift = props.offsets.get(key)
-  return shift ? { transform: `translateY(${shift}px)` } : undefined
-}
+const rows = computed<readonly SidebarSession[]>(() =>
+  props.order
+    ? props.order.flatMap((id) => props.sessionsById.get(id) ?? [])
+    : props.section.sessions,
+)
 
 function itemBind(session: SidebarSession) {
   return sidebarItemProps(props.section, session, props)
@@ -163,11 +152,7 @@ function itemBind(session: SidebarSession) {
   min-width: 0;
 }
 
-.section-head.is-sorting .section-toggle {
-  color: var(--fg);
-}
-
-.section-head.is-drop-target .section-toggle {
+.section-body[data-drop-target] .section-toggle {
   color: var(--accent-text);
 }
 
@@ -248,13 +233,11 @@ function itemBind(session: SidebarSession) {
   padding-block: 2px;
 }
 
-.session-section.is-sorting .session-row,
-.section-head.is-sorting {
-  transition: transform var(--duration-fast) var(--ease-out);
-}
-
-.session-row.is-drag-source {
-  visibility: hidden;
+.session-row[data-dragging] :deep(.session-card) {
+  outline: var(--border-width) dashed var(--accent-solid);
+  outline-offset: -1px;
+  background: var(--info-subtle);
+  opacity: 0.6;
 }
 
 .more-button {
@@ -290,8 +273,6 @@ function itemBind(session: SidebarSession) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .session-section.is-sorting .session-row,
-  .section-head.is-sorting,
   .section-chevron {
     transition: none;
   }

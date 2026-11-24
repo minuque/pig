@@ -1,105 +1,127 @@
 <template>
-  <nav
-    ref="listEl"
-    class="nav-body session-list"
-    :class="{ 'is-dragging': !!drag, 'is-scrolled': scrolled }"
+  <TransferListsRoot
+    :value="lists"
+    :order="listOrder"
+    :disabled="isLocked"
+    :grab-key="isGrabKey"
+    :item-label="titleOf"
+    :list-label="listLabel"
+    :message="announce"
+    @value-change="onTransfer"
+    @moving-change="dropOut.track"
   >
-    <div v-if="sections.length" ref="windowEl" class="session-window" @scroll.passive="onScroll">
-      <div
-        v-if="sorting"
-        class="drag-label"
-        :class="{ 'is-target': zone === 'pinned', 'is-hidden': outside }"
-        data-drag-key="pinned-head"
-        data-drag-item="label"
-        :style="shiftStyle('pinned-head')"
+    <template #render="{ props: part, state }">
+      <nav
+        v-bind="part"
+        ref="listEl"
+        :aria-label="t('session.title')"
+        class="nav-body session-list"
+        :class="{
+          'is-dragging': !!state.moving,
+          'is-outside': dropOut.outside.value,
+          'is-scrolled': scrolled,
+        }"
       >
-        <span class="drag-label-inner">
-          <span class="drag-label-text">{{ t("session.pinned") }}</span>
-          <span class="drag-label-line" aria-hidden="true"></span>
-        </span>
-      </div>
-
-      <div
-        v-if="sorting && !pinnedSection"
-        class="drop-slot"
-        :class="{ 'is-shown': zone === 'pinned' }"
-        data-drag-key="pinned-slot"
-        data-drag-item="slot"
-        :style="shiftStyle('pinned-slot')"
-      >
-        <div class="drop-slot-box" :style="slotBoxStyle">{{ t("session.pinned") }}</div>
-      </div>
-
-      <SessionSection v-if="pinnedSection" v-bind="sectionBind(pinnedSection)" v-on="sectionOn" />
-
-      <div
-        v-if="sorting"
-        class="drag-label"
-        :class="{ 'is-target': zone === 'active', 'is-hidden': outside }"
-        data-drag-key="pinned-divider"
-        data-drag-item="label"
-        :style="shiftStyle('pinned-divider')"
-      >
-        <span class="drag-label-inner">
-          <span class="drag-label-text">{{ t("session.sectionInbox") }}</span>
-          <span class="drag-label-line" aria-hidden="true"></span>
-        </span>
-      </div>
-
-      <SessionSection v-if="activeSection" v-bind="sectionBind(activeSection)" v-on="sectionOn" />
-      <div class="session-edge-bottom edge-veil-bottom" aria-hidden="true"></div>
-    </div>
-
-    <div v-else class="session-empty">{{ t("session.empty") }}</div>
-
-    <div v-if="shelfSections.length" ref="shelvesEl" class="session-shelves">
-      <SessionSection
-        v-for="section in shelfSections"
-        :key="section.key"
-        v-bind="sectionBind(section)"
-        v-on="sectionOn"
-      />
-    </div>
-
-    <Teleport to="body">
-      <div v-if="overlay" class="session-drag-layer">
         <div
-          v-show="!outside"
-          class="drag-overlay"
-          :style="{
-            top: `${overlayTop}px`,
-            left: `${overlay.left}px`,
-            width: `${overlay.width}px`,
-          }"
+          v-if="sections.length"
+          ref="windowEl"
+          class="session-window"
+          @scroll.passive="onScroll"
         >
-          <SessionItem v-bind="overlay.props" dragging :drop-verb="verb" />
+          <div
+            v-if="state.moving"
+            class="drag-label"
+            :class="{ 'is-target': state.to === 'pinned' }"
+          >
+            <span class="drag-label-text">{{ t("session.pinned") }}</span>
+            <span class="drag-label-line" aria-hidden="true"></span>
+          </div>
+
+          <SessionSection
+            v-bind="sectionBind(pinnedSection ?? emptyPinned, state)"
+            :class="{ 'pinned-drop': !pinnedSection }"
+            v-on="sectionOn"
+          />
+
+          <div
+            v-if="state.moving"
+            class="drag-label"
+            :class="{ 'is-target': state.to === 'active' }"
+          >
+            <span class="drag-label-text">{{ t("session.sectionInbox") }}</span>
+            <span class="drag-label-line" aria-hidden="true"></span>
+          </div>
+
+          <SessionSection
+            v-if="activeSection"
+            v-bind="sectionBind(activeSection, state)"
+            v-on="sectionOn"
+          />
+
+          <div class="session-edge-bottom edge-veil-bottom" aria-hidden="true"></div>
         </div>
 
-        <div
-          v-if="ghost"
-          class="drag-ghost"
-          :style="{ transform: `translate(${ghost.x + 12}px, ${ghost.y + 12}px)` }"
-        >
-          <MessageSquareIcon class="size-icon" />
-          <span class="drag-ghost-title">{{ overlay.props.session.title }}</span>
+        <div v-else class="session-empty">{{ t("session.empty") }}</div>
+
+        <div v-if="shelfSections.length" class="session-shelves">
+          <SessionSection
+            v-for="section in shelfSections"
+            :key="section.key"
+            v-bind="sectionBind(section, state)"
+            v-on="sectionOn"
+          />
         </div>
-      </div>
-    </Teleport>
-  </nav>
+
+        <Teleport to="body">
+          <div
+            v-if="dropOut.ghost.value"
+            class="drag-ghost"
+            :style="{
+              transform: `translate(${dropOut.ghost.value.x + 12}px, ${dropOut.ghost.value.y + 12}px)`,
+            }"
+          >
+            <MessageSquareIcon class="size-icon" />
+            <span class="drag-ghost-title">{{ dropOut.ghost.value.title }}</span>
+          </div>
+        </Teleport>
+      </nav>
+    </template>
+  </TransferListsRoot>
 </template>
 
 <script setup lang="ts">
 import { computed, onUpdated, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { MessageSquareIcon } from "@components/icons/index.js"
-import SessionItem from "@features/session-nav/components/SessionItem.vue"
+import {
+  TransferListsRoot,
+  type TransferChangeDetails,
+  type TransferLists,
+  type TransferMessage,
+} from "@pig/ui/transfer-lists"
 import SessionSection from "@features/session-nav/components/SessionSection.vue"
 import { useRowSweep } from "@features/session-nav/hooks/use-row-sweep.js"
-import { useSessionDrag } from "@features/session-nav/hooks/use-session-drag.js"
-import type { DropPlan } from "@features/session-nav/lib/drag-plan.js"
-import { sidebarItemProps } from "@features/session-nav/lib/session-list.js"
-import type { SidebarRowFoot, SidebarSection } from "@features/session-nav/type.js"
+import { useSessionDropOut } from "@features/session-nav/hooks/use-session-drop-out.js"
+import {
+  pinnedSlot,
+  planDrop,
+  type DropPlan,
+  type DropZone,
+} from "@features/session-nav/lib/drag-plan.js"
+import type {
+  SidebarRowFoot,
+  SidebarSection,
+  SidebarSectionKind,
+  SidebarSession,
+} from "@features/session-nav/type.js"
 
+const LISTS = ["pinned", "active", "settled"] as const
+const MESSAGE_KEYS = {
+  grab: "session.dragGrab",
+  move: "session.dragMove",
+  drop: "session.dragDrop",
+  cancel: "session.dragCancel",
+} as const
 const props = defineProps<{
   sections: readonly SidebarSection[]
   cardFootById: ReadonlyMap<string, SidebarRowFoot>
@@ -132,37 +154,42 @@ const activeSection = computed(() => props.sections.find((section) => section.ki
 const shelfSections = computed(() =>
   props.sections.filter((section) => section.kind === "working" || section.kind === "settled"),
 )
+const emptyPinned = computed<SidebarSection>(() => ({
+  key: "pinned",
+  kind: "pinned",
+  label: t("session.pinned"),
+  sessions: [],
+  shown: 0,
+  total: 0,
+}))
+const sessionsById = computed(
+  () =>
+    new Map<string, SidebarSession>(
+      props.sections.flatMap((section) => section.sessions.map((item) => [item.id, item])),
+    ),
+)
+const kindById = computed(
+  () =>
+    new Map<string, SidebarSectionKind>(
+      props.sections.flatMap((section) => section.sessions.map((item) => [item.id, section.kind])),
+    ),
+)
+const lists = computed<TransferLists>(() =>
+  Object.fromEntries(
+    LISTS.map((kind) => [
+      kind,
+      (props.sections.find((section) => section.kind === kind)?.sessions ?? []).map(
+        (item) => item.id,
+      ),
+    ]),
+  ),
+)
 const listEl = shallowRef<HTMLElement>()
 const scrolled = shallowRef(false)
 const windowEl = shallowRef<HTMLElement>()
-const shelvesEl = shallowRef<HTMLElement>()
-
-function commit(id: string, plan: DropPlan): void {
-  if (plan.kind === "reorder-pinned") emit("reorderPinned", id, plan.slot)
-  else if (plan.kind === "pin") emit("pinAt", id, plan.slot)
-  else if (plan.kind === "unpin") emit("unpin", id)
-  else if (plan.kind === "settle") emit("settle", id)
-  else if (plan.kind === "unsettle") emit("unsettle", id)
-}
-
-const {
-  drag,
-  zone,
-  offsets,
-  overlayTop,
-  outside,
-  ghost,
-  releasing,
-  sorting,
-  verb,
-  start: startDrag,
-} = useSessionDrag({
-  list: listEl,
-  window: windowEl,
-  shelves: shelvesEl,
-  sections: () => props.sections,
-  pinnedOrder: () => [...props.pinnedIds],
-  commit,
+const dropOut = useSessionDropOut({
+  bounds: () => listEl.value,
+  title: (id) => sessionsById.value.get(id)?.title,
 })
 const sweep = useRowSweep({
   list: listEl,
@@ -174,13 +201,6 @@ const sweep = useRowSweep({
     }
   },
 })
-const overlay = computed(() => {
-  const d = drag.value
-  return d
-    ? { left: d.left, width: d.width, props: sidebarItemProps(d.section, d.session, props) }
-    : undefined
-})
-const slotBoxStyle = computed(() => ({ height: `${(drag.value?.height ?? 0) - 4}px` }))
 const sectionOn = {
   navigate: (cwd: string | undefined) => emit("navigate", cwd),
   open: (id: string) => emit("open", id),
@@ -191,32 +211,89 @@ const sectionOn = {
   settle: (id: string) => emit("settle", id),
   unsettle: (id: string) => emit("unsettle", id),
   archive: (id: string) => emit("archive", id),
-  dragStart: startDrag,
   sweepStart: sweep.start,
   toggleSection: (key: string) => emit("toggleSection", key),
   revealMore: (key: string) => emit("revealMore", key),
   collapseGroup: (key: string) => emit("collapseGroup", key),
 }
+const listOrder = () => [...LISTS]
+const isGrabKey = (event: KeyboardEvent) =>
+  event.key === " " &&
+  !event.altKey &&
+  !event.ctrlKey &&
+  !event.metaKey &&
+  !event.shiftKey &&
+  !(
+    event.target instanceof Element &&
+    event.target.closest("button, input, textarea, select, [contenteditable]")
+  )
+const titleOf = (id: string) => sessionsById.value.get(id)?.title
 
-function shiftStyle(key: string): Record<string, string> | undefined {
-  const shift = offsets.value.get(key)
-  return shift ? { transform: `translateY(${shift}px)` } : undefined
+function isLocked(id: string): boolean {
+  return Boolean(sessionsById.value.get(id)?.draft) || kindById.value.get(id) === "working"
 }
 
-function sectionBind(section: SidebarSection) {
-  const d = drag.value
+function listLabel(list: string): string {
+  if (list === "pinned") return t("session.pinned")
+  return t(list === "settled" ? "session.sectionSettled" : "session.sectionInbox")
+}
+
+function announce(message: TransferMessage): string {
+  return t(MESSAGE_KEYS[message.type], {
+    label: message.label,
+    list: message.list,
+    position: message.position,
+    total: message.total,
+  })
+}
+
+function onTransfer(value: TransferLists, details: TransferChangeDetails): void {
+  const order = [...props.pinnedIds]
+  const pinned = value["pinned"] ?? []
+  const plan = planDrop({
+    id: details.key,
+    from: details.from as SidebarSectionKind,
+    zone: details.to as DropZone,
+    pinnedOrder: order,
+    slot: pinnedSlot(
+      order,
+      pinned.filter((id) => id !== details.key),
+      pinned.indexOf(details.key),
+    ),
+  })
+
+  if (dropOut.wasOutside() || plan.kind === "none") {
+    details.cancel()
+    return
+  }
+
+  commit(details.key, plan)
+}
+
+function commit(id: string, plan: DropPlan): void {
+  if (plan.kind === "reorder-pinned") emit("reorderPinned", id, plan.slot)
+  else if (plan.kind === "pin") emit("pinAt", id, plan.slot)
+  else if (plan.kind === "unpin") emit("unpin", id)
+  else if (plan.kind === "settle") emit("settle", id)
+  else if (plan.kind === "unsettle") emit("unsettle", id)
+}
+
+function sectionBind(
+  section: SidebarSection,
+  state: { lists: TransferLists; moving: string | null },
+) {
+  const list = (LISTS as readonly string[]).includes(section.kind) ? section.kind : undefined
   return {
     section,
+    list,
+    order: list ? state.lists[list] : undefined,
+    sessionsById: sessionsById.value,
     highlightedSessionId: props.highlightedSessionId,
     expandedSections: props.expandedSections,
     cardFootById: props.cardFootById,
     pinnedIds: props.pinnedIds,
     runningSince: props.runningSince,
-    dragId: d && !outside.value ? d.id : undefined,
-    offsets: offsets.value,
-    sorting: sorting.value,
-    dropTarget: zone.value !== null && zone.value === section.kind,
-    motion: !releasing.value,
+    motion: !state.moving,
     swept: sweep.swept.value,
     moreBySection: props.moreBySection,
   }
@@ -326,52 +403,19 @@ onUpdated(() => {
   background: var(--sidebar);
 }
 
-.drop-slot {
-  position: relative;
-  height: 0;
-  transition: transform var(--duration-fast) var(--ease-out);
-}
-
-.drop-slot-box {
-  position: absolute;
-  inset-inline: 0;
-  top: 2px;
+.drag-label {
+  flex: none;
   display: flex;
   align-items: center;
-  justify-content: center;
-  border: 1px dashed var(--accent-solid);
-  border-radius: var(--radius-control);
-  background: var(--info-subtle);
-  color: var(--accent-text);
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
-  opacity: 0;
+  gap: var(--space-xs);
+  height: var(--control-xs);
+  padding-inline: var(--space-xs);
   pointer-events: none;
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.drop-slot.is-shown .drop-slot-box {
-  opacity: 1;
-}
-
-.drag-label {
-  position: relative;
-  z-index: var(--z-sticky);
-  height: 0;
-  pointer-events: none;
-  transition:
-    transform var(--duration-fast) var(--ease-out),
-    opacity var(--duration-fast) var(--ease-out);
-}
-
-.drag-label-inner {
-  position: absolute;
-  inset-inline: var(--space-xs);
-  top: var(--space-2xs);
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  height: var(--icon-lg);
+.session-list.is-outside .drag-label {
+  opacity: 0;
 }
 
 .drag-label-text {
@@ -389,10 +433,6 @@ onUpdated(() => {
   background: var(--border-subtle);
 }
 
-.drag-label.is-hidden {
-  opacity: 0;
-}
-
 .drag-label.is-target .drag-label-text {
   color: var(--accent-text);
 }
@@ -401,32 +441,27 @@ onUpdated(() => {
   background: var(--accent-solid);
 }
 
-.session-list.is-dragging .session-window,
-.session-list.is-dragging .session-shelves {
-  pointer-events: none;
+.session-list.is-dragging:not(.is-outside) .pinned-drop :deep(.section-body) {
+  min-height: var(--control-lg);
 }
 
-.session-drag-layer {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-drag);
-  cursor: grabbing;
-  pointer-events: none;
+.session-list.is-dragging:not(.is-outside)
+  .pinned-drop
+  :deep(.section-body:not(:has(.session-row))) {
+  border: var(--border-width) dashed var(--accent-solid);
+  border-radius: var(--radius-control);
+  background: var(--info-subtle);
 }
 
-.session-drag-layer :deep(*) {
-  pointer-events: none;
-}
-
-.drag-overlay {
-  position: fixed;
-  padding-block: 2px;
+:global(html[data-session-dragging] [data-drag-preview]) {
+  opacity: 0;
 }
 
 .drag-ghost {
   position: fixed;
   top: 0;
   left: 0;
+  z-index: var(--z-drag);
   display: inline-flex;
   align-items: center;
   gap: var(--space-2xs);
@@ -439,6 +474,7 @@ onUpdated(() => {
   color: var(--fg);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
+  pointer-events: none;
 }
 
 .drag-ghost-title {
@@ -455,9 +491,7 @@ onUpdated(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .drop-slot,
-  .drag-label,
-  .drop-slot-box {
+  .drag-label {
     transition: none;
   }
 }

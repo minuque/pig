@@ -4,7 +4,6 @@
     :class="{
       'is-menu-open': menuOpen,
       'is-placeholder': placeholder,
-      'is-dragging': dragging,
       'is-swept': swept,
     }"
   >
@@ -41,7 +40,7 @@
                         type="button"
                         class="pin-toggle"
                         :aria-label="t('session.unpin')"
-                        :disabled="placeholder || dragging"
+                        :disabled="placeholder"
                         @click.prevent.stop="emit('togglePinned', session.id)"
                         @pointerdown.stop
                       >
@@ -66,11 +65,6 @@
 
                     <SessionStateIcon v-else-if="glyphState" :state="glyphState" />
                     <span v-else class="time-label">{{ timeLabel }}</span>
-                  </span>
-
-                  <span v-if="verb" class="drop-verb">
-                    <component :is="verb.icon" class="size-icon" />
-                    {{ verb.label }}
                   </span>
 
                   <button
@@ -174,11 +168,6 @@
                   <span v-else class="time-label">{{ timeLabel }}</span>
                 </span>
 
-                <span v-if="verb" class="drop-verb">
-                  <component :is="verb.icon" class="size-icon" />
-                  {{ verb.label }}
-                </span>
-
                 <button
                   v-if="!placeholder"
                   class="row-action press-scale"
@@ -275,7 +264,6 @@ import { sessionGlyph } from "@features/session-nav/lib/status-cycle.js"
 import ProjectIcon from "@features/session-nav/components/ProjectIcon.vue"
 import { formatRelativeTime, workspaceName } from "@features/session-nav/lib/format.js"
 import { formatElapsed } from "@utils/time.js"
-import type { DropVerb } from "@features/session-nav/lib/drag-plan.js"
 import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
 import { trySplitView } from "@features/split-view/index.js"
 import {
@@ -284,7 +272,6 @@ import {
   CheckIcon,
   Columns2Icon,
   CircleDashedIcon,
-  XIcon,
   PenIcon,
   PinIcon,
   PinOffIcon,
@@ -304,9 +291,6 @@ const props = withDefaults(
     startedAt?: number | undefined
 
     placeholder?: boolean
-    dragging?: boolean
-    draggable?: boolean
-    dropVerb?: DropVerb | null
     swept?: boolean
   }>(),
   {
@@ -314,9 +298,6 @@ const props = withDefaults(
     variant: "card",
     startedAt: undefined,
     placeholder: false,
-    dragging: false,
-    draggable: false,
-    dropVerb: null,
     swept: false,
   },
 )
@@ -330,7 +311,6 @@ const emit = defineEmits<{
   settle: [id: string]
   unsettle: [id: string]
   archive: [id: string]
-  dragStart: [event: PointerEvent]
   sweepStart: [event: PointerEvent]
 }>()
 const split = trySplitView()
@@ -429,18 +409,12 @@ function onCardPointerDown(event: PointerEvent) {
   if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
   emit("prime", props.session.id)
 
-  if (props.draggable && !renaming.value) emit("dragStart", event)
+  if (renaming.value) event.stopPropagation()
 }
 
 function onActionPointerDown(event: PointerEvent) {
   if (event.button === 0 && !props.placeholder) emit("sweepStart", event)
 }
-
-const verbIcons = { pin: PinIcon, unpin: XIcon, settle: CheckIcon, unsettle: Undo2Icon }
-const verb = computed(() => {
-  const value = props.dragging ? props.dropVerb : null
-  return value ? { icon: verbIcons[value], label: t(`session.${value}`) } : null
-})
 
 function onCardClick(event: MouseEvent) {
   if (props.placeholder || menuOpen.value || renaming.value) {
@@ -490,23 +464,6 @@ function confirmDelete() {
   position: relative;
   width: 100%;
   min-width: 0;
-}
-
-.drop-verb {
-  position: absolute;
-  inset-inline-end: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2xs);
-  height: var(--control-2xs);
-  padding-inline: var(--space-xs);
-  border-radius: calc(var(--radius-control) / 2);
-  background: var(--info-subtle);
-  color: var(--info-text);
-  font-size: var(--text-meta);
-  font-weight: var(--font-weight-medium);
-  line-height: 1;
-  white-space: nowrap;
 }
 
 .session-card {
@@ -763,14 +720,14 @@ function confirmDelete() {
   color: var(--fg);
 }
 
-.session-item.is-dragging .session-card {
+:global([data-drag-preview] .session-item .session-card) {
   background: var(--bg-raised);
   color: var(--fg);
   box-shadow: var(--shadow-popover);
   cursor: grabbing;
 }
 
-.session-item.is-dragging .title {
+:global([data-drag-preview] .session-item .title) {
   color: var(--fg);
 }
 
@@ -787,8 +744,8 @@ function confirmDelete() {
   opacity: 1;
 }
 
-.session-item.is-dragging .state-mark,
-.session-item.is-dragging .row-action {
+:global([data-drag-preview] .session-item .state-mark),
+:global([data-drag-preview] .session-item .row-action) {
   opacity: 0;
   pointer-events: none;
 }

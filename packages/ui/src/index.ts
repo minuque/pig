@@ -78,4 +78,6 @@ export * from "./ui/toolbar/index.js"
 
 export * from "./ui/tooltip/index.js"
 
+export * from "./ui/transfer-lists/index.js"
+
 export * from "./ui/trigger-menu/index.js"

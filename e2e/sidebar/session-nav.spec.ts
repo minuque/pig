@@ -113,6 +113,44 @@ test("拖拽会话进出置顶区：拖进置顶、拖出取消置顶", async ({
   await expect(pinned.locator(".session-card").first()).toContainText("批量会话 6")
 })
 
+test("键盘拖拽会话进出置顶区与排序：空格拿起、方向键移动、空格放下", async ({
+  page,
+  navGateway,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await seedWorkspace(page, navGateway.workspaceId)
+  await page.addInitScript(() => {
+    localStorage.setItem("pig.sidebarPinnedSessions", JSON.stringify(["e2e-filler-5"]))
+  })
+  await page.goto(navGateway.entryUrl)
+  await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
+
+  const pinned = page.locator('.session-section[data-key="pinned"]')
+  await expect(pinned.locator(".session-card")).toHaveCount(1)
+
+  const target = section(page).locator(".session-card", { hasText: "批量会话 4" }).first()
+  await target.focus()
+  await page.keyboard.press("Space")
+  await expect(section(page).locator(".session-row[data-grabbed]")).toContainText("批量会话 4")
+
+  await page.keyboard.press("ArrowLeft")
+  await expect(pinned.locator(".session-row[data-grabbed]")).toContainText("批量会话 4")
+  await page.keyboard.press("Space")
+
+  await expect(pinned.locator(".session-card")).toHaveCount(2)
+  await expect(pinned.locator(".session-row[data-grabbed]")).toHaveCount(0)
+
+  const lastPinned = pinned.locator(".session-card").last()
+  const movedTitle = (await lastPinned.locator(".title").innerText()).trim()
+  await lastPinned.focus()
+  await page.keyboard.press("Space")
+  await expect(pinned.locator(".session-row[data-grabbed]")).toContainText(movedTitle)
+
+  await page.keyboard.press("ArrowUp")
+  await page.keyboard.press("Space")
+  await expect(pinned.locator(".session-card").first()).toContainText(movedTitle)
+})
+
 test("按住行尾标记完成按钮往下扫，扫过的会话一起标记完成", async ({ page, navGateway }) => {
   await enter(page, navGateway)
 
