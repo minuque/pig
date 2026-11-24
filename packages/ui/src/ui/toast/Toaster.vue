@@ -1,12 +1,5 @@
 <template>
-  <ToastRegion
-    :toaster="noticeToaster"
-    side="bottom"
-    align="end"
-    expanded
-    :max-visible="Infinity"
-    :aria-label="labels.notifications"
-  >
+  <ToastRegion :toaster="noticeToaster" side="top" align="end" :aria-label="labels.notifications">
     <template #default="{ toast }">
       <Toast>
         <ToastClose>
@@ -134,7 +127,8 @@ function headline(notice: Notice): string {
 
 <style>
 :where([data-slot="toast-region"]) {
-  inset: auto var(--space-md) var(--space-md) auto;
+  inset: var(--space-md) var(--space-md) auto auto;
+  block-size: var(--toast-front-height);
   inline-size: min(var(--toast-width), calc(100vw - 2 * var(--space-md)));
   margin: 0;
   padding: 0;
@@ -145,14 +139,16 @@ function headline(notice: Notice): string {
   outline: none;
 }
 
-:where([data-slot="toast-region"] [data-slot="toast-list"]) {
-  display: flex;
-  flex-direction: column-reverse;
-  gap: var(--space-sm);
+:where([data-slot="toast-region"][data-expanded]) {
+  block-size: calc(var(--toast-stack-height) + (var(--toast-count) - 1) * var(--space-sm));
 }
 
 :where([data-slot="toast"]) {
-  position: relative;
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline: 0;
+  z-index: calc(var(--toast-count) - var(--toast-index));
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   gap: var(--space-xs);
@@ -168,7 +164,22 @@ function headline(notice: Notice): string {
   backdrop-filter: var(--glass-filter);
   pointer-events: auto;
   user-select: none;
-  translate: var(--toast-swipe-x, 0) var(--toast-swipe-y, 0);
+  block-size: var(--toast-height);
+  overflow: hidden;
+  transform-origin: top;
+  translate: var(--toast-swipe-x, 0)
+    calc(var(--toast-index) * var(--space-sm) + var(--toast-swipe-y, 0px));
+  scale: calc(1 - var(--toast-index) * 0.05);
+}
+
+:where([data-slot="toast"]:not([data-front], [data-expanded])) {
+  block-size: var(--toast-front-height);
+}
+
+:where([data-slot="toast"][data-expanded]) {
+  translate: var(--toast-swipe-x, 0)
+    calc(var(--toast-offset) + var(--toast-index) * var(--space-sm) + var(--toast-swipe-y, 0px));
+  scale: 1;
 }
 
 :where([data-slot="toast-body"]) {
@@ -233,6 +244,8 @@ function headline(notice: Notice): string {
   :where([data-slot="toast"]) {
     transition:
       translate var(--duration-slow) var(--ease-out),
+      scale var(--duration-slow) var(--ease-out),
+      block-size var(--duration-slow) var(--ease-out),
       opacity var(--duration-fast) var(--ease-out);
   }
 
@@ -242,6 +255,9 @@ function headline(notice: Notice): string {
 
   :where([data-slot="toast"][data-starting-style]) {
     opacity: 0;
+  }
+
+  :where([data-slot="toast"][data-starting-style][data-front]) {
     translate: calc(100% + var(--space-md)) 0;
   }
 
@@ -254,8 +270,8 @@ function headline(notice: Notice): string {
     translate: calc(100% + var(--space-md)) 0;
   }
 
-  :where([data-slot="toast"][data-ending-style][data-swipe-direction="down"]) {
-    translate: 0 calc(100% + var(--space-md));
+  :where([data-slot="toast"][data-ending-style][data-swipe-direction="up"]) {
+    translate: 0 calc(-100% - var(--space-md));
   }
 }
 </style>
