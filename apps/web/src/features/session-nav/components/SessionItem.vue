@@ -16,7 +16,12 @@
             class="session-card"
             :class="[
               variant,
-              { active: active || splitShown, 'is-placeholder': placeholder, renaming },
+              {
+                active: active || splitShown,
+                'is-placeholder': placeholder,
+                'is-settled': settled,
+                renaming,
+              },
             ]"
             :to="placeholder ? undefined : { name: 'session', params: { sessionId: session.id } }"
             draggable="false"
@@ -619,6 +624,19 @@ function confirmDelete() {
   flex: 1;
 }
 
+.session-card.is-settled
+  :is(.project-name, .project-icon, .project-mono, .project-mono[data-tone]) {
+  color: var(--fg-muted);
+}
+
+.session-card.is-settled .project-mono[data-slot="badge"] {
+  background-color: var(--bg-muted);
+}
+
+.session-item:not(:hover) .session-card.is-settled:not(.active, [data-open]) .title {
+  color: var(--fg-muted);
+}
+
 .state-slot {
   position: relative;
   display: flex;
@@ -679,6 +697,10 @@ function confirmDelete() {
   translate: none;
 }
 
+.session-item:is(:hover, :focus-within, .is-menu-open, .is-swept) .session-card.slim .row-action {
+  margin-inline-end: -2px;
+}
+
 .row-action {
   position: absolute;
   inset-inline-end: calc(var(--space-xs) * -1);
@@ -704,6 +726,7 @@ function confirmDelete() {
 }
 
 .session-card.slim .row-action {
+  inset-inline-end: -2px;
   padding-inline: 2px;
 }
 
