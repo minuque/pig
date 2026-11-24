@@ -121,8 +121,8 @@ function toggleLocale() {
 .footer-logo {
   display: block;
   flex: none;
-  width: 22px;
-  height: 22px;
+  width: calc(var(--control-xs) - 2px);
+  height: calc(var(--control-xs) - 2px);
   object-fit: contain;
   transition: transform var(--duration-fast) var(--ease-out);
 }

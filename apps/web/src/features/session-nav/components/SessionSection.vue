@@ -168,7 +168,7 @@ function itemBind(session: SidebarSession) {
   width: 100%;
   height: var(--control-md);
   min-width: 0;
-  padding-inline: 10px;
+  padding-inline: calc(var(--spacing) * 2.5);
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
@@ -239,10 +239,10 @@ function itemBind(session: SidebarSession) {
 .more-button {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: calc(var(--spacing) * 2.5);
   width: 100%;
   height: var(--control-lg);
-  padding-inline: 10px;
+  padding-inline: calc(var(--spacing) * 2.5);
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;

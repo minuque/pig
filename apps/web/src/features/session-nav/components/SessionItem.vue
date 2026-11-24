@@ -478,7 +478,7 @@ function confirmDelete() {
   display: inline-flex;
   align-items: center;
   gap: var(--space-2xs);
-  height: 20px;
+  height: var(--control-2xs);
   padding-inline: var(--space-xs);
   border-radius: calc(var(--radius-control) / 2);
   background: var(--info-subtle);
@@ -508,15 +508,15 @@ function confirmDelete() {
   flex-direction: column;
   gap: var(--space-2xs);
   min-height: calc(var(--control-lg) + var(--space-lg));
-  padding: var(--space-xs) 10px;
+  padding: var(--space-xs) calc(var(--spacing) * 2.5);
 }
 
 .session-card.slim {
   flex-direction: row;
   align-items: center;
-  gap: 10px;
+  gap: calc(var(--spacing) * 2.5);
   height: var(--control-lg);
-  padding-inline: 10px;
+  padding-inline: calc(var(--spacing) * 2.5);
 }
 
 .session-item:hover :where(.session-card:not(.active, [data-open])) {
@@ -576,15 +576,15 @@ function confirmDelete() {
   display: grid;
   flex: none;
   place-items: center;
-  width: 16px;
-  height: 16px;
+  width: var(--icon-lg);
+  height: var(--icon-lg);
   color: var(--fg-secondary);
 }
 
 .project-mono[data-tone] {
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: var(--icon-lg);
+  height: var(--icon-lg);
   padding: 0;
   border-radius: calc(var(--radius-control) / 2);
   font-size: calc(var(--text-body) - 5px);
@@ -598,7 +598,7 @@ function confirmDelete() {
   align-items: center;
   gap: var(--space-2xs);
   min-width: 0;
-  height: 20px;
+  height: var(--control-2xs);
 }
 
 .project-name {
@@ -616,7 +616,7 @@ function confirmDelete() {
   display: flex;
   align-items: center;
   min-width: 0;
-  height: 20px;
+  height: var(--control-2xs);
 }
 
 .title {
@@ -626,7 +626,7 @@ function confirmDelete() {
   color: var(--fg-secondary);
   font-size: var(--text-body);
   font-weight: var(--font-weight-medium);
-  line-height: 20px;
+  line-height: var(--control-2xs);
   text-overflow: ellipsis;
   white-space: nowrap;
   transition: color var(--duration-fast) var(--ease-out);
@@ -648,8 +648,8 @@ function confirmDelete() {
   flex: none;
   align-items: center;
   justify-content: flex-end;
-  min-width: 20px;
-  height: 20px;
+  min-width: var(--control-2xs);
+  height: var(--control-2xs);
   margin-inline-start: auto;
 }
 
@@ -776,7 +776,7 @@ function confirmDelete() {
 .rename-input {
   min-width: 0;
   flex: 1;
-  height: 21px;
+  height: calc(var(--control-2xs) + 1px);
   margin-block: -2px;
   padding: 0 var(--space-2xs);
   border: 0;

@@ -146,6 +146,7 @@
   --duration-slow: 300ms;
 
   /* --- 图标与控件高 --- */
+  --control-2xs: 20px;
   --control-xs: 24px;
   --control-sm: 28px;
   --control-md: 32px;
@@ -294,6 +295,7 @@ html[data-density="compact"] {
   --text-body: 13px;
   --text-title: 15px;
   --spacing: 3.5px;
+  --control-2xs: 16px;
   --control-xs: 20px;
   --control-sm: 24px;
   --control-md: 28px;

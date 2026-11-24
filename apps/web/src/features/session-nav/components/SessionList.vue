@@ -371,7 +371,7 @@ onUpdated(() => {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  height: 16px;
+  height: var(--icon-lg);
 }
 
 .drag-label-text {
