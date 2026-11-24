@@ -10,8 +10,10 @@
     <CopyButton v-if="text" :text="text" />
 
     <Tooltip>
-      <TooltipTrigger as-child>
-        <time class="stamp-time" :datetime="iso">{{ relative }}</time>
+      <TooltipTrigger>
+        <template #render="{ props: part }">
+          <time v-bind="part" class="stamp-time" :datetime="iso">{{ relative }}</time>
+        </template>
       </TooltipTrigger>
 
       <TooltipContent side="top">{{ full }}</TooltipContent>

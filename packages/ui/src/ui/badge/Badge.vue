@@ -1,39 +1,32 @@
 <template>
-  <Polymorphic
+  <span
     v-bind="$attrs"
     data-slot="badge"
     :data-size="size"
     :data-variant="variant"
     :data-tone="color"
     :data-radius="radius"
-    :as="as"
-    :as-child="asChild"
     :class="props.class"
   >
     <slot />
-  </Polymorphic>
+  </span>
 </template>
 
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-import { Polymorphic, type PolymorphicProps } from "../primitive/index.js"
 import type { Size, ToneColor, Radius } from "../../core/types.js"
 
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
-  defineProps<
-    Pick<PolymorphicProps, "as" | "asChild"> & {
-      size?: Size
-      variant?: "solid" | "soft" | "surface" | "outline"
-      color?: ToneColor
-      radius?: Radius
-      class?: HTMLAttributes["class"]
-    }
-  >(),
+  defineProps<{
+    size?: Size
+    variant?: "solid" | "soft" | "surface" | "outline"
+    color?: ToneColor
+    radius?: Radius
+    class?: HTMLAttributes["class"]
+  }>(),
   {
-    as: "span",
-    asChild: false,
     size: "s",
     variant: "soft",
     class: undefined,

@@ -11,37 +11,43 @@
       <div class="tabs-bar">
         <div class="tabs">
           <Tooltip>
-            <TooltipTrigger as-child>
-              <IconButton
-                type="button"
-                class="tab-btn"
-                size="m"
-                variant="ghost"
-                :aria-label="t('composer.favoriteModels')"
-                :data-current="scope === FAVORITES_SCOPE ? '' : undefined"
-                @click="selectScope(FAVORITES_SCOPE)"
-              >
-                <StarFilledIcon v-if="scope === FAVORITES_SCOPE" class="size-icon-lg" />
-                <StarIcon v-else class="size-icon-lg" />
-              </IconButton>
+            <TooltipTrigger>
+              <template #render="{ props: part }">
+                <IconButton
+                  v-bind="part"
+                  type="button"
+                  class="tab-btn"
+                  size="m"
+                  variant="ghost"
+                  :aria-label="t('composer.favoriteModels')"
+                  :data-current="scope === FAVORITES_SCOPE ? '' : undefined"
+                  @click="selectScope(FAVORITES_SCOPE)"
+                >
+                  <StarFilledIcon v-if="scope === FAVORITES_SCOPE" class="size-icon-lg" />
+                  <StarIcon v-else class="size-icon-lg" />
+                </IconButton>
+              </template>
             </TooltipTrigger>
 
             <TooltipContent>{{ t("composer.favoriteModels") }}</TooltipContent>
           </Tooltip>
 
           <Tooltip v-for="vendor in catalog" :key="vendor.id">
-            <TooltipTrigger as-child>
-              <IconButton
-                type="button"
-                class="tab-btn"
-                size="m"
-                variant="ghost"
-                :aria-label="vendor.name"
-                :data-current="scope === vendor.id ? '' : undefined"
-                @click="selectScope(vendor.id)"
-              >
-                <VendorMark :vendor="vendor.id" :name="vendor.name" :size="16" />
-              </IconButton>
+            <TooltipTrigger>
+              <template #render="{ props: part }">
+                <IconButton
+                  v-bind="part"
+                  type="button"
+                  class="tab-btn"
+                  size="m"
+                  variant="ghost"
+                  :aria-label="vendor.name"
+                  :data-current="scope === vendor.id ? '' : undefined"
+                  @click="selectScope(vendor.id)"
+                >
+                  <VendorMark :vendor="vendor.id" :name="vendor.name" :size="16" />
+                </IconButton>
+              </template>
             </TooltipTrigger>
 
             <TooltipContent>{{ vendor.name }}</TooltipContent>
@@ -49,18 +55,21 @@
         </div>
 
         <Tooltip v-if="current.levels.length">
-          <TooltipTrigger as-child>
-            <IconButton
-              type="button"
-              size="m"
-              variant="ghost"
-              class="effort-reset"
-              :aria-label="t('composer.restoreDefaultEffort')"
-              :disabled="effortIsDefault || locked"
-              @click="resetEffort"
-            >
-              <RotateCcwIcon aria-hidden="true" />
-            </IconButton>
+          <TooltipTrigger>
+            <template #render="{ props: part }">
+              <IconButton
+                v-bind="part"
+                type="button"
+                size="m"
+                variant="ghost"
+                class="effort-reset"
+                :aria-label="t('composer.restoreDefaultEffort')"
+                :disabled="effortIsDefault || locked"
+                @click="resetEffort"
+              >
+                <RotateCcwIcon aria-hidden="true" />
+              </IconButton>
+            </template>
           </TooltipTrigger>
 
           <TooltipContent>{{ t("composer.restoreDefault") }}</TooltipContent>

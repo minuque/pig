@@ -1,19 +1,22 @@
 <template>
   <Tooltip>
-    <TooltipTrigger as-child>
-      <Link
-        class="link-chip"
-        :href="url"
-        target="_blank"
-        rel="noopener noreferrer"
-        weight="medium"
-        underline="hover"
-        underline-style="dotted"
-      >
-        <VendorMark v-if="site" class="icon" :vendor="site" :size="14" />
-        <LinkIcon v-else class="icon" />
-        <span class="label">{{ text }}</span>
-      </Link>
+    <TooltipTrigger>
+      <template #render="{ props: part }">
+        <Link
+          v-bind="part"
+          class="link-chip"
+          :href="url"
+          target="_blank"
+          rel="noopener noreferrer"
+          weight="medium"
+          underline="hover"
+          underline-style="dotted"
+        >
+          <VendorMark v-if="site" class="icon" :vendor="site" :size="14" />
+          <LinkIcon v-else class="icon" />
+          <span class="label">{{ text }}</span>
+        </Link>
+      </template>
     </TooltipTrigger>
 
     <TooltipContent>{{ url }}</TooltipContent>

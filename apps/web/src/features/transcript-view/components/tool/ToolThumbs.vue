@@ -1,15 +1,18 @@
 <template>
   <span v-if="images.length" class="tool-thumbs">
     <Tooltip v-for="(image, i) in shown" :key="i" :delay="150">
-      <TooltipTrigger as-child>
-        <button
-          type="button"
-          class="tool-thumb"
-          :aria-label="t('common.preview', { name: image.title })"
-          @click.stop="show(i)"
-        >
-          <img :src="image.src" alt="" />
-        </button>
+      <TooltipTrigger>
+        <template #render="{ props: part }">
+          <button
+            v-bind="part"
+            type="button"
+            class="tool-thumb"
+            :aria-label="t('common.preview', { name: image.title })"
+            @click.stop="show(i)"
+          >
+            <img :src="image.src" alt="" />
+          </button>
+        </template>
       </TooltipTrigger>
 
       <TooltipContent class="tool-thumb-tip" :side-offset="6">

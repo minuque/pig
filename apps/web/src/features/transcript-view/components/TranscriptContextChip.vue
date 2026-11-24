@@ -1,16 +1,19 @@
 <template>
   <Tooltip v-if="reference.kind === 'session'">
-    <TooltipTrigger as-child>
-      <RouterLink
-        class="chip inline-chip"
-        data-tone="success"
-        :to="{ name: 'session', params: { sessionId: reference.sessionId } }"
-        data-context-kind="session"
-        :data-session-id="reference.sessionId"
-      >
-        <MessageSquareIcon class="inline-chip-icon" aria-hidden="true" />
-        <span class="inline-chip-label">{{ reference.label }}</span>
-      </RouterLink>
+    <TooltipTrigger>
+      <template #render="{ props: part }">
+        <RouterLink
+          v-bind="part"
+          class="chip inline-chip"
+          data-tone="success"
+          :to="{ name: 'session', params: { sessionId: reference.sessionId } }"
+          data-context-kind="session"
+          :data-session-id="reference.sessionId"
+        >
+          <MessageSquareIcon class="inline-chip-icon" aria-hidden="true" />
+          <span class="inline-chip-label">{{ reference.label }}</span>
+        </RouterLink>
+      </template>
     </TooltipTrigger>
 
     <TooltipContent side="top">{{ reference.label }}</TooltipContent>

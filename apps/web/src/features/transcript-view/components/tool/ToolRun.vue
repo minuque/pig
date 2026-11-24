@@ -1,44 +1,48 @@
 <template>
-  <Collapsible
-    v-if="row.steps.length"
-    as-child
-    :open="open"
-    @update:open="emit('toggleExpand', $event)"
-  >
-    <div class="tool-run">
-      <div class="tool-run-head">
-        <CollapsibleTrigger as-child>
-          <button type="button" class="tool-run-summary">
-            <RollText :text="labelText" :live="labelLive" />
-            <span v-if="duration" class="tool-run-time">{{ duration }}</span>
+  <Collapsible v-if="row.steps.length" :open="open" @update:open="emit('toggleExpand', $event)">
+    <template #render="{ props: part }">
+      <div v-bind="part" class="tool-run">
+        <div class="tool-run-head">
+          <CollapsibleTrigger>
+            <template #render="{ props: part }">
+              <button v-bind="part" type="button" class="tool-run-summary">
+                <RollText :text="labelText" :live="labelLive" />
+                <span v-if="duration" class="tool-run-time">{{ duration }}</span>
 
-            <span
-              v-if="summary.lineChange.added || summary.lineChange.removed"
-              class="tool-run-counts"
-            >
-              <span v-if="summary.lineChange.added" class="added">
-                +{{ summary.lineChange.added }}
-              </span>
+                <span
+                  v-if="summary.lineChange.added || summary.lineChange.removed"
+                  class="tool-run-counts"
+                >
+                  <span v-if="summary.lineChange.added" class="added">
+                    +{{ summary.lineChange.added }}
+                  </span>
 
-              <span v-if="summary.lineChange.removed" class="removed">
-                -{{ summary.lineChange.removed }}
-              </span>
-            </span>
-          </button>
-        </CollapsibleTrigger>
+                  <span v-if="summary.lineChange.removed" class="removed">
+                    -{{ summary.lineChange.removed }}
+                  </span>
+                </span>
+              </button>
+            </template>
+          </CollapsibleTrigger>
 
-        <ChevronRightIcon class="tool-run-caret" :class="{ 'is-open': open }" data-icon="inline" />
-        <ToolThumbs class="tool-run-thumbs" :images="images" />
+          <ChevronRightIcon
+            class="tool-run-caret"
+            :class="{ 'is-open': open }"
+            data-icon="inline"
+          />
+
+          <ToolThumbs class="tool-run-thumbs" :images="images" />
+        </div>
+
+        <CollapsibleContent class="tool-run-body">
+          <ToolRunCard
+            :row="row"
+            :expanded-tools="expandedTools"
+            @toggle-tool="(id, value) => emit('toggleTool', id, value)"
+          />
+        </CollapsibleContent>
       </div>
-
-      <CollapsibleContent class="tool-run-body">
-        <ToolRunCard
-          :row="row"
-          :expanded-tools="expandedTools"
-          @toggle-tool="(id, value) => emit('toggleTool', id, value)"
-        />
-      </CollapsibleContent>
-    </div>
+    </template>
   </Collapsible>
 </template>
 

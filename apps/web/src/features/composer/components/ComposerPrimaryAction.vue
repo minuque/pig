@@ -1,48 +1,54 @@
 <template>
   <div class="primary">
     <Tooltip>
-      <TooltipTrigger as-child>
-        <IconButton
-          type="button"
-          size="m"
-          variant="solid"
-          radius="full"
-          :color="mode === 'stop' ? 'danger' : 'accent'"
-          class="send press-scale"
-          :aria-label="label"
-          :aria-keyshortcuts="mode === 'stop' ? 'Escape' : 'Enter'"
-          :disabled="disabled"
-          @mousedown.prevent
-          @click="onPrimary"
-        >
-          <component
-            :is="MODES[mode].icon"
-            class="size-icon"
-            :class="{ 'is-spinning': mode === 'stopping' }"
-            :fill="mode === 'stop' ? 'currentColor' : 'none'"
-            aria-hidden="true"
-          />
-        </IconButton>
+      <TooltipTrigger>
+        <template #render="{ props: part }">
+          <IconButton
+            v-bind="part"
+            type="button"
+            size="m"
+            variant="solid"
+            radius="full"
+            :color="mode === 'stop' ? 'danger' : 'accent'"
+            class="send press-scale"
+            :aria-label="label"
+            :aria-keyshortcuts="mode === 'stop' ? 'Escape' : 'Enter'"
+            :disabled="disabled"
+            @mousedown.prevent
+            @click="onPrimary"
+          >
+            <component
+              :is="MODES[mode].icon"
+              class="size-icon"
+              :class="{ 'is-spinning': mode === 'stopping' }"
+              :fill="mode === 'stop' ? 'currentColor' : 'none'"
+              aria-hidden="true"
+            />
+          </IconButton>
+        </template>
       </TooltipTrigger>
 
       <TooltipContent>{{ label }}</TooltipContent>
     </Tooltip>
 
     <Tooltip v-if="mode === 'queue' || mode === 'steer'">
-      <TooltipTrigger as-child>
-        <IconButton
-          type="button"
-          size="m"
-          variant="solid"
-          radius="full"
-          color="danger"
-          class="send press-scale"
-          :aria-label="t('composer.stopTurn')"
-          @mousedown.prevent
-          @click="emit('abort')"
-        >
-          <SquareIcon fill="currentColor" aria-hidden="true" />
-        </IconButton>
+      <TooltipTrigger>
+        <template #render="{ props: part }">
+          <IconButton
+            v-bind="part"
+            type="button"
+            size="m"
+            variant="solid"
+            radius="full"
+            color="danger"
+            class="send press-scale"
+            :aria-label="t('composer.stopTurn')"
+            @mousedown.prevent
+            @click="emit('abort')"
+          >
+            <SquareIcon fill="currentColor" aria-hidden="true" />
+          </IconButton>
+        </template>
       </TooltipTrigger>
 
       <TooltipContent>{{ t("composer.stopTurn") }}</TooltipContent>

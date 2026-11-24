@@ -1,18 +1,16 @@
 <template>
-  <Polymorphic
+  <span
     v-if="loading"
     v-bind="$attrs"
     data-slot="skeleton"
-    :as="as"
-    :as-child="asChild"
     aria-hidden="true"
     tabindex="-1"
-    :data-inline-skeleton="asChild ? undefined : true"
+    data-inline-skeleton
     :class="props.class"
     :style="skeletonStyle"
   >
     <slot />
-  </Polymorphic>
+  </span>
 
   <slot v-else />
 </template>
@@ -20,20 +18,17 @@
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
 import { computed } from "vue"
-import { Polymorphic, type PolymorphicProps } from "../primitive/index.js"
 
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
-  defineProps<
-    Pick<PolymorphicProps, "as" | "asChild"> & {
-      loading?: boolean
-      width?: string
-      height?: string
-      class?: HTMLAttributes["class"]
-    }
-  >(),
-  { as: "span", asChild: false, loading: true, class: undefined },
+  defineProps<{
+    loading?: boolean
+    width?: string
+    height?: string
+    class?: HTMLAttributes["class"]
+  }>(),
+  { loading: true, class: undefined },
 )
 const skeletonStyle = computed(() => ({
   inlineSize: props.width,

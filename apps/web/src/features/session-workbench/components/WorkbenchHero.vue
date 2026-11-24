@@ -5,10 +5,22 @@
 
       <span class="hero-target">
         <DropdownMenu v-if="selectable" :modal="false">
-          <DropdownMenuTrigger as-child>
-            <Link as="button" type="button" class="hero-picker" weight="medium" underline="hover">
-              <span class="hero-name">{{ label }}</span>
-            </Link>
+          <DropdownMenuTrigger>
+            <template #render="{ props: part }">
+              <Link
+                v-bind="part"
+                type="button"
+                class="hero-picker"
+                weight="medium"
+                underline="hover"
+              >
+                <template #render="{ props: part }">
+                  <button v-bind="part">
+                    <span class="hero-name">{{ label }}</span>
+                  </button>
+                </template>
+              </Link>
+            </template>
           </DropdownMenuTrigger>
 
           <DropdownMenuContent align="center" :side-offset="6">

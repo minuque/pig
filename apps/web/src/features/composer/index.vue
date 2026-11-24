@@ -43,20 +43,23 @@
 
       <template #left>
         <Tooltip>
-          <TooltipTrigger as-child>
-            <IconButton
-              type="button"
-              size="m"
-              variant="ghost"
-              color="neutral"
-              class="press-scale"
-              :aria-label="t('composer.addAttachment')"
-              :disabled="attachmentsFull"
-              @mousedown.prevent
-              @click="pickFiles"
-            >
-              <PaperclipIcon class="size-icon" />
-            </IconButton>
+          <TooltipTrigger>
+            <template #render="{ props: part }">
+              <IconButton
+                v-bind="part"
+                type="button"
+                size="m"
+                variant="ghost"
+                color="neutral"
+                class="press-scale"
+                :aria-label="t('composer.addAttachment')"
+                :disabled="attachmentsFull"
+                @mousedown.prevent
+                @click="pickFiles"
+              >
+                <PaperclipIcon class="size-icon" />
+              </IconButton>
+            </template>
           </TooltipTrigger>
 
           <TooltipContent>{{ t("composer.addAttachment") }}</TooltipContent>

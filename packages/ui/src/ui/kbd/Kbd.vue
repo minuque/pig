@@ -1,33 +1,28 @@
 <template>
-  <Polymorphic
+  <kbd
     v-bind="$attrs"
     data-slot="kbd"
     :data-size="size"
     :data-variant="variant"
-    :as="as"
-    :as-child="asChild"
     :class="props.class"
   >
     <slot />
-  </Polymorphic>
+  </kbd>
 </template>
 
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-import { Polymorphic, type PolymorphicProps } from "../primitive/index.js"
 import type { Size } from "../../core/types.js"
 
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(
-  defineProps<
-    PolymorphicProps & {
-      class?: HTMLAttributes["class"]
-      size?: Size
-      variant?: "surface" | "soft"
-    }
-  >(),
-  { as: "kbd", asChild: false, size: "m", variant: "surface", class: undefined },
+  defineProps<{
+    class?: HTMLAttributes["class"]
+    size?: Size
+    variant?: "surface" | "soft"
+  }>(),
+  { size: "m", variant: "surface", class: undefined },
 )
 </script>
 

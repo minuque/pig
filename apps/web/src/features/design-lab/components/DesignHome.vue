@@ -23,15 +23,17 @@
     </header>
 
     <div class="tiles">
-      <Card v-for="category in CATEGORIES" :key="category.id" as-child class="tile">
-        <RouterLink :to="`/design/tokens/${category.id}`">
-          <TokenPreview :category="category.id" />
+      <Card v-for="category in CATEGORIES" :key="category.id" class="tile">
+        <template #render="{ props: part }">
+          <RouterLink v-bind="part" :to="`/design/tokens/${category.id}`">
+            <TokenPreview :category="category.id" />
 
-          <span class="tile-foot">
-            <span class="tile-name">{{ text(category.title) }}</span>
-            <span class="tile-count">{{ counts[category.id] }}</span>
-          </span>
-        </RouterLink>
+            <span class="tile-foot">
+              <span class="tile-name">{{ text(category.title) }}</span>
+              <span class="tile-count">{{ counts[category.id] }}</span>
+            </span>
+          </RouterLink>
+        </template>
       </Card>
     </div>
 

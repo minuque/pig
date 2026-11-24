@@ -1,91 +1,106 @@
 <template>
   <ContextMenu>
-    <ContextMenuTrigger as-child>
-      <Card as="section" size="s" class="rail-summary-card" :aria-label="t('rail.title')">
-        <Collapsible v-for="id in shown" :key="id" as-child :open="isOpen(id)">
-          <section class="rail-part" :data-id="id" :aria-labelledby="`${uid}-${id}`">
-            <h3 :id="`${uid}-${id}`" class="rail-heading">
-              <button
-                type="button"
-                class="rail-head"
-                :aria-expanded="isOpen(id)"
-                :aria-controls="`${uid}-${id}-body`"
-                @click="
-                  $event.altKey
-                    ? rail.setAllOpen(rail.layout.value.closed.length > 0)
-                    : rail.toggleOpen(id)
-                "
-              >
-                <span class="rail-title">{{ titles[id] }}</span>
+    <ContextMenuTrigger>
+      <template #render="{ props: part }">
+        <Card v-bind="part" size="s" class="rail-summary-card" :aria-label="t('rail.title')">
+          <template #render="{ props: part }">
+            <section v-bind="part">
+              <Collapsible v-for="id in shown" :key="id" :open="isOpen(id)">
+                <template #render="{ props: part }">
+                  <section
+                    v-bind="part"
+                    class="rail-part"
+                    :data-id="id"
+                    :aria-labelledby="`${uid}-${id}`"
+                  >
+                    <h3 :id="`${uid}-${id}`" class="rail-heading">
+                      <button
+                        type="button"
+                        class="rail-head"
+                        :aria-expanded="isOpen(id)"
+                        :aria-controls="`${uid}-${id}-body`"
+                        @click="
+                          $event.altKey
+                            ? rail.setAllOpen(rail.layout.value.closed.length > 0)
+                            : rail.toggleOpen(id)
+                        "
+                      >
+                        <span class="rail-title">{{ titles[id] }}</span>
 
-                <ChevronRightIcon
-                  class="rail-caret motion-turn"
-                  :class="{ 'is-on': isOpen(id) }"
-                  aria-hidden="true"
-                />
+                        <ChevronRightIcon
+                          class="rail-caret motion-turn"
+                          :class="{ 'is-on': isOpen(id) }"
+                          aria-hidden="true"
+                        />
 
-                <span class="rail-summary" :aria-hidden="isOpen(id) || undefined">
-                  <template v-if="id === 'environment'">{{ place.host }}</template>
+                        <span class="rail-summary" :aria-hidden="isOpen(id) || undefined">
+                          <template v-if="id === 'environment'">{{ place.host }}</template>
 
-                  <template v-else-if="id === 'context' && usage">
-                    {{ usage.percent }}%
-                    <span class="rail-battery" :data-severity="severity" aria-hidden="true">
-                      <i :style="{ inlineSize: `${Math.min(100, usage.percent)}%` }" />
-                    </span>
-                  </template>
+                          <template v-else-if="id === 'context' && usage">
+                            {{ usage.percent }}%
+                            <span class="rail-battery" :data-severity="severity" aria-hidden="true">
+                              <i :style="{ inlineSize: `${Math.min(100, usage.percent)}%` }" />
+                            </span>
+                          </template>
 
-                  <template v-else-if="id === 'tasks' && sections.running.length">
-                    {{ t("rail.runningCount", { count: sections.running.length }) }}
-                  </template>
-                </span>
-              </button>
-            </h3>
+                          <template v-else-if="id === 'tasks' && sections.running.length">
+                            {{ t("rail.runningCount", { count: sections.running.length }) }}
+                          </template>
+                        </span>
+                      </button>
+                    </h3>
 
-            <CollapsibleContent :id="`${uid}-${id}-body`">
-              <div class="rail-body">
-                <template v-if="id === 'environment'">
-                  <div class="rail-kv">
-                    <span>{{ t("rail.location") }}</span>
-                    <span class="rail-value">{{ place.host }}</span>
-                  </div>
+                    <CollapsibleContent :id="`${uid}-${id}-body`">
+                      <div class="rail-body">
+                        <template v-if="id === 'environment'">
+                          <div class="rail-kv">
+                            <span>{{ t("rail.location") }}</span>
+                            <span class="rail-value">{{ place.host }}</span>
+                          </div>
 
-                  <div v-if="place.path" class="rail-kv">
-                    <span>{{ t("rail.cwd") }}</span>
-                    <span class="rail-value" :title="place.path">{{ place.path }}</span>
-                  </div>
+                          <div v-if="place.path" class="rail-kv">
+                            <span>{{ t("rail.cwd") }}</span>
+                            <span class="rail-value" :title="place.path">{{ place.path }}</span>
+                          </div>
 
-                  <div v-if="model" class="rail-kv">
-                    <span>{{ t("rail.model") }}</span>
+                          <div v-if="model" class="rail-kv">
+                            <span>{{ t("rail.model") }}</span>
 
-                    <span class="rail-value rail-model">
-                      <VendorMark :vendor="model.provider" :size="14" />
-                      <span class="rail-model-id">{{ model.id }}</span>
-                    </span>
-                  </div>
+                            <span class="rail-value rail-model">
+                              <VendorMark :vendor="model.provider" :size="14" />
+                              <span class="rail-model-id">{{ model.id }}</span>
+                            </span>
+                          </div>
+                        </template>
+
+                        <RailContext
+                          v-else-if="id === 'context' && usage"
+                          :usage="usage"
+                          :session-id="sessionId"
+                        />
+
+                        <template v-else-if="id === 'tasks'">
+                          <RailTaskRows
+                            :sections="sections"
+                            :stoppable="stoppable"
+                            :stopping="stopping"
+                            @open="(focus) => rail.openPane({ kind: 'tasks', focus })"
+                            @stop="emit('stop', $event)"
+                          />
+
+                          <div v-for="line in statusLines" :key="line" class="rail-status">
+                            {{ line }}
+                          </div>
+                        </template>
+                      </div>
+                    </CollapsibleContent>
+                  </section>
                 </template>
-
-                <RailContext
-                  v-else-if="id === 'context' && usage"
-                  :usage="usage"
-                  :session-id="sessionId"
-                />
-
-                <template v-else-if="id === 'tasks'">
-                  <RailTaskRows
-                    :sections="sections"
-                    :stoppable="stoppable"
-                    :stopping="stopping"
-                    @open="(focus) => rail.openPane({ kind: 'tasks', focus })"
-                    @stop="emit('stop', $event)"
-                  />
-
-                  <div v-for="line in statusLines" :key="line" class="rail-status">{{ line }}</div>
-                </template>
-              </div>
-            </CollapsibleContent>
-          </section>
-        </Collapsible>
-      </Card>
+              </Collapsible>
+            </section>
+          </template>
+        </Card>
+      </template>
     </ContextMenuTrigger>
 
     <ContextMenuContent size="s">

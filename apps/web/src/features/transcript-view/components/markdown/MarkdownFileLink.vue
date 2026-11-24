@@ -1,25 +1,28 @@
 <template>
   <Tooltip>
-    <TooltipTrigger as-child>
-      <Link
-        href="#"
-        class="file-link"
-        color="cyan"
-        weight="medium"
-        underline="hover"
-        @click.prevent="folder ? fileOpener?.reveal(path) : fileOpener?.open({ path })"
-      >
-        <FolderIcon v-if="folder" class="file-link-icon is-folder" />
+    <TooltipTrigger>
+      <template #render="{ props: part }">
+        <Link
+          v-bind="part"
+          href="#"
+          class="file-link"
+          color="cyan"
+          weight="medium"
+          underline="hover"
+          @click.prevent="folder ? fileOpener?.reveal(path) : fileOpener?.open({ path })"
+        >
+          <FolderIcon v-if="folder" class="file-link-icon is-folder" />
 
-        <LanguageIcon
-          v-else
-          class="file-link-icon"
-          :language="fileExtension(target)"
-          aria-hidden="true"
-        />
+          <LanguageIcon
+            v-else
+            class="file-link-icon"
+            :language="fileExtension(target)"
+            aria-hidden="true"
+          />
 
-        <span>{{ fileLinkLabel(path) }}</span>
-      </Link>
+          <span>{{ fileLinkLabel(path) }}</span>
+        </Link>
+      </template>
     </TooltipTrigger>
 
     <TooltipContent>{{ path }}</TooltipContent>

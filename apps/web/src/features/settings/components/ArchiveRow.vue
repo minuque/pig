@@ -1,102 +1,111 @@
 <template>
   <ContextMenu>
-    <ContextMenuTrigger as-child>
-      <div
-        class="archive-row"
-        :data-first="isFirst ? '' : undefined"
-        :data-last="isLast ? '' : undefined"
-        :data-selected="selected ? '' : undefined"
-        :data-disabled="row.running ? '' : undefined"
-        @click="onRowClick"
-      >
-        <div class="row-check" @click.stop>
-          <Checkbox
-            :model-value="selected"
-            :disabled="row.running"
-            :aria-label="t('settings.archive.selectSession', { title: row.title })"
-            @update:model-value="onCheckChange"
-          />
-        </div>
-
-        <div class="row-main">
-          <div class="row-top">
-            <span class="row-title">{{ row.title }}</span>
-
-            <span v-if="row.running" class="running-chip">
-              <StatusIndicator status="running" size="s" />
-              <span>{{ t("settings.archive.statusRunning") }}</span>
-            </span>
-
-            <Badge v-else-if="row.errored" color="danger" variant="soft" size="s">
-              {{ t("settings.archive.statusError") }}
-            </Badge>
-
-            <Badge v-else-if="row.settled" color="success" variant="soft" size="s">
-              {{ t("settings.archive.statusSettled") }}
-            </Badge>
+    <ContextMenuTrigger>
+      <template #render="{ props: part }">
+        <div
+          v-bind="part"
+          class="archive-row"
+          :data-first="isFirst ? '' : undefined"
+          :data-last="isLast ? '' : undefined"
+          :data-selected="selected ? '' : undefined"
+          :data-disabled="row.running ? '' : undefined"
+          @click="onRowClick"
+        >
+          <div class="row-check" @click.stop>
+            <Checkbox
+              :model-value="selected"
+              :disabled="row.running"
+              :aria-label="t('settings.archive.selectSession', { title: row.title })"
+              @update:model-value="onCheckChange"
+            />
           </div>
 
-          <div class="row-meta tabular">
-            <span v-if="row.provider || row.model" class="meta-item meta-model">
-              <VendorMark v-if="row.provider" :vendor="row.provider" :size="12" />
-              <span>{{ row.model || row.provider }}</span>
-            </span>
+          <div class="row-main">
+            <div class="row-top">
+              <span class="row-title">{{ row.title }}</span>
 
-            <span v-if="row.messageCount > 0" class="meta-item">
-              {{ t("settings.archive.messageCount", { count: row.messageCount }) }}
-            </span>
+              <span v-if="row.running" class="running-chip">
+                <StatusIndicator status="running" size="s" />
+                <span>{{ t("settings.archive.statusRunning") }}</span>
+              </span>
 
-            <span v-if="archived && row.archivedAt !== undefined" class="meta-item">
-              {{ t("settings.archive.archivedAgo", { time: archivedAge }) }}
-            </span>
+              <Badge v-else-if="row.errored" color="danger" variant="soft" size="s">
+                {{ t("settings.archive.statusError") }}
+              </Badge>
 
-            <span class="meta-item">
-              {{
-                archived
-                  ? t("settings.archive.createdAgo", { time: createdAge })
-                  : t("settings.archive.activeAgo", { time: activeAge })
-              }}
-            </span>
+              <Badge v-else-if="row.settled" color="success" variant="soft" size="s">
+                {{ t("settings.archive.statusSettled") }}
+              </Badge>
+            </div>
+
+            <div class="row-meta tabular">
+              <span v-if="row.provider || row.model" class="meta-item meta-model">
+                <VendorMark v-if="row.provider" :vendor="row.provider" :size="12" />
+                <span>{{ row.model || row.provider }}</span>
+              </span>
+
+              <span v-if="row.messageCount > 0" class="meta-item">
+                {{ t("settings.archive.messageCount", { count: row.messageCount }) }}
+              </span>
+
+              <span v-if="archived && row.archivedAt !== undefined" class="meta-item">
+                {{ t("settings.archive.archivedAgo", { time: archivedAge }) }}
+              </span>
+
+              <span class="meta-item">
+                {{
+                  archived
+                    ? t("settings.archive.createdAgo", { time: createdAge })
+                    : t("settings.archive.activeAgo", { time: activeAge })
+                }}
+              </span>
+            </div>
+          </div>
+
+          <div class="row-actions" @click.stop>
+            <Tooltip>
+              <TooltipTrigger>
+                <template #render="{ props: part }">
+                  <IconButton
+                    v-bind="part"
+                    size="m"
+                    variant="outline"
+                    color="neutral"
+                    :disabled="row.running"
+                    :aria-label="primaryLabel"
+                    @click="onPrimaryAction"
+                  >
+                    <ArchiveRestoreIcon v-if="archived" />
+                    <ArchiveIcon v-else />
+                  </IconButton>
+                </template>
+              </TooltipTrigger>
+
+              <TooltipContent>{{ primaryLabel }}</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger>
+                <template #render="{ props: part }">
+                  <IconButton
+                    v-bind="part"
+                    size="m"
+                    variant="outline"
+                    color="danger"
+                    :disabled="row.running"
+                    :aria-label="t('settings.archive.deleteOne')"
+                    @click="emit('delete', row)"
+                  >
+                    <TrashIcon />
+                  </IconButton>
+                </template>
+              </TooltipTrigger>
+
+              <TooltipContent>{{ t("settings.archive.deleteOne") }}</TooltipContent>
+            </Tooltip>
           </div>
         </div>
-
-        <div class="row-actions" @click.stop>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <IconButton
-                size="m"
-                variant="outline"
-                color="neutral"
-                :disabled="row.running"
-                :aria-label="primaryLabel"
-                @click="onPrimaryAction"
-              >
-                <ArchiveRestoreIcon v-if="archived" />
-                <ArchiveIcon v-else />
-              </IconButton>
-            </TooltipTrigger>
-
-            <TooltipContent>{{ primaryLabel }}</TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <IconButton
-                size="m"
-                variant="outline"
-                color="danger"
-                :disabled="row.running"
-                :aria-label="t('settings.archive.deleteOne')"
-                @click="emit('delete', row)"
-              >
-                <TrashIcon />
-              </IconButton>
-            </TooltipTrigger>
-
-            <TooltipContent>{{ t("settings.archive.deleteOne") }}</TooltipContent>
-          </Tooltip>
-        </div>
-      </div>
+      </template>
     </ContextMenuTrigger>
 
     <ContextMenuContent>

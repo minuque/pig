@@ -36,34 +36,42 @@
         <CardRow
           v-for="provider in group.providers"
           :key="provider.id"
-          as="button"
           interactive
           type="button"
           class="provider-row"
           :data-provider="provider.id"
           @click="emit('select', provider.id)"
         >
-          <span class="provider-mark">
-            <VendorMark :vendor="provider.id" :name="provider.name" :size="20" />
-          </span>
+          <template #render="{ props: part }">
+            <button v-bind="part">
+              <span class="provider-mark">
+                <VendorMark :vendor="provider.id" :name="provider.name" :size="20" />
+              </span>
 
-          <span class="provider-main">
-            <span class="provider-name">
-              {{ provider.name }}
+              <span class="provider-main">
+                <span class="provider-name">
+                  {{ provider.name }}
 
-              <Badge v-if="sourceKind(provider) !== 'none'" size="s" variant="soft" color="neutral">
-                {{ t(`settings.models.source.${sourceKind(provider)}`) }}
-              </Badge>
-            </span>
+                  <Badge
+                    v-if="sourceKind(provider) !== 'none'"
+                    size="s"
+                    variant="soft"
+                    color="neutral"
+                  >
+                    {{ t(`settings.models.source.${sourceKind(provider)}`) }}
+                  </Badge>
+                </span>
 
-            <span class="provider-id">{{ provider.id }}</span>
-          </span>
+                <span class="provider-id">{{ provider.id }}</span>
+              </span>
 
-          <span v-if="provider.status.configured" class="provider-count">
-            {{ t("settings.models.modelCount", { count: provider.models.length }) }}
-          </span>
+              <span v-if="provider.status.configured" class="provider-count">
+                {{ t("settings.models.modelCount", { count: provider.models.length }) }}
+              </span>
 
-          <ChevronRightIcon class="provider-chevron" />
+              <ChevronRightIcon class="provider-chevron" />
+            </button>
+          </template>
         </CardRow>
       </CardList>
     </div>

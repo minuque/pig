@@ -1,27 +1,30 @@
 <template>
   <div v-if="session.sessionId.value" class="rail-toggle">
     <Tooltip v-if="rail.mode.value === 'docked'">
-      <TooltipTrigger as-child>
-        <IconButton
-          class="rail-toggle-docked"
-          type="button"
-          size="m"
-          color="neutral"
-          variant="ghost"
-          :data-active="rail.docked.value || undefined"
-          :aria-pressed="rail.docked.value"
-          :aria-label="t('rail.toggle')"
-          @click="rail.toggleDocked"
-        >
-          <NotepadTextIcon class="size-icon-lg" />
-
-          <StatusIndicator
-            v-if="runningCount > 0"
-            class="rail-toggle-dot"
-            status="running"
+      <TooltipTrigger>
+        <template #render="{ props: part }">
+          <IconButton
+            v-bind="part"
+            class="rail-toggle-docked"
+            type="button"
             size="m"
-          />
-        </IconButton>
+            color="neutral"
+            variant="ghost"
+            :data-active="rail.docked.value || undefined"
+            :aria-pressed="rail.docked.value"
+            :aria-label="t('rail.toggle')"
+            @click="rail.toggleDocked"
+          >
+            <NotepadTextIcon class="size-icon-lg" />
+
+            <StatusIndicator
+              v-if="runningCount > 0"
+              class="rail-toggle-dot"
+              status="running"
+              size="m"
+            />
+          </IconButton>
+        </template>
       </TooltipTrigger>
 
       <TooltipContent>{{ label }}</TooltipContent>
@@ -29,27 +32,32 @@
 
     <Popover v-else v-model:open="popoverOpen">
       <Tooltip>
-        <PopoverTrigger as-child>
-          <TooltipTrigger as-child>
-            <IconButton
-              class="rail-toggle-popover"
-              type="button"
-              size="m"
-              color="neutral"
-              variant="ghost"
-              :data-active="popoverOpen || undefined"
-              :aria-label="t('rail.toggle')"
-            >
-              <NotepadTextIcon class="size-icon-lg" />
+        <PopoverTrigger>
+          <template #render="{ props: part }">
+            <TooltipTrigger v-bind="part">
+              <template #render="{ props: part }">
+                <IconButton
+                  v-bind="part"
+                  class="rail-toggle-popover"
+                  type="button"
+                  size="m"
+                  color="neutral"
+                  variant="ghost"
+                  :data-active="popoverOpen || undefined"
+                  :aria-label="t('rail.toggle')"
+                >
+                  <NotepadTextIcon class="size-icon-lg" />
 
-              <StatusIndicator
-                v-if="runningCount > 0"
-                class="rail-toggle-dot"
-                status="running"
-                size="m"
-              />
-            </IconButton>
-          </TooltipTrigger>
+                  <StatusIndicator
+                    v-if="runningCount > 0"
+                    class="rail-toggle-dot"
+                    status="running"
+                    size="m"
+                  />
+                </IconButton>
+              </template>
+            </TooltipTrigger>
+          </template>
         </PopoverTrigger>
 
         <TooltipContent>{{ label }}</TooltipContent>

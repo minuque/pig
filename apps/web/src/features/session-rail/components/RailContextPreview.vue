@@ -2,18 +2,21 @@
   <PreviewDialog v-model:open="open" class="ctx-preview-dialog" :title="title">
     <template #actions>
       <Tooltip v-if="!loading">
-        <TooltipTrigger as-child>
-          <IconButton
-            type="button"
-            size="s"
-            variant="ghost"
-            color="neutral"
-            :aria-label="toggleLabel"
-            @click="source = !source"
-          >
-            <SquareCodeIcon v-if="!source" class="size-icon" />
-            <EyeIcon v-else class="size-icon" />
-          </IconButton>
+        <TooltipTrigger>
+          <template #render="{ props: part }">
+            <IconButton
+              v-bind="part"
+              type="button"
+              size="s"
+              variant="ghost"
+              color="neutral"
+              :aria-label="toggleLabel"
+              @click="source = !source"
+            >
+              <SquareCodeIcon v-if="!source" class="size-icon" />
+              <EyeIcon v-else class="size-icon" />
+            </IconButton>
+          </template>
         </TooltipTrigger>
 
         <TooltipContent>{{ toggleLabel }}</TooltipContent>

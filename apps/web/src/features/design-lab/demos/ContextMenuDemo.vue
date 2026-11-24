@@ -2,20 +2,23 @@
   <Story title="Context menu">
     <Variant title="Default">
       <ContextMenu>
-        <ContextMenuTrigger as-child>
-          <div
-            style="
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              inline-size: 320px;
-              block-size: 160px;
-              border: 1px dashed var(--border-input);
-              border-radius: var(--radius-control);
-            "
-          >
-            Right-click this area
-          </div>
+        <ContextMenuTrigger>
+          <template #render="{ props: part }">
+            <div
+              v-bind="part"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                inline-size: 320px;
+                block-size: 160px;
+                border: 1px dashed var(--border-input);
+                border-radius: var(--radius-control);
+              "
+            >
+              Right-click this area
+            </div>
+          </template>
         </ContextMenuTrigger>
 
         <ContextMenuContent>
@@ -33,8 +36,12 @@
     <Variant title="Sizes">
       <div style="display: flex; flex-wrap: wrap; gap: 16px">
         <ContextMenu>
-          <ContextMenuTrigger as-child>
-            <div style="padding: 24px; border: 1px dashed var(--border-input)">Small menu</div>
+          <ContextMenuTrigger>
+            <template #render="{ props: part }">
+              <div v-bind="part" style="padding: 24px; border: 1px dashed var(--border-input)">
+                Small menu
+              </div>
+            </template>
           </ContextMenuTrigger>
 
           <ContextMenuContent size="s">
@@ -43,8 +50,12 @@
         </ContextMenu>
 
         <ContextMenu>
-          <ContextMenuTrigger as-child>
-            <div style="padding: 24px; border: 1px dashed var(--border-input)">Medium menu</div>
+          <ContextMenuTrigger>
+            <template #render="{ props: part }">
+              <div v-bind="part" style="padding: 24px; border: 1px dashed var(--border-input)">
+                Medium menu
+              </div>
+            </template>
           </ContextMenuTrigger>
 
           <ContextMenuContent size="m">

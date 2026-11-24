@@ -1,64 +1,77 @@
 <template>
-  <Collapsible as-child :open="open" @update:open="emit('toggle', $event)">
-    <div class="tool-row" :class="{ 'is-failed': call.isError, 'is-running': call.running }">
-      <div class="tool-row-head">
-        <CollapsibleTrigger as-child>
-          <button
-            type="button"
-            class="tool-row-trigger"
-            :class="{ 'is-file': Boolean(target.path) }"
-          >
-            <RollText class="tool-row-text" :text="lineText">
-              <span class="tool-row-line">
-                <span
-                  class="tool-row-verb"
-                  :class="{ shimmer: Boolean(liveVerb) }"
-                  :data-text="liveVerb ?? undefined"
-                >
-                  {{ shownVerb }}
+  <Collapsible :open="open" @update:open="emit('toggle', $event)">
+    <template #render="{ props: part }">
+      <div
+        v-bind="part"
+        class="tool-row"
+        :class="{ 'is-failed': call.isError, 'is-running': call.running }"
+      >
+        <div class="tool-row-head">
+          <CollapsibleTrigger>
+            <template #render="{ props: part }">
+              <button
+                v-bind="part"
+                type="button"
+                class="tool-row-trigger"
+                :class="{ 'is-file': Boolean(target.path) }"
+              >
+                <RollText class="tool-row-text" :text="lineText">
+                  <span class="tool-row-line">
+                    <span
+                      class="tool-row-verb"
+                      :class="{ shimmer: Boolean(liveVerb) }"
+                      :data-text="liveVerb ?? undefined"
+                    >
+                      {{ shownVerb }}
+                    </span>
+
+                    <span
+                      v-if="target.text"
+                      class="tool-row-target"
+                      :class="{ 'is-openable': openable }"
+                      :title="target.path || target.text"
+                      @click="openable && openTarget($event)"
+                    >
+                      {{ target.text }}
+                    </span>
+
+                    <span v-if="readRange" class="tool-row-range">({{ readRange }})</span>
+                  </span>
+                </RollText>
+
+                <span v-if="lineChange.added || lineChange.removed" class="tool-row-counts">
+                  <span v-if="lineChange.added" class="added">+{{ lineChange.added }}</span>
+                  <span v-if="lineChange.removed" class="removed">-{{ lineChange.removed }}</span>
                 </span>
+              </button>
+            </template>
+          </CollapsibleTrigger>
 
-                <span
-                  v-if="target.text"
-                  class="tool-row-target"
-                  :class="{ 'is-openable': openable }"
-                  :title="target.path || target.text"
-                  @click="openable && openTarget($event)"
-                >
-                  {{ target.text }}
-                </span>
+          <span v-if="images.length || duration" class="tool-row-meta">
+            <ToolThumbs :images="images" />
+            <span v-if="duration" class="tool-row-time">{{ duration }}</span>
+          </span>
 
-                <span v-if="readRange" class="tool-row-range">({{ readRange }})</span>
-              </span>
-            </RollText>
+          <ChevronRightIcon
+            class="tool-row-caret"
+            :class="{ 'is-open': open }"
+            data-icon="inline"
+          />
+        </div>
 
-            <span v-if="lineChange.added || lineChange.removed" class="tool-row-counts">
-              <span v-if="lineChange.added" class="added">+{{ lineChange.added }}</span>
-              <span v-if="lineChange.removed" class="removed">-{{ lineChange.removed }}</span>
-            </span>
-          </button>
-        </CollapsibleTrigger>
+        <CollapsibleContent class="tool-row-body">
+          <ToolTaskBody v-if="tasks.length" :tasks="tasks" />
+          <ToolCommandBody v-else-if="variant === 'command'" :call="shownCall" />
 
-        <span v-if="images.length || duration" class="tool-row-meta">
-          <ToolThumbs :images="images" />
-          <span v-if="duration" class="tool-row-time">{{ duration }}</span>
-        </span>
+          <ToolFileBody
+            v-else-if="variant === 'read' || variant === 'edit' || variant === 'search'"
+            :call="shownCall"
+          />
 
-        <ChevronRightIcon class="tool-row-caret" :class="{ 'is-open': open }" data-icon="inline" />
+          <ToolGenericBody v-else :call="shownCall" />
+        </CollapsibleContent>
       </div>
-
-      <CollapsibleContent class="tool-row-body">
-        <ToolTaskBody v-if="tasks.length" :tasks="tasks" />
-        <ToolCommandBody v-else-if="variant === 'command'" :call="shownCall" />
-
-        <ToolFileBody
-          v-else-if="variant === 'read' || variant === 'edit' || variant === 'search'"
-          :call="shownCall"
-        />
-
-        <ToolGenericBody v-else :call="shownCall" />
-      </CollapsibleContent>
-    </div>
+    </template>
   </Collapsible>
 </template>
 

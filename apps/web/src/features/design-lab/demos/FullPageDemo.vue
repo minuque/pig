@@ -12,16 +12,15 @@
   <SettingsDialog v-model:open="settingsOpen" />
   <Toaster />
 
-  <Button
-    :as="RouterLink"
-    to="/design"
-    variant="secondary"
-    color="neutral"
-    size="s"
-    class="lab-back"
-  >
-    <ArrowLeftIcon class="size-icon-sm" />
-    Design
+  <Button variant="secondary" color="neutral" size="s" class="lab-back">
+    <template #render="{ props: part }">
+      <RouterLink v-slot="{ href, navigate }" to="/design" custom>
+        <a v-bind="part" :href="href" @click="navigate">
+          <ArrowLeftIcon class="size-icon-sm" />
+          Design
+        </a>
+      </RouterLink>
+    </template>
   </Button>
 </template>
 

@@ -2,8 +2,10 @@
   <Story title="Tooltip">
     <Variant title="Default">
       <Tooltip>
-        <TooltipTrigger as-child>
-          <Button variant="secondary">Hover me</Button>
+        <TooltipTrigger>
+          <template #render="{ props: part }">
+            <Button v-bind="part" variant="secondary">Hover me</Button>
+          </template>
         </TooltipTrigger>
 
         <TooltipContent>Tooltip text</TooltipContent>
@@ -12,8 +14,10 @@
 
     <Variant title="Open">
       <Tooltip default-open>
-        <TooltipTrigger as-child>
-          <Button variant="secondary">Always open</Button>
+        <TooltipTrigger>
+          <template #render="{ props: part }">
+            <Button v-bind="part" variant="secondary">Always open</Button>
+          </template>
         </TooltipTrigger>
 
         <TooltipContent>Tooltip text</TooltipContent>
@@ -23,32 +27,40 @@
     <Variant title="Sides">
       <div style="display: flex; flex-wrap: wrap; gap: 24px; padding: 48px">
         <Tooltip>
-          <TooltipTrigger as-child>
-            <Button variant="secondary">Top</Button>
+          <TooltipTrigger>
+            <template #render="{ props: part }">
+              <Button v-bind="part" variant="secondary">Top</Button>
+            </template>
           </TooltipTrigger>
 
           <TooltipContent side="top">Top tooltip</TooltipContent>
         </Tooltip>
 
         <Tooltip>
-          <TooltipTrigger as-child>
-            <Button variant="secondary">Right</Button>
+          <TooltipTrigger>
+            <template #render="{ props: part }">
+              <Button v-bind="part" variant="secondary">Right</Button>
+            </template>
           </TooltipTrigger>
 
           <TooltipContent side="right">Right tooltip</TooltipContent>
         </Tooltip>
 
         <Tooltip>
-          <TooltipTrigger as-child>
-            <Button variant="secondary">Bottom</Button>
+          <TooltipTrigger>
+            <template #render="{ props: part }">
+              <Button v-bind="part" variant="secondary">Bottom</Button>
+            </template>
           </TooltipTrigger>
 
           <TooltipContent side="bottom">Bottom tooltip</TooltipContent>
         </Tooltip>
 
         <Tooltip>
-          <TooltipTrigger as-child>
-            <Button variant="secondary">Left</Button>
+          <TooltipTrigger>
+            <template #render="{ props: part }">
+              <Button v-bind="part" variant="secondary">Left</Button>
+            </template>
           </TooltipTrigger>
 
           <TooltipContent side="left">Left tooltip</TooltipContent>

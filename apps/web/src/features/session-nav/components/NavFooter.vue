@@ -1,26 +1,29 @@
 <template>
   <div class="nav-footer">
     <DropdownMenu :modal="false">
-      <DropdownMenuTrigger as-child>
-        <Button
-          class="footer-profile"
-          type="button"
-          size="m"
-          variant="ghost"
-          color="neutral"
-          :aria-label="t('nav.profileMenu')"
-        >
-          <img
-            class="footer-logo"
-            src="/pwa-icon-192.png"
-            width="22"
-            height="22"
-            alt=""
-            aria-hidden="true"
-          />
+      <DropdownMenuTrigger>
+        <template #render="{ props: part }">
+          <Button
+            v-bind="part"
+            class="footer-profile"
+            type="button"
+            size="m"
+            variant="ghost"
+            color="neutral"
+            :aria-label="t('nav.profileMenu')"
+          >
+            <img
+              class="footer-logo"
+              src="/pwa-icon-192.png"
+              width="22"
+              height="22"
+              alt=""
+              aria-hidden="true"
+            />
 
-          <span class="footer-name">{{ displayName }}</span>
-        </Button>
+            <span class="footer-name">{{ displayName }}</span>
+          </Button>
+        </template>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent side="top" align="start" :side-offset="4">
@@ -39,17 +42,20 @@
     </DropdownMenu>
 
     <Tooltip>
-      <TooltipTrigger as-child>
-        <IconButton
-          class="footer-btn press-scale"
-          type="button"
-          size="m"
-          variant="ghost"
-          :aria-label="t('nav.settings')"
-          @click="emit('settings')"
-        >
-          <SettingsIcon class="size-icon-lg" />
-        </IconButton>
+      <TooltipTrigger>
+        <template #render="{ props: part }">
+          <IconButton
+            v-bind="part"
+            class="footer-btn press-scale"
+            type="button"
+            size="m"
+            variant="ghost"
+            :aria-label="t('nav.settings')"
+            @click="emit('settings')"
+          >
+            <SettingsIcon class="size-icon-lg" />
+          </IconButton>
+        </template>
       </TooltipTrigger>
 
       <TooltipContent>{{ t("nav.settings") }}</TooltipContent>

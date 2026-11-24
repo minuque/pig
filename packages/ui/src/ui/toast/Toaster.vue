@@ -11,18 +11,17 @@
       <Toast>
         <ToastClose>
           <template #render="{ props }">
-            <AsChildSlot :part-props="props">
-              <IconButton
-                data-toast-close
-                type="button"
-                size="s"
-                variant="ghost"
-                color="neutral"
-                :aria-label="labels.close"
-              >
-                <XIcon class="size-icon" />
-              </IconButton>
-            </AsChildSlot>
+            <IconButton
+              v-bind="props"
+              data-toast-close
+              type="button"
+              size="s"
+              variant="ghost"
+              color="neutral"
+              :aria-label="labels.close"
+            >
+              <XIcon class="size-icon" />
+            </IconButton>
           </template>
         </ToastClose>
 
@@ -50,13 +49,11 @@
 
         <ToastAction v-if="noticeOf(toast).action">
           <template #render="{ props }">
-            <AsChildSlot :part-props="props">
-              <Button data-toast-action size="s" variant="solid">
-                <Undo2Icon v-if="noticeOf(toast).action?.icon === 'undo'" />
-                <ArrowUpRightIcon v-else />
-                {{ noticeOf(toast).action?.label }}
-              </Button>
-            </AsChildSlot>
+            <Button v-bind="props" data-toast-action size="s" variant="solid">
+              <Undo2Icon v-if="noticeOf(toast).action?.icon === 'undo'" />
+              <ArrowUpRightIcon v-else />
+              {{ noticeOf(toast).action?.label }}
+            </Button>
           </template>
         </ToastAction>
       </Toast>
@@ -86,7 +83,6 @@ import {
 import { useUiLabels } from "../../core/config.js"
 import type { Tone } from "../../core/types.js"
 import { Button, IconButton } from "../button/index.js"
-import { AsChildSlot } from "../primitive/index.js"
 import { noticeOf, noticeToaster, type Notice, type NoticeLevel } from "./notify.js"
 
 const CLAMP_CHARS = 180

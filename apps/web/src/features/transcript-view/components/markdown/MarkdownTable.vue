@@ -3,18 +3,21 @@
     <TableRoot variant="surface" size="s" class="md-table-root"><slot /></TableRoot>
 
     <Tooltip>
-      <TooltipTrigger as-child>
-        <IconButton
-          type="button"
-          size="s"
-          variant="ghost"
-          color="neutral"
-          class="md-table-zoom"
-          :aria-label="previewLabel"
-          @click.stop="openPreview"
-        >
-          <Maximize2Icon class="size-icon" />
-        </IconButton>
+      <TooltipTrigger>
+        <template #render="{ props: part }">
+          <IconButton
+            v-bind="part"
+            type="button"
+            size="s"
+            variant="ghost"
+            color="neutral"
+            class="md-table-zoom"
+            :aria-label="previewLabel"
+            @click.stop="openPreview"
+          >
+            <Maximize2Icon class="size-icon" />
+          </IconButton>
+        </template>
       </TooltipTrigger>
 
       <TooltipContent>{{ previewLabel }}</TooltipContent>

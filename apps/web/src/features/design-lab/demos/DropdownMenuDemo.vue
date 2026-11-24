@@ -2,8 +2,10 @@
   <Story title="Dropdown menu">
     <Variant title="Default">
       <DropdownMenu :modal="false">
-        <DropdownMenuTrigger as-child>
-          <Button variant="secondary">Open menu</Button>
+        <DropdownMenuTrigger>
+          <template #render="{ props: part }">
+            <Button v-bind="part" variant="secondary">Open menu</Button>
+          </template>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent>
@@ -27,8 +29,10 @@
 
     <Variant title="Open">
       <DropdownMenu :modal="false" default-open>
-        <DropdownMenuTrigger as-child>
-          <Button variant="secondary">Always open</Button>
+        <DropdownMenuTrigger>
+          <template #render="{ props: part }">
+            <Button v-bind="part" variant="secondary">Always open</Button>
+          </template>
         </DropdownMenuTrigger>
 
         <DropdownMenuContent>
@@ -43,8 +47,10 @@
     <Variant title="Sizes">
       <div style="display: flex; flex-wrap: wrap; gap: 12px">
         <DropdownMenu :modal="false">
-          <DropdownMenuTrigger as-child>
-            <Button variant="secondary" size="s">Small</Button>
+          <DropdownMenuTrigger>
+            <template #render="{ props: part }">
+              <Button v-bind="part" variant="secondary" size="s">Small</Button>
+            </template>
           </DropdownMenuTrigger>
 
           <DropdownMenuContent size="s">
@@ -54,8 +60,10 @@
         </DropdownMenu>
 
         <DropdownMenu :modal="false">
-          <DropdownMenuTrigger as-child>
-            <Button variant="secondary" size="m">Medium</Button>
+          <DropdownMenuTrigger>
+            <template #render="{ props: part }">
+              <Button v-bind="part" variant="secondary" size="m">Medium</Button>
+            </template>
           </DropdownMenuTrigger>
 
           <DropdownMenuContent size="m">

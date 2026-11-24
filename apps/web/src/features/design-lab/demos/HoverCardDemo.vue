@@ -2,8 +2,10 @@
   <Story title="Hover card">
     <Variant title="Default">
       <HoverCard>
-        <HoverCardTrigger as-child>
-          <Button variant="secondary">Hover me</Button>
+        <HoverCardTrigger>
+          <template #render="{ props: part }">
+            <Button v-bind="part" variant="secondary">Hover me</Button>
+          </template>
         </HoverCardTrigger>
 
         <HoverCardContent>
@@ -17,8 +19,10 @@
 
     <Variant title="Open">
       <HoverCard default-open>
-        <HoverCardTrigger as-child>
-          <Button variant="secondary">Always open</Button>
+        <HoverCardTrigger>
+          <template #render="{ props: part }">
+            <Button v-bind="part" variant="secondary">Always open</Button>
+          </template>
         </HoverCardTrigger>
 
         <HoverCardContent max-width="320px">
@@ -33,8 +37,10 @@
     <Variant title="Sizes">
       <div style="display: flex; flex-wrap: wrap; gap: 16px">
         <HoverCard>
-          <HoverCardTrigger as-child>
-            <Button variant="secondary" size="s">Small</Button>
+          <HoverCardTrigger>
+            <template #render="{ props: part }">
+              <Button v-bind="part" variant="secondary" size="s">Small</Button>
+            </template>
           </HoverCardTrigger>
 
           <HoverCardContent size="s">
@@ -43,8 +49,10 @@
         </HoverCard>
 
         <HoverCard>
-          <HoverCardTrigger as-child>
-            <Button variant="secondary" size="m">Medium</Button>
+          <HoverCardTrigger>
+            <template #render="{ props: part }">
+              <Button v-bind="part" variant="secondary" size="m">Medium</Button>
+            </template>
           </HoverCardTrigger>
 
           <HoverCardContent size="m">

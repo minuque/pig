@@ -1,34 +1,30 @@
-<template>
-  <Polymorphic
-    v-bind="$attrs"
-    data-slot="card"
-    :data-size="size"
-    :data-variant="variant"
-    :as="as"
-    :as-child="asChild"
-    :class="props.class"
-  >
-    <slot />
-  </Polymorphic>
-</template>
-
-<script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import { Polymorphic, type PolymorphicProps } from "../primitive/index.js"
+<script lang="ts">
+import { defineComponent, type HTMLAttributes, type PropType, type SlotsType } from "vue"
 import type { Size } from "../../core/types.js"
+import { renderPart, type PartSlots } from "../part/index.js"
 
-defineOptions({ inheritAttrs: false })
-
-const props = withDefaults(
-  defineProps<
-    PolymorphicProps & {
-      class?: HTMLAttributes["class"]
-      size?: Size
-      variant?: "surface" | "ghost"
-    }
-  >(),
-  { as: "div", asChild: false, size: "m", variant: "surface", class: undefined },
-)
+export default defineComponent({
+  inheritAttrs: false,
+  props: {
+    class: {
+      type: [String, Array, Object] as PropType<HTMLAttributes["class"]>,
+      default: undefined,
+    },
+    size: { type: String as PropType<Size>, default: "m" },
+    variant: { type: String as PropType<"surface" | "ghost">, default: "surface" },
+  },
+  slots: Object as SlotsType<PartSlots>,
+  setup(props, { attrs, slots }) {
+    return () =>
+      renderPart(slots, "div", {
+        ...attrs,
+        "data-slot": "card",
+        "data-size": props.size,
+        "data-variant": props.variant,
+        class: props.class,
+      })
+  },
+})
 </script>
 
 <style>

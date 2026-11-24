@@ -1,19 +1,22 @@
 <template>
   <NodeViewWrapper as="span" class="chip-node" contenteditable="false" spellcheck="false">
     <Tooltip>
-      <TooltipTrigger as-child>
-        <button
-          type="button"
-          class="chip inline-chip"
-          data-tone="info"
-          :data-file-mention="path"
-          @mousedown.prevent.stop
-          @click.stop="onOpen"
-        >
-          <FolderIcon v-if="isDir" class="inline-chip-icon" aria-hidden="true" />
-          <LanguageIcon v-else :language="language" class="chip-lang-icon" aria-hidden="true" />
-          <span class="inline-chip-label">{{ label }}</span>
-        </button>
+      <TooltipTrigger>
+        <template #render="{ props: part }">
+          <button
+            v-bind="part"
+            type="button"
+            class="chip inline-chip"
+            data-tone="info"
+            :data-file-mention="path"
+            @mousedown.prevent.stop
+            @click.stop="onOpen"
+          >
+            <FolderIcon v-if="isDir" class="inline-chip-icon" aria-hidden="true" />
+            <LanguageIcon v-else :language="language" class="chip-lang-icon" aria-hidden="true" />
+            <span class="inline-chip-label">{{ label }}</span>
+          </button>
+        </template>
       </TooltipTrigger>
 
       <TooltipContent side="top">{{ path }}</TooltipContent>

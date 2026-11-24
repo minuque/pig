@@ -2,8 +2,10 @@
   <Story title="Popover">
     <Variant title="Default">
       <Popover>
-        <PopoverTrigger as-child>
-          <Button variant="secondary">Open popover</Button>
+        <PopoverTrigger>
+          <template #render="{ props: part }">
+            <Button v-bind="part" variant="secondary">Open popover</Button>
+          </template>
         </PopoverTrigger>
 
         <PopoverContent>
@@ -12,8 +14,10 @@
             <p class="demo-popover-desc">Lightweight floating panel anchored to a trigger.</p>
 
             <div class="demo-popover-actions">
-              <PopoverClose as-child>
-                <Button size="s" variant="secondary">Close</Button>
+              <PopoverClose>
+                <template #render="{ props: part }">
+                  <Button v-bind="part" size="s" variant="secondary">Close</Button>
+                </template>
               </PopoverClose>
             </div>
           </div>
@@ -24,8 +28,10 @@
     <Variant title="Sizes">
       <div class="demo-row">
         <Popover>
-          <PopoverTrigger as-child>
-            <Button size="s" variant="outline">Small</Button>
+          <PopoverTrigger>
+            <template #render="{ props: part }">
+              <Button v-bind="part" size="s" variant="outline">Small</Button>
+            </template>
           </PopoverTrigger>
 
           <PopoverContent size="s">
@@ -34,8 +40,10 @@
         </Popover>
 
         <Popover>
-          <PopoverTrigger as-child>
-            <Button size="m" variant="outline">Medium</Button>
+          <PopoverTrigger>
+            <template #render="{ props: part }">
+              <Button v-bind="part" size="m" variant="outline">Medium</Button>
+            </template>
           </PopoverTrigger>
 
           <PopoverContent size="m">

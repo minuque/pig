@@ -5,10 +5,12 @@
         <div class="demo-head">
           <span class="demo-title">Tool output (12 lines)</span>
 
-          <CollapsibleTrigger as-child>
-            <Button variant="ghost" color="neutral" size="s">
-              {{ open ? "Hide" : "Show" }}
-            </Button>
+          <CollapsibleTrigger>
+            <template #render="{ props: part }">
+              <Button v-bind="part" variant="ghost" color="neutral" size="s">
+                {{ open ? "Hide" : "Show" }}
+              </Button>
+            </template>
           </CollapsibleTrigger>
         </div>
 

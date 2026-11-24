@@ -28,10 +28,12 @@
         <p v-if="failed" class="remote-error" role="alert">{{ t("remote.notFound") }}</p>
 
         <div class="remote-actions">
-          <DialogClose as-child>
-            <Button variant="secondary" color="neutral" type="button">
-              {{ t("common.cancel") }}
-            </Button>
+          <DialogClose>
+            <template #render="{ props: part }">
+              <Button v-bind="part" variant="secondary" color="neutral" type="button">
+                {{ t("common.cancel") }}
+              </Button>
+            </template>
           </DialogClose>
 
           <Button type="submit" :loading="busy" :disabled="!host || !path.trim()">

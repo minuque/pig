@@ -41,16 +41,13 @@
 
         <figure class="cell">
           <CardList>
-            <CardRow
-              v-for="row in PROVIDERS"
-              :key="row"
-              as="button"
-              interactive
-              type="button"
-              class="list-row"
-            >
-              {{ row }}
-              <ChevronRightIcon class="size-icon" />
+            <CardRow v-for="row in PROVIDERS" :key="row" interactive type="button" class="list-row">
+              <template #render="{ props: part }">
+                <button v-bind="part">
+                  {{ row }}
+                  <ChevronRightIcon class="size-icon" />
+                </button>
+              </template>
             </CardRow>
           </CardList>
 

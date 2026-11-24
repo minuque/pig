@@ -13,16 +13,19 @@
       @mouseleave="onStageMouseLeave"
     >
       <Tooltip>
-        <TooltipTrigger as-child>
-          <button
-            class="minimap-nav is-previous"
-            type="button"
-            :aria-label="t('transcript.minimapPrevious')"
-            :disabled="!previousItem"
-            @click="previousItem && emit('select', previousItem)"
-          >
-            <ChevronUpIcon class="size-icon-sm" />
-          </button>
+        <TooltipTrigger>
+          <template #render="{ props: part }">
+            <button
+              v-bind="part"
+              class="minimap-nav is-previous"
+              type="button"
+              :aria-label="t('transcript.minimapPrevious')"
+              :disabled="!previousItem"
+              @click="previousItem && emit('select', previousItem)"
+            >
+              <ChevronUpIcon class="size-icon-sm" />
+            </button>
+          </template>
         </TooltipTrigger>
 
         <TooltipContent side="top">{{ t("transcript.minimapPrevious") }}</TooltipContent>
@@ -50,16 +53,19 @@
       </button>
 
       <Tooltip>
-        <TooltipTrigger as-child>
-          <button
-            class="minimap-nav is-next"
-            type="button"
-            :aria-label="t('transcript.minimapNext')"
-            :disabled="!nextItem"
-            @click="nextItem && emit('select', nextItem)"
-          >
-            <ChevronDownIcon class="size-icon-sm" />
-          </button>
+        <TooltipTrigger>
+          <template #render="{ props: part }">
+            <button
+              v-bind="part"
+              class="minimap-nav is-next"
+              type="button"
+              :aria-label="t('transcript.minimapNext')"
+              :disabled="!nextItem"
+              @click="nextItem && emit('select', nextItem)"
+            >
+              <ChevronDownIcon class="size-icon-sm" />
+            </button>
+          </template>
         </TooltipTrigger>
 
         <TooltipContent side="bottom">{{ t("transcript.minimapNext") }}</TooltipContent>

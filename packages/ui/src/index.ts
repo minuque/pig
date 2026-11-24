@@ -34,8 +34,6 @@ export * from "./ui/link/index.js"
 
 export * from "./ui/popover/index.js"
 
-export * from "./ui/primitive/index.js"
-
 export * from "./ui/radio-cards/index.js"
 
 export * from "./ui/radio-group/index.js"

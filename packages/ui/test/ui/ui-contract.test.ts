@@ -50,7 +50,7 @@ describe("UI component contracts", () => {
     expect(smallLoading).toContain('data-slot="button-spinner"')
     expect(smallLoading).toContain('data-slot="spinner"')
     expect(smallLoading).toMatch(/data-slot="spinner"[^>]*data-size="s"/)
-    expect(largeLoading).toContain('data-slot="icon-button"')
+    expect(largeLoading).toContain("data-icon-button")
     expect(largeLoading).toContain('data-slot="button-label"')
     expect(largeLoading).toMatch(/data-slot="spinner"[^>]*data-size="m"/)
   })

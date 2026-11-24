@@ -1,46 +1,56 @@
 <template>
-  <Card as="aside" class="rail-pane" :aria-label="title">
-    <header class="rail-pane-head">
-      <h2 class="rail-pane-title">
-        <span class="rail-pane-name">{{ title }}</span>
-        <span v-if="pane.kind === 'child'" class="rail-pane-meta">{{ t("rail.readOnly") }}</span>
-      </h2>
+  <Card class="rail-pane" :aria-label="title">
+    <template #render="{ props: part }">
+      <aside v-bind="part">
+        <header class="rail-pane-head">
+          <h2 class="rail-pane-title">
+            <span class="rail-pane-name">{{ title }}</span>
 
-      <Tooltip v-for="action in actions" :key="action.key">
-        <TooltipTrigger as-child>
-          <IconButton
-            type="button"
-            size="s"
-            variant="ghost"
-            color="neutral"
-            :aria-label="action.label"
-            :disabled="action.disabled"
-            @click="action.run"
-          >
-            <component :is="action.icon" class="size-icon" />
-          </IconButton>
-        </TooltipTrigger>
+            <span v-if="pane.kind === 'child'" class="rail-pane-meta">
+              {{ t("rail.readOnly") }}
+            </span>
+          </h2>
 
-        <TooltipContent>{{ action.label }}</TooltipContent>
-      </Tooltip>
-    </header>
+          <Tooltip v-for="action in actions" :key="action.key">
+            <TooltipTrigger>
+              <template #render="{ props: part }">
+                <IconButton
+                  v-bind="part"
+                  type="button"
+                  size="s"
+                  variant="ghost"
+                  color="neutral"
+                  :aria-label="action.label"
+                  :disabled="action.disabled"
+                  @click="action.run"
+                >
+                  <component :is="action.icon" class="size-icon" />
+                </IconButton>
+              </template>
+            </TooltipTrigger>
 
-    <div v-if="pane.kind === 'tasks'" class="rail-pane-scroll">
-      <div class="rail-pane-body" data-kind="tasks">
-        <RailTasks
-          :sections="sections"
-          :stoppable="stoppable"
-          :stopping="stopping"
-          :focus="pane.focus"
-          @open="rail.openChild"
-          @stop="emit('stop', $event)"
-        />
-      </div>
-    </div>
+            <TooltipContent>{{ action.label }}</TooltipContent>
+          </Tooltip>
+        </header>
 
-    <div v-else class="rail-pane-body" data-kind="child">
-      <RailChild :child="pane.child" :progress="progress" />
-    </div>
+        <div v-if="pane.kind === 'tasks'" class="rail-pane-scroll">
+          <div class="rail-pane-body" data-kind="tasks">
+            <RailTasks
+              :sections="sections"
+              :stoppable="stoppable"
+              :stopping="stopping"
+              :focus="pane.focus"
+              @open="rail.openChild"
+              @stop="emit('stop', $event)"
+            />
+          </div>
+        </div>
+
+        <div v-else class="rail-pane-body" data-kind="child">
+          <RailChild :child="pane.child" :progress="progress" />
+        </div>
+      </aside>
+    </template>
   </Card>
 </template>
 

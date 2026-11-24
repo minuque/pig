@@ -1,18 +1,21 @@
 <template>
   <div v-if="bridge" class="window-controls">
     <Tooltip v-for="control in controls" :key="control.id">
-      <TooltipTrigger as-child>
-        <IconButton
-          type="button"
-          size="m"
-          color="neutral"
-          variant="ghost"
-          :data-window-control="control.id"
-          :aria-label="control.label"
-          @click="control.run"
-        >
-          <component :is="control.icon" :class="control.iconClass" />
-        </IconButton>
+      <TooltipTrigger>
+        <template #render="{ props: part }">
+          <IconButton
+            v-bind="part"
+            type="button"
+            size="m"
+            color="neutral"
+            variant="ghost"
+            :data-window-control="control.id"
+            :aria-label="control.label"
+            @click="control.run"
+          >
+            <component :is="control.icon" :class="control.iconClass" />
+          </IconButton>
+        </template>
       </TooltipTrigger>
 
       <TooltipContent>{{ control.label }}</TooltipContent>

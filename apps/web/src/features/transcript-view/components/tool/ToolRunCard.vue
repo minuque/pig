@@ -1,19 +1,22 @@
 <template>
   <CardList class="tool-run-card">
-    <CardRow v-for="entry in entries" :key="entry.id" as-child bleed>
-      <ToolThoughtRow
-        v-if="entry.kind === 'thought'"
-        :step="entry.step"
-        :open="expandedTools.get(entry.id) ?? false"
-        @toggle="emit('toggleTool', entry.id, $event)"
-      />
+    <CardRow v-for="entry in entries" :key="entry.id" bleed>
+      <template #render="{ props: part }">
+        <ToolThoughtRow
+          v-bind="part"
+          v-if="entry.kind === 'thought'"
+          :step="entry.step"
+          :open="expandedTools.get(entry.id) ?? false"
+          @toggle="emit('toggleTool', entry.id, $event)"
+        />
 
-      <ToolRow
-        v-else
-        :call="entry.call"
-        :open="expandedTools.get(entry.call.id) ?? false"
-        @toggle="emit('toggleTool', entry.call.id, $event)"
-      />
+        <ToolRow
+          v-else
+          :call="entry.call"
+          :open="expandedTools.get(entry.call.id) ?? false"
+          @toggle="emit('toggleTool', entry.call.id, $event)"
+        />
+      </template>
     </CardRow>
   </CardList>
 </template>

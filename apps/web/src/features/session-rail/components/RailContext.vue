@@ -34,7 +34,6 @@
 
         <Link
           v-if="canPreview(segment)"
-          as="button"
           type="button"
           color="neutral"
           underline="hover"
@@ -42,7 +41,11 @@
           class="ctx-label"
           @click="previewing = segment"
         >
-          {{ labelOf(segment) }}
+          <template #render="{ props: part }">
+            <button v-bind="part">
+              {{ labelOf(segment) }}
+            </button>
+          </template>
         </Link>
 
         <span v-else class="ctx-label">{{ labelOf(segment) }}</span>

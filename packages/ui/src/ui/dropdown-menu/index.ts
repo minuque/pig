@@ -16,4 +16,4 @@ export { default as DropdownMenuRadioItem } from "./DropdownMenuRadioItem.vue"
 
 export { default as DropdownMenuSeparator } from "./DropdownMenuSeparator.vue"
 
-export { default as DropdownMenuTrigger } from "./DropdownMenuTrigger.vue"
+export { MenuTrigger as DropdownMenuTrigger } from "@ui-sdk/vue/menu"

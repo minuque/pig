@@ -31,16 +31,15 @@
           <span class="lab-optional">{{ text(SEARCH) }}</span>
         </Button>
 
-        <Button
-          :as="RouterLink"
-          to="/design/guide"
-          variant="secondary"
-          color="neutral"
-          size="s"
-          aria-label="DESIGN.md 规范"
-        >
-          <FileTextIcon class="size-icon-sm" />
-          <span class="lab-optional">DESIGN.md</span>
+        <Button variant="secondary" color="neutral" size="s" aria-label="DESIGN.md 规范">
+          <template #render="{ props: part }">
+            <RouterLink v-slot="{ href, navigate }" to="/design/guide" custom>
+              <a v-bind="part" :href="href" @click="navigate">
+                <FileTextIcon class="size-icon-sm" />
+                <span class="lab-optional">DESIGN.md</span>
+              </a>
+            </RouterLink>
+          </template>
         </Button>
 
         <TabsRoot :model-value="locale" @update:model-value="(v) => pickLocale(String(v))">

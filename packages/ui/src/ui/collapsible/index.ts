@@ -1,5 +1,5 @@
-export { default as Collapsible } from "./Collapsible.vue"
+export { Collapsible } from "@ui-sdk/vue/collapsible"
 
 export { default as CollapsibleContent } from "./CollapsibleContent.vue"
 
-export { default as CollapsibleTrigger } from "./CollapsibleTrigger.vue"
+export { CollapsibleTrigger } from "@ui-sdk/vue/collapsible"

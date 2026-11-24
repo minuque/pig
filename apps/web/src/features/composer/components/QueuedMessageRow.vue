@@ -27,19 +27,22 @@
 
     <div class="row-actions">
       <Tooltip v-for="action in actions" :key="action.id">
-        <TooltipTrigger as-child>
-          <IconButton
-            type="button"
-            size="s"
-            variant="ghost"
-            color="neutral"
-            :class="action.class"
-            :aria-label="action.label"
-            :disabled="action.disabled ?? false"
-            @click="action.run?.()"
-          >
-            <component :is="action.icon" aria-hidden="true" />
-          </IconButton>
+        <TooltipTrigger>
+          <template #render="{ props: part }">
+            <IconButton
+              v-bind="part"
+              type="button"
+              size="s"
+              variant="ghost"
+              color="neutral"
+              :class="action.class"
+              :aria-label="action.label"
+              :disabled="action.disabled ?? false"
+              @click="action.run?.()"
+            >
+              <component :is="action.icon" aria-hidden="true" />
+            </IconButton>
+          </template>
         </TooltipTrigger>
 
         <TooltipContent>{{ action.label }}</TooltipContent>

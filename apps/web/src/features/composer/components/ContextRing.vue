@@ -1,26 +1,34 @@
 <template>
   <HoverCard>
-    <HoverCardTrigger as-child>
-      <IconButton
-        type="button"
-        size="m"
-        variant="ghost"
-        color="neutral"
-        :aria-label="`${t('composer.contextUsageBreakdown')} ${usage.percent}%`"
-      >
-        <svg class="context-ring" :data-severity="severity" viewBox="0 0 16 16" aria-hidden="true">
-          <circle class="ring-track" cx="8" cy="8" r="6.75" pathLength="100" />
+    <HoverCardTrigger>
+      <template #render="{ props: part }">
+        <IconButton
+          v-bind="part"
+          type="button"
+          size="m"
+          variant="ghost"
+          color="neutral"
+          :aria-label="`${t('composer.contextUsageBreakdown')} ${usage.percent}%`"
+        >
+          <svg
+            class="context-ring"
+            :data-severity="severity"
+            viewBox="0 0 16 16"
+            aria-hidden="true"
+          >
+            <circle class="ring-track" cx="8" cy="8" r="6.75" pathLength="100" />
 
-          <circle
-            class="ring-fill"
-            cx="8"
-            cy="8"
-            r="6.75"
-            pathLength="100"
-            :stroke-dasharray="`${usage.percent} 100`"
-          />
-        </svg>
-      </IconButton>
+            <circle
+              class="ring-fill"
+              cx="8"
+              cy="8"
+              r="6.75"
+              pathLength="100"
+              :stroke-dasharray="`${usage.percent} 100`"
+            />
+          </svg>
+        </IconButton>
+      </template>
     </HoverCardTrigger>
 
     <HoverCardContent side="top" align="end" size="s">

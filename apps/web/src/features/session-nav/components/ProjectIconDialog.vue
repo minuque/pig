@@ -47,8 +47,10 @@
           {{ t("session.resetIcon") }}
         </Button>
 
-        <DialogClose as-child>
-          <Button type="button">{{ t("common.close") }}</Button>
+        <DialogClose>
+          <template #render="{ props: part }">
+            <Button v-bind="part" type="button">{{ t("common.close") }}</Button>
+          </template>
         </DialogClose>
       </div>
     </DialogContent>

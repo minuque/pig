@@ -1,17 +1,20 @@
 <template>
   <NodeViewWrapper as="span" class="chip-node" contenteditable="false" spellcheck="false">
     <Tooltip>
-      <TooltipTrigger as-child>
-        <span
-          class="chip inline-chip"
-          data-tone="accent"
-          :data-command-chip="name"
-          :data-command-kind="isSkill ? 'skill' : undefined"
-        >
-          <BlocksIcon v-if="isSkill" class="inline-chip-icon" aria-hidden="true" />
-          <SquareCodeIcon v-else class="inline-chip-icon" aria-hidden="true" />
-          <span class="inline-chip-label">{{ label }}</span>
-        </span>
+      <TooltipTrigger>
+        <template #render="{ props: part }">
+          <span
+            v-bind="part"
+            class="chip inline-chip"
+            data-tone="accent"
+            :data-command-chip="name"
+            :data-command-kind="isSkill ? 'skill' : undefined"
+          >
+            <BlocksIcon v-if="isSkill" class="inline-chip-icon" aria-hidden="true" />
+            <SquareCodeIcon v-else class="inline-chip-icon" aria-hidden="true" />
+            <span class="inline-chip-label">{{ label }}</span>
+          </span>
+        </template>
       </TooltipTrigger>
 
       <TooltipContent side="top">/{{ label }}</TooltipContent>

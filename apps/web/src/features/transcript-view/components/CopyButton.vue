@@ -1,18 +1,21 @@
 <template>
   <Tooltip>
-    <TooltipTrigger as-child>
-      <IconButton
-        type="button"
-        size="s"
-        variant="ghost"
-        :color="tone"
-        class="copy-button"
-        :aria-label="copyLabel"
-        @click.stop="copy"
-      >
-        <CheckIcon v-if="status === 'copied'" class="size-icon motion-blur-in" />
-        <CopyIcon v-else :class="['size-icon', { 'motion-blur-in': swapped }]" />
-      </IconButton>
+    <TooltipTrigger>
+      <template #render="{ props: part }">
+        <IconButton
+          v-bind="part"
+          type="button"
+          size="s"
+          variant="ghost"
+          :color="tone"
+          class="copy-button"
+          :aria-label="copyLabel"
+          @click.stop="copy"
+        >
+          <CheckIcon v-if="status === 'copied'" class="size-icon motion-blur-in" />
+          <CopyIcon v-else :class="['size-icon', { 'motion-blur-in': swapped }]" />
+        </IconButton>
+      </template>
     </TooltipTrigger>
 
     <TooltipContent>{{ copyLabel }}</TooltipContent>

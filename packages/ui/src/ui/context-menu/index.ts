@@ -16,4 +16,4 @@ export { default as ContextMenuRadioItem } from "../dropdown-menu/DropdownMenuRa
 
 export { default as ContextMenuSeparator } from "../dropdown-menu/DropdownMenuSeparator.vue"
 
-export { default as ContextMenuTrigger } from "./ContextMenuTrigger.vue"
+export { MenuContextTrigger as ContextMenuTrigger } from "@ui-sdk/vue/menu"

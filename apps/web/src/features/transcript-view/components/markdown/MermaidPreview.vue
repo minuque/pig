@@ -11,17 +11,20 @@
           <span v-if="index > 0" class="preview-scale">{{ Math.round(scale * 100) }}%</span>
 
           <Tooltip>
-            <TooltipTrigger as-child>
-              <IconButton
-                type="button"
-                size="s"
-                variant="ghost"
-                color="neutral"
-                :aria-label="action.label"
-                @click="action.run"
-              >
-                <component :is="action.icon" class="size-icon" />
-              </IconButton>
+            <TooltipTrigger>
+              <template #render="{ props: part }">
+                <IconButton
+                  v-bind="part"
+                  type="button"
+                  size="s"
+                  variant="ghost"
+                  color="neutral"
+                  :aria-label="action.label"
+                  @click="action.run"
+                >
+                  <component :is="action.icon" class="size-icon" />
+                </IconButton>
+              </template>
             </TooltipTrigger>
 
             <TooltipContent>{{ action.label }}</TooltipContent>

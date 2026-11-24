@@ -62,39 +62,45 @@
 
           <span class="scope-actions">
             <Tooltip>
-              <TooltipTrigger as-child>
-                <IconButton
-                  class="row-action"
-                  type="button"
-                  size="m"
-                  variant="ghost"
-                  color="neutral"
-                  tabindex="-1"
-                  :aria-label="t('session.projectIcon')"
-                  @click="emit('settings', group.canonicalPath)"
-                >
-                  <SettingsIcon />
-                </IconButton>
+              <TooltipTrigger>
+                <template #render="{ props: part }">
+                  <IconButton
+                    v-bind="part"
+                    class="row-action"
+                    type="button"
+                    size="m"
+                    variant="ghost"
+                    color="neutral"
+                    tabindex="-1"
+                    :aria-label="t('session.projectIcon')"
+                    @click="emit('settings', group.canonicalPath)"
+                  >
+                    <SettingsIcon />
+                  </IconButton>
+                </template>
               </TooltipTrigger>
 
               <TooltipContent>{{ t("session.projectIcon") }}</TooltipContent>
             </Tooltip>
 
             <Tooltip>
-              <TooltipTrigger as-child>
-                <IconButton
-                  class="row-action"
-                  :data-pinned="isPinned(group.canonicalPath) || undefined"
-                  type="button"
-                  size="m"
-                  variant="ghost"
-                  color="neutral"
-                  tabindex="-1"
-                  :aria-label="pinLabel(group.canonicalPath)"
-                  @click="togglePinned(group.canonicalPath)"
-                >
-                  <PinIcon />
-                </IconButton>
+              <TooltipTrigger>
+                <template #render="{ props: part }">
+                  <IconButton
+                    v-bind="part"
+                    class="row-action"
+                    :data-pinned="isPinned(group.canonicalPath) || undefined"
+                    type="button"
+                    size="m"
+                    variant="ghost"
+                    color="neutral"
+                    tabindex="-1"
+                    :aria-label="pinLabel(group.canonicalPath)"
+                    @click="togglePinned(group.canonicalPath)"
+                  >
+                    <PinIcon />
+                  </IconButton>
+                </template>
               </TooltipTrigger>
 
               <TooltipContent>{{ pinLabel(group.canonicalPath) }}</TooltipContent>

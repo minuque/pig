@@ -2,8 +2,10 @@
   <Story title="Dialog">
     <Variant title="Basic">
       <Dialog>
-        <DialogTrigger as-child>
-          <Button variant="secondary">Open dialog</Button>
+        <DialogTrigger>
+          <template #render="{ props: part }">
+            <Button v-bind="part" variant="secondary">Open dialog</Button>
+          </template>
         </DialogTrigger>
 
         <DialogContent>
@@ -14,12 +16,16 @@
           </DialogDescription>
 
           <div style="display: flex; justify-content: flex-end; gap: 8px; margin-block-start: 16px">
-            <DialogClose as-child>
-              <Button variant="secondary">Cancel</Button>
+            <DialogClose>
+              <template #render="{ props: part }">
+                <Button v-bind="part" variant="secondary">Cancel</Button>
+              </template>
             </DialogClose>
 
-            <DialogClose as-child>
-              <Button>Confirm</Button>
+            <DialogClose>
+              <template #render="{ props: part }">
+                <Button v-bind="part">Confirm</Button>
+              </template>
             </DialogClose>
           </div>
         </DialogContent>
@@ -28,8 +34,10 @@
 
     <Variant title="Without close button">
       <Dialog>
-        <DialogTrigger as-child>
-          <Button variant="secondary">Open dialog</Button>
+        <DialogTrigger>
+          <template #render="{ props: part }">
+            <Button v-bind="part" variant="secondary">Open dialog</Button>
+          </template>
         </DialogTrigger>
 
         <DialogContent :show-close-button="false">
@@ -40,8 +48,10 @@
           </DialogDescription>
 
           <div style="display: flex; justify-content: flex-end; gap: 8px; margin-block-start: 16px">
-            <DialogClose as-child>
-              <Button>Got it</Button>
+            <DialogClose>
+              <template #render="{ props: part }">
+                <Button v-bind="part">Got it</Button>
+              </template>
             </DialogClose>
           </div>
         </DialogContent>

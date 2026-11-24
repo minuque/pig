@@ -1,13 +1,11 @@
 <template>
-  <Polymorphic
+  <div
     data-slot="banner"
     :data-size="size"
     :data-variant="variant"
     :data-tone="color"
     :data-dismissible="dismissible || undefined"
     :data-has-icon="Boolean($slots.icon) || undefined"
-    :as="as"
-    :as-child="asChild"
     :class="[floating && 'surface-float', props.class]"
   >
     <div v-if="$slots.icon" data-slot="banner-icon">
@@ -33,7 +31,7 @@
     >
       <XIcon class="size-icon" />
     </button>
-  </Polymorphic>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -41,12 +39,11 @@ import type { HTMLAttributes } from "vue"
 import { XIcon } from "@lucide/vue"
 import { useUiLabels } from "../../core/config.js"
 import type { Size } from "../../core/types.js"
-import { Polymorphic, type PolymorphicProps } from "../primitive/index.js"
 import { type BannerColor, type BannerVariant } from "./index.js"
 
 const labels = useUiLabels()
 
-interface Props extends PolymorphicProps {
+interface Props {
   variant?: BannerVariant
   color?: BannerColor
   size?: Size
@@ -56,8 +53,6 @@ interface Props extends PolymorphicProps {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  as: "div",
-  asChild: false,
   variant: "soft",
   color: "neutral",
   size: "m",

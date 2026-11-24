@@ -4,19 +4,22 @@
     :class="{ 'is-leftmost': leftmost, 'is-rightmost': rightmost, 'is-dimmed': dimmed }"
   >
     <Tooltip v-if="leftmost">
-      <TooltipTrigger as-child>
-        <IconButton
-          class="header-toggle"
-          :class="{ 'is-stowed': sbState === 'expanded' }"
-          type="button"
-          size="m"
-          variant="ghost"
-          :inert="sbState === 'expanded'"
-          :aria-label="t('nav.openSidebar')"
-          @click="setSbState('expanded')"
-        >
-          <PanelRightOpenIcon class="size-icon-lg" />
-        </IconButton>
+      <TooltipTrigger>
+        <template #render="{ props: part }">
+          <IconButton
+            v-bind="part"
+            class="header-toggle"
+            :class="{ 'is-stowed': sbState === 'expanded' }"
+            type="button"
+            size="m"
+            variant="ghost"
+            :inert="sbState === 'expanded'"
+            :aria-label="t('nav.openSidebar')"
+            @click="setSbState('expanded')"
+          >
+            <PanelRightOpenIcon class="size-icon-lg" />
+          </IconButton>
+        </template>
       </TooltipTrigger>
 
       <TooltipContent>{{ t("nav.openSidebar") }}</TooltipContent>
@@ -26,11 +29,13 @@
       <ol class="crumb-list">
         <li v-if="cwdLabel" class="crumb-project">
           <Tooltip>
-            <TooltipTrigger as-child>
-              <span class="crumb-project-label">
-                <ProjectIcon class="crumb-icon" :path="sessionCwd" />
-                <span class="crumb-text">{{ cwdLabel }}</span>
-              </span>
+            <TooltipTrigger>
+              <template #render="{ props: part }">
+                <span v-bind="part" class="crumb-project-label">
+                  <ProjectIcon class="crumb-icon" :path="sessionCwd" />
+                  <span class="crumb-text">{{ cwdLabel }}</span>
+                </span>
+              </template>
             </TooltipTrigger>
 
             <TooltipContent>{{ sessionCwd }}</TooltipContent>
@@ -58,16 +63,19 @@
           />
 
           <DropdownMenu v-if="currentId" :modal="false">
-            <DropdownMenuTrigger as-child>
-              <IconButton
-                class="crumb-more"
-                type="button"
-                size="s"
-                variant="ghost"
-                :aria-label="t('common.more')"
-              >
-                <ChevronDownIcon />
-              </IconButton>
+            <DropdownMenuTrigger>
+              <template #render="{ props: part }">
+                <IconButton
+                  v-bind="part"
+                  class="crumb-more"
+                  type="button"
+                  size="s"
+                  variant="ghost"
+                  :aria-label="t('common.more')"
+                >
+                  <ChevronDownIcon />
+                </IconButton>
+              </template>
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end" class="select-none">
@@ -97,20 +105,23 @@
     <RailToggle v-if="rail" />
 
     <Tooltip v-if="rail && sessionId">
-      <TooltipTrigger as-child>
-        <IconButton
-          class="files-toggle"
-          type="button"
-          size="m"
-          color="neutral"
-          variant="ghost"
-          :data-active="files.open.value || undefined"
-          :aria-pressed="files.open.value"
-          :aria-label="t('files.toggle')"
-          @click="toggleFiles"
-        >
-          <FoldersIcon class="size-icon-lg" />
-        </IconButton>
+      <TooltipTrigger>
+        <template #render="{ props: part }">
+          <IconButton
+            v-bind="part"
+            class="files-toggle"
+            type="button"
+            size="m"
+            color="neutral"
+            variant="ghost"
+            :data-active="files.open.value || undefined"
+            :aria-pressed="files.open.value"
+            :aria-label="t('files.toggle')"
+            @click="toggleFiles"
+          >
+            <FoldersIcon class="size-icon-lg" />
+          </IconButton>
+        </template>
       </TooltipTrigger>
 
       <TooltipContent>{{ t("files.toggle") }}</TooltipContent>
@@ -118,34 +129,40 @@
 
     <span v-if="split.split.value" class="split-actions">
       <Tooltip v-if="!split.fits.value">
-        <TooltipTrigger as-child>
-          <IconButton
-            type="button"
-            size="m"
-            color="neutral"
-            variant="ghost"
-            :aria-label="t('split.switchSide')"
-            @click="split.focusSide(side === 'left' ? 'right' : 'left')"
-          >
-            <ArrowLeftRightIcon class="size-icon-lg" />
-          </IconButton>
+        <TooltipTrigger>
+          <template #render="{ props: part }">
+            <IconButton
+              v-bind="part"
+              type="button"
+              size="m"
+              color="neutral"
+              variant="ghost"
+              :aria-label="t('split.switchSide')"
+              @click="split.focusSide(side === 'left' ? 'right' : 'left')"
+            >
+              <ArrowLeftRightIcon class="size-icon-lg" />
+            </IconButton>
+          </template>
         </TooltipTrigger>
 
         <TooltipContent>{{ t("split.switchSide") }}</TooltipContent>
       </Tooltip>
 
       <Tooltip>
-        <TooltipTrigger as-child>
-          <IconButton
-            type="button"
-            size="m"
-            color="neutral"
-            variant="ghost"
-            :aria-label="t('split.close')"
-            @click="split.closeSide(side)"
-          >
-            <XIcon class="size-icon-lg" />
-          </IconButton>
+        <TooltipTrigger>
+          <template #render="{ props: part }">
+            <IconButton
+              v-bind="part"
+              type="button"
+              size="m"
+              color="neutral"
+              variant="ghost"
+              :aria-label="t('split.close')"
+              @click="split.closeSide(side)"
+            >
+              <XIcon class="size-icon-lg" />
+            </IconButton>
+          </template>
         </TooltipTrigger>
 
         <TooltipContent>{{ t("split.close") }}</TooltipContent>

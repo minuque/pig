@@ -101,17 +101,20 @@
               </template>
             </nav>
 
-            <DialogClose as-child>
-              <IconButton
-                type="button"
-                size="m"
-                variant="ghost"
-                color="neutral"
-                class="settings-close"
-                :aria-label="t('common.close')"
-              >
-                <XIcon class="size-icon" />
-              </IconButton>
+            <DialogClose>
+              <template #render="{ props: part }">
+                <IconButton
+                  v-bind="part"
+                  type="button"
+                  size="m"
+                  variant="ghost"
+                  color="neutral"
+                  class="settings-close"
+                  :aria-label="t('common.close')"
+                >
+                  <XIcon class="size-icon" />
+                </IconButton>
+              </template>
             </DialogClose>
           </header>
 

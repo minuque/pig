@@ -1,24 +1,32 @@
 <template>
-  <Collapsible as-child :open="open" @update:open="emit('toggle', $event)">
-    <div class="tool-row">
-      <CollapsibleTrigger as-child>
-        <button type="button" class="tool-row-trigger">
-          <span
-            class="thought-label"
-            :class="{ shimmer: step.streaming }"
-            :data-text="step.streaming ? label : undefined"
-          >
-            {{ label }}
-          </span>
+  <Collapsible :open="open" @update:open="emit('toggle', $event)">
+    <template #render="{ props: part }">
+      <div v-bind="part" class="tool-row">
+        <CollapsibleTrigger>
+          <template #render="{ props: part }">
+            <button v-bind="part" type="button" class="tool-row-trigger">
+              <span
+                class="thought-label"
+                :class="{ shimmer: step.streaming }"
+                :data-text="step.streaming ? label : undefined"
+              >
+                {{ label }}
+              </span>
 
-          <ChevronRightIcon class="thought-caret" :class="{ 'is-open': open }" data-icon="inline" />
-        </button>
-      </CollapsibleTrigger>
+              <ChevronRightIcon
+                class="thought-caret"
+                :class="{ 'is-open': open }"
+                data-icon="inline"
+              />
+            </button>
+          </template>
+        </CollapsibleTrigger>
 
-      <CollapsibleContent class="thought-body">
-        <ToolOutput :text="step.text" soft-wrap />
-      </CollapsibleContent>
-    </div>
+        <CollapsibleContent class="thought-body">
+          <ToolOutput :text="step.text" soft-wrap />
+        </CollapsibleContent>
+      </div>
+    </template>
   </Collapsible>
 </template>
 

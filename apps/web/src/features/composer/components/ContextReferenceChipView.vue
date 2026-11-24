@@ -1,60 +1,69 @@
 <template>
   <NodeViewWrapper as="span" class="chip-node" contenteditable="false" spellcheck="false">
     <Tooltip v-if="reference.kind === 'session'">
-      <TooltipTrigger as-child>
-        <span
-          class="chip inline-chip"
-          data-tone="success"
-          :data-context-reference="source"
-          data-context-kind="session"
-        >
-          <MessageSquareIcon class="inline-chip-icon" aria-hidden="true" />
-          <span class="inline-chip-label">{{ reference.label }}</span>
-        </span>
+      <TooltipTrigger>
+        <template #render="{ props: part }">
+          <span
+            v-bind="part"
+            class="chip inline-chip"
+            data-tone="success"
+            :data-context-reference="source"
+            data-context-kind="session"
+          >
+            <MessageSquareIcon class="inline-chip-icon" aria-hidden="true" />
+            <span class="inline-chip-label">{{ reference.label }}</span>
+          </span>
+        </template>
       </TooltipTrigger>
 
       <TooltipContent side="top">{{ reference.label }}</TooltipContent>
     </Tooltip>
 
     <HoverCard v-else :disabled="isEditing">
-      <HoverCardTrigger as-child>
-        <span
-          ref="chipEl"
-          class="chip inline-chip is-reply"
-          data-tone="warning"
-          :data-context-reference="source"
-          data-context-kind="reply"
-          :data-cite-id="citeId || undefined"
-        >
-          <button
-            type="button"
-            class="reply-chip-main"
-            :aria-label="t('composer.jumpToReply', { label: displayLabel })"
-            @mousedown.prevent.stop
-            @click.stop="onJump"
+      <HoverCardTrigger>
+        <template #render="{ props: part }">
+          <span
+            v-bind="part"
+            ref="chipEl"
+            class="chip inline-chip is-reply"
+            data-tone="warning"
+            :data-context-reference="source"
+            data-context-kind="reply"
+            :data-cite-id="citeId || undefined"
           >
-            <QuoteIcon class="inline-chip-icon" aria-hidden="true" />
-            <span class="inline-chip-label reply-chip-label">{{ displayLabel }}</span>
-          </button>
+            <button
+              type="button"
+              class="reply-chip-main"
+              :aria-label="t('composer.jumpToReply', { label: displayLabel })"
+              @mousedown.prevent.stop
+              @click.stop="onJump"
+            >
+              <QuoteIcon class="inline-chip-icon" aria-hidden="true" />
+              <span class="inline-chip-label reply-chip-label">{{ displayLabel }}</span>
+            </button>
 
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <button
-                type="button"
-                class="reply-chip-edit"
-                data-reply-edit-trigger
-                :aria-label="editLabel"
-                @pointerdown.prevent.stop
-                @mousedown.prevent.stop
-                @click.stop="onEdit"
-              >
-                <PenIcon class="reply-edit-icon" aria-hidden="true" />
-              </button>
-            </TooltipTrigger>
+            <Tooltip>
+              <TooltipTrigger>
+                <template #render="{ props: part }">
+                  <button
+                    v-bind="part"
+                    type="button"
+                    class="reply-chip-edit"
+                    data-reply-edit-trigger
+                    :aria-label="editLabel"
+                    @pointerdown.prevent.stop
+                    @mousedown.prevent.stop
+                    @click.stop="onEdit"
+                  >
+                    <PenIcon class="reply-edit-icon" aria-hidden="true" />
+                  </button>
+                </template>
+              </TooltipTrigger>
 
-            <TooltipContent side="top">{{ editLabel }}</TooltipContent>
-          </Tooltip>
-        </span>
+              <TooltipContent side="top">{{ editLabel }}</TooltipContent>
+            </Tooltip>
+          </span>
+        </template>
       </HoverCardTrigger>
 
       <HoverCardContent side="top" align="start" size="s" max-width="420px">

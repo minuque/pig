@@ -1,30 +1,35 @@
 <template>
   <Popover v-model:open="open">
     <Tooltip :disabled="!labelsOverflow && !locked">
-      <TooltipTrigger as-child>
-        <PopoverTrigger as-child>
-          <Button
-            variant="ghost"
-            color="neutral"
-            size="m"
-            class="selector"
-            :disabled="disabled"
-            :aria-label="t('composer.selectModel', { model: triggerText })"
-            @pointerenter="measureLabels"
-          >
-            <VendorMark
-              v-if="current.vendor"
-              :vendor="current.vendor.id"
-              :name="current.vendor.name"
-              :size="16"
-            />
+      <TooltipTrigger>
+        <template #render="{ props: part }">
+          <PopoverTrigger v-bind="part">
+            <template #render="{ props: part }">
+              <Button
+                v-bind="part"
+                variant="ghost"
+                color="neutral"
+                size="m"
+                class="selector"
+                :disabled="disabled"
+                :aria-label="t('composer.selectModel', { model: triggerText })"
+                @pointerenter="measureLabels"
+              >
+                <VendorMark
+                  v-if="current.vendor"
+                  :vendor="current.vendor.id"
+                  :name="current.vendor.name"
+                  :size="16"
+                />
 
-            <span ref="labelsRef" class="selector-labels">
-              <span class="selector-name">{{ label }}</span>
-              <RollText v-if="effortLabel" class="selector-effort" :text="effortLabel" />
-            </span>
-          </Button>
-        </PopoverTrigger>
+                <span ref="labelsRef" class="selector-labels">
+                  <span class="selector-name">{{ label }}</span>
+                  <RollText v-if="effortLabel" class="selector-effort" :text="effortLabel" />
+                </span>
+              </Button>
+            </template>
+          </PopoverTrigger>
+        </template>
       </TooltipTrigger>
 
       <TooltipContent>

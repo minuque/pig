@@ -10,16 +10,19 @@
   >
     <slot />
 
-    <DialogClose v-if="showCloseButton" as-child>
-      <IconButton
-        size="s"
-        variant="ghost"
-        color="neutral"
-        :aria-label="labels.close"
-        data-dialog-close
-      >
-        <XIcon class="size-icon" />
-      </IconButton>
+    <DialogClose v-if="showCloseButton">
+      <template #render="{ props: closeProps }">
+        <IconButton
+          v-bind="closeProps"
+          size="s"
+          variant="ghost"
+          color="neutral"
+          :aria-label="labels.close"
+          data-dialog-close
+        >
+          <XIcon class="size-icon" />
+        </IconButton>
+      </template>
     </DialogClose>
   </DialogContentPrimitive>
 </template>
@@ -28,11 +31,14 @@
 import type { HTMLAttributes } from "vue"
 import { computed } from "vue"
 import { XIcon } from "@lucide/vue"
-import { DialogBackdrop, DialogContent as DialogContentPrimitive } from "@ui-sdk/vue/dialog"
+import {
+  DialogBackdrop,
+  DialogClose,
+  DialogContent as DialogContentPrimitive,
+} from "@ui-sdk/vue/dialog"
 import { useUiLabels } from "../../core/config.js"
 import type { Size } from "../../core/types.js"
 import { IconButton } from "../button/index.js"
-import DialogClose from "./DialogClose.vue"
 
 defineOptions({
   inheritAttrs: false,

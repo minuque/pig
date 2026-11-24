@@ -1,50 +1,45 @@
-<template>
-  <Polymorphic
-    v-bind="$attrs"
-    data-slot="link"
-    :as="as"
-    :as-child="asChild"
-    :data-size="size"
-    :data-underline="underline"
-    :data-underline-style="underlineStyle"
-    :data-tone="color"
-    :class="[weightClass, truncate && 'truncate', props.class]"
-  >
-    <slot />
-  </Polymorphic>
-</template>
-
-<script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import { computed } from "vue"
-import { Polymorphic, type PolymorphicProps } from "../primitive/index.js"
+<script lang="ts">
+import { defineComponent, type HTMLAttributes, type PropType, type SlotsType } from "vue"
 import type { Size, ToneColor } from "../../core/types.js"
+import { renderPart, type PartSlots } from "../part/index.js"
 
-defineOptions({ inheritAttrs: false })
-
-const props = withDefaults(
-  defineProps<
-    PolymorphicProps & {
-      class?: HTMLAttributes["class"]
-      size?: Size
-      weight?: "regular" | "medium" | "bold"
-      underline?: "auto" | "always" | "hover" | "none"
-      underlineStyle?: "solid" | "dotted"
-      color?: ToneColor
-      truncate?: boolean
-    }
-  >(),
-  {
-    as: "a",
-    asChild: false,
-    underline: "auto",
-    underlineStyle: "solid",
-    truncate: false,
-    class: undefined,
-  },
-)
 const WEIGHT_CLASS = { regular: "font-normal", medium: "font-medium", bold: "font-bold" } as const
-const weightClass = computed(() => (props.weight ? WEIGHT_CLASS[props.weight] : undefined))
+
+export default defineComponent({
+  inheritAttrs: false,
+  props: {
+    class: {
+      type: [String, Array, Object] as PropType<HTMLAttributes["class"]>,
+      default: undefined,
+    },
+    size: { type: String as PropType<Size>, default: undefined },
+    weight: { type: String as PropType<keyof typeof WEIGHT_CLASS>, default: undefined },
+    underline: {
+      type: String as PropType<"auto" | "always" | "hover" | "none">,
+      default: "auto",
+    },
+    underlineStyle: { type: String as PropType<"solid" | "dotted">, default: "solid" },
+    color: { type: String as PropType<ToneColor>, default: undefined },
+    truncate: { type: Boolean, default: false },
+  },
+  slots: Object as SlotsType<PartSlots>,
+  setup(props, { attrs, slots }) {
+    return () =>
+      renderPart(slots, "a", {
+        ...attrs,
+        "data-slot": "link",
+        "data-size": props.size,
+        "data-underline": props.underline,
+        "data-underline-style": props.underlineStyle,
+        "data-tone": props.color,
+        class: [
+          props.weight && WEIGHT_CLASS[props.weight],
+          props.truncate && "truncate",
+          props.class,
+        ],
+      })
+  },
+})
 </script>
 
 <style>

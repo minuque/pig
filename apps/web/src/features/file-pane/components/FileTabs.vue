@@ -35,16 +35,19 @@
     </TabsList>
 
     <DropdownMenu v-if="overflowing" :modal="false">
-      <DropdownMenuTrigger as-child>
-        <IconButton
-          type="button"
-          size="s"
-          variant="ghost"
-          color="neutral"
-          :aria-label="t('files.allTabs')"
-        >
-          <ChevronDownIcon class="size-icon" />
-        </IconButton>
+      <DropdownMenuTrigger>
+        <template #render="{ props: part }">
+          <IconButton
+            v-bind="part"
+            type="button"
+            size="s"
+            variant="ghost"
+            color="neutral"
+            :aria-label="t('files.allTabs')"
+          >
+            <ChevronDownIcon class="size-icon" />
+          </IconButton>
+        </template>
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end">
@@ -182,7 +185,7 @@ watch(
   font-style: italic;
 }
 
-.file-tab-close[data-slot="icon-button"] {
+.file-tab-close[data-icon-button] {
   position: relative;
   inline-size: 20px;
   block-size: 20px;
@@ -190,11 +193,11 @@ watch(
   color: var(--fg-secondary);
 }
 
-.file-tab-close[data-slot="icon-button"] svg {
+.file-tab-close[data-icon-button] svg {
   color: inherit;
 }
 
-.file-tab[data-selected] .file-tab-close[data-slot="icon-button"] {
+.file-tab[data-selected] .file-tab-close[data-icon-button] {
   color: var(--fg);
 }
 </style>

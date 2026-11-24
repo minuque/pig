@@ -2,17 +2,20 @@
   <div class="nav-head">
     <div class="nav-titlebar">
       <Tooltip>
-        <TooltipTrigger as-child>
-          <IconButton
-            class="nav-btn"
-            type="button"
-            size="m"
-            variant="ghost"
-            :aria-label="t('nav.collapseSidebar')"
-            @click="emit('toggleSidebar')"
-          >
-            <PanelLeftIcon class="size-icon-lg" />
-          </IconButton>
+        <TooltipTrigger>
+          <template #render="{ props: part }">
+            <IconButton
+              v-bind="part"
+              class="nav-btn"
+              type="button"
+              size="m"
+              variant="ghost"
+              :aria-label="t('nav.collapseSidebar')"
+              @click="emit('toggleSidebar')"
+            >
+              <PanelLeftIcon class="size-icon-lg" />
+            </IconButton>
+          </template>
         </TooltipTrigger>
 
         <TooltipContent>{{ t("nav.collapseSidebar") }}</TooltipContent>
@@ -34,18 +37,23 @@
 
       <Popover v-model:open="scopeOpen">
         <Tooltip>
-          <TooltipTrigger as-child>
-            <PopoverTrigger as-child>
-              <IconButton
-                class="nav-btn nav-tool"
-                type="button"
-                size="m"
-                variant="ghost"
-                :aria-label="t('session.filterByWorkspace')"
-              >
-                <ListFilterIcon class="size-icon-lg" />
-              </IconButton>
-            </PopoverTrigger>
+          <TooltipTrigger>
+            <template #render="{ props: part }">
+              <PopoverTrigger v-bind="part">
+                <template #render="{ props: part }">
+                  <IconButton
+                    v-bind="part"
+                    class="nav-btn nav-tool"
+                    type="button"
+                    size="m"
+                    variant="ghost"
+                    :aria-label="t('session.filterByWorkspace')"
+                  >
+                    <ListFilterIcon class="size-icon-lg" />
+                  </IconButton>
+                </template>
+              </PopoverTrigger>
+            </template>
           </TooltipTrigger>
 
           <TooltipContent>{{ t("session.filterByWorkspace") }}</TooltipContent>
@@ -61,34 +69,40 @@
       </Popover>
 
       <Tooltip>
-        <TooltipTrigger as-child>
-          <IconButton
-            class="nav-btn nav-tool"
-            type="button"
-            size="m"
-            variant="ghost"
-            :aria-label="t('session.addFolder')"
-            @click="emit('addProject')"
-          >
-            <FolderPlusIcon class="size-icon-lg" />
-          </IconButton>
+        <TooltipTrigger>
+          <template #render="{ props: part }">
+            <IconButton
+              v-bind="part"
+              class="nav-btn nav-tool"
+              type="button"
+              size="m"
+              variant="ghost"
+              :aria-label="t('session.addFolder')"
+              @click="emit('addProject')"
+            >
+              <FolderPlusIcon class="size-icon-lg" />
+            </IconButton>
+          </template>
         </TooltipTrigger>
 
         <TooltipContent>{{ t("session.addFolder") }}</TooltipContent>
       </Tooltip>
 
       <Tooltip>
-        <TooltipTrigger as-child>
-          <IconButton
-            class="nav-btn nav-tool"
-            type="button"
-            size="m"
-            variant="ghost"
-            :aria-label="t('session.newSession')"
-            @click="emit('create')"
-          >
-            <MessageCirclePlusIcon class="size-icon-lg" />
-          </IconButton>
+        <TooltipTrigger>
+          <template #render="{ props: part }">
+            <IconButton
+              v-bind="part"
+              class="nav-btn nav-tool"
+              type="button"
+              size="m"
+              variant="ghost"
+              :aria-label="t('session.newSession')"
+              @click="emit('create')"
+            >
+              <MessageCirclePlusIcon class="size-icon-lg" />
+            </IconButton>
+          </template>
         </TooltipTrigger>
 
         <TooltipContent>{{ t("session.newSession") }} {{ modKey }}+N</TooltipContent>

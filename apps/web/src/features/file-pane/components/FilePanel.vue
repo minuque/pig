@@ -1,89 +1,106 @@
 <template>
-  <Card as="section" class="file-panel" :aria-label="t('files.title')">
-    <header class="file-panel-head">
-      <Tooltip v-if="narrowCover">
-        <TooltipTrigger as-child>
-          <IconButton
-            type="button"
-            size="s"
-            variant="ghost"
-            color="neutral"
-            :aria-label="t('files.back')"
-            @click="pane.setOpen(false)"
+  <Card class="file-panel" :aria-label="t('files.title')">
+    <template #render="{ props: part }">
+      <section v-bind="part">
+        <header class="file-panel-head">
+          <Tooltip v-if="narrowCover">
+            <TooltipTrigger>
+              <template #render="{ props: part }">
+                <IconButton
+                  v-bind="part"
+                  type="button"
+                  size="s"
+                  variant="ghost"
+                  color="neutral"
+                  :aria-label="t('files.back')"
+                  @click="pane.setOpen(false)"
+                >
+                  <ArrowLeftIcon class="size-icon" />
+                </IconButton>
+              </template>
+            </TooltipTrigger>
+
+            <TooltipContent>{{ t("files.back") }}</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger>
+              <template #render="{ props: part }">
+                <IconButton
+                  v-bind="part"
+                  type="button"
+                  size="s"
+                  variant="ghost"
+                  color="neutral"
+                  :aria-label="t('files.toggleTree')"
+                  :aria-pressed="pane.treeShown.value"
+                  @click="pane.toggleTree"
+                >
+                  <PanelLeftIcon v-if="pane.treeShown.value" class="size-icon" />
+                  <PanelRightOpenIcon v-else class="size-icon" />
+                </IconButton>
+              </template>
+            </TooltipTrigger>
+
+            <TooltipContent>{{ t("files.toggleTree") }}</TooltipContent>
+          </Tooltip>
+
+          <FileTabs class="file-panel-tabs" />
+
+          <Tooltip v-for="action in actions" :key="action.key">
+            <TooltipTrigger>
+              <template #render="{ props: part }">
+                <IconButton
+                  v-bind="part"
+                  type="button"
+                  size="s"
+                  variant="ghost"
+                  color="neutral"
+                  :aria-label="action.label"
+                  :aria-pressed="action.pressed"
+                  @click="action.run"
+                >
+                  <component :is="action.icon" class="size-icon" />
+                </IconButton>
+              </template>
+            </TooltipTrigger>
+
+            <TooltipContent>{{ action.label }}</TooltipContent>
+          </Tooltip>
+        </header>
+
+        <div class="file-panel-body">
+          <Resizable
+            v-if="pane.treeShown.value"
+            auto-save-id="pig.files.tree"
+            class="file-panel-split"
           >
-            <ArrowLeftIcon class="size-icon" />
-          </IconButton>
-        </TooltipTrigger>
+            <ResizablePanel
+              id="files-tree"
+              :default-size="`${TREE_DEFAULT}px`"
+              :min-size="`${TREE_MIN}px`"
+              class="file-panel-col"
+            >
+              <FileSearch><FileTree /></FileSearch>
+            </ResizablePanel>
 
-        <TooltipContent>{{ t("files.back") }}</TooltipContent>
-      </Tooltip>
+            <ResizableHandle>
+              <template #render="{ props: part }">
+                <ResizeHandle v-bind="part" class="file-panel-handle" />
+              </template>
+            </ResizableHandle>
 
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <IconButton
-            type="button"
-            size="s"
-            variant="ghost"
-            color="neutral"
-            :aria-label="t('files.toggleTree')"
-            :aria-pressed="pane.treeShown.value"
-            @click="pane.toggleTree"
-          >
-            <PanelLeftIcon v-if="pane.treeShown.value" class="size-icon" />
-            <PanelRightOpenIcon v-else class="size-icon" />
-          </IconButton>
-        </TooltipTrigger>
+            <ResizablePanel id="files-viewer" :min-size="`${VIEWER_MIN}px`" class="file-panel-col">
+              <FileViewer v-if="active" :key="active" :path="active" />
+              <p v-else class="file-panel-empty">{{ t("files.empty") }}</p>
+            </ResizablePanel>
+          </Resizable>
 
-        <TooltipContent>{{ t("files.toggleTree") }}</TooltipContent>
-      </Tooltip>
-
-      <FileTabs class="file-panel-tabs" />
-
-      <Tooltip v-for="action in actions" :key="action.key">
-        <TooltipTrigger as-child>
-          <IconButton
-            type="button"
-            size="s"
-            variant="ghost"
-            color="neutral"
-            :aria-label="action.label"
-            :aria-pressed="action.pressed"
-            @click="action.run"
-          >
-            <component :is="action.icon" class="size-icon" />
-          </IconButton>
-        </TooltipTrigger>
-
-        <TooltipContent>{{ action.label }}</TooltipContent>
-      </Tooltip>
-    </header>
-
-    <div class="file-panel-body">
-      <Resizable v-if="pane.treeShown.value" auto-save-id="pig.files.tree" class="file-panel-split">
-        <ResizablePanel
-          id="files-tree"
-          :default-size="`${TREE_DEFAULT}px`"
-          :min-size="`${TREE_MIN}px`"
-          class="file-panel-col"
-        >
-          <FileSearch><FileTree /></FileSearch>
-        </ResizablePanel>
-
-        <ResizableHandle>
-          <template #render="{ props: part }">
-            <ResizeHandle v-bind="part" class="file-panel-handle" />
-          </template>
-        </ResizableHandle>
-
-        <ResizablePanel id="files-viewer" :min-size="`${VIEWER_MIN}px`" class="file-panel-col">
-          <FileViewer v-if="active" :key="active" :path="active" />
+          <FileViewer v-else-if="active" :key="active" :path="active" />
           <p v-else class="file-panel-empty">{{ t("files.empty") }}</p>
-        </ResizablePanel>
-      </Resizable>
-
-      <FileViewer v-else-if="active" :key="active" :path="active" />
-      <p v-else class="file-panel-empty">{{ t("files.empty") }}</p>
-    </div>
+        </div>
+      </section>
+    </template>
   </Card>
 </template>
 
