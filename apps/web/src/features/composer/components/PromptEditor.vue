@@ -6,15 +6,23 @@
     @select="commandMenu.onSelect"
     @open-change="onMenuOpenChange"
   >
-    <div class="composer" @mousedown="onComposerMousedown">
-      <div class="composer-plates" :class="{ 'has-menu': menuOpen }">
-        <TriggerMenuContent inline class="command-menu" @mousedown.prevent.stop>
-          <CommandMenu
-            :rows="commandMenu.rows.value"
-            :empty-text="commandMenu.emptyText(menuTrigger)"
-          />
-        </TriggerMenuContent>
+    <TriggerMenuContent
+      data-menu-content
+      class="reveal-menu command-menu"
+      :anchor="composer"
+      side="top"
+      align="start"
+      :side-offset="8"
+      @mousedown.prevent
+    >
+      <CommandMenu
+        :rows="commandMenu.rows.value"
+        :empty-text="commandMenu.emptyText(menuTrigger)"
+      />
+    </TriggerMenuContent>
 
+    <div ref="composer" class="composer" @mousedown="onComposerMousedown">
+      <div v-show="!menuOpen" class="composer-plates">
         <slot name="plate" />
       </div>
 
@@ -134,6 +142,7 @@ const side = usePaneSide()
 const isPaneActive = () => !split || split.focused.value === side
 const showPlaceholder = computed(() => !prompt.value.length && !composing.value)
 const placeholderText = computed(() => props.placeholder ?? t("composer.placeholder"))
+const composer = useTemplateRef<HTMLElement>("composer")
 const menuOpen = ref(false)
 const menuTrigger = ref<string | null>(null)
 const menuController = createTriggerMenuController()
@@ -219,34 +228,19 @@ defineExpose({
 <style scoped>
 .composer {
   position: relative;
-  z-index: var(--z-raise);
   width: 100%;
   margin-inline: auto;
 }
 
 .command-menu {
-  position: absolute;
-  inset-inline: 0;
-  bottom: calc(100% - var(--composer-radius));
-  display: flex;
-  flex-direction: column;
-  max-height: calc(280px + var(--composer-radius));
-  overflow: hidden;
-  padding-bottom: var(--composer-radius);
-  border-radius: var(--radius-dialog) var(--radius-dialog) 0 0;
-  background-color: var(--bg-raised);
-  box-shadow: inset 0 0 0 var(--border-width) var(--border);
-  color: var(--fg);
+  inline-size: var(--anchor-width);
+  max-block-size: min(280px, var(--available-height));
   font-size: var(--text-body);
 }
 
 .composer-plates {
   position: relative;
   margin-inline: var(--space-md);
-}
-
-.composer-plates.has-menu :slotted(.turn-status) {
-  border-radius: 0;
 }
 
 .composer-card {

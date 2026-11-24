@@ -41,7 +41,8 @@
 
 - 提示、悬停卡、拖拽中的行：`--shadow-popover`；对话框、抽屉、图片预览：`--shadow-dialog`。
 - 菜单、下拉、浮卡、toast：`--float-bg` + `--float-shadow` + `--glass-filter`；命令面板、警告框：`--glass-*`。
-- 贴在输入卡上方的浮板：`--bg-raised` + 环，上圆角 `--radius-dialog`，底部伸进输入卡；多块叠放时只有最上一块留圆角。
+- 输入卡上方的状态条：`--bg-raised` + 环，上圆角 `--radius-dialog`，底部伸进输入卡。
+- 命令、文件浮板按菜单表面挂 body，离输入卡 8px；浮板打开时隐藏状态条，二者不叠放。
 - 静态卡片：`--bg-surface` 或细线环二选一，不加阴影。
 - 菜单、下拉、浮卡、提示挂 body，取 `--z-popover`。
 

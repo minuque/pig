@@ -215,7 +215,30 @@ test("列表项里 Tab 缩进、Shift+Tab 退回，提交缩进后的 Markdown",
   expect(bridge.prompts[0]).toBe("- 甲\n  - 乙丙")
 })
 
-test("命令浮板内联贴在输入卡上方，底部伸入状态条与输入卡背后且 hero 视口不向下翻转", async ({
+async function expectMenuClearOfComposer(page: Page) {
+  const layout = await page.evaluate(() => {
+    const menu = document.querySelector(".command-menu")
+    const composer = document.querySelector(".composer")
+    const card = document.querySelector(".composer-card")
+
+    if (!menu || !composer || !card) return null
+    const menuRect = menu.getBoundingClientRect()
+    const cardRect = card.getBoundingClientRect()
+    const centerX = cardRect.left + cardRect.width / 2
+    const cardHit = document.elementFromPoint(centerX, cardRect.top + 6)
+    return {
+      menuBottom: menuRect.bottom,
+      composerTop: composer.getBoundingClientRect().top,
+      cardHitInsideCard: Boolean(cardHit && card.contains(cardHit)),
+    }
+  })
+
+  expect(layout).not.toBeNull()
+  expect(layout!.menuBottom).toBeLessThanOrEqual(layout!.composerTop)
+  expect(layout!.cardHitInsideCard).toBe(true)
+}
+
+test("命令浮板浮在输入卡上方不遮挡输入，打开时隐藏状态条，hero 视口也不向下翻转", async ({
   page,
   complexGateway,
 }) => {
@@ -236,26 +259,13 @@ test("命令浮板内联贴在输入卡上方，底部伸入状态条与输入�
   await expect(page.locator(".composer-bar.is-hero")).toBeVisible()
 
   const prompt = field(page)
-  const menuPanel = page.locator(".composer-plates .command-menu")
+  const menuPanel = page.locator(".command-menu")
   const menuList = page.getByRole("listbox", { name: "命令菜单" })
-  const composerCard = page.locator(".composer-card")
 
   await prompt.click()
   await prompt.pressSequentially("/")
   await expect(menuList.getByRole("option", { name: "/clear" })).toBeVisible()
-  await expect(menuPanel).not.toHaveAttribute("popover")
-  expect(await menuPanel.evaluate((el) => el.matches(":popover-open"))).toBe(false)
-
-  const heroBoxes = await page.evaluate(() => {
-    const menu = document.querySelector(".composer-plates .command-menu")?.getBoundingClientRect()
-    const card = document.querySelector(".composer-card")?.getBoundingClientRect()
-    return menu && card ? { menu, card } : null
-  })
-
-  expect(heroBoxes).not.toBeNull()
-  expect(heroBoxes!.menu.top).toBeLessThan(heroBoxes!.card.top)
-  expect(heroBoxes!.menu.bottom).toBeGreaterThan(heroBoxes!.card.top)
-  expect(heroBoxes!.menu.bottom).toBeLessThan(heroBoxes!.card.bottom)
+  await expectMenuClearOfComposer(page)
 
   await sessionCard.click()
   await expect(page).toHaveURL(new RegExp(`/sessions/${COMPLEX_SESSION_ID}$`))
@@ -264,33 +274,7 @@ test("命令浮板内联贴在输入卡上方，底部伸入状态条与输入�
   await prompt.click()
   await prompt.pressSequentially("/")
   await expect(menuList.getByRole("option", { name: "/compact" })).toBeVisible()
-  await expect(menuPanel).not.toHaveAttribute("popover")
-  expect(await menuPanel.evaluate((el) => el.matches(":popover-open"))).toBe(false)
-
-  const idleHit = await page.evaluate(() => {
-    const menu = document.querySelector(".composer-plates .command-menu")
-    const card = document.querySelector(".composer-card")
-
-    if (!menu || !card) return null
-    const menuRect = menu.getBoundingClientRect()
-    const cardRect = card.getBoundingClientRect()
-    const centerX = cardRect.left + cardRect.width / 2
-    const overlapHit = document.elementFromPoint(centerX, cardRect.top + 8)
-    const aboveHit = document.elementFromPoint(centerX, cardRect.top - 10)
-    return {
-      menuBottom: menuRect.bottom,
-      cardTop: cardRect.top,
-      overlapInsideCard: Boolean(overlapHit && card.contains(overlapHit)),
-      overlapInsideMenu: Boolean(overlapHit && menu.contains(overlapHit)),
-      aboveInsideMenu: Boolean(aboveHit && menu.contains(aboveHit)),
-    }
-  })
-
-  expect(idleHit).not.toBeNull()
-  expect(idleHit!.menuBottom).toBeGreaterThan(idleHit!.cardTop + 8)
-  expect(idleHit!.overlapInsideCard).toBe(true)
-  expect(idleHit!.overlapInsideMenu).toBe(false)
-  expect(idleHit!.aboveInsideMenu).toBe(true)
+  await expectMenuClearOfComposer(page)
 
   await prompt.press("Escape")
   await expect(menuPanel).toHaveCount(0)
@@ -325,45 +309,9 @@ test("命令浮板内联贴在输入卡上方，底部伸入状态条与输入�
   await prompt.click()
   await prompt.pressSequentially("/")
   await expect(menuList.getByRole("option", { name: "/compact" })).toBeVisible()
-  await expect(page.locator(".composer-plates.has-menu")).toBeVisible()
-
-  const stackedHit = await page.evaluate(() => {
-    const menu = document.querySelector(".composer-plates .command-menu")
-    const status = document.querySelector('[data-testid="turn-status"]')
-    const card = document.querySelector(".composer-card")
-
-    if (!menu || !status || !card) return null
-    const menuRect = menu.getBoundingClientRect()
-    const statusRect = status.getBoundingClientRect()
-    const cardRect = card.getBoundingClientRect()
-    const style = getComputedStyle(status)
-    const centerX = cardRect.left + cardRect.width / 2
-    const statusTopHit = document.elementFromPoint(centerX, statusRect.top + 6)
-    const cardTopHit = document.elementFromPoint(centerX, cardRect.top + 6)
-    return {
-      radiusTopLeft: style.borderTopLeftRadius,
-      radiusTopRight: style.borderTopRightRadius,
-      menuBottom: menuRect.bottom,
-      statusTop: statusRect.top,
-      statusBottom: statusRect.bottom,
-      cardTop: cardRect.top,
-      statusHitInsideStatus: Boolean(statusTopHit && status.contains(statusTopHit)),
-      statusHitInsideMenu: Boolean(statusTopHit && menu.contains(statusTopHit)),
-      cardHitInsideCard: Boolean(cardTopHit && card.contains(cardTopHit)),
-      cardHitInsideStatus: Boolean(cardTopHit && status.contains(cardTopHit)),
-      cardHitInsideMenu: Boolean(cardTopHit && menu.contains(cardTopHit)),
-    }
-  })
-
-  expect(stackedHit).not.toBeNull()
-  expect(stackedHit!.radiusTopLeft).toBe("0px")
-  expect(stackedHit!.radiusTopRight).toBe("0px")
-  expect(stackedHit!.menuBottom).toBeGreaterThan(stackedHit!.statusTop + 6)
-  expect(stackedHit!.statusBottom).toBeGreaterThan(stackedHit!.cardTop + 6)
-  expect(stackedHit!.statusHitInsideStatus).toBe(true)
-  expect(stackedHit!.statusHitInsideMenu).toBe(false)
-  expect(stackedHit!.cardHitInsideCard).toBe(true)
-  expect(stackedHit!.cardHitInsideStatus).toBe(false)
-  expect(stackedHit!.cardHitInsideMenu).toBe(false)
-  await expect(composerCard).toBeVisible()
+  await expectMenuClearOfComposer(page)
+  await expect(turnStatus).toBeHidden()
+  await prompt.press("Escape")
+  await expect(menuPanel).toHaveCount(0)
+  await expect(turnStatus).toBeVisible()
 })
