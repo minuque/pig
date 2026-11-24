@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "type": "module",
-  "description": "可复用的 Vue 3 设计系统：基础 token、主题色板派生与无业务基础组件",
+  "description": "基础 token、主题色板派生与无业务基础组件",
   "exports": {
     ".": "./src/index.ts",
     "./theme": "./src/theme/index.ts",
