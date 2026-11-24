@@ -1,106 +1,73 @@
 <template>
   <Story title="ResizeHandle">
     <Variant title="Horizontal">
-      <div class="demo-split-x">
-        <div class="demo-pane" :style="{ inlineSize: `${leftWidth}px` }">
-          Left ({{ Math.round(leftWidth) }}px)
-        </div>
+      <Resizable class="demo-split-x">
+        <ResizablePanel v-slot="{ state }" default-size="180px" min-size="100px" max-size="320px">
+          <div class="demo-pane">Left ({{ Math.round(state.size) }}%)</div>
+        </ResizablePanel>
 
-        <ResizeHandle
-          class="demo-handle-x"
-          tabindex="0"
-          :data-dragging="dragging ? '' : undefined"
-          @pointerdown="onPointerDown"
-        />
+        <ResizableHandle>
+          <template #render="{ props: part }">
+            <ResizeHandle v-bind="part" />
+          </template>
+        </ResizableHandle>
 
-        <div class="demo-pane demo-pane-fill">Right</div>
-      </div>
+        <ResizablePanel>
+          <div class="demo-pane">Right</div>
+        </ResizablePanel>
+      </Resizable>
     </Variant>
 
     <Variant title="Vertical">
-      <div class="demo-split-y">
-        <div class="demo-pane-y">Top</div>
-        <ResizeHandle class="demo-handle-y" tabindex="0" data-orientation="vertical" />
-        <div class="demo-pane-y">Bottom</div>
-      </div>
+      <Resizable orientation="vertical" class="demo-split-y">
+        <ResizablePanel :min-size="20">
+          <div class="demo-pane">Top</div>
+        </ResizablePanel>
+
+        <ResizableHandle>
+          <template #render="{ props: part }">
+            <ResizeHandle v-bind="part" />
+          </template>
+        </ResizableHandle>
+
+        <ResizablePanel :min-size="20">
+          <div class="demo-pane">Bottom</div>
+        </ResizablePanel>
+      </Resizable>
     </Variant>
   </Story>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue"
+import { Resizable, ResizableHandle, ResizablePanel } from "@ui-sdk/vue/resizable"
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { dragResize, ResizeHandle } from "@pig/ui/resize-handle"
-
-const leftWidth = ref(180)
-const dragging = ref(false)
-
-function onPointerDown(event: PointerEvent) {
-  const start = leftWidth.value
-  const started = dragResize(event, {
-    move(delta) {
-      leftWidth.value = Math.min(320, Math.max(100, start + delta))
-    },
-    end(delta) {
-      leftWidth.value = Math.min(320, Math.max(100, start + delta))
-      dragging.value = false
-    },
-  })
-
-  if (started) dragging.value = true
-}
+import { ResizeHandle } from "@pig/ui/resize-handle"
 </script>
 
 <style scoped>
-.demo-split-x {
-  display: flex;
-  align-items: stretch;
-  block-size: 96px;
+.demo-split-x,
+.demo-split-y {
   border-radius: var(--radius-card);
   background: var(--bg);
   box-shadow: inset 0 0 0 var(--border-width) var(--border);
   overflow: hidden;
 }
 
-.demo-pane {
-  flex: none;
-  display: grid;
-  place-items: center;
-  color: var(--fg-secondary);
-  font-size: var(--text-meta);
-  font-variant-numeric: tabular-nums;
-}
-
-.demo-pane-fill {
-  flex: 1;
-}
-
-.demo-handle-x {
-  inline-size: 1px;
-  background: var(--border);
+.demo-split-x {
+  block-size: 96px;
 }
 
 .demo-split-y {
-  display: flex;
-  flex-direction: column;
   block-size: 140px;
-  border-radius: var(--radius-card);
-  background: var(--bg);
-  box-shadow: inset 0 0 0 var(--border-width) var(--border);
-  overflow: hidden;
 }
 
-.demo-pane-y {
-  flex: 1;
+.demo-pane {
   display: grid;
   place-items: center;
+  block-size: 100%;
   color: var(--fg-secondary);
   font-size: var(--text-meta);
-}
-
-.demo-handle-y {
-  block-size: 1px;
-  background: var(--border);
+  font-variant-numeric: tabular-nums;
 }
 </style>

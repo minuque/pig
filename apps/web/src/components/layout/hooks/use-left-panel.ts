@@ -1,15 +1,5 @@
-import {
-  computed,
-  inject,
-  onBeforeUnmount,
-  readonly,
-  ref,
-  watch,
-  type InjectionKey,
-  type Ref,
-} from "vue"
+import { computed, inject, onBeforeUnmount, readonly, ref, type InjectionKey, type Ref } from "vue"
 import { readPref, writePref } from "@utils/storage.js"
-import { dragResize } from "@pig/ui/resize-handle"
 
 export type SidebarState = "expanded" | "offcanvas"
 
@@ -18,8 +8,6 @@ export const leftPanelKey: InjectionKey<{
   sbState: Readonly<Ref<SidebarState>>
   toggle: () => void
   setSbState: (s: SidebarState) => void
-  resizing: Readonly<Ref<boolean>>
-  sbAnimating: Readonly<Ref<boolean>>
   isNarrow: Readonly<Ref<boolean>>
 }> = Symbol("left-panel")
 
@@ -32,105 +20,42 @@ export function useLeftPanelToggle() {
 
 export const LEFT_PANEL_WIDTH_KEY = "pig.leftPanelWidth"
 export const LEFT_PANEL_STATE_KEY = "pig.leftPanelState"
+export const LEFT_PANEL_MIN = 240
+export const LEFT_PANEL_MAX = 420
 export const CONTENT_MIN_WIDTH = 332
 
-export function parseLeftPanelWidth(raw: string | null): number | undefined {
-  if (raw == null || raw.trim() === "") return undefined
-  const n = Number(raw)
-  return Number.isFinite(n) ? n : undefined
+export function storedPanelWidth(): number {
+  const stored = Number(readPref(LEFT_PANEL_WIDTH_KEY) ?? "")
+  const width = Number.isFinite(stored) && stored > 0 ? stored : window.innerWidth * 0.18
+  return Math.min(LEFT_PANEL_MAX, Math.max(LEFT_PANEL_MIN, Math.round(width)))
 }
 
-function loadStoredWidth(): number | undefined {
-  return parseLeftPanelWidth(readPref(LEFT_PANEL_WIDTH_KEY) ?? null)
-}
-
-function loadStoredState(): SidebarState {
-  return readPref(LEFT_PANEL_STATE_KEY) === "offcanvas" ? "offcanvas" : "expanded"
-}
-
-function persistState(state: SidebarState) {
-  writePref(LEFT_PANEL_STATE_KEY, state)
-}
-
-function persistWidth(width: number) {
-  writePref(LEFT_PANEL_WIDTH_KEY, String(width))
-}
-
-const clampPanelWidth = (width: number) => Math.min(420, Math.max(240, width))
-
-export function panelWidthFor(desired: number, viewportWidth: number): number {
-  const room = viewportWidth - CONTENT_MIN_WIDTH
-  return Math.min(clampPanelWidth(desired), Math.max(240, room))
-}
-
-export function fitPanelWidth(width: number, viewportWidth: number): number {
-  const excess = width - (viewportWidth - CONTENT_MIN_WIDTH)
-  return excess > 0 ? Math.max(240, width - excess) : width
+export function persistPanelWidth(width: number) {
+  writePref(LEFT_PANEL_WIDTH_KEY, String(Math.round(width)))
 }
 
 export function useLeftPanel() {
   const narrowViewport = matchMedia("(max-width: 900px)")
-  const sbState = ref<SidebarState>(narrowViewport.matches ? "offcanvas" : loadStoredState())
+  const sbState = ref<SidebarState>(
+    narrowViewport.matches || readPref(LEFT_PANEL_STATE_KEY) === "offcanvas"
+      ? "offcanvas"
+      : "expanded",
+  )
   const leftOpen = computed(() => sbState.value !== "offcanvas")
   const isNarrow = ref(narrowViewport.matches)
-  const leftWidth = ref(
-    panelWidthFor(
-      loadStoredWidth() ?? clampPanelWidth(window.innerWidth * 0.18),
-      window.innerWidth,
-    ),
-  )
-  const resizing = ref(false)
-  const sbAnimating = ref(false)
-  let sbAnimTimer = 0
+  let preNarrowState: SidebarState | undefined
 
-  function flagSbAnimating() {
-    sbAnimating.value = true
-    window.clearTimeout(sbAnimTimer)
-    sbAnimTimer = window.setTimeout(() => {
-      sbAnimating.value = false
-    }, 260)
-  }
-
-  function setPanelWidth(desired: number) {
-    leftWidth.value = panelWidthFor(desired, window.innerWidth)
-  }
-
-  function resizeBy(delta: number) {
-    setPanelWidth(leftWidth.value + delta)
-    persistWidth(leftWidth.value)
-  }
-
-  function startResize(event: PointerEvent) {
-    const startWidth = leftWidth.value
-    resizing.value = dragResize(event, {
-      move: (delta) => setPanelWidth(startWidth + delta),
-      end: (delta) => {
-        setPanelWidth(startWidth + delta)
-        persistWidth(leftWidth.value)
-        resizing.value = false
-      },
-    })
+  function setSbState(next: SidebarState) {
+    sbState.value = next
+    writePref(LEFT_PANEL_STATE_KEY, next)
   }
 
   function toggle() {
     setSbState(sbState.value === "expanded" ? "offcanvas" : "expanded")
   }
 
-  function setSbState(next: SidebarState) {
-    if (next !== sbState.value) flagSbAnimating()
-    sbState.value = next
-    persistState(next)
-  }
-
-  let preNarrowState: SidebarState | undefined
-
   function closeMobilePanels() {
     if (narrowViewport.matches) setSbState("offcanvas")
-  }
-
-  function fitPanels() {
-    if (narrowViewport.matches || !leftOpen.value) return
-    leftWidth.value = fitPanelWidth(leftWidth.value, window.innerWidth)
   }
 
   function handleViewportChange(event: MediaQueryListEvent) {
@@ -146,28 +71,13 @@ export function useLeftPanel() {
   }
 
   narrowViewport.addEventListener("change", handleViewportChange)
-  window.addEventListener("resize", fitPanels)
-  fitPanels()
-
-  watch(leftOpen, () => void fitPanels())
-  onBeforeUnmount(() => {
-    narrowViewport.removeEventListener("change", handleViewportChange)
-    window.removeEventListener("resize", fitPanels)
-    window.clearTimeout(sbAnimTimer)
-    document.body.style.removeProperty("cursor")
-    document.body.style.removeProperty("user-select")
-  })
+  onBeforeUnmount(() => narrowViewport.removeEventListener("change", handleViewportChange))
   return {
     leftOpen: readonly(leftOpen),
     sbState: readonly(sbState),
     setSbState,
-    leftWidth: readonly(leftWidth),
     isNarrow: readonly(isNarrow),
-    resizing: readonly(resizing),
-    sbAnimating: readonly(sbAnimating),
     toggle,
-    resizeBy,
-    startResize,
     closeMobilePanels,
   }
 }

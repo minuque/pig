@@ -58,29 +58,28 @@
       </Tooltip>
     </header>
 
-    <div ref="body" class="file-panel-body">
-      <div v-if="pane.treeShown.value" class="file-panel-split">
-        <div class="file-panel-col" :style="{ inlineSize: `${treeWidth}px` }">
+    <div class="file-panel-body">
+      <Resizable v-if="pane.treeShown.value" auto-save-id="pig.files.tree" class="file-panel-split">
+        <ResizablePanel
+          id="files-tree"
+          :default-size="`${TREE_DEFAULT}px`"
+          :min-size="`${TREE_MIN}px`"
+          class="file-panel-col"
+        >
           <FileSearch><FileTree /></FileSearch>
-        </div>
+        </ResizablePanel>
 
-        <ResizeHandle
-          class="file-panel-handle"
-          role="separator"
-          aria-orientation="vertical"
-          tabindex="0"
-          data-orientation="horizontal"
-          :data-dragging="dragging || undefined"
-          @pointerdown="startDrag"
-          @keydown.left.prevent="setTree(treeWidth - 16, true)"
-          @keydown.right.prevent="setTree(treeWidth + 16, true)"
-        />
+        <ResizableHandle>
+          <template #render="{ props: part }">
+            <ResizeHandle v-bind="part" class="file-panel-handle" />
+          </template>
+        </ResizableHandle>
 
-        <div class="file-panel-col file-panel-viewer">
+        <ResizablePanel id="files-viewer" :min-size="`${VIEWER_MIN}px`" class="file-panel-col">
           <FileViewer v-if="active" :key="active" :path="active" />
           <p v-else class="file-panel-empty">{{ t("files.empty") }}</p>
-        </div>
-      </div>
+        </ResizablePanel>
+      </Resizable>
 
       <FileViewer v-else-if="active" :key="active" :path="active" />
       <p v-else class="file-panel-empty">{{ t("files.empty") }}</p>
@@ -89,13 +88,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef, useTemplateRef } from "vue"
-import { useResizeObserver } from "@vueuse/core"
-import { readPref, writePref } from "@utils/storage.js"
+import { computed } from "vue"
+import { Resizable, ResizableHandle, ResizablePanel } from "@ui-sdk/vue/resizable"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@pig/ui/button"
 import { Card } from "@pig/ui/card"
-import { ResizeHandle, dragResize } from "@pig/ui/resize-handle"
+import { ResizeHandle } from "@pig/ui/resize-handle"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import {
   ArrowLeftIcon,
@@ -123,35 +121,6 @@ const host = usePanelHost()
 const active = computed(() => pane.tabs.value.active)
 const expanded = computed(() => host?.expanded.value ?? false)
 const narrowCover = computed(() => props.covering && !expanded.value)
-const TREE_WIDTH_KEY = "pig.files.treeWidth"
-const savedTree = Number(readPref(TREE_WIDTH_KEY))
-const treePref = shallowRef(Number.isFinite(savedTree) && savedTree > 0 ? savedTree : TREE_DEFAULT)
-const bodyWidth = shallowRef(Number.POSITIVE_INFINITY)
-const treeMax = computed(() => Math.max(TREE_MIN, bodyWidth.value - VIEWER_MIN))
-const treeWidth = computed(() => Math.min(Math.max(treePref.value, TREE_MIN), treeMax.value))
-const dragging = shallowRef(false)
-
-useResizeObserver(useTemplateRef("body"), ([entry]) => {
-  if (entry) bodyWidth.value = entry.contentRect.width
-})
-
-function setTree(next: number, save = false) {
-  treePref.value = Math.min(Math.max(next, TREE_MIN), treeMax.value)
-
-  if (save) writePref(TREE_WIDTH_KEY, String(Math.round(treePref.value)))
-}
-
-function startDrag(event: PointerEvent) {
-  const start = treeWidth.value
-  dragging.value = dragResize(event, {
-    move: (delta) => setTree(start + delta),
-    end: (delta) => {
-      setTree(start + delta, true)
-      dragging.value = false
-    },
-  })
-}
-
 const actions = computed(() => [
   {
     key: "search",
@@ -220,14 +189,9 @@ const actions = computed(() => [
 
 .file-panel-col {
   display: flex;
-  flex: none;
   flex-direction: column;
   min-inline-size: 0;
   min-block-size: 0;
-}
-
-.file-panel-viewer {
-  flex: 1;
 }
 
 .file-panel-handle {

@@ -1,39 +1,69 @@
 <template>
-  <div class="shell" :class="[sbClass, { 'is-resizing': resizing }]">
+  <div ref="shell" class="shell" :class="[sbClass, { 'is-narrow': isNarrow }]">
     <aside
-      class="sidebar"
+      v-if="isNarrow"
+      class="drawer"
       :class="[sbState]"
-      :style="sbState === 'expanded' ? leftWidthStyle : undefined"
       :inert="isOffcanvas"
       :aria-hidden="isOffcanvas"
     >
       <slot name="sidebar" :on-navigate="closeMobilePanels" />
     </aside>
 
-    <ResizeHandle
-      v-if="sbState === 'expanded'"
-      class="resizer"
-      tabindex="0"
-      data-orientation="horizontal"
-      :data-dragging="resizing || undefined"
-      @pointerdown="startResize($event)"
-      @keydown.left.prevent="resizeBy(-16)"
-      @keydown.right.prevent="resizeBy(16)"
-      @dblclick="resetWidth"
-    />
+    <Resizable
+      class="shell-panels"
+      :controller="panels"
+      :disabled="isNarrow"
+      @layout-commit="onCommit"
+    >
+      <ResizablePanel
+        id="sidebar"
+        class="sidebar"
+        :default-size="initialSize"
+        :min-size="`${LEFT_PANEL_MIN}px`"
+        :max-size="`${LEFT_PANEL_MAX}px`"
+        collapsible
+        :collapsed-size="0"
+      >
+        <slot v-if="!isNarrow" name="sidebar" :on-navigate="closeMobilePanels" />
+      </ResizablePanel>
 
-    <main>
-      <slot />
-    </main>
+      <ResizableHandle>
+        <template #render="{ props: part }">
+          <ResizeHandle v-bind="part" class="resizer" />
+        </template>
+      </ResizableHandle>
+
+      <ResizablePanel id="content" class="content" :min-size="`${CONTENT_MIN_WIDTH}px`">
+        <main>
+          <slot />
+        </main>
+      </ResizablePanel>
+    </Resizable>
 
     <WindowControls />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, provide } from "vue"
+import { computed, provide, useTemplateRef, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
-import { leftPanelKey, useLeftPanel } from "@components/layout/hooks/use-left-panel.js"
+import {
+  createResizableController,
+  Resizable,
+  ResizableHandle,
+  ResizablePanel,
+  type ResizableSize,
+} from "@ui-sdk/vue/resizable"
+import {
+  CONTENT_MIN_WIDTH,
+  LEFT_PANEL_MAX,
+  LEFT_PANEL_MIN,
+  leftPanelKey,
+  persistPanelWidth,
+  storedPanelWidth,
+  useLeftPanel,
+} from "@components/layout/hooks/use-left-panel.js"
 import { ResizeHandle } from "@pig/ui/resize-handle"
 import WindowControls from "@components/layout/WindowControls.vue"
 
@@ -42,42 +72,43 @@ defineSlots<{
   sidebar(props: { onNavigate: () => void }): unknown
 }>()
 
-const {
-  leftOpen,
-  sbState,
-  setSbState,
-  leftWidth,
-  resizing,
-  sbAnimating,
-  isNarrow,
-  toggle,
-  resizeBy,
-  startResize,
-  closeMobilePanels,
-} = useLeftPanel()
-const leftWidthStyle = computed(() => ({ "--left-width": `${leftWidth.value}px` }))
+const { leftOpen, sbState, setSbState, isNarrow, toggle, closeMobilePanels } = useLeftPanel()
+const panels = createResizableController()
+const shell = useTemplateRef("shell")
+const docked = computed(() => leftOpen.value && !isNarrow.value)
+const initialSize: ResizableSize = docked.value ? `${storedPanelWidth()}px` : 0
 const sbClass = computed(() => `sb-${sbState.value}`)
 const isOffcanvas = computed(() => sbState.value === "offcanvas")
 
-provide(leftPanelKey, {
-  leftOpen,
-  sbState,
-  setSbState,
-  toggle,
-  resizing,
-  sbAnimating,
-  isNarrow,
+provide(leftPanelKey, { leftOpen, sbState, setSbState, toggle, isNarrow })
+
+watch(docked, (open) => {
+  if (!open) {
+    panels.collapse("sidebar")
+    return
+  }
+
+  panels.expand("sidebar")
+  panels.resize("sidebar", `${storedPanelWidth()}px`)
 })
+
+function onCommit(layout: number[]) {
+  if (isNarrow.value) return
+
+  if (panels.isCollapsed("sidebar")) {
+    if (leftOpen.value) setSbState("offcanvas")
+    return
+  }
+
+  if (!leftOpen.value) setSbState("expanded")
+  persistPanelWidth(((shell.value?.clientWidth ?? 0) * (layout[0] ?? 0)) / 100)
+}
 
 useEventListener(window, "keydown", (event) => {
   if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "b") return
   event.preventDefault()
-  setSbState(sbState.value === "expanded" ? "offcanvas" : "expanded")
+  toggle()
 })
-
-function resetWidth() {
-  resizeBy(0)
-}
 </script>
 
 <style scoped>
@@ -89,26 +120,25 @@ function resetWidth() {
   background: var(--bg);
 }
 
-.sidebar {
-  position: relative;
+.shell-panels {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.sidebar,
+.drawer {
   display: flex;
-  flex: none;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
   background: var(--sidebar);
-  border-inline-end: var(--border-width) solid var(--border-subtle);
   contain: layout style;
-  visibility: hidden;
-  width: 0;
-  border-inline-end-width: 0;
 }
 
-.sidebar.expanded {
-  visibility: visible;
-  width: var(--left-width);
-  border-inline-end-width: var(--border-width);
+.sidebar:not([data-collapsed]) {
+  border-inline-end: var(--border-width) solid var(--border-subtle);
 }
 
 .resizer {
@@ -121,17 +151,10 @@ html[data-pig-desktop-platform="darwin"] .resizer {
   margin-block-start: var(--titlebar-inset);
 }
 
-.shell.is-resizing {
-  cursor: ew-resize;
-  user-select: none;
-}
-
-.shell.is-resizing .sidebar {
-  will-change: width;
-}
-
-.shell.is-resizing main {
-  pointer-events: none;
+.content {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
 }
 
 main {
@@ -146,24 +169,16 @@ main {
   background: var(--bg);
 }
 
+.shell.is-narrow .resizer {
+  display: none;
+}
+
 @media (max-width: 900px) {
-  .shell,
-  .shell.sb-offcanvas {
-    height: 100dvh;
-    display: block;
-    padding: 0;
-  }
-
-  main {
+  .shell {
     height: 100dvh;
   }
 
-  .resizer {
-    display: none;
-  }
-
-  .sidebar,
-  .shell.sb-offcanvas .sidebar {
+  .drawer {
     position: fixed;
     z-index: var(--z-drawer);
     inset-block: 0;
@@ -174,12 +189,10 @@ main {
     transition:
       transform var(--duration-normal) var(--ease-out),
       visibility 0s linear var(--duration-normal);
-    background: var(--sidebar);
-    border-inline-end: 0;
     box-shadow: var(--shadow-dialog);
   }
 
-  .sidebar.expanded {
+  .drawer.expanded {
     visibility: visible;
     transform: translateX(0);
     transition:
@@ -189,9 +202,8 @@ main {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .sidebar {
+  .drawer {
     transition: none;
-    animation: none;
   }
 }
 </style>

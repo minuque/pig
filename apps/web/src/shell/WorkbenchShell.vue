@@ -11,39 +11,29 @@
       <div
         ref="area"
         class="split-area"
-        :class="{ 'is-split': sideBySide, 'is-resizing': resizing }"
+        :class="{ 'is-split': sideBySide }"
         :style="sideBySide ? { '--split-left': `${split.state.value.ratio * 100}%` } : undefined"
       >
-        <WorkbenchPane
-          v-show="leftShown"
-          class="split-left"
-          side="left"
-          :session="left"
-          :preset="leftPreset"
-        />
+        <Resizable class="split-panels" :layout="layout" @layout-change="onLayoutChange">
+          <ResizablePanel id="split-left" class="split-panel">
+            <WorkbenchPane v-show="leftShown" side="left" :session="left" :preset="leftPreset" />
+          </ResizablePanel>
 
-        <ResizeHandle
-          v-if="sideBySide"
-          class="split-resizer"
-          data-orientation="horizontal"
-          :data-dragging="resizing || undefined"
-          role="separator"
-          aria-orientation="vertical"
-          tabindex="0"
-          :aria-valuenow="Math.round(split.state.value.ratio * 100)"
-          @pointerdown="startResize"
-          @dblclick="split.setRatio(0.5)"
-          @keydown.left.prevent="split.setRatio(split.state.value.ratio - 0.02)"
-          @keydown.right.prevent="split.setRatio(split.state.value.ratio + 0.02)"
-        />
+          <ResizableHandle v-if="sideBySide">
+            <template #render="{ props: part }">
+              <ResizeHandle v-bind="part" class="split-resizer" @dblclick="split.setRatio(0.5)" />
+            </template>
+          </ResizableHandle>
 
-        <WorkbenchPane
-          v-if="split.split.value"
-          v-show="rightShown"
-          side="right"
-          :session="right"
-          :preset="rightPreset"
-        />
+          <ResizablePanel v-if="split.split.value" id="split-right" class="split-panel">
+            <WorkbenchPane
+              v-show="rightShown"
+              side="right"
+              :session="right"
+              :preset="rightPreset"
+            />
+          </ResizablePanel>
+        </Resizable>
 
         <div class="split-drop" aria-hidden="true">
           <div
@@ -77,11 +67,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, provide, shallowRef, useTemplateRef } from "vue"
+import { computed, onBeforeUnmount, onMounted, provide, useTemplateRef } from "vue"
 import { useEventListener, useResizeObserver } from "@vueuse/core"
 import { useRoute, useRouter } from "vue-router"
 import AppLayout from "@components/layout/AppLayout.vue"
 import { ResizeHandle } from "@pig/ui/resize-handle"
+import { Resizable, ResizableHandle, ResizablePanel } from "@ui-sdk/vue/resizable"
 import { Toaster, notify } from "@pig/ui/toast"
 
 import { useLocalWorkspaces } from "@client/local-cwd.js"
@@ -192,27 +183,20 @@ const sideBySide = computed(() => split.split.value && split.fits.value)
 const leftShown = computed(() => sideBySide.value || split.focused.value === "left")
 const rightShown = computed(() => sideBySide.value || split.focused.value === "right")
 const area = useTemplateRef("area")
-const resizing = shallowRef(false)
+const layout = computed(() => {
+  if (!split.split.value) return [100]
+
+  if (!sideBySide.value) return leftShown.value ? [100, 0] : [0, 100]
+  const left = split.state.value.ratio * 100
+  return [left, 100 - left]
+})
 
 useResizeObserver(area, ([entry]) => {
   if (entry) split.setWidth(entry.contentRect.width)
 })
 
-function startResize(event: PointerEvent) {
-  const box = area.value?.getBoundingClientRect()
-
-  if (!box || event.button !== 0) return
-  event.preventDefault()
-  resizing.value = true
-
-  const stopMove = useEventListener(window, "pointermove", (move: PointerEvent) => {
-    split.setRatio((move.clientX - box.left) / box.width)
-  })
-  const stopUp = useEventListener(window, "pointerup", () => {
-    resizing.value = false
-    stopMove()
-    stopUp()
-  })
+function onLayoutChange(next: number[]) {
+  if (sideBySide.value && next[0] !== undefined) split.setRatio(next[0] / 100)
 }
 
 const isMac = /mac/i.test(navigator.platform || navigator.userAgent)
@@ -277,8 +261,16 @@ function handleSidebarNavigate(canonicalPath: string, closeMobilePanels: () => v
   min-height: 0;
 }
 
-.split-area.is-split > .split-left {
-  flex: 0 0 var(--split-left);
+.split-panels {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.split-panel {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
 }
 
 .split-drop {
@@ -332,15 +324,6 @@ html[data-session-dragging] .split-drop {
 .split-drop-icon {
   width: var(--icon-md);
   height: var(--icon-md);
-}
-
-.split-area.is-resizing {
-  cursor: ew-resize;
-  user-select: none;
-}
-
-.split-area.is-resizing > :deep(.workbench-pane) {
-  pointer-events: none;
 }
 
 .split-resizer {

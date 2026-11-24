@@ -77,7 +77,7 @@ test("从头部打开 Files，在树里展开目录、搜索内容并跳到命�
   const pane = page.getByRole("region", { name: "文件" })
   const tree = pane.getByRole("tree")
   const headerBox = (await page.locator(".workbench-header").boundingBox())!
-  const mainBox = (await page.locator(".shell > main").boundingBox())!
+  const mainBox = (await page.locator(".shell main").boundingBox())!
   expect(headerBox.x + headerBox.width).toBeCloseTo(mainBox.x + mainBox.width, 0)
   expect((await pane.boundingBox())!.y).toBeGreaterThanOrEqual(headerBox.y + headerBox.height)
 

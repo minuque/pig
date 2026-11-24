@@ -55,7 +55,7 @@ test("摘要面板：分节可折叠，刷新后保持", async ({ page, subagent
   await expect(titles.last()).toHaveText("后台任务")
 
   const headerBox = (await page.locator(".workbench-header").boundingBox())!
-  const mainBox = (await page.locator(".shell > main").boundingBox())!
+  const mainBox = (await page.locator(".shell main").boundingBox())!
   expect(headerBox.x).toBeCloseTo(mainBox.x, 0)
   expect(headerBox.x + headerBox.width).toBeCloseTo(mainBox.x + mainBox.width, 0)
 

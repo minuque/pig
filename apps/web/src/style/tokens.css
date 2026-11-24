@@ -1,10 +1,4 @@
 /* ------ @property 注册 ------ */
-@property --left-width {
-  syntax: "<length>";
-  inherits: false;
-  initial-value: 280px;
-}
-
 @property --citation-highlight-opacity {
   syntax: "<number>";
   inherits: true;
