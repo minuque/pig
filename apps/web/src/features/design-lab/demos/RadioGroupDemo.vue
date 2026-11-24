@@ -11,11 +11,6 @@
           <RadioGroupItem value="a">Medium A</RadioGroupItem>
           <RadioGroupItem value="b">Medium B</RadioGroupItem>
         </RadioGroup>
-
-        <RadioGroup v-model="value" size="l">
-          <RadioGroupItem value="a">Large A</RadioGroupItem>
-          <RadioGroupItem value="b">Large B</RadioGroupItem>
-        </RadioGroup>
       </div>
     </Variant>
 

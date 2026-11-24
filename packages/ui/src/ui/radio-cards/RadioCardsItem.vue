@@ -41,11 +41,6 @@ const props = withDefaults(
   padding: 10px var(--space-sm);
 }
 
-:where([data-radio-cards][data-size="l"]) :where([data-radio-cards-item]) {
-  padding: 20px var(--space-lg);
-  border-radius: var(--radius-card);
-}
-
 :where([data-radio-cards-item]) > * {
   pointer-events: none;
 }

@@ -41,11 +41,6 @@ const props = withDefaults(
   height: var(--space-md);
 }
 
-:where([data-slot="spinner"][data-size="l"]) {
-  width: calc(1.25 * var(--space-md));
-  height: calc(1.25 * var(--space-md));
-}
-
 :where([data-slot="spinner-leaf"]) {
   position: absolute;
   top: 0;

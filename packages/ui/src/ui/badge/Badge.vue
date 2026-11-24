@@ -71,14 +71,6 @@ const props = withDefaults(
   line-height: var(--text-meta--line-height);
 }
 
-:where([data-slot="badge"][data-size="l"]) {
-  padding: var(--space-2xs) calc(var(--space-xs) * 1.25);
-  border-radius: var(--radius-control);
-  gap: var(--space-xs);
-  font-size: var(--text-body);
-  line-height: var(--text-body--line-height);
-}
-
 :where([data-slot="badge"][data-variant="solid"]) {
   background-color: var(--tone);
   color: var(--fg-on-accent);

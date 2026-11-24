@@ -171,10 +171,6 @@ function thumbAriaLabel(index: number, total: number) {
   block-size: var(--control-sm);
 }
 
-:where([data-slot="slider-field"][data-size="l"]) :where([data-slot="slider-shell"]) {
-  block-size: var(--control-lg);
-}
-
 :where([data-slot="slider"]) {
   block-size: 100%;
   inline-size: 100%;

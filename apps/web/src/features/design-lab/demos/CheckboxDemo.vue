@@ -4,7 +4,6 @@
       <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
         <Checkbox v-model="checked" size="s" aria-label="Small checkbox" />
         <Checkbox v-model="checked" size="m" aria-label="Medium checkbox" />
-        <Checkbox v-model="checked" size="l" aria-label="Large checkbox" />
       </div>
     </Variant>
 

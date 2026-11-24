@@ -69,10 +69,6 @@ const props = withDefaults(
   --card-padding: var(--space-md);
 }
 
-:where([data-slot="card"][data-size="l"]) {
-  --card-padding: var(--space-lg);
-}
-
 :where([data-slot="card"][data-variant="surface"]) {
   --card-background-color: var(--card-surface);
   background-color: var(--card-background-color);

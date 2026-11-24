@@ -1,5 +1,5 @@
 <template>
-  <Card size="l" class="login-panel">
+  <Card size="m" class="login-panel">
     <div class="login-status" :data-state="state.phase">
       <LoaderIcon v-if="state.phase === 'running'" class="is-spinning" />
       <CircleExclamationPointIcon v-else-if="state.phase === 'error'" />

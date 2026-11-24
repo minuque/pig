@@ -69,12 +69,6 @@
           <template #title>Medium</template>
           Medium banner body text.
         </Banner>
-
-        <Banner size="l" color="info">
-          <template #icon><MessageSquareIcon /></template>
-          <template #title>Large</template>
-          Large banner body text.
-        </Banner>
       </div>
     </Variant>
 

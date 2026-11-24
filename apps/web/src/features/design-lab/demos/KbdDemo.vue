@@ -11,7 +11,6 @@
       <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
         <Kbd size="s">Small</Kbd>
         <Kbd size="m">Medium</Kbd>
-        <Kbd size="l">Large</Kbd>
       </div>
     </Variant>
 

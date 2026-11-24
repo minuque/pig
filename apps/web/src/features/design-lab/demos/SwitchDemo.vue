@@ -4,7 +4,6 @@
       <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 16px">
         <Switch v-model="on" size="s" aria-label="Small switch" />
         <Switch v-model="on" size="m" aria-label="Medium switch" />
-        <Switch v-model="on" size="l" aria-label="Large switch" />
       </div>
     </Variant>
 

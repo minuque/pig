@@ -13,7 +13,6 @@
       <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
         <Badge size="s">Small</Badge>
         <Badge size="m">Medium</Badge>
-        <Badge size="l">Large</Badge>
       </div>
     </Variant>
 

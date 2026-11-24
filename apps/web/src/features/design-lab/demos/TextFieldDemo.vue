@@ -4,7 +4,6 @@
       <div style="display: flex; flex-direction: column; gap: 12px; max-width: 320px">
         <TextFieldRoot v-model="value" size="s" placeholder="Small" />
         <TextFieldRoot v-model="value" size="m" placeholder="Medium" />
-        <TextFieldRoot v-model="value" size="l" placeholder="Large" />
       </div>
     </Variant>
 

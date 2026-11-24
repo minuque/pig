@@ -125,23 +125,4 @@ const emit = defineEmits<{ "update:modelValue": [value: boolean] }>()
   :where([data-slot="switch-thumb"][data-checked]) {
   transform: translateX(calc(calc(var(--spacing) * 4) - 4px)) scaleX(1.1);
 }
-
-:where([data-slot="switch"][data-size="l"]) {
-  inline-size: calc(calc(var(--spacing) * 5) * 2 - 2px);
-  block-size: calc(calc(var(--spacing) * 5) + 2px);
-}
-
-:where([data-slot="switch"][data-size="l"]) :where([data-slot="switch-thumb"]) {
-  inline-size: calc(calc(var(--spacing) * 5) - 2px);
-  block-size: calc(calc(var(--spacing) * 5) - 2px);
-}
-
-:where([data-slot="switch"][data-size="l"]) :where([data-slot="switch-thumb"][data-checked]) {
-  transform: translateX(calc(calc(var(--spacing) * 5) - 4px));
-}
-
-:where([data-slot="switch"][data-size="l"]:active:not([data-disabled]))
-  :where([data-slot="switch-thumb"][data-checked]) {
-  transform: translateX(calc(calc(var(--spacing) * 5) - 4px)) scaleX(1.1);
-}
 </style>

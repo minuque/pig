@@ -28,10 +28,8 @@
       <div style="display: flex; align-items: center; gap: 16px">
         <StatusIndicator status="running" size="s" aria-label="Small running" />
         <StatusIndicator status="running" size="m" aria-label="Medium running" />
-        <StatusIndicator status="running" size="l" aria-label="Large running" />
         <StatusIndicator appearance="icon" status="success" size="s" aria-label="Small success" />
         <StatusIndicator appearance="icon" status="success" size="m" aria-label="Medium success" />
-        <StatusIndicator appearance="icon" status="success" size="l" aria-label="Large success" />
       </div>
     </Variant>
   </Story>

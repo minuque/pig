@@ -74,10 +74,6 @@ const size = useSelectSize()
   padding-inline: calc(var(--spacing) * 2.5 - var(--border-width));
 }
 
-:where([data-slot="select-trigger"][data-size="l"]) {
-  height: var(--control-lg);
-}
-
 :where([data-slot="select-trigger"]:focus-visible) {
   outline: 2px solid var(--focus-color);
   outline-offset: 2px;

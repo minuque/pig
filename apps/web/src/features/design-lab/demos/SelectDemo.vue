@@ -21,16 +21,6 @@
             <SelectItem value="cherry">Cherry</SelectItem>
           </SelectContent>
         </Select>
-
-        <Select v-model="value" size="l">
-          <SelectTrigger placeholder="Large" aria-label="Large select" />
-
-          <SelectContent>
-            <SelectItem value="apple">Apple</SelectItem>
-            <SelectItem value="banana">Banana</SelectItem>
-            <SelectItem value="cherry">Cherry</SelectItem>
-          </SelectContent>
-        </Select>
       </div>
     </Variant>
 

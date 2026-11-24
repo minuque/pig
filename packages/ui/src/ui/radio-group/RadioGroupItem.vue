@@ -71,11 +71,6 @@ const group = inject(
   line-height: var(--text-meta--line-height);
 }
 
-:where([data-slot="radio-group-item-label"][data-size="l"]) {
-  font-size: var(--text-title);
-  line-height: var(--text-title--line-height);
-}
-
 :where([data-slot="radio-group-item-inner"]) {
   min-width: 0;
 }
@@ -99,11 +94,6 @@ const group = inject(
 :where([data-radio-group-item][data-size="s"]) {
   inline-size: calc(var(--space-md) * 0.875);
   block-size: calc(var(--space-md) * 0.875);
-}
-
-:where([data-radio-group-item][data-size="l"]) {
-  inline-size: calc(var(--space-md) * 1.25);
-  block-size: calc(var(--space-md) * 1.25);
 }
 
 :where([data-radio-group-item])::before,

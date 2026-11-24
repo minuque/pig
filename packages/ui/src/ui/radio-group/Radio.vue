@@ -56,11 +56,6 @@ function onChange(event: Event) {
   block-size: calc(var(--space-md) * 0.875);
 }
 
-:where([data-slot="radio-input"][data-size="l"]) {
-  inline-size: calc(var(--space-md) * 1.25);
-  block-size: calc(var(--space-md) * 1.25);
-}
-
 :where([data-slot="radio-input"]:focus-visible) {
   outline: 2px solid var(--focus-color);
   outline-offset: 2px;

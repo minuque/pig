@@ -52,9 +52,4 @@ const props = withDefaults(
   padding: var(--space-md);
   border-radius: var(--radius-card);
 }
-
-:where([data-slot="hover-card-content"][data-size="l"]) {
-  padding: var(--space-lg);
-  border-radius: var(--radius-card);
-}
 </style>

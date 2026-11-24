@@ -37,5 +37,5 @@ import { IconButton } from "@pig/ui/button"
 import { CopyIcon } from "@components/icons/index.js"
 
 const VARIANTS = ["solid", "secondary", "outline", "ghost"] as const
-const SIZES = ["s", "m", "l"] as const
+const SIZES = ["s", "m"] as const
 </script>

@@ -58,9 +58,4 @@ const props = withDefaults(defineProps<Props>(), {
   height: var(--control-sm);
   inline-size: var(--control-sm);
 }
-
-:where([data-slot="icon-button"][data-size="l"]) {
-  height: var(--control-md);
-  inline-size: var(--control-md);
-}
 </style>

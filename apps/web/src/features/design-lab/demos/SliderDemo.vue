@@ -4,7 +4,6 @@
       <div style="display: flex; flex-direction: column; gap: 32px; max-width: 320px">
         <Slider v-model="value" size="s" aria-label="Small slider" />
         <Slider v-model="value" size="m" aria-label="Medium slider" />
-        <Slider v-model="value" size="l" aria-label="Large slider" />
       </div>
     </Variant>
 

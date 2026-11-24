@@ -26,28 +26,6 @@
       </Dialog>
     </Variant>
 
-    <Variant title="Large">
-      <Dialog>
-        <DialogTrigger as-child>
-          <Button variant="secondary">Open large dialog</Button>
-        </DialogTrigger>
-
-        <DialogContent size="l">
-          <DialogTitle>Large dialog</DialogTitle>
-
-          <DialogDescription>
-            A wider panel keeps long content readable without scrolling.
-          </DialogDescription>
-
-          <div style="display: flex; justify-content: flex-end; gap: 8px; margin-block-start: 16px">
-            <DialogClose as-child>
-              <Button variant="secondary">Close</Button>
-            </DialogClose>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </Variant>
-
     <Variant title="Without close button">
       <Dialog>
         <DialogTrigger as-child>

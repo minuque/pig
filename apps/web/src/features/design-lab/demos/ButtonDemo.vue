@@ -13,7 +13,6 @@
       <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
         <Button size="s">Small</Button>
         <Button size="m">Medium</Button>
-        <Button size="l">Large</Button>
       </div>
     </Variant>
 

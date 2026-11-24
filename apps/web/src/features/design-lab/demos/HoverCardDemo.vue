@@ -21,10 +21,10 @@
           <Button variant="secondary">Always open</Button>
         </HoverCardTrigger>
 
-        <HoverCardContent size="l" max-width="320px">
+        <HoverCardContent max-width="320px">
           <div style="display: flex; flex-direction: column; gap: 8px">
-            <strong>Larger hover card</strong>
-            <span>Body text with the larger padding size.</span>
+            <strong>Open hover card</strong>
+            <span>Body text with the default padding.</span>
           </div>
         </HoverCardContent>
       </HoverCard>
@@ -49,16 +49,6 @@
 
           <HoverCardContent size="m">
             <span>Medium padding</span>
-          </HoverCardContent>
-        </HoverCard>
-
-        <HoverCard>
-          <HoverCardTrigger as-child>
-            <Button variant="secondary" size="l">Large</Button>
-          </HoverCardTrigger>
-
-          <HoverCardContent size="l">
-            <span>Large padding</span>
           </HoverCardContent>
         </HoverCard>
       </div>

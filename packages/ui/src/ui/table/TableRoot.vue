@@ -70,11 +70,6 @@ const props = withDefaults(
   line-height: var(--text-body--line-height);
 }
 
-:where([data-slot="table"][data-size="l"] [data-slot="table-element"]) {
-  font-size: var(--text-title);
-  line-height: var(--text-title--line-height);
-}
-
 :where([data-slot="table-header"]),
 :where([data-slot="table-body"]) {
   vertical-align: inherit;
@@ -100,11 +95,6 @@ const props = withDefaults(
 :where([data-slot="table"][data-size="m"] [data-slot="table-cell"]) {
   padding: var(--space-sm);
   height: 44px;
-}
-
-:where([data-slot="table"][data-size="l"] [data-slot="table-cell"]) {
-  padding: var(--space-sm) var(--space-md);
-  height: 48px;
 }
 
 :where([data-slot="table-cell"][data-kind="column-header"]) {

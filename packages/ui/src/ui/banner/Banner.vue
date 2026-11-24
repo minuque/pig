@@ -98,13 +98,6 @@ const emit = defineEmits<{ close: [] }>()
   border-radius: var(--radius-card);
 }
 
-:where([data-slot="banner"][data-size="l"]) {
-  row-gap: var(--space-sm);
-  column-gap: var(--space-md);
-  padding: var(--space-lg);
-  border-radius: var(--radius-dialog);
-}
-
 :where([data-slot="banner"][data-variant="soft"]) {
   background-color: var(--tone-subtle);
 }
@@ -128,19 +121,10 @@ const emit = defineEmits<{ close: [] }>()
   block-size: calc(var(--text-body) * var(--text-body--line-height));
 }
 
-:where([data-slot="banner"][data-size="l"] [data-slot="banner-icon"]) {
-  block-size: calc(var(--text-title) * var(--text-title--line-height));
-}
-
 :where([data-slot="banner"][data-size="s"] [data-slot="banner-icon"] svg),
 :where([data-slot="banner"][data-size="m"] [data-slot="banner-icon"] svg) {
   inline-size: var(--icon-md);
   block-size: var(--icon-md);
-}
-
-:where([data-slot="banner"][data-size="l"] [data-slot="banner-icon"] svg) {
-  inline-size: var(--icon-lg);
-  block-size: var(--icon-lg);
 }
 
 :where([data-slot="banner-content"]) {
@@ -162,12 +146,6 @@ const emit = defineEmits<{ close: [] }>()
 :where([data-slot="banner"]:is([data-size="s"], [data-size="m"]) [data-slot="banner-body"]) {
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
-}
-
-:where([data-slot="banner"][data-size="l"] [data-slot="banner-title"]),
-:where([data-slot="banner"][data-size="l"] [data-slot="banner-body"]) {
-  font-size: var(--text-title);
-  line-height: var(--text-title--line-height);
 }
 
 :where([data-slot="banner-action"]) {

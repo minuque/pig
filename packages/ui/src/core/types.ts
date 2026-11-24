@@ -1,4 +1,4 @@
-export type Size = "s" | "m" | "l"
+export type Size = "s" | "m"
 
 export type MenuSize = "s" | "m"
 

@@ -102,11 +102,6 @@ const tone = computed(() => STATUS_TONE_MAP[props.status])
   block-size: calc(var(--space-2xs) * 1.5);
 }
 
-:where([data-slot="status-indicator"][data-size="l"] [data-slot="status-dot"]) {
-  inline-size: calc(var(--space-2xs) * 2.5);
-  block-size: calc(var(--space-2xs) * 2.5);
-}
-
 :where([data-slot="status-spinner"]),
 :where([data-slot="status-glyph"]) {
   display: block;
@@ -121,14 +116,6 @@ const tone = computed(() => STATUS_TONE_MAP[props.status])
 ) {
   inline-size: var(--icon-sm);
   block-size: var(--icon-sm);
-}
-
-:where(
-  [data-slot="status-indicator"][data-size="l"]
-    :is([data-slot="status-spinner"], [data-slot="status-glyph"])
-) {
-  inline-size: var(--icon-lg);
-  block-size: var(--icon-lg);
 }
 
 :where([data-slot="status-track"]),

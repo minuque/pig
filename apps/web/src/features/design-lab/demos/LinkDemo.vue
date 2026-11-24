@@ -4,7 +4,6 @@
       <div style="display: flex; flex-direction: column; gap: 8px">
         <Link href="#" size="s" @click.prevent>Small link</Link>
         <Link href="#" size="m" @click.prevent>Medium link</Link>
-        <Link href="#" size="l" @click.prevent>Large link</Link>
       </div>
     </Variant>
 

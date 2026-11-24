@@ -76,11 +76,6 @@ const weightClass = computed(() => (props.weight ? WEIGHT_CLASS[props.weight] : 
   line-height: var(--text-body--line-height);
 }
 
-:where([data-slot="link"][data-size="l"]) {
-  font-size: var(--text-title);
-  line-height: var(--text-title--line-height);
-}
-
 :where([data-slot="link"]:is(:any-link, button)) {
   cursor: pointer;
 }

@@ -134,21 +134,6 @@ function onPointerDown(event: PointerEvent) {
   padding-inline: var(--space-xs);
 }
 
-:where([data-slot="text-field-root"][data-size="l"]) {
-  height: var(--control-lg);
-  font-size: var(--text-title);
-  line-height: var(--text-title--line-height);
-}
-
-:where([data-slot="text-field-root"][data-size="l"]) :where([data-slot="text-field-input"]) {
-  text-indent: calc(var(--space-sm) - var(--border-width));
-}
-
-:where([data-slot="text-field-root"][data-size="l"]) :where([data-slot="text-field-slot"]) {
-  gap: var(--space-sm);
-  padding-inline: var(--space-sm);
-}
-
 :where([data-slot="text-field-input"]) {
   display: flex;
   align-items: center;

@@ -11,11 +11,6 @@
           <Radio value="m" size="m" :checked="true" />
           Medium
         </label>
-
-        <label style="display: flex; align-items: center; gap: 8px">
-          <Radio value="l" size="l" :checked="true" />
-          Large
-        </label>
       </div>
     </Variant>
 

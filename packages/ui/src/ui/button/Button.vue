@@ -110,12 +110,6 @@ const props = withDefaults(defineProps<Props>(), {
   padding-inline: calc(var(--spacing) * 3 - var(--border-width));
 }
 
-:where([data-button]:not([data-slot="icon-button"])[data-size="l"]) {
-  height: var(--control-lg);
-  gap: var(--space-xs);
-  padding-inline: calc(var(--spacing) * 3.5 - var(--border-width));
-}
-
 :where([data-button][data-variant="solid"]) {
   background-color: var(--tone);
   box-shadow:

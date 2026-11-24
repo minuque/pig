@@ -95,11 +95,6 @@ const widthStyle = computed(() =>
   border-radius: var(--radius-card);
 }
 
-:where([data-slot="dialog-content"][data-size="l"]) {
-  max-inline-size: var(--dialog-max-width, 720px);
-  padding: var(--space-lg);
-}
-
 :where([data-slot="dialog-content"] [data-slot="dialog-title"]) {
   margin-block-end: var(--space-sm);
 }
@@ -113,10 +108,5 @@ const widthStyle = computed(() =>
 :where([data-slot="dialog-content"][data-size="s"]) > [data-dialog-close] {
   inset-block-start: calc(var(--space-sm) - (var(--space-lg) - var(--icon-md)) / 2);
   inset-inline-end: calc(var(--space-sm) - (var(--space-lg) - var(--icon-md)) / 2);
-}
-
-:where([data-slot="dialog-content"][data-size="l"]) > [data-dialog-close] {
-  inset-block-start: calc(var(--space-lg) - (var(--space-lg) - var(--icon-md)) / 2);
-  inset-inline-end: calc(var(--space-lg) - (var(--space-lg) - var(--icon-md)) / 2);
 }
 </style>

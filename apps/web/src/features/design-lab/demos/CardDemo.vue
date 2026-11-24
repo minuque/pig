@@ -106,7 +106,7 @@ import { ChevronRightIcon } from "@components/icons/index.js"
 import CodeCard from "@features/transcript-view/components/CodeCard.vue"
 
 const VARIANTS = ["surface", "ghost"] as const
-const SIZES = ["s", "m", "l"] as const
+const SIZES = ["s", "m"] as const
 const ROWS = ["发送后自动滚动", "完成时播放提示音", "显示思考过程"]
 const PROVIDERS = ["Anthropic", "DeepSeek", "OpenAI"]
 </script>

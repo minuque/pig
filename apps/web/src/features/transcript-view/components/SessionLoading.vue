@@ -1,6 +1,6 @@
 <template>
   <div class="session-loading">
-    <Spinner size="l" />
+    <Spinner size="m" />
   </div>
 </template>
 

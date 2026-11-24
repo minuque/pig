@@ -62,11 +62,6 @@ const emit = defineEmits<{ "update:modelValue": [value: CheckedState] }>()
   width: calc(var(--space-md) * 0.875);
 }
 
-:where([data-slot="checkbox"][data-size="l"]) {
-  height: calc(var(--space-md) * 1.25);
-  width: calc(var(--space-md) * 1.25);
-}
-
 :where([data-slot="checkbox"])::before {
   content: "";
   display: block;
@@ -77,10 +72,6 @@ const emit = defineEmits<{ "update:modelValue": [value: CheckedState] }>()
 
 :where([data-slot="checkbox"][data-size="s"])::before {
   border-radius: calc(var(--radius-control) / 2 * 0.875);
-}
-
-:where([data-slot="checkbox"][data-size="l"])::before {
-  border-radius: calc(var(--radius-control) / 2 * 1.25);
 }
 
 :where([data-slot="checkbox"]:focus-visible) {
@@ -112,11 +103,6 @@ const emit = defineEmits<{ "update:modelValue": [value: CheckedState] }>()
 :where([data-slot="checkbox"][data-size="m"]) :where([data-slot="checkbox-indicator"]) {
   width: 10px;
   height: 10px;
-}
-
-:where([data-slot="checkbox"][data-size="l"]) :where([data-slot="checkbox-indicator"]) {
-  width: 12px;
-  height: 12px;
 }
 
 :where([data-slot="checkbox-indicator"]) :where(svg) {

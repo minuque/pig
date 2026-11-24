@@ -66,10 +66,6 @@ const props = withDefaults(
   font-size: calc(var(--text-body) * 0.8);
 }
 
-:where([data-slot="kbd"][data-size="l"]) {
-  font-size: calc(var(--text-title) * 0.8);
-}
-
 :where([data-slot="kbd"][data-variant="surface"]) {
   background-color: var(--bg-raised);
   box-shadow:

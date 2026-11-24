@@ -42,16 +42,6 @@
             <p class="demo-popover-desc">Default medium popover spacing.</p>
           </PopoverContent>
         </Popover>
-
-        <Popover>
-          <PopoverTrigger as-child>
-            <Button size="l" variant="outline">Large</Button>
-          </PopoverTrigger>
-
-          <PopoverContent size="l">
-            <p class="demo-popover-desc">Generous padding for structured details.</p>
-          </PopoverContent>
-        </Popover>
       </div>
     </Variant>
   </Story>

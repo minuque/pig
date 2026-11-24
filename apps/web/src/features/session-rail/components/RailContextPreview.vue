@@ -20,7 +20,7 @@
       </Tooltip>
     </template>
 
-    <div v-if="loading" class="ctx-preview-status"><Spinner size="l" /></div>
+    <div v-if="loading" class="ctx-preview-status"><Spinner size="m" /></div>
     <FileCode v-else-if="source" path="context.md" :text="body" />
     <MarkdownContent v-else :nodes="nodes" />
   </PreviewDialog>
