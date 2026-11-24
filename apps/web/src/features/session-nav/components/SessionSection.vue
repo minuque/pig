@@ -29,73 +29,67 @@
           </div>
 
           <CollapsibleContent class="section-panel">
-            <component :is="isShelf ? ScrollArea : 'div'" class="section-scroll">
-              <component :is="isShelf ? ScrollAreaViewport : 'div'" class="section-viewport">
-                <component :is="isShelf ? ScrollAreaContent : 'div'" class="section-content">
-                  <TransitionGroup
-                    :name="motion ? 'list-reveal' : 'none'"
-                    tag="ul"
-                    class="section-rows"
-                  >
-                    <component
-                      :is="list ? TransferItem : 'li'"
-                      v-for="session in rows"
-                      :key="session.id"
-                      v-bind="list ? { value: session.id } : {}"
-                      class="session-row"
-                      :data-id="session.id"
-                    >
-                      <SessionItem
-                        v-bind="itemBind(session)"
-                        :swept="swept.has(session.id)"
-                        @navigate="emit('navigate', $event)"
-                        @open="emit('open', $event)"
-                        @prime="emit('prime', $event)"
-                        @toggle-pinned="emit('togglePinned', $event)"
-                        @rename="(id, name) => emit('rename', id, name)"
-                        @delete="emit('delete', $event)"
-                        @settle="emit('settle', $event)"
-                        @unsettle="emit('unsettle', $event)"
-                        @archive="emit('archive', $event)"
-                        @filter-project="emit('filterProject', $event)"
-                        @sweep-start="emit('sweepStart', section.key, session.id, $event)"
-                      />
-                    </component>
-
-                    <li
-                      v-if="
-                        section.kind === 'settled' &&
-                        (section.shown < section.total || (moreBySection[section.key] ?? 0) > 0)
-                      "
-                      :key="`more:${section.key}`"
-                      class="session-row more-row"
-                    >
-                      <button
-                        v-if="section.shown < section.total"
-                        class="more-button"
-                        type="button"
-                        @click="emit('revealMore', section.key)"
-                      >
-                        <ChevronDownIcon class="size-icon-lg more-icon" />
-                        {{ t("common.showMore") }}
-                      </button>
-
-                      <button
-                        v-else
-                        class="more-button"
-                        type="button"
-                        @click="emit('collapseGroup', section.key)"
-                      >
-                        <ChevronDownIcon class="size-icon-lg more-icon is-up" />
-                        {{ t("common.collapse") }}
-                      </button>
-                    </li>
-                  </TransitionGroup>
+            <div class="section-scroll">
+              <TransitionGroup
+                :name="motion ? 'list-reveal' : 'none'"
+                tag="ul"
+                class="section-rows"
+              >
+                <component
+                  :is="list ? TransferItem : 'li'"
+                  v-for="session in rows"
+                  :key="session.id"
+                  v-bind="list ? { value: session.id } : {}"
+                  class="session-row"
+                  :data-id="session.id"
+                >
+                  <SessionItem
+                    v-bind="itemBind(session)"
+                    :swept="swept.has(session.id)"
+                    @navigate="emit('navigate', $event)"
+                    @open="emit('open', $event)"
+                    @prime="emit('prime', $event)"
+                    @toggle-pinned="emit('togglePinned', $event)"
+                    @rename="(id, name) => emit('rename', id, name)"
+                    @delete="emit('delete', $event)"
+                    @settle="emit('settle', $event)"
+                    @unsettle="emit('unsettle', $event)"
+                    @archive="emit('archive', $event)"
+                    @filter-project="emit('filterProject', $event)"
+                    @sweep-start="emit('sweepStart', section.key, session.id, $event)"
+                  />
                 </component>
-              </component>
 
-              <ScrollAreaScrollbar v-if="isShelf" />
-            </component>
+                <li
+                  v-if="
+                    section.kind === 'settled' &&
+                    (section.shown < section.total || (moreBySection[section.key] ?? 0) > 0)
+                  "
+                  :key="`more:${section.key}`"
+                  class="session-row more-row"
+                >
+                  <button
+                    v-if="section.shown < section.total"
+                    class="more-button"
+                    type="button"
+                    @click="emit('revealMore', section.key)"
+                  >
+                    <ChevronDownIcon class="size-icon-lg more-icon" />
+                    {{ t("common.showMore") }}
+                  </button>
+
+                  <button
+                    v-else
+                    class="more-button"
+                    type="button"
+                    @click="emit('collapseGroup', section.key)"
+                  >
+                    <ChevronDownIcon class="size-icon-lg more-icon is-up" />
+                    {{ t("common.collapse") }}
+                  </button>
+                </li>
+              </TransitionGroup>
+            </div>
           </CollapsibleContent>
         </component>
       </section>
@@ -107,12 +101,6 @@
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@pig/ui/collapsible"
-import {
-  ScrollArea,
-  ScrollAreaContent,
-  ScrollAreaScrollbar,
-  ScrollAreaViewport,
-} from "@pig/ui/scroll-area"
 import { TransferItem, TransferList } from "@pig/ui/transfer-lists"
 import SessionItem from "@features/session-nav/components/SessionItem.vue"
 import { ChevronDownIcon } from "@components/icons/index.js"
@@ -171,8 +159,7 @@ function itemBind(session: SidebarSession) {
 
 .session-section.is-shelf,
 .is-shelf .section-body,
-.is-shelf .section-panel,
-.is-shelf .section-scroll {
+.is-shelf .section-panel {
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -184,13 +171,19 @@ function itemBind(session: SidebarSession) {
 }
 
 .is-shelf .section-body,
-.is-shelf .section-viewport {
+.is-shelf .section-scroll {
   flex: 1 1 auto;
   min-height: 0;
 }
 
+.is-shelf .section-scroll {
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
 .is-shelf .section-head,
-.is-shelf .section-content {
+.is-shelf .section-scroll {
   padding-inline: var(--space-2xs);
 }
 

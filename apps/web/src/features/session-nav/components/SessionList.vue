@@ -22,45 +22,44 @@
           'is-scrolled': scrolled,
         }"
       >
-        <ScrollArea v-if="sections.length" class="session-window">
-          <ScrollAreaViewport ref="windowRef" class="session-viewport" @scroll.passive="onScroll">
-            <ScrollAreaContent class="session-content">
-              <div
-                v-if="state.moving"
-                class="drag-label"
-                :class="{ 'is-target': state.to === 'pinned' }"
-              >
-                <span class="drag-label-text">{{ t("session.pinned") }}</span>
-                <span class="drag-label-line" aria-hidden="true"></span>
-              </div>
+        <div
+          v-if="sections.length"
+          ref="windowEl"
+          class="session-window"
+          @scroll.passive="onScroll"
+        >
+          <div
+            v-if="state.moving"
+            class="drag-label"
+            :class="{ 'is-target': state.to === 'pinned' }"
+          >
+            <span class="drag-label-text">{{ t("session.pinned") }}</span>
+            <span class="drag-label-line" aria-hidden="true"></span>
+          </div>
 
-              <SessionSection
-                v-bind="sectionBind(pinnedSection ?? emptyPinned, state)"
-                :class="{ 'pinned-drop': !pinnedSection }"
-                v-on="sectionOn"
-              />
+          <SessionSection
+            v-bind="sectionBind(pinnedSection ?? emptyPinned, state)"
+            :class="{ 'pinned-drop': !pinnedSection }"
+            v-on="sectionOn"
+          />
 
-              <div
-                v-if="state.moving"
-                class="drag-label"
-                :class="{ 'is-target': state.to === 'active' }"
-              >
-                <span class="drag-label-text">{{ t("session.sectionInbox") }}</span>
-                <span class="drag-label-line" aria-hidden="true"></span>
-              </div>
+          <div
+            v-if="state.moving"
+            class="drag-label"
+            :class="{ 'is-target': state.to === 'active' }"
+          >
+            <span class="drag-label-text">{{ t("session.sectionInbox") }}</span>
+            <span class="drag-label-line" aria-hidden="true"></span>
+          </div>
 
-              <SessionSection
-                v-if="activeSection"
-                v-bind="sectionBind(activeSection, state)"
-                v-on="sectionOn"
-              />
+          <SessionSection
+            v-if="activeSection"
+            v-bind="sectionBind(activeSection, state)"
+            v-on="sectionOn"
+          />
 
-              <div class="session-edge-bottom edge-veil-bottom" aria-hidden="true"></div>
-            </ScrollAreaContent>
-          </ScrollAreaViewport>
-
-          <ScrollAreaScrollbar />
-        </ScrollArea>
+          <div class="session-edge-bottom edge-veil-bottom" aria-hidden="true"></div>
+        </div>
 
         <div v-else class="session-empty">{{ t("session.empty") }}</div>
 
@@ -80,14 +79,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onUpdated, shallowRef, useTemplateRef } from "vue"
+import { computed, onUpdated, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
-import {
-  ScrollArea,
-  ScrollAreaContent,
-  ScrollAreaScrollbar,
-  ScrollAreaViewport,
-} from "@pig/ui/scroll-area"
 import {
   TransferListsRoot,
   type TransferChangeDetails,
@@ -183,8 +176,7 @@ const lists = computed<TransferLists>(() =>
 )
 const listEl = shallowRef<HTMLElement>()
 const scrolled = shallowRef(false)
-const windowRef = useTemplateRef<{ $el: HTMLElement }>("windowRef")
-const windowEl = computed(() => windowRef.value?.$el)
+const windowEl = shallowRef<HTMLElement>()
 const dropOut = useSessionDropOut({
   bounds: () => listEl.value,
   title: (id) => sessionsById.value.get(id)?.title,
@@ -364,28 +356,16 @@ onUpdated(() => {
 
 .session-window {
   flex: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  padding: var(--space-2xs) var(--space-2xs) 0;
 }
 
 .session-shelves {
   flex: none;
   max-height: 60%;
   padding-block-end: var(--space-2xs);
-}
-
-.session-viewport {
-  flex: 1;
-  min-height: 0;
-}
-
-.session-content {
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-  padding-inline: var(--space-2xs);
-}
-
-.session-window .session-content {
-  padding-block-start: var(--space-2xs);
 }
 
 .session-edge-bottom {
