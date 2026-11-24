@@ -16,6 +16,10 @@ withDefaults(defineProps<{ orientation?: "vertical" | "horizontal" }>(), {
 </script>
 
 <style>
+:where([data-slot="scroll-area"]) {
+  position: relative;
+}
+
 :where([data-slot="scroll-area-scrollbar"]) {
   display: flex;
   padding: 2px;
