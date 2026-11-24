@@ -2,27 +2,90 @@
   <HoverCardContent side="right" size="s" max-width="20rem" class="session-hover">
     <p class="hover-title">{{ session.title }}</p>
 
-    <div v-if="session.cwd" class="hover-rows">
-      <span class="hover-row">
-        <ProjectIcon class="hover-icon" :path="session.cwd" fallback="monogram" />
-        <span class="hover-text">{{ projectName }}</span>
+    <div class="hover-rows">
+      <template v-if="session.cwd">
+        <button
+          type="button"
+          class="hover-row is-link"
+          :aria-label="`${t('session.filterThisProject')}: ${projectName}`"
+          @click="emit('filterProject', session.cwd)"
+        >
+          <ProjectIcon class="hover-icon" :path="session.cwd" fallback="monogram" />
+          <span class="hover-text">{{ projectName }}</span>
+          <ListFilterIcon class="hover-icon hover-go" aria-hidden="true" />
+        </button>
+
+        <span class="hover-row">
+          <FolderIcon class="hover-icon" />
+          <span class="hover-text">{{ session.cwd }}</span>
+        </span>
+      </template>
+
+      <span v-if="foot?.model" class="hover-row">
+        <VendorMark
+          class="hover-icon"
+          :vendor="foot.model.provider"
+          :name="foot.model.id"
+          :size="12"
+        />
+
+        <span class="hover-text">{{ foot.model.id }}</span>
       </span>
 
       <span class="hover-row">
-        <FolderIcon class="hover-icon" />
-        <span class="hover-text">{{ session.cwd }}</span>
+        <MessagesSquareIcon class="hover-icon" />
+        <span class="hover-text">{{ stats }}</span>
       </span>
+
+      <button
+        v-if="foot?.parent"
+        type="button"
+        class="hover-row is-link"
+        @click="emit('open', foot.parent.id)"
+      >
+        <GitForkIcon class="hover-icon" />
+        <span class="hover-text">{{ t("session.forkedFrom", { title: foot.parent.title }) }}</span>
+        <ArrowUpRightIcon class="hover-icon hover-go" aria-hidden="true" />
+      </button>
     </div>
   </HoverCardContent>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue"
+import { useI18n } from "@i18n/index.js"
 import { HoverCardContent } from "@pig/ui/hover-card"
+import VendorMark from "@components/icons/VendorMark.vue"
 import ProjectIcon from "@features/session-nav/components/ProjectIcon.vue"
-import type { SidebarSession } from "@features/session-nav/type.js"
-import { FolderIcon } from "@components/icons/index.js"
+import type { SidebarRowFoot, SidebarSession } from "@features/session-nav/type.js"
+import {
+  ArrowUpRightIcon,
+  FolderIcon,
+  GitForkIcon,
+  ListFilterIcon,
+  MessagesSquareIcon,
+} from "@components/icons/index.js"
 
-defineProps<{ session: SidebarSession; projectName: string }>()
+const props = defineProps<{
+  session: SidebarSession
+  projectName: string
+  foot: SidebarRowFoot | undefined
+}>()
+const emit = defineEmits<{ filterProject: [cwd: string]; open: [id: string] }>()
+const { t, locale } = useI18n()
+const stats = computed(() => {
+  const created = t("session.cardCreated", {
+    time: new Intl.DateTimeFormat(locale.value, {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(props.session.createdAt),
+  })
+  const count = props.foot?.messageCount
+  return count === undefined ? created : `${t("session.cardMessages", { count })} · ${created}`
+})
 </script>
 
 <style scoped>
@@ -43,15 +106,35 @@ defineProps<{ session: SidebarSession; projectName: string }>()
 
 .hover-rows {
   display: grid;
-  gap: var(--space-2xs);
-  color: var(--fg-secondary);
+  gap: 2px;
+  margin-inline: calc(var(--space-2xs) * -1);
 }
 
 .hover-row {
   display: grid;
-  grid-template-columns: var(--icon-lg) minmax(0, 1fr);
+  grid-template-columns: var(--icon-lg) minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-xs);
+  min-height: var(--control-2xs);
+  padding-inline: var(--space-2xs);
+  border: 0;
+  border-radius: calc(var(--radius-control) - 2px);
+  background: transparent;
+  color: var(--fg-secondary);
+  font: inherit;
+  text-align: start;
+}
+
+.hover-row.is-link {
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.hover-row.is-link:is(:hover, :focus-visible) {
+  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 .hover-icon {
@@ -67,6 +150,7 @@ defineProps<{ session: SidebarSession; projectName: string }>()
   block-size: var(--icon-lg);
   padding: 0;
   border-radius: calc(var(--radius-control) / 2);
+  color: var(--tone-text);
   font-size: calc(var(--text-body) - 5px);
   font-weight: var(--font-weight-bold);
   line-height: 1;
@@ -78,5 +162,14 @@ defineProps<{ session: SidebarSession; projectName: string }>()
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.hover-go {
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.hover-row.is-link:is(:hover, :focus-visible) .hover-go {
+  opacity: 1;
 }
 </style>

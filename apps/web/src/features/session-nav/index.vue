@@ -36,6 +36,7 @@
       @toggle-section="toggleSection"
       @reveal-more="revealMore"
       @collapse-group="collapseGroup"
+      @filter-project="scopeFilter = new Set([canonicalizeWorkspacePath($event)])"
     />
 
     <NavFooter @settings="emit('settings')" />

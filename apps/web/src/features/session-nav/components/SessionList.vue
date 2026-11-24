@@ -143,6 +143,7 @@ const emit = defineEmits<{
   toggleSection: [key: string]
   revealMore: [key: string]
   collapseGroup: [key: string]
+  filterProject: [cwd: string]
 }>()
 const { t } = useI18n()
 const pinnedSection = computed(() => props.sections.find((section) => section.kind === "pinned"))
@@ -212,6 +213,7 @@ const sectionOn = {
   toggleSection: (key: string) => emit("toggleSection", key),
   revealMore: (key: string) => emit("revealMore", key),
   collapseGroup: (key: string) => emit("collapseGroup", key),
+  filterProject: (cwd: string) => emit("filterProject", cwd),
 }
 const listOrder = () => [...LISTS]
 const isGrabKey = (event: KeyboardEvent) =>

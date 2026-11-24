@@ -51,10 +51,20 @@ export function pagePlacement(id: string): SidebarPlacement {
 }
 
 export const PAGE_FOOTS = new Map<string, SidebarRowFoot>([
-  [PAGE_SESSION_ID, { state: "running" }],
-  ["page-running", { state: "running" }],
-  ["page-unread", { state: "unread" }],
-  ["page-error", { state: "error" }],
+  [PAGE_SESSION_ID, { state: "running", model: SONNET, messageCount: 18 }],
+  ["page-pinned", { state: undefined, model: GPT, messageCount: 42 }],
+  ["page-running", { state: "running", model: SONNET, messageCount: 9 }],
+  ["page-unread", { state: "unread", model: GPT, messageCount: 6 }],
+  ["page-error", { state: "error", model: SONNET, messageCount: 14 }],
+  [
+    "page-plain",
+    {
+      state: undefined,
+      model: SONNET,
+      messageCount: 23,
+      parent: { id: "page-unread", title: "Banner 文案收敛" },
+    },
+  ],
 ])
 export const PAGE_RUNNING_SINCE: Record<string, number> = {
   [PAGE_SESSION_ID]: NOW - 40_000,

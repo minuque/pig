@@ -8,7 +8,7 @@
     }"
   >
     <ContextMenu :modal="false" @update:open="onMenuOpenChange">
-      <HoverCard :disabled="placeholder || renaming || menuOpen">
+      <HoverCard :disabled="placeholder || renaming || menuOpen || forkHover">
         <HoverCardTrigger>
           <template #render="{ props: card }">
             <ContextMenuTrigger v-bind="card">
@@ -109,7 +109,24 @@
                         @blur="commitRename"
                       />
 
-                      <span v-else class="title">{{ session.title }}</span>
+                      <template v-else>
+                        <span class="title">{{ session.title }}</span>
+
+                        <SessionForkMark
+                          v-if="foot?.parent"
+                          :parent="foot.parent"
+                          @open="emit('open', $event)"
+                          @hover="forkHover = $event"
+                        />
+
+                        <VendorMark
+                          v-if="foot?.model"
+                          class="title-vendor"
+                          :vendor="foot.model.provider"
+                          :name="foot.model.id"
+                          :size="12"
+                        />
+                      </template>
                     </span>
                   </template>
 
@@ -163,7 +180,13 @@
           </template>
         </HoverCardTrigger>
 
-        <SessionHoverCard :session="session" :project-name="projectName" />
+        <SessionHoverCard
+          :session="session"
+          :project-name="projectName"
+          :foot="foot"
+          @filter-project="emit('filterProject', $event)"
+          @open="emit('open', $event)"
+        />
       </HoverCard>
 
       <ContextMenuContent v-if="!placeholder" class="select-none">
@@ -240,14 +263,16 @@ import {
 } from "@pig/ui/context-menu"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { HoverCard, HoverCardTrigger } from "@pig/ui/hover-card"
+import SessionForkMark from "@features/session-nav/components/SessionForkMark.vue"
 import SessionHoverCard from "@features/session-nav/components/SessionHoverCard.vue"
+import VendorMark from "@components/icons/VendorMark.vue"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import SessionStateIcon from "@features/session-nav/components/SessionStateIcon.vue"
 import { sessionGlyph } from "@features/session-nav/lib/status-cycle.js"
 import ProjectIcon from "@features/session-nav/components/ProjectIcon.vue"
 import { formatRelativeTime, workspaceName } from "@features/session-nav/lib/format.js"
 import { formatElapsed } from "@utils/time.js"
-import type { SidebarSession, SidebarSessionState } from "@features/session-nav/type.js"
+import type { SidebarRowFoot, SidebarSession } from "@features/session-nav/type.js"
 import { trySplitView } from "@features/split-view/index.js"
 import {
   ArchiveIcon,
@@ -269,7 +294,7 @@ const props = withDefaults(
     active?: boolean
     pinned?: boolean
     settled?: boolean
-    state?: SidebarSessionState | undefined
+    foot?: SidebarRowFoot | undefined
     variant?: "card" | "slim"
     startedAt?: number | undefined
 
@@ -277,7 +302,7 @@ const props = withDefaults(
     swept?: boolean
   }>(),
   {
-    state: undefined,
+    foot: undefined,
     variant: "card",
     startedAt: undefined,
     placeholder: false,
@@ -295,7 +320,9 @@ const emit = defineEmits<{
   unsettle: [id: string]
   archive: [id: string]
   sweepStart: [event: PointerEvent]
+  filterProject: [cwd: string]
 }>()
+const forkHover = shallowRef(false)
 const split = trySplitView()
 const splitShown = computed(
   () =>
@@ -306,7 +333,7 @@ const { t } = useI18n()
 const menuOpen = ref(false)
 const deleteOpen = shallowRef(false)
 const projectName = computed(() => (props.session.cwd ? workspaceName(props.session.cwd) : ""))
-const glyphState = computed(() => sessionGlyph(props.session, props.state))
+const glyphState = computed(() => sessionGlyph(props.session, props.foot?.state))
 const timeLabel = computed(() => formatRelativeTime(props.session.updatedAt))
 const tick = shallowRef(Date.now())
 const elapsed = computed(() =>
@@ -563,8 +590,14 @@ function confirmDelete() {
 .title-line {
   display: flex;
   align-items: center;
+  gap: var(--space-xs);
   min-width: 0;
   height: var(--control-2xs);
+}
+
+.title-vendor {
+  flex: none;
+  opacity: 0.6;
 }
 
 .title {

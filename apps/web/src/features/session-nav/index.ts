@@ -17,7 +17,12 @@ import {
   sessionCardFoot,
   sessionOutcome,
 } from "@features/session-nav/lib/session-list.js"
-import type { SidebarPlacement, SidebarSessionState } from "@features/session-nav/type.js"
+import { sessionTitle } from "@features/session/index.js"
+import type {
+  SidebarPlacement,
+  SidebarRowFoot,
+  SidebarSessionState,
+} from "@features/session-nav/type.js"
 
 export { workspaceName } from "@features/session-nav/lib/format.js"
 
@@ -106,14 +111,8 @@ function createNav(
           }
         : undefined
     const extras = cards.sessionCards.value
-    const feet = new Map<
-      string,
-      {
-        messageCount: number | undefined
-        model: { provider: string; id: string } | undefined
-        state: SidebarSessionState | undefined
-      }
-    >()
+    const feet = new Map<string, SidebarRowFoot>()
+    const byId = new Map(nav.allSessions.value.map((item) => [item.id, item]))
 
     for (const item of nav.allSessions.value) {
       const foot = sessionCardFoot(item.id, extras, live)
@@ -127,8 +126,13 @@ function createNav(
           : markers.isUnread(item)
             ? "unread"
             : undefined
+      const parent = item.parentSessionId ? byId.get(item.parentSessionId) : undefined
 
-      feet.set(item.id, { ...foot, state })
+      feet.set(item.id, {
+        ...foot,
+        state,
+        ...(parent ? { parent: { id: parent.id, title: sessionTitle(parent) } } : {}),
+      })
     }
 
     return feet

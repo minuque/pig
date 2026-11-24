@@ -9,6 +9,7 @@ export interface SidebarSession {
   id: string
   title: string
   cwd?: string
+  createdAt: number
   updatedAt: number
   sortKey: number
   draft?: boolean
@@ -19,7 +20,10 @@ export type SidebarSessionState = "running" | "unread" | "error"
 export type SidebarStateGlyph = SidebarSessionState | "draft"
 
 export interface SidebarRowFoot {
-  state?: SidebarSessionState | undefined
+  state: SidebarSessionState | undefined
+  model: { provider: string; id: string } | undefined
+  messageCount: number | undefined
+  parent?: { id: string; title: string }
 }
 
 export type SidebarSectionKind = "pinned" | "active" | "working" | "settled"

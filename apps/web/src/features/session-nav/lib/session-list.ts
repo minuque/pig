@@ -106,6 +106,7 @@ export function toSidebarSession(session: SessionMetadata): SidebarSession {
     id: session.id,
     title: sessionTitle(session),
     sortKey: sessionRecency(session),
+    createdAt: session.createdAt,
     ...(session.cwd !== undefined ? { cwd: session.cwd } : {}),
     updatedAt: sessionRecency(session),
     ...(isDraftSessionId(session.id) ? { draft: true } : {}),
@@ -217,7 +218,7 @@ export function sidebarItemProps(
     settled: section.kind === "settled",
     variant: section.kind === "settled" ? "slim" : "card",
     startedAt: ctx.runningSince[session.id],
-    state: ctx.cardFootById.get(session.id)?.state,
+    foot: ctx.cardFootById.get(session.id),
     placeholder: draft,
   } as const
 }
