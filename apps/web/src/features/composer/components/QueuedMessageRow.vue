@@ -1,33 +1,6 @@
 <template>
   <SortableListItem :value="item.id" class="row" :class="{ 'is-editing': editing }">
-    <div class="bubble">
-      <p v-if="item.text" class="row-text">{{ item.text }}</p>
-
-      <div v-if="images.length" class="row-images">
-        <Card v-for="image in images" :key="image.id" size="s" variant="surface" class="thumb">
-          <template #render="{ props: part }">
-            <button
-              v-bind="part"
-              type="button"
-              :aria-label="image.name"
-              @click="emit('preview', image)"
-            >
-              <img :src="image.url" :alt="image.name" />
-            </button>
-          </template>
-        </Card>
-      </div>
-
-      <div v-if="files.length" class="row-files">
-        <span v-for="file in files" :key="file.id" class="file-chip">
-          <FileTextIcon class="file-icon" aria-hidden="true" />
-          <span class="file-name">{{ file.name }}</span>
-          <span class="file-size">{{ formatFileSize(file.size) }}</span>
-        </span>
-      </div>
-    </div>
-
-    <div class="row-actions">
+    <div class="row-main">
       <Tooltip>
         <TooltipTrigger>
           <template #render="{ props: part }">
@@ -52,6 +25,35 @@
         <TooltipContent>{{ t("composer.queueDrag") }}</TooltipContent>
       </Tooltip>
 
+      <div class="bubble">
+        <p v-if="item.text" class="row-text">{{ item.text }}</p>
+
+        <div v-if="images.length" class="row-images">
+          <Card v-for="image in images" :key="image.id" size="s" variant="surface" class="thumb">
+            <template #render="{ props: part }">
+              <button
+                v-bind="part"
+                type="button"
+                :aria-label="image.name"
+                @click="emit('preview', image)"
+              >
+                <img :src="image.url" :alt="image.name" />
+              </button>
+            </template>
+          </Card>
+        </div>
+
+        <div v-if="files.length" class="row-files">
+          <span v-for="file in files" :key="file.id" class="file-chip">
+            <FileTextIcon class="file-icon" aria-hidden="true" />
+            <span class="file-name">{{ file.name }}</span>
+            <span class="file-size">{{ formatFileSize(file.size) }}</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="row-actions">
       <time class="row-time" :datetime="new Date(item.createdAt).toISOString()">{{ time }}</time>
 
       <Button
@@ -174,8 +176,16 @@ const actions = computed<RowAction[]>(() => {
   cursor: grabbing;
 }
 
+.row-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  max-inline-size: 100%;
+}
+
 .bubble {
   box-sizing: border-box;
+  min-inline-size: 0;
   display: flex;
   flex-direction: column;
   gap: var(--space-2xs);
@@ -278,6 +288,8 @@ const actions = computed<RowAction[]>(() => {
 
 .row-time {
   padding-inline: var(--space-2xs);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
   font-variant-numeric: tabular-nums;
   user-select: none;
 }
@@ -295,7 +307,7 @@ const actions = computed<RowAction[]>(() => {
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.row:is(:hover, :focus-within, [data-grabbed]) .row-grip {
+.row:is(:hover, :focus-within, [data-grabbed]) :is(.row-grip, .row-time) {
   opacity: 1;
 }
 </style>
