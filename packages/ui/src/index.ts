@@ -50,6 +50,8 @@ export * from "./ui/resize-handle/index.js"
 
 export * from "./ui/roll-text/index.js"
 
+export * from "./ui/scroll-area/index.js"
+
 export * from "./ui/select/index.js"
 
 export * from "./ui/skeleton/index.js"

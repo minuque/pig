@@ -158,6 +158,7 @@
   --icon-stroke: 1.75px;
 
   /* --- 布局 --- */
+  --scrollbar-size: 10px;
   --toast-width: 22rem;
   --content-width: 768px;
   --dialog-width-sm: 420px;
