@@ -16,17 +16,6 @@
       aria-hidden="true"
     />
 
-    <svg
-      v-else-if="status === 'running'"
-      data-slot="status-spinner"
-      class="motion-spin"
-      viewBox="0 0 24 24"
-      aria-hidden="true"
-    >
-      <circle data-slot="status-track" cx="12" cy="12" r="10" pathLength="100" />
-      <circle data-slot="status-arc" cx="12" cy="12" r="10" pathLength="100" />
-    </svg>
-
     <CircleCheckIcon v-else-if="status === 'success'" data-slot="status-glyph" aria-hidden="true" />
 
     <CircleExclamationPointIcon
@@ -102,7 +91,6 @@ const tone = computed(() => STATUS_TONE_MAP[props.status])
   block-size: calc(var(--space-2xs) * 1.5);
 }
 
-:where([data-slot="status-spinner"]),
 :where([data-slot="status-glyph"]) {
   display: block;
   flex: none;
@@ -110,28 +98,9 @@ const tone = computed(() => STATUS_TONE_MAP[props.status])
   block-size: var(--icon-md);
 }
 
-:where(
-  [data-slot="status-indicator"][data-size="s"]
-    :is([data-slot="status-spinner"], [data-slot="status-glyph"])
-) {
+:where([data-slot="status-indicator"][data-size="s"] [data-slot="status-glyph"]) {
   inline-size: var(--icon-sm);
   block-size: var(--icon-sm);
-}
-
-:where([data-slot="status-track"]),
-:where([data-slot="status-arc"]) {
-  fill: none;
-  stroke-width: 3;
-}
-
-:where([data-slot="status-track"]) {
-  stroke: var(--bg-emphasis);
-}
-
-:where([data-slot="status-arc"]) {
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-dasharray: 26 74;
 }
 
 :where([data-slot="status-label"]) {

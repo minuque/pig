@@ -147,16 +147,6 @@
   pointer-events: none;
 }
 
-@keyframes motion-spin {
-  to {
-    rotate: 1turn;
-  }
-}
-
-.motion-spin {
-  animation: motion-spin 1s linear infinite;
-}
-
 .reveal-menu {
   --menu-shift-x: 0px;
   --menu-shift-y: 4px;
