@@ -8,187 +8,163 @@
     }"
   >
     <ContextMenu :modal="false" @update:open="onMenuOpenChange">
-      <ContextMenuTrigger>
-        <template #render="{ props: part }">
-          <component
-            v-bind="part"
-            :is="placeholder ? 'div' : RouterLink"
-            class="session-card"
-            :class="[
-              variant,
-              {
-                active: active || splitShown,
-                'is-placeholder': placeholder,
-                'is-settled': settled,
-                renaming,
-              },
-            ]"
-            :to="placeholder ? undefined : { name: 'session', params: { sessionId: session.id } }"
-            draggable="false"
-            @click="onCardClick"
-            @dblclick="onCardDblclick"
-            @pointerdown.left="onCardPointerDown"
-            @dragstart.prevent
-            @keydown="onCardKeydown"
-          >
-            <template v-if="variant === 'card'">
-              <span class="meta-line">
-                <span v-if="projectName" class="project-icon" aria-hidden="true">
-                  <ProjectIcon class="project-mono" :path="session.cwd" fallback="monogram" />
-                </span>
-
-                <Tooltip v-if="pinned">
-                  <TooltipTrigger>
-                    <template #render="{ props: part }">
-                      <button
-                        v-bind="part"
-                        type="button"
-                        class="pin-toggle"
-                        :aria-label="t('session.unpin')"
-                        :disabled="placeholder"
-                        @click.prevent.stop="emit('togglePinned', session.id)"
-                        @pointerdown.stop
-                      >
-                        <PinIcon class="pin-on" />
-                        <PinOffIcon class="pin-off" />
-                      </button>
-                    </template>
-                  </TooltipTrigger>
-
-                  <TooltipContent>{{ t("session.unpin") }}</TooltipContent>
-                </Tooltip>
-
-                <span class="project-name">{{ projectName }}</span>
-
-                <span v-if="!renaming" class="state-slot">
-                  <span class="state-mark" aria-hidden="true">
-                    <span v-if="startedAt !== undefined" class="working-status">
-                      <CircleDashedIcon class="size-icon-lg working-icon" />
-                      <span>{{ t("session.sectionWorking") }}</span>
-                      <span class="working-elapsed">{{ elapsed }}</span>
-                    </span>
-
-                    <SessionStateIcon v-else-if="glyphState" :state="glyphState" />
-                    <span v-else class="time-label">{{ timeLabel }}</span>
-                  </span>
-
-                  <button
-                    v-if="!placeholder && startedAt === undefined"
-                    class="row-action press-scale"
-                    type="button"
-                    :aria-label="settled ? t('session.unsettle') : t('session.settle')"
-                    @click.prevent.stop="onRowAction"
-                    @pointerdown.stop="onActionPointerDown"
-                  >
-                    <Undo2Icon v-if="settled" class="size-icon" />
-                    <CheckIcon v-else class="size-icon" />
-
-                    <span class="row-action-label">
-                      {{ settled ? t("session.unsettle") : t("session.settle") }}
-                    </span>
-                  </button>
-                </span>
-              </span>
-
-              <span class="title-line">
-                <input
-                  v-if="renaming"
-                  :ref="setRenameInput"
-                  v-model="renameDraft"
-                  class="rename-input"
-                  type="text"
-                  :aria-label="t('session.rename')"
-                  @click.stop
-                  @keydown.enter.prevent="commitRename"
-                  @keydown.escape.prevent="cancelRename"
-                  @blur="commitRename"
-                />
-
-                <Tooltip v-else :disabled="!titleOverflow">
-                  <TooltipTrigger>
-                    <template #render="{ props: part }">
-                      <span
-                        v-bind="part"
-                        :ref="setTitleEl"
-                        class="title"
-                        @pointerenter="measureTitle"
-                      >
-                        {{ session.title }}
+      <HoverCard :disabled="placeholder || renaming || menuOpen">
+        <HoverCardTrigger>
+          <template #render="{ props: card }">
+            <ContextMenuTrigger v-bind="card">
+              <template #render="{ props: part }">
+                <component
+                  v-bind="part"
+                  :is="placeholder ? 'div' : RouterLink"
+                  class="session-card"
+                  :class="[
+                    variant,
+                    {
+                      active: active || splitShown,
+                      'is-placeholder': placeholder,
+                      'is-settled': settled,
+                      renaming,
+                    },
+                  ]"
+                  :to="
+                    placeholder ? undefined : { name: 'session', params: { sessionId: session.id } }
+                  "
+                  draggable="false"
+                  @click="onCardClick"
+                  @dblclick="onCardDblclick"
+                  @pointerdown.left="onCardPointerDown"
+                  @dragstart.prevent
+                  @keydown="onCardKeydown"
+                >
+                  <template v-if="variant === 'card'">
+                    <span class="meta-line">
+                      <span v-if="projectName" class="project-icon" aria-hidden="true">
+                        <ProjectIcon class="project-mono" :path="session.cwd" fallback="monogram" />
                       </span>
-                    </template>
-                  </TooltipTrigger>
 
-                  <TooltipContent side="right" :side-offset="10" class="title-tooltip">
-                    {{ session.title }}
-                  </TooltipContent>
-                </Tooltip>
-              </span>
-            </template>
+                      <Tooltip v-if="pinned">
+                        <TooltipTrigger>
+                          <template #render="{ props: part }">
+                            <button
+                              v-bind="part"
+                              type="button"
+                              class="pin-toggle"
+                              :aria-label="t('session.unpin')"
+                              :disabled="placeholder"
+                              @click.prevent.stop="emit('togglePinned', session.id)"
+                              @pointerdown.stop
+                            >
+                              <PinIcon class="pin-on" />
+                              <PinOffIcon class="pin-off" />
+                            </button>
+                          </template>
+                        </TooltipTrigger>
 
-            <template v-else>
-              <span class="project-icon" aria-hidden="true">
-                <ProjectIcon
-                  v-if="projectName"
-                  class="project-mono"
-                  :path="session.cwd"
-                  fallback="monogram"
-                />
-              </span>
+                        <TooltipContent>{{ t("session.unpin") }}</TooltipContent>
+                      </Tooltip>
 
-              <input
-                v-if="renaming"
-                :ref="setRenameInput"
-                v-model="renameDraft"
-                class="rename-input"
-                type="text"
-                :aria-label="t('session.rename')"
-                @click.stop
-                @keydown.enter.prevent="commitRename"
-                @keydown.escape.prevent="cancelRename"
-                @blur="commitRename"
-              />
+                      <span class="project-name">{{ projectName }}</span>
 
-              <Tooltip v-else :disabled="!titleOverflow">
-                <TooltipTrigger>
-                  <template #render="{ props: part }">
-                    <span
-                      v-bind="part"
-                      :ref="setTitleEl"
-                      class="title"
-                      @pointerenter="measureTitle"
-                    >
-                      {{ session.title }}
+                      <span v-if="!renaming" class="state-slot">
+                        <span class="state-mark" aria-hidden="true">
+                          <span v-if="startedAt !== undefined" class="working-status">
+                            <CircleDashedIcon class="size-icon-lg working-icon" />
+                            <span>{{ t("session.sectionWorking") }}</span>
+                            <span class="working-elapsed">{{ elapsed }}</span>
+                          </span>
+
+                          <SessionStateIcon v-else-if="glyphState" :state="glyphState" />
+                          <span v-else class="time-label">{{ timeLabel }}</span>
+                        </span>
+
+                        <button
+                          v-if="!placeholder && startedAt === undefined"
+                          class="row-action press-scale"
+                          type="button"
+                          :aria-label="settled ? t('session.unsettle') : t('session.settle')"
+                          @click.prevent.stop="onRowAction"
+                          @pointerdown.stop="onActionPointerDown"
+                        >
+                          <Undo2Icon v-if="settled" class="size-icon" />
+                          <CheckIcon v-else class="size-icon" />
+
+                          <span class="row-action-label">
+                            {{ settled ? t("session.unsettle") : t("session.settle") }}
+                          </span>
+                        </button>
+                      </span>
+                    </span>
+
+                    <span class="title-line">
+                      <input
+                        v-if="renaming"
+                        :ref="setRenameInput"
+                        v-model="renameDraft"
+                        class="rename-input"
+                        type="text"
+                        :aria-label="t('session.rename')"
+                        @click.stop
+                        @keydown.enter.prevent="commitRename"
+                        @keydown.escape.prevent="cancelRename"
+                        @blur="commitRename"
+                      />
+
+                      <span v-else class="title">{{ session.title }}</span>
                     </span>
                   </template>
-                </TooltipTrigger>
 
-                <TooltipContent side="right" :side-offset="10" class="title-tooltip">
-                  {{ session.title }}
-                </TooltipContent>
-              </Tooltip>
+                  <template v-else>
+                    <span class="project-icon" aria-hidden="true">
+                      <ProjectIcon
+                        v-if="projectName"
+                        class="project-mono"
+                        :path="session.cwd"
+                        fallback="monogram"
+                      />
+                    </span>
 
-              <span v-if="!renaming" class="state-slot">
-                <span class="state-mark" aria-hidden="true">
-                  <SessionStateIcon v-if="glyphState" :state="glyphState" />
-                  <span v-else class="time-label">{{ timeLabel }}</span>
-                </span>
+                    <input
+                      v-if="renaming"
+                      :ref="setRenameInput"
+                      v-model="renameDraft"
+                      class="rename-input"
+                      type="text"
+                      :aria-label="t('session.rename')"
+                      @click.stop
+                      @keydown.enter.prevent="commitRename"
+                      @keydown.escape.prevent="cancelRename"
+                      @blur="commitRename"
+                    />
 
-                <button
-                  v-if="!placeholder"
-                  class="row-action press-scale"
-                  type="button"
-                  :aria-label="settled ? t('session.unsettle') : t('session.settle')"
-                  @click.prevent.stop="onRowAction"
-                  @pointerdown.stop="onActionPointerDown"
-                >
-                  <Undo2Icon v-if="settled" class="size-icon" />
-                  <CheckIcon v-else class="size-icon" />
-                </button>
-              </span>
-            </template>
-          </component>
-        </template>
-      </ContextMenuTrigger>
+                    <span v-else class="title">{{ session.title }}</span>
+
+                    <span v-if="!renaming" class="state-slot">
+                      <span class="state-mark" aria-hidden="true">
+                        <SessionStateIcon v-if="glyphState" :state="glyphState" />
+                        <span v-else class="time-label">{{ timeLabel }}</span>
+                      </span>
+
+                      <button
+                        v-if="!placeholder"
+                        class="row-action press-scale"
+                        type="button"
+                        :aria-label="settled ? t('session.unsettle') : t('session.settle')"
+                        @click.prevent.stop="onRowAction"
+                        @pointerdown.stop="onActionPointerDown"
+                      >
+                        <Undo2Icon v-if="settled" class="size-icon" />
+                        <CheckIcon v-else class="size-icon" />
+                      </button>
+                    </span>
+                  </template>
+                </component>
+              </template>
+            </ContextMenuTrigger>
+          </template>
+        </HoverCardTrigger>
+
+        <SessionHoverCard :session="session" :project-name="projectName" />
+      </HoverCard>
 
       <ContextMenuContent v-if="!placeholder" class="select-none">
         <template v-if="split">
@@ -263,6 +239,8 @@ import {
   ContextMenuTrigger,
 } from "@pig/ui/context-menu"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
+import { HoverCard, HoverCardTrigger } from "@pig/ui/hover-card"
+import SessionHoverCard from "@features/session-nav/components/SessionHoverCard.vue"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import SessionStateIcon from "@features/session-nav/components/SessionStateIcon.vue"
 import { sessionGlyph } from "@features/session-nav/lib/status-cycle.js"
@@ -357,18 +335,6 @@ watch(
   },
   { immediate: true },
 )
-
-const titleEl = shallowRef<HTMLElement | null>(null)
-const titleOverflow = shallowRef(false)
-
-function setTitleEl(el: unknown): void {
-  titleEl.value = el instanceof HTMLElement ? el : null
-}
-
-function measureTitle() {
-  const el = titleEl.value
-  titleOverflow.value = el ? el.scrollWidth > el.clientWidth + 1 : false
-}
 
 const renaming = ref(false)
 const renameDraft = ref("")
@@ -787,10 +753,6 @@ function confirmDelete() {
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   box-shadow: inset 0 0 0 1px var(--accent-solid);
-}
-
-:global(.title-tooltip) {
-  max-width: 320px !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
