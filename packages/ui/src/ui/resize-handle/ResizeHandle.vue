@@ -29,36 +29,30 @@
 :where([data-slot="resize-handle"])::after {
   content: "";
   position: absolute;
-  top: 50%;
+  inset-block: 0;
   inset-inline-start: 50%;
-  inline-size: 3px;
-  block-size: 40px;
-  border-radius: var(--radius-pill);
-  background: var(--scrollbar-color);
-  opacity: 0;
-  translate: -50% -50%;
-  transition:
-    opacity var(--duration-fast) var(--ease-out),
-    background-color var(--duration-fast) var(--ease-out);
+  inline-size: calc(var(--border-width) * 2);
+  background: transparent;
+  translate: -50% 0;
+  transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 :where([data-slot="resize-handle"][data-orientation="vertical"])::after {
-  inline-size: 40px;
-  block-size: 3px;
+  inset-block: 50% auto;
+  inset-inline: 0;
+  inline-size: auto;
+  block-size: calc(var(--border-width) * 2);
+  translate: 0 -50%;
 }
 
 :where([data-slot="resize-handle"]:hover)::after,
 :where([data-slot="resize-handle"]:focus-visible)::after,
 :where([data-slot="resize-handle"][data-dragging])::after {
-  opacity: 1;
+  background: var(--focus-color);
 }
 
 :where([data-slot="resize-handle"]:focus-visible) {
   outline: none;
-}
-
-:where([data-slot="resize-handle"][data-dragging])::after {
-  background: var(--fg-secondary);
 }
 
 @media (prefers-reduced-motion: reduce) {

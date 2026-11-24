@@ -22,9 +22,11 @@
           :preset="leftPreset"
         />
 
-        <div
+        <ResizeHandle
           v-if="sideBySide"
           class="split-resizer"
+          data-orientation="horizontal"
+          :data-dragging="resizing || undefined"
           role="separator"
           aria-orientation="vertical"
           tabindex="0"
@@ -33,7 +35,7 @@
           @dblclick="split.setRatio(0.5)"
           @keydown.left.prevent="split.setRatio(split.state.value.ratio - 0.02)"
           @keydown.right.prevent="split.setRatio(split.state.value.ratio + 0.02)"
-        ></div>
+        />
 
         <WorkbenchPane
           v-if="split.split.value"
@@ -79,6 +81,7 @@ import { computed, onBeforeUnmount, onMounted, provide, shallowRef, useTemplateR
 import { useEventListener, useResizeObserver } from "@vueuse/core"
 import { useRoute, useRouter } from "vue-router"
 import AppLayout from "@components/layout/AppLayout.vue"
+import { ResizeHandle } from "@pig/ui/resize-handle"
 import { Toaster, notify } from "@pig/ui/toast"
 
 import { useLocalWorkspaces } from "@client/local-cwd.js"
@@ -341,51 +344,8 @@ html[data-session-dragging] .split-drop {
 }
 
 .split-resizer {
-  position: relative;
   z-index: var(--z-resizer);
-  flex: none;
   width: 0;
   margin-block-start: var(--header-height);
-  cursor: ew-resize;
-  touch-action: none;
-}
-
-.split-resizer::before {
-  content: "";
-  position: absolute;
-  inset-block: 0;
-  inset-inline: calc(-1 * var(--space-2xs));
-}
-
-.split-resizer::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  inset-inline-start: 50%;
-  width: 3px;
-  height: 40px;
-  border-radius: var(--radius-pill);
-  background: var(--scrollbar-color);
-  opacity: 0;
-  translate: -50% -50%;
-  transition:
-    opacity var(--duration-fast) var(--ease-out),
-    background-color var(--duration-fast) var(--ease-out);
-}
-
-.split-resizer:hover::after,
-.split-resizer:focus-visible::after {
-  opacity: 1;
-}
-
-.split-area.is-resizing .split-resizer::after {
-  opacity: 1;
-  background: var(--fg-secondary);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .split-resizer::after {
-    transition: none;
-  }
 }
 </style>
