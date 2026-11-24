@@ -6,6 +6,7 @@
 - 不写注释：`pig-comments/no-comments` 与 `pig/no-comments` 只放行五类（见 `/delete-comment`），存量在 `*-suppressions.json` 里只减不增。功能代码文件（`.ts`、`.vue`）不超过 500 行；样式表、i18n 文案不限。
 - 导入能对上现有别名就写别名，不写相对路径。同目录引用可以保持 `./`。
 - 已有依赖能表达就复用，不自写组件和行为；不引入功能重复的依赖。
+- 用 ui-sdk 前，装了 ui-sdk skill 就先按它走，并读 `node_modules/@ui-sdk/vue/docs/llms.txt`；新建组件时再按标题搜 `node_modules/@ui-sdk/vue/docs/core.md`，并读同目录的 `rendering.md`。
 - 依赖缺陷不用 `patchedDependencies`、`patch-package`、本地 vendor 补丁。
 - 单测只验证产品假设和数据路径（编排与状态转换），只测实现细节的不写；整页浏览器旅程写在 `e2e/`。
 
