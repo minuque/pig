@@ -130,7 +130,7 @@ function onPrimary() {
 .primary {
   display: flex;
   align-items: center;
-  gap: var(--space-2xs);
+  gap: var(--space-xs);
 }
 
 .send:disabled {

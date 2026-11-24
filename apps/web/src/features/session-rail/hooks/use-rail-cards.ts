@@ -26,9 +26,6 @@ export function useRailCards() {
     mergeTasks(session.tasks.value, latestToolTasks(session.transcript.value)),
   )
   const sections = computed(() => visibleSections(tasks.value, rail.dismissed.value))
-  const runningCount = computed(
-    () => tasks.value.filter((task) => task.status === "running").length,
-  )
   const stoppable = computed(
     () =>
       new Set(
@@ -55,5 +52,5 @@ export function useRailCards() {
       statuses: id ? ui.statuses.value.get(id) : undefined,
     }
   })
-  return { session, tasks, sections, runningCount, cards, stopTask }
+  return { session, tasks, sections, cards, stopTask }
 }

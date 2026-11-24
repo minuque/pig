@@ -303,8 +303,18 @@ defineExpose({
 .footer > * {
   display: flex;
   align-items: center;
-  gap: var(--space-2xs);
+  gap: var(--space-xs);
   min-width: 0;
+}
+
+.footer :deep([data-icon-button]) {
+  inline-size: var(--control-md);
+  height: var(--control-md);
+}
+
+.footer :deep([data-icon-button] > svg) {
+  inline-size: var(--icon-lg);
+  block-size: var(--icon-lg);
 }
 
 .footer > .tools {

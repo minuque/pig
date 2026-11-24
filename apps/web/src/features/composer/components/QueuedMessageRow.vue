@@ -87,7 +87,7 @@ import type { ComposerAttachment } from "@/types/attachment-type.js"
 import { formatFileSize } from "@features/composer/lib/attachment-size.js"
 import type { QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
 import {
-  ArrowUpIcon,
+  ForwardIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   FileTextIcon,
@@ -140,7 +140,7 @@ const actions = computed<RowAction[]>(() => {
     },
     {
       id: "send",
-      icon: ArrowUpIcon,
+      icon: ForwardIcon,
       label: t("composer.queueSendNow"),
       run: () => emit("sendNow"),
     },

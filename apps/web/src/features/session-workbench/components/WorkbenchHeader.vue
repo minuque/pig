@@ -17,7 +17,7 @@
             :aria-label="t('nav.openSidebar')"
             @click="setSbState('expanded')"
           >
-            <PanelRightOpenIcon class="size-icon-lg" />
+            <PanelLeftIcon class="size-icon-lg" />
           </IconButton>
         </template>
       </TooltipTrigger>
@@ -119,7 +119,8 @@
             :aria-label="t('files.toggle')"
             @click="toggleFiles"
           >
-            <FoldersIcon class="size-icon-lg" />
+            <FolderOpenIcon v-if="files.open.value" class="size-icon-lg" />
+            <FolderIcon v-else class="size-icon-lg" />
           </IconButton>
         </template>
       </TooltipTrigger>
@@ -197,8 +198,9 @@ import { usePaneSide, usePanelHost, useSplitView } from "@features/split-view/in
 import {
   ArrowLeftRightIcon,
   ChevronDownIcon,
-  FoldersIcon,
-  PanelRightOpenIcon,
+  FolderIcon,
+  FolderOpenIcon,
+  PanelLeftIcon,
   PenIcon,
   PinIcon,
   PinOffIcon,

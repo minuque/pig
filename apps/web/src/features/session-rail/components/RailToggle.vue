@@ -16,13 +16,6 @@
             @click="rail.toggleDocked"
           >
             <NotepadTextIcon class="size-icon-lg" />
-
-            <StatusIndicator
-              v-if="runningCount > 0"
-              class="rail-toggle-dot"
-              status="running"
-              size="m"
-            />
           </IconButton>
         </template>
       </TooltipTrigger>
@@ -47,13 +40,6 @@
                   :aria-label="t('rail.toggle')"
                 >
                   <NotepadTextIcon class="size-icon-lg" />
-
-                  <StatusIndicator
-                    v-if="runningCount > 0"
-                    class="rail-toggle-dot"
-                    status="running"
-                    size="m"
-                  />
                 </IconButton>
               </template>
             </TooltipTrigger>
@@ -76,7 +62,6 @@ import { useI18n } from "@i18n/index.js"
 import { NotepadTextIcon } from "@components/icons/index.js"
 import { IconButton } from "@pig/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@pig/ui/popover"
-import { StatusIndicator } from "@pig/ui/status-indicator"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import RailSummary from "@features/session-rail/components/RailSummary.vue"
 import { useRailCards } from "@features/session-rail/hooks/use-rail-cards.js"
@@ -84,7 +69,7 @@ import { useSessionRail } from "@features/session-rail/index.js"
 
 const { t } = useI18n()
 const rail = useSessionRail()!
-const { session, tasks, runningCount, cards, stopTask } = useRailCards()
+const { session, tasks, cards, stopTask } = useRailCards()
 const popoverOpen = ref(false)
 
 watch(rail.pane, (pane) => {
@@ -113,19 +98,9 @@ const label = computed(() => {
   align-items: center;
 }
 
-.rail-toggle :is(.rail-toggle-docked, .rail-toggle-popover) {
-  position: relative;
-}
-
 .rail-toggle [data-active] {
   color: var(--fg);
   background: var(--bg-selected);
-}
-
-.rail-toggle-dot {
-  position: absolute;
-  inset-block-start: var(--space-2xs);
-  inset-inline-end: var(--space-2xs);
 }
 </style>
 

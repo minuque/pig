@@ -36,8 +36,8 @@
                   :aria-pressed="pane.treeShown.value"
                   @click="pane.toggleTree"
                 >
-                  <PanelLeftIcon v-if="pane.treeShown.value" class="size-icon" />
-                  <PanelRightOpenIcon v-else class="size-icon" />
+                  <SquarePaddingLeftIcon v-if="pane.treeShown.value" class="size-icon" />
+                  <PanelLeftIcon v-else class="size-icon" />
                 </IconButton>
               </template>
             </TooltipTrigger>
@@ -117,7 +117,7 @@ import {
   Maximize2Icon,
   Minimize2Icon,
   PanelLeftIcon,
-  PanelRightOpenIcon,
+  SquarePaddingLeftIcon,
   SearchIcon,
   XIcon,
 } from "@components/icons/index.js"
