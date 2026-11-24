@@ -1,22 +1,19 @@
 <template>
   <CardList class="tool-run-card">
     <CardRow v-for="entry in entries" :key="entry.id" bleed>
-      <template #render="{ props: part }">
-        <ToolThoughtRow
-          v-bind="part"
-          v-if="entry.kind === 'thought'"
-          :step="entry.step"
-          :open="expandedTools.get(entry.id) ?? false"
-          @toggle="emit('toggleTool', entry.id, $event)"
-        />
+      <ToolThoughtRow
+        v-if="entry.kind === 'thought'"
+        :step="entry.step"
+        :open="expandedTools.get(entry.id) ?? false"
+        @toggle="emit('toggleTool', entry.id, $event)"
+      />
 
-        <ToolRow
-          v-else
-          :call="entry.call"
-          :open="expandedTools.get(entry.call.id) ?? false"
-          @toggle="emit('toggleTool', entry.call.id, $event)"
-        />
-      </template>
+      <ToolRow
+        v-else
+        :call="entry.call"
+        :open="expandedTools.get(entry.call.id) ?? false"
+        @toggle="emit('toggleTool', entry.call.id, $event)"
+      />
     </CardRow>
   </CardList>
 </template>
@@ -59,7 +56,7 @@ const entries = computed<RunEntry[]>(() =>
   margin-block-start: var(--space-sm);
 }
 
-.tool-run-card > :deep(.tool-row) {
+.tool-run-card > :deep([data-slot="card-row"] > .tool-row) {
   padding: var(--space-sm) var(--card-padding);
 }
 </style>

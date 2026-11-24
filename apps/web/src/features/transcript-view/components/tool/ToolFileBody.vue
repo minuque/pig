@@ -58,6 +58,7 @@ import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import {
   highlightCodeTokens,
+  isHighlightable,
   type CodeTokens,
 } from "@features/transcript-view/lib/code-highlight.js"
 import {
@@ -106,13 +107,13 @@ watch(
       active = false
     })
 
-    if (!code || !language || language === "text" || code.length > 100_000) {
+    if (!isHighlightable(code, language)) {
       tokens.value = []
       return
     }
 
     try {
-      const next = await highlightCodeTokens(code, language, theme)
+      const next = await highlightCodeTokens(code!, language!, theme)
 
       if (active) tokens.value = next
     } catch {

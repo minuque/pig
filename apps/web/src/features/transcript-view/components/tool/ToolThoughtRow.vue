@@ -22,8 +22,10 @@
           </template>
         </CollapsibleTrigger>
 
-        <CollapsibleContent class="thought-body">
-          <ToolOutput :text="step.text" soft-wrap />
+        <CollapsibleContent>
+          <div class="thought-body">
+            <ToolOutput :text="step.text" soft-wrap />
+          </div>
         </CollapsibleContent>
       </div>
     </template>
@@ -92,8 +94,6 @@ const label = computed(() => thoughtStepLabel(props.step))
 }
 
 .thought-body {
-  overflow: visible;
-  transition: none;
   min-width: 0;
   padding-block-start: var(--space-xs);
   font-size: var(--text-meta);

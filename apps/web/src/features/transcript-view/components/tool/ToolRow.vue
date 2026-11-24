@@ -6,7 +6,7 @@
         class="tool-row"
         :class="{ 'is-failed': call.isError, 'is-running': call.running }"
       >
-        <div class="tool-row-head">
+        <div class="tool-row-head" @pointerenter.once="warm" @focusin.once="warm">
           <CollapsibleTrigger>
             <template #render="{ props: part }">
               <button
@@ -59,16 +59,18 @@
           />
         </div>
 
-        <CollapsibleContent class="tool-row-body">
-          <ToolTaskBody v-if="tasks.length" :tasks="tasks" />
-          <ToolCommandBody v-else-if="variant === 'command'" :call="shownCall" />
+        <CollapsibleContent>
+          <div class="tool-row-body">
+            <ToolTaskBody v-if="tasks.length" :tasks="tasks" />
+            <ToolCommandBody v-else-if="variant === 'command'" :call="shownCall" />
 
-          <ToolFileBody
-            v-else-if="variant === 'read' || variant === 'edit' || variant === 'search'"
-            :call="shownCall"
-          />
+            <ToolFileBody
+              v-else-if="variant === 'read' || variant === 'edit' || variant === 'search'"
+              :call="shownCall"
+            />
 
-          <ToolGenericBody v-else :call="shownCall" />
+            <ToolGenericBody v-else :call="shownCall" />
+          </div>
         </CollapsibleContent>
       </div>
     </template>
@@ -99,6 +101,8 @@ import {
 } from "@features/transcript-view/lib/tool-summary.js"
 import { openFileKey } from "@features/transcript-view/index.js"
 import { toolTasks } from "@features/transcript-view/lib/tool-tasks.js"
+import { warmToolHighlight } from "@features/transcript-view/lib/tool-highlight.js"
+import { useColorScheme } from "@features/theme/index.js"
 import { formatElapsed } from "@utils/time.js"
 import { useFullToolOutput } from "@features/transcript-view/hooks/use-full-tool-output.js"
 import type { ToolCallView } from "@features/transcript-view/type.js"
@@ -156,6 +160,8 @@ function openTarget(event: MouseEvent) {
 }
 
 const images = computed(() => toolCallImages(props.call))
+const { isDark, codeBlockProps } = useColorScheme()
+const warm = () => warmToolHighlight(props.call, isDark.value, codeBlockProps.value.theme)
 </script>
 
 <style scoped>
@@ -320,8 +326,6 @@ const images = computed(() => toolCallImages(props.call))
 }
 
 .tool-row-body {
-  overflow: visible;
-  transition: none;
   min-width: 0;
   padding-block-start: var(--space-xs);
   font-size: var(--text-meta);

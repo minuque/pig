@@ -159,8 +159,6 @@ onBeforeUnmount(() => {
 }
 
 .tool-run-body {
-  overflow: visible;
-  transition: none;
   min-width: 0;
 }
 

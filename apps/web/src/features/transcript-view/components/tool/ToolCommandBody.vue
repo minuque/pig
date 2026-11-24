@@ -27,6 +27,7 @@ import CodeCard from "@features/transcript-view/components/CodeCard.vue"
 import StickyCopyButton from "@features/transcript-view/components/StickyCopyButton.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
 import {
+  commandCodeTheme,
   highlightCodeTokens,
   type CodeTokens,
   vTokenLine,
@@ -39,7 +40,7 @@ const props = defineProps<{
   call: ToolCallView
 }>()
 const { t } = useI18n()
-const { codeBlockProps } = useColorScheme()
+const { isDark } = useColorScheme()
 const command = computed(() => toolCommand(props.call.input))
 const commandLines = computed(() => (command.value ? command.value.split("\n") : []))
 const result = computed(() => {
@@ -56,8 +57,8 @@ const statusLine = computed(() => {
 const tokens = shallowRef<CodeTokens>([])
 
 watch(
-  [command, () => codeBlockProps.value.theme],
-  async ([text, theme], _, onCleanup) => {
+  [command, isDark],
+  async ([text, dark], _, onCleanup) => {
     let active = true
     onCleanup(() => {
       active = false
@@ -69,7 +70,7 @@ watch(
     }
 
     try {
-      const next = await highlightCodeTokens(text, "bash", theme)
+      const next = await highlightCodeTokens(text, "bash", commandCodeTheme(dark))
 
       if (active) tokens.value = next
     } catch {
