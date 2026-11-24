@@ -265,6 +265,8 @@ html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]
 }
 
 .nav-tool[data-slot] {
+  block-size: auto;
+  inline-size: var(--control-md);
   color: var(--fg-secondary);
   transition: color var(--duration-fast) var(--ease-out);
 }
