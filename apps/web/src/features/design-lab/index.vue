@@ -1,5 +1,7 @@
 <template>
-  <div class="lab">
+  <component :is="current.item.view" v-if="current && isFullPage" />
+
+  <div v-else class="lab">
     <header class="lab-bar">
       <nav class="lab-crumbs">
         <RouterLink to="/design" class="lab-home">Design</RouterLink>
@@ -72,7 +74,7 @@
         <DesignNav />
       </aside>
 
-      <main class="lab-panel" :class="{ 'is-wide': current?.item.path === 'full-page' }">
+      <main class="lab-panel">
         <template v-if="current">
           <h1 class="lab-title">{{ text(current.item.title) }}</h1>
           <component :is="current.item.view" :key="current.item.path" />
@@ -132,6 +134,7 @@ const { density, setDensity } = useAppearancePrefs()
 const search = useTemplateRef<{ open: () => void }>("search")
 const path = computed(() => [route.params.page ?? []].flat().join("/"))
 const isGuide = computed(() => path.value === "guide")
+const isFullPage = computed(() => path.value === "full-page")
 const current = computed(() => {
   const index = PAGES.findIndex((page) => page.item.path === path.value)
 
@@ -258,10 +261,6 @@ onMounted(() => document.getElementById("startup-splash")?.remove())
   max-inline-size: 1120px;
   margin-inline: auto;
   padding: var(--space-xl) var(--space-lg) var(--space-2xl);
-}
-
-.lab-panel.is-wide {
-  max-inline-size: none;
 }
 
 .lab-title {

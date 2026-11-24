@@ -15,7 +15,7 @@ export const layers: Record<string, Layer[]> = {
     { name: "底座", note: "协议、环境与设计系统", dirs: ["packages/protocol", "packages/environment", "packages/ui"] },
   ],
   "apps/web": [
-    { name: "入口", note: "启动与路由", dirs: ["", "router", "shell"] },
+    { name: "入口", note: "启动、路由与设计实验室", dirs: ["", "router", "shell", "features/design-lab"] },
     {
       name: "页面",
       note: "拼装功能",
@@ -25,7 +25,6 @@ export const layers: Record<string, Layer[]> = {
         "features/session-rail",
         "features/file-pane",
         "features/extension-ui",
-        "features/design-lab",
       ],
     },
     {
@@ -50,7 +49,7 @@ export const layers: Record<string, Layer[]> = {
   "packages/ui": [
     { name: "入口", note: "包统一导出", dirs: [""] },
     { name: "组件", note: "无业务基础控件", dirs: ["ui"] },
-    { name: "主题与底座", note: "色板派生、类型与文案注入", dirs: ["theme", "core"] },
+    { name: "主题与底座", note: "类型与文案注入", dirs: ["theme", "core"] },
   ],
   "apps/desktop": [
     { name: "入口", note: "开发启动脚本", dirs: [""] },
