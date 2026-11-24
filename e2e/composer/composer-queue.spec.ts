@@ -130,6 +130,15 @@ test("队列排序：拖拽手柄与键盘上移下移都能换位", async ({ pa
     .dragTo(rows.nth(0), { targetPosition: { x: 100, y: 4 } })
   await expect(rows.nth(0)).toContainText("第二条排队")
   await expect(rows.nth(1)).toContainText("第一条排队")
+
+  const grip = rows.nth(1).locator(".row-grip")
+  await grip.focus()
+  await page.keyboard.press("Space")
+  await expect(grip).toHaveAttribute("aria-pressed", "true")
+  await page.keyboard.press("ArrowUp")
+  await page.keyboard.press("Space")
+  await expect(rows.nth(0)).toContainText("第一条排队")
+  await expect(rows.nth(1)).toContainText("第二条排队")
 })
 
 test("队列超过 3 条：展开与收起", async ({ page, complexGateway }) => {

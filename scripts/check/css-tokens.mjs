@@ -9,6 +9,8 @@ export const RUNTIME_TOKENS = new Set([
   "--available-height",
   "--available-width",
   "--collapsible-panel-height",
+  "--drag-x",
+  "--drag-y",
   "--toast-swipe-x",
   "--toast-swipe-y",
   "--transform-origin",

@@ -1,14 +1,17 @@
 <template>
   <div class="queue">
-    <div
-      ref="rowsEl"
+    <SortableList
+      v-slot="{ state }"
       class="rows"
-      role="list"
       :aria-label="t('composer.queueLabel')"
       aria-live="polite"
+      :value="ids"
+      :item-label="labelOf"
+      :message="announce"
+      @value-change="onReorder"
     >
       <QueuedMessageRow
-        v-for="item in shown"
+        v-for="item in visible(state.order)"
         :key="item.id"
         :item="item"
         :editing="editingId === item.id"
@@ -20,7 +23,7 @@
         @remove="emit('remove', item.id)"
         @preview="emit('preview', $event)"
       />
-    </div>
+    </SortableList>
 
     <button
       v-if="items.length > VISIBLE_ROWS"
@@ -39,9 +42,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, useTemplateRef } from "vue"
+import { computed, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { useDragReorder } from "@utils/motion.js"
+import { SortableList, type ReorderMessage } from "@pig/ui/sortable-list"
 import QueuedMessageRow from "@features/composer/components/QueuedMessageRow.vue"
 import type { ComposerAttachment } from "@/types/attachment-type.js"
 import type { QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
@@ -57,29 +60,44 @@ const emit = defineEmits<{
   remove: [id: string]
   preview: [item: ComposerAttachment]
 }>()
-const rowsEl = useTemplateRef("rowsEl")
 const expanded = ref(false)
-const shown = computed(() => (expanded.value ? props.items : props.items.slice(0, VISIBLE_ROWS)))
-const drag = useDragReorder({
-  axis: "y",
-  container: () => rowsEl.value,
-  itemSelector: ".row",
-  handleSelector: ".row-grip",
-  onMove: (id, toIndex) => emit("reorder", id, toIndex),
-})
+const ids = computed(() => props.items.map((item) => item.id))
+const byId = computed(() => new Map(props.items.map((item) => [item.id, item])))
+
+function visible(order: string[]): QueuedPrompt[] {
+  const rows = order.flatMap((id) => byId.value.get(id) ?? [])
+  return expanded.value ? rows : rows.slice(0, VISIBLE_ROWS)
+}
+
+function labelOf(id: string): string | undefined {
+  const item = byId.value.get(id)
+  return item?.text || item?.attachmentsPreview.map((file) => file.name).join(", ")
+}
+
+function announce(message: ReorderMessage): string {
+  const params = { label: message.label, position: message.position, total: message.total }
+
+  if (message.type === "grab") return t("composer.queueGrab", params)
+
+  if (message.type === "move") return t("composer.queueMoveTo", params)
+
+  if (message.type === "drop") return t("composer.queueDrop", params)
+  return t("composer.queueCancel", params)
+}
+
+function onReorder(next: string[]) {
+  const rest = (order: string[], key: string) => order.filter((id) => id !== key).join(" ")
+  const moved = next.find(
+    (key, index) => key !== ids.value[index] && rest(next, key) === rest(ids.value, key),
+  )
+
+  if (moved) emit("reorder", moved, next.indexOf(moved))
+}
 
 function canMove(id: string, delta: -1 | 1) {
   const index = props.items.findIndex((item) => item.id === id)
   return index >= 0 && index + delta >= 0 && index + delta < props.items.length
 }
-
-onMounted(() => {
-  const el = rowsEl.value
-
-  if (el) drag.attach(el)
-})
-
-onBeforeUnmount(() => drag.detach())
 </script>
 
 <style scoped>

@@ -56,6 +56,8 @@ export * from "./ui/skeleton/index.js"
 
 export * from "./ui/slider/index.js"
 
+export * from "./ui/sortable-list/index.js"
+
 export * from "./ui/spinner/index.js"
 
 export * from "./ui/status-indicator/index.js"
