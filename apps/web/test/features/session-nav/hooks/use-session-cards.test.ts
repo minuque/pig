@@ -1,14 +1,19 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { effectScope, nextTick, ref } from "vue"
-import type { SessionCard } from "@/types/common-type.js"
+import type { SessionCard, WorkspaceGit } from "@/types/common-type.js"
 
-const { listSessionCardsMock } = vi.hoisted(() => ({
+const { listSessionCardsMock, listWorkspaceGitMock } = vi.hoisted(() => ({
   listSessionCardsMock: vi.fn(async (): Promise<SessionCard[]> => []),
+  listWorkspaceGitMock: vi.fn(async (): Promise<Record<string, WorkspaceGit>> => ({})),
 }))
 
 vi.mock("@client/platform.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@client/platform.js")>()
-  return { ...actual, listSessionCards: listSessionCardsMock }
+  return {
+    ...actual,
+    listSessionCards: listSessionCardsMock,
+    listWorkspaceGit: listWorkspaceGitMock,
+  }
 })
 
 import { useSessionCards } from "@features/session-nav/hooks/use-session-cards.js"
@@ -31,6 +36,24 @@ describe("useSessionCards", () => {
     connected.value = true
     await nextTick()
     expect(listSessionCardsMock).toHaveBeenCalledTimes(1)
+    scope.stop()
+  })
+
+  it("分支信息按工作区目录建表", async () => {
+    listWorkspaceGitMock.mockResolvedValueOnce({
+      "G:/AICode/pig": { branch: "main", detached: false, worktree: false },
+      "G:/AICode/pig-review": { branch: "review/pr-106", detached: false, worktree: true },
+    })
+    const scope = effectScope()
+    const cards = scope.run(() => useSessionCards(ref(true)))!
+
+    await vi.waitFor(() => expect(cards.workspaceGit.value.size).toBe(2))
+
+    expect(cards.workspaceGit.value.get("G:/AICode/pig-review")).toEqual({
+      branch: "review/pr-106",
+      detached: false,
+      worktree: true,
+    })
     scope.stop()
   })
 

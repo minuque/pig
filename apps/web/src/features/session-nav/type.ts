@@ -1,4 +1,4 @@
-import type { SessionMetadata } from "@/types/common-type.js"
+import type { SessionMetadata, WorkspaceGit } from "@/types/common-type.js"
 
 export interface SessionGroup {
   canonicalPath: string
@@ -32,6 +32,7 @@ export interface SidebarRowFoot {
   model: { provider: string; id: string } | undefined
   messageCount: number | undefined
   parent?: SidebarParentSession
+  git?: WorkspaceGit
 }
 
 export type SidebarSectionKind = "pinned" | "active" | "working" | "settled"

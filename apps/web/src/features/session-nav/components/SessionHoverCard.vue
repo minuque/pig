@@ -21,6 +21,17 @@
         </span>
       </template>
 
+      <span v-if="foot?.git" class="hover-row">
+        <FolderGit2Icon v-if="foot.git.worktree" class="hover-icon" />
+        <GitBranchIcon v-else class="hover-icon" />
+
+        <span class="hover-text">
+          {{
+            foot.git.worktree ? `${foot.git.branch} · ${t("session.worktree")}` : foot.git.branch
+          }}
+        </span>
+      </span>
+
       <span v-if="foot?.model" class="hover-row">
         <VendorMark
           class="hover-icon"
@@ -60,7 +71,9 @@ import ProjectIcon from "@features/session-nav/components/ProjectIcon.vue"
 import type { SidebarRowFoot, SidebarSession } from "@features/session-nav/type.js"
 import {
   ArrowUpRightIcon,
+  FolderGit2Icon,
   FolderIcon,
+  GitBranchIcon,
   GitForkIcon,
   ListFilterIcon,
   MessagesSquareIcon,

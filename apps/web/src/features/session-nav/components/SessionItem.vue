@@ -112,21 +112,25 @@
                       <template v-else>
                         <span class="title">{{ session.title }}</span>
 
-                        <SessionForkMark
-                          v-if="foot?.parent"
-                          :parent="foot.parent"
+                        <SessionRowMarks
+                          v-if="foot && !foot.git"
+                          :foot="foot"
                           @open="emit('open', $event)"
-                          @hover="forkHover = $event"
-                        />
-
-                        <VendorMark
-                          v-if="foot?.model"
-                          class="title-vendor"
-                          :vendor="foot.model.provider"
-                          :name="foot.model.id"
-                          :size="14"
+                          @fork-hover="forkHover = $event"
                         />
                       </template>
+                    </span>
+
+                    <span v-if="foot?.git && !renaming" class="context-line">
+                      <FolderGit2Icon v-if="foot.git.worktree" class="size-icon-sm context-icon" />
+                      <GitBranchIcon v-else class="size-icon-sm context-icon" />
+                      <span class="context-text">{{ foot.git.branch }}</span>
+
+                      <SessionRowMarks
+                        :foot="foot"
+                        @open="emit('open', $event)"
+                        @fork-hover="forkHover = $event"
+                      />
                     </span>
                   </template>
 
@@ -263,9 +267,8 @@ import {
 } from "@pig/ui/context-menu"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { HoverCard, HoverCardTrigger } from "@pig/ui/hover-card"
-import SessionForkMark from "@features/session-nav/components/SessionForkMark.vue"
+import SessionRowMarks from "@features/session-nav/components/SessionRowMarks.vue"
 import SessionHoverCard from "@features/session-nav/components/SessionHoverCard.vue"
-import VendorMark from "@components/icons/VendorMark.vue"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import SessionStateIcon from "@features/session-nav/components/SessionStateIcon.vue"
 import { sessionGlyph } from "@features/session-nav/lib/status-cycle.js"
@@ -286,6 +289,8 @@ import {
   RotateCcwIcon,
   TrashIcon,
   Undo2Icon,
+  FolderGit2Icon,
+  GitBranchIcon,
 } from "@components/icons/index.js"
 
 const props = withDefaults(
@@ -595,9 +600,27 @@ function confirmDelete() {
   height: var(--control-2xs);
 }
 
-.title-vendor {
+.context-line {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+  height: var(--control-2xs);
+  color: var(--fg-muted);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+}
+
+.context-icon {
   flex: none;
-  opacity: 0.6;
+}
+
+.context-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .title {

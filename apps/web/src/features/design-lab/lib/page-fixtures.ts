@@ -53,7 +53,15 @@ export function pagePlacement(id: string): SidebarPlacement {
 export const PAGE_FOOTS = new Map<string, SidebarRowFoot>([
   [PAGE_SESSION_ID, { state: "running", model: SONNET, messageCount: 18 }],
   ["page-pinned", { state: undefined, model: GPT, messageCount: 42 }],
-  ["page-running", { state: "running", model: SONNET, messageCount: 9 }],
+  [
+    "page-running",
+    {
+      state: "running",
+      model: SONNET,
+      messageCount: 9,
+      git: { branch: "feat/sidebar-virtual-scroll", detached: false, worktree: false },
+    },
+  ],
   ["page-unread", { state: "unread", model: GPT, messageCount: 6 }],
   ["page-error", { state: "error", model: SONNET, messageCount: 14 }],
   [
@@ -62,6 +70,7 @@ export const PAGE_FOOTS = new Map<string, SidebarRowFoot>([
       state: undefined,
       model: SONNET,
       messageCount: 23,
+      git: { branch: "review/select-align", detached: false, worktree: true },
       parent: {
         id: "page-unread",
         title: "Banner 文案收敛",

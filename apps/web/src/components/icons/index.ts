@@ -37,6 +37,7 @@ export {
   FolderPlusIcon,
   ForwardIcon,
   GitBranchIcon,
+  FolderGit2Icon,
   GitForkIcon,
   ListFilterIcon,
   MessagesSquareIcon,

@@ -127,10 +127,12 @@ function createNav(
             ? "unread"
             : undefined
       const parent = item.parentSessionId ? byId.get(item.parentSessionId) : undefined
+      const git = item.cwd ? cards.workspaceGit.value.get(item.cwd) : undefined
 
       feet.set(item.id, {
         ...foot,
         state,
+        ...(git ? { git } : {}),
         ...(parent
           ? {
               parent: {

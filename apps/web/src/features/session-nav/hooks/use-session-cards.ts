@@ -1,9 +1,11 @@
 import { shallowRef, toValue, watch, type MaybeRefOrGetter } from "vue"
-import type { SessionCard } from "@/types/common-type.js"
-import { listSessionCards } from "@client/platform.js"
+import { useEventListener } from "@vueuse/core"
+import type { SessionCard, WorkspaceGit } from "@/types/common-type.js"
+import { listSessionCards, listWorkspaceGit } from "@client/platform.js"
 
 export function useSessionCards(connected: MaybeRefOrGetter<boolean>) {
   const sessionCards = shallowRef(new Map<string, Omit<SessionCard, "id">>())
+  const workspaceGit = shallowRef<ReadonlyMap<string, WorkspaceGit>>(new Map())
 
   async function loadSessionCards() {
     try {
@@ -21,13 +23,23 @@ export function useSessionCards(connected: MaybeRefOrGetter<boolean>) {
     } catch {}
   }
 
+  async function loadWorkspaceGit() {
+    try {
+      workspaceGit.value = new Map(Object.entries(await listWorkspaceGit()))
+    } catch {}
+  }
+
   watch(
     () => toValue(connected),
     (isConnected) => {
       if (!isConnected) return
       void loadSessionCards()
+      void loadWorkspaceGit()
     },
     { immediate: true },
   )
-  return { sessionCards }
+  useEventListener("focus", () => {
+    if (toValue(connected)) void loadWorkspaceGit()
+  })
+  return { sessionCards, workspaceGit }
 }

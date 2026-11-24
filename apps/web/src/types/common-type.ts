@@ -34,6 +34,7 @@ export type {
   ProviderView,
   ServerSnapshot,
   SessionCard,
+  WorkspaceGit,
   SessionArchives,
   SessionArchivesPatch,
   Task,
