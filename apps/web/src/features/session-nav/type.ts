@@ -19,11 +19,19 @@ export type SidebarSessionState = "running" | "unread" | "error"
 
 export type SidebarStateGlyph = SidebarSessionState | "draft"
 
+export interface SidebarParentSession {
+  id: string
+  title: string
+  cwd: string | undefined
+  updatedAt: number
+  model: { provider: string; id: string } | undefined
+}
+
 export interface SidebarRowFoot {
   state: SidebarSessionState | undefined
   model: { provider: string; id: string } | undefined
   messageCount: number | undefined
-  parent?: { id: string; title: string }
+  parent?: SidebarParentSession
 }
 
 export type SidebarSectionKind = "pinned" | "active" | "working" | "settled"

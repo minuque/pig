@@ -10,7 +10,7 @@ import { useSessionMarkers } from "@features/session-nav/hooks/use-session-marke
 import { useSessionOpen } from "@features/session-nav/hooks/use-session-open.js"
 import { useRevealNewSessions } from "@features/session-nav/hooks/use-reveal-new-sessions.js"
 import { useWorkspaceNav } from "@features/session-nav/hooks/use-workspace-nav.js"
-import { projectMonogram, workspaceName } from "@features/session-nav/lib/format.js"
+import { projectMonogram, sessionRecency, workspaceName } from "@features/session-nav/lib/format.js"
 import { projectIconColorOf, projectIconTone } from "@features/session-nav/lib/project-prefs.js"
 import {
   conversationItemCount,
@@ -131,7 +131,17 @@ function createNav(
       feet.set(item.id, {
         ...foot,
         state,
-        ...(parent ? { parent: { id: parent.id, title: sessionTitle(parent) } } : {}),
+        ...(parent
+          ? {
+              parent: {
+                id: parent.id,
+                title: sessionTitle(parent),
+                cwd: parent.cwd,
+                updatedAt: sessionRecency(parent),
+                model: sessionCardFoot(parent.id, extras, live).model,
+              },
+            }
+          : {}),
       })
     }
 

@@ -62,7 +62,13 @@ export const PAGE_FOOTS = new Map<string, SidebarRowFoot>([
       state: undefined,
       model: SONNET,
       messageCount: 23,
-      parent: { id: "page-unread", title: "Banner 文案收敛" },
+      parent: {
+        id: "page-unread",
+        title: "Banner 文案收敛",
+        cwd: KUMO,
+        updatedAt: NOW - 12 * MIN,
+        model: GPT,
+      },
     },
   ],
 ])
