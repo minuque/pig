@@ -605,7 +605,7 @@ function confirmDelete() {
   align-items: center;
   gap: var(--space-xs);
   min-width: 0;
-  height: var(--control-2xs);
+  margin-block-start: calc(var(--space-2xs) / -2);
   color: var(--fg-muted);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
