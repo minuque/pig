@@ -76,19 +76,6 @@ afterEach(() => {
 })
 
 describe("useComposerSubmit", () => {
-  it("压缩上下文走 /compact，保留草稿与待发附件", async () => {
-    const submit = vi.fn(() => Promise.resolve(true))
-    const { attachments, composer } = setup(submit)
-
-    composer.compact()
-    await vi.waitFor(() => expect(submit).toHaveBeenCalled())
-
-    expect(submit).toHaveBeenCalledWith("/compact", undefined, undefined, undefined, {
-      preserveDraft: true,
-    })
-    expect(attachments.files.value).toHaveLength(2)
-  })
-
   it("附件一发出就从输入卡消失，不用等回合跑完", async () => {
     let dispatched = false
     let release!: (sent: boolean) => void

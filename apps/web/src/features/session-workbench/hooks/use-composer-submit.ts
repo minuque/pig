@@ -209,14 +209,8 @@ export function useComposerSubmit(deps: ComposerSubmitDeps) {
   onBeforeUnmount(() => {
     if (stopTimer) clearTimeout(stopTimer)
   })
-
-  function compact() {
-    if (deps.sessionId()) void deliver("/compact")
-  }
-
   return {
     deliver,
-    compact,
     sendNow,
     sendQueued,
     enqueue,
