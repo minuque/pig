@@ -4,16 +4,18 @@
       <p v-if="item.text" class="row-text">{{ item.text }}</p>
 
       <div v-if="images.length" class="row-images">
-        <button
-          v-for="image in images"
-          :key="image.id"
-          type="button"
-          class="thumb"
-          :aria-label="image.name"
-          @click="emit('preview', image)"
-        >
-          <img :src="image.url" :alt="image.name" />
-        </button>
+        <Card v-for="image in images" :key="image.id" size="s" variant="surface" class="thumb">
+          <template #render="{ props: part }">
+            <button
+              v-bind="part"
+              type="button"
+              :aria-label="image.name"
+              @click="emit('preview', image)"
+            >
+              <img :src="image.url" :alt="image.name" />
+            </button>
+          </template>
+        </Card>
       </div>
 
       <div v-if="files.length" class="row-files">
@@ -78,6 +80,7 @@
 import { computed, type Component } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@pig/ui/button"
+import { Card } from "@pig/ui/card"
 import { SortableListHandle, SortableListItem } from "@pig/ui/sortable-list"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import type { ComposerAttachment } from "@/types/attachment-type.js"
@@ -214,18 +217,19 @@ const actions = computed<RowAction[]>(() => {
   gap: var(--space-2xs);
 }
 
-.thumb {
+.thumb[data-slot="card"] {
+  --card-padding: 0;
+  --card-border-radius: var(--radius-control);
+  --card-background-color: var(--bg-muted);
+
   inline-size: 56px;
   block-size: 56px;
-  padding: 0;
   border: 0;
-  border-radius: var(--radius-control);
-  overflow: hidden;
-  background: var(--bg-muted);
   cursor: zoom-in;
 }
 
 .thumb img {
+  display: block;
   inline-size: 100%;
   block-size: 100%;
   object-fit: cover;

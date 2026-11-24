@@ -10,13 +10,25 @@
             :aria-label="t('common.preview', { name: image.title })"
             @click.stop="show(i)"
           >
-            <img :src="image.src" alt="" />
+            <Card size="s" variant="surface" class="tool-thumb-card">
+              <template #render="{ props: card }">
+                <span v-bind="card">
+                  <img :src="image.src" alt="" />
+                </span>
+              </template>
+            </Card>
           </button>
         </template>
       </TooltipTrigger>
 
       <TooltipContent class="tool-thumb-tip" :side-offset="6">
-        <img :src="image.src" alt="" />
+        <Card size="s" variant="surface" class="tool-thumb-tip-card">
+          <template #render="{ props: card }">
+            <span v-bind="card">
+              <img :src="image.src" alt="" />
+            </span>
+          </template>
+        </Card>
       </TooltipContent>
     </Tooltip>
 
@@ -42,6 +54,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
+import { Card } from "@pig/ui/card"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import PreviewDialog, { type PreviewImage } from "@features/preview/index.vue"
 
@@ -87,20 +100,28 @@ function show(i: number) {
 }
 
 .tool-thumb {
+  display: block;
   flex: none;
   height: calc(var(--text-meta) * var(--text-meta--line-height));
   aspect-ratio: 4 / 3;
   padding: 0;
-  overflow: clip;
   border: 0;
   border-radius: calc(var(--radius-control) / 2);
-  background: var(--bg);
-  box-shadow: inset 0 0 0 var(--border-width) var(--border);
+  background: transparent;
   cursor: zoom-in;
   pointer-events: auto;
 }
 
-.tool-thumb img {
+.tool-thumb-card[data-slot="card"] {
+  --card-padding: 0;
+  --card-border-radius: calc(var(--radius-control) / 2);
+  --card-background-color: var(--bg);
+
+  width: 100%;
+  height: 100%;
+}
+
+.tool-thumb-card img {
   display: block;
   width: 100%;
   height: 100%;
@@ -113,10 +134,14 @@ function show(i: number) {
   padding: var(--space-2xs);
 }
 
-.tool-thumb-tip img {
+.tool-thumb-tip-card[data-slot="card"] {
+  --card-padding: 0;
+  --card-border-radius: var(--radius-control);
+}
+
+.tool-thumb-tip-card img {
   display: block;
   max-inline-size: 280px;
   max-block-size: 280px;
-  border-radius: var(--radius-control);
 }
 </style>

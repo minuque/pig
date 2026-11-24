@@ -1,7 +1,11 @@
 <template>
-  <button type="button" class="thumb" @click="open = true">
-    <img :src="src" :alt="altText" class="thumb-img" />
-  </button>
+  <Card size="s" variant="surface" class="thumb">
+    <template #render="{ props: part }">
+      <button v-bind="part" type="button" @click="open = true">
+        <img :src="src" :alt="altText" class="thumb-img" />
+      </button>
+    </template>
+  </Card>
 
   <PreviewDialog v-model:open="open" :src="src" :title="altText" />
 </template>
@@ -9,6 +13,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
+import { Card } from "@pig/ui/card"
 import PreviewDialog from "@features/preview/index.vue"
 import { transcriptImageSrc } from "@features/transcript-view/lib/transcript-format.js"
 
@@ -27,14 +32,12 @@ const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
 </script>
 
 <style scoped>
-.thumb {
-  display: block;
+.thumb[data-slot="card"] {
+  --card-padding: 0;
+  --card-background-color: var(--bg);
+
   width: 30%;
-  padding: 0;
-  overflow: hidden;
   border: 0;
-  border-radius: var(--radius-card);
-  background: var(--bg);
   cursor: zoom-in;
 }
 
@@ -42,8 +45,5 @@ const src = computed(() => transcriptImageSrc(props.data, props.mimeType))
   display: block;
   width: 100%;
   height: auto;
-  border-radius: inherit;
-  outline: var(--border-width) solid var(--border-subtle);
-  outline-offset: -1px;
 }
 </style>

@@ -16,6 +16,7 @@ import { h, type FunctionalComponent } from "vue"
 import type { MarkdownDocument as ComarkDocument, Node } from "comark"
 import { TableBody, TableCell, TableHeader, TableRow } from "@pig/ui/table"
 import MarkdownCodeBlock from "@features/transcript-view/components/markdown/MarkdownCodeBlock.vue"
+import MarkdownImage from "@features/transcript-view/components/markdown/MarkdownImage.vue"
 import MarkdownInlineCode from "@features/transcript-view/components/markdown/MarkdownInlineCode.vue"
 import MarkdownLink from "@features/transcript-view/components/markdown/MarkdownLink.vue"
 import MarkdownTable from "@features/transcript-view/components/markdown/MarkdownTable.vue"
@@ -26,6 +27,7 @@ const ColumnHeaderCell: FunctionalComponent = (_, { attrs, slots }) =>
   h(TableCell, { ...attrs, kind: "column-header" }, slots)
 const components = {
   pre: MarkdownCodeBlock,
+  img: MarkdownImage,
   code: MarkdownInlineCode,
   a: MarkdownLink,
   table: MarkdownTable,
