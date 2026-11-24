@@ -1,7 +1,6 @@
 import { readFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { describe, expect, it } from "vitest"
-import { DERIVED_THEME_TOKENS } from "../../src/theme/index.js"
 
 const tokensCss = readFileSync(
   fileURLToPath(new URL("../../src/styles/tokens.css", import.meta.url)),
@@ -30,11 +29,6 @@ function varsBySelector(css: string, selector: string): Map<string, string> {
 describe("@pig/ui tokens.css contract", () => {
   const rootVars = varsBySelector(tokensCss, ":root")
   const darkVars = varsBySelector(tokensCss, "html.dark")
-
-  it("包含主题派生所需的全部基础变量", () => {
-    for (const token of DERIVED_THEME_TOKENS)
-      expect(rootVars.has(token), `missing ${token} in :root`).toBe(true)
-  })
 
   it("固定控件三档高度与核心切换变量契约", () => {
     expect(rootVars.get("--control-sm")).toBe("28px")

@@ -11,7 +11,6 @@ import { pigHomeFile, writeJsonAtomic } from "./pig-file.js"
 
 const DEBOUNCE_MS = 80
 const THEME_MODES = ["auto", "light", "dark"] as const
-const THEME_PRESETS = ["linear", "paper", "ocean", "grove", "iris"] as const
 const WELCOME_FIELDS = ["mask", "off"] as const
 const DENSITIES = ["compact", "normal"] as const
 const LOCALES = ["en", "zh-CN"] as const
@@ -20,7 +19,6 @@ export const CODE_SIZES = [10, 11, 12, 13, 14, 15, 16] as const
 export const RAIL_SECTIONS = ["environment", "context", "tasks"] as const
 export const DEFAULT_PREFERENCES: UserPreferences = {
   theme: "auto",
-  themePreset: "linear",
   welcomeField: "mask",
   uiFont: "",
   codeFont: "",
@@ -92,7 +90,6 @@ function normalizePreferences(raw: Record<string, unknown>): UserPreferences {
   const codeSize = CODE_SIZES.find((size) => size === raw.codeSize)
   return {
     theme: oneOf(raw.theme, THEME_MODES, DEFAULT_PREFERENCES.theme),
-    themePreset: oneOf(raw.themePreset, THEME_PRESETS, DEFAULT_PREFERENCES.themePreset),
     welcomeField: oneOf(raw.welcomeField, WELCOME_FIELDS, DEFAULT_PREFERENCES.welcomeField),
     uiFont: text(raw.uiFont, DEFAULT_PREFERENCES.uiFont),
     codeFont: text(raw.codeFont, DEFAULT_PREFERENCES.codeFont),
@@ -119,9 +116,6 @@ function pickPatch(input: Record<string, unknown>): UserPreferencesPatch {
   if (unknown.length > 0) throw new PreferencesError(`未知偏好字段：${unknown.join(", ")}`)
 
   if (patchEntry(input, "theme")) patch.theme = requiredOneOf("theme", input.theme, THEME_MODES)
-
-  if (patchEntry(input, "themePreset"))
-    patch.themePreset = requiredOneOf("themePreset", input.themePreset, THEME_PRESETS)
 
   if (patchEntry(input, "welcomeField"))
     patch.welcomeField = requiredOneOf("welcomeField", input.welcomeField, WELCOME_FIELDS)

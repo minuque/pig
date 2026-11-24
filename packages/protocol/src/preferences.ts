@@ -1,8 +1,6 @@
 /** 跨设备通用的用户偏好：落在 gateway 的 preferences.json，localStorage 只是首屏镜像。 */
 export type UserThemeMode = "auto" | "light" | "dark"
 
-export type UserThemePreset = "linear" | "paper" | "ocean" | "grove" | "iris"
-
 export type UserWelcomeField = "mask" | "off"
 
 export type UserDensity = "compact" | "normal"
@@ -20,7 +18,6 @@ export interface UserRailLayout {
 
 export interface UserPreferences {
   theme: UserThemeMode
-  themePreset: UserThemePreset
   welcomeField: UserWelcomeField
   uiFont: string
   codeFont: string

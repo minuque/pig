@@ -9,7 +9,6 @@ import { readPref, readStringArray, writeJson, writePref } from "@utils/storage.
 import { getPreferences, patchPreferences } from "./platform.js"
 
 export const THEME_MODES = ["auto", "light", "dark"] as const
-export const THEME_PRESETS = ["linear", "paper", "ocean", "grove", "iris"] as const
 export const WELCOME_FIELDS = ["mask", "off"] as const
 export const DENSITIES = ["compact", "normal"] as const
 export const CODE_SIZES = [10, 11, 12, 13, 14, 15, 16] as const
@@ -18,7 +17,6 @@ export const CHAT_WIDTHS = ["comfortable", "wide", "full"] as const
 export const RAIL_SECTIONS = ["environment", "context", "tasks"] as const
 const KEYS = {
   theme: "npg-theme",
-  themePreset: "pig.themePreset",
   welcomeField: "pig.welcomeField",
   uiFont: "pig.uiFont",
   codeFont: "pig.codeFont",
@@ -34,7 +32,6 @@ const KEYS = {
 } as const
 export const DEFAULT_PREFERENCES: UserPreferences = {
   theme: "auto",
-  themePreset: "linear",
   welcomeField: "mask",
   uiFont: "",
   codeFont: "",
@@ -98,7 +95,6 @@ function readCodeSize(): number {
 function readStored(): UserPreferences {
   return {
     theme: pick(readPref(KEYS.theme), THEME_MODES, DEFAULT_PREFERENCES.theme),
-    themePreset: pick(readPref(KEYS.themePreset), THEME_PRESETS, DEFAULT_PREFERENCES.themePreset),
     welcomeField: pick(
       readPref(KEYS.welcomeField),
       WELCOME_FIELDS,
@@ -120,7 +116,6 @@ function readStored(): UserPreferences {
 
 const SCALAR_KEYS = [
   "theme",
-  "themePreset",
   "welcomeField",
   "uiFont",
   "codeFont",
@@ -153,7 +148,6 @@ function legacyPatch(): UserPreferencesPatch {
 
 function writeMirror(preferences: UserPreferences): void {
   writePref(KEYS.theme, preferences.theme)
-  writePref(KEYS.themePreset, preferences.themePreset)
   writePref(KEYS.welcomeField, preferences.welcomeField)
   writePref(KEYS.uiFont, preferences.uiFont)
   writePref(KEYS.codeFont, preferences.codeFont)

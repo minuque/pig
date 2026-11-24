@@ -246,7 +246,7 @@ html.dark {
   --accent-solid-hover: #6b77dc;
   --accent-text: #9eb1ff;
   --bg-hover: color-mix(in srgb, var(--white) 6%, transparent);
-  --bg-selected: color-mix(in srgb, var(--accent-solid) 16%, transparent);
+  --bg-selected: #1a2143;
   --scrollbar-color: #2a2a2a;
 
   /* --- 状态 --- */
@@ -284,10 +284,6 @@ html.dark {
   --tone-border-mix: 48%;
   --tone-text-lightness: 79%;
   --tone-hover-target: #ffffff;
-}
-
-html.dark:is(:not([data-theme-preset]), [data-theme-preset="linear"]) {
-  --bg-selected: #1a2143;
 }
 
 html[data-density="compact"] {

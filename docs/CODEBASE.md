@@ -11,7 +11,7 @@ packages/gateway/      Thin Host：平台接入与本地安全
 packages/protocol/     gateway 与 web 之间的 WS 消息与 HTTP 数据形状，只有类型
 packages/extensions/   pig 内置的 pi 扩展，只用公开 Extension API，只由 gateway 加载
 packages/environment/  工具运行的环境：本机或 SSH；执行命令、读写文件、搜索、环境列表
-packages/ui/           可复用的 Vue 3 设计系统：基础 token、主题色板派生与无业务基础组件
+packages/ui/           可复用的 Vue 3 设计系统：基础 token 与无业务基础组件
 e2e/                   浏览器 UI 旅程（Playwright，跨 Web 构建物与 Gateway）
 scripts/               开发、构建、发版、架构看板与 check 入口
 docs/                  设计、产品与代码库文档；架构看板的数据与生成结果
@@ -54,7 +54,7 @@ apps/web/src/
 packages/ui/src/
 ├── index.ts        # 聚合导出 core、theme 与全部基础组件
 ├── core/           # 基础尺寸/色调/圆角类型，以及 provideUiLabels / useUiLabels 文案注入
-├── theme/          # 主题类型与 OKLCH 配色派生（不依赖存储或业务状态）
+├── theme/          # 主题模式类型
 ├── styles/         # reset、通用 tokens、通用动效与基础工具/菜单类
 └── ui/             # 31 组无业务基础组件（@ui-sdk/vue 行为 + data-slot / data-tone 外观）
 ```

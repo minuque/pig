@@ -56,7 +56,6 @@ export type {
   UserRailLayout,
   UserRailSection,
   UserThemeMode,
-  UserThemePreset,
   UserTranscriptItem,
   UserDensity,
   UserWelcomeField,

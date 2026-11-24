@@ -1,18 +1,13 @@
 import { computed, effectScope, nextTick, watch, type ComputedRef } from "vue"
 import { updatePreferences, userPreferences } from "@client/preferences.js"
-import type { ColorScheme, ThemePreset, ThemePresetId } from "@pig/ui/theme"
+import type { ColorScheme } from "@pig/ui/theme"
 import { useIsDark, useThemeMode } from "@utils/theme-mode.js"
-import { useThemePreset } from "@utils/theme-preset.js"
 
 type Theme = {
   isDark: ComputedRef<boolean>
   scheme: ComputedRef<ColorScheme>
-  presetId: ComputedRef<ThemePresetId>
-  preset: ComputedRef<ThemePreset>
-  presets: readonly ThemePreset[]
   codeBlockProps: ComputedRef<{ theme: "github-dark" | "github-light" }>
   setScheme: (next: ColorScheme) => void
-  setPreset: (next: ThemePresetId) => void
   toggle: () => void
 }
 
@@ -27,7 +22,6 @@ function theme(): Theme {
 function createTheme(): Theme {
   const mode = useThemeMode()
   const isDark = useIsDark()
-  const { presetId, preset, presets, setPreset } = useThemePreset()
   const scheme = computed<ColorScheme>(() =>
     mode.store.value === "auto" ? "auto" : mode.state.value,
   )
@@ -43,21 +37,20 @@ function createTheme(): Theme {
     { immediate: true, flush: "sync" },
   )
   watch(
-    () => userPreferences.value.themePreset,
-    (next) => {
-      if (presetId.value !== next) setPreset(next)
+    isDark,
+    async () => {
+      if (typeof window === "undefined" || !window.pigDesktop) return
+      await nextTick()
+      window.pigDesktop.setThemeColor(
+        getComputedStyle(document.documentElement).getPropertyValue("--bg").trim(),
+      )
     },
-    { immediate: true, flush: "sync" },
+    { immediate: true },
   )
 
   function setScheme(next: ColorScheme) {
     mode.value = next
     updatePreferences({ theme: next })
-  }
-
-  function changePreset(next: ThemePresetId) {
-    setPreset(next)
-    updatePreferences({ themePreset: next })
   }
 
   function toggle() {
@@ -83,12 +76,8 @@ function createTheme(): Theme {
   return {
     isDark,
     scheme,
-    presetId,
-    preset,
-    presets,
     codeBlockProps,
     setScheme,
-    setPreset: changePreset,
     toggle,
   }
 }

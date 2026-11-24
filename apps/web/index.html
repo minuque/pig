@@ -39,21 +39,6 @@
           (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches)
 
         if (dark) document.documentElement.classList.add("dark")
-
-        try {
-          var preset = localStorage.getItem("pig.themePreset")
-          var presets = {
-            paper: { light: "#fbf9f5", dark: "#141210" },
-            ocean: { light: "#f8fafc", dark: "#0e131b" },
-            grove: { light: "#f8faf8", dark: "#0f1412" },
-            iris: { light: "#faf9fc", dark: "#121017" },
-          }
-          if (preset && presets[preset]) {
-            var item = presets[preset]
-            document.documentElement.dataset.themePreset = preset
-            document.documentElement.style.setProperty("--bg", dark ? item.dark : item.light)
-          }
-        } catch (e) {}
       })()
     </script>
     <link rel="stylesheet" href="/src/style/app.css" />

@@ -3,7 +3,6 @@
     <section id="setting-theme" class="group">
       <h2 class="group-title">{{ t("settings.theme") }}</h2>
       <SchemeCards />
-      <PresetSwatches id="setting-theme-preset" />
     </section>
 
     <section class="group">
@@ -168,7 +167,6 @@ import {
 import { useLocalFonts } from "@features/settings/hooks/use-local-fonts.js"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
 import { CardList, CardRow } from "@pig/ui/card"
-import PresetSwatches from "./PresetSwatches.vue"
 import SchemeCards from "./SchemeCards.vue"
 
 const DEFAULT = "__default__"

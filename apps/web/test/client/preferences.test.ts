@@ -10,7 +10,6 @@ vi.mock("@client/platform.js", () => api)
 
 const DEFAULTS: UserPreferences = {
   theme: "auto",
-  themePreset: "linear",
   welcomeField: "mask",
   uiFont: "",
   codeFont: "",
@@ -112,16 +111,16 @@ describe("preferences 同步", () => {
     applyRemotePreferences({
       ...DEFAULTS,
       theme: "dark",
-      themePreset: "ocean",
+      density: "compact",
       codeSize: 15,
       notify: false,
       clickSound: false,
       railLayout: { closed: ["tasks"], hidden: ["context"] },
     })
 
-    expect(userPreferences.value.themePreset).toBe("ocean")
+    expect(userPreferences.value.density).toBe("compact")
     expect(localStorage.getItem("npg-theme")).toBe("dark")
-    expect(localStorage.getItem("pig.themePreset")).toBe("ocean")
+    expect(localStorage.getItem("pig.density")).toBe("compact")
     expect(localStorage.getItem("pig.codeSize")).toBe("15")
     expect(localStorage.getItem("pig.notify")).toBe("off")
     expect(localStorage.getItem("pig.clickSound")).toBe("off")
@@ -157,8 +156,8 @@ describe("preferences 同步", () => {
     expect(sent).toEqual([{ theme: "dark" }])
     expect(userPreferences.value.locale).toBe("en")
 
-    applyRemotePreferences({ ...DEFAULTS, themePreset: "paper", locale: "zh-CN" })
-    expect(userPreferences.value.themePreset).toBe("paper")
+    applyRemotePreferences({ ...DEFAULTS, density: "compact", locale: "zh-CN" })
+    expect(userPreferences.value.density).toBe("compact")
     expect(userPreferences.value.locale).toBe("en")
 
     release()
@@ -183,15 +182,15 @@ describe("preferences 同步", () => {
       await new Promise<void>((resolve) => {
         release = resolve
       })
-      return { ...DEFAULTS, themePreset: "paper", ...patch }
+      return { ...DEFAULTS, density: "compact", ...patch }
     })
 
     updatePreferences({ theme: "dark" })
     await vi.waitFor(() => expect(api.patchPreferences).toHaveBeenCalledTimes(1))
 
-    applyRemotePreferences({ ...DEFAULTS, theme: "light", themePreset: "paper" })
+    applyRemotePreferences({ ...DEFAULTS, theme: "light", density: "compact" })
     expect(userPreferences.value.theme).toBe("dark")
-    expect(userPreferences.value.themePreset).toBe("paper")
+    expect(userPreferences.value.density).toBe("compact")
 
     release()
     await vi.waitFor(() => expect(userPreferences.value.theme).toBe("dark"))
