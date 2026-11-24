@@ -67,6 +67,7 @@ const LAYOUT: { id: string; title: Label; items: (string | [string, Label])[] }[
     id: "business",
     title: { zh: "业务", en: "Product" },
     items: [
+      ["FullPage", { zh: "整页", en: "Full page" }],
       ["Turn", { zh: "对话一轮", en: "Turn" }],
       ["Prose", { zh: "正文排版", en: "Prose" }],
       ["ToolRun", { zh: "工具组", en: "Tool run" }],
