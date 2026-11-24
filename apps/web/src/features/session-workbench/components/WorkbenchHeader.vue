@@ -17,7 +17,7 @@
             :aria-label="t('nav.openSidebar')"
             @click="setSbState('expanded')"
           >
-            <PanelLeftIcon class="size-icon-lg" />
+            <SquarePaddingLeftIcon class="size-icon-lg" />
           </IconButton>
         </template>
       </TooltipTrigger>
@@ -200,7 +200,7 @@ import {
   ChevronDownIcon,
   FolderIcon,
   FolderOpenIcon,
-  PanelLeftIcon,
+  SquarePaddingLeftIcon,
   PenIcon,
   PinIcon,
   PinOffIcon,

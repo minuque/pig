@@ -13,7 +13,7 @@
               :aria-label="t('nav.collapseSidebar')"
               @click="emit('toggleSidebar')"
             >
-              <SquarePaddingLeftIcon class="size-icon-lg" />
+              <PanelLeftIcon class="size-icon-lg" />
             </IconButton>
           </template>
         </TooltipTrigger>
@@ -132,7 +132,7 @@ import {
   FolderPlusIcon,
   MessageCirclePlusIcon,
   SearchIcon,
-  SquarePaddingLeftIcon,
+  PanelLeftIcon,
   ListFilterIcon,
 } from "@components/icons/index.js"
 import { Button, IconButton } from "@pig/ui/button"

@@ -36,8 +36,8 @@
                   :aria-pressed="pane.treeShown.value"
                   @click="pane.toggleTree"
                 >
-                  <SquarePaddingLeftIcon v-if="pane.treeShown.value" class="size-icon" />
-                  <PanelLeftIcon v-else class="size-icon" />
+                  <PanelLeftIcon v-if="pane.treeShown.value" class="size-icon" />
+                  <SquarePaddingLeftIcon v-else class="size-icon" />
                 </IconButton>
               </template>
             </TooltipTrigger>
