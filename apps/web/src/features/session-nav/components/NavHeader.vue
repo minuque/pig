@@ -22,37 +22,49 @@
       </Tooltip>
     </div>
 
-    <div class="nav-toolbar">
-      <Button
-        class="nav-search"
-        type="button"
-        size="m"
-        variant="ghost"
-        color="neutral"
-        @click="emit('update:searchOpen', true)"
-      >
-        <SearchIcon class="size-icon-lg" />
-        <span>{{ t("nav.search") }}</span>
-      </Button>
+    <Toolbar class="nav-toolbar" :aria-label="t('nav.sessionActions')">
+      <ToolbarButton @click="emit('update:searchOpen', true)">
+        <template #render="{ props: item }">
+          <Button
+            v-bind="item"
+            class="nav-search"
+            type="button"
+            size="m"
+            variant="ghost"
+            color="neutral"
+            radius="none"
+          >
+            <SearchIcon class="size-icon-lg" />
+            <span>{{ t("nav.search") }}</span>
+          </Button>
+        </template>
+      </ToolbarButton>
+
+      <ToolbarSeparator class="nav-toolbar-separator" />
 
       <Popover v-model:open="scopeOpen">
         <Tooltip>
           <TooltipTrigger>
             <template #render="{ props: part }">
-              <PopoverTrigger v-bind="part">
-                <template #render="{ props: part }">
-                  <IconButton
-                    v-bind="part"
-                    class="nav-btn nav-tool"
-                    type="button"
-                    size="m"
-                    variant="ghost"
-                    :aria-label="t('session.filterByWorkspace')"
-                  >
-                    <ListFilterIcon class="size-icon-lg" />
-                  </IconButton>
+              <ToolbarButton v-bind="part">
+                <template #render="{ props: item }">
+                  <PopoverTrigger v-bind="item">
+                    <template #render="{ props: trigger }">
+                      <IconButton
+                        v-bind="trigger"
+                        class="nav-tool"
+                        type="button"
+                        size="m"
+                        variant="ghost"
+                        radius="none"
+                        :aria-label="t('session.filterByWorkspace')"
+                      >
+                        <ListFilterIcon class="size-icon-lg" />
+                      </IconButton>
+                    </template>
+                  </PopoverTrigger>
                 </template>
-              </PopoverTrigger>
+              </ToolbarButton>
             </template>
           </TooltipTrigger>
 
@@ -68,46 +80,58 @@
         />
       </Popover>
 
+      <ToolbarSeparator class="nav-toolbar-separator" />
+
       <Tooltip>
         <TooltipTrigger>
           <template #render="{ props: part }">
-            <IconButton
-              v-bind="part"
-              class="nav-btn nav-tool"
-              type="button"
-              size="m"
-              variant="ghost"
-              :aria-label="t('session.addFolder')"
-              @click="emit('addProject')"
-            >
-              <FolderPlusIcon class="size-icon-lg" />
-            </IconButton>
+            <ToolbarButton v-bind="part" @click="emit('addProject')">
+              <template #render="{ props: item }">
+                <IconButton
+                  v-bind="item"
+                  class="nav-tool"
+                  type="button"
+                  size="m"
+                  variant="ghost"
+                  radius="none"
+                  :aria-label="t('session.addFolder')"
+                >
+                  <FolderPlusIcon class="size-icon-lg" />
+                </IconButton>
+              </template>
+            </ToolbarButton>
           </template>
         </TooltipTrigger>
 
         <TooltipContent>{{ t("session.addFolder") }}</TooltipContent>
       </Tooltip>
 
+      <ToolbarSeparator class="nav-toolbar-separator" />
+
       <Tooltip>
         <TooltipTrigger>
           <template #render="{ props: part }">
-            <IconButton
-              v-bind="part"
-              class="nav-btn nav-tool"
-              type="button"
-              size="m"
-              variant="ghost"
-              :aria-label="t('session.newSession')"
-              @click="emit('create')"
-            >
-              <MessageCirclePlusIcon class="size-icon-lg" />
-            </IconButton>
+            <ToolbarButton v-bind="part" @click="emit('create')">
+              <template #render="{ props: item }">
+                <IconButton
+                  v-bind="item"
+                  class="nav-tool"
+                  type="button"
+                  size="m"
+                  variant="ghost"
+                  radius="none"
+                  :aria-label="t('session.newSession')"
+                >
+                  <MessageCirclePlusIcon class="size-icon-lg" />
+                </IconButton>
+              </template>
+            </ToolbarButton>
           </template>
         </TooltipTrigger>
 
         <TooltipContent>{{ t("session.newSession") }} {{ modKey }}+N</TooltipContent>
       </Tooltip>
-    </div>
+    </Toolbar>
 
     <ProjectIconDialog :path="iconPath" @close="iconPath = undefined" />
 
@@ -137,6 +161,7 @@ import {
 } from "@components/icons/index.js"
 import { Button, IconButton } from "@pig/ui/button"
 import { Popover, PopoverTrigger } from "@pig/ui/popover"
+import { Toolbar, ToolbarButton, ToolbarSeparator } from "@pig/ui/toolbar"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 
 defineProps<{
@@ -201,9 +226,31 @@ html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]
 
 .nav-toolbar {
   display: flex;
-  align-items: center;
-  gap: var(--space-2xs);
-  padding-inline: var(--nav-inline);
+  align-items: stretch;
+  margin-inline: var(--nav-inline);
+  border-radius: var(--radius-control);
+  background-color: var(--control-bg);
+  box-shadow: var(--control-shadow);
+}
+
+.nav-toolbar > :first-child {
+  border-start-start-radius: inherit;
+  border-end-start-radius: inherit;
+}
+
+.nav-toolbar > :last-child {
+  border-start-end-radius: inherit;
+  border-end-end-radius: inherit;
+}
+
+.nav-toolbar [data-button]:focus-visible {
+  outline-offset: -2px;
+}
+
+.nav-toolbar-separator {
+  flex: none;
+  inline-size: var(--border-width);
+  background-color: var(--border-subtle);
 }
 
 .nav-search {

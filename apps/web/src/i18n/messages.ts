@@ -102,6 +102,7 @@ export const zh = {
   },
   nav: {
     collapseSidebar: "收起侧边栏",
+    sessionActions: "会话操作",
     profileMenu: "外观与语言",
     openSidebar: "打开侧边栏",
     search: "搜索",
@@ -663,6 +664,7 @@ export const en: Messages = {
   },
   nav: {
     collapseSidebar: "Collapse sidebar",
+    sessionActions: "Session actions",
     profileMenu: "Appearance and language",
     openSidebar: "Open sidebar",
     search: "Search",
