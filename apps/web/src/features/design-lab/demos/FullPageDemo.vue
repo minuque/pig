@@ -18,7 +18,7 @@
         :running-since="PAGE_RUNNING_SINCE"
       />
 
-      <NavFooter />
+      <NavFooter @settings="settingsOpen = true" />
     </aside>
 
     <main class="page-main">
@@ -61,6 +61,8 @@
         />
       </div>
     </main>
+
+    <SettingsDialog v-model:open="settingsOpen" />
   </div>
 </template>
 
@@ -74,6 +76,7 @@ import NavHeader from "@features/session-nav/components/NavHeader.vue"
 import SessionList from "@features/session-nav/components/SessionList.vue"
 import { sidebarSections } from "@features/session-nav/lib/session-list.js"
 import { projectContextUsage } from "@features/session/lib/context-usage.js"
+import SettingsDialog from "@features/settings/components/SettingsDialog.vue"
 import RailSummary from "@features/session-rail/components/RailSummary.vue"
 import { provideSessionRail } from "@features/session-rail/index.js"
 import { taskSections } from "@features/session-rail/lib/task-list.js"
@@ -98,6 +101,7 @@ import {
 provideSessionRail()
 
 const searchOpen = ref(false)
+const settingsOpen = ref(false)
 const scopeFilter = shallowRef<ReadonlySet<string>>(new Set())
 const sections = sidebarSections({
   sessions: PAGE_SESSIONS,

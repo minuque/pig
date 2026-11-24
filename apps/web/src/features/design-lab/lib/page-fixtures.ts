@@ -181,6 +181,32 @@ export const PAGE_TRANSCRIPT: TranscriptItem[] = [
     },
   },
   {
+    id: "u-long",
+    role: "user",
+    content: [
+      {
+        type: "text",
+        text: Array.from(
+          { length: 8 },
+          (_, index) => `${index + 1}. 第 ${index + 1} 条要求：保持外观一致。`,
+        ).join("\n"),
+      },
+    ],
+    timestamp: NOW - 3 * MIN,
+  },
+  {
+    id: "a-error",
+    role: "assistant",
+    model: GPT,
+    status: "error",
+    stopReason: "error",
+    errorMessage:
+      '429 {"type":"error","error":{"type":"rate_limit_error","message":"Number of request tokens has exceeded your per-minute rate limit"}}',
+    usage: ZERO_USAGE,
+    timestamp: NOW - 2 * MIN,
+    content: [],
+  },
+  {
     id: "u2",
     role: "user",
     content: [{ type: "text", text: "再在 design-lab 里加一个整页预览。" }],
@@ -201,6 +227,7 @@ export const PAGE_TRANSCRIPT: TranscriptItem[] = [
 ]
 export const PAGE_TIMINGS: TurnTiming[] = [
   { userId: "u1", startedAt: NOW - 9 * MIN, endedAt: NOW - 7 * MIN, outcome: "complete" },
+  { userId: "u-long", startedAt: NOW - 3 * MIN, endedAt: NOW - 2 * MIN, outcome: "error" },
   { userId: "u2", startedAt: NOW - 40_000, outcome: "running" },
 ]
 export const PAGE_CATALOG: ComposerVendor[] = [

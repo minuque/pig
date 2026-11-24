@@ -66,16 +66,7 @@ const LAYOUT: { id: string; title: Label; items: (string | [string, Label])[] }[
   {
     id: "business",
     title: { zh: "业务", en: "Product" },
-    items: [
-      ["FullPage", { zh: "整页", en: "Full page" }],
-      ["Turn", { zh: "对话一轮", en: "Turn" }],
-      ["Prose", { zh: "正文排版", en: "Prose" }],
-      ["ToolRun", { zh: "工具组", en: "Tool run" }],
-      ["UserMessage", { zh: "用户消息", en: "User message" }],
-      ["TimelineEvent", { zh: "会话事件", en: "Session events" }],
-      ["SettingsPane", { zh: "设置分区", en: "Settings pane" }],
-      ["Provider", { zh: "供应商", en: "Providers" }],
-    ],
+    items: [["FullPage", { zh: "整页", en: "Full page" }]],
   },
 ]
 const loaders = new Map(
