@@ -16,7 +16,7 @@ extraMetadata:
 directories:
   output: ../../release
 
-# package.json 直接依赖 @pig/environment：pnpm list 不展开嵌套的 link 包，否则 ssh2、ssh-config 收不进 asar
+# package.json 直接依赖 @pig/environment：pnpm list 不展开嵌套的 link 包，否则它收不进 asar
 files:
   - package.json
   - out/main/**/*
