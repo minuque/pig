@@ -31,24 +31,39 @@ async function findGitDir(
   }
 }
 
+export interface GitHead {
+  git: WorkspaceGit
+  headPath: string
+}
+
+export async function readGitHead(
+  env: GitReader,
+  paths: path.PlatformPath,
+  root: string,
+): Promise<GitHead | undefined> {
+  const found = await findGitDir(env, paths, root)
+
+  if (!found) return undefined
+  const headPath = paths.join(found.gitDir, "HEAD")
+  const head = (await env.readFile(headPath)).toString("utf8").trim()
+  const ref = /^ref:\s*refs\/heads\/(.+)$/.exec(head)
+
+  if (ref?.[1])
+    return { git: { branch: ref[1], detached: false, worktree: found.worktree }, headPath }
+  return /^[0-9a-f]{7,}$/i.test(head)
+    ? { git: { branch: head.slice(0, 7), detached: true, worktree: found.worktree }, headPath }
+    : undefined
+}
+
 export async function readGit(
   env: GitReader,
   paths: path.PlatformPath,
   root: string,
 ): Promise<WorkspaceGit | undefined> {
-  const found = await findGitDir(env, paths, root)
-
-  if (!found) return undefined
-  const head = (await env.readFile(paths.join(found.gitDir, "HEAD"))).toString("utf8").trim()
-  const ref = /^ref:\s*refs\/heads\/(.+)$/.exec(head)
-
-  if (ref?.[1]) return { branch: ref[1], detached: false, worktree: found.worktree }
-  return /^[0-9a-f]{7,}$/i.test(head)
-    ? { branch: head.slice(0, 7), detached: true, worktree: found.worktree }
-    : undefined
+  return (await readGitHead(env, paths, root))?.git
 }
 
-export async function readWorkspaceGit(workspace: string): Promise<WorkspaceGit | undefined> {
+export async function readWorkspaceGitHead(workspace: string): Promise<GitHead | undefined> {
   const { env, root } = workspaceEnvironment(workspace)
-  return readGit(env, env.id === "local" ? path : path.posix, root)
+  return readGitHead(env, env.id === "local" ? path : path.posix, root)
 }

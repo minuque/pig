@@ -29,7 +29,7 @@ import { AttachmentStore } from "./attachments.js"
 import { selectComposerPrompts } from "./composer-commands.js"
 import { ProviderService } from "./provider-service.js"
 import { SessionCardCache } from "./session-card.js"
-import { readWorkspaceGit } from "./workspace-git.js"
+import { readWorkspaceGitHead } from "./workspace-git.js"
 import { SessionIndex, type IndexedSession } from "./session-index.js"
 import { recentSessionCwd, sessionListName } from "./session-label.js"
 import { BINDING_ENTRY, parseRemoteKey } from "./remote-session.js"
@@ -141,7 +141,7 @@ export class PiHostService implements SessionService {
     ]
     const entries = await Promise.all(
       workspaces.map(async (workspace) => {
-        const git = await readWorkspaceGit(workspace).catch(() => undefined)
+        const git = (await readWorkspaceGitHead(workspace).catch(() => undefined))?.git
         return git ? ([[workspace, git]] as const) : []
       }),
     )
