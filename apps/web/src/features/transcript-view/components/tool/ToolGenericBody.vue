@@ -87,6 +87,8 @@ watch(
   font-family: var(--font-mono);
   font-size: var(--text-code);
   line-height: var(--text-code-line);
+  text-autospace: no-autospace;
+  text-spacing-trim: space-all;
 }
 
 .tool-input-lines {

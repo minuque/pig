@@ -17,7 +17,7 @@ const BLOCKS = new Set([
   ...["p", "h1", "h2", "h3", "h4", "h5", "h6", "ul", "ol", "li", "blockquote"],
   ...["table", "thead", "tbody", "tr", "td", "th", "section"],
 ])
-const IGNORED = new Set(["pre", "img", "input", "button", "script", "style"])
+const IGNORED = new Set(["pre", "img", "input", "button", "script", "style", "wbr"])
 const words = (text: string): string[] => text.match(/(?:^\s+)?\S+\s*/g) ?? []
 
 function textLength(node: Node): number {

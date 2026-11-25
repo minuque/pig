@@ -61,6 +61,11 @@
   font-display: swap;
 }
 
+:root:lang(zh) {
+  text-autospace: normal;
+  text-spacing-trim: trim-start;
+}
+
 body {
   background: var(--bg);
   color: var(--fg);
@@ -93,8 +98,13 @@ code,
 kbd,
 samp,
 pre,
+input,
+textarea,
+[contenteditable],
 .text-code {
   font-feature-settings: normal;
+  text-autospace: no-autospace;
+  text-spacing-trim: space-all;
 }
 
 button:not(:where([data-slot])) {
@@ -115,8 +125,24 @@ button:disabled {
 
 h1,
 h2,
+h3 {
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+
+p,
+li,
+dd,
+figcaption {
+  text-wrap: pretty;
+}
+
 p {
   overflow-wrap: anywhere;
+}
+
+[contenteditable] :is(h1, h2, h3, p, li, dd, blockquote) {
+  text-wrap: wrap;
 }
 
 * {

@@ -89,6 +89,13 @@ const label = computed(() => thoughtStepLabel(props.step))
   transition: transform var(--duration-fast) var(--ease-out);
 }
 
+.thought-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .thought-caret.is-open {
   transform: rotate(90deg);
 }

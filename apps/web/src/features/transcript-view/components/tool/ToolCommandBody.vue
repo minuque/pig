@@ -99,6 +99,8 @@ watch(
   font-family: var(--font-mono);
   font-size: var(--text-code);
   line-height: var(--text-code-line);
+  text-autospace: no-autospace;
+  text-spacing-trim: space-all;
 }
 
 .command-scroll {
@@ -142,6 +144,8 @@ watch(
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   line-height: 1.43;
+  text-autospace: no-autospace;
+  text-spacing-trim: space-all;
 }
 
 .command-status.is-error {

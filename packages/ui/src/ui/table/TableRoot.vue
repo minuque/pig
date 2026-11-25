@@ -85,6 +85,7 @@ const props = withDefaults(
   box-shadow: inset 0 -1px var(--border-strong);
   box-sizing: border-box;
   vertical-align: inherit;
+  font-variant-numeric: tabular-nums;
 }
 
 :where([data-slot="table"][data-size="s"] [data-slot="table-cell"]) {

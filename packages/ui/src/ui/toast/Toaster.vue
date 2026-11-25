@@ -213,6 +213,7 @@ function headline(notice: Notice): string {
   min-inline-size: 0;
   font-weight: var(--font-weight-medium);
   overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 
 :where([data-slot="toast-description"]) {
@@ -220,6 +221,7 @@ function headline(notice: Notice): string {
   margin: 0;
   color: var(--fg-secondary);
   overflow-wrap: anywhere;
+  text-wrap: pretty;
   user-select: text;
 }
 

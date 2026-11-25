@@ -6,6 +6,7 @@ import {
   type Node,
 } from "comark"
 import taskList from "comark/plugins/task-list"
+import { enhanceMarkdownTypography } from "@features/transcript-view/lib/markdown-typography.js"
 
 const SCRIPT_PUNCTUATION = /(?=[\u3000-\u303f\uff00-\uffef\u060c\u061b\u061f\u06d4])[\p{P}\p{S}]/u
 const looseDomainsOff: MarkdownExitPlugin = (md) => void md.linkify.set({ fuzzyLink: false })
@@ -48,11 +49,15 @@ const FINAL_CACHE_MAX = 200
 const finalCache = new Map<string, { text: string; nodes: Node[] }>()
 
 export function createStreamParser(): ComarkParseFn {
-  return createSerializedMarkdownParser({
+  const parse = createSerializedMarkdownParser({
     registerDefaultPlugins: false,
     plugins,
     headingIds: false,
   })
+  return async (source, options) => {
+    const result = await parse(source, options)
+    return { ...result, nodes: enhanceMarkdownTypography(result.nodes) }
+  }
 }
 
 export function cachedFinalNodes(key: string, text: string): Node[] | null {

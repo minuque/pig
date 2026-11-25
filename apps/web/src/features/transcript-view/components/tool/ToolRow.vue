@@ -25,15 +25,15 @@
                       {{ shownVerb }}
                     </span>
 
-                    <span
+                    <OverflowTooltip
                       v-if="target.text"
                       class="tool-row-target"
                       :class="{ 'is-openable': openable }"
-                      :title="target.path || target.text"
+                      :text="target.text"
+                      :content="target.path || target.text"
+                      :always="Boolean(target.path && target.path !== target.text)"
                       @click="openable && openTarget($event)"
-                    >
-                      {{ target.text }}
-                    </span>
+                    />
 
                     <span v-if="readRange" class="tool-row-range">({{ readRange }})</span>
                   </span>
@@ -82,6 +82,7 @@ import { computed, inject } from "vue"
 import { ChevronRightIcon } from "@components/icons/index.js"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@pig/ui/collapsible"
 import { RollText } from "@pig/ui/roll-text"
+import { OverflowTooltip } from "@pig/ui/tooltip"
 import ToolCommandBody from "@features/transcript-view/components/tool/ToolCommandBody.vue"
 import ToolFileBody from "@features/transcript-view/components/tool/ToolFileBody.vue"
 import ToolGenericBody from "@features/transcript-view/components/tool/ToolGenericBody.vue"
@@ -227,6 +228,8 @@ const warm = () => warmToolHighlight(props.call, codeBlockProps.value.theme)
 }
 
 .tool-row-target {
+  position: relative;
+  z-index: var(--z-raise);
   flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
@@ -240,8 +243,6 @@ const warm = () => warmToolHighlight(props.call, codeBlockProps.value.theme)
 }
 
 .tool-row-target.is-openable {
-  position: relative;
-  z-index: var(--z-raise);
   cursor: pointer;
 }
 

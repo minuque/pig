@@ -264,7 +264,7 @@ defineExpose({
   line-height: 1.625;
   overscroll-behavior: contain;
   overflow-y: auto;
-  word-break: break-word;
+  overflow-wrap: anywhere;
   cursor: text;
 }
 

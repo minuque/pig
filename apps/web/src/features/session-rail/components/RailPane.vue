@@ -4,7 +4,7 @@
       <aside v-bind="part">
         <header class="rail-pane-head">
           <h2 class="rail-pane-title">
-            <span class="rail-pane-name">{{ title }}</span>
+            <OverflowTooltip class="rail-pane-name" :text="title" />
 
             <span v-if="pane.kind === 'child'" class="rail-pane-meta">
               {{ t("rail.readOnly") }}
@@ -59,7 +59,7 @@ import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@pig/ui/button"
 import { Card } from "@pig/ui/card"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
+import { OverflowTooltip, Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { XIcon, TrashIcon } from "@components/icons/index.js"
 import RailChild from "@features/session-rail/components/RailChild.vue"
 import RailTasks from "@features/session-rail/components/RailTasks.vue"
@@ -136,6 +136,7 @@ function clearFinished() {
 }
 
 .rail-pane-name {
+  min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -146,6 +147,7 @@ function clearFinished() {
   color: var(--fg-secondary);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
+  white-space: nowrap;
 }
 
 .rail-pane-scroll {

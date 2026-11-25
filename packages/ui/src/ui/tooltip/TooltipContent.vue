@@ -36,9 +36,11 @@ const props = withDefaults(defineProps<{ class?: HTMLAttributes["class"] }>(), {
 
 :where([data-slot="tooltip-text"]) {
   margin: 0;
+  max-inline-size: min(36rem, var(--popup-available-width, 90vw));
   color: var(--bg);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
+  overflow-wrap: anywhere;
   user-select: none;
   cursor: default;
 }

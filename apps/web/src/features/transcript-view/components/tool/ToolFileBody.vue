@@ -13,9 +13,7 @@
     <div v-else-if="variant === 'edit' && preview" class="edit-scroll">
       <CodeCard v-for="(hunk, index) in preview.hunks" :key="index" class="edit-hunk">
         <div class="edit-header">
-          <span class="edit-path" :title="preview.path || preview.fileName">
-            {{ preview.path || preview.fileName }}
-          </span>
+          <OverflowTooltip class="edit-path" :text="preview.path || preview.fileName" />
 
           <CopyButton
             v-if="hunk.modified || hunk.original"
@@ -52,6 +50,7 @@
 import { computed, shallowRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { StreamDiff } from "stream-diffs/vue"
+import { OverflowTooltip } from "@pig/ui/tooltip"
 import CodeCard from "@features/transcript-view/components/CodeCard.vue"
 import CopyButton from "@features/transcript-view/components/CopyButton.vue"
 import ToolOutput from "@features/transcript-view/components/ToolOutput.vue"
@@ -180,6 +179,8 @@ watch(
   font-size: var(--text-meta);
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-autospace: no-autospace;
+  text-spacing-trim: space-all;
 }
 
 .edit-header :deep(.copy-button) {

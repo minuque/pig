@@ -9,7 +9,7 @@
       >
         <StatusIndicator :status="TASK_STATUS_TONE[task.status] ?? 'idle'" size="m" />
         <span class="task-name">{{ task.description }}</span>
-        <span class="task-step">{{ taskDetail(task) }}</span>
+        <OverflowTooltip class="task-step" :text="taskDetail(task)" />
       </button>
     </li>
   </ul>
@@ -18,6 +18,7 @@
 <script setup lang="ts">
 import { inject } from "vue"
 import { StatusIndicator, type StatusTone } from "@pig/ui/status-indicator"
+import { OverflowTooltip } from "@pig/ui/tooltip"
 import { openTaskSessionKey } from "@features/transcript-view/index.js"
 import { taskDetail } from "@features/transcript-view/lib/tool-tasks.js"
 import type { Task } from "@/types/common-type.js"
@@ -75,6 +76,7 @@ function open(task: Task) {
 .task-name {
   font-size: var(--text-body);
   color: var(--fg);
+  white-space: nowrap;
 }
 
 .task-step {
@@ -85,5 +87,7 @@ function open(task: Task) {
   color: var(--fg-secondary);
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-autospace: no-autospace;
+  text-spacing-trim: space-all;
 }
 </style>

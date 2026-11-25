@@ -147,6 +147,7 @@ function onClick() {
   margin-top: var(--space-xs);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+  text-wrap: pretty;
 }
 
 @media (prefers-reduced-motion: reduce) {

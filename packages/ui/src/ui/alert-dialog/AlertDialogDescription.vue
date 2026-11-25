@@ -21,6 +21,7 @@ defineOptions({ inheritAttrs: false })
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
   overflow-wrap: anywhere;
+  text-wrap: pretty;
   user-select: text;
 }
 </style>

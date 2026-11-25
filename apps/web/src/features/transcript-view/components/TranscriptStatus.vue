@@ -20,7 +20,10 @@
 
     <span class="turn-status-label">
       <RollText :text="label" :live="busy" />
-      <span v-if="detail" class="turn-status-detail">· {{ detail }}</span>
+
+      <OverflowTooltip v-if="detail" class="turn-status-detail" :content="detail">
+        · {{ detail }}
+      </OverflowTooltip>
     </span>
 
     <span v-if="tokensLabel || elapsedLabel" class="turn-status-meta">
@@ -41,6 +44,7 @@ import { useI18n } from "@i18n/index.js"
 import { Minimize2Icon, RotateCcwIcon } from "@components/icons/index.js"
 import { RollText } from "@pig/ui/roll-text"
 import { StatusIndicator } from "@pig/ui/status-indicator"
+import { OverflowTooltip } from "@pig/ui/tooltip"
 import FlowNumber from "@features/transcript-view/components/FlowNumber.vue"
 import { formatElapsed } from "@utils/time.js"
 import type { SessionActivity, SessionPhase } from "@/types/common-type.js"

@@ -156,6 +156,7 @@ useResizeObserver(body, measure)
   max-width: 100%;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
+  text-wrap: pretty;
 }
 
 .body.collapsed {
@@ -168,6 +169,7 @@ useResizeObserver(body, measure)
 }
 
 .toggle {
+  flex: none;
   margin: var(--space-2xs) 0 0;
   padding: 0;
   border: 0;
@@ -176,6 +178,7 @@ useResizeObserver(body, measure)
   font: inherit;
   font-size: var(--text-meta);
   line-height: 1.4;
+  white-space: nowrap;
   cursor: pointer;
 }
 

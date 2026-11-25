@@ -9,9 +9,11 @@
       >
         <component :is="task.kind === 'agent' ? SparklesIcon : SquareCodeIcon" />
 
-        <span class="task-row-name" :class="{ shimmer: task.status === 'running' }">
-          {{ task.description }}
-        </span>
+        <OverflowTooltip
+          class="task-row-name"
+          :class="{ shimmer: task.status === 'running' }"
+          :text="task.description"
+        />
 
         <span class="task-row-time">{{ taskElapsed(task, now.getTime()) }}</span>
       </button>
@@ -37,7 +39,7 @@
       @click="emit('open', undefined)"
     >
       <SparklesIcon />
-      <span class="task-row-name">{{ t("rail.moreTasks", { count: moreCount }) }}</span>
+      <OverflowTooltip class="task-row-name" :text="t('rail.moreTasks', { count: moreCount })" />
     </button>
 
     <button
@@ -48,9 +50,10 @@
     >
       <CircleCheckIcon />
 
-      <span class="task-row-name">
-        {{ t("rail.finishedCount", { count: sections.finished.length }) }}
-      </span>
+      <OverflowTooltip
+        class="task-row-name"
+        :text="t('rail.finishedCount', { count: sections.finished.length })"
+      />
     </button>
   </div>
 </template>
@@ -60,6 +63,7 @@ import { computed } from "vue"
 import { useNow } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@pig/ui/button"
+import { OverflowTooltip } from "@pig/ui/tooltip"
 import {
   CircleCheckIcon,
   SquareCodeIcon,

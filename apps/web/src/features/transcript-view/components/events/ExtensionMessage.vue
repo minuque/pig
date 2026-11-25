@@ -8,7 +8,11 @@
     >
       <PuzzleIcon class="size-icon" aria-hidden="true" />
       <span class="extension-type">{{ row.customType }}</span>
-      <span v-if="!open && firstLine" class="extension-first">· {{ firstLine }}</span>
+
+      <OverflowTooltip v-if="!open && firstLine" class="extension-first" :content="firstLine">
+        · {{ firstLine }}
+      </OverflowTooltip>
+
       <ChevronRightIcon class="extension-chevron size-icon" aria-hidden="true" />
     </button>
 
@@ -32,6 +36,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { Collapsible, CollapsibleContent } from "@pig/ui/collapsible"
+import { OverflowTooltip } from "@pig/ui/tooltip"
 import { ChevronRightIcon, PuzzleIcon } from "@components/icons/index.js"
 import TranscriptImage from "@features/transcript-view/components/TranscriptImage.vue"
 import MarkdownContent from "@features/transcript-view/components/markdown/MarkdownContent.vue"
@@ -65,6 +70,7 @@ const nodes = useMarkdownNodes({
 }
 
 .extension-type {
+  flex-shrink: 0;
   color: var(--fg-secondary);
   font-weight: var(--font-weight-medium);
   white-space: nowrap;

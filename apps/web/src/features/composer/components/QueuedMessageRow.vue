@@ -46,7 +46,7 @@
         <div v-if="files.length" class="row-files">
           <span v-for="file in files" :key="file.id" class="file-chip">
             <FileTextIcon class="file-icon" aria-hidden="true" />
-            <span class="file-name">{{ file.name }}</span>
+            <OverflowTooltip class="file-name" :text="file.name" />
             <span class="file-size">{{ formatFileSize(file.size) }}</span>
           </span>
         </div>
@@ -97,7 +97,7 @@ import { useI18n } from "@i18n/index.js"
 import { Button, IconButton } from "@pig/ui/button"
 import { Card } from "@pig/ui/card"
 import { SortableListHandle, SortableListItem } from "@pig/ui/sortable-list"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
+import { OverflowTooltip, Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import type { ComposerAttachment } from "@/types/attachment-type.js"
 import { formatFileSize } from "@features/composer/lib/attachment-size.js"
 import type { QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
@@ -213,6 +213,7 @@ const actions = computed<RowAction[]>(() => {
   margin: 0;
   overflow-wrap: anywhere;
   white-space: pre-wrap;
+  text-wrap: pretty;
 }
 
 .row-images {
@@ -275,6 +276,7 @@ const actions = computed<RowAction[]>(() => {
 .file-size {
   flex: none;
   color: var(--fg-muted);
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 

@@ -156,6 +156,8 @@ const copyText = computed(() => (props.code ? props.lines.join("\n") : props.tex
   font-size: var(--text-code);
   line-height: var(--text-code-line);
   tab-size: 2;
+  text-autospace: no-autospace;
+  text-spacing-trim: space-all;
 }
 
 .code-line {
@@ -194,6 +196,7 @@ code {
   font: inherit;
   font-size: var(--text-meta);
   text-align: center;
+  white-space: nowrap;
   cursor: pointer;
 }
 

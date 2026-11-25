@@ -9,7 +9,7 @@
     >
       <header class="preview-header">
         <DialogTitle class="preview-title">
-          <span class="preview-name">{{ shownTitle }}</span>
+          <OverflowTooltip class="preview-name" :text="shownTitle" />
           <span v-if="shownMeta" class="preview-meta">{{ shownMeta }}</span>
         </DialogTitle>
 
@@ -48,6 +48,7 @@ import { computed, ref } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@pig/ui/button"
 import { Dialog, DialogContent, DialogTitle } from "@pig/ui/dialog"
+import { OverflowTooltip } from "@pig/ui/tooltip"
 import { ChevronLeftIcon, ChevronRightIcon } from "@components/icons/index.js"
 
 defineOptions({ inheritAttrs: false })
@@ -106,6 +107,7 @@ function measure(event: Event) {
 }
 
 .preview-name {
+  min-width: 0;
   overflow: hidden;
   font-weight: var(--font-weight-semibold);
   text-overflow: ellipsis;
@@ -130,6 +132,8 @@ function measure(event: Event) {
   color: var(--fg-secondary);
   font-size: var(--text-meta);
   font-weight: var(--font-weight-normal);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .preview-body {

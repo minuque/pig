@@ -18,5 +18,6 @@ defineOptions({ inheritAttrs: false })
   font-weight: var(--font-weight-semibold);
   line-height: var(--text-title--line-height);
   overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 </style>

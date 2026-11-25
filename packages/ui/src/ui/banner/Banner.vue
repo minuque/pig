@@ -135,6 +135,11 @@ const emit = defineEmits<{ close: [] }>()
 
 :where([data-slot="banner-title"]) {
   font-weight: var(--font-weight-medium);
+  text-wrap: balance;
+}
+
+:where([data-slot="banner-body"]) {
+  text-wrap: pretty;
 }
 
 :where([data-slot="banner"]:is([data-size="s"], [data-size="m"]) [data-slot="banner-title"]),

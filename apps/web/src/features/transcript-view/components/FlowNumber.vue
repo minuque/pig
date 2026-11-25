@@ -61,6 +61,7 @@ onBeforeUnmount(() => {
   align-items: baseline;
   justify-items: start;
   max-width: 100%;
+  font-variant-numeric: tabular-nums;
 }
 
 .flow-slot {

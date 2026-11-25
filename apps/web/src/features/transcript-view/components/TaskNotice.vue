@@ -2,7 +2,7 @@
   <p class="task-notice" :data-status="task.status">
     <component :is="icon" class="task-notice-icon" aria-hidden="true" />
     <span class="task-notice-label">{{ label }}</span>
-    <span class="task-notice-text">{{ task.description }}</span>
+    <OverflowTooltip class="task-notice-text" :text="task.description" />
     <span v-if="elapsed" class="task-notice-time">{{ elapsed }}</span>
   </p>
 </template>
@@ -10,6 +10,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
+import { OverflowTooltip } from "@pig/ui/tooltip"
 import { CircleCheckIcon, CircleExclamationPointIcon, SquareIcon } from "@components/icons/index.js"
 import { formatElapsed } from "@utils/time.js"
 import type { Task } from "@/types/common-type.js"
@@ -53,6 +54,7 @@ const elapsed = computed(() => {
 .task-notice-label {
   flex: none;
   color: var(--fg-secondary);
+  white-space: nowrap;
 }
 
 .task-notice[data-status="failed"] :is(.task-notice-icon, .task-notice-label) {

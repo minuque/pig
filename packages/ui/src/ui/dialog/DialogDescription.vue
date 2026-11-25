@@ -16,5 +16,6 @@ defineOptions({ inheritAttrs: false })
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
   color: var(--fg-secondary);
+  text-wrap: pretty;
 }
 </style>

@@ -122,6 +122,8 @@ watch(
   font-family: var(--font-mono);
   line-height: var(--text-code-line);
   tab-size: 2;
+  text-autospace: no-autospace;
+  text-spacing-trim: space-all;
 }
 
 .file-code-line {

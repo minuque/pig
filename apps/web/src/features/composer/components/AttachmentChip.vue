@@ -16,7 +16,7 @@
 
     <template v-else>
       <FileTextIcon class="file-icon" aria-hidden="true" />
-      <span class="file-name">{{ item.name }}</span>
+      <OverflowTooltip class="file-name" :text="item.name" />
       <span class="file-size">{{ formatFileSize(item.size) }}</span>
     </template>
 
@@ -64,6 +64,7 @@ import type { ComposerAttachment } from "@/types/attachment-type.js"
 import { formatFileSize } from "@features/composer/lib/attachment-size.js"
 import type { AttachmentStatus } from "@features/composer/lib/attachment-upload.js"
 import { Progress, ProgressIndicator } from "@pig/ui/progress"
+import { OverflowTooltip } from "@pig/ui/tooltip"
 
 withDefaults(
   defineProps<{
@@ -150,6 +151,7 @@ const { t } = useI18n()
 .file-size {
   flex: none;
   color: var(--fg-muted);
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 

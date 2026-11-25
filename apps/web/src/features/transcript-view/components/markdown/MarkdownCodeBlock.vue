@@ -98,6 +98,8 @@ watch(
   font-size: var(--text-meta);
   line-height: 1.4;
   color: var(--fg);
+  text-autospace: no-autospace;
+  text-spacing-trim: space-all;
 }
 
 .fence-name {
@@ -123,6 +125,8 @@ watch(
   font-family: var(--font-mono);
   font-size: var(--text-code);
   line-height: var(--text-code-line);
+  text-autospace: no-autospace;
+  text-spacing-trim: space-all;
 }
 
 .code-line {

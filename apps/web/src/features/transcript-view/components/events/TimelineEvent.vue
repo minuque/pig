@@ -18,7 +18,14 @@
           <span v-else class="event-part">
             <component :is="PART_ICON[part.kind]" class="size-icon" aria-hidden="true" />
             <span class="event-label">{{ partLabel(part) }}</span>
-            <span v-if="partDetail(part)" class="event-detail">· {{ partDetail(part) }}</span>
+
+            <OverflowTooltip
+              v-if="partDetail(part)"
+              class="event-detail"
+              :content="partDetail(part)"
+            >
+              · {{ partDetail(part) }}
+            </OverflowTooltip>
           </span>
         </template>
 
@@ -56,6 +63,7 @@
 import { computed, type Component } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Collapsible, CollapsibleContent } from "@pig/ui/collapsible"
+import { OverflowTooltip } from "@pig/ui/tooltip"
 import {
   ChevronRightIcon,
   CircleExclamationPointIcon,
@@ -192,14 +200,17 @@ button.event-pill[aria-expanded="true"] {
 }
 
 .event-label {
+  flex-shrink: 0;
   font-weight: var(--font-weight-medium);
   white-space: nowrap;
 }
 
 .event-detail {
+  min-inline-size: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .event-sep {
@@ -243,6 +254,7 @@ button.event-pill[aria-expanded="true"] {
   display: block;
   color: var(--fg-muted);
   font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
 }
 
 .event-attempt-error {

@@ -277,6 +277,10 @@ button.rail-task-title:hover .rail-task-name {
   color: var(--fg-secondary);
 }
 
+.rail-task-value {
+  font-variant-numeric: tabular-nums;
+}
+
 .rail-task-failed {
   color: var(--danger-text);
 }
@@ -286,9 +290,11 @@ button.rail-task-title:hover .rail-task-name {
 }
 
 .rail-task-link {
+  flex-shrink: 0;
   padding: 0;
   color: var(--link);
   font: inherit;
+  white-space: nowrap;
   background: none;
   border: 0;
   border-radius: var(--radius-control);
@@ -312,6 +318,8 @@ button.rail-task-title:hover .rail-task-name {
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
+  text-autospace: no-autospace;
+  text-spacing-trim: space-all;
 }
 
 .rail-task-command {

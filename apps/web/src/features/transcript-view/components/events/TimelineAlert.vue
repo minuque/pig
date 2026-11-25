@@ -3,7 +3,11 @@
     <button type="button" class="alert-head" :aria-expanded="open" @click="emit('toggle', !open)">
       <component :is="icon" class="size-icon alert-icon" aria-hidden="true" />
       <span class="alert-label">{{ label }}</span>
-      <span v-if="summary" class="alert-summary">· {{ summary }}</span>
+
+      <OverflowTooltip v-if="summary" class="alert-summary" :content="summary">
+        · {{ summary }}
+      </OverflowTooltip>
+
       <ChevronRightIcon class="alert-chevron size-icon" aria-hidden="true" />
     </button>
 
@@ -20,6 +24,7 @@
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Collapsible, CollapsibleContent } from "@pig/ui/collapsible"
+import { OverflowTooltip } from "@pig/ui/tooltip"
 import {
   ChevronRightIcon,
   CircleExclamationPointIcon,
@@ -69,6 +74,7 @@ const summary = computed(() => errorSummary(props.row.message))
 }
 
 .alert-label {
+  flex-shrink: 0;
   font-weight: var(--font-weight-medium);
   white-space: nowrap;
 }

@@ -1,6 +1,8 @@
 /* 外部：@comark/vue 把每个 Markdown 根块各包一层 .comark-content */
 .prose {
+  inline-size: 100%;
   min-width: 0;
+  container-type: inline-size;
   color: var(--fg);
   font-size: var(--text-body);
   line-height: 1.5;
@@ -8,6 +10,29 @@
 
   :where(p, ul, ol, li, blockquote, h1, h2, h3, h4, h5, h6, hr, table, figure) {
     margin: 0;
+  }
+
+  :is(p, h1, h2, h3, h4, h5, h6, li, blockquote, td, th):lang(zh) {
+    text-autospace: normal;
+    text-spacing-trim: trim-start;
+  }
+
+  :is(p, h1, h2, h3, h4, h5, h6, li, blockquote, td, th):lang(en) {
+    text-autospace: no-autospace;
+    text-spacing-trim: space-all;
+  }
+
+  :is(h1, h2, h3)[data-phrase-break]:lang(zh) {
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+
+  @container (min-width: 22em) {
+    > .comark-content > p:lang(zh),
+    blockquote > p:lang(zh) {
+      text-align: justify;
+    }
   }
 
   > .comark-content + .comark-content > * {
@@ -76,10 +101,15 @@
     color: var(--fg-secondary);
   }
 
+  ol > li::marker {
+    font-variant-numeric: tabular-nums;
+  }
+
   blockquote {
     padding-inline-start: 8px;
     border-inline-start: var(--quote-border-width) solid var(--border-subtle);
     color: var(--fg-secondary);
+    text-wrap: pretty;
   }
 
   blockquote > * + * {
@@ -99,6 +129,8 @@
     color: inherit;
     font-family: var(--font-mono);
     font-size: 0.85em;
+    text-autospace: no-autospace;
+    text-spacing-trim: space-all;
     box-decoration-break: clone;
   }
 
@@ -120,6 +152,8 @@
   --diffs-line-height: var(--text-code-line);
   --diffs-font-family: var(--font-mono);
   --diffs-header-font-family: var(--font-mono);
+  text-autospace: no-autospace;
+  text-spacing-trim: space-all;
 }
 
 /* 外部：pierre diffs 的影子 :host 写死主题色，只能用 !important 从外层覆盖 */

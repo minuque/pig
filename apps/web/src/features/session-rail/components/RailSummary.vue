@@ -60,7 +60,7 @@
 
                           <div v-if="cwd" class="rail-kv">
                             <span>{{ t("rail.cwd") }}</span>
-                            <span class="rail-value" :title="cwd">{{ cwd }}</span>
+                            <OverflowTooltip class="rail-value" :text="cwd" />
                           </div>
 
                           <div v-if="model" class="rail-kv">
@@ -68,7 +68,7 @@
 
                             <span class="rail-value rail-model">
                               <VendorMark :vendor="model.provider" :size="14" />
-                              <span class="rail-model-id">{{ model.id }}</span>
+                              <OverflowTooltip class="rail-model-id" :text="model.id" />
                             </span>
                           </div>
                         </template>
@@ -143,6 +143,7 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@pig/ui/context-menu"
+import { OverflowTooltip } from "@pig/ui/tooltip"
 import type { ContextUsage } from "@features/composer/type.js"
 import { contextSeverity } from "@features/composer/lib/context-usage.js"
 import RailContext from "@features/session-rail/components/RailContext.vue"
@@ -238,6 +239,7 @@ const isOpen = (id: RailSectionId) => !rail.layout.value.closed.includes(id)
 
 .rail-title {
   flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .rail-caret {
@@ -288,6 +290,8 @@ const isOpen = (id: RailSectionId) => !rail.layout.value.closed.includes(id)
   font-family: var(--font-mono);
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-autospace: no-autospace;
+  text-spacing-trim: space-all;
 }
 
 .rail-model {
@@ -336,5 +340,7 @@ const isOpen = (id: RailSectionId) => !rail.layout.value.closed.includes(id)
   font-family: var(--font-mono);
   font-size: var(--text-meta);
   color: var(--fg-secondary);
+  text-autospace: no-autospace;
+  text-spacing-trim: space-all;
 }
 </style>
