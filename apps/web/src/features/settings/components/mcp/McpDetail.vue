@@ -80,6 +80,10 @@
       @close="loggingIn = false"
     />
 
+    <Banner v-if="state.note.value && !probe" color="warning" variant="surface" size="s">
+      {{ state.note.value }}
+    </Banner>
+
     <Banner
       v-if="probe?.status === 'failed' || probe?.status === 'needs-auth'"
       color="warning"

@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { ProjectTrustStore } from "@earendil-works/pi-coding-agent"
-import type { AgentConfigScope, LoginEvent, McpProbe } from "@pig/protocol"
+import type { AgentConfigScope, LoginEvent, McpProbe, McpProbeReport } from "@pig/protocol"
 
 const PROBE_TIMEOUT_MS = 60_000
 const LOGIN_TIMEOUT_S = 300
@@ -91,12 +91,13 @@ export function piRunner(agentDir: string): PiRunner {
     })
 }
 
-export function parseMcpList(stdout: string): Record<string, McpProbe> {
+export function parseMcpList(stdout: string): McpProbeReport {
   const start = stdout.indexOf("{")
   const parsed = JSON.parse(stdout.slice(start)) as {
     servers?: Array<{ name: string; state: McpProbe["status"]; tools?: string[]; error?: string }>
+    note?: string
   }
-  return Object.fromEntries(
+  const probes = Object.fromEntries(
     (parsed.servers ?? []).map((server) => [
       server.name,
       {
@@ -106,12 +107,13 @@ export function parseMcpList(stdout: string): Record<string, McpProbe> {
       },
     ]),
   )
+  return parsed.note ? { probes, note: parsed.note } : { probes }
 }
 
 export class McpCli {
   private readonly agentDir: string
   private readonly run: PiRunner
-  private readonly probes = new Map<string, Record<string, McpProbe>>()
+  private readonly probes = new Map<string, McpProbeReport>()
   private readonly logins = new Map<string, LoginSession>()
   private readonly running = new Set<AbortController>()
 
@@ -120,11 +122,11 @@ export class McpCli {
     this.run = options.run ?? piRunner(options.agentDir)
   }
 
-  cached(scope: AgentConfigScope): Record<string, McpProbe> {
-    return this.probes.get(scope) ?? {}
+  cached(scope: AgentConfigScope): McpProbeReport {
+    return this.probes.get(scope) ?? { probes: {} }
   }
 
-  async probe(scope: AgentConfigScope): Promise<Record<string, McpProbe>> {
+  async probe(scope: AgentConfigScope): Promise<McpProbeReport> {
     const { stdout } = await this.track(PROBE_TIMEOUT_MS, (signal) =>
       this.run(["mcp", "list", "--json"], { cwd: this.cwd(scope), signal }),
     )

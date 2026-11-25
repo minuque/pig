@@ -2,7 +2,7 @@ import type {
   AgentConfigScope,
   LoginEvent,
   McpExposure,
-  McpProbe,
+  McpProbeReport,
   McpScopeView,
   SkillFileView,
   SkillScopeView,
@@ -37,11 +37,11 @@ export async function deleteMcpServer(scope: AgentConfigScope, name: string): Pr
   await request("DELETE /api/v1/platform/mcp/server", { body: { scope, name } })
 }
 
-export function getMcpProbes(scope: AgentConfigScope): Promise<Record<string, McpProbe>> {
+export function getMcpProbes(scope: AgentConfigScope): Promise<McpProbeReport> {
   return request("GET /api/v1/platform/mcp/probes", { query: { scope } })
 }
 
-export function probeMcp(scope: AgentConfigScope): Promise<Record<string, McpProbe>> {
+export function probeMcp(scope: AgentConfigScope): Promise<McpProbeReport> {
   return request("POST /api/v1/platform/mcp/probe", { body: { scope } })
 }
 

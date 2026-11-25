@@ -13,6 +13,10 @@
 
     <p v-if="state.error.value" class="list-note">{{ state.error.value }}</p>
 
+    <Banner v-if="state.note.value" color="warning" variant="surface" size="s">
+      {{ state.note.value }}
+    </Banner>
+
     <section v-if="servers.length || invalid.length" class="mcp-group">
       <h3 class="group-path">{{ state.view.value?.file }}</h3>
 
@@ -104,6 +108,7 @@ import type { McpState, McpStatus } from "@features/settings/hooks/use-mcp.js"
 import { joinArgs } from "@features/settings/lib/mcp-draft.js"
 import { useI18n } from "@i18n/index.js"
 import { Badge } from "@pig/ui/badge"
+import { Banner } from "@pig/ui/banner"
 import { CardList, CardRow } from "@pig/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@pig/ui/collapsible"
 import { StatusIndicator, type StatusTone } from "@pig/ui/status-indicator"

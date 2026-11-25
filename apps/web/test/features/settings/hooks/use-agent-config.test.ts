@@ -39,7 +39,7 @@ beforeEach(() => {
     inherited: [],
     invalid: [],
   })
-  api.getMcpProbes.mockResolvedValue({})
+  api.getMcpProbes.mockResolvedValue({ probes: {} })
   api.getSkillScope.mockResolvedValue({ roots: [], skills: [], inherited: [], diagnostics: [] })
 })
 

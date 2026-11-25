@@ -61,8 +61,14 @@ afterEach(async () => {
 })
 
 describe("parseMcpList", () => {
+  it("带回 CLI 关于未信任项目的说明", () => {
+    const note = ".pi/mcp.json is ignored because the project is not trusted."
+
+    expect(parseMcpList(JSON.stringify({ servers: [], errors: [], note })).note).toBe(note)
+  })
+
   it("按名称取出状态、工具名和错误", () => {
-    const probes = parseMcpList(`${sample}\n`)
+    const { probes } = parseMcpList(`${sample}\n`)
 
     expect(probes.fs).toEqual({ status: "connected", tools: ["read_file", "write_file"] })
     expect(probes.sentry).toMatchObject({ status: "needs-auth", tools: [] })
@@ -95,11 +101,11 @@ describe("McpCli.probe", () => {
     const { cli, agentDir } = recorder()
 
     await mkdir(agentDir, { recursive: true })
-    const probes = await cli.probe("global")
+    const result = await cli.probe("global")
 
-    expect(probes.fs?.status).toBe("connected")
-    expect(cli.cached("global")).toEqual(probes)
-    expect(cli.cached(join(temp, "ws"))).toEqual({})
+    expect(result.probes.fs?.status).toBe("connected")
+    expect(cli.cached("global")).toEqual(result)
+    expect(cli.cached(join(temp, "ws"))).toEqual({ probes: {} })
   })
 
   it("工作区作用域先把工作区记为信任，再在工作区里运行", async () => {
@@ -138,7 +144,7 @@ describe("真实 Pi CLI", () => {
       JSON.stringify({ mcpServers: { off: { command: "npx", enabled: false } } }),
     )
 
-    expect(await new McpCli({ agentDir }).probe("global")).toEqual({
+    expect((await new McpCli({ agentDir }).probe("global")).probes).toEqual({
       off: { status: "disabled", tools: [] },
     })
   }, 60_000)

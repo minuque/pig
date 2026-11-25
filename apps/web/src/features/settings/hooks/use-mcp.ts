@@ -19,6 +19,7 @@ export type McpStatus = "idle" | "probing" | "connected" | "needsAuth" | "failed
 export function useMcp(scope: Ref<string>) {
   const view = ref<McpScopeView>()
   const probes = ref<Record<string, McpProbe>>({})
+  const note = ref<string>()
   const probing = ref(false)
   const error = ref<string>()
 
@@ -31,7 +32,8 @@ export function useMcp(scope: Ref<string>) {
 
       if (current !== scope.value) return
       view.value = next
-      probes.value = cached
+      probes.value = cached.probes
+      note.value = cached.note
     } catch (cause) {
       error.value = errorMessage(cause)
     }
@@ -41,7 +43,10 @@ export function useMcp(scope: Ref<string>) {
     probing.value = true
 
     try {
-      probes.value = await probeMcp(scope.value)
+      const report = await probeMcp(scope.value)
+
+      probes.value = report.probes
+      note.value = report.note
     } catch (cause) {
       error.value = errorMessage(cause)
     } finally {
@@ -118,6 +123,7 @@ export function useMcp(scope: Ref<string>) {
   return {
     view,
     probes,
+    note,
     probing,
     error,
     refresh,

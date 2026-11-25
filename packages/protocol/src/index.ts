@@ -37,6 +37,7 @@ export type {
   McpExposure,
   McpInvalidEntry,
   McpProbe,
+  McpProbeReport,
   McpScopeView,
   McpServerView,
   SkillDiagnosticView,

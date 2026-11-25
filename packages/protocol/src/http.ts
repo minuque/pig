@@ -1,7 +1,7 @@
 /** 平台 HTTP 契约：键是「方法 路径」，路径里的 :name 由 params 填。只有类型，没有运行时代码。 */
 import type {
   McpExposure,
-  McpProbe,
+  McpProbeReport,
   McpScopeView,
   SkillFileView,
   SkillScopeView,
@@ -203,11 +203,11 @@ export interface PlatformHttpRoutes {
   }
   "GET /api/v1/platform/mcp/probes": {
     query: { scope: string }
-    response: Record<string, McpProbe>
+    response: McpProbeReport
   }
   "POST /api/v1/platform/mcp/probe": {
     body: { scope: string }
-    response: Record<string, McpProbe>
+    response: McpProbeReport
   }
   "POST /api/v1/platform/mcp/login": {
     body: { scope: string; name: string }

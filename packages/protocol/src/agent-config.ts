@@ -55,3 +55,8 @@ export interface McpProbe {
   tools: string[]
   error?: string
 }
+
+export interface McpProbeReport {
+  probes: Record<string, McpProbe>
+  note?: string
+}
