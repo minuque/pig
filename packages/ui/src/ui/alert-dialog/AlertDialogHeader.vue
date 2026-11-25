@@ -18,6 +18,6 @@ const props = withDefaults(defineProps<{ class?: HTMLAttributes["class"] }>(), {
   min-height: 0;
   flex-direction: column;
   gap: var(--space-xs);
-  padding: var(--space-lg);
+  padding: var(--space-sm);
 }
 </style>
