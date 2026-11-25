@@ -10,6 +10,8 @@ import {
   writeSkill,
 } from "@client/agent-config.js"
 import { errorMessage } from "@client/http.js"
+import { t } from "@i18n/index.js"
+import { notify } from "@pig/ui/toast"
 
 export function useSkills(scope: Ref<string>) {
   const view = ref<SkillScopeView>()
@@ -28,9 +30,22 @@ export function useSkills(scope: Ref<string>) {
     }
   }
 
-  async function setEnabled(skill: SkillView, enabled: boolean) {
-    await setSkillEnabled(scope.value, skill.filePath, enabled)
-    await refresh()
+  async function mutate(task: () => Promise<unknown>): Promise<void> {
+    try {
+      await task()
+      notify(t("settings.skills.saved"), "success")
+    } catch (cause) {
+      notify(errorMessage(cause), "error")
+      throw cause
+    } finally {
+      await refresh()
+    }
+  }
+
+  function setEnabled(skill: SkillView, enabled: boolean) {
+    return mutate(() => setSkillEnabled(scope.value, skill.filePath, enabled)).catch(
+      () => undefined,
+    )
   }
 
   async function create(name: string, description: string) {
@@ -45,14 +60,12 @@ export function useSkills(scope: Ref<string>) {
     return readSkill(scope.value, path)
   }
 
-  async function write(path: string, raw: string) {
-    await writeSkill(scope.value, path, raw)
-    await refresh()
+  function write(path: string, raw: string) {
+    return mutate(() => writeSkill(scope.value, path, raw))
   }
 
-  async function remove(path: string) {
-    await deleteSkill(scope.value, path)
-    await refresh()
+  function remove(path: string) {
+    return mutate(() => deleteSkill(scope.value, path))
   }
 
   watch(scope, refresh, { immediate: true })

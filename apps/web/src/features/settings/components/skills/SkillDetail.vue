@@ -167,14 +167,18 @@ async function save() {
     await props.state.write(props.path, raw.value)
     saved.value = raw.value
     mode.value = "preview"
+  } catch {
+    return
   } finally {
     saving.value = false
   }
 }
 
 async function remove() {
-  await props.state.remove(props.path)
-  emit("removed")
+  await props.state.remove(props.path).then(
+    () => emit("removed"),
+    () => undefined,
+  )
 }
 
 defineExpose({ dirty })

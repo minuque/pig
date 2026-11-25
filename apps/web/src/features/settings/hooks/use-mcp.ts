@@ -11,6 +11,8 @@ import {
   saveMcpServer,
 } from "@client/agent-config.js"
 import { errorMessage } from "@client/http.js"
+import { t } from "@i18n/index.js"
+import { notify } from "@pig/ui/toast"
 
 export type McpStatus = "idle" | "probing" | "connected" | "needsAuth" | "failed" | "disabled"
 
@@ -59,14 +61,25 @@ export function useMcp(scope: Ref<string>) {
     return "idle"
   }
 
-  async function setEnabled(server: McpServerView, enabled: boolean) {
-    await patchMcpServer({ scope: scope.value, name: server.name, enabled })
-    await refresh()
+  async function mutate(task: () => Promise<unknown>): Promise<boolean> {
+    try {
+      await task()
+      notify(t("settings.mcp.saved"), "success")
+      return true
+    } catch (cause) {
+      notify(errorMessage(cause), "error")
+      return false
+    } finally {
+      await refresh()
+    }
   }
 
-  async function setExposure(server: McpServerView, exposure: McpExposure) {
-    await patchMcpServer({ scope: scope.value, name: server.name, exposure })
-    await refresh()
+  function setEnabled(server: McpServerView, enabled: boolean) {
+    return mutate(() => patchMcpServer({ scope: scope.value, name: server.name, enabled }))
+  }
+
+  function setExposure(server: McpServerView, exposure: McpExposure) {
+    return mutate(() => patchMcpServer({ scope: scope.value, name: server.name, exposure }))
   }
 
   async function save(
@@ -87,13 +100,17 @@ export function useMcp(scope: Ref<string>) {
     return undefined
   }
 
-  async function remove(server: McpServerView) {
-    await deleteMcpServer(scope.value, server.name)
-    await refresh()
+  function remove(server: McpServerView) {
+    return mutate(() => deleteMcpServer(scope.value, server.name))
   }
 
   async function logout(server: McpServerView) {
-    await logoutMcp(scope.value, server.name)
+    try {
+      await logoutMcp(scope.value, server.name)
+    } catch (cause) {
+      notify(errorMessage(cause), "error")
+    }
+
     await probe()
   }
 

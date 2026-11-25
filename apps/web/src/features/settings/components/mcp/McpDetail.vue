@@ -236,8 +236,7 @@ const target = computed(() => {
 })
 
 async function onDelete() {
-  await props.state.remove(props.server)
-  emit("removed")
+  if (await props.state.remove(props.server)) emit("removed")
 }
 
 async function onSignedIn() {
