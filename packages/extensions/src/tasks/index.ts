@@ -1,12 +1,11 @@
-import type {
-  ExtensionAPI,
-  ExtensionContext,
-  ToolDefinition,
+import {
+  type ExtensionAPI,
+  type ExtensionContext,
+  type ToolDefinition,
 } from "@earendil-works/pi-coding-agent"
-import { environmentFor, type Environment } from "@pig/environment/source"
+import { localEnvironment, type Environment } from "@pig/environment/source"
 import type { Task, TaskStopEvent, TasksEvent } from "@pig/protocol"
 
-import { fromEntries } from "../remote-workspace/index.ts"
 import { startBashTask } from "./bash.ts"
 import {
   TASK_MESSAGE,
@@ -22,19 +21,15 @@ type Ctx = Pick<ExtensionContext, "cwd" | "sessionManager">
 export interface TaskWorkspace {
   env: Environment
   cwd: string
-  remote: boolean
 }
 
 function workspaceOf(ctx: Ctx): TaskWorkspace {
-  const binding = fromEntries(ctx)
-  return binding
-    ? { env: environmentFor(binding.environment), cwd: binding.path, remote: true }
-    : { env: environmentFor("local"), cwd: ctx.cwd, remote: false }
+  return { env: localEnvironment, cwd: ctx.cwd }
 }
 
 const text = (value: string) => ({ content: [{ type: "text" as const, text: value }], details: {} })
 
-function report(task: Task, remote: boolean): string {
+function report(task: Task): string {
   const lines = [`Background task ${task.id} (${task.description}): ${task.status}`]
 
   if (task.kind === "bash") {
@@ -42,7 +37,7 @@ function report(task: Task, remote: boolean): string {
 
     if (task.error) lines.push(task.error)
 
-    if (task.logPath && !remote) lines.push(`Full output: ${task.logPath}`)
+    if (task.logPath) lines.push(`Full output: ${task.logPath}`)
     lines.push(task.output ? `Output (tail):\n${task.output}` : "No output.")
   } else {
     if (task.error) lines.push(task.error)
@@ -64,7 +59,6 @@ export function createTasksExtension(
 
     pi.on("session_start", (_event, ctx) => {
       const sessionId = sessionOf(ctx)
-      const remote = workspace(ctx).remote
 
       registryFor(sessionId).bind({
         publish: (list) => pi.events.emit(TASKS_CHANNEL, { sessionId, tasks: list } as TasksEvent),
@@ -72,7 +66,7 @@ export function createTasksExtension(
           pi.sendMessage(
             {
               customType: TASK_MESSAGE,
-              content: report(task, remote),
+              content: report(task),
               display: true,
               details: task,
             },
@@ -161,7 +155,7 @@ export function createTasksExtension(
       required: ["id"],
       run(params, ctx) {
         const task = registryFor(sessionOf(ctx)).get(String(params.id))
-        return task ? report(task, workspace(ctx).remote) : `Unknown task: ${String(params.id)}`
+        return task ? report(task) : `Unknown task: ${String(params.id)}`
       },
     })
 

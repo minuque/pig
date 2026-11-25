@@ -4,8 +4,6 @@ import { join } from "node:path"
 import { getAgentDir, SessionManager, type ToolDefinition } from "@earendil-works/pi-coding-agent"
 import { contextTextForDisplay, READ_SESSION_TOOL } from "@pig/protocol/source"
 
-import { fromEntries } from "../remote-workspace/index.ts"
-
 const DEFAULT_LIMIT = 20
 const MAX_LIMIT = 50
 const PAGE_ENTRY_CHARS = 1_500
@@ -150,11 +148,7 @@ function describe(manager: SessionManager, entries: SessionEntryText[], id: stri
       .find((entry) => entry.role === "user")
       ?.text.split("\n", 1)[0]
       ?.slice(0, 80)
-  const remote = fromEntries({ sessionManager: manager })
-  const workspace = remote
-    ? `${remote.environment}/${remote.path.replace(/^\//, "")}`
-    : manager.getCwd()
-  return [`Session: ${title || "(untitled)"} (${id})`, `workspace: ${workspace}`]
+  return [`Session: ${title || "(untitled)"} (${id})`, `workspace: ${manager.getCwd()}`]
 }
 
 function render(entry: SessionEntryText, max: number): string {

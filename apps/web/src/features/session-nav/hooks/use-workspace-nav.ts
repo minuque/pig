@@ -214,15 +214,6 @@ export function useWorkspaceNav(
     }
   }
 
-  async function addRemoteWorkspace(environment: string, path: string): Promise<boolean> {
-    const result = await selectDirectory(path, environment).catch(() => undefined)
-
-    if (!result?.path) return false
-    local.add(result.path)
-    local.selectCwd(result.path)
-    return true
-  }
-
   async function renameSession(id: string, name: string) {
     error.value = ""
     titleById.value = { ...titleById.value, [id]: name }
@@ -397,7 +388,6 @@ export function useWorkspaceNav(
     expandSection,
     sectionsFor,
     addWorkspace,
-    addRemoteWorkspace,
     renameSession,
     deleteSession,
     deleteSessions,

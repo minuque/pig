@@ -1,5 +1,4 @@
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http"
-import { closeEnvironments } from "@pig/environment"
 import { BrowserSession, browserSecretFile } from "../auth/browser-session.js"
 import { PiHostService, type PiHostServiceOptions } from "../pi/service.js"
 import {
@@ -10,7 +9,7 @@ import {
 import { PreferencesStore, preferencesFile } from "../system/preferences.js"
 import { SessionArchivesStore, sessionArchivesFile } from "../system/session-archives.js"
 import { handlePreviewRequest } from "./file-preview.js"
-import { handlePlatformRequest, type EnvironmentSources } from "./platform.js"
+import { handlePlatformRequest } from "./platform.js"
 import { installProviderHttp } from "./provider-http.js"
 import { handleProviderRequest } from "./providers.js"
 import { serveWebFile } from "./static-files.js"
@@ -28,8 +27,6 @@ export interface GatewayOptions {
   attachmentRootDir?: string
   browserSecretFile?: string
   agentDir?: string
-  environments?: EnvironmentSources
-  remoteRoot?: string
 }
 
 export class Gateway {
@@ -40,7 +37,6 @@ export class Gateway {
   private readonly platformPort: DirectoryPort
   private readonly listenPort: number
   private readonly browser: BrowserSession
-  private readonly environments: EnvironmentSources
   private readonly preferences: PreferencesStore
   private readonly sessionArchives: SessionArchivesStore
 
@@ -54,7 +50,6 @@ export class Gateway {
     this.sessionArchives = new SessionArchivesStore(
       sessionArchivesFile(options.sessionDir, options.pigHome),
     )
-    this.environments = options.environments ?? {}
     this.platformPort =
       options.platformPort ??
       (process.platform === "win32" ? new WindowsDirectoryPort() : new ManualDirectoryPort())
@@ -65,7 +60,6 @@ export class Gateway {
       ...(options.cwd ? { cwd: options.cwd } : {}),
       ...(options.attachmentRootDir ? { attachmentRootDir: options.attachmentRootDir } : {}),
       ...(options.agentDir ? { agentDir: options.agentDir } : {}),
-      ...(options.remoteRoot ? { remoteRoot: options.remoteRoot } : {}),
       ...(options.createRuntime ? { createRuntime: options.createRuntime } : {}),
       ...(options.createSession ? { createSession: options.createSession } : {}),
     })
@@ -169,7 +163,6 @@ export class Gateway {
         body: this.body.bind(this),
         hostService: this.hostService,
         platformPort: this.platformPort,
-        environments: this.environments,
         preferences: this.preferences,
         sessionArchives: this.sessionArchives,
       })
@@ -214,7 +207,6 @@ export class Gateway {
     this.sessionArchives.close()
     await this.protocol.close()
     await this.hostService.dispose()
-    await closeEnvironments()
 
     const closed = new Promise<void>((resolveStop, reject) =>
       this.server.close((error) => (error ? reject(error) : resolveStop())),

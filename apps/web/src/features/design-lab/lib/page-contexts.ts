@@ -213,7 +213,6 @@ export function createPageNav(session: SessionContext): NavContext {
     cancelPendingOpen: noop,
     setDraftSession: noop,
     addWorkspace: resolved,
-    addRemoteWorkspace: resolved,
     renameSession: resolved,
     deleteSession: resolved,
     deleteSessions: resolved,

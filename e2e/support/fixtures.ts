@@ -1,5 +1,4 @@
 import { test as base, expect, type Page } from "@playwright/test"
-import { mkdirSync, writeFileSync } from "node:fs"
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { dirname, join, resolve } from "node:path"
@@ -9,7 +8,6 @@ import Gateway from "../../packages/gateway/src/index.js"
 import type { DirectoryPort } from "../../packages/gateway/src/system/directory.js"
 import { createFakeRuntime, type FakeProviderSpec } from "./fake-model-runtime.js"
 import { BUILTIN_PROVIDERS } from "./fake-provider-registry.js"
-import { prepareRemote } from "./remote-fixture.js"
 import {
   prebuildComplexSession,
   prebuildFillerSessions,
@@ -94,7 +92,6 @@ type TestFixtures = {
   modelsGateway: E2eGateway
   emptyModelsGateway: E2eGateway
   subagentGateway: E2eGateway
-  remoteGateway: E2eGateway
 }
 
 async function startGateway(
@@ -127,7 +124,6 @@ export async function withGateway(
   seed: (sessionDir: string, workspaceDir: string) => void,
   use: (gateway: E2eGateway) => Promise<void>,
   prepareAgent: (agentDir: string) => Promise<void> = writeOfflineModel,
-  extra?: (temp: string) => Promise<ConstructorParameters<typeof Gateway>[0]>,
 ) {
   const temp = await mkdtemp(join(tmpdir(), "pig-e2e-"))
   const workspaceDir = join(temp, "workspace")
@@ -160,7 +156,6 @@ export async function withGateway(
     platformPort,
     port: 0,
     agentDir,
-    ...(extra ? await extra(temp) : {}),
   })
 
   try {
@@ -428,20 +423,6 @@ export const test = base.extend<TestFixtures>({
         prebuildFillerSessions(sessionDir, workspaceDir, 1)
         prebuildChildSession(sessionDir, workspaceDir)
       }, use)
-    },
-    { scope: "test" },
-  ],
-  remoteGateway: [
-    async ({}, use) => {
-      await withGateway(
-        (_sessionDir, workspaceDir) => {
-          mkdirSync(join(workspaceDir, "src"))
-          writeFileSync(join(workspaceDir, "src", "remote-only.ts"), "")
-        },
-        use,
-        writeOfflineModel,
-        prepareRemote,
-      )
     },
     { scope: "test" },
   ],

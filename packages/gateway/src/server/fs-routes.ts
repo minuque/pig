@@ -1,9 +1,8 @@
 import type { IncomingMessage, ServerResponse } from "node:http"
 import { posix, win32 } from "node:path"
 import { pipeline } from "node:stream/promises"
-import type { Environment } from "@pig/environment"
+import { localEnvironment, type Environment } from "@pig/environment"
 import type { FileStatResponse, FileTextResponse } from "@pig/protocol"
-import { workspaceEnvironment } from "../pi/remote-session.js"
 import type { PiHostService } from "../pi/service.js"
 import { issuePreviewToken } from "./file-preview.js"
 import { HttpError, type HttpDeps, type HttpRouteTable } from "./router.js"
@@ -57,9 +56,7 @@ async function authorizedWorkspace(
   deps: Pick<FileDeps, "hostService">,
 ): Promise<Workspace | undefined> {
   if (!cwd || !(await deps.hostService.isKnownWorkspace(cwd))) return undefined
-
-  const { env, root } = workspaceEnvironment(cwd)
-  return { env, root, path: env.id === "local" && process.platform === "win32" ? win32 : posix }
+  return { env: localEnvironment, root: cwd, path: process.platform === "win32" ? win32 : posix }
 }
 
 export async function resolveFile(

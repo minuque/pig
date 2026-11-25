@@ -2,7 +2,6 @@ import { mkdtemp, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { SessionManager } from "@earendil-works/pi-coding-agent"
-import { BINDING_ENTRY } from "@pig/environment/source"
 import { formatContextReference, projectContextForAgent, sessionReference } from "@pig/protocol"
 import { afterAll, describe, expect, it } from "vitest"
 import {
@@ -42,10 +41,8 @@ function assistant(
   }
 }
 
-function seed(turns: number, binding?: { environment: string; path: string }) {
+function seed(turns: number) {
   const manager = SessionManager.create(root, sessions)
-
-  if (binding) manager.appendCustomEntry(BINDING_ENTRY, binding)
   const ref = formatContextReference(sessionReference("other", "别的会话"))
   manager.appendMessage({
     role: "user",
@@ -109,13 +106,13 @@ describe("read_session", () => {
     ).toThrow(/Entry "missing" is not in session/)
   })
 
-  it("远程工作区会话的 transcript 在本机，同样能按 id 找到并读到", async () => {
-    const manager = seed(2, { environment: "ssh://devbox", path: "/srv/app" })
+  it("按 id 从本机会话目录找到文件并读回", async () => {
+    const manager = seed(2)
     const path = await locateSession(manager.getSessionId(), sessions)
 
     expect(path).toBe(manager.getSessionFile())
     const text = readSessionText(SessionManager.open(path!), { sessionId: manager.getSessionId() })
-    expect(text).toContain("workspace: ssh://devbox/srv/app")
+    expect(text).toContain(`workspace: ${root}`)
     expect(text).toContain("第 1 答")
   })
 

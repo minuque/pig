@@ -11,7 +11,6 @@ describe("对话里的路径换成工作区内的文件", () => {
   it("工作区内的绝对路径换成相对，盘符大小写不敏感", () => {
     expect(workspacePath("C:/proj", "c:\\proj\\src\\a.ts")).toEqual({ path: "src/a.ts" })
     expect(workspacePath("/home/me/proj", "/home/me/proj/a.ts")).toEqual({ path: "a.ts" })
-    expect(workspacePath("ssh://box/srv/app", "/srv/app/lib/x.py")).toEqual({ path: "lib/x.py" })
   })
 
   it("工作区根目录本身也算，解析成空路径", () => {

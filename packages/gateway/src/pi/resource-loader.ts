@@ -39,7 +39,6 @@ export async function createResourceLoader(
       "file-mentions",
       "context-references",
       "subagent",
-      "remote-workspace",
       "tasks",
     ].map((name) => join(BUILTIN_PACKAGE, "src", name, "index.ts")),
     // 外部：CLI 内置的这三个扩展 SDK 不会自带；照 CLI 加上，启用与否仍由用户的 pi 设置决定

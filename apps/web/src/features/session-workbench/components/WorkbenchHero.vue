@@ -47,11 +47,6 @@
               <FolderPlusIcon class="size-icon-sm" />
               {{ t("hero.addDir") }}
             </DropdownMenuItem>
-
-            <DropdownMenuItem @select="emit('addRemote')">
-              <FolderPlusIcon class="size-icon-sm" />
-              {{ t("hero.addRemote") }}
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -93,7 +88,6 @@ withDefaults(
 const { t } = useI18n()
 const emit = defineEmits<{
   add: []
-  addRemote: []
 }>()
 const workspaceId = defineModel<string | undefined>("workspaceId")
 const label = computed(() =>

@@ -126,7 +126,6 @@ export type DirectoryExecFile = (
 ) => Promise<{ stdout: string }>
 
 export function canonicalizePath(path: string): string {
-  if (path.startsWith("ssh://")) return canonicalizeWorkspacePath(path)
   return canonicalizeWorkspacePath(resolve(path), {
     caseInsensitive: process.platform === "win32",
   })

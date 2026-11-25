@@ -22,8 +22,8 @@ import type {
   PromptInput,
   SteerInput,
 } from "./runtime-types.js"
-import { sessionBinding, sessionWorkspace, uploadAttachments } from "./remote-session.js"
 import { ExtensionUiBridge } from "./extension-ui.js"
+import { canonicalizePath } from "../system/directory.js"
 import { ExternalAppendCheck } from "./external-append.js"
 import { composePrompt, type AttachmentSink } from "./attachments.js"
 import { estimateContextUsage } from "./context-usage.js"
@@ -116,7 +116,7 @@ export class PiHostSession implements SessionRuntime {
   }
 
   get cwd(): string {
-    return sessionWorkspace(this.session.sessionManager)
+    return canonicalizePath(this.session.sessionManager.getCwd())
   }
 
   get loader() {
@@ -147,7 +147,7 @@ export class PiHostSession implements SessionRuntime {
     return {
       id: session.sessionId,
       ...(listName === undefined ? {} : { name: listName }),
-      cwd: sessionWorkspace(manager),
+      cwd: canonicalizePath(manager.getCwd()),
       createdAt,
       updatedAt: this.sessionUpdatedAt(entries, createdAt),
       phase: this.getPhase(),
@@ -196,11 +196,7 @@ export class PiHostSession implements SessionRuntime {
         )
 
       try {
-        const binding = sessionBinding(this.session.sessionManager.getEntries())
-        const composed = composePrompt(
-          input.text,
-          binding ? await uploadAttachments(binding, this.session.sessionId, staged) : staged,
-        )
+        const composed = composePrompt(input.text, staged)
 
         await this.session.prompt(
           composed.text,

@@ -16,8 +16,6 @@
       </span>
     </div>
 
-    <RemoteWorkspaceDialog v-model:open="remoteOpen" :add="addRemoteWorkspace" />
-
     <div class="conversation-column">
       <StartupError v-if="pageError" v-bind="pageError" />
 
@@ -37,7 +35,6 @@
                 :adding="addingWorkspace"
                 :ready="connected"
                 @add="addWorkspace()"
-                @add-remote="remoteOpen = true"
               />
             </div>
           </Transition>
@@ -122,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, useTemplateRef, watch } from "vue"
+import { computed, onMounted, useTemplateRef, watch } from "vue"
 import { useResizeObserver } from "@vueuse/core"
 import { useRoute } from "vue-router"
 import Composer from "@features/composer/index.vue"
@@ -153,7 +150,6 @@ import { useWelcomeWorkspace } from "@features/session-workbench/hooks/use-welco
 import TranscriptView from "@features/transcript-view/index.vue"
 import SessionRail from "@features/session-rail/index.vue"
 import { useSessionRail } from "@features/session-rail/index.js"
-import RemoteWorkspaceDialog from "@features/remote-workspace/index.vue"
 import { prefetchTranscriptView, TranscriptStatus } from "@features/transcript-view/index.js"
 import { FilePlusIcon } from "@components/icons/index.js"
 
@@ -191,8 +187,7 @@ const {
   reloadRevision,
 } = useSession()
 const { catalog, preset, switchLocked } = useComposerPreset()
-const { groups, lastCwd, addingWorkspace, addWorkspace, addRemoteWorkspace } = useNav()
-const remoteOpen = ref(false)
+const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
 const { welcomeField } = useAppearancePrefs()
 const workspaces = computed(() => groups.value.map((group) => group.canonicalPath))
 const pageError = computed(() => {

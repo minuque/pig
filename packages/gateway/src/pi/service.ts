@@ -31,7 +31,6 @@ import { SessionCardCache } from "./session-card.js"
 import { WorkspaceGitStore, workspaceGitFile } from "./workspace-git-store.js"
 import { SessionIndex, type IndexedSession } from "./session-index.js"
 import { recentSessionCwd, sessionListName } from "./session-label.js"
-import { BINDING_ENTRY, parseRemoteKey } from "./remote-session.js"
 import { PiHostSession } from "./session-runtime.js"
 import { SessionFileWatcher } from "./session-watcher.js"
 import { TranscriptReader } from "./transcript-reader.js"
@@ -51,7 +50,6 @@ export interface PiHostServiceOptions {
   cwd?: string
   attachmentRootDir?: string
   agentDir?: string
-  remoteRoot?: string
   createRuntime?: () => Promise<Runtime>
   createSession?: SessionFactory
   events?: EventBus
@@ -87,7 +85,6 @@ export class PiHostService implements SessionService {
     this.resources = new WorkspaceResources(
       {
         ...(options.agentDir ? { agentDir: options.agentDir } : {}),
-        ...(options.remoteRoot ? { remoteRoot: options.remoteRoot } : {}),
         disabled: Boolean(options.createSession),
       },
       this.events,
@@ -227,12 +224,8 @@ export class PiHostService implements SessionService {
 
   async createSession(options: CreateSessionOptions): Promise<SessionRuntime> {
     const runtime = await this.runtime()
-    const workspace = canonicalizePath(options.cwd ?? this.options.cwd ?? process.cwd())
-    const binding = parseRemoteKey(workspace)
-    const cwd = await this.resources.localCwd(workspace)
+    const cwd = canonicalizePath(options.cwd ?? this.options.cwd ?? process.cwd())
     const manager = SessionManager.create(cwd, this.options.sessionDir, { id: options.id })
-
-    if (binding) manager.appendCustomEntry(BINDING_ENTRY, binding)
 
     if (options.name) manager.appendSessionInfo(options.name)
     const path = manager.getSessionFile()

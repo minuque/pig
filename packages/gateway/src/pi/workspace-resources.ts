@@ -1,7 +1,6 @@
 import type { DefaultResourceLoader, EventBus } from "@earendil-works/pi-coding-agent"
 
 import { canonicalizePath } from "../system/directory.js"
-import { parseRemoteKey, prepareRemoteCwd } from "./remote-session.js"
 import { createResourceLoader } from "./resource-loader.js"
 
 export type ResourceSlot = { loader: DefaultResourceLoader; taken: boolean }
@@ -10,7 +9,6 @@ const MAX_RESOURCE_SLOTS = 4
 
 export interface WorkspaceResourcesOptions {
   agentDir?: string
-  remoteRoot?: string
   disabled: boolean
 }
 
@@ -23,23 +21,14 @@ export class WorkspaceResources {
     private readonly events: EventBus,
   ) {}
 
-  async localCwd(workspace: string): Promise<string> {
-    const binding = parseRemoteKey(workspace)
-    return canonicalizePath(
-      binding ? await prepareRemoteCwd(binding, this.options.remoteRoot) : workspace,
-    )
-  }
-
   prepare(workspace: string): void {
     if (this.options.disabled || this.disposed) return
-    void this.localCwd(workspace)
-      .then((local) => (this.disposed ? undefined : this.slot(local)))
-      .catch(() => undefined)
+    void this.slot(canonicalizePath(workspace)).catch(() => undefined)
   }
 
   async peek(workspace: string): Promise<ResourceSlot | undefined> {
     if (this.disposed) return undefined
-    return this.slots.get(await this.localCwd(workspace))?.catch(() => undefined)
+    return this.slots.get(canonicalizePath(workspace))?.catch(() => undefined)
   }
 
   async take(cwd: string): Promise<DefaultResourceLoader | undefined> {

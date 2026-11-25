@@ -53,10 +53,6 @@
 
               <span class="project-name">{{ data.group.project.name }}</span>
               <span class="project-count tabular">{{ data.group.rows.length }}</span>
-
-              <span v-if="data.group.project.host" class="project-host">
-                {{ data.group.project.host }}
-              </span>
             </div>
 
             <Button
@@ -298,14 +294,6 @@ function archiveGroupStale(group: ArchiveProjectGroup): void {
   flex-shrink: 0;
   color: var(--fg-muted);
   font-size: var(--text-meta);
-}
-
-.project-host {
-  overflow: hidden;
-  color: var(--fg-muted);
-  font-size: var(--text-meta);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .group-stale-action {

@@ -11,7 +11,6 @@ export type {
   ContentSearchResponse,
   DirectoryEntry,
   DirectoryListResponse,
-  EnvironmentInfo,
   FileSearchEntry,
   FileStatResponse,
   FileTextResponse,

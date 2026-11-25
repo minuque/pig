@@ -15,7 +15,7 @@ const slashes = (value: string) => value.replace(/\\/g, "/")
 const isAbsolute = (value: string) => value.startsWith("/") || /^[a-z]:\//i.test(value)
 
 function workspaceRoot(cwd: string): string {
-  return slashes(cwd.replace(/^ssh:\/\/[^/]+/, "")).replace(/\/+$/, "")
+  return slashes(cwd).replace(/\/+$/, "")
 }
 
 function decode(value: string): string {

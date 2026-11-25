@@ -1,7 +1,5 @@
 import { readFile, realpath, stat } from "node:fs/promises"
-import { isAbsolute, posix, relative, resolve, sep } from "node:path"
-
-import type { Environment } from "@pig/environment/source"
+import { isAbsolute, relative, resolve, sep } from "node:path"
 
 // 外部：<file> 块与内联内容的形状同 Pi CLI processFileArguments
 
@@ -49,17 +47,12 @@ interface MentionSource {
   read(path: string): Promise<string>
 }
 
-export function expandFileMentions(
-  text: string,
-  cwd: string,
-  env?: Environment,
-): Promise<string> | string {
+export async function expandFileMentions(text: string, cwd: string): Promise<string> {
   const tokens = findMentionTokens(text)
 
   if (!tokens.length) return text
-  return (env ? Promise.resolve(remoteSource(env, cwd)) : localSource(cwd)).then((source) =>
-    source ? expandTokens(text, tokens, source) : text,
-  )
+  const source = await localSource(cwd)
+  return source ? expandTokens(text, tokens, source) : text
 }
 
 function insideRoot(root: string, target: string): boolean {
@@ -81,23 +74,6 @@ async function localSource(cwd: string): Promise<MentionSource | undefined> {
       return stats.isFile() ? stats.size : undefined
     },
     read: (path) => readFile(path, "utf-8"),
-  }
-}
-
-function remoteSource(env: Environment, root: string): MentionSource {
-  const base = posix.resolve(root)
-  return {
-    locate: async (path) => {
-      const target = posix.resolve(base, path)
-      return target === base || target.startsWith(`${base.replace(/\/$/, "")}/`)
-        ? target
-        : undefined
-    },
-    size: async (path) => {
-      const stats = await env.stat(path)
-      return stats?.kind === "file" ? stats.size : undefined
-    },
-    read: async (path) => (await env.readFile(path)).toString("utf8"),
   }
 }
 

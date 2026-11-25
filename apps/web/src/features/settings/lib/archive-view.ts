@@ -20,7 +20,6 @@ export interface ArchiveProjectView {
   readonly monogram: string
   readonly tone: ToneColor
   readonly iconName?: string | undefined
-  readonly host?: string | undefined
 }
 
 export interface ArchiveSessionFoot {

@@ -7,7 +7,6 @@ import type {
   CustomProviderInput,
   DefaultModelView,
   DirectoryListResponse,
-  EnvironmentInfo,
   FileSearchEntry,
   FileStatResponse,
   FileTextResponse,
@@ -83,19 +82,10 @@ async function request<K extends PlatformHttpRouteKey>(
 
 export async function selectDirectory(
   path?: string,
-  environment?: string,
 ): Promise<{ path: string | null; requiresManualInput: boolean }> {
   return request("POST /api/v1/platform/select-directory", {
-    body:
-      path === undefined
-        ? undefined
-        : { path, ...(environment === undefined ? {} : { environment }) },
+    body: path === undefined ? undefined : { path },
   })
-}
-
-export async function listEnvironments(): Promise<EnvironmentInfo[]> {
-  const { environments } = await request("GET /api/v1/platform/environments")
-  return environments
 }
 
 export function getPreferences(): Promise<{ preferences: UserPreferences; exists: boolean }> {

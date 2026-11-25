@@ -8,11 +8,9 @@ import {
   SettingsManager,
   type AgentSessionEvent,
 } from "@earendil-works/pi-coding-agent"
-import { BINDING_ENTRY, type RemoteBinding } from "@pig/environment/source"
 import { existsSync, readFileSync } from "node:fs"
 import { join, resolve } from "node:path"
 
-import remoteWorkspace from "../remote-workspace/index.ts"
 import type { AgentConfig } from "./agents.ts"
 
 export const SUBAGENT_ENTRY = "pig.subagent"
@@ -29,7 +27,6 @@ export interface ChildRun {
   thinkingLevel: ThinkingLevel
   parentSessionFile: string | undefined
   sessionDir: string
-  remote: RemoteBinding | undefined
   signal: AbortSignal | undefined
   onSession(sessionId: string): void
   onStep(step: string): void
@@ -106,7 +103,7 @@ function settingsWithoutPackages(cwd: string, agentDir: string): SettingsManager
 }
 
 export async function childResourceLoader(
-  run: Pick<ChildRun, "cwd" | "remote" | "agent">,
+  run: Pick<ChildRun, "cwd" | "agent">,
 ): Promise<DefaultResourceLoader> {
   const agentDir = getAgentDir()
   const loader = new DefaultResourceLoader({
@@ -114,7 +111,6 @@ export async function childResourceLoader(
     agentDir,
     settingsManager: settingsWithoutPackages(run.cwd, agentDir),
     noExtensions: true,
-    ...(run.remote ? { extensionFactories: [remoteWorkspace] } : {}),
     ...(run.agent.systemPrompt ? { appendSystemPrompt: [run.agent.systemPrompt] } : {}),
   })
 
@@ -132,8 +128,6 @@ export const startChild: StartChild = async (run) => {
 
   sessionManager.appendCustomEntry(SUBAGENT_ENTRY, { agent: run.agent.name })
 
-  if (run.remote) sessionManager.appendCustomEntry(BINDING_ENTRY, run.remote)
-
   const { session } = await createAgentSession({
     cwd: run.cwd,
     modelRuntime: await sharedRuntime(),
@@ -144,7 +138,6 @@ export const startChild: StartChild = async (run) => {
     ...(run.agent.tools ? { tools: run.agent.tools } : {}),
   })
 
-  if (run.remote) await session.bindExtensions({})
   run.onSession(session.sessionId)
   const usage = { input: 0, output: 0, cost: 0 }
   let output = ""

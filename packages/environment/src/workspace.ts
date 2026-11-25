@@ -1,44 +1,9 @@
-import { createHash } from "node:crypto"
-import { mkdir } from "node:fs/promises"
 import { homedir } from "node:os"
 import { join, resolve } from "node:path"
-
-export interface RemoteBinding {
-  environment: string
-  path: string
-}
-
-export const BINDING_ENTRY = "pig.remote"
 
 export function defaultPigHome(env: NodeJS.ProcessEnv = process.env): string {
   const configured = env.PIG_HOME?.trim()
   return configured ? resolve(configured) : join(homedir(), ".pig")
 }
 
-export const defaultRemoteRoot = () => join(defaultPigHome(), "remote")
 export const defaultTaskLogRoot = () => join(defaultPigHome(), "tasks")
-export const remoteWorkspaceKey = (binding: RemoteBinding) =>
-  `${binding.environment}${binding.path.startsWith("/") ? "" : "/"}${binding.path}`
-
-export function parseRemoteKey(key: string): RemoteBinding | undefined {
-  const match = /^ssh:\/\/([^/]+)(\/.*)?$/.exec(key)
-  return match?.[1] ? { environment: `ssh://${match[1]}`, path: match[2] || "/" } : undefined
-}
-
-export function remoteCwd(binding: RemoteBinding, root = defaultRemoteRoot()): string {
-  const host = binding.environment.replace(/^ssh:\/\//, "").replace(/[^\w.-]/g, "_")
-  return join(root, host, createHash("sha256").update(binding.path).digest("hex").slice(0, 12))
-}
-
-export async function prepareRemoteCwd(binding: RemoteBinding, root = defaultRemoteRoot()) {
-  const dir = remoteCwd(binding, root)
-  await mkdir(dir, { recursive: true })
-  return dir
-}
-
-export function parseBinding(value: unknown): RemoteBinding | undefined {
-  const item = value as Partial<RemoteBinding> | undefined
-  return typeof item?.environment === "string" && typeof item.path === "string"
-    ? { environment: item.environment, path: item.path }
-    : undefined
-}

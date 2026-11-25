@@ -1,9 +1,6 @@
 import { readdir, readFile, stat } from "node:fs/promises"
 import { join } from "node:path"
 import { getAgentDir } from "@earendil-works/pi-coding-agent"
-import { remoteWorkspaceKey } from "@pig/environment"
-
-import { BINDING_ENTRY, sessionBinding } from "./remote-session.js"
 
 export interface IndexedSession {
   path: string
@@ -65,18 +62,11 @@ export function indexSessionText(
   let firstMessage: string | undefined
   let modified: number | undefined
   let subagent = false
-  let remote: string | undefined
 
   for (let index = 1; index < lines.length; index += 1) {
     const line = lines[index] ?? ""
 
     if (!subagent && line.includes('"customType":"pig.subagent"')) subagent = true
-
-    if (line.includes(`"customType":"${BINDING_ENTRY}"`)) {
-      const binding = sessionBinding([parse(line)])
-
-      if (binding) remote = remoteWorkspaceKey(binding)
-    }
 
     if (line.includes('"type":"session_info"')) {
       const entry = parse(line)
@@ -105,7 +95,7 @@ export function indexSessionText(
   return {
     path,
     id: header.id,
-    cwd: remote ?? (typeof header.cwd === "string" ? header.cwd : ""),
+    cwd: typeof header.cwd === "string" ? header.cwd : "",
     ...(name ? { name } : {}),
     ...(firstMessage ? { firstMessage } : {}),
     ...(typeof header.parentSession === "string"

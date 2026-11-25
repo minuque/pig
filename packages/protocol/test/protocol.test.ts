@@ -24,12 +24,6 @@ describe("canonicalizeWorkspacePath", () => {
     expect(canonicalizeWorkspacePath("/")).toBe("/")
     expect(canonicalizeWorkspacePath("")).toBe("")
   })
-
-  it("远程 ssh workspace 仅在主机根保留尾斜杠", () => {
-    expect(canonicalizeWorkspacePath("ssh://devbox/")).toBe("ssh://devbox/")
-    expect(canonicalizeWorkspacePath("ssh://devbox")).toBe("ssh://devbox/")
-    expect(canonicalizeWorkspacePath("ssh://devbox/srv/app/")).toBe("ssh://devbox/srv/app")
-  })
 })
 
 describe("isPreviewLinkMessage", () => {

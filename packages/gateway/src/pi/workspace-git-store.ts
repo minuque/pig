@@ -3,7 +3,6 @@ import { readFile } from "node:fs/promises"
 import { basename, dirname } from "node:path"
 import type { WorkspaceGit } from "@pig/protocol"
 import { pigHomeFile, writeJsonAtomic } from "../system/pig-file.js"
-import { parseRemoteKey } from "./remote-session.js"
 import { readWorkspaceGitHead } from "./workspace-git.js"
 
 export type WorkspaceGitChanges = Record<string, WorkspaceGit | null>
@@ -89,14 +88,14 @@ export class WorkspaceGitStore {
     const added = [...next].filter((workspace) => !this.tracked.has(workspace))
 
     for (const workspace of added) this.tracked.add(workspace)
-    await this.readAll(added, { awaitRemote: false })
+    await this.readAll(added)
   }
 
   refresh(workspaces?: readonly string[]): Promise<void> {
-    const targets = (workspaces ?? [...this.tracked].filter((item) => parseRemoteKey(item))).filter(
-      (workspace) => this.tracked.has(workspace),
+    const targets = (workspaces ?? [...this.tracked]).filter((workspace) =>
+      this.tracked.has(workspace),
     )
-    return this.readAll(targets, { awaitRemote: true })
+    return this.readAll(targets)
   }
 
   async close(): Promise<void> {
@@ -116,19 +115,9 @@ export class WorkspaceGitStore {
     await this.writing
   }
 
-  private async readAll(
-    workspaces: readonly string[],
-    options: { awaitRemote: boolean },
-  ): Promise<void> {
-    const local = workspaces.filter((workspace) => !parseRemoteKey(workspace))
-    const remote = workspaces
-      .filter((workspace) => parseRemoteKey(workspace))
-      .map((workspace) => this.read(workspace).then(() => this.flush()))
-
-    await Promise.all(local.map((workspace) => this.read(workspace)))
+  private async readAll(workspaces: readonly string[]): Promise<void> {
+    await Promise.all(workspaces.map((workspace) => this.read(workspace)))
     this.flush()
-
-    if (options.awaitRemote) await Promise.all(remote)
   }
 
   private read(workspace: string): Promise<void> {
@@ -156,7 +145,7 @@ export class WorkspaceGitStore {
 
     if (this.closed || !this.tracked.has(workspace)) return
 
-    if (head && !parseRemoteKey(workspace)) this.watchHead(workspace, head.headPath)
+    if (head) this.watchHead(workspace, head.headPath)
     else this.unwatch(workspace)
 
     if (sameGit(this.cache.get(workspace), head?.git)) return

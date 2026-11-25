@@ -4,7 +4,7 @@
   "private": true,
   "license": "MIT",
   "type": "module",
-  "description": "工具运行的环境：本机或 SSH 主机；执行命令、读写文件、搜索",
+  "description": "工具运行的环境：执行命令、读写文件、搜索，目前只有本机",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
@@ -22,11 +22,6 @@
     "@earendil-works/pi-coding-agent": "*"
   },
   "devDependencies": {
-    "@earendil-works/pi-coding-agent": "1.5.0",
-    "@types/ssh2": "1.15.6"
-  },
-  "dependencies": {
-    "ssh-config": "5.3.0",
-    "ssh2": "1.17.0"
+    "@earendil-works/pi-coding-agent": "1.5.0"
   }
 }

@@ -1,7 +1,6 @@
 import path from "node:path"
-import type { Environment } from "@pig/environment"
+import { localEnvironment, type Environment } from "@pig/environment"
 import type { WorkspaceGit } from "@pig/protocol"
-import { workspaceEnvironment } from "./remote-session.js"
 
 type GitReader = Pick<Environment, "stat" | "readFile">
 
@@ -64,6 +63,5 @@ export async function readGit(
 }
 
 export async function readWorkspaceGitHead(workspace: string): Promise<GitHead | undefined> {
-  const { env, root } = workspaceEnvironment(workspace)
-  return readGitHead(env, env.id === "local" ? path : path.posix, root)
+  return readGitHead(localEnvironment, path, workspace)
 }

@@ -50,10 +50,6 @@ const E2E_BY_AREA = [
   },
   { prefix: "apps/web/src/features/session-nav/", specs: ["e2e/sidebar/"] },
   {
-    prefix: "apps/web/src/features/remote-workspace/",
-    specs: ["e2e/sidebar/remote-workspace.spec.ts"],
-  },
-  {
     prefix: "apps/web/src/features/session-rail/",
     specs: ["e2e/workbench/subagent-rail.spec.ts"],
   },

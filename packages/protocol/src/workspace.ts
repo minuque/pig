@@ -1,11 +1,3 @@
-export interface EnvironmentInfo {
-  id: string
-  kind: "local" | "ssh"
-  host?: string
-  defaultPath?: string
-  saved: boolean
-}
-
 /** @ 文件引用候选：cwd 相对路径，目录带尾斜杠。 */
 export interface FileSearchEntry {
   path: string

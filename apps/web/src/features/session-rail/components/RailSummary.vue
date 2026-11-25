@@ -34,7 +34,7 @@
                         />
 
                         <span class="rail-summary" :aria-hidden="isOpen(id) || undefined">
-                          <template v-if="id === 'environment'">{{ place.host }}</template>
+                          <template v-if="id === 'environment'">{{ t("rail.local") }}</template>
 
                           <template v-else-if="id === 'context' && usage">
                             {{ usage.percent }}%
@@ -55,12 +55,12 @@
                         <template v-if="id === 'environment'">
                           <div class="rail-kv">
                             <span>{{ t("rail.location") }}</span>
-                            <span class="rail-value">{{ place.host }}</span>
+                            <span class="rail-value">{{ t("rail.local") }}</span>
                           </div>
 
-                          <div v-if="place.path" class="rail-kv">
+                          <div v-if="cwd" class="rail-kv">
                             <span>{{ t("rail.cwd") }}</span>
-                            <span class="rail-value" :title="place.path">{{ place.path }}</span>
+                            <span class="rail-value" :title="cwd">{{ cwd }}</span>
                           </div>
 
                           <div v-if="model" class="rail-kv">
@@ -151,10 +151,8 @@ import { useSessionRail } from "@features/session-rail/index.js"
 import { RAIL_SECTIONS, type RailSectionId } from "@features/session-rail/lib/sections.js"
 import type { TaskSections } from "@features/session-rail/lib/task-list.js"
 
-const REMOTE_KEY = /^ssh:[/][/]([^/]+)([/].*)?$/
 const props = defineProps<{
   cwd: string | undefined
-  localHost: string | undefined
   model: { provider: string; id: string } | undefined
   usage: ContextUsage | undefined
   sessionId: string | undefined
@@ -173,12 +171,6 @@ const titles = computed<Record<RailSectionId, string>>(() => ({
   tasks: t("rail.tasks"),
 }))
 const severity = computed(() => contextSeverity(props.usage?.percent ?? 0))
-const place = computed(() => {
-  const remote = props.cwd ? REMOTE_KEY.exec(props.cwd) : null
-  return remote
-    ? { host: remote[1], path: remote[2] || "/" }
-    : { host: props.localHost ?? t("rail.local"), path: props.cwd }
-})
 const statusLines = computed(() => [...(props.statuses?.values() ?? [])].filter(Boolean))
 const shown = computed(() =>
   RAIL_SECTIONS.filter((id) => {

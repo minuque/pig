@@ -2,9 +2,6 @@ import type { SessionMetadata } from "@/types/common-type.js"
 import { t } from "@i18n/index.js"
 
 export function workspaceName(path: string): string {
-  const remote = /^ssh:\/\/([^/]+)(\/.*)?$/.exec(path)
-
-  if (remote) return `${remote[1]} / ${workspaceName(remote[2] || "/")}`
   const segments = path.split(/[\\/]/).filter(Boolean)
   return segments[segments.length - 1] ?? path
 }

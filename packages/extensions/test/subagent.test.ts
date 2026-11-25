@@ -145,24 +145,6 @@ describe("subagent：派子任务、并行、中止", () => {
 
     expect(result.details.tasks.map((item) => item.status)).toEqual(["stopped", "stopped"])
   })
-
-  it("远程会话：子任务给的 cwd 是远端目录，本地仍用父会话的占位目录", async () => {
-    const runs: ChildRun[] = []
-    const startChild: StartChild = async (child) => {
-      runs.push(child)
-      return { output: "", usage: { input: 0, output: 0, cost: 0 } }
-    }
-    const binding = { environment: "ssh://devbox", path: "/srv/app" }
-    const entries = [{ type: "custom", customType: "pig.remote", data: binding }]
-
-    await run({ agent: "scout", task: "a", cwd: "packages/api" }, startChild, undefined, entries)
-    await run({ agent: "scout", task: "b" }, startChild, undefined, entries)
-
-    expect(runs.map((child) => [child.cwd, child.remote])).toEqual([
-      [root, { environment: "ssh://devbox", path: "/srv/app/packages/api" }],
-      [root, binding],
-    ])
-  })
 })
 
 describe("subagent：后台派出", () => {

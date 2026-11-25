@@ -75,6 +75,8 @@ export class LocalEnvironment implements Environment {
   async close() {}
 }
 
+export const localEnvironment = new LocalEnvironment()
+
 async function walk(
   dir: string,
   prefix: string,

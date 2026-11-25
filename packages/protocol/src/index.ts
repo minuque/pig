@@ -126,7 +126,6 @@ export { canonicalizeWorkspacePath } from "./workspace-path.js"
 
 export type {
   ComposerCommand,
-  EnvironmentInfo,
   ContentSearchMatch,
   ContentSearchResponse,
   DirectoryEntry,

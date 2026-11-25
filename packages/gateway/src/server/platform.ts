@@ -1,8 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http"
-import { listEnvironments } from "@pig/environment"
+import { localEnvironment } from "@pig/environment"
 import { AttachmentError, type AttachmentErrorCode, sanitizeMimeType } from "../pi/attachments.js"
 import { isContextPreviewKey } from "../pi/context-usage.js"
-import { validateRemoteDirectory, workspaceEnvironment } from "../pi/remote-session.js"
 import { GatewayError, SessionNotFoundError } from "../pi/runtime-types.js"
 import type { PiHostService } from "../pi/service.js"
 import type { DirectoryPort } from "../system/directory.js"
@@ -26,12 +25,9 @@ import {
   defaultMapError,
 } from "./router.js"
 
-export type EnvironmentSources = { sshConfigPath?: string; savedPath?: string }
-
 export type PlatformRequestDeps = HttpDeps & {
   hostService: PiHostService
   platformPort: DirectoryPort
-  environments: EnvironmentSources
   preferences: PreferencesStore
   sessionArchives: SessionArchivesStore
 }
@@ -44,17 +40,6 @@ const platformRoutes = {
   "POST /api/v1/platform/select-directory": async (ctx) => {
     const { hostService, platformPort } = ctx.deps
     const payload = await ctx.json().catch((): Record<string, unknown> => ({}))
-
-    if (typeof payload.environment === "string" && payload.environment !== "local") {
-      const remote =
-        typeof payload.path === "string"
-          ? await validateRemoteDirectory(payload.environment, payload.path, ctx.deps.environments)
-          : undefined
-
-      if (remote) await hostService.authorizeWorkspace(remote)
-      return { path: remote ?? null, requiresManualInput: true }
-    }
-
     const input =
       platformPort.requiresManualInput && typeof payload.path === "string"
         ? payload.path
@@ -80,10 +65,6 @@ const platformRoutes = {
     hostService.prepareWorkspace(path)
     return { ok: true }
   },
-
-  "GET /api/v1/platform/environments": async ({ deps }) => ({
-    environments: await listEnvironments(deps.environments),
-  }),
 
   "GET /api/v1/platform/preferences": async ({ deps }) => deps.preferences.read(),
 
@@ -169,8 +150,7 @@ const platformRoutes = {
 
     req.once("close", () => controller.abort())
 
-    const { env, root } = workspaceEnvironment(cwd)
-    const entries = await env.search(root, url.searchParams.get("q") ?? "", {
+    const entries = await localEnvironment.search(cwd, url.searchParams.get("q") ?? "", {
       signal: controller.signal,
     })
     return { entries }

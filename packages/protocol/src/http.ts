@@ -21,7 +21,6 @@ import type {
   ComposerCommand,
   ContentSearchResponse,
   DirectoryListResponse,
-  EnvironmentInfo,
   FileSearchEntry,
   FileStatResponse,
   FileTextResponse,
@@ -40,14 +39,13 @@ export interface PlatformHttpRouteSpec {
 export interface PlatformHttpRoutes {
   "POST /api/v1/platform/select-directory": {
     /** 不带 body 也能问：交互式平台会回要求手输。 */
-    body: { path?: string; environment?: string } | undefined
+    body: { path?: string } | undefined
     response: { path: string | null; requiresManualInput: boolean }
   }
   "POST /api/v1/platform/warm-workspace": {
     body: { path: string }
     response: { ok: true }
   }
-  "GET /api/v1/platform/environments": { response: { environments: EnvironmentInfo[] } }
   "GET /api/v1/platform/session-cards": { response: { cards: SessionCard[] } }
   "GET /api/v1/platform/context-usage": {
     query: { sessionId: string; preview?: string }

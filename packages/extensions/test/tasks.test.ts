@@ -58,7 +58,7 @@ function fakeEnvironment() {
   return { env, runs }
 }
 
-function setup(overrides: { maxRunning?: number; logMaxBytes?: number; remote?: boolean } = {}) {
+function setup(overrides: { maxRunning?: number; logMaxBytes?: number } = {}) {
   const tools = new Map<string, Tool>()
   const handlers = new Map<string, Handler>()
   const channels = new Map<string, Array<(data: unknown) => void>>()
@@ -92,7 +92,7 @@ function setup(overrides: { maxRunning?: number; logMaxBytes?: number; remote?: 
       logMaxBytes: overrides.logMaxBytes ?? 10 * 1024 * 1024,
       logDir,
     },
-    workspace: () => ({ env, cwd: "/work", remote: overrides.remote ?? false }),
+    workspace: () => ({ env, cwd: "/work" }),
   })(pi as never)
   pi.events.on("pig:tasks", (data) => published.push((data as { tasks: Task[] }).tasks))
   void handlers.get("session_start")?.(...([{}, ctx] as never[]))
@@ -264,24 +264,15 @@ describe("后台任务：启动、结束、停止", () => {
     expect(latest()[0]).toMatchObject({ status: "completed", output: "hi\n" })
   })
 
-  it("读输出：本地会话带日志路径，远程会话不带", async () => {
-    const local = setup()
-    const localId = /bash:\w+/.exec(
-      await local.call("bg_task_start", { command: "a", description: "a" }),
-    )![0]
+  it("读输出：带上日志路径", async () => {
+    const { call, runs } = setup()
+    const id = /bash:\w+/.exec(await call("bg_task_start", { command: "a", description: "a" }))![0]
 
-    local.runs[0]!.options.onData(Buffer.from("hello\n"))
-    const localText = await local.call("bg_task_output", { id: localId })
+    runs[0]!.options.onData(Buffer.from("hello\n"))
+    const text = await call("bg_task_output", { id })
 
-    expect(localText).toContain("hello")
-    expect(localText).toContain(logDir)
-
-    const remote = setup({ remote: true })
-    const remoteId = /bash:\w+/.exec(
-      await remote.call("bg_task_start", { command: "a", description: "a" }),
-    )![0]
-
-    expect(await remote.call("bg_task_output", { id: remoteId })).not.toContain(logDir)
+    expect(text).toContain("hello")
+    expect(text).toContain(logDir)
   })
 
   it("会话关闭：在跑的任务全部停止，各留一条已停止的通知", async () => {

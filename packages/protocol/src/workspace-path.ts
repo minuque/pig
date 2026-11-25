@@ -2,11 +2,6 @@ export function canonicalizeWorkspacePath(
   path: string,
   options?: { caseInsensitive?: boolean },
 ): string {
-  if (path.startsWith("ssh://")) {
-    const key = path.replace(/\/+$/, "")
-    return /^ssh:\/\/[^/]+$/.test(key) ? `${key}/` : key
-  }
-
   const trimmed = path.replaceAll("\\", "/").replace(/\/+$/, "")
   // 外部：`c:` 是该盘当前目录，不是盘符根，根路径要保留尾斜杠
   const normalized =

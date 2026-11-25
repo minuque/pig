@@ -73,15 +73,6 @@ function createNav(
     for (const cwd of cwds) {
       const name = workspaceName(cwd)
       const choice = iconOf(cwd)
-      let host: string | undefined
-
-      if (cwd.startsWith("ssh://")) {
-        try {
-          host = new URL(cwd).host || undefined
-        } catch {
-          host = undefined
-        }
-      }
 
       map.set(cwd, {
         cwd,
@@ -89,7 +80,6 @@ function createNav(
         monogram: projectMonogram(name),
         tone: projectIconTone(choice?.color ?? projectIconColorOf(cwd)),
         iconName: choice?.name,
-        host,
       })
     }
 
@@ -234,7 +224,6 @@ function createNav(
     cancelPendingOpen,
     setDraftSession: nav.setDraftSession,
     addWorkspace: nav.addWorkspace,
-    addRemoteWorkspace: nav.addRemoteWorkspace,
     renameSession: nav.renameSession,
     deleteSession: nav.deleteSession,
     deleteSessions: nav.deleteSessions,

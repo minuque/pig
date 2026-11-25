@@ -1,9 +1,6 @@
-import { posix } from "node:path"
-
 import type { ExtensionAPI, ToolDefinition } from "@earendil-works/pi-coding-agent"
 import type { AgentTask, ModelChannels, TaskDetails } from "@pig/protocol"
 import { type AgentConfig, type AgentScope, discoverAgents } from "./agents.ts"
-import { fromEntries } from "../remote-workspace/index.ts"
 import { taskConfig } from "../tasks/config.ts"
 import { registryFor } from "../tasks/registry.ts"
 import {
@@ -199,19 +196,14 @@ export function createSubagentTool(deps: { startChild?: StartChild } = {}): Tool
         result.startedAt = Date.now()
         publish()
 
-        const parent = fromEntries(ctx)
-        const remote =
-          parent && task.cwd ? { ...parent, path: posix.resolve(parent.path, task.cwd) } : parent
-
         try {
           const done = await startChild({
             agent,
             task: task.task.replaceAll("{previous}", previous),
-            cwd: parent ? ctx.cwd : (task.cwd ?? ctx.cwd),
+            cwd: task.cwd ?? ctx.cwd,
             model: resolveModel(ctx, agent.model),
             thinkingLevel: ctx.thinkingLevel,
             parentSessionFile: ctx.sessionManager.getSessionFile(),
-            remote,
             sessionDir: ctx.sessionManager.getSessionDir(),
             signal,
             onSession: (sessionId) => {
