@@ -36,7 +36,6 @@ export const layers: Record<string, Layer[]> = {
         "features/transcript-view",
         "features/settings",
         "features/preview",
-        "features/remote-workspace",
         "features/startup",
         "features/theme",
         "features/click-sound",
@@ -63,6 +62,6 @@ export const layers: Record<string, Layer[]> = {
   ],
   "packages/extensions": [
     { name: "扩展", note: "对外能力", dirs: ["subagent", "turn-timing", "file-mentions", "context-references"] },
-    { name: "底座", note: "被其他扩展复用", dirs: ["tasks", "remote-workspace"] },
+    { name: "底座", note: "被其他扩展复用", dirs: ["tasks"] },
   ],
 }

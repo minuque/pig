@@ -10,7 +10,7 @@ apps/desktop/          Electron main / preload
 packages/gateway/      Thin Host：平台接入与本地安全
 packages/protocol/     gateway 与 web 之间的 WS 消息与 HTTP 数据形状，只有类型
 packages/extensions/   pig 内置的 pi 扩展，只用公开 Extension API，只由 gateway 加载
-packages/environment/  工具运行的环境：本机或 SSH；执行命令、读写文件、搜索、环境列表
+packages/environment/  工具运行的环境：执行命令、读写文件、搜索（目前只有本机）
 packages/ui/           可复用的 Vue 3 设计系统：基础 token 与无业务基础组件
 e2e/                   浏览器 UI 旅程（Playwright，跨 Web 构建物与 Gateway）
 scripts/               开发、构建、发版、架构看板与 check 入口
@@ -104,9 +104,9 @@ packages/gateway/src/
 ├── cli.ts
 ├── index.ts        # 导出 Gateway、DirectoryPort
 ├── auth/           # 浏览器启动凭证与通行证
-├── pi/             # Session 运行时、会话索引、transcript、卡片、远程会话
+├── pi/             # Session 运行时、会话索引、transcript、卡片
 ├── server/         # HTTP 与 WebSocket 协议端（@pig/protocol）
-└── system/         # directory.ts：目录选择、canonicalizePath（含远程 workspace 键）；preferences.ts / session-archives.ts：preferences.json 与 session-archives.json 读写与外部热更新
+└── system/         # directory.ts：目录选择、canonicalizePath；preferences.ts / session-archives.ts：preferences.json 与 session-archives.json 读写与外部热更新
 ```
 
 `test/` 跟 `src/` 同层。运行配置走环境变量：`PORT`（默认 `8787`）、`OPEN=1`（启动后打开浏览器，等价 `--open`）、`PIG_SESSION_DIR`（会话目录，默认用 Pi 的）、`PIG_CWD`（初始工作目录）、`PIG_HOME`（跨设备文件根目录，默认 `~/.pig`，`preferences.json`、`session-archives.json` 等落在里面）。
@@ -129,20 +129,11 @@ SDK 跟版：
 
 ## packages/extensions
 
-`src/` 下六个内置扩展：`turn-timing`、`file-mentions`、`context-references`（会话与回复引用的信封、`read_session` 工具）、`subagent`、`tasks`、`remote-workspace`。它们只用公开 Extension API，只由 gateway 加载，不注册到 pi TUI。新增扩展先确认公开 API 够用，不够就不要塞私有接口。
+`src/` 下五个内置扩展：`turn-timing`、`file-mentions`、`context-references`（会话与回复引用的信封、`read_session` 工具）、`subagent`、`tasks`。它们只用公开 Extension API，只由 gateway 加载，不注册到 pi TUI。新增扩展先确认公开 API 够用，不够就不要塞私有接口。
 
 ## packages/environment
 
-编译型内部包：gateway 构建时用 `dist`；开发、测试经 `tsconfig.base.json` 的 paths 直接用源码；扩展经 pi 的 jiti 加载 `@pig/environment/source`。同一进程里的环境挂在 `globalThis` 上，gateway 与扩展共用一条 SSH 连接。
-
-## 远程 workspace
-
-跨 packages：agent 留在本机，工具经 SSH 转发到远端。
-
-- workspace 键：本地是规范化路径，远程是 `ssh://主机/路径`。会话列表、侧栏、目录白名单都用这个键。
-- 绑定：gateway 建远程会话时把 `pig.remote` 条目写进会话文件；会话 cwd 是 `~/.pig/remote/<主机>/<路径哈希>` 占位目录。
-- 工具：`remote-workspace` 扩展读到绑定后替换 read / write / edit / bash，并注入远端 AGENTS.md、同步远端 skills。subagent 子会话继承父会话的绑定。
-- 平台功能：文件搜索、选目录走 `@pig/environment`；非图片附件上传到远端 `/tmp/pig-attachments`。
+编译型内部包：gateway 构建时用 `dist`；开发、测试经 `tsconfig.base.json` 的 paths 直接用源码；扩展经 pi 的 jiti 加载 `@pig/environment/source`。只有本机一种实现。
 
 ## e2e
 
