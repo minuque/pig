@@ -170,6 +170,20 @@ describe("Skills 路由", () => {
     expect(bad.status).toBe(403)
   })
 
+  it("frontmatter 的 YAML 解析失败时不写入，带回 Pi 的报错", async () => {
+    const file = await skill("alpha")
+    const res = await call("PUT", "/api/v1/platform/skill-settings/file", {
+      scope: "global",
+      path: file,
+      raw: "---\ndescription: a: b\n---\n",
+    })
+    const body = await res.json()
+
+    expect(body.ok).toBe(false)
+    expect(body.error).toContain("line 1")
+    expect(await readFile(file, "utf8")).toContain("name: alpha")
+  })
+
   it("新建后出现在列表里，停用后仍在且 enabled 为 false", async () => {
     const created = await call("POST", "/api/v1/platform/skill-settings", {
       scope: "global",

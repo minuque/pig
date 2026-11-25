@@ -191,7 +191,13 @@ const agentConfigRoutes = {
     const path = await knownSkill(ctx.deps, scope, text(payload.path))
 
     if (typeof payload.raw !== "string") throw new HttpError(400, "INVALID_REQUEST")
-    await writeSkillFile(path, payload.raw)
+
+    try {
+      await writeSkillFile(path, payload.raw)
+    } catch (error) {
+      return { ok: false, error: error instanceof Error ? error.message : String(error) }
+    }
+
     changed(ctx.deps, scope)
     return { ok: true }
   },

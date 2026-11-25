@@ -233,7 +233,7 @@ export interface PlatformHttpRoutes {
   }
   "PUT /api/v1/platform/skill-settings/file": {
     body: { scope: string; path: string; raw: string }
-    response: { ok: true }
+    response: { ok: true } | { ok: false; error: string }
   }
   "POST /api/v1/platform/skill-settings": {
     body: { scope: string; name: string; description: string }

@@ -83,8 +83,8 @@ export async function writeSkill(
   scope: AgentConfigScope,
   path: string,
   raw: string,
-): Promise<void> {
-  await request("PUT /api/v1/platform/skill-settings/file", { body: { scope, path, raw } })
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  return request("PUT /api/v1/platform/skill-settings/file", { body: { scope, path, raw } })
 }
 
 export function createSkill(

@@ -198,6 +198,7 @@ export async function readSkillFile(path: string): Promise<SkillFileView> {
 }
 
 export async function writeSkillFile(path: string, raw: string): Promise<void> {
+  parseFrontmatter(raw)
   await writeFile(path, raw)
 }
 

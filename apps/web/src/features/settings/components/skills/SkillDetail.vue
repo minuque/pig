@@ -39,6 +39,12 @@
     <template v-if="mode === 'edit' && !inherited">
       <textarea v-model="raw" class="skill-source" spellcheck="false" aria-label="SKILL.md" />
       <p v-if="check.error" class="source-error">{{ t(errorKey) }}</p>
+
+      <div v-else-if="invalid" class="source-error">
+        {{ t("settings.skills.yamlInvalid") }}
+        <pre class="source-reason">{{ invalid }}</pre>
+      </div>
+
       <p v-else-if="check.warning" class="source-warning">{{ t("settings.skills.nameWarning") }}</p>
 
       <div class="detail-footer">
@@ -95,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue"
+import { computed, onMounted, ref, watch } from "vue"
 import type { SkillView } from "@pig/protocol"
 
 import type { SkillsState } from "@features/settings/hooks/use-skills.js"
@@ -135,6 +141,7 @@ const saved = ref("")
 const files = ref<string[]>([])
 const saving = ref(false)
 const confirming = ref(false)
+const invalid = ref<string>()
 const title = computed(() => props.skill?.name ?? props.name)
 const dirty = computed(() => raw.value !== saved.value)
 const check = computed(() => checkSkillSource(raw.value))
@@ -146,6 +153,9 @@ const errorKey = computed(() =>
 const target = computed(() => deleteTarget(props.path, props.state.view.value?.roots ?? []))
 const dir = computed(() => target.value.path)
 const standard = computed(() => target.value.standard)
+
+watch(raw, () => (invalid.value = undefined))
+
 const nodes = useMarkdownNodes({
   text: () => skillBody(raw.value),
   streaming: () => false,
@@ -164,7 +174,11 @@ async function save() {
   saving.value = true
 
   try {
-    await props.state.write(props.path, raw.value)
+    const reason = await props.state.write(props.path, raw.value)
+
+    invalid.value = reason
+
+    if (reason) return
     saved.value = raw.value
     mode.value = "preview"
   } catch {
@@ -262,6 +276,12 @@ defineExpose({ dirty })
 
 .source-error {
   color: var(--danger-text);
+}
+
+.source-reason {
+  margin: var(--space-2xs) 0 0;
+  font-family: var(--font-mono);
+  white-space: pre-wrap;
 }
 
 .source-warning {

@@ -30,10 +30,11 @@ export function useSkills(scope: Ref<string>) {
     }
   }
 
-  async function mutate(task: () => Promise<unknown>): Promise<void> {
+  async function mutate(task: () => Promise<unknown>, saved = () => true): Promise<void> {
     try {
       await task()
-      notify(t("settings.skills.saved"), "success")
+
+      if (saved()) notify(t("settings.skills.saved"), "success")
     } catch (cause) {
       notify(errorMessage(cause), "error")
       throw cause
@@ -60,8 +61,18 @@ export function useSkills(scope: Ref<string>) {
     return readSkill(scope.value, path)
   }
 
-  function write(path: string, raw: string) {
-    return mutate(() => writeSkill(scope.value, path, raw))
+  async function write(path: string, raw: string): Promise<string | undefined> {
+    let invalid: string | undefined
+
+    await mutate(
+      async () => {
+        const result = await writeSkill(scope.value, path, raw)
+
+        if (!result.ok) invalid = result.error
+      },
+      () => !invalid,
+    )
+    return invalid
   }
 
   function remove(path: string) {

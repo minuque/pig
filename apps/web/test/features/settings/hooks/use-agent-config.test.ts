@@ -66,4 +66,15 @@ describe("设置写入的反馈", () => {
     await expect(state.write("a/SKILL.md", "x")).rejects.toThrow()
     expect(toast.notify).toHaveBeenLastCalledWith(expect.any(String), "error")
   })
+
+  it("Skill 的 YAML 写错时返回原因，不提示已保存", async () => {
+    const { useSkills } = await import("@features/settings/hooks/use-skills.js")
+    const state = useSkills(ref("global"))
+
+    toast.notify.mockClear()
+    api.writeSkill.mockResolvedValueOnce({ ok: false, error: "bad yaml" })
+
+    await expect(state.write("a/SKILL.md", "x")).resolves.toBe("bad yaml")
+    expect(toast.notify).not.toHaveBeenCalled()
+  })
 })
