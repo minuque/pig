@@ -121,17 +121,23 @@
                       </template>
                     </span>
 
-                    <span v-if="foot?.git && !renaming" class="context-line">
-                      <FolderGit2Icon v-if="foot.git.worktree" class="size-icon-sm context-icon" />
-                      <GitBranchIcon v-else class="size-icon-sm context-icon" />
-                      <span class="context-text">{{ foot.git.branch }}</span>
+                    <Transition name="list-reveal">
+                      <span v-if="foot?.git && !renaming" class="context-line">
+                        <FolderGit2Icon
+                          v-if="foot.git.worktree"
+                          class="size-icon-sm context-icon"
+                        />
 
-                      <SessionRowMarks
-                        :foot="foot"
-                        @open="emit('open', $event)"
-                        @fork-hover="forkHover = $event"
-                      />
-                    </span>
+                        <GitBranchIcon v-else class="size-icon-sm context-icon" />
+                        <span class="context-text">{{ foot.git.branch }}</span>
+
+                        <SessionRowMarks
+                          :foot="foot"
+                          @open="emit('open', $event)"
+                          @fork-hover="forkHover = $event"
+                        />
+                      </span>
+                    </Transition>
                   </template>
 
                   <template v-else>
