@@ -22,3 +22,29 @@ export interface McpScopeView {
   inherited: McpServerView[]
   invalid: McpInvalidEntry[]
 }
+
+export interface SkillView {
+  name: string
+  description: string
+  filePath: string
+  enabled: boolean
+  disableModelInvocation: boolean
+}
+
+export interface SkillDiagnosticView {
+  kind: "broken" | "collision"
+  path: string
+  message: string
+  name?: string
+}
+
+export interface SkillScopeView {
+  skills: SkillView[]
+  inherited: SkillView[]
+  diagnostics: SkillDiagnosticView[]
+}
+
+export interface SkillFileView {
+  raw: string
+  files: string[]
+}

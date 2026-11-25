@@ -38,6 +38,10 @@ export type {
   McpInvalidEntry,
   McpScopeView,
   McpServerView,
+  SkillDiagnosticView,
+  SkillFileView,
+  SkillScopeView,
+  SkillView,
 } from "./agent-config.js"
 
 export type { ExtensionUiDialog, ExtensionUiRequest, ExtensionUiResponse } from "./extension-ui.js"
