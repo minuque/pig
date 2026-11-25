@@ -8,7 +8,10 @@
     }"
   >
     <ContextMenu :modal="false" @update:open="onMenuOpenChange">
-      <HoverCard :disabled="placeholder || renaming || menuOpen || forkHover">
+      <HoverCard
+        v-model:open="hoverOpen"
+        :disabled="placeholder || renaming || menuOpen || forkHover || pressed"
+      >
         <HoverCardTrigger>
           <template #render="{ props: card }">
             <ContextMenuTrigger v-bind="card">
@@ -32,7 +35,9 @@
                   draggable="false"
                   @click="onCardClick"
                   @dblclick="onCardDblclick"
+                  :ref="setCardEl"
                   @pointerdown.left="onCardPointerDown"
+                  @pointerleave="onCardLeave"
                   @dragstart.prevent
                   @keydown="onCardKeydown"
                 >
@@ -260,7 +265,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, shallowRef, watch } from "vue"
+import { computed, nextTick, ref, shallowRef, watch, type ComponentPublicInstance } from "vue"
 import { useIntervalFn } from "@vueuse/core"
 import { RouterLink } from "vue-router"
 import { useI18n } from "@i18n/index.js"
@@ -278,6 +283,7 @@ import SessionHoverCard from "@features/session-nav/components/SessionHoverCard.
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import SessionStateIcon from "@features/session-nav/components/SessionStateIcon.vue"
 import { sessionGlyph } from "@features/session-nav/lib/status-cycle.js"
+import { pressedCard, trackPressedCard } from "@features/session-nav/lib/pressed-card.js"
 import ProjectIcon from "@features/session-nav/components/ProjectIcon.vue"
 import { formatRelativeTime, workspaceName } from "@features/session-nav/lib/format.js"
 import { formatElapsed } from "@utils/time.js"
@@ -342,6 +348,16 @@ const splitShown = computed(
 )
 const { t } = useI18n()
 const menuOpen = ref(false)
+const hoverOpen = shallowRef(false)
+const cardEl = shallowRef<Element | null>(null)
+const pressed = computed(() => cardEl.value !== null && pressedCard.value === cardEl.value)
+
+trackPressedCard()
+
+watch(pressed, (value) => {
+  if (value) hoverOpen.value = false
+})
+
 const deleteOpen = shallowRef(false)
 const projectName = computed(() => (props.session.cwd ? workspaceName(props.session.cwd) : ""))
 const glyphState = computed(() => sessionGlyph(props.session, props.foot?.state))
@@ -410,6 +426,14 @@ function onMenuOpenChange(open: boolean) {
 
 function isModifiedSessionClick(event: MouseEvent) {
   return event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
+}
+
+function setCardEl(el: Element | ComponentPublicInstance | null) {
+  cardEl.value = el instanceof Element ? el : ((el?.$el as Element | undefined) ?? null)
+}
+
+function onCardLeave() {
+  if (pressed.value) pressedCard.value = null
 }
 
 function onCardPointerDown(event: PointerEvent) {
