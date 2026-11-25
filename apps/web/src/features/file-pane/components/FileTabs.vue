@@ -132,7 +132,7 @@ watch(
   min-inline-size: 104px;
   max-inline-size: max-content;
   block-size: 24px;
-  padding: 2px;
+  padding: var(--space-2xs);
   border-radius: var(--radius-control);
   color: var(--fg-secondary);
   font-size: var(--text-meta);
@@ -187,8 +187,8 @@ watch(
 
 .file-tab-close[data-icon-button] {
   position: relative;
-  inline-size: 20px;
-  block-size: 20px;
+  inline-size: 16px;
+  block-size: 16px;
   border-radius: var(--radius-min);
   color: var(--fg-secondary);
 }

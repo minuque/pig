@@ -119,7 +119,7 @@ const stats = computed(() => {
 
 .hover-rows {
   display: grid;
-  gap: 2px;
+  gap: var(--space-2xs);
   margin-inline: calc(var(--space-2xs) * -1);
 }
 

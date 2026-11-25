@@ -102,6 +102,7 @@ import { Slider } from "@pig/ui/slider"
 import { Switch } from "@pig/ui/switch"
 import { CircleExclamationPointIcon } from "@components/icons/index.js"
 import tokensCss from "@style/tokens.css?raw"
+import uiTokensCss from "@pig/ui/styles/tokens.css?raw"
 import MarkdownContent from "@features/transcript-view/components/markdown/MarkdownContent.vue"
 import { useMarkdownNodes } from "@features/transcript-view/hooks/use-markdown-nodes.js"
 import { useColorScheme } from "@features/theme/index.js"
@@ -117,7 +118,7 @@ const SURFACES: Record<string, string> = {
 const CURRENT: Values = {
   border: "--border",
   divider: "--border-subtle",
-  radius: Number(declared(tokensCss, "--radius-card", /([\d.]+)px/) ?? 8),
+  radius: Number(declared(uiTokensCss, "--radius-card", /([\d.]+)px/)),
   surface: declared(tokensCss, "--card-surface", /(transparent)/) ? "none" : "surface",
 }
 const PRESETS: (Values & { name: string })[] = [
