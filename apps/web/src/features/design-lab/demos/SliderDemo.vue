@@ -40,7 +40,7 @@ import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
 import { ref } from "vue"
 import { Slider } from "@pig/ui/slider"
-import { formatThinkingLevel } from "@features/composer/lib/thinking-level.js"
+import { formatThinkingLevel } from "@utils/thinking-level.js"
 
 const LEVELS = ["off", "low", "medium", "high", "max"]
 const value = ref([40])

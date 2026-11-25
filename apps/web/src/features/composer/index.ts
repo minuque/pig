@@ -5,8 +5,6 @@ import type { SessionContext } from "@features/session/index.js"
 
 export { default as QueuedMessages } from "@features/composer/components/QueuedMessages.vue"
 
-export { formatThinkingLevel } from "@features/composer/lib/thinking-level.js"
-
 export type ComposerPresetContext = Pick<
   ReturnType<typeof useSessionComposer>,
   "catalog" | "preset"
