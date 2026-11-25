@@ -1,4 +1,4 @@
-import type { McpExposure } from "@pig/protocol"
+import type { McpExposure, McpProbe, McpServerView } from "@pig/protocol"
 
 export interface KvRow {
   key: string
@@ -129,4 +129,17 @@ export function configFromDraft(draft: McpDraft, base?: Config): Config {
     ...(draft.exposure !== "codemode" ? { exposure: draft.exposure } : {}),
     ...(draft.enabled ? {} : { enabled: false }),
   }
+}
+
+export function oauthAction(
+  server: Pick<McpServerView, "transport" | "config">,
+  probe: McpProbe | undefined,
+): "login" | "logout" | undefined {
+  const headers = (server.config.headers ?? {}) as Record<string, unknown>
+  const usesHeader = Object.keys(headers).some((key) => key.toLowerCase() === "authorization")
+
+  if (server.transport !== "http" || server.config.auth || usesHeader) return undefined
+
+  if (probe?.status === "needs-auth") return "login"
+  return probe?.status === "connected" ? "logout" : undefined
 }

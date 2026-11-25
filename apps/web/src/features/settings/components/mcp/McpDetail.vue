@@ -36,21 +36,25 @@
       </Button>
 
       <template v-else>
-        <template v-if="server.transport === 'http' && !server.config.auth">
-          <Button
-            v-if="probe?.status === 'connected'"
-            type="button"
-            size="s"
-            variant="outline"
-            @click="state.logout(server)"
-          >
-            {{ t("settings.mcp.logout") }}
-          </Button>
+        <Button
+          v-if="oauth === 'logout'"
+          type="button"
+          size="s"
+          variant="outline"
+          @click="state.logout(server)"
+        >
+          {{ t("settings.mcp.logout") }}
+        </Button>
 
-          <Button v-else type="button" size="s" variant="outline" @click="loggingIn = true">
-            {{ t("settings.mcp.login") }}
-          </Button>
-        </template>
+        <Button
+          v-else-if="oauth === 'login'"
+          type="button"
+          size="s"
+          variant="outline"
+          @click="loggingIn = true"
+        >
+          {{ t("settings.mcp.login") }}
+        </Button>
 
         <Button
           v-if="!server.override"
@@ -179,7 +183,7 @@ import type { McpExposure, McpServerView } from "@pig/protocol"
 import { TriangleAlertIcon } from "@components/icons/index.js"
 import McpLogin from "@features/settings/components/mcp/McpLogin.vue"
 import type { McpState } from "@features/settings/hooks/use-mcp.js"
-import { joinArgs } from "@features/settings/lib/mcp-draft.js"
+import { joinArgs, oauthAction } from "@features/settings/lib/mcp-draft.js"
 import { useI18n } from "@i18n/index.js"
 import {
   AlertDialog,
@@ -218,6 +222,7 @@ const { t } = useI18n()
 const confirming = ref(false)
 const loggingIn = ref(false)
 const probe = computed(() => props.state.probes.value[props.server.name])
+const oauth = computed(() => oauthAction(props.server, probe.value))
 const tone = computed(() => TONES[props.state.statusOf(props.server)])
 const description = computed(() => String(props.server.config.description ?? ""))
 const rules = computed(() =>
