@@ -14,7 +14,6 @@ import type { ChangeDetails, Primitive, Side } from "@ui-sdk/core"
 import { tooltip, type TooltipOpenChangeReason } from "@ui-sdk/core/tooltip"
 import { usePrimitive } from "@ui-sdk/vue/primitive"
 import TooltipContent from "./TooltipContent.vue"
-import { shouldCancelOverflowOpen } from "./overflow.js"
 
 defineOptions({ inheritAttrs: false })
 
@@ -41,7 +40,9 @@ const handle = usePrimitive(tooltip as unknown as Primitive, () => ({
   delay: 400,
   type: "description",
   onOpenChange(open: boolean, details: ChangeDetails<TooltipOpenChangeReason>) {
-    if (shouldCancelOverflowOpen(open, host.value, props.always)) {
+    const el = host.value
+
+    if (open && !props.always && !(el && el.scrollWidth > el.clientWidth + 1)) {
       details.cancel()
       return
     }

@@ -160,7 +160,7 @@
 
   /* --- 布局 --- */
   --toast-width: 22rem;
-  --content-width: 770px;
+  --content-width: 768px;
   --dialog-width-sm: 420px;
   --dialog-width-lg: 80rem;
   --dialog-height-lg: 60rem;
@@ -297,15 +297,10 @@ html[data-density="compact"] {
   --control-sm: 24px;
   --control-md: 28px;
   --control-lg: 32px;
-  --content-width: 767px;
 }
 
 html[data-chat-width="wide"] {
-  --content-width: 924px;
-}
-
-html[data-density="compact"][data-chat-width="wide"] {
-  --content-width: 923px;
+  --content-width: 920px;
 }
 
 html[data-chat-width="full"] {

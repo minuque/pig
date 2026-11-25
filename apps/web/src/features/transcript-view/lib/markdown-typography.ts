@@ -30,6 +30,9 @@ const PHRASE_HEADING_TAGS = new Set(["h1", "h2", "h3"])
 const HAN_RE = /\p{Script=Han}/u
 const HAN_ALL_RE = /\p{Script=Han}/gu
 const LATIN_WORD_RE = /[A-Za-z]+(?:['’-][A-Za-z]+)*/g
+const NO_BREAK_BEFORE_RE = /^[、。，．：；！？）」』】》〉’”]/u
+const NO_BREAK_AFTER_RE = /[（「『【《〈‘“]$/u
+const enhanced = new WeakMap<ElementNode, ElementNode>()
 
 export type ProseLang = "zh-Hans" | "en"
 
@@ -139,7 +142,9 @@ function insertHeadingBreaks(children: Node[]): { children: Node[]; inserted: bo
       prev !== undefined &&
       (typeof prev !== "string" || typeof current !== "string") &&
       !endsWithWhitespace(prev) &&
-      !startsWithWhitespace(current)
+      !startsWithWhitespace(current) &&
+      !NO_BREAK_AFTER_RE.test(collectProseText(prev)) &&
+      !NO_BREAK_BEFORE_RE.test(collectProseText(current))
     ) {
       withEdges.push(["wbr", {}])
       inserted = true
@@ -155,6 +160,9 @@ function enhanceElement(node: ElementNode): ElementNode {
   const tag = node[0]
 
   if (tag === null || SKIP_TAGS.has(tag)) return node
+  const hit = enhanced.get(node)
+
+  if (hit) return hit
   const attrs = { ...node[1] }
 
   if (LANG_BLOCK_TAGS.has(tag) && attrs["lang"] === undefined) {
@@ -176,7 +184,9 @@ function enhanceElement(node: ElementNode): ElementNode {
     if (broken.inserted || /\s/.test(collectProseText(node))) attrs["data-phrase-break"] = ""
   }
 
-  return [tag, attrs, ...children]
+  const result: ElementNode = [tag, attrs, ...children]
+  enhanced.set(node, result)
+  return result
 }
 
 export function enhanceMarkdownTypography(nodes: Node[]): Node[] {

@@ -69,3 +69,30 @@ describe("Markdown 排版增强", () => {
     expect(findNodes(pre, "wbr")).toHaveLength(0)
   })
 })
+
+describe("Markdown 排版增强与流式解析", () => {
+  it("流式追加时已稳定的块保持同一引用，渲染缓存不失效", async () => {
+    const parse = createStreamParser()
+    const first = await parse("## 第一节标题\n\n稳定段落。\n\n正在", { streaming: true })
+    const second = await parse("## 第一节标题\n\n稳定段落。\n\n正在输出", { streaming: true })
+
+    expect(second.nodes[0]).toBe(first.nodes[0])
+    expect(second.nodes[1]).toBe(first.nodes[1])
+  })
+
+  it("中文标题不在收尾标点前或开括号后留断点", async () => {
+    const parse = createStreamParser()
+    const doc = await parse("## 设置**重点**。运行`pnpm`（可选）")
+    const children = (findNodes(doc.nodes, "h2")[0] ?? []).slice(2)
+    const isWbr = (node: unknown) => Array.isArray(node) && node[0] === "wbr"
+
+    children.forEach((node, index) => {
+      if (!isWbr(node)) return
+      const next = children[index + 1]
+      const prev = children[index - 1]
+
+      expect(typeof next === "string" ? next : "").not.toMatch(/^[。，、；：！？）」』》]/u)
+      expect(typeof prev === "string" ? prev : "").not.toMatch(/[（「『《]$/u)
+    })
+  })
+})
