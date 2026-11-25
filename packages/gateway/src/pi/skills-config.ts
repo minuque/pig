@@ -127,11 +127,20 @@ export async function listSkills(
       })
   }
 
-  const roots =
-    scope === "global"
-      ? [join(agentDir, "skills"), join(homedir(), ".agents", "skills")]
-      : [join(scope, ".pi", "skills"), join(scope, ".agents", "skills")]
-  return { roots, skills: own, inherited, diagnostics: issues }
+  return { roots: skillRoots(agentDir, scope), skills: own, inherited, diagnostics: issues }
+}
+
+function skillRoots(agentDir: string, scope: AgentConfigScope): string[] {
+  return scope === "global"
+    ? [join(agentDir, "skills"), join(homedir(), ".agents", "skills")]
+    : [join(scope, ".pi", "skills"), join(scope, ".agents", "skills")]
+}
+
+function excludeEntry(agentDir: string, scope: AgentConfigScope, filePath: string): string {
+  const root = skillRoots(agentDir, scope).find((dir) => key(filePath).startsWith(key(dir) + sep))
+
+  if (scope === "global" || !root) return filePath
+  return relative(dirname(root), filePath).split(sep).join("/")
 }
 
 export async function isKnownSkillPath(
@@ -162,13 +171,14 @@ export async function setSkillEnabled(
   const clean = text?.charCodeAt(0) === 0xfeff ? text.slice(1) : text
   const parsed = (clean ? JSON.parse(clean) : {}) as Record<string, unknown>
   const current = Array.isArray(parsed.skills) ? (parsed.skills as unknown[]) : []
-  const excludes = (entry: unknown) =>
-    typeof entry === "string" &&
-    entry.startsWith("-") &&
-    key(resolve(base, expandHome(entry.slice(1)))) === key(filePath)
-  const next = current.filter((entry) => !excludes(entry))
+  const entry = excludeEntry(agentDir, scope, filePath)
+  const excludes = (item: unknown) =>
+    typeof item === "string" &&
+    (item === `-${entry}` ||
+      (item.startsWith("-") && key(resolve(base, expandHome(item.slice(1)))) === key(filePath)))
+  const next = current.filter((item) => !excludes(item))
 
-  if (!enabled) next.push(`-${filePath}`)
+  if (!enabled) next.push(`-${entry}`)
   parsed.skills = next
   const indent = (clean && /^([ \t]+)\S/m.exec(clean)?.[1]) || "  "
 

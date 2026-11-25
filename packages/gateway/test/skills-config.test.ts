@@ -114,13 +114,24 @@ describe("setSkillEnabled", () => {
     expect((await listSkills(agentDir, "global")).skills[0]!.enabled).toBe(true)
   })
 
-  it("工作区作用域写进项目 settings.json", async () => {
-    const file = await skill(join(workspace, ".pi"), "proj")
+  it("工作区作用域写进项目 settings.json，用相对 .pi 的路径，换机器 clone 后仍生效", async () => {
+    const proj = await skill(join(workspace, ".pi"), "proj")
+    const team = await skill(join(workspace, ".agents"), "team")
 
-    await setSkillEnabled(agentDir, workspace, file, false)
+    await setSkillEnabled(agentDir, workspace, proj, false)
+    await setSkillEnabled(agentDir, workspace, team, false)
     const settings = JSON.parse(await readFile(join(workspace, ".pi", "settings.json"), "utf8"))
 
-    expect(settings.skills).toEqual([`-${file}`])
+    expect(settings.skills).toEqual(["-skills/proj/SKILL.md", "-skills/team/SKILL.md"])
+    expect((await listSkills(agentDir, workspace)).skills.map((s) => s.enabled)).toEqual([
+      false,
+      false,
+    ])
+
+    await setSkillEnabled(agentDir, workspace, proj, true)
+    const again = JSON.parse(await readFile(join(workspace, ".pi", "settings.json"), "utf8"))
+
+    expect(again.skills).toEqual(["-skills/team/SKILL.md"])
   })
 })
 
