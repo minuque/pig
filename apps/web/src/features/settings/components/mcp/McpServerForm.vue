@@ -54,6 +54,29 @@
       <TextFieldRoot v-model="draft.description" size="m" />
     </Field>
 
+    <Field class="field-stack">
+      <FieldLabel>{{ t("settings.mcp.exposure") }}</FieldLabel>
+
+      <Select v-model="draft.exposure" size="m">
+        <SelectTrigger :aria-label="t('settings.mcp.exposure')">{{ draft.exposure }}</SelectTrigger>
+
+        <SelectContent>
+          <SelectItem v-for="option in EXPOSURES" :key="option" :value="option">
+            {{ option }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
+
+      <FieldDescription class="form-hint">
+        {{ t(`settings.mcp.exposureHint.${draft.exposure}`) }}
+      </FieldDescription>
+    </Field>
+
+    <Field class="field-inline">
+      <FieldLabel>{{ t("settings.mcp.form.enabled") }}</FieldLabel>
+      <Switch v-model="draft.enabled" size="s" />
+    </Field>
+
     <Collapsible v-model:open="advanced">
       <CollapsibleTrigger>
         <template #render="{ props: part }">
@@ -121,12 +144,14 @@ import type { McpServerView } from "@pig/protocol"
 import { ChevronRightIcon } from "@components/icons/index.js"
 import McpKvRows from "@features/settings/components/mcp/McpKvRows.vue"
 import type { McpState } from "@features/settings/hooks/use-mcp.js"
-import { configFromDraft, draftFromConfig } from "@features/settings/lib/mcp-draft.js"
+import { configFromDraft, draftFromConfig, EXPOSURES } from "@features/settings/lib/mcp-draft.js"
 import { useI18n } from "@i18n/index.js"
 import { Banner } from "@pig/ui/banner"
 import { Button } from "@pig/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@pig/ui/collapsible"
-import { Field, FieldLabel } from "@pig/ui/field"
+import { Field, FieldDescription, FieldLabel } from "@pig/ui/field"
+import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
+import { Switch } from "@pig/ui/switch"
 import { TabsList, TabsRoot, TabsTrigger } from "@pig/ui/tabs"
 import { TextFieldRoot } from "@pig/ui/text-field"
 
@@ -190,9 +215,31 @@ async function submit() {
   font-family: var(--font-mono);
 }
 
+.form-error,
+.form-hint {
+  font-size: var(--text-meta);
+}
+
 .form-error {
   color: var(--danger-text);
-  font-size: var(--text-meta);
+}
+
+.form-hint {
+  color: var(--fg-secondary);
+}
+
+.field-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2xs);
+}
+
+.field-inline {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .fold-trigger {

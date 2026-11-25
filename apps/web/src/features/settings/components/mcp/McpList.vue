@@ -105,7 +105,7 @@ import type { McpServerView } from "@pig/protocol"
 import { ChevronRightIcon } from "@components/icons/index.js"
 import ScopeToolbar from "@features/settings/components/ScopeToolbar.vue"
 import type { McpState, McpStatus } from "@features/settings/hooks/use-mcp.js"
-import { joinArgs } from "@features/settings/lib/mcp-draft.js"
+import { joinArgs, searchText } from "@features/settings/lib/mcp-draft.js"
 import { useI18n } from "@i18n/index.js"
 import { Badge } from "@pig/ui/badge"
 import { Banner } from "@pig/ui/banner"
@@ -133,10 +133,10 @@ function summary(server: McpServerView) {
 }
 
 const servers = computed(() =>
-  (props.state.view.value?.servers ?? []).filter((s) => matches(s.name, summary(s))),
+  (props.state.view.value?.servers ?? []).filter((s) => matches(s.name, searchText(s.config))),
 )
 const inherited = computed(() =>
-  (props.state.view.value?.inherited ?? []).filter((s) => matches(s.name, summary(s))),
+  (props.state.view.value?.inherited ?? []).filter((s) => matches(s.name, searchText(s.config))),
 )
 const invalid = computed(() =>
   (props.state.view.value?.invalid ?? []).filter((entry) => matches(entry.name, entry.message)),

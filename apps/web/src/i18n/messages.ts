@@ -211,6 +211,7 @@ export const zh = {
       loginWaiting: "已在浏览器打开授权页，完成后自动刷新",
       openAuth: "打开授权页",
       form: {
+        enabled: "启用",
         name: "名称",
         transport: "传输方式",
         stdio: "stdio",
@@ -272,6 +273,7 @@ export const zh = {
       nameInvalid: "名称只能是小写字母、数字和单个连字符",
       frontmatterMissing: "缺少 frontmatter（---），Pi 不会加载",
       descriptionMissing: "缺少 description，Pi 不会加载",
+      yamlInvalid: "frontmatter 解析失败，未保存。改正后再保存：",
       nameWarning: "name 缺省或不规范，Pi 会给出警告但照样加载",
       saved: "已保存，新会话生效",
     },
@@ -879,6 +881,7 @@ export const en: Messages = {
       loginWaiting: "Opened the sign-in page in your browser. This refreshes when you finish",
       openAuth: "Open sign-in page",
       form: {
+        enabled: "Enabled",
         name: "Name",
         transport: "Transport",
         stdio: "stdio",
@@ -940,6 +943,7 @@ export const en: Messages = {
       nameInvalid: "Use lowercase letters, digits and single hyphens",
       frontmatterMissing: "Missing frontmatter (---). Pi will not load it",
       descriptionMissing: "Missing description. Pi will not load it",
+      yamlInvalid: "Frontmatter could not be parsed, so nothing was saved. Fix it and save again:",
       nameWarning: "The name is missing or irregular. Pi warns but still loads it",
       saved: "Saved. New sessions pick it up",
     },

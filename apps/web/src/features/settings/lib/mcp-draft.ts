@@ -26,6 +26,7 @@ export interface McpDraft {
 
 type Config = Record<string, unknown>
 
+export const EXPOSURES: McpExposure[] = ["codemode", "deferred", "direct", "hidden"]
 const MANAGED = [
   "type",
   "command",
@@ -142,4 +143,10 @@ export function oauthAction(
 
   if (probe?.status === "needs-auth") return "login"
   return probe?.status === "connected" ? "logout" : undefined
+}
+
+export function searchText(config: Record<string, unknown>): string {
+  const command =
+    typeof config.command === "string" ? `${config.command} ${joinArgs(config.args)}` : ""
+  return [config.description, command.trim(), config.url].filter(Boolean).join(" ")
 }

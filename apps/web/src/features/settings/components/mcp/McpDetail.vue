@@ -130,7 +130,9 @@
       </h3>
 
       <CardList v-if="probe?.tools.length">
-        <CardRow v-for="tool in probe.tools" :key="tool" class="tool-row">{{ tool }}</CardRow>
+        <div class="tool-list">
+          <CardRow v-for="tool in probe.tools" :key="tool" class="tool-row">{{ tool }}</CardRow>
+        </div>
       </CardList>
 
       <p v-else class="section-note">{{ t("settings.mcp.toolsEmpty") }}</p>
@@ -187,7 +189,7 @@ import type { McpExposure, McpServerView } from "@pig/protocol"
 import { TriangleAlertIcon } from "@components/icons/index.js"
 import McpLogin from "@features/settings/components/mcp/McpLogin.vue"
 import type { McpState } from "@features/settings/hooks/use-mcp.js"
-import { joinArgs, oauthAction } from "@features/settings/lib/mcp-draft.js"
+import { EXPOSURES, joinArgs, oauthAction } from "@features/settings/lib/mcp-draft.js"
 import { useI18n } from "@i18n/index.js"
 import {
   AlertDialog,
@@ -206,7 +208,6 @@ import { CardList, CardRow } from "@pig/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
 import { StatusIndicator, type StatusTone } from "@pig/ui/status-indicator"
 
-const EXPOSURES: McpExposure[] = ["codemode", "deferred", "direct", "hidden"]
 const TONES = {
   idle: "idle",
   probing: "running",
@@ -304,6 +305,7 @@ async function onSignedIn() {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-md);
+  padding-block: var(--space-sm);
 }
 
 .setting-copy,
@@ -330,7 +332,14 @@ async function onSignedIn() {
   padding-inline: var(--space-md);
 }
 
+.tool-list {
+  max-block-size: 20rem;
+  overflow-y: auto;
+  border-radius: inherit;
+}
+
 .tool-row {
+  padding-block: var(--space-xs);
   color: var(--fg);
   font-size: var(--text-meta);
 }
