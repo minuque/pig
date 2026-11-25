@@ -127,7 +127,11 @@ export async function listSkills(
       })
   }
 
-  return { skills: own, inherited, diagnostics: issues }
+  const roots =
+    scope === "global"
+      ? [join(agentDir, "skills"), join(homedir(), ".agents", "skills")]
+      : [join(scope, ".pi", "skills"), join(scope, ".agents", "skills")]
+  return { roots, skills: own, inherited, diagnostics: issues }
 }
 
 export async function isKnownSkillPath(

@@ -130,6 +130,7 @@
                 <NotificationsPane v-else-if="active === 'notifications'" />
                 <ArchivePane v-else-if="active === 'archive' && archive" :controller="archive" />
                 <McpPane v-else-if="active === 'mcp'" :workspace="workspace" />
+                <SkillsPane v-else-if="active === 'skills'" :workspace="workspace" />
                 <ModelsPane v-else :refresh-models="refreshModels" />
               </div>
             </div>
@@ -142,7 +143,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, provide, ref, useTemplateRef, watch } from "vue"
-import { PlugIcon } from "@lucide/vue"
+import { PlugIcon, SparklesIcon } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@pig/ui/dialog"
 import {
@@ -165,6 +166,7 @@ import GeneralPane from "./GeneralPane.vue"
 import McpPane from "./mcp/McpPane.vue"
 import ModelsPane from "./models/ModelsPane.vue"
 import NotificationsPane from "./NotificationsPane.vue"
+import SkillsPane from "./skills/SkillsPane.vue"
 import { countArchiveTabs, type ArchiveController } from "@features/settings/lib/archive-view.js"
 import { matchSettings, type SettingsSearchEntry } from "@features/settings/lib/settings-search.js"
 
@@ -200,6 +202,7 @@ const tabs = computed<
   { id: "appearance", label: t("settings.appearance"), icon: PaletteIcon },
   { id: "models", label: t("settings.models.title"), icon: CloudIcon },
   { id: "mcp", label: t("settings.mcp.title"), icon: PlugIcon },
+  { id: "skills", label: t("settings.skills.title"), icon: SparklesIcon },
   { id: "notifications", label: t("settings.notifications"), icon: BellIcon },
   ...(props.archive
     ? [
@@ -289,6 +292,12 @@ const searchEntries = computed<SettingsSearchEntry[]>(() => [
     pane: "mcp",
     title: t("settings.mcp.title"),
     section: t("settings.mcp.title"),
+  },
+  {
+    id: "",
+    pane: "skills",
+    title: t("settings.skills.title"),
+    section: t("settings.skills.title"),
   },
   {
     id: "setting-notify-system",

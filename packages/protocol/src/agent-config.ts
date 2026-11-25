@@ -39,6 +39,7 @@ export interface SkillDiagnosticView {
 }
 
 export interface SkillScopeView {
+  roots: string[]
   skills: SkillView[]
   inherited: SkillView[]
   diagnostics: SkillDiagnosticView[]

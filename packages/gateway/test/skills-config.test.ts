@@ -55,6 +55,7 @@ describe("listSkills", () => {
 
     expect(names(view.skills)).toEqual(["alpha", "beta"])
     expect(view.inherited).toEqual([])
+    expect(view.roots).toEqual([join(agentDir, "skills"), join(home, ".agents", "skills")])
   })
 
   it("工作区作用域列出项目 Skill，全局的算继承", async () => {
@@ -66,6 +67,10 @@ describe("listSkills", () => {
 
     expect(names(view.skills)).toEqual(["proj", "team"])
     expect(names(view.inherited)).toEqual(["alpha"])
+    expect(view.roots).toEqual([
+      join(workspace, ".pi", "skills"),
+      join(workspace, ".agents", "skills"),
+    ])
   })
 
   it("Pi 没加载的 SKILL.md 进 broken 诊断，不进列表", async () => {
