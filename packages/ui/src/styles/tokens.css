@@ -35,18 +35,62 @@
 
   /* --- 前景 --- */
   --fg-on-accent: #ffffff;
-  --fg: #282a30;
-  --fg-secondary: #4c5159;
-  --fg-muted: #6a707c;
+  --fg-base: #282a30;
+  --fg-secondary-base: #4c5159;
+  --fg-muted-base: #6a707c;
+  --fg-disabled-base: rgba(0, 0, 0, 0.27);
   --fg-inverse: #ffffff;
-  --fg-disabled: rgba(0, 0, 0, 0.27);
+  --contrast-base: 100%;
+  --contrast-boost: 0%;
+  --contrast-border-boost: 0%;
+  --contrast-target: black;
+  --fg: color-mix(
+    in oklab,
+    color-mix(in oklab, var(--fg-base) var(--contrast-base), var(--bg)),
+    var(--contrast-target) var(--contrast-boost)
+  );
+  --fg-secondary: color-mix(
+    in oklab,
+    color-mix(in oklab, var(--fg-secondary-base) var(--contrast-base), var(--bg)),
+    var(--contrast-target) var(--contrast-boost)
+  );
+  --fg-muted: color-mix(
+    in oklab,
+    color-mix(in oklab, var(--fg-muted-base) var(--contrast-base), var(--bg)),
+    var(--contrast-target) var(--contrast-boost)
+  );
+  --fg-disabled: color-mix(
+    in oklab,
+    color-mix(in oklab, var(--fg-disabled-base) var(--contrast-base), transparent),
+    var(--contrast-target) var(--contrast-boost)
+  );
 
   /* --- 边与分割 --- */
   --border-width: 1px;
-  --border: rgba(0, 0, 0, 0.1);
-  --border-subtle: rgba(0, 0, 0, 0.05);
-  --border-strong: rgba(0, 0, 0, 0.15);
-  --border-input: rgba(0, 0, 0, 0.19);
+  --border-base: rgba(0, 0, 0, 0.1);
+  --border-subtle-base: rgba(0, 0, 0, 0.05);
+  --border-strong-base: rgba(0, 0, 0, 0.15);
+  --border-input-base: rgba(0, 0, 0, 0.19);
+  --border: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--border-base) var(--contrast-base), transparent),
+    var(--fg-base) var(--contrast-border-boost)
+  );
+  --border-subtle: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--border-subtle-base) var(--contrast-base), transparent),
+    var(--fg-base) var(--contrast-border-boost)
+  );
+  --border-strong: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--border-strong-base) var(--contrast-base), transparent),
+    var(--fg-base) var(--contrast-border-boost)
+  );
+  --border-input: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--border-input-base) var(--contrast-base), transparent),
+    var(--fg-base) var(--contrast-border-boost)
+  );
   --overlay: rgba(0, 0, 0, 0.4);
   --separator-top: inset 0 var(--border-width) 0 var(--border-subtle);
 
@@ -54,10 +98,10 @@
   --accent-solid: #5e6ad2;
   --accent-solid-hover: #4c56b8;
   --accent-text: #3a5bc7;
-  --bg-hover: color-mix(in srgb, var(--fg) 6%, transparent);
+  --bg-hover: color-mix(in srgb, var(--fg-base) 6%, transparent);
   --bg-selected: color-mix(in srgb, var(--accent-solid) 11%, transparent);
-  --bg-muted: color-mix(in srgb, var(--fg) 5%, transparent);
-  --bg-emphasis: color-mix(in srgb, var(--fg) 12%, transparent);
+  --bg-muted: color-mix(in srgb, var(--fg-base) 5%, transparent);
+  --bg-emphasis: color-mix(in srgb, var(--fg-base) 12%, transparent);
   --link: var(--info-text);
   --link-external: oklch(48.8% 0.243 264.376);
   --opacity-disabled: 0.55;
@@ -184,16 +228,16 @@
   --glass-shadow: 0 0 0 var(--border-width) var(--border), 0 24px 64px -24px rgba(0, 0, 0, 0.65);
   --glass-backdrop: color-mix(in srgb, var(--bg) 60%, transparent);
   --glass-backdrop-filter: blur(4px);
-  --glass-footer-bg: color-mix(in srgb, var(--fg) 2.5%, transparent);
-  --glass-footer-border: color-mix(in srgb, var(--fg) 7%, transparent);
-  --glass-kbd-bg: color-mix(in srgb, var(--fg) 8%, transparent);
+  --glass-footer-bg: color-mix(in srgb, var(--fg-base) 2.5%, transparent);
+  --glass-footer-border: color-mix(in srgb, var(--fg-base) 7%, transparent);
+  --glass-kbd-bg: color-mix(in srgb, var(--fg-base) 8%, transparent);
   --float-bg: color-mix(in srgb, var(--bg-raised) 84%, transparent);
   --float-ring: rgba(0, 0, 0, 0.1);
   --float-shadow: 0 0 0 var(--border-width) var(--float-ring), 0 4px 12px -4px rgba(0, 0, 0, 0.08);
   --menu-item-gap: calc(var(--spacing) / 2);
   --slider-badge-bg: var(--fg);
   --slider-badge-fg: var(--fg-inverse);
-  --slider-grip: color-mix(in srgb, var(--fg) 28%, transparent);
+  --slider-grip: color-mix(in srgb, var(--fg-base) 28%, transparent);
   --slider-range-bg: var(--bg);
   --slider-range-shadow: 0 0 0 var(--border-width) var(--border), 0 1px 2px rgba(0, 0, 0, 0.06);
   --slider-track-bg: var(--bg-surface);
@@ -224,18 +268,19 @@ html.dark {
   --bg-inverse-hover: #b8bdc5;
 
   /* --- 前景 --- */
-  --fg: #e8eaed;
-  --fg-secondary: #9da4ae;
-  --fg-muted: #7c8490;
+  --fg-base: #e8eaed;
+  --fg-secondary-base: #9da4ae;
+  --fg-muted-base: #7c8490;
   --fg-on-accent: #ffffff;
   --fg-inverse: #131316;
-  --fg-disabled: rgba(255, 255, 255, 0.33);
+  --fg-disabled-base: rgba(255, 255, 255, 0.33);
+  --contrast-target: white;
 
   /* --- 边与分割 --- */
-  --border: rgba(255, 255, 255, 0.07);
-  --border-subtle: rgba(255, 255, 255, 0.045);
-  --border-strong: rgba(255, 255, 255, 0.13);
-  --border-input: rgba(255, 255, 255, 0.23);
+  --border-base: rgba(255, 255, 255, 0.07);
+  --border-subtle-base: rgba(255, 255, 255, 0.045);
+  --border-strong-base: rgba(255, 255, 255, 0.13);
+  --border-input-base: rgba(255, 255, 255, 0.23);
   --control-bg: rgba(255, 255, 255, 0.035);
   --control-border: rgba(255, 255, 255, 0.11);
   --control-shadow: 0 0 0 var(--border-width) var(--control-border), 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -269,7 +314,7 @@ html.dark {
   --float-shadow: 0 0 0 var(--border-width) var(--float-ring), 0 4px 12px -4px rgba(0, 0, 0, 0.32);
   --slider-badge-bg: var(--fg);
   --slider-badge-fg: var(--fg-inverse);
-  --slider-grip: color-mix(in srgb, var(--fg) 32%, transparent);
+  --slider-grip: color-mix(in srgb, var(--fg-base) 32%, transparent);
   --slider-range-bg: color-mix(in srgb, var(--white) 10%, var(--bg-raised));
   --slider-range-shadow:
     0 0 0 var(--border-width) var(--border-strong), 0 1px 2px rgba(0, 0, 0, 0.28);

@@ -28,6 +28,7 @@ const DEFAULT_BODY = {
   uiFont: "",
   codeFont: "",
   codeSize: 13,
+  contrast: 100,
   locale: "zh-CN",
   chatWidth: "comfortable",
   notify: true,
@@ -217,6 +218,9 @@ describe("preferences 接口", () => {
     ).toBe(400)
     expect(
       (await request(base, "/api/v1/platform/preferences", "PATCH", { codeSize: 17 })).status,
+    ).toBe(400)
+    expect(
+      (await request(base, "/api/v1/platform/preferences", "PATCH", { contrast: 42 })).status,
     ).toBe(400)
     await expect(readFile(file, "utf8")).rejects.toMatchObject({ code: "ENOENT" })
   })

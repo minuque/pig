@@ -15,6 +15,7 @@ const WELCOME_FIELDS = ["mask", "off"] as const
 const LOCALES = ["en", "zh-CN"] as const
 const CHAT_WIDTHS = ["comfortable", "wide", "full"] as const
 export const CODE_SIZES = [10, 11, 12, 13, 14, 15, 16] as const
+export const CONTRASTS = Array.from({ length: 31 }, (_, index) => 50 + index * 5)
 export const RAIL_SECTIONS = ["environment", "context", "tasks"] as const
 export const DEFAULT_PREFERENCES: UserPreferences = {
   theme: "auto",
@@ -22,6 +23,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   uiFont: "",
   codeFont: "",
   codeSize: 13,
+  contrast: 100,
   locale: "zh-CN",
   chatWidth: "comfortable",
   notify: true,
@@ -86,12 +88,14 @@ function railLayout(value: unknown): UserRailLayout {
 
 function normalizePreferences(raw: Record<string, unknown>): UserPreferences {
   const codeSize = CODE_SIZES.find((size) => size === raw.codeSize)
+  const contrast = CONTRASTS.find((value) => value === raw.contrast)
   return {
     theme: oneOf(raw.theme, THEME_MODES, DEFAULT_PREFERENCES.theme),
     welcomeField: oneOf(raw.welcomeField, WELCOME_FIELDS, DEFAULT_PREFERENCES.welcomeField),
     uiFont: text(raw.uiFont, DEFAULT_PREFERENCES.uiFont),
     codeFont: text(raw.codeFont, DEFAULT_PREFERENCES.codeFont),
     codeSize: codeSize ?? DEFAULT_PREFERENCES.codeSize,
+    contrast: contrast ?? DEFAULT_PREFERENCES.contrast,
     locale: oneOf(raw.locale, LOCALES, DEFAULT_PREFERENCES.locale),
     chatWidth: oneOf(raw.chatWidth, CHAT_WIDTHS, DEFAULT_PREFERENCES.chatWidth),
     notify: flag(raw.notify, DEFAULT_PREFERENCES.notify),
@@ -126,6 +130,13 @@ function pickPatch(input: Record<string, unknown>): UserPreferencesPatch {
 
     if (size === undefined) throw new PreferencesError("codeSize 取值不合法")
     patch.codeSize = size
+  }
+
+  if (patchEntry(input, "contrast")) {
+    const contrast = CONTRASTS.find((item) => item === input.contrast)
+
+    if (contrast === undefined) throw new PreferencesError("contrast 取值不合法")
+    patch.contrast = contrast
   }
 
   if (patchEntry(input, "locale")) patch.locale = requiredOneOf("locale", input.locale, LOCALES)

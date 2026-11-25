@@ -20,6 +20,7 @@ export interface UserPreferences {
   uiFont: string
   codeFont: string
   codeSize: number
+  contrast: number
   locale: UserLocale
   chatWidth: UserChatWidth
   notify: boolean

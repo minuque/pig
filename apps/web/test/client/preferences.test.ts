@@ -14,6 +14,7 @@ const DEFAULTS: UserPreferences = {
   uiFont: "",
   codeFont: "",
   codeSize: 13,
+  contrast: 100,
   locale: "zh-CN",
   chatWidth: "comfortable",
   notify: true,

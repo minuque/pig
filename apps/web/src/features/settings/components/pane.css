@@ -35,6 +35,13 @@
   gap: var(--space-2xs);
 }
 
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  block-size: calc(var(--text-body) * var(--text-body--line-height));
+}
+
 .label {
   margin: 0;
   color: var(--fg);

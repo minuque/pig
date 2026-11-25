@@ -6,7 +6,15 @@
       <CardList>
         <CardRow id="setting-user-name" class="row">
           <div class="copy">
-            <h3 class="label">{{ t("settings.userName") }}</h3>
+            <div class="title">
+              <h3 class="label">{{ t("settings.userName") }}</h3>
+
+              <SettingReset
+                v-if="userName.trim() !== DEFAULTS.userName"
+                @reset="setUserName(DEFAULTS.userName)"
+              />
+            </div>
+
             <p class="desc">{{ t("settings.userNameHint") }}</p>
           </div>
 
@@ -49,6 +57,8 @@ import { useGeneralPrefs, type UiLocale } from "@features/settings/index.js"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
 import { TextFieldRoot } from "@pig/ui/text-field"
 import { CardList, CardRow } from "@pig/ui/card"
+import { DEFAULT_PREFERENCES as DEFAULTS } from "@client/preferences.js"
+import SettingReset from "./SettingReset.vue"
 
 const { t } = useI18n()
 const { locale, userName, setUserName, setLocale } = useGeneralPrefs()

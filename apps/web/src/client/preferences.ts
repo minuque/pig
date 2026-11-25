@@ -11,6 +11,7 @@ import { getPreferences, patchPreferences } from "./platform.js"
 export const THEME_MODES = ["auto", "light", "dark"] as const
 export const WELCOME_FIELDS = ["mask", "off"] as const
 export const CODE_SIZES = [10, 11, 12, 13, 14, 15, 16] as const
+export const CONTRAST_RANGE = { min: 50, max: 200, step: 5 } as const
 export const LOCALES = ["en", "zh-CN"] as const
 export const CHAT_WIDTHS = ["comfortable", "wide", "full"] as const
 export const RAIL_SECTIONS = ["environment", "context", "tasks"] as const
@@ -20,6 +21,7 @@ const KEYS = {
   uiFont: "pig.uiFont",
   codeFont: "pig.codeFont",
   codeSize: "pig.codeSize",
+  contrast: "pig.contrast",
   locale: "pig.locale",
   chatWidth: "pig.chatWidth",
   notify: "pig.notify",
@@ -34,6 +36,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   uiFont: "",
   codeFont: "",
   codeSize: 13,
+  contrast: 100,
   locale: "zh-CN",
   chatWidth: "comfortable",
   notify: true,
@@ -89,6 +92,12 @@ function readCodeSize(): number {
   return CODE_SIZES.find((size) => size === value) ?? DEFAULT_PREFERENCES.codeSize
 }
 
+function readContrast(): number {
+  const value = Number(readPref(KEYS.contrast))
+  const { min, max, step } = CONTRAST_RANGE
+  return value >= min && value <= max && value % step === 0 ? value : DEFAULT_PREFERENCES.contrast
+}
+
 function readStored(): UserPreferences {
   return {
     theme: pick(readPref(KEYS.theme), THEME_MODES, DEFAULT_PREFERENCES.theme),
@@ -100,6 +109,7 @@ function readStored(): UserPreferences {
     uiFont: readPref(KEYS.uiFont) ?? "",
     codeFont: readPref(KEYS.codeFont) ?? "",
     codeSize: readCodeSize(),
+    contrast: readContrast(),
     locale: pick(readPref(KEYS.locale), LOCALES, DEFAULT_PREFERENCES.locale),
     chatWidth: pick(readPref(KEYS.chatWidth), CHAT_WIDTHS, DEFAULT_PREFERENCES.chatWidth),
     notify: readPref(KEYS.notify) !== "off",
@@ -116,6 +126,7 @@ const SCALAR_KEYS = [
   "uiFont",
   "codeFont",
   "codeSize",
+  "contrast",
   "locale",
   "chatWidth",
   "notify",
@@ -147,6 +158,7 @@ function writeMirror(preferences: UserPreferences): void {
   writePref(KEYS.uiFont, preferences.uiFont)
   writePref(KEYS.codeFont, preferences.codeFont)
   writePref(KEYS.codeSize, String(preferences.codeSize))
+  writePref(KEYS.contrast, String(preferences.contrast))
   writePref(KEYS.locale, preferences.locale)
   writePref(KEYS.chatWidth, preferences.chatWidth)
   writePref(KEYS.notify, preferences.notify ? "on" : "off")

@@ -11,7 +11,15 @@
       <CardList>
         <CardRow id="setting-welcome-field" class="row">
           <div class="copy">
-            <h3 class="label">{{ t("settings.welcomeField") }}</h3>
+            <div class="title">
+              <h3 class="label">{{ t("settings.welcomeField") }}</h3>
+
+              <SettingReset
+                v-if="welcomeField !== DEFAULTS.welcomeField"
+                @reset="setWelcomeField(DEFAULTS.welcomeField)"
+              />
+            </div>
+
             <p class="desc">{{ t("settings.welcomeFieldHint") }}</p>
           </div>
 
@@ -30,7 +38,11 @@
 
         <CardRow id="setting-ui-font" class="row">
           <div class="copy">
-            <h3 class="label">{{ t("settings.uiFont") }}</h3>
+            <div class="title">
+              <h3 class="label">{{ t("settings.uiFont") }}</h3>
+              <SettingReset v-if="uiFont !== DEFAULTS.uiFont" @reset="setUiFont(DEFAULTS.uiFont)" />
+            </div>
+
             <p class="desc">{{ t("settings.uiFontHint") }}</p>
           </div>
 
@@ -60,9 +72,48 @@
           </Select>
         </CardRow>
 
+        <CardRow id="setting-contrast" class="row">
+          <div class="copy">
+            <div class="title">
+              <h3 class="label">{{ t("settings.contrast") }}</h3>
+
+              <SettingReset
+                v-if="contrast !== DEFAULTS.contrast"
+                @reset="setContrast(DEFAULTS.contrast)"
+              />
+            </div>
+
+            <p class="desc">{{ t("settings.contrastHint") }}</p>
+          </div>
+
+          <div class="contrast">
+            <output class="contrast-value">{{ contrast }}%</output>
+
+            <Slider
+              :model-value="[contrast]"
+              :min="CONTRAST_RANGE.min"
+              :max="CONTRAST_RANGE.max"
+              :step="CONTRAST_RANGE.step"
+              size="s"
+              :show-value-badge="false"
+              :show-bounds="false"
+              :aria-label="t('settings.contrast')"
+              @update:model-value="onContrast"
+            />
+          </div>
+        </CardRow>
+
         <CardRow id="setting-code-font" class="row">
           <div class="copy">
-            <h3 class="label">{{ t("settings.codeFont") }}</h3>
+            <div class="title">
+              <h3 class="label">{{ t("settings.codeFont") }}</h3>
+
+              <SettingReset
+                v-if="codeFont !== DEFAULTS.codeFont"
+                @reset="setCodeFont(DEFAULTS.codeFont)"
+              />
+            </div>
+
             <p class="desc">{{ t("settings.codeFontHint") }}</p>
           </div>
 
@@ -94,7 +145,15 @@
 
         <CardRow id="setting-code-size" class="row">
           <div class="copy">
-            <h3 class="label">{{ t("settings.codeSize") }}</h3>
+            <div class="title">
+              <h3 class="label">{{ t("settings.codeSize") }}</h3>
+
+              <SettingReset
+                v-if="codeSize !== DEFAULTS.codeSize"
+                @reset="setCodeSize(DEFAULTS.codeSize)"
+              />
+            </div>
+
             <p class="desc">{{ t("settings.codeSizeHint") }}</p>
           </div>
 
@@ -113,7 +172,15 @@
 
         <CardRow id="setting-chat-width" class="row">
           <div class="copy">
-            <h3 class="label">{{ t("settings.chatWidth") }}</h3>
+            <div class="title">
+              <h3 class="label">{{ t("settings.chatWidth") }}</h3>
+
+              <SettingReset
+                v-if="chatWidth !== DEFAULTS.chatWidth"
+                @reset="setChatWidth(DEFAULTS.chatWidth)"
+              />
+            </div>
+
             <p class="desc">{{ t("settings.chatWidthHint") }}</p>
           </div>
 
@@ -137,8 +204,10 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
+import { DEFAULT_PREFERENCES as DEFAULTS } from "@client/preferences.js"
 import {
   CODE_SIZES,
+  CONTRAST_RANGE,
   useAppearancePrefs,
   useGeneralPrefs,
   type ChatWidth,
@@ -147,6 +216,8 @@ import {
 import { useLocalFonts } from "@features/settings/hooks/use-local-fonts.js"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
 import { CardList, CardRow } from "@pig/ui/card"
+import { Slider } from "@pig/ui/slider"
+import SettingReset from "./SettingReset.vue"
 import SchemeCards from "./SchemeCards.vue"
 
 const DEFAULT = "__default__"
@@ -157,10 +228,12 @@ const {
   uiFont,
   codeFont,
   codeSize,
+  contrast,
   setWelcomeField,
   setUiFont,
   setCodeFont,
   setCodeSize,
+  setContrast,
 } = useAppearancePrefs()
 const { families, mono, load } = useLocalFonts()
 
@@ -174,6 +247,12 @@ function onCodeFont(value: string) {
 
 function onCodeSize(value: string) {
   setCodeSize(Number(value))
+}
+
+function onContrast(value: number[]) {
+  const [next] = value
+
+  if (next !== undefined) setContrast(next)
 }
 
 function quote(family: string): string {
@@ -220,6 +299,22 @@ const codeSizeLabel = computed(() => `${codeSize.value}px`)
 <style scoped>
 .setting-select {
   inline-size: 12rem;
+}
+
+.contrast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  inline-size: 12rem;
+}
+
+.contrast-value {
+  min-inline-size: 5ch;
+  white-space: nowrap;
+  color: var(--fg-secondary);
+  font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
 }
 
 .font-name {

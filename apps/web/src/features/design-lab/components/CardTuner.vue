@@ -165,7 +165,7 @@ watch(
   () => {
     const root = getComputedStyle(document.documentElement)
     steps.value = Object.fromEntries(
-      STEPS.map((name) => [name, root.getPropertyValue(name).trim()]),
+      STEPS.map((name) => [name, root.getPropertyValue(`${name}-base`).trim()]),
     )
   },
   { flush: "post", immediate: true },
