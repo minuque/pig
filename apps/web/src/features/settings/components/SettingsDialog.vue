@@ -24,7 +24,7 @@
               </template>
 
               <TextFieldSlot side="left">
-                <SearchIcon class="size-icon" />
+                <SearchIcon class="size-icon-lg" />
               </TextFieldSlot>
 
               <TextFieldSlot side="right">
@@ -74,7 +74,7 @@
               :aria-current="active === item.id ? 'page' : undefined"
               @click="select(item.id)"
             >
-              <component :is="item.icon" class="size-icon" />
+              <component :is="item.icon" class="size-icon-lg" />
               <span class="nav-label">{{ item.label }}</span>
               <span v-if="item.count" class="nav-count">{{ item.count }}</span>
             </button>
