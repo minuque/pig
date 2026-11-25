@@ -32,6 +32,14 @@ export {
   type SessionReference,
 } from "./context-reference.js"
 
+export type {
+  AgentConfigScope,
+  McpExposure,
+  McpInvalidEntry,
+  McpScopeView,
+  McpServerView,
+} from "./agent-config.js"
+
 export type { ExtensionUiDialog, ExtensionUiRequest, ExtensionUiResponse } from "./extension-ui.js"
 
 export type {
