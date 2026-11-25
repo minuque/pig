@@ -49,7 +49,7 @@ function createNav(
     primeSession,
   } = useSessionOpen(session.sessionId, router, session.loadHistory)
   const navError = shallowRef("")
-  const cards = useSessionCards(pi.connected)
+  const cards = useSessionCards(pi.connected, pi.workspaceGit, pi.refreshWorkspaceGit)
   const activeSessionRunning = computed(() => session.projection.value?.running ?? false)
   const nav = useWorkspaceNav(pi.sessions, cwd, navError, {
     sessionId: session.sessionId,

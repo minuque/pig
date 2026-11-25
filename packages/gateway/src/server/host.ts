@@ -72,6 +72,7 @@ export class Gateway {
     this.protocol = new ProtocolServer({
       server: this.server,
       service: this.hostService,
+      workspaceGit: this.hostService.workspaceGit,
       allow: (req) => this.browser.rejection(req.headers),
       onError: (error) => console.error("Gateway protocol error:", error),
     })
@@ -184,6 +185,10 @@ export class Gateway {
     installProviderHttp()
     this.preferences.watch((preferences) => this.protocol.broadcastPreferences(preferences))
     this.sessionArchives.watch((archives) => this.protocol.broadcastSessionArchives(archives))
+    this.hostService.workspaceGit.onChange((changes) =>
+      this.protocol.broadcastWorkspaceGit(changes),
+    )
+    await this.hostService.workspaceGit.load()
     const warming = this.hostService.warm()
     const port = await new Promise<number>((resolveStart, reject) => {
       this.server.once("error", reject)

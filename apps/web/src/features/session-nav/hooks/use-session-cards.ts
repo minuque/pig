@@ -1,11 +1,17 @@
-import { shallowRef, toValue, watch, type MaybeRefOrGetter } from "vue"
+import { computed, shallowRef, toValue, watch, type MaybeRefOrGetter } from "vue"
 import { useEventListener } from "@vueuse/core"
 import type { SessionCard, WorkspaceGit } from "@/types/common-type.js"
-import { listSessionCards, listWorkspaceGit } from "@client/platform.js"
+import { listSessionCards } from "@client/platform.js"
 
-export function useSessionCards(connected: MaybeRefOrGetter<boolean>) {
+export function useSessionCards(
+  connected: MaybeRefOrGetter<boolean>,
+  snapshotGit: MaybeRefOrGetter<Readonly<Record<string, WorkspaceGit>>>,
+  refreshWorkspaceGit: () => void,
+) {
   const sessionCards = shallowRef(new Map<string, Omit<SessionCard, "id">>())
-  const workspaceGit = shallowRef<ReadonlyMap<string, WorkspaceGit>>(new Map())
+  const workspaceGit = computed<ReadonlyMap<string, WorkspaceGit>>(
+    () => new Map(Object.entries(toValue(snapshotGit))),
+  )
 
   async function loadSessionCards() {
     try {
@@ -23,23 +29,16 @@ export function useSessionCards(connected: MaybeRefOrGetter<boolean>) {
     } catch {}
   }
 
-  async function loadWorkspaceGit() {
-    try {
-      workspaceGit.value = new Map(Object.entries(await listWorkspaceGit()))
-    } catch {}
-  }
-
   watch(
     () => toValue(connected),
     (isConnected) => {
       if (!isConnected) return
       void loadSessionCards()
-      void loadWorkspaceGit()
     },
     { immediate: true },
   )
   useEventListener("focus", () => {
-    if (toValue(connected)) void loadWorkspaceGit()
+    if (toValue(connected)) refreshWorkspaceGit()
   })
   return { sessionCards, workspaceGit }
 }

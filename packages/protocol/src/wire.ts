@@ -2,7 +2,7 @@ import type { ExtensionUiRequest, ExtensionUiResponse } from "./extension-ui.js"
 import type { ModelMetadata, ModelRef, ThinkingLevel } from "./model.js"
 import type { DefaultModelView } from "./provider.js"
 import type { UserPreferences } from "./preferences.js"
-import type { SessionArchives } from "./session.js"
+import type { SessionArchives, WorkspaceGit } from "./session.js"
 import type { Task } from "./task.js"
 import type {
   SystemTranscriptItem,
@@ -59,6 +59,7 @@ export interface ServerSnapshot {
   sessions: SessionMetadata[]
   models: ModelMetadata[]
   defaultModel: DefaultModelView | null
+  workspaceGit: Record<string, WorkspaceGit>
 }
 
 /** 会话命令名照 pi RPC（prompt / steer / abort / set_model / set_thinking_level）；会话路由是 pig 自己的。 */
@@ -88,6 +89,7 @@ export type Command =
   /** 按需盯住一个会话文件：外部进程（如 Pi TUI）往里追加时推 session_file_changed。 */
   | { command: "watch_session"; sessionId: string }
   | { command: "unwatch_session"; sessionId: string }
+  | { command: "refresh_workspace_git" }
 
 export type CommandResult =
   | { command: "list_sessions"; sessions: SessionMetadata[] }
@@ -95,6 +97,7 @@ export type CommandResult =
   | { command: "extension_ui_response"; sessionId: string }
   | { command: "watch_session"; sessionId: string }
   | { command: "unwatch_session"; sessionId: string }
+  | { command: "refresh_workspace_git" }
   | {
       command: Exclude<
         Command["command"],
@@ -103,6 +106,7 @@ export type CommandResult =
         | "extension_ui_response"
         | "watch_session"
         | "unwatch_session"
+        | "refresh_workspace_git"
       >
       session: SessionSnapshot
     }
@@ -135,6 +139,7 @@ export type ServerEvent =
   | { type: "session_file_changed"; sessionId: string }
   | { type: "preferences_changed"; preferences: UserPreferences }
   | { type: "session_archives_changed"; archives: SessionArchives }
+  | { type: "workspace_git_changed"; changes: Record<string, WorkspaceGit | null> }
 
 export type ServerMessage =
   | { type: "hello"; snapshot: ServerSnapshot }

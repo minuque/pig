@@ -11,7 +11,6 @@ import type {
   ContextUsageEstimate,
   ContextUsagePreview,
   SessionCard,
-  WorkspaceGit,
   SessionTranscriptPage,
   SessionArchives,
   SessionArchivesPatch,
@@ -50,7 +49,6 @@ export interface PlatformHttpRoutes {
   }
   "GET /api/v1/platform/environments": { response: { environments: EnvironmentInfo[] } }
   "GET /api/v1/platform/session-cards": { response: { cards: SessionCard[] } }
-  "GET /api/v1/platform/workspace-git": { response: { workspaces: Record<string, WorkspaceGit> } }
   "GET /api/v1/platform/context-usage": {
     query: { sessionId: string; preview?: string }
     response: { usage: ContextUsageEstimate | null; preview: ContextUsagePreview | null }

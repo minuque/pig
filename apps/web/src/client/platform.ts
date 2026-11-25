@@ -22,7 +22,6 @@ import type {
   ProviderListResponse,
   ProviderTestResult,
   SessionCard,
-  WorkspaceGit,
   SessionTranscriptPage,
   TranscriptItem,
   TurnTiming,
@@ -124,11 +123,6 @@ export async function warmWorkspace(path: string): Promise<void> {
 export async function listSessionCards(): Promise<SessionCard[]> {
   const { cards } = await request("GET /api/v1/platform/session-cards")
   return cards
-}
-
-export async function listWorkspaceGit(): Promise<Record<string, WorkspaceGit>> {
-  const { workspaces } = await request("GET /api/v1/platform/workspace-git")
-  return workspaces
 }
 
 export async function listProviders(): Promise<ProviderListResponse> {

@@ -101,10 +101,6 @@ const platformRoutes = {
     cards: await deps.hostService.listSessionCards(),
   }),
 
-  "GET /api/v1/platform/workspace-git": async ({ deps }) => ({
-    workspaces: await deps.hostService.listWorkspaceGit(),
-  }),
-
   "GET /api/v1/platform/context-usage": async ({ url, deps }) => {
     const sessionId = url.searchParams.get("sessionId") ?? ""
     const previewParam = url.searchParams.get("preview")

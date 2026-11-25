@@ -10,6 +10,7 @@ import type {
   SessionSnapshot,
   SessionArchives,
   UserPreferences,
+  WorkspaceGit,
 } from "@pig/protocol"
 import { t } from "@i18n/index.js"
 
@@ -31,6 +32,18 @@ export class GatewayRequestError extends Error {
     super(message)
     this.name = "GatewayRequestError"
   }
+}
+
+export function mergeWorkspaceGit(
+  current: Readonly<Record<string, WorkspaceGit>>,
+  changes: Readonly<Record<string, WorkspaceGit | null>>,
+): Record<string, WorkspaceGit> {
+  const next = { ...current }
+
+  for (const [workspace, git] of Object.entries(changes))
+    if (git) next[workspace] = git
+    else delete next[workspace]
+  return next
 }
 
 type Pending = { resolve(result: CommandResult): void; reject(error: Error): void }
@@ -180,6 +193,10 @@ export class GatewayClient {
     return this.#quiet({ command: "unwatch_session", sessionId })
   }
 
+  refreshWorkspaceGit() {
+    return this.#quiet({ command: "refresh_workspace_git" })
+  }
+
   async listSessions(): Promise<readonly SessionMetadata[]> {
     const result = await this.request({ command: "list_sessions" })
     return result.command === "list_sessions" ? result.sessions : []
@@ -248,6 +265,16 @@ export class GatewayClient {
 
     if (event.type === "session_archives_changed") {
       this.#emit(this.#sessionArchivesListeners, event.archives)
+      return
+    }
+
+    if (event.type === "workspace_git_changed") {
+      if (!this.#snapshot) return
+      this.#snapshot = {
+        ...this.#snapshot,
+        workspaceGit: mergeWorkspaceGit(this.#snapshot.workspaceGit, event.changes),
+      }
+      this.#emit(this.#snapshotListeners, this.#snapshot)
       return
     }
 

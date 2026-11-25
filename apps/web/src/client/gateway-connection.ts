@@ -34,6 +34,11 @@ export function useGatewayClient() {
   const sessions = computed(() => serverSnapshot.value?.sessions ?? [])
   const models = computed(() => serverSnapshot.value?.models ?? [])
   const defaultModel = computed(() => serverSnapshot.value?.defaultModel ?? null)
+  const workspaceGit = computed(() => serverSnapshot.value?.workspaceGit ?? {})
+
+  function refreshWorkspaceGit() {
+    void client.value?.refreshWorkspaceGit()
+  }
 
   function unsubscribeAll() {
     for (const unsubscribe of unsubscribes) unsubscribe()
@@ -152,6 +157,8 @@ export function useGatewayClient() {
     sessions,
     models,
     defaultModel,
+    workspaceGit,
+    refreshWorkspaceGit,
     connect,
     refreshSessions,
     refreshModels,

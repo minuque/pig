@@ -2,9 +2,8 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 import { effectScope, nextTick, ref } from "vue"
 import type { SessionCard, WorkspaceGit } from "@/types/common-type.js"
 
-const { listSessionCardsMock, listWorkspaceGitMock } = vi.hoisted(() => ({
+const { listSessionCardsMock } = vi.hoisted(() => ({
   listSessionCardsMock: vi.fn(async (): Promise<SessionCard[]> => []),
-  listWorkspaceGitMock: vi.fn(async (): Promise<Record<string, WorkspaceGit>> => ({})),
 }))
 
 vi.mock("@client/platform.js", async (importOriginal) => {
@@ -12,11 +11,13 @@ vi.mock("@client/platform.js", async (importOriginal) => {
   return {
     ...actual,
     listSessionCards: listSessionCardsMock,
-    listWorkspaceGit: listWorkspaceGitMock,
   }
 })
 
 import { useSessionCards } from "@features/session-nav/hooks/use-session-cards.js"
+
+const noGit = () => ({})
+const noRefresh = () => undefined
 
 describe("useSessionCards", () => {
   afterEach(() => {
@@ -28,7 +29,7 @@ describe("useSessionCards", () => {
     const connected = ref(false)
     const scope = effectScope()
     scope.run(() => {
-      useSessionCards(connected)
+      useSessionCards(connected, noGit, noRefresh)
     })
     await nextTick()
     expect(listSessionCardsMock).not.toHaveBeenCalled()
@@ -39,21 +40,21 @@ describe("useSessionCards", () => {
     scope.stop()
   })
 
-  it("分支信息按工作区目录建表", async () => {
-    listWorkspaceGitMock.mockResolvedValueOnce({
+  it("分支表取自 gateway 快照，快照更新后跟着变", async () => {
+    const workspaceGit = ref<Record<string, WorkspaceGit>>({
       "G:/AICode/pig": { branch: "main", detached: false, worktree: false },
-      "G:/AICode/pig-review": { branch: "review/pr-106", detached: false, worktree: true },
     })
     const scope = effectScope()
-    const cards = scope.run(() => useSessionCards(ref(true)))!
+    const cards = scope.run(() => useSessionCards(ref(true), workspaceGit, noRefresh))!
 
-    await vi.waitFor(() => expect(cards.workspaceGit.value.size).toBe(2))
+    expect(cards.workspaceGit.value.get("G:/AICode/pig")?.branch).toBe("main")
 
-    expect(cards.workspaceGit.value.get("G:/AICode/pig-review")).toEqual({
-      branch: "review/pr-106",
-      detached: false,
-      worktree: true,
-    })
+    workspaceGit.value = {
+      "G:/AICode/pig-review": { branch: "review/pr-106", detached: false, worktree: true },
+    }
+    await nextTick()
+
+    expect([...cards.workspaceGit.value.keys()]).toEqual(["G:/AICode/pig-review"])
     scope.stop()
   })
 
@@ -68,7 +69,7 @@ describe("useSessionCards", () => {
       { id: "s2", messageCount: 1 },
     ])
     const scope = effectScope()
-    const cards = scope.run(() => useSessionCards(ref(true)))!
+    const cards = scope.run(() => useSessionCards(ref(true), noGit, noRefresh))!
 
     await vi.waitFor(() => expect(cards.sessionCards.value.size).toBe(2))
 
@@ -85,7 +86,7 @@ describe("useSessionCards", () => {
   it("失败路径：卡片拉取失败不抛、表保持空", async () => {
     listSessionCardsMock.mockRejectedValue(new Error("boom"))
     const scope = effectScope()
-    const cards = scope.run(() => useSessionCards(ref(true)))!
+    const cards = scope.run(() => useSessionCards(ref(true), noGit, noRefresh))!
 
     await vi.waitFor(() => expect(listSessionCardsMock).toHaveBeenCalledTimes(1))
     await nextTick()

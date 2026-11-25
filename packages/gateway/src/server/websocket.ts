@@ -11,6 +11,7 @@ import {
 } from "@pig/protocol"
 import { WebSocket, WebSocketServer, type RawData } from "ws"
 import { GatewayError, type SessionService } from "../pi/runtime-types.js"
+import type { WorkspaceGitChanges, WorkspaceGitStore } from "../pi/workspace-git-store.js"
 import { LiveSessions, type ClientConnection } from "./live-sessions.js"
 
 const MAX_MESSAGE_BYTES = 16 * 1024 * 1024
@@ -20,6 +21,7 @@ const HANDSHAKE_TIMEOUT_MS = 30_000
 export interface ProtocolServerOptions {
   server: Server
   service: SessionService
+  workspaceGit: Pick<WorkspaceGitStore, "snapshot" | "refresh">
   allow(req: IncomingMessage): 401 | 403 | undefined
   onError(error: unknown): void
 }
@@ -86,6 +88,7 @@ export class ProtocolServer {
   constructor(private readonly options: ProtocolServerOptions) {
     this.sessions = new LiveSessions({
       service: options.service,
+      workspaceGit: options.workspaceGit,
       broadcastServerSnapshot: () => this.broadcastServerSnapshot(),
       reportError: options.onError,
       isClosing: () => this.closing,
@@ -118,6 +121,14 @@ export class ProtocolServer {
       connection.send({ type: "event", event: { type: "session_archives_changed", archives } })
   }
 
+  broadcastWorkspaceGit(changes: WorkspaceGitChanges) {
+    if (this.closing) return
+    const ready = [...this.connections].filter((connection) => connection.ready)
+
+    for (const connection of ready)
+      connection.send({ type: "event", event: { type: "workspace_git_changed", changes } })
+  }
+
   broadcastServerSnapshot() {
     const run = this.broadcastQueue.then(async () => {
       const ready = [...this.connections].filter((connection) => connection.ready)
@@ -145,6 +156,7 @@ export class ProtocolServer {
       sessions,
       models: catalog.models,
       defaultModel: catalog.defaultModel,
+      workspaceGit: this.options.workspaceGit.snapshot(),
     }
   }
 

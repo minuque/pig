@@ -12,6 +12,9 @@ import {
   type SessionRuntimeEvent,
   type SessionService,
 } from "../pi/runtime-types.js"
+import { parseRemoteKey } from "../pi/remote-session.js"
+import type { WorkspaceGitStore } from "../pi/workspace-git-store.js"
+import { canonicalizePath } from "../system/directory.js"
 
 export interface ClientConnection {
   readonly sessionIds: Set<string>
@@ -26,11 +29,13 @@ interface LiveSession {
   unsubscribe: () => void
   operationCount: number
   terminal: GatewayError | undefined
+  busy: boolean
   disposing?: Promise<void>
 }
 
 export interface LiveSessionOptions {
   service: SessionService
+  workspaceGit: Pick<WorkspaceGitStore, "refresh">
   broadcastServerSnapshot(): void
   reportError(error: unknown): void
   isClosing(): boolean
@@ -120,6 +125,9 @@ export class LiveSessions {
       case "unwatch_session":
         this.unwatchFile(connection, command.sessionId)
         return { command: "unwatch_session", sessionId: command.sessionId }
+      case "refresh_workspace_git":
+        await this.options.workspaceGit.refresh()
+        return { command: "refresh_workspace_git" }
     }
   }
 
@@ -329,6 +337,7 @@ export class LiveSessions {
       unsubscribe: () => {},
       operationCount: 0,
       terminal: undefined,
+      busy: false,
     }
 
     live.unsubscribe = runtime.subscribe((event) => this.handleEvent(live, event))
@@ -362,10 +371,21 @@ export class LiveSessions {
 
       for (const connection of live.connections) connection.send(message)
     } else {
-      void this.broadcastSnapshot(live).catch((error) => this.options.reportError(error))
+      void this.broadcastSnapshot(live)
+        .then((snapshot) => this.noteTurnEnd(live, snapshot))
+        .catch((error) => this.options.reportError(error))
     }
 
     this.scheduleDispose(live)
+  }
+
+  private noteTurnEnd(live: LiveSession, snapshot: SessionSnapshot) {
+    const idle = snapshot.phase === "idle"
+    const ended = live.busy && idle
+    live.busy = !idle
+    const workspace = canonicalizePath(snapshot.cwd)
+
+    if (ended && parseRemoteKey(workspace)) void this.options.workspaceGit.refresh([workspace])
   }
 
   private async snapshotOf(live: LiveSession): Promise<SessionSnapshot> {

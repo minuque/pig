@@ -17,7 +17,6 @@ import type {
   ModelChannels,
   ModelMetadata,
   SessionCard,
-  WorkspaceGit,
   SessionMetadata,
   TranscriptItem,
 } from "@pig/protocol"
@@ -29,7 +28,7 @@ import { AttachmentStore } from "./attachments.js"
 import { selectComposerPrompts } from "./composer-commands.js"
 import { ProviderService } from "./provider-service.js"
 import { SessionCardCache } from "./session-card.js"
-import { readWorkspaceGitHead } from "./workspace-git.js"
+import { WorkspaceGitStore, workspaceGitFile } from "./workspace-git-store.js"
 import { SessionIndex, type IndexedSession } from "./session-index.js"
 import { recentSessionCwd, sessionListName } from "./session-label.js"
 import { BINDING_ENTRY, parseRemoteKey } from "./remote-session.js"
@@ -61,6 +60,7 @@ export interface PiHostServiceOptions {
 export class PiHostService implements SessionService {
   readonly attachments: AttachmentStore
   readonly providers: ProviderService
+  readonly workspaceGit: WorkspaceGitStore
   private readonly sessionPaths = new Map<string, string>()
   private readonly activeSessions = new Map<string, PiHostSession>()
   private readonly resources: WorkspaceResources
@@ -82,6 +82,7 @@ export class PiHostService implements SessionService {
 
   constructor(private readonly options: PiHostServiceOptions = {}) {
     this.sessionIndex = new SessionIndex(options.sessionDir)
+    this.workspaceGit = new WorkspaceGitStore(workspaceGitFile(options.sessionDir, options.pigHome))
     this.events = options.events ?? createEventBus()
     this.resources = new WorkspaceResources(
       {
@@ -132,20 +133,6 @@ export class PiHostService implements SessionService {
     this.sessionsCache = undefined
     const infos = await this.refreshSessionPaths()
     return this.cards.list(infos)
-  }
-
-  async listWorkspaceGit(): Promise<Record<string, WorkspaceGit>> {
-    const infos = await this.refreshSessionPaths()
-    const workspaces = [
-      ...new Set(infos.flatMap((info) => (info.cwd ? [canonicalizePath(info.cwd)] : []))),
-    ]
-    const entries = await Promise.all(
-      workspaces.map(async (workspace) => {
-        const git = (await readWorkspaceGitHead(workspace).catch(() => undefined))?.git
-        return git ? ([[workspace, git]] as const) : []
-      }),
-    )
-    return Object.fromEntries(entries.flat())
   }
 
   listModels(): Promise<{ models: ModelMetadata[]; defaultModel: DefaultModelView | null }> {
@@ -334,7 +321,11 @@ export class PiHostService implements SessionService {
   async dispose(): Promise<void> {
     this.providers.dispose()
     this.fileWatcher.close()
-    await Promise.all([this.attachments.dispose(), this.resources.dispose()])
+    await Promise.all([
+      this.attachments.dispose(),
+      this.resources.dispose(),
+      this.workspaceGit.close(),
+    ])
   }
 
   watchSession(sessionId: string, listener: () => void): () => void {
@@ -393,6 +384,9 @@ export class PiHostService implements SessionService {
 
     for (const info of infos) this.sessionPaths.set(info.id, info.path)
     this.sessionsCache = { expiresAt: now + 2_000, infos }
+    void this.workspaceGit.track([
+      ...new Set(infos.flatMap((info) => (info.cwd ? [canonicalizePath(info.cwd)] : []))),
+    ])
     return infos
   }
 
