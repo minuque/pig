@@ -124,6 +124,7 @@ export async function withGateway(
   seed: (sessionDir: string, workspaceDir: string) => void,
   use: (gateway: E2eGateway) => Promise<void>,
   prepareAgent: (agentDir: string) => Promise<void> = writeOfflineModel,
+  extra?: (temp: string) => Promise<ConstructorParameters<typeof Gateway>[0]>,
 ) {
   const temp = await mkdtemp(join(tmpdir(), "pig-e2e-"))
   const workspaceDir = join(temp, "workspace")
@@ -156,6 +157,7 @@ export async function withGateway(
     platformPort,
     port: 0,
     agentDir,
+    ...(extra ? await extra(temp) : {}),
   })
 
   try {
