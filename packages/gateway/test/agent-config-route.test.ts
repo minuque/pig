@@ -107,6 +107,27 @@ describe("MCP 路由", () => {
     ).toEqual([])
   })
 
+  it("同名条目不覆盖，除非明确要求", async () => {
+    const put = (body: Record<string, unknown>) =>
+      call("PUT", "/api/v1/platform/mcp/server", { scope: "global", ...body }).then((r) => r.json())
+
+    await put({ name: "gh", config: { command: "a" } })
+    await put({ name: "github", config: { command: "b" } })
+
+    expect((await put({ name: "github", config: { command: "c" } })).ok).toBe(false)
+    expect((await put({ name: "github", previousName: "gh", config: { command: "c" } })).ok).toBe(
+      false,
+    )
+    expect(
+      (await put({ name: "github", previousName: "github", config: { command: "d" } })).ok,
+    ).toBe(true)
+    expect((await put({ name: "github", config: { command: "e" }, overwrite: true })).ok).toBe(true)
+
+    const servers = JSON.parse(await readFile(join(agentDir, "mcp.json"), "utf8")).mcpServers
+
+    expect(servers).toEqual({ gh: { command: "a" }, github: { command: "e" } })
+  })
+
   it("工作区作用域不能改继承来的全局条目", async () => {
     await writeFile(
       join(agentDir, "mcp.json"),

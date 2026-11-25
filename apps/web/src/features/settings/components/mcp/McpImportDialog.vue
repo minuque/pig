@@ -111,7 +111,7 @@ async function apply() {
 
   try {
     for (const item of selected.value) {
-      const error = await props.state.save(item.name, item.config)
+      const error = await props.state.save(item.name, item.config, { overwrite: item.conflict })
 
       if (error) errors.value.push(`${item.name}: ${error}`)
     }

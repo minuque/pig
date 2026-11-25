@@ -18,6 +18,7 @@ export function saveMcpServer(input: {
   scope: AgentConfigScope
   name: string
   previousName?: string
+  overwrite?: boolean
   config: Record<string, unknown>
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   return request("PUT /api/v1/platform/mcp/server", { body: input })

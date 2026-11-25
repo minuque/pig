@@ -69,12 +69,17 @@ export function useMcp(scope: Ref<string>) {
     await refresh()
   }
 
-  async function save(name: string, config: Record<string, unknown>, previousName?: string) {
+  async function save(
+    name: string,
+    config: Record<string, unknown>,
+    options: { previousName?: string | undefined; overwrite?: boolean } = {},
+  ) {
     const result = await saveMcpServer({
       scope: scope.value,
       name,
       config,
-      ...(previousName ? { previousName } : {}),
+      ...(options.previousName ? { previousName: options.previousName } : {}),
+      ...(options.overwrite ? { overwrite: true } : {}),
     })
 
     if (!result.ok) return result.error

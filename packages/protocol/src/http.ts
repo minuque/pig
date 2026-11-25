@@ -184,7 +184,13 @@ export interface PlatformHttpRoutes {
   }
   "GET /api/v1/platform/mcp": { query: { scope: string }; response: McpScopeView }
   "PUT /api/v1/platform/mcp/server": {
-    body: { scope: string; name: string; previousName?: string; config: Record<string, unknown> }
+    body: {
+      scope: string
+      name: string
+      previousName?: string
+      overwrite?: boolean
+      config: Record<string, unknown>
+    }
     response: { ok: true } | { ok: false; error: string }
   }
   "PATCH /api/v1/platform/mcp/server": {

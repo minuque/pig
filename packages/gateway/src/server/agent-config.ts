@@ -65,6 +65,12 @@ const agentConfigRoutes = {
 
     if ("error" in result) return { ok: false, error: result.error }
     const previous = text(payload.previousName)
+    const taken = readMcpScope(ctx.deps.hostService.agentDir, scope).servers.some(
+      (server) => server.name === name,
+    )
+
+    if (taken && previous !== name && payload.overwrite !== true)
+      return { ok: false, error: `MCP server "${name}" already exists` }
 
     putMcpServer(
       mcpConfigFile(ctx.deps.hostService.agentDir, scope),

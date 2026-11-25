@@ -153,11 +153,9 @@ async function submit() {
   try {
     const name = draft.name.trim()
 
-    saveError.value = await props.state.save(
-      name,
-      configFromDraft(draft, props.server?.config),
-      props.server?.name,
-    )
+    saveError.value = await props.state.save(name, configFromDraft(draft, props.server?.config), {
+      previousName: props.server?.name,
+    })
 
     if (!saveError.value) emit("saved", name)
   } finally {
