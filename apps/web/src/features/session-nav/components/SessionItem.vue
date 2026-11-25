@@ -7,7 +7,7 @@
       'is-swept': swept,
     }"
   >
-    <ContextMenu :modal="false" @update:open="onMenuOpenChange">
+    <ContextMenu :modal="false" @update:open="menuOpen = $event">
       <HoverCard
         v-model:open="hoverOpen"
         :disabled="placeholder || renaming || menuOpen || forkHover || pressed"
@@ -19,6 +19,7 @@
                 <component
                   v-bind="part"
                   :is="placeholder ? 'div' : RouterLink"
+                  :ref="setCardEl"
                   class="session-card"
                   :class="[
                     variant,
@@ -35,7 +36,6 @@
                   draggable="false"
                   @click="onCardClick"
                   @dblclick="onCardDblclick"
-                  :ref="setCardEl"
                   @pointerdown.left="onCardPointerDown"
                   @pointerleave="onCardLeave"
                   @dragstart.prevent
@@ -47,71 +47,22 @@
                         <ProjectIcon class="project-mono" :path="session.cwd" fallback="monogram" />
                       </span>
 
-                      <Tooltip v-if="pinned">
-                        <TooltipTrigger>
-                          <template #render="{ props: part }">
-                            <button
-                              v-bind="part"
-                              type="button"
-                              class="pin-toggle"
-                              :aria-label="t('session.unpin')"
-                              :disabled="placeholder"
-                              @click.prevent.stop="emit('togglePinned', session.id)"
-                              @pointerdown.stop
-                            >
-                              <PinIcon class="pin-on" />
-                              <PinOffIcon class="pin-off" />
-                            </button>
-                          </template>
-                        </TooltipTrigger>
-
-                        <TooltipContent>{{ t("session.unpin") }}</TooltipContent>
-                      </Tooltip>
+                      <SessionPinToggle
+                        v-if="pinned"
+                        :disabled="placeholder"
+                        @toggle="emit('togglePinned', session.id)"
+                      />
 
                       <span class="project-name">{{ projectName }}</span>
-
-                      <span v-if="!renaming" class="state-slot">
-                        <span class="state-mark" aria-hidden="true">
-                          <span v-if="startedAt !== undefined" class="working-status">
-                            <CircleDashedIcon class="size-icon-lg working-icon" />
-                            <span>{{ t("session.sectionWorking") }}</span>
-                            <span class="working-elapsed">{{ elapsed }}</span>
-                          </span>
-
-                          <SessionStateIcon v-else-if="glyphState" :state="glyphState" />
-                          <span v-else class="time-label">{{ timeLabel }}</span>
-                        </span>
-
-                        <button
-                          v-if="!placeholder && startedAt === undefined"
-                          class="row-action press-scale"
-                          type="button"
-                          :aria-label="settled ? t('session.unsettle') : t('session.settle')"
-                          @click.prevent.stop="onRowAction"
-                          @pointerdown.stop="onActionPointerDown"
-                        >
-                          <Undo2Icon v-if="settled" class="size-icon" />
-                          <CheckIcon v-else class="size-icon" />
-
-                          <span class="row-action-label">
-                            {{ settled ? t("session.unsettle") : t("session.settle") }}
-                          </span>
-                        </button>
-                      </span>
+                      <SessionStateSlot v-if="!renaming" v-bind="slotProps" v-on="slotEvents" />
                     </span>
 
                     <span class="title-line">
-                      <input
+                      <SessionRenameInput
                         v-if="renaming"
-                        :ref="setRenameInput"
-                        v-model="renameDraft"
-                        class="rename-input"
-                        type="text"
-                        :aria-label="t('session.rename')"
-                        @click.stop
-                        @keydown.enter.prevent="commitRename"
-                        @keydown.escape.prevent="cancelRename"
-                        @blur="commitRename"
+                        :title="session.title"
+                        @commit="commitRename"
+                        @cancel="renaming = false"
                       />
 
                       <template v-else>
@@ -155,39 +106,17 @@
                       />
                     </span>
 
-                    <input
+                    <SessionRenameInput
                       v-if="renaming"
-                      :ref="setRenameInput"
-                      v-model="renameDraft"
-                      class="rename-input"
-                      type="text"
-                      :aria-label="t('session.rename')"
-                      @click.stop
-                      @keydown.enter.prevent="commitRename"
-                      @keydown.escape.prevent="cancelRename"
-                      @blur="commitRename"
+                      :title="session.title"
+                      @commit="commitRename"
+                      @cancel="renaming = false"
                     />
 
-                    <span v-else class="title">{{ session.title }}</span>
-
-                    <span v-if="!renaming" class="state-slot">
-                      <span class="state-mark" aria-hidden="true">
-                        <SessionStateIcon v-if="glyphState" :state="glyphState" />
-                        <span v-else class="time-label">{{ timeLabel }}</span>
-                      </span>
-
-                      <button
-                        v-if="!placeholder"
-                        class="row-action press-scale"
-                        type="button"
-                        :aria-label="settled ? t('session.unsettle') : t('session.settle')"
-                        @click.prevent.stop="onRowAction"
-                        @pointerdown.stop="onActionPointerDown"
-                      >
-                        <Undo2Icon v-if="settled" class="size-icon" />
-                        <CheckIcon v-else class="size-icon" />
-                      </button>
-                    </span>
+                    <template v-else>
+                      <span class="title">{{ session.title }}</span>
+                      <SessionStateSlot v-bind="slotProps" v-on="slotEvents" />
+                    </template>
                   </template>
                 </component>
               </template>
@@ -204,55 +133,19 @@
         />
       </HoverCard>
 
-      <ContextMenuContent v-if="!placeholder" class="select-none">
-        <template v-if="split">
-          <ContextMenuItem @select="split.openToSide(session.id)">
-            <Columns2Icon />
-            {{ split.split.value ? t("split.openToOther") : t("split.openToSide") }}
-          </ContextMenuItem>
-
-          <ContextMenuSeparator />
-        </template>
-
-        <ContextMenuItem @select="startRename">
-          <PenIcon />
-          {{ t("session.rename") }}
-        </ContextMenuItem>
-
-        <ContextMenuItem @select="emit('togglePinned', session.id)">
-          <PinOffIcon v-if="pinned" />
-          <PinIcon v-else />
-          {{ pinned ? t("session.unpin") : t("session.pin") }}
-        </ContextMenuItem>
-
-        <ContextMenuSeparator />
-
-        <template v-if="settled">
-          <ContextMenuItem @select="emit('unsettle', session.id)">
-            <RotateCcwIcon />
-            {{ t("session.unsettle") }}
-          </ContextMenuItem>
-        </template>
-
-        <template v-else>
-          <ContextMenuItem @select="emit('settle', session.id)">
-            <CircleCheckIcon />
-            {{ t("session.settle") }}
-          </ContextMenuItem>
-        </template>
-
-        <ContextMenuItem :disabled="startedAt !== undefined" @select="emit('archive', session.id)">
-          <ArchiveIcon />
-          {{ t("session.archive") }}
-        </ContextMenuItem>
-
-        <ContextMenuSeparator />
-
-        <ContextMenuItem color="danger" @select="deleteOpen = true">
-          <TrashIcon />
-          {{ t("session.deleteTitle") }}
-        </ContextMenuItem>
-      </ContextMenuContent>
+      <SessionItemMenu
+        v-if="!placeholder"
+        :session-id="session.id"
+        :pinned="pinned"
+        :settled="settled"
+        :working="startedAt !== undefined"
+        @rename="startRename"
+        @toggle-pinned="emit('togglePinned', session.id)"
+        @settle="emit('settle', session.id)"
+        @unsettle="emit('unsettle', session.id)"
+        @archive="emit('archive', session.id)"
+        @delete="deleteOpen = true"
+      />
     </ContextMenu>
 
     <SessionItemDelete
@@ -265,45 +158,23 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, shallowRef, watch, type ComponentPublicInstance } from "vue"
-import { useIntervalFn } from "@vueuse/core"
+import { computed, shallowRef, watch, type ComponentPublicInstance } from "vue"
 import { RouterLink } from "vue-router"
-import { useI18n } from "@i18n/index.js"
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from "@pig/ui/context-menu"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
+import { ContextMenu, ContextMenuTrigger } from "@pig/ui/context-menu"
 import { HoverCard, HoverCardTrigger } from "@pig/ui/hover-card"
 import SessionRowMarks from "@features/session-nav/components/SessionRowMarks.vue"
 import SessionHoverCard from "@features/session-nav/components/SessionHoverCard.vue"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
-import SessionStateIcon from "@features/session-nav/components/SessionStateIcon.vue"
-import { sessionGlyph } from "@features/session-nav/lib/status-cycle.js"
-import { pressedCard, trackPressedCard } from "@features/session-nav/lib/pressed-card.js"
+import SessionItemMenu from "@features/session-nav/components/SessionItemMenu.vue"
+import SessionPinToggle from "@features/session-nav/components/SessionPinToggle.vue"
+import SessionRenameInput from "@features/session-nav/components/SessionRenameInput.vue"
+import SessionStateSlot from "@features/session-nav/components/SessionStateSlot.vue"
 import ProjectIcon from "@features/session-nav/components/ProjectIcon.vue"
-import { formatRelativeTime, workspaceName } from "@features/session-nav/lib/format.js"
-import { formatElapsed } from "@utils/time.js"
+import { pressedCard, trackPressedCard } from "@features/session-nav/lib/pressed-card.js"
+import { workspaceName } from "@features/session-nav/lib/format.js"
 import type { SidebarRowFoot, SidebarSession } from "@features/session-nav/type.js"
 import { trySplitView } from "@features/split-view/index.js"
-import {
-  ArchiveIcon,
-  CircleCheckIcon,
-  CheckIcon,
-  Columns2Icon,
-  CircleDashedIcon,
-  PenIcon,
-  PinIcon,
-  PinOffIcon,
-  RotateCcwIcon,
-  TrashIcon,
-  Undo2Icon,
-  FolderGit2Icon,
-  GitBranchIcon,
-} from "@components/icons/index.js"
+import { FolderGit2Icon, GitBranchIcon } from "@components/icons/index.js"
 
 const props = withDefaults(
   defineProps<{
@@ -346,8 +217,7 @@ const splitShown = computed(
     Boolean(split?.split.value) &&
     (split!.state.value.left === props.session.id || split!.state.value.right === props.session.id),
 )
-const { t } = useI18n()
-const menuOpen = ref(false)
+const menuOpen = shallowRef(false)
 const hoverOpen = shallowRef(false)
 const cardEl = shallowRef<Element | null>(null)
 const pressed = computed(() => cardEl.value !== null && pressedCard.value === cardEl.value)
@@ -359,69 +229,33 @@ watch(pressed, (value) => {
 })
 
 const deleteOpen = shallowRef(false)
+const renaming = shallowRef(false)
 const projectName = computed(() => (props.session.cwd ? workspaceName(props.session.cwd) : ""))
-const glyphState = computed(() => sessionGlyph(props.session, props.foot?.state))
-const timeLabel = computed(() => formatRelativeTime(props.session.updatedAt))
-const tick = shallowRef(Date.now())
-const elapsed = computed(() =>
-  props.startedAt === undefined
-    ? ""
-    : formatElapsed(tick.value - props.startedAt, { showMs: false }),
-)
-const clock = useIntervalFn(
-  () => {
-    tick.value = Date.now()
-  },
-  1_000,
-  { immediate: false },
-)
-
-watch(
-  () => props.startedAt,
-  (startedAt) => {
-    if (startedAt === undefined) {
-      clock.pause()
-      return
-    }
-
-    tick.value = Date.now()
-    clock.resume()
-  },
-  { immediate: true },
-)
-
-const renaming = ref(false)
-const renameDraft = ref("")
-const renameInput = shallowRef<HTMLInputElement | null>(null)
-
-function setRenameInput(el: unknown): void {
-  renameInput.value = el instanceof HTMLInputElement ? el : null
+const slotProps = computed(() => ({
+  session: props.session,
+  foot: props.foot,
+  variant: props.variant,
+  settled: props.settled,
+  startedAt: props.startedAt,
+  placeholder: props.placeholder,
+}))
+const slotEvents = {
+  settle: () => emit("settle", props.session.id),
+  unsettle: () => emit("unsettle", props.session.id),
+  sweepStart: (event: PointerEvent) => emit("sweepStart", event),
 }
 
-async function startRename() {
-  if (props.placeholder) return
-  renameDraft.value = props.session.title
-  renaming.value = true
-  await nextTick()
-  renameInput.value?.focus()
-  renameInput.value?.select()
+function startRename() {
+  if (!props.placeholder) renaming.value = true
 }
 
-function commitRename() {
+function commitRename(name: string) {
   if (!renaming.value) return
   renaming.value = false
-  const trimmed = renameDraft.value.trim()
+  const trimmed = name.trim()
 
   if (!trimmed || trimmed === props.session.title) return
   emit("rename", props.session.id, trimmed)
-}
-
-function cancelRename() {
-  renaming.value = false
-}
-
-function onMenuOpenChange(open: boolean) {
-  menuOpen.value = open
 }
 
 function isModifiedSessionClick(event: MouseEvent) {
@@ -437,16 +271,10 @@ function onCardLeave() {
 }
 
 function onCardPointerDown(event: PointerEvent) {
-  if (props.placeholder) return
-
-  if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+  if (props.placeholder || isModifiedSessionClick(event)) return
   emit("prime", props.session.id)
 
   if (renaming.value) event.stopPropagation()
-}
-
-function onActionPointerDown(event: PointerEvent) {
-  if (event.button === 0 && !props.placeholder) emit("sweepStart", event)
 }
 
 function onCardClick(event: MouseEvent) {
@@ -472,18 +300,13 @@ function onCardClick(event: MouseEvent) {
 function onCardDblclick(event: MouseEvent) {
   if (props.placeholder || isModifiedSessionClick(event)) return
   event.preventDefault()
-  void startRename()
-}
-
-function onRowAction() {
-  if (props.settled) emit("unsettle", props.session.id)
-  else emit("settle", props.session.id)
+  startRename()
 }
 
 function onCardKeydown(event: KeyboardEvent) {
   if (props.placeholder || event.key !== "F2") return
   event.preventDefault()
-  void startRename()
+  startRename()
 }
 
 function confirmDelete() {
@@ -540,46 +363,6 @@ function confirmDelete() {
 
 .session-item .session-card.is-placeholder {
   background: var(--warning-subtle);
-}
-
-.pin-toggle {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-min);
-  background: transparent;
-  color: var(--fg-secondary);
-  cursor: pointer;
-  transition: color var(--duration-fast) var(--ease-out);
-}
-
-.pin-toggle :deep(svg) {
-  inline-size: var(--icon-sm);
-  block-size: var(--icon-sm);
-}
-
-.pin-toggle .pin-off,
-.pin-toggle:is(:hover, :focus-visible):not(:disabled) .pin-on {
-  display: none;
-}
-
-.pin-toggle:is(:hover, :focus-visible):not(:disabled) .pin-off {
-  display: block;
-}
-
-.pin-toggle:is(:hover, :focus-visible):not(:disabled) {
-  color: var(--fg);
-}
-
-.pin-toggle:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-}
-
-.pin-toggle:disabled {
-  cursor: default;
 }
 
 .project-icon {
@@ -693,112 +476,6 @@ function confirmDelete() {
   color: var(--fg-muted);
 }
 
-.state-slot {
-  position: relative;
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: flex-end;
-  min-width: var(--control-2xs);
-  height: var(--control-2xs);
-  margin-inline-start: auto;
-}
-
-.state-mark {
-  display: grid;
-  place-items: center;
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-.time-label {
-  color: var(--fg-muted);
-  font-size: var(--text-meta);
-  font-variant-numeric: tabular-nums;
-  line-height: var(--text-meta--line-height);
-  white-space: nowrap;
-}
-
-.working-status {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: var(--space-2xs);
-  color: var(--info-text);
-  font-size: var(--text-meta);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--text-meta--line-height);
-  white-space: nowrap;
-}
-
-.working-icon {
-  flex: none;
-}
-
-.working-elapsed {
-  font-variant-numeric: tabular-nums;
-}
-
-.session-item:is(:hover, :focus-within, .is-menu-open, .is-swept)
-  .state-slot:has(.row-action)
-  .state-mark {
-  position: absolute;
-  inset-inline-end: 0;
-  opacity: 0;
-}
-
-.session-item:is(:hover, :focus-within, .is-menu-open, .is-swept) .row-action {
-  position: relative;
-  inset: auto;
-  margin-inline-end: calc(var(--space-xs) * -1);
-  translate: none;
-}
-
-.session-item:is(:hover, :focus-within, .is-menu-open, .is-swept) .session-card.slim .row-action {
-  margin-inline-end: -2px;
-}
-
-.row-action {
-  position: absolute;
-  inset-inline-end: calc(var(--space-xs) * -1);
-  top: 50%;
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2xs);
-  padding-block: 2px;
-  padding-inline: var(--space-xs);
-  border: 0;
-  border-radius: var(--radius-control);
-  background: transparent;
-  color: var(--fg-secondary);
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
-  white-space: nowrap;
-  translate: 0 -50%;
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    opacity var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
-}
-
-.session-card.slim .row-action {
-  inset-inline-end: -2px;
-  padding-inline: 2px;
-}
-
-.session-item:hover .row-action,
-.session-item:focus-within .row-action,
-.row-action:focus-visible,
-.session-item.is-menu-open .row-action {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.row-action:hover,
-.row-action:focus-visible {
-  color: var(--fg);
-}
-
 :global([data-drag-preview] .session-item .session-card) {
   background: var(--bg-raised);
   color: var(--fg);
@@ -814,42 +491,9 @@ function confirmDelete() {
   background: var(--bg-selected);
 }
 
-.session-item.is-swept .state-mark {
-  opacity: 0;
-}
-
-.session-item.is-swept .row-action {
-  color: var(--fg);
-  opacity: 1;
-}
-
-:global([data-drag-preview] .session-item .state-mark),
-:global([data-drag-preview] .session-item .row-action) {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.rename-input {
-  min-width: 0;
-  flex: 1;
-  height: calc(var(--control-2xs) + 1px);
-  margin-block: -2px;
-  padding: 0 var(--space-2xs);
-  border: 0;
-  border-radius: var(--radius-min);
-  outline: none;
-  background: var(--bg-muted);
-  color: var(--fg);
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
-  box-shadow: inset 0 0 0 1px var(--accent-solid);
-}
-
 @media (prefers-reduced-motion: reduce) {
   .session-card,
-  .title,
-  .state-mark,
-  .row-action {
+  .title {
     transition: none;
   }
 }
