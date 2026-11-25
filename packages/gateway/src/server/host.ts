@@ -9,6 +9,7 @@ import {
 import { PreferencesStore, preferencesFile } from "../system/preferences.js"
 import { SessionArchivesStore, sessionArchivesFile } from "../system/session-archives.js"
 import { handlePreviewRequest } from "./file-preview.js"
+import { handleAgentConfigRequest } from "./agent-config.js"
 import { handlePlatformRequest } from "./platform.js"
 import { installProviderHttp } from "./provider-http.js"
 import { handleProviderRequest } from "./providers.js"
@@ -157,6 +158,14 @@ export class Gateway {
       })
 
       if (providerHandled) return
+
+      const agentConfigHandled = await handleAgentConfigRequest(req, res, url, {
+        send: this.send.bind(this),
+        body: this.body.bind(this),
+        hostService: this.hostService,
+      })
+
+      if (agentConfigHandled) return
 
       const handled = await handlePlatformRequest(req, res, url, {
         send: this.send.bind(this),

@@ -4,6 +4,7 @@ import {
   createAgentSession,
   createEventBus,
   DefaultResourceLoader,
+  getAgentDir,
   ModelRuntime,
   SessionManager,
   type EventBus,
@@ -36,6 +37,7 @@ import { SessionFileWatcher } from "./session-watcher.js"
 import { TranscriptReader } from "./transcript-reader.js"
 import { createDefaultRuntime, serializeEntries } from "./service-support.js"
 import { isTurnUnfinished } from "./turn-state.js"
+import { McpCli } from "./mcp-cli.js"
 import { WorkspaceResources } from "./workspace-resources.js"
 
 export type Runtime = Awaited<ReturnType<typeof ModelRuntime.create>>
@@ -59,6 +61,8 @@ export class PiHostService implements SessionService {
   readonly attachments: AttachmentStore
   readonly providers: ProviderService
   readonly workspaceGit: WorkspaceGitStore
+  readonly agentDir: string
+  readonly mcpCli: McpCli
   private readonly sessionPaths = new Map<string, string>()
   private readonly activeSessions = new Map<string, PiHostSession>()
   private readonly resources: WorkspaceResources
@@ -82,6 +86,8 @@ export class PiHostService implements SessionService {
     this.sessionIndex = new SessionIndex(options.sessionDir)
     this.workspaceGit = new WorkspaceGitStore(workspaceGitFile(options.sessionDir, options.pigHome))
     this.events = options.events ?? createEventBus()
+    this.agentDir = options.agentDir ?? getAgentDir()
+    this.mcpCli = new McpCli({ agentDir: this.agentDir })
     this.resources = new WorkspaceResources(
       {
         ...(options.agentDir ? { agentDir: options.agentDir } : {}),
@@ -141,6 +147,10 @@ export class PiHostService implements SessionService {
     const cwd = recentSessionCwd(sessions)
 
     if (cwd) this.prepareWorkspace(cwd)
+  }
+
+  invalidateResources(workspace?: string): void {
+    this.resources.invalidate(workspace)
   }
 
   prepareWorkspace(cwd: string): void {
