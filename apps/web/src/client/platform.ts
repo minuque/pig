@@ -66,7 +66,7 @@ function routeUrl<K extends PlatformHttpRouteKey>(
   return suffix ? `${path}?${suffix}` : path
 }
 
-async function request<K extends PlatformHttpRouteKey>(
+export async function request<K extends PlatformHttpRouteKey>(
   route: K,
   ...rest: HasOptions<K> extends true ? [options: RequestOptions<K>] : [options?: RequestOptions<K>]
 ): Promise<PlatformRouteResponse<K>> {
@@ -138,10 +138,13 @@ export async function openLoginEvents(
   after: number,
   onEvent: (event: LoginEvent) => void,
   signal?: AbortSignal,
+  route:
+    | "GET /api/v1/platform/providers/login/:loginId/events"
+    | "GET /api/v1/platform/mcp/login/:loginId/events" = "GET /api/v1/platform/providers/login/:loginId/events",
 ): Promise<void> {
   const requestId = crypto.randomUUID()
   const response = await fetch(
-    routeUrl("GET /api/v1/platform/providers/login/:loginId/events", {
+    routeUrl(route, {
       params: { loginId },
       query: { after: String(after) },
     }),
