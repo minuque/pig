@@ -1,4 +1,3 @@
-import { hostname } from "node:os"
 import { expect, test } from "../support/fixtures.js"
 import { CHILD_MARKER } from "../support/prebuild-session.js"
 import { startSubagentTurn } from "../support/subagent-turn.js"
@@ -82,7 +81,7 @@ test("摘要面板：分节可折叠，刷新后保持", async ({ page, subagent
   const envHead = env.locator(".rail-head")
   await envHead.click()
   await expect(envHead).toHaveAttribute("aria-expanded", "false")
-  await expect(env.locator(".rail-summary")).toHaveText(hostname())
+  await expect(env.locator(".rail-summary")).toHaveText("本机")
 
   await page.reload()
   await page.locator(".session-card").first().click()
