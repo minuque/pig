@@ -3,7 +3,12 @@ import { computed, onBeforeUnmount, ref, shallowRef, watch } from "vue"
 import type { ServerSnapshot } from "@/types/common-type.js"
 import { t } from "@i18n/index.js"
 
-import { GatewayClient, type ConnectionState, type Unsubscribe } from "@client/gateway-client.js"
+import {
+  GatewayClient,
+  mergeWorkspaceGit,
+  type ConnectionState,
+  type Unsubscribe,
+} from "@client/gateway-client.js"
 import { applyRemotePreferences, hydratePreferences } from "@client/preferences.js"
 import { applyRemoteSessionArchives, hydrateSessionArchives } from "@client/session-archives.js"
 import { webSocketUrl } from "@client/transport.js"
@@ -71,6 +76,15 @@ export function useGatewayClient() {
       }),
       next.onPreferencesChanged(applyRemotePreferences),
       next.onSessionArchivesChanged(applyRemoteSessionArchives),
+      next.onWorkspaceGitChanged((changes) => {
+        const snapshot = serverSnapshot.value
+
+        if (snapshot)
+          serverSnapshot.value = {
+            ...snapshot,
+            workspaceGit: mergeWorkspaceGit(snapshot.workspaceGit, changes),
+          }
+      }),
     )
 
     try {
@@ -89,18 +103,21 @@ export function useGatewayClient() {
 
   async function refreshSessions() {
     const current = client.value
+
+    if (!current || !serverSnapshot.value) return
+    const sessions = await current.listSessions()
     const snapshot = serverSnapshot.value
 
-    if (!current || !snapshot) return
-    const sessions = await current.listSessions()
+    if (client.value !== current || !snapshot) return
     serverSnapshot.value = { ...snapshot, sessions: [...sessions] }
   }
 
   async function refreshModels() {
+    if (!serverSnapshot.value) return
+    const { models, defaultModel } = await listProviderModels()
     const snapshot = serverSnapshot.value
 
     if (!snapshot) return
-    const { models, defaultModel } = await listProviderModels()
     serverSnapshot.value = { ...snapshot, models, defaultModel }
   }
 

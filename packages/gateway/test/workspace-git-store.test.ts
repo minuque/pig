@@ -94,6 +94,19 @@ describe("WorkspaceGitStore", () => {
     expect(git.snapshot()).toEqual({})
   })
 
+  it("还不是仓库的目录 git init 后，下一次 refresh 补上分支", async () => {
+    const dir = path.join(base, "plain")
+    await mkdir(dir, { recursive: true })
+    const git = store()
+    await git.track([dir])
+    const seen = collect(git)
+
+    await repo(dir, "main")
+    await git.refresh()
+
+    expect(seen).toEqual([{ [dir]: branch("main") }])
+  })
+
   it("track 去掉的目录不再推变化，也移出快照", async () => {
     const dir = path.join(base, "app")
     await repo(dir, "main")

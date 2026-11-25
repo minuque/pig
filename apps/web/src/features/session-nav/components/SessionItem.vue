@@ -617,6 +617,10 @@ function confirmDelete() {
   line-height: var(--text-meta--line-height);
 }
 
+.context-line:is(.list-reveal-enter-from, .list-reveal-leave-to) {
+  margin-block-start: calc(var(--space-2xs) * -1);
+}
+
 .context-icon {
   flex: none;
 }
