@@ -48,3 +48,9 @@ export interface SkillFileView {
   raw: string
   files: string[]
 }
+
+export interface McpProbe {
+  status: "connected" | "needs-auth" | "failed" | "disabled"
+  tools: string[]
+  error?: string
+}

@@ -36,6 +36,7 @@ export type {
   AgentConfigScope,
   McpExposure,
   McpInvalidEntry,
+  McpProbe,
   McpScopeView,
   McpServerView,
   SkillDiagnosticView,
