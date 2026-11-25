@@ -17,7 +17,7 @@ const props = withDefaults(defineProps<{ class?: HTMLAttributes["class"] }>(), {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-xs);
-  padding: var(--space-md) var(--space-lg);
+  padding: var(--space-sm);
   border-block-start: var(--border-width) solid var(--glass-footer-border);
   background: var(--glass-footer-bg);
 }
