@@ -173,6 +173,10 @@ async function main() {
     const agentDir = (process.env.PI_CODING_AGENT_DIR = join(temp, "agent"))
     await mkdir(agentDir)
     await writeFile(join(agentDir, "models.json"), JSON.stringify(BENCH_MODELS))
+    await writeFile(
+      join(agentDir, "settings.json"),
+      JSON.stringify({ defaultProvider: "local", defaultModel: "bench-model" }),
+    )
     await writeFile(join(workspaceDir, ".keep"), "")
     seedBenchSessions(sessionDir, workspaceDir)
     const workspaceId = canonicalizeWorkspacePath(workspaceDir)
