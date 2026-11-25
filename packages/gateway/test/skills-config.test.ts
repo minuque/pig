@@ -158,6 +158,20 @@ describe("Skill 文件", () => {
     await expect(createSkill(agentDir, workspace, "Bad Name", "x")).rejects.toThrow()
   })
 
+  it("单文件 Skill 只删这个文件，不删所在的 skills 目录", async () => {
+    const keep = await skill(agentDir, "alpha")
+    const single = join(agentDir, "skills", "review.md")
+
+    await writeFile(single, "---\nname: review\ndescription: 单文件\n---\n")
+    expect(await isKnownSkillPath(agentDir, "global", single)).toBe(true)
+    expect((await readSkillFile(single)).files).toEqual([])
+
+    await deleteSkill(single)
+
+    expect(existsSync(single)).toBe(false)
+    expect(existsSync(keep)).toBe(true)
+  })
+
   it("删除 Skill 所在目录", async () => {
     const file = await skill(agentDir, "alpha")
 

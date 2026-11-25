@@ -33,3 +33,13 @@ export function samePath(a: string, b: string): boolean {
   const norm = (path: string) => path.replace(/\\/g, "/").replace(/\/+$/, "").toLowerCase()
   return norm(a) === norm(b)
 }
+
+export function deleteTarget(
+  filePath: string,
+  roots: readonly string[],
+): { path: string; standard: boolean } {
+  const parent = (path: string) => path.replace(/[\\/][^\\/]+$/, "")
+  const isDir = /[\\/]SKILL\.md$/.test(filePath)
+  const path = isDir ? parent(filePath) : filePath
+  return { path, standard: roots.some((root) => samePath(root, parent(path))) }
+}

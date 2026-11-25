@@ -99,7 +99,7 @@ import { computed, onMounted, ref } from "vue"
 import type { SkillView } from "@pig/protocol"
 
 import type { SkillsState } from "@features/settings/hooks/use-skills.js"
-import { checkSkillSource, samePath, skillBody } from "@features/settings/lib/skill-source.js"
+import { checkSkillSource, deleteTarget, skillBody } from "@features/settings/lib/skill-source.js"
 import MarkdownContent from "@features/transcript-view/components/markdown/MarkdownContent.vue"
 import { useMarkdownNodes } from "@features/transcript-view/hooks/use-markdown-nodes.js"
 import { useI18n } from "@i18n/index.js"
@@ -143,11 +143,9 @@ const errorKey = computed(() =>
     ? "settings.skills.frontmatterMissing"
     : "settings.skills.descriptionMissing",
 )
-const dir = computed(() => props.path.replace(/[\\/]SKILL\.md$/i, ""))
-const standard = computed(() => {
-  const parent = dir.value.replace(/[\\/][^\\/]+$/, "")
-  return (props.state.view.value?.roots ?? []).some((root) => samePath(root, parent))
-})
+const target = computed(() => deleteTarget(props.path, props.state.view.value?.roots ?? []))
+const dir = computed(() => target.value.path)
+const standard = computed(() => target.value.standard)
 const nodes = useMarkdownNodes({
   text: () => skillBody(raw.value),
   streaming: () => false,

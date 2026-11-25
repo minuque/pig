@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs"
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises"
 import { homedir } from "node:os"
-import { dirname, join, relative, resolve, sep } from "node:path"
+import { basename, dirname, join, relative, resolve, sep } from "node:path"
 import {
   DefaultPackageManager,
   DefaultResourceLoader,
@@ -188,9 +188,13 @@ async function listFiles(root: string, dir = root, out: string[] = []): Promise<
   return out
 }
 
+function isSkillDir(path: string): boolean {
+  return basename(path) === "SKILL.md"
+}
+
 export async function readSkillFile(path: string): Promise<SkillFileView> {
   const raw = await readFile(path, "utf8")
-  return { raw, files: (await listFiles(dirname(path))).sort() }
+  return { raw, files: isSkillDir(path) ? (await listFiles(dirname(path))).sort() : [] }
 }
 
 export async function writeSkillFile(path: string, raw: string): Promise<void> {
@@ -220,5 +224,6 @@ export async function createSkill(
 }
 
 export async function deleteSkill(path: string): Promise<void> {
-  await rm(dirname(path), { recursive: true, force: true })
+  if (isSkillDir(path)) await rm(dirname(path), { recursive: true, force: true })
+  else await rm(path, { force: true })
 }
