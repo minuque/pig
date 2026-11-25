@@ -285,6 +285,7 @@ function onSelect(next: string[]): void {
   inline-size: var(--icon-sm);
   block-size: var(--icon-sm);
   border-radius: var(--radius-pill);
+  corner-shape: round;
   background-color: var(--accent-solid);
   box-shadow: 0 0 0 calc(var(--border-width) * 2) var(--bg-raised);
   color: var(--fg-on-accent);

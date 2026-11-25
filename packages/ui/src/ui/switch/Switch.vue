@@ -43,6 +43,7 @@ const emit = defineEmits<{ "update:modelValue": [value: boolean] }>()
   vertical-align: top;
   padding: 2px;
   border-radius: var(--radius-pill);
+  corner-shape: round;
   background-color: var(--border-input);
   cursor: pointer;
   transition:
@@ -68,6 +69,7 @@ const emit = defineEmits<{ "update:modelValue": [value: boolean] }>()
   display: block;
   flex-shrink: 0;
   border-radius: var(--radius-pill);
+  corner-shape: round;
   background-color: var(--bg);
   box-shadow: 0 1px 2px var(--thumb-shadow);
   pointer-events: none;

@@ -125,7 +125,7 @@ function cancel() {
   display: block;
   inline-size: 100%;
   min-block-size: var(--composer-field-max);
-  border-radius: calc(var(--radius-control) - var(--border-width));
+  border-radius: var(--radius-control);
   background: transparent;
   color: inherit;
   font: inherit;

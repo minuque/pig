@@ -73,7 +73,7 @@ const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
   overflow: hidden;
   height: 6.5rem;
   border: var(--border-width) solid var(--border-subtle);
-  border-radius: max(calc(var(--radius-control) / 2), calc(var(--radius-card) - var(--space-sm)));
+  border-radius: var(--radius-min);
   background: var(--theme-wire-light);
 }
 
@@ -111,6 +111,7 @@ const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
   content: "";
   height: var(--space-2xs);
   border-radius: var(--radius-pill);
+  corner-shape: round;
   background: var(--border);
 }
 
@@ -130,6 +131,7 @@ const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
 .wire-line {
   height: var(--space-2xs);
   border-radius: var(--radius-pill);
+  corner-shape: round;
   background: var(--border);
 }
 
@@ -145,6 +147,7 @@ const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
   height: var(--space-md);
   padding-inline: var(--space-2xs);
   border-radius: var(--radius-pill);
+  corner-shape: round;
   background: var(--theme-wire-light-raised);
 }
 
@@ -152,6 +155,7 @@ const schemes = computed<{ id: ColorScheme; label: string }[]>(() => [
   width: var(--space-sm);
   height: var(--space-sm);
   border-radius: var(--radius-pill);
+  corner-shape: round;
   background: var(--accent-solid);
 }
 

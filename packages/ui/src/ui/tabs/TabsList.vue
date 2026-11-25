@@ -130,7 +130,7 @@ provide(TABS_VARIANT, toRef(props, "variant"))
 :where([data-slot="tabs-list"][data-variant="underline"][data-size="s"])
   :where([data-slot="tabs-trigger-inner"], [data-slot="tabs-trigger-inner-hidden"]) {
   padding: calc(var(--space-2xs) * 0.5) var(--space-2xs);
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
 }
 
 :where([data-slot="tabs-list"][data-variant="underline"][data-size="m"])
@@ -151,7 +151,7 @@ provide(TABS_VARIANT, toRef(props, "variant"))
   align-items: stretch;
   align-self: flex-start;
   block-size: var(--control-md);
-  padding-inline: 2px;
+  padding-inline: var(--space-2xs);
   border-radius: var(--radius-card);
   background: var(--sidebar);
   box-shadow: inset 0 0 0 var(--border-width) var(--border-subtle);
@@ -168,10 +168,10 @@ provide(TABS_VARIANT, toRef(props, "variant"))
 :where([data-slot="tabs-list"][data-variant="segmented"]) .segmented-indicator {
   position: absolute;
   z-index: var(--z-behind);
-  inset-block: 2px;
+  inset-block: var(--space-2xs);
   inset-inline-start: 0;
   inline-size: var(--active-tab-width);
-  border-radius: calc(var(--radius-card) - 2px);
+  border-radius: var(--radius-control);
   background: var(--bg-raised);
   box-shadow: 0 0 0 var(--border-width) var(--border-strong);
   transform: translateX(var(--active-tab-left));
@@ -186,7 +186,7 @@ provide(TABS_VARIANT, toRef(props, "variant"))
 }
 
 :where([data-slot="tabs-list"][data-variant="segmented"][data-size="s"]) .segmented-indicator {
-  border-radius: calc(var(--radius-control) - 2px);
+  border-radius: var(--radius-min);
 }
 
 @media (prefers-reduced-motion: reduce) {

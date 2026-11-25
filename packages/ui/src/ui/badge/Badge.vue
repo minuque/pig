@@ -50,7 +50,7 @@ const props = withDefaults(
 
 :where([data-slot="badge"][data-size="s"]) {
   padding: calc(var(--space-2xs) * 0.5) calc(var(--space-2xs) * 1.5);
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
   gap: calc(var(--space-2xs) * 1.5);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);

@@ -124,9 +124,10 @@
   --space-2xl: calc(var(--spacing) * 8);
 
   /* --- 圆角 --- */
-  --radius-control: 6px;
-  --radius-card: 8px;
-  --radius-dialog: 12px;
+  --radius-min: 4px;
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-dialog: 24px;
   --radius-pill: 9999px;
 
   /* --- 阴影 --- */

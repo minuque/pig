@@ -90,7 +90,7 @@ const labels = useUiLabels()
   min-width: 20px;
   height: 20px;
   padding-inline: var(--space-2xs);
-  border-radius: calc(var(--radius-control) - 2px);
+  border-radius: var(--radius-min);
   background: var(--glass-kbd-bg);
   box-shadow: none;
   color: var(--fg);

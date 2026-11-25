@@ -159,7 +159,7 @@ function thumbAriaLabel(index: number, total: number) {
 }
 
 :where([data-slot="slider-shell"]) {
-  padding: 3px;
+  padding: var(--space-2xs);
   border-radius: var(--radius-card);
   background: var(--slider-track-bg);
   box-shadow: var(--slider-track-ring);
@@ -213,12 +213,12 @@ function thumbAriaLabel(index: number, total: number) {
 
 :where([data-slot="slider-indicator"]),
 :where([data-slot="slider-thumb"]) {
-  border-radius: calc(var(--radius-card) - 3px);
+  border-radius: var(--radius-control);
 }
 
 :where([data-slot="slider-field"][data-size="s"]) :where([data-slot="slider-indicator"]),
 :where([data-slot="slider-field"][data-size="s"]) :where([data-slot="slider-thumb"]) {
-  border-radius: calc(var(--radius-control) - 3px);
+  border-radius: var(--radius-min);
 }
 
 :where([data-slot="slider-thumb"]:active) {
@@ -239,6 +239,7 @@ function thumbAriaLabel(index: number, total: number) {
   inset-block-start: 50%;
   inset-inline-start: 50%;
   border-radius: var(--radius-pill);
+  corner-shape: round;
   background: var(--slider-grip);
   transform: translate(-50%, -50%);
   pointer-events: none;
@@ -253,7 +254,7 @@ function thumbAriaLabel(index: number, total: number) {
   z-index: var(--z-sticky);
   margin-block-start: 11px;
   padding: 1px 6px;
-  border-radius: calc(var(--radius-control) - 2px);
+  border-radius: var(--radius-min);
   background: var(--slider-badge-bg);
   color: var(--slider-badge-fg);
   font-weight: var(--font-weight-medium);

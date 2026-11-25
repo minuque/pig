@@ -94,7 +94,7 @@
   code:not(.code-line) {
     margin-inline: 0.2em;
     padding: 0.1em 0.35em;
-    border-radius: calc(var(--radius-control) / 2);
+    border-radius: var(--radius-min);
     background: color-mix(in srgb, var(--fg) 10%, transparent);
     color: inherit;
     font-family: var(--font-mono);

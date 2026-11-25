@@ -159,6 +159,7 @@ const { t } = useI18n()
   block-size: 3px;
   overflow: hidden;
   border-radius: var(--radius-pill);
+  corner-shape: round;
   background: var(--bg-emphasis);
 }
 

@@ -83,6 +83,7 @@ const tone = computed(() => STATUS_TONE_MAP[props.status])
   inline-size: var(--space-xs);
   block-size: var(--space-xs);
   border-radius: var(--radius-pill);
+  corner-shape: round;
   background: currentColor;
 }
 

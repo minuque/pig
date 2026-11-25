@@ -160,7 +160,7 @@ function onEdit() {
   flex: none;
   inline-size: 1.15em;
   block-size: 1.15em;
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
   color: inherit;
   cursor: pointer;
 }

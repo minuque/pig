@@ -417,7 +417,7 @@ watch(active, async () => {
   flex-direction: column;
   gap: var(--space-2xs);
   width: 15rem;
-  padding: var(--space-sm) var(--space-xs);
+  padding: var(--space-md);
   border-inline-end: var(--border-width) solid var(--border-subtle);
   background: var(--sidebar);
   user-select: none;

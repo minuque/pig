@@ -205,6 +205,7 @@ const share = (tokens: number) =>
   inline-size: var(--space-2xs);
   block-size: var(--space-2xs);
   border-radius: var(--radius-pill);
+  corner-shape: round;
 }
 
 .legend-label {

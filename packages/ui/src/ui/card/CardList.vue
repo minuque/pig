@@ -10,7 +10,7 @@ import Card from "./Card.vue"
 
 <style>
 [data-card-list] {
-  --card-border-radius: var(--radius-dialog);
+  --card-border-radius: var(--radius-card);
   display: flex;
   flex-direction: column;
   padding: var(--border-width);

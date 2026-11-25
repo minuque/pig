@@ -136,3 +136,9 @@ summary {
   outline: 2px solid var(--focus-color);
   outline-offset: 2px;
 }
+
+@supports (corner-shape: superellipse(1.25)) {
+  :where(*) {
+    corner-shape: superellipse(1.25);
+  }
+}

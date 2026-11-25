@@ -314,12 +314,14 @@ const isOpen = (id: RailSectionId) => !rail.layout.value.closed.includes(id)
   padding: 2px;
   background: var(--bg-emphasis);
   border-radius: var(--radius-pill);
+  corner-shape: round;
 }
 
 .rail-battery i {
   min-inline-size: 6px;
   background: var(--info-solid);
   border-radius: var(--radius-pill);
+  corner-shape: round;
 }
 
 .rail-battery[data-severity="warning"] i {

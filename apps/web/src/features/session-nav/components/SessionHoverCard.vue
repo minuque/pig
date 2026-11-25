@@ -131,7 +131,7 @@ const stats = computed(() => {
   min-height: var(--control-2xs);
   padding-inline: var(--space-2xs);
   border: 0;
-  border-radius: calc(var(--radius-control) - 2px);
+  border-radius: var(--radius-min);
   background: transparent;
   color: var(--fg-secondary);
   font: inherit;
@@ -162,7 +162,7 @@ const stats = computed(() => {
   inline-size: var(--icon-lg);
   block-size: var(--icon-lg);
   padding: 0;
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
   color: var(--tone-text);
   font-size: calc(var(--text-body) - 5px);
   font-weight: var(--font-weight-bold);

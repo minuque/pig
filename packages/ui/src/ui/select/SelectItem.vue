@@ -20,7 +20,7 @@ defineProps<{ value: string }>()
   box-sizing: border-box;
   block-size: var(--control-sm);
   padding-inline: var(--space-xs);
-  border-radius: calc(var(--radius-card) - var(--space-2xs));
+  border-radius: var(--radius-control);
   outline: none;
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);

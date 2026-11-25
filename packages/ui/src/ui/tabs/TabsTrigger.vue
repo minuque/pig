@@ -24,9 +24,9 @@ const variant = inject(TABS_VARIANT, ref("underline"))
   display: flex;
   align-items: center;
   gap: var(--space-2xs);
-  margin-block: 2px;
+  margin-block: var(--space-2xs);
   padding-inline: calc(var(--spacing) * 2.5);
-  border-radius: calc(var(--radius-card) - 2px);
+  border-radius: var(--radius-control);
   color: var(--fg-secondary);
   font-weight: var(--font-weight-medium);
   white-space: nowrap;
@@ -35,7 +35,7 @@ const variant = inject(TABS_VARIANT, ref("underline"))
 
 :where([data-slot="tabs-list"][data-size="s"] > [data-slot="tabs-tab"][data-variant="segmented"]) {
   padding-inline: var(--space-xs);
-  border-radius: calc(var(--radius-control) - 2px);
+  border-radius: var(--radius-min);
 }
 
 :where(

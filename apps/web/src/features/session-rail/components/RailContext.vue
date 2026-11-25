@@ -127,6 +127,7 @@ const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && 
   overflow: hidden;
   background: var(--bg-emphasis);
   border-radius: var(--radius-pill);
+  corner-shape: round;
 }
 
 .ctx-meter i {
@@ -154,7 +155,7 @@ const canPreview = (segment: ContextUsageSegment) => Boolean(props.sessionId && 
   flex: none;
   inline-size: var(--space-sm);
   block-size: var(--space-sm);
-  border-radius: calc(var(--radius-control) / 3);
+  border-radius: var(--radius-min);
 }
 
 .ctx-label {

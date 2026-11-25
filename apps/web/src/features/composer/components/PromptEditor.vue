@@ -254,7 +254,6 @@ defineExpose({
     0 0 0 var(--border-width) var(--composer-border),
     var(--composer-inset),
     var(--composer-shadow);
-  corner-shape: var(--composer-corner-shape);
 }
 
 .composer-card:hover,

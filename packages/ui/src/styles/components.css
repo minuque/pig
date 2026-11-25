@@ -77,7 +77,7 @@
 }
 
 [data-radius="small"] {
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
 }
 
 [data-radius="medium"] {
@@ -90,6 +90,7 @@
 
 [data-radius="full"] {
   border-radius: var(--radius-pill);
+  corner-shape: round;
 }
 
 :where([data-menu-content]) {
@@ -159,7 +160,7 @@
 
 :where([data-menu-content][data-size="s"]) :where([data-menu-item]) {
   block-size: var(--space-lg);
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
 }

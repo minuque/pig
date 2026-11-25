@@ -55,7 +55,7 @@ const props = withDefaults(
   display: block;
   width: 100%;
   height: 30%;
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
   background-color: currentColor;
 }
 

@@ -263,6 +263,7 @@ function onPreviewOpenChange(open: boolean) {
   width: 24px;
   height: 2px;
   border-radius: var(--radius-pill);
+  corner-shape: round;
   background: var(--minimap-marker);
   transform-origin: left center;
   translate: 0 -50%;
@@ -289,7 +290,7 @@ function onPreviewOpenChange(open: boolean) {
   height: 20px;
   padding: 0;
   border: 0;
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
   background: transparent;
   color: var(--fg-secondary);
   cursor: pointer;

@@ -189,7 +189,7 @@ watch(
   position: relative;
   inline-size: 20px;
   block-size: 20px;
-  border-radius: calc(var(--radius-control) - 2px);
+  border-radius: var(--radius-min);
   color: var(--fg-secondary);
 }
 

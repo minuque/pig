@@ -41,7 +41,7 @@ const props = withDefaults(
   padding-right: 0.5em;
   padding-bottom: 0.05em;
   border: 0;
-  border-radius: calc(var(--radius-control) * 0.7);
+  border-radius: var(--radius-min);
   font-family: var(--font-sans);
   font-weight: var(--font-weight-normal);
   font-size: 0.75em;

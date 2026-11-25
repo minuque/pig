@@ -98,7 +98,7 @@ const widthStyle = computed(() =>
 :where([data-slot="dialog-content"][data-size="s"]) {
   max-inline-size: var(--dialog-max-width, var(--dialog-width-sm));
   padding: var(--space-sm);
-  border-radius: var(--radius-card);
+  border-radius: calc(round(var(--radius-control) + var(--space-sm), 4px));
 }
 
 :where([data-slot="dialog-content"] [data-slot="dialog-title"]) {

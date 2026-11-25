@@ -132,7 +132,7 @@ p {
   max-width: 100%;
   margin-inline: 1px;
   padding: 1px var(--space-2xs);
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
   background: var(--info-subtle);
   color: var(--info-text);
   font-weight: var(--font-weight-medium);

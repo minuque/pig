@@ -349,6 +349,7 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
   padding: var(--space-sm) var(--space-md);
   border: var(--border-width) dashed var(--accent-solid);
   border-radius: var(--radius-pill);
+  corner-shape: round;
   background: var(--bg-surface);
   color: var(--accent-text);
   font-size: var(--text-body);

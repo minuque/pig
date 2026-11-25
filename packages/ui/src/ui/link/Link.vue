@@ -108,7 +108,7 @@ export default defineComponent({
 
 :where([data-slot="link"]:focus-visible) {
   text-decoration-line: none;
-  border-radius: calc(var(--radius-control) / 3);
+  border-radius: var(--radius-min);
   outline: 2px solid var(--focus-color);
   outline-offset: 2px;
 }

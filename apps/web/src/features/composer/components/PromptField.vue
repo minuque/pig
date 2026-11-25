@@ -320,7 +320,7 @@ defineExpose({
 
 .editor :deep(.field code) {
   padding: 0.1em 0.35em;
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
   background: var(--bg-muted);
   color: inherit;
   font-family: var(--font-mono);

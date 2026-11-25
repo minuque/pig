@@ -29,7 +29,7 @@ const emit = defineEmits<{ select: [] }>()
   align-items: center;
   gap: var(--space-xs);
   padding: calc(var(--spacing) * 1.5) var(--space-xs);
-  border-radius: calc(var(--radius-control) - 2px);
+  border-radius: var(--radius-min);
   color: var(--fg);
   font-size: var(--text-body);
   outline: none;

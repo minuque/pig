@@ -165,6 +165,7 @@ function partDetail(part: LabeledPart): string {
   padding: var(--space-2xs) var(--space-sm);
   border: 0;
   border-radius: var(--radius-pill);
+  corner-shape: round;
   background: transparent;
   color: inherit;
   font: inherit;

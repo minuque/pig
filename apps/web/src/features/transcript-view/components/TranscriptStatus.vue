@@ -202,7 +202,7 @@ const tokensLabel = computed(() => {
   line-height: var(--text-meta--line-height);
   margin-block-end: calc(-1 * var(--composer-radius));
   padding: var(--space-xs) var(--space-sm) calc(var(--space-xs) + var(--composer-radius));
-  border-radius: var(--radius-dialog) var(--radius-dialog) 0 0;
+  border-radius: var(--composer-radius) var(--composer-radius) 0 0;
   background-color: var(--bg-raised);
   box-shadow: inset 0 0 0 var(--border-width) var(--border);
   animation: plate-in var(--duration-normal) var(--ease-out);

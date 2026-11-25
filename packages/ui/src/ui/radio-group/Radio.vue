@@ -48,6 +48,7 @@ function onChange(event: Event) {
   inline-size: var(--space-md);
   block-size: var(--space-md);
   border-radius: 100%;
+  corner-shape: round;
   cursor: pointer;
 }
 

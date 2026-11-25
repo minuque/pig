@@ -67,11 +67,11 @@ const emit = defineEmits<{ "update:modelValue": [value: CheckedState] }>()
   display: block;
   height: 100%;
   width: 100%;
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
 }
 
 :where([data-slot="checkbox"][data-size="s"])::before {
-  border-radius: calc(var(--radius-control) / 2 * 0.875);
+  border-radius: var(--radius-min);
 }
 
 :where([data-slot="checkbox"]:focus-visible) {

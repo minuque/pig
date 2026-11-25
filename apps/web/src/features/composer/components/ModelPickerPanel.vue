@@ -300,6 +300,7 @@ function onSelectModel(provider: string, id: string) {
   bottom: -6px;
   height: 2px;
   border-radius: var(--radius-pill);
+  corner-shape: round;
   background: var(--accent-solid);
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);

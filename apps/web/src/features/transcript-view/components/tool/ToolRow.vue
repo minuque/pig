@@ -301,14 +301,14 @@ const warm = () => warmToolHighlight(props.call, codeBlockProps.value.theme)
 
 .tool-row-counts .added {
   padding: 0 var(--space-2xs);
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
   background: var(--success-subtle);
   color: var(--success-text);
 }
 
 .tool-row-counts .removed {
   padding: 0 var(--space-2xs);
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
   background: var(--danger-subtle);
   color: var(--danger-text);
 }

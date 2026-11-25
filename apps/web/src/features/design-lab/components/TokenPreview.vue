@@ -83,6 +83,7 @@ const SIZES = ["--icon-sm", "--icon-md", "--icon-xl"]
   inline-size: var(--icon-md);
   block-size: var(--icon-md);
   border-radius: var(--radius-pill);
+  corner-shape: round;
 }
 
 .type-big {
@@ -148,6 +149,7 @@ const SIZES = ["--icon-sm", "--icon-md", "--icon-xl"]
   inline-size: var(--icon-lg);
   block-size: var(--icon-lg);
   border-radius: var(--radius-pill);
+  corner-shape: round;
   background: var(--accent-solid);
 }
 

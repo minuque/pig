@@ -38,7 +38,7 @@ const skeletonStyle = computed(() => ({
 
 <style>
 :where([data-slot="skeleton"]) {
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
   background-color: var(--bg-muted);
   animation: skeleton-pulse 1000ms infinite alternate-reverse;
   background-image: none;

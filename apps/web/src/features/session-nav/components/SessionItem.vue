@@ -524,7 +524,7 @@ function confirmDelete() {
   align-items: center;
   padding: 0;
   border: 0;
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
   background: transparent;
   color: var(--fg-secondary);
   cursor: pointer;
@@ -572,7 +572,7 @@ function confirmDelete() {
   width: var(--icon-lg);
   height: var(--icon-lg);
   padding: 0;
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
   font-size: calc(var(--text-body) - 5px);
   font-weight: var(--font-weight-bold);
   line-height: 1;
@@ -812,7 +812,7 @@ function confirmDelete() {
   margin-block: -2px;
   padding: 0 var(--space-2xs);
   border: 0;
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
   outline: none;
   background: var(--bg-muted);
   color: var(--fg);

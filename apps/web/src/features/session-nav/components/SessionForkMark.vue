@@ -92,7 +92,7 @@ const { t } = useI18n()
   inline-size: 100%;
   padding: var(--space-2xs) var(--space-xs);
   border: 0;
-  border-radius: calc(var(--radius-card) - var(--space-2xs));
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--fg);
   text-align: start;
@@ -144,7 +144,7 @@ const { t } = useI18n()
   inline-size: var(--icon-md);
   block-size: var(--icon-md);
   padding: 0;
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
   font-size: calc(var(--text-body) - 6px);
   font-weight: var(--font-weight-bold);
   line-height: 1;

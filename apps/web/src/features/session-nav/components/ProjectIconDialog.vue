@@ -125,6 +125,7 @@ function reset(): void {
   inline-size: var(--icon-sm);
   block-size: var(--icon-sm);
   border-radius: var(--radius-pill);
+  corner-shape: round;
   background-color: var(--tint);
 }
 

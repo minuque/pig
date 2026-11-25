@@ -71,7 +71,7 @@ function onClick() {
   min-width: 0;
   padding: var(--space-2xs) var(--space-xs) var(--space-2xs) var(--space-sm);
   border: 0;
-  border-radius: calc(var(--radius-card) - var(--space-2xs));
+  border-radius: var(--radius-control);
   background: transparent;
   color: var(--fg-secondary);
   font: inherit;
@@ -91,6 +91,7 @@ function onClick() {
   inset-block: var(--space-2xs);
   inline-size: var(--quote-border-width);
   border-radius: var(--radius-pill);
+  corner-shape: round;
   background: var(--border-strong);
   transition: background-color var(--duration-fast) var(--ease-out);
 }

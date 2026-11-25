@@ -125,8 +125,7 @@ function rowLanguage(name: string): string {
   gap: var(--space-xs);
   min-width: 0;
   padding: var(--space-2xs) var(--space-xs);
-  border-radius: calc(var(--radius-card) - var(--space-2xs));
-  corner-shape: var(--composer-corner-shape);
+  border-radius: var(--radius-control);
   cursor: pointer;
   user-select: none;
   transition: background var(--duration-fast) var(--ease-out);

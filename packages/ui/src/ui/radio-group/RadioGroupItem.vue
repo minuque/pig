@@ -87,6 +87,7 @@ const group = inject(
   block-size: var(--space-md);
   padding: 0;
   border-radius: 100%;
+  corner-shape: round;
   background: transparent;
   cursor: pointer;
 }
@@ -103,6 +104,7 @@ const group = inject(
   inline-size: 100%;
   block-size: 100%;
   border-radius: 100%;
+  corner-shape: round;
 }
 
 :where([data-radio-group-item])::after {

@@ -106,7 +106,7 @@ function show(i: number) {
   aspect-ratio: 4 / 3;
   padding: 0;
   border: 0;
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
   background: transparent;
   cursor: zoom-in;
   pointer-events: auto;
@@ -114,7 +114,7 @@ function show(i: number) {
 
 .tool-thumb-card[data-slot="card"] {
   --card-padding: 0;
-  --card-border-radius: calc(var(--radius-control) / 2);
+  --card-border-radius: var(--radius-min);
   --card-background-color: var(--bg);
 
   width: 100%;

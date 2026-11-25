@@ -352,7 +352,7 @@ function easePath(value: string): string {
 .bar {
   flex: none;
   block-size: 10px;
-  border-radius: calc(var(--radius-control) / 2);
+  border-radius: var(--radius-min);
   background: var(--bg-emphasis);
 }
 
@@ -394,6 +394,7 @@ function easePath(value: string): string {
 .stack span {
   block-size: 3px;
   border-radius: var(--radius-pill);
+  corner-shape: round;
   background: var(--bg-emphasis);
 }
 
