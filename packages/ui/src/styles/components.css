@@ -149,7 +149,7 @@
   align-items: center;
   gap: var(--space-xs);
   box-sizing: border-box;
-  block-size: var(--control-md);
+  block-size: var(--control-sm);
   padding-inline: var(--space-xs);
   border-radius: var(--radius-control);
   outline: none;

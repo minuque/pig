@@ -13,7 +13,6 @@ const DEFAULTS: UserPreferences = {
   welcomeField: "mask",
   uiFont: "",
   codeFont: "",
-  density: "normal",
   codeSize: 13,
   locale: "zh-CN",
   chatWidth: "comfortable",

@@ -250,12 +250,6 @@ const searchEntries = computed<SettingsSearchEntry[]>(() => [
     section: t("settings.appearance"),
   },
   {
-    id: "setting-density",
-    pane: "appearance",
-    title: t("settings.density"),
-    section: t("settings.appearance"),
-  },
-  {
     id: "setting-code-font",
     pane: "appearance",
     title: t("settings.codeFont"),
@@ -417,7 +411,7 @@ watch(active, async () => {
   flex-direction: column;
   gap: var(--space-2xs);
   width: 15rem;
-  padding: var(--space-md);
+  padding: var(--space-sm);
   border-inline-end: var(--border-width) solid var(--border-subtle);
   background: var(--sidebar);
   user-select: none;

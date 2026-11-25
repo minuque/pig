@@ -61,10 +61,6 @@
   --transcript-tool-max: 400px;
 }
 
-html[data-density="compact"] {
-  --header-height: 40px;
-}
-
 html[data-pig-desktop-platform="darwin"] {
   --titlebar-inset: 44px;
   --header-height: var(--titlebar-inset);

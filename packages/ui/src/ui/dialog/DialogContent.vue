@@ -83,7 +83,7 @@ const widthStyle = computed(() =>
   margin: auto;
   overflow: auto;
   overscroll-behavior: contain;
-  padding: var(--space-md);
+  padding: var(--space-sm);
   border-radius: var(--radius-dialog);
   background-color: var(--bg);
   box-shadow: var(--shadow-dialog);
@@ -97,8 +97,6 @@ const widthStyle = computed(() =>
 
 :where([data-slot="dialog-content"][data-size="s"]) {
   max-inline-size: var(--dialog-max-width, var(--dialog-width-sm));
-  padding: var(--space-sm);
-  border-radius: calc(round(var(--radius-control) + var(--space-sm), 4px));
 }
 
 :where([data-slot="dialog-content"] [data-slot="dialog-title"]) {

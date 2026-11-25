@@ -2,7 +2,6 @@ import { nextTick, onMounted, ref, watch } from "vue"
 import uiTokensCss from "@pig/ui/styles/tokens.css?raw"
 import appTokensCss from "@style/tokens.css?raw"
 import { useColorScheme } from "@features/theme/index.js"
-import { useAppearancePrefs } from "@features/settings/index.js"
 import type { Label } from "@features/design-lab/lib/nav.js"
 
 export type Layer = "primitive" | "semantic" | "component"
@@ -151,7 +150,6 @@ export function kindOf(token: Token): Kind {
 
 export function useTokens() {
   const { isDark } = useColorScheme()
-  const { density } = useAppearancePrefs()
   const tokens = ref<Token[]>([])
 
   function read() {
@@ -163,6 +161,6 @@ export function useTokens() {
   }
 
   onMounted(read)
-  watch([isDark, density], () => nextTick(read))
+  watch(isDark, () => nextTick(read))
   return tokens
 }

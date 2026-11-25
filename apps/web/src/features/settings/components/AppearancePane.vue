@@ -60,25 +60,6 @@
           </Select>
         </CardRow>
 
-        <CardRow id="setting-density" class="row">
-          <div class="copy">
-            <h3 class="label">{{ t("settings.density") }}</h3>
-            <p class="desc">{{ t("settings.densityHint") }}</p>
-          </div>
-
-          <Select :model-value="density" @update:model-value="onDensity">
-            <SelectTrigger class="setting-select" :aria-label="t('settings.density')">
-              {{ densityLabel }}
-            </SelectTrigger>
-
-            <SelectContent>
-              <SelectItem v-for="option in densities" :key="option.id" :value="option.id">
-                {{ option.label }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </CardRow>
-
         <CardRow id="setting-code-font" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.codeFont") }}</h3>
@@ -161,7 +142,6 @@ import {
   useAppearancePrefs,
   useGeneralPrefs,
   type ChatWidth,
-  type Density,
   type WelcomeField,
 } from "@features/settings/index.js"
 import { useLocalFonts } from "@features/settings/hooks/use-local-fonts.js"
@@ -176,12 +156,10 @@ const {
   welcomeField,
   uiFont,
   codeFont,
-  density,
   codeSize,
   setWelcomeField,
   setUiFont,
   setCodeFont,
-  setDensity,
   setCodeSize,
 } = useAppearancePrefs()
 const { families, mono, load } = useLocalFonts()
@@ -192,10 +170,6 @@ function onUiFont(value: string) {
 
 function onCodeFont(value: string) {
   setCodeFont(value === DEFAULT ? "" : value)
-}
-
-function onDensity(value: string) {
-  setDensity(value as Density)
 }
 
 function onCodeSize(value: string) {
@@ -231,19 +205,12 @@ const widths = computed<{ id: ChatWidth; label: string }[]>(() => [
   { id: "wide", label: t("settings.chatWidthWide") },
   { id: "full", label: t("settings.chatWidthFull") },
 ])
-const densities = computed<{ id: Density; label: string }[]>(() => [
-  { id: "normal", label: t("settings.densityNormal") },
-  { id: "compact", label: t("settings.densityCompact") },
-])
 const codeSizes = CODE_SIZES
 const welcomeLabel = computed(
   () => fields.value.find((option) => option.id === welcomeField.value)?.label ?? "",
 )
 const widthLabel = computed(
   () => widths.value.find((option) => option.id === chatWidth.value)?.label ?? "",
-)
-const densityLabel = computed(
-  () => densities.value.find((option) => option.id === density.value)?.label ?? "",
 )
 const codeSizeLabel = computed(() => `${codeSize.value}px`)
 </script>

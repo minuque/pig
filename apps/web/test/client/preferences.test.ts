@@ -13,7 +13,6 @@ const DEFAULTS: UserPreferences = {
   welcomeField: "mask",
   uiFont: "",
   codeFont: "",
-  density: "normal",
   codeSize: 13,
   locale: "zh-CN",
   chatWidth: "comfortable",
@@ -111,16 +110,16 @@ describe("preferences 同步", () => {
     applyRemotePreferences({
       ...DEFAULTS,
       theme: "dark",
-      density: "compact",
+      chatWidth: "wide",
       codeSize: 15,
       notify: false,
       clickSound: false,
       railLayout: { closed: ["tasks"], hidden: ["context"] },
     })
 
-    expect(userPreferences.value.density).toBe("compact")
+    expect(userPreferences.value.chatWidth).toBe("wide")
     expect(localStorage.getItem("npg-theme")).toBe("dark")
-    expect(localStorage.getItem("pig.density")).toBe("compact")
+    expect(localStorage.getItem("pig.chatWidth")).toBe("wide")
     expect(localStorage.getItem("pig.codeSize")).toBe("15")
     expect(localStorage.getItem("pig.notify")).toBe("off")
     expect(localStorage.getItem("pig.clickSound")).toBe("off")
@@ -156,8 +155,8 @@ describe("preferences 同步", () => {
     expect(sent).toEqual([{ theme: "dark" }])
     expect(userPreferences.value.locale).toBe("en")
 
-    applyRemotePreferences({ ...DEFAULTS, density: "compact", locale: "zh-CN" })
-    expect(userPreferences.value.density).toBe("compact")
+    applyRemotePreferences({ ...DEFAULTS, chatWidth: "wide", locale: "zh-CN" })
+    expect(userPreferences.value.chatWidth).toBe("wide")
     expect(userPreferences.value.locale).toBe("en")
 
     release()
@@ -182,15 +181,15 @@ describe("preferences 同步", () => {
       await new Promise<void>((resolve) => {
         release = resolve
       })
-      return { ...DEFAULTS, density: "compact", ...patch }
+      return { ...DEFAULTS, chatWidth: "wide", ...patch }
     })
 
     updatePreferences({ theme: "dark" })
     await vi.waitFor(() => expect(api.patchPreferences).toHaveBeenCalledTimes(1))
 
-    applyRemotePreferences({ ...DEFAULTS, theme: "light", density: "compact" })
+    applyRemotePreferences({ ...DEFAULTS, theme: "light", chatWidth: "wide" })
     expect(userPreferences.value.theme).toBe("dark")
-    expect(userPreferences.value.density).toBe("compact")
+    expect(userPreferences.value.chatWidth).toBe("wide")
 
     release()
     await vi.waitFor(() => expect(userPreferences.value.theme).toBe("dark"))

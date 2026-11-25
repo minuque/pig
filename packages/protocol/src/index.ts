@@ -54,7 +54,6 @@ export type {
   UserRailLayout,
   UserRailSection,
   UserThemeMode,
-  UserDensity,
   UserWelcomeField,
 } from "./preferences.js"
 

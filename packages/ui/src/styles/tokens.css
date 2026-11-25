@@ -127,7 +127,7 @@
   --radius-min: 4px;
   --radius-control: 8px;
   --radius-card: 12px;
-  --radius-dialog: 24px;
+  --radius-dialog: 20px;
   --radius-pill: 9999px;
 
   /* --- 阴影 --- */
@@ -285,18 +285,6 @@ html.dark {
   --tone-border-mix: 48%;
   --tone-text-lightness: 79%;
   --tone-hover-target: #ffffff;
-}
-
-html[data-density="compact"] {
-  --text-meta: 11px;
-  --text-body: 13px;
-  --text-title: 15px;
-  --spacing: 3.5px;
-  --control-2xs: 16px;
-  --control-xs: 20px;
-  --control-sm: 24px;
-  --control-md: 28px;
-  --control-lg: 32px;
 }
 
 html[data-chat-width="wide"] {

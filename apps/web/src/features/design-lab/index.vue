@@ -49,13 +49,6 @@
           </TabsList>
         </TabsRoot>
 
-        <TabsRoot :model-value="density" @update:model-value="(v) => pickDensity(String(v))">
-          <TabsList variant="segmented" size="s">
-            <TabsTrigger value="normal">Normal</TabsTrigger>
-            <TabsTrigger value="compact">Compact</TabsTrigger>
-          </TabsList>
-        </TabsRoot>
-
         <TabsRoot
           :model-value="isDark ? 'dark' : 'light'"
           @update:model-value="(v) => pickScheme(String(v))"
@@ -116,7 +109,7 @@ import {
 import { Button } from "@pig/ui/button"
 import { TabsList, TabsRoot, TabsTrigger } from "@pig/ui/tabs"
 import { useColorScheme } from "@features/theme/index.js"
-import { useAppearancePrefs, useGeneralPrefs } from "@features/settings/index.js"
+import { useGeneralPrefs } from "@features/settings/index.js"
 import DesignGuide from "@features/design-lab/components/DesignGuide.vue"
 import DesignHome from "@features/design-lab/components/DesignHome.vue"
 import DesignNav from "@features/design-lab/components/DesignNav.vue"
@@ -129,7 +122,6 @@ const SEARCH_PAGE: Label = { zh: "搜索页面", en: "Search pages" }
 const route = useRoute()
 const { isDark, setScheme } = useColorScheme()
 const { locale, setLocale } = useGeneralPrefs()
-const { density, setDensity } = useAppearancePrefs()
 const search = useTemplateRef<{ open: () => void }>("search")
 const path = computed(() => [route.params.page ?? []].flat().join("/"))
 const isGuide = computed(() => path.value === "guide")
@@ -147,10 +139,6 @@ function text(label: Label): string {
 
 function pickLocale(next: string) {
   setLocale(next === "en" ? "en" : "zh-CN")
-}
-
-function pickDensity(next: string) {
-  setDensity(next === "compact" ? "compact" : "normal")
 }
 
 function pickScheme(next: string) {
