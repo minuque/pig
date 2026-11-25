@@ -1,10 +1,11 @@
+import { spawn } from "node:child_process"
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { ProjectTrustStore } from "@earendil-works/pi-coding-agent"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
 
-import { McpCli, parseMcpList, type PiRunner } from "../src/pi/mcp-cli.js"
+import { killTree, McpCli, parseMcpList, type PiRunner } from "../src/pi/mcp-cli.js"
 
 const sample = JSON.stringify({
   servers: [
@@ -141,4 +142,49 @@ describe("真实 Pi CLI", () => {
       off: { status: "disabled", tools: [] },
     })
   }, 60_000)
+})
+
+describe("子进程清理", () => {
+  it("killTree 连同子进程派生的进程一起结束", async () => {
+    const script =
+      "const c=require('child_process').spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{stdio:'ignore'});" +
+      "console.log(c.pid);setInterval(()=>{},1000)"
+    const parent = spawn(process.execPath, ["-e", script], { stdio: ["ignore", "pipe", "ignore"] })
+    const grandchild = await new Promise<number>((resolve) =>
+      parent.stdout.once("data", (chunk: Buffer) => resolve(Number(chunk.toString().trim()))),
+    )
+    const alive = (pid: number) => {
+      try {
+        process.kill(pid, 0)
+        return true
+      } catch {
+        return false
+      }
+    }
+
+    await killTree(parent)
+    await new Promise((resolve) => setTimeout(resolve, 500))
+
+    expect(alive(grandchild)).toBe(false)
+  }, 20_000)
+
+  it("dispose 结束进行中的调用", async () => {
+    const signals: AbortSignal[] = []
+    const run: PiRunner = (_args, options) =>
+      new Promise((resolve) => {
+        if (options.signal) signals.push(options.signal)
+        options.signal?.addEventListener("abort", () => resolve({ code: 1, stdout: "{}" }))
+      })
+    const cli = new McpCli({ agentDir: join(temp, "agent"), run })
+
+    await mkdir(join(temp, "agent"), { recursive: true })
+    const pending = cli.probe("global")
+
+    cli.login("global", "x", false)
+    cli.dispose()
+    await pending
+
+    expect(signals.every((signal) => signal.aborted)).toBe(true)
+    expect(signals).toHaveLength(2)
+  })
 })

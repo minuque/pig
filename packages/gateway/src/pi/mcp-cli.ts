@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process"
+import { spawn, type ChildProcess } from "node:child_process"
 import { randomUUID } from "node:crypto"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -34,6 +34,24 @@ function cliPath(): string {
   return join(dirname(entry), "bundle", "cli.js")
 }
 
+export function killTree(child: ChildProcess): Promise<void> {
+  if (child.pid === undefined || child.exitCode !== null) return Promise.resolve()
+
+  if (process.platform !== "win32") {
+    child.kill("SIGTERM")
+    return Promise.resolve()
+  }
+
+  return new Promise((resolve) => {
+    spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"], {
+      stdio: "ignore",
+      windowsHide: true,
+    })
+      .once("close", () => resolve())
+      .once("error", () => resolve())
+  })
+}
+
 export function piRunner(agentDir: string): PiRunner {
   return (args, { cwd, signal, onLine }) =>
     new Promise((resolve, reject) => {
@@ -42,8 +60,11 @@ export function piRunner(agentDir: string): PiRunner {
         env: { ...process.env, PI_CODING_AGENT_DIR: agentDir, ELECTRON_RUN_AS_NODE: "1" },
         stdio: ["ignore", "pipe", "pipe"],
         windowsHide: true,
-        ...(signal ? { signal } : {}),
       })
+      const stop = () => void killTree(child)
+
+      if (signal?.aborted) stop()
+      else signal?.addEventListener("abort", stop, { once: true })
       let stdout = ""
       let pending = ""
       const feed = (chunk: Buffer) => {
@@ -62,6 +83,8 @@ export function piRunner(agentDir: string): PiRunner {
       child.stderr.on("data", feed)
       child.once("error", reject)
       child.once("close", (code) => {
+        signal?.removeEventListener("abort", stop)
+
         if (pending) onLine?.(pending)
         resolve({ code: code ?? 1, stdout })
       })
@@ -90,6 +113,7 @@ export class McpCli {
   private readonly run: PiRunner
   private readonly probes = new Map<string, Record<string, McpProbe>>()
   private readonly logins = new Map<string, LoginSession>()
+  private readonly running = new Set<AbortController>()
 
   constructor(options: { agentDir: string; run?: PiRunner }) {
     this.agentDir = options.agentDir
@@ -101,10 +125,9 @@ export class McpCli {
   }
 
   async probe(scope: AgentConfigScope): Promise<Record<string, McpProbe>> {
-    const { stdout } = await this.run(["mcp", "list", "--json"], {
-      cwd: this.cwd(scope),
-      signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
-    })
+    const { stdout } = await this.track(PROBE_TIMEOUT_MS, (signal) =>
+      this.run(["mcp", "list", "--json"], { cwd: this.cwd(scope), signal }),
+    )
     const result = parseMcpList(stdout)
 
     this.probes.set(scope, result)
@@ -138,6 +161,7 @@ export class McpCli {
     const args = ["mcp", "login", name, "--timeout", String(LOGIN_TIMEOUT_S)]
 
     this.logins.set(id, session)
+    this.running.add(session.controller)
     this.run(local ? [...args, "--local"] : args, {
       cwd: this.cwd(scope),
       signal: session.controller.signal,
@@ -157,6 +181,7 @@ export class McpCli {
       )
       .catch((error: unknown) => push({ type: "error", message: String(error) }))
       .finally(() => {
+        this.running.delete(session.controller)
         session.finished = true
 
         for (const wake of session.waiters.splice(0)) wake()
@@ -187,6 +212,23 @@ export class McpCli {
 
   cancelLogin(id: string): void {
     this.logins.get(id)?.controller.abort()
+  }
+
+  dispose(): void {
+    for (const controller of this.running) controller.abort()
+    this.running.clear()
+  }
+
+  private async track<T>(timeoutMs: number, task: (signal: AbortSignal) => Promise<T>): Promise<T> {
+    const controller = new AbortController()
+
+    this.running.add(controller)
+
+    try {
+      return await task(AbortSignal.any([controller.signal, AbortSignal.timeout(timeoutMs)]))
+    } finally {
+      this.running.delete(controller)
+    }
   }
 
   private cwd(scope: AgentConfigScope): string {

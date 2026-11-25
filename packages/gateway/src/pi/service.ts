@@ -323,6 +323,7 @@ export class PiHostService implements SessionService {
 
   async dispose(): Promise<void> {
     this.providers.dispose()
+    this.mcpCli.dispose()
     this.fileWatcher.close()
     await Promise.all([
       this.attachments.dispose(),
