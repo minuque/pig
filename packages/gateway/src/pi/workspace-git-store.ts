@@ -64,7 +64,13 @@ export class WorkspaceGitStore {
     if (typeof raw !== "object" || raw === null) return
     const { version, workspaces } = raw as Record<string, unknown>
 
-    if (version !== 1 || typeof workspaces !== "object" || workspaces === null) return
+    if (
+      version !== 1 ||
+      typeof workspaces !== "object" ||
+      workspaces === null ||
+      Array.isArray(workspaces)
+    )
+      return
 
     for (const [workspace, git] of Object.entries(workspaces))
       if (isWorkspaceGit(git) && !this.cache.has(workspace)) this.cache.set(workspace, git)
@@ -93,9 +99,12 @@ export class WorkspaceGitStore {
   }
 
   refresh(workspaces?: readonly string[]): Promise<void> {
-    const targets = (workspaces ?? [...this.tracked].filter((item) => parseRemoteKey(item))).filter(
-      (workspace) => this.tracked.has(workspace),
+    if (this.closed) return Promise.resolve()
+
+    const unwatched = [...this.tracked].filter(
+      (item) => parseRemoteKey(item) || !this.headOf.has(item),
     )
+    const targets = (workspaces ?? unwatched).filter((workspace) => this.tracked.has(workspace))
     return this.readAll(targets, { awaitRemote: true })
   }
 
@@ -208,6 +217,7 @@ export class WorkspaceGitStore {
 
     const head: HeadWatch = { watcher, workspaces: new Set([workspace]), timer: undefined }
     watcher.on("error", () => {
+      if (this.heads.get(headPath) !== head) return
       const affected = [...head.workspaces]
       this.closeHead(headPath)
       void this.refresh(affected)

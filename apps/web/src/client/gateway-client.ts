@@ -34,9 +34,11 @@ export class GatewayRequestError extends Error {
   }
 }
 
+export type WorkspaceGitChanges = Readonly<Record<string, WorkspaceGit | null>>
+
 export function mergeWorkspaceGit(
   current: Readonly<Record<string, WorkspaceGit>>,
-  changes: Readonly<Record<string, WorkspaceGit | null>>,
+  changes: WorkspaceGitChanges,
 ): Record<string, WorkspaceGit> {
   const next = { ...current }
 
@@ -63,6 +65,7 @@ export class GatewayClient {
   readonly #extensionListeners = new Set<(event: ExtensionUiEvent) => void>()
   readonly #preferencesListeners = new Set<(preferences: UserPreferences) => void>()
   readonly #sessionArchivesListeners = new Set<(archives: SessionArchives) => void>()
+  readonly #workspaceGitListeners = new Set<(changes: WorkspaceGitChanges) => void>()
 
   constructor(
     private readonly url: string,
@@ -105,6 +108,7 @@ export class GatewayClient {
         if (message.type === "hello") {
           settled = true
           this.#snapshot = message.snapshot
+          this.#emit(this.#snapshotListeners, message.snapshot)
           this.#setState({ state: "connected" })
           resolve(message.snapshot)
           return
@@ -172,6 +176,11 @@ export class GatewayClient {
   onSessionArchivesChanged(listener: (archives: SessionArchives) => void): Unsubscribe {
     this.#sessionArchivesListeners.add(listener)
     return () => this.#sessionArchivesListeners.delete(listener)
+  }
+
+  onWorkspaceGitChanged(listener: (changes: WorkspaceGitChanges) => void): Unsubscribe {
+    this.#workspaceGitListeners.add(listener)
+    return () => this.#workspaceGitListeners.delete(listener)
   }
 
   onSessionFileChanged(sessionId: string, listener: () => void): Unsubscribe {
@@ -269,12 +278,7 @@ export class GatewayClient {
     }
 
     if (event.type === "workspace_git_changed") {
-      if (!this.#snapshot) return
-      this.#snapshot = {
-        ...this.#snapshot,
-        workspaceGit: mergeWorkspaceGit(this.#snapshot.workspaceGit, event.changes),
-      }
-      this.#emit(this.#snapshotListeners, this.#snapshot)
+      this.#emit(this.#workspaceGitListeners, event.changes)
       return
     }
 

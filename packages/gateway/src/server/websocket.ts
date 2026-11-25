@@ -135,7 +135,8 @@ export class ProtocolServer {
 
       if (ready.length === 0 || this.closing) return
       this.revision += 1
-      const snapshot = await this.serverSnapshot()
+      const base = await this.serverSnapshot()
+      const snapshot = this.withWorkspaceGit(base)
 
       for (const connection of ready)
         connection.send({ type: "event", event: { type: "server_snapshot", snapshot } })
@@ -144,7 +145,11 @@ export class ProtocolServer {
     this.broadcastQueue = run.catch((error) => this.options.onError(error))
   }
 
-  private async serverSnapshot(): Promise<ServerSnapshot> {
+  private withWorkspaceGit(base: Omit<ServerSnapshot, "workspaceGit">): ServerSnapshot {
+    return { ...base, workspaceGit: this.options.workspaceGit.snapshot() }
+  }
+
+  private async serverSnapshot(): Promise<Omit<ServerSnapshot, "workspaceGit">> {
     const [sessions, catalog] = await Promise.all([
       this.sessions.listMetadata(),
       this.options.service.listModels(),
@@ -156,7 +161,6 @@ export class ProtocolServer {
       sessions,
       models: catalog.models,
       defaultModel: catalog.defaultModel,
-      workspaceGit: this.options.workspaceGit.snapshot(),
     }
   }
 
@@ -224,7 +228,8 @@ export class ProtocolServer {
         return
       }
 
-      connection.send({ type: "hello", snapshot: await this.serverSnapshot() })
+      const base = await this.serverSnapshot()
+      connection.send({ type: "hello", snapshot: this.withWorkspaceGit(base) })
       connection.ready = true
       return
     }
