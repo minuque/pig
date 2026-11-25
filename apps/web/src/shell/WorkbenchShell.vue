@@ -57,6 +57,7 @@
       :initial-pane="settingsPane"
       :refresh-models="pi.refreshModels"
       :archive="archiveController"
+      :workspace="cwd.lastCwd.value"
       @update:open="onSettingsToggle"
     />
 

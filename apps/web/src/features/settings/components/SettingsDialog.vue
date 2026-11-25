@@ -129,6 +129,7 @@
                 <AppearancePane v-else-if="active === 'appearance'" />
                 <NotificationsPane v-else-if="active === 'notifications'" />
                 <ArchivePane v-else-if="active === 'archive' && archive" :controller="archive" />
+                <McpPane v-else-if="active === 'mcp'" :workspace="workspace" />
                 <ModelsPane v-else :refresh-models="refreshModels" />
               </div>
             </div>
@@ -141,6 +142,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, provide, ref, useTemplateRef, watch } from "vue"
+import { PlugIcon } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@pig/ui/dialog"
 import {
@@ -160,6 +162,7 @@ import { TextFieldRoot, TextFieldSlot } from "@pig/ui/text-field"
 import AppearancePane from "./AppearancePane.vue"
 import ArchivePane from "./ArchivePane.vue"
 import GeneralPane from "./GeneralPane.vue"
+import McpPane from "./mcp/McpPane.vue"
 import ModelsPane from "./models/ModelsPane.vue"
 import NotificationsPane from "./NotificationsPane.vue"
 import { countArchiveTabs, type ArchiveController } from "@features/settings/lib/archive-view.js"
@@ -176,6 +179,7 @@ const props = defineProps<{
   initialPane?: Pane | undefined
   refreshModels?: (() => Promise<void>) | undefined
   archive?: ArchiveController | undefined
+  workspace?: string | undefined
 }>()
 const emit = defineEmits<{ "update:open": [open: boolean] }>()
 const { t } = useI18n()
@@ -195,6 +199,7 @@ const tabs = computed<
   },
   { id: "appearance", label: t("settings.appearance"), icon: PaletteIcon },
   { id: "models", label: t("settings.models.title"), icon: CloudIcon },
+  { id: "mcp", label: t("settings.mcp.title"), icon: PlugIcon },
   { id: "notifications", label: t("settings.notifications"), icon: BellIcon },
   ...(props.archive
     ? [
@@ -278,6 +283,12 @@ const searchEntries = computed<SettingsSearchEntry[]>(() => [
     pane: "models",
     title: t("settings.models.providers"),
     section: t("settings.models.title"),
+  },
+  {
+    id: "",
+    pane: "mcp",
+    title: t("settings.mcp.title"),
+    section: t("settings.mcp.title"),
   },
   {
     id: "setting-notify-system",
