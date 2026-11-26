@@ -76,6 +76,7 @@ function useQuestionBoardState(session: BoardSession) {
         stash = undefined
       }
     },
+    { immediate: true },
   )
 
   watch(
@@ -85,6 +86,7 @@ function useQuestionBoardState(session: BoardSession) {
 
       if (q) session.prompt.value = current.value[index.value]?.text || q.prefill || ""
     },
+    { immediate: true },
   )
 
   watch(session.prompt, (value) => {
