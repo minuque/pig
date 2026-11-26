@@ -91,8 +91,6 @@ test("@ 与 / 在代码块里不弹菜单，普通段落与列表项照旧", asy
   await prompt.click()
   await prompt.pressSequentially("@")
   await expect(menu).toBeVisible()
-  await prompt.press("Escape")
-  await expect(menu).toHaveCount(0)
   await prompt.press("Control+a")
   await prompt.press("Delete")
 

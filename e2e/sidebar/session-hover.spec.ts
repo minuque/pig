@@ -22,6 +22,14 @@ async function expectStaysClosed(page: Page) {
   await expect(hoverCard(page)).toHaveCount(0)
 }
 
+test("点击会话卡后立刻移开指针，详情不会迟到弹出", async ({ page, navGateway }) => {
+  await enter(page, navGateway)
+
+  await card(page, 3).click()
+  await page.mouse.move(800, 400)
+  await expectStaysClosed(page)
+})
+
 test("侧栏会话卡悬停弹出详情；点击、右键与拖动侧栏宽度时不弹出", async ({ page, navGateway }) => {
   await enter(page, navGateway)
 
