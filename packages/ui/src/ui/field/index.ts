@@ -1,1 +1,3 @@
-export { Field, FieldDescription, FieldError, FieldLabel } from "@ui-sdk/vue/field"
+export { default as Field } from "./Field.vue"
+
+export { FieldDescription, FieldError, FieldLabel } from "@ui-sdk/vue/field"

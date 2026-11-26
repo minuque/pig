@@ -51,7 +51,6 @@
                 size="s"
                 variant="ghost"
                 color="neutral"
-                class="press-scale"
                 :aria-label="t('composer.addAttachment')"
                 :disabled="attachmentsFull"
                 @mousedown.prevent

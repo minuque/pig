@@ -236,7 +236,7 @@ function headline(notice: Notice): string {
   flex-shrink: 0;
 }
 
-[data-slot="toast"] > [data-toast-close] {
+:where([data-slot="toast"] > [data-toast-close]) {
   position: absolute;
   inset-block-start: var(--space-2xs);
   inset-inline-end: var(--space-2xs);

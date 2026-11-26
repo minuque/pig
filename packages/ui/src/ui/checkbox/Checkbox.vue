@@ -2,7 +2,7 @@
   <CheckboxRoot
     v-bind="modelValue === undefined ? {} : { checked: modelValue }"
     :disabled="disabled"
-    :data-tone="color"
+    :data-tone="color ?? 'accent'"
     :data-size="size"
     :data-variant="variant"
     :class="props.class"
@@ -124,7 +124,7 @@ const emit = defineEmits<{ "update:modelValue": [value: CheckedState] }>()
 
 :where([data-slot="checkbox"][data-variant="surface"]:is([data-checked], [data-indeterminate]))
   :where([data-slot="checkbox-indicator"]) {
-  color: var(--bg);
+  color: var(--tone-on-solid);
 }
 
 :where([data-slot="checkbox"][data-variant="surface"][data-disabled])::before {

@@ -42,7 +42,6 @@ function applyContrast(value: number): void {
   const entries = {
     "--contrast-base": `${Math.min(value, 100)}%`,
     "--contrast-boost": `${boost}%`,
-    "--contrast-border-boost": `${boost / 4}%`,
   }
 
   for (const [name, next] of Object.entries(entries)) {

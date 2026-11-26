@@ -14,6 +14,7 @@
   --tone-border-mix: 35%;
   --tone-text-lightness: 53%;
   --tone-hover-target: #000000;
+  --ink-dark: #18191d;
   --hue-indigo: #3e63dd;
   --hue-cyan: #00a2c7;
   --hue-green: #30a46c;
@@ -21,6 +22,18 @@
   --hue-orange: #f76b15;
   --hue-red: #e5484d;
   --hue-violet: #6e56cf;
+  --fg-base: #282a30;
+  --fg-secondary-base: #4c5159;
+  --fg-muted-base: #6a707c;
+  --fg-disabled-base: rgba(0, 0, 0, 0.27);
+  --contrast-base: 100%;
+  --contrast-boost: 0%;
+  --contrast-target: black;
+  --border-base: rgba(0, 0, 0, 0.1);
+  --border-subtle-base: rgba(0, 0, 0, 0.05);
+  --border-strong-base: rgba(0, 0, 0, 0.15);
+  --border-input-base: rgba(0, 0, 0, 0.19);
+  --control-border-base: rgba(0, 0, 0, 0.19);
 
   /* ====== 语义层：全站共用，组件只读这一层与下面的组件层 ====== */
 
@@ -35,61 +48,49 @@
 
   /* --- 前景 --- */
   --fg-on-accent: #ffffff;
-  --fg-base: #282a30;
-  --fg-secondary-base: #4c5159;
-  --fg-muted-base: #6a707c;
-  --fg-disabled-base: rgba(0, 0, 0, 0.27);
   --fg-inverse: #ffffff;
-  --contrast-base: 100%;
-  --contrast-boost: 0%;
-  --contrast-border-boost: 0%;
-  --contrast-target: black;
   --fg: color-mix(
     in oklab,
     color-mix(in oklab, var(--fg-base) var(--contrast-base), var(--bg)),
-    var(--contrast-target) var(--contrast-boost)
+    var(--contrast-target) calc(var(--contrast-boost) * 0.65)
   );
   --fg-secondary: color-mix(
     in oklab,
     color-mix(in oklab, var(--fg-secondary-base) var(--contrast-base), var(--bg)),
-    var(--contrast-target) var(--contrast-boost)
+    var(--contrast-target) calc(var(--contrast-boost) * 0.45)
   );
   --fg-muted: color-mix(
     in oklab,
     color-mix(in oklab, var(--fg-muted-base) var(--contrast-base), var(--bg)),
-    var(--contrast-target) var(--contrast-boost)
+    var(--contrast-target) calc(var(--contrast-boost) * 0.3)
   );
   --fg-disabled: color-mix(
-    in oklab,
-    color-mix(in oklab, var(--fg-disabled-base) var(--contrast-base), transparent),
-    var(--contrast-target) var(--contrast-boost)
+    in srgb,
+    color-mix(in srgb, var(--fg-disabled-base) var(--contrast-base), transparent),
+    var(--fg-base) calc(var(--contrast-boost) * 0.12)
   );
 
   /* --- 边与分割 --- */
   --border-width: 1px;
-  --border-base: rgba(0, 0, 0, 0.1);
-  --border-subtle-base: rgba(0, 0, 0, 0.05);
-  --border-strong-base: rgba(0, 0, 0, 0.15);
-  --border-input-base: rgba(0, 0, 0, 0.19);
   --border: color-mix(
     in srgb,
     color-mix(in srgb, var(--border-base) var(--contrast-base), transparent),
-    var(--fg-base) var(--contrast-border-boost)
+    var(--fg-base) calc(var(--contrast-boost) * 0.25)
   );
   --border-subtle: color-mix(
     in srgb,
     color-mix(in srgb, var(--border-subtle-base) var(--contrast-base), transparent),
-    var(--fg-base) var(--contrast-border-boost)
+    var(--fg-base) calc(var(--contrast-boost) * 0.25)
   );
   --border-strong: color-mix(
     in srgb,
     color-mix(in srgb, var(--border-strong-base) var(--contrast-base), transparent),
-    var(--fg-base) var(--contrast-border-boost)
+    var(--fg-base) calc(var(--contrast-boost) * 0.25)
   );
   --border-input: color-mix(
     in srgb,
     color-mix(in srgb, var(--border-input-base) var(--contrast-base), transparent),
-    var(--fg-base) var(--contrast-border-boost)
+    var(--fg-base) calc(var(--contrast-boost) * 0.25)
   );
   --overlay: rgba(0, 0, 0, 0.4);
   --separator-top: inset 0 var(--border-width) 0 var(--border-subtle);
@@ -112,14 +113,17 @@
   --button-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.16);
   --button-pressed: inset 0 1px 0 rgba(0, 0, 0, 0.08);
   --control-bg: var(--bg-raised);
-  --control-border: var(--border-input);
-  --control-shadow: 0 0 0 var(--border-width) var(--control-border), 0 1px 2px rgba(0, 0, 0, 0.05);
+  --control-border: color-mix(
+    in srgb,
+    color-mix(in srgb, var(--control-border-base) var(--contrast-base), transparent),
+    var(--fg-base) calc(var(--contrast-boost) * 0.25)
+  );
+  --control-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   --outline-ring: color-mix(in srgb, currentColor 24%, transparent);
-  --outline-shadow: 0 0 0 var(--border-width) var(--outline-ring), 0 1px 2px rgba(0, 0, 0, 0.05);
   --thumb-shadow: rgba(0, 0, 0, 0.1);
 
   /* --- 状态 --- */
-  --success-solid: #30a46c;
+  --success-solid: #228559;
   --success-text: #218358;
   --info-text: #0b6f88;
   --info-solid: #0a7f9c;
@@ -204,7 +208,6 @@
 
   /* --- 布局 --- */
   --toast-width: 22rem;
-  --content-width: 768px;
   --dialog-width-sm: 420px;
   --dialog-width-lg: 80rem;
   --dialog-height-lg: 60rem;
@@ -281,9 +284,8 @@ html.dark {
   --border-subtle-base: rgba(255, 255, 255, 0.045);
   --border-strong-base: rgba(255, 255, 255, 0.13);
   --border-input-base: rgba(255, 255, 255, 0.23);
+  --control-border-base: rgba(255, 255, 255, 0.11);
   --control-bg: rgba(255, 255, 255, 0.035);
-  --control-border: rgba(255, 255, 255, 0.11);
-  --control-shadow: 0 0 0 var(--border-width) var(--control-border), 0 1px 2px rgba(0, 0, 0, 0.05);
   --outline-ring: color-mix(in srgb, currentColor 16%, transparent);
   --overlay: rgba(0, 0, 0, 0.6);
 
@@ -292,17 +294,18 @@ html.dark {
   --accent-solid-hover: #6b77dc;
   --accent-text: #9eb1ff;
   --bg-hover: color-mix(in srgb, var(--white) 6%, transparent);
-  --bg-selected: #1a2143;
+  --bg-selected: color-mix(in srgb, var(--accent-solid) 20%, transparent);
   --scrollbar-color: #2a2a2a;
 
   /* --- 状态 --- */
   --info-text: #4ccce6;
-  --info-solid: #00a2c7;
+  --info-solid: #0a7f9c;
   --link-external: oklch(70.7% 0.165 254.624);
   --warning-solid: #e8a33d;
   --warning-text: #e8a33d;
   --danger-text: #e05c59;
   --danger-solid: #c84646;
+  --success-solid: #228559;
 
   /* ====== 组件层：按组件前缀排列，只给单个组件或一类内容用 ====== */
   --glass-filter: blur(16px) saturate(1.08);
@@ -332,14 +335,6 @@ html.dark {
   --tone-hover-target: #ffffff;
 }
 
-html[data-chat-width="wide"] {
-  --content-width: 920px;
-}
-
-html[data-chat-width="full"] {
-  --content-width: 100%;
-}
-
 /* ------ 色调 ------ */
 :root,
 [data-tone] {
@@ -347,6 +342,7 @@ html[data-chat-width="full"] {
   --tone-border: color-mix(in srgb, var(--tone) var(--tone-border-mix), transparent);
   --tone-hover: color-mix(in srgb, var(--tone) 90%, var(--tone-hover-target));
   --tone-shadow: color-mix(in srgb, var(--tone) 24%, transparent);
+  --tone-on-solid: var(--fg-on-accent);
   --tint: var(--tone-text);
 }
 
@@ -370,6 +366,7 @@ html[data-chat-width="full"] {
 [data-tone="warning"] {
   --tone: var(--warning-solid);
   --tone-text: var(--warning-text);
+  --tone-on-solid: var(--ink-dark);
 }
 
 [data-tone="danger"] {

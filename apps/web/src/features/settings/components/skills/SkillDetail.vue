@@ -37,7 +37,14 @@
     </div>
 
     <template v-if="mode === 'edit' && !inherited">
-      <textarea v-model="raw" class="skill-source" spellcheck="false" aria-label="SKILL.md" />
+      <Textarea
+        v-model="raw"
+        size="s"
+        class="skill-source"
+        spellcheck="false"
+        aria-label="SKILL.md"
+      />
+
       <p v-if="check.error" class="source-error">{{ t(errorKey) }}</p>
 
       <div v-else-if="invalid" class="source-error">
@@ -123,6 +130,7 @@ import { Badge } from "@pig/ui/badge"
 import { Button } from "@pig/ui/button"
 import { CardList, CardRow } from "@pig/ui/card"
 import { TabsList, TabsRoot, TabsTrigger } from "@pig/ui/tabs"
+import { Textarea } from "@pig/ui/textarea"
 
 const props = defineProps<{
   state: SkillsState
@@ -250,22 +258,8 @@ defineExpose({ dirty })
 }
 
 .skill-source {
-  box-sizing: border-box;
-  width: 100%;
   min-height: 22rem;
-  padding: var(--space-sm);
-  border: var(--border-width) solid var(--border-input);
-  border-radius: var(--radius-control);
-  background: var(--control-bg);
-  color: var(--fg);
-  font-size: var(--text-meta);
   line-height: 1.5;
-  resize: vertical;
-}
-
-.skill-source:focus {
-  outline: 2px solid var(--focus-color);
-  outline-offset: -1px;
 }
 
 .source-error,

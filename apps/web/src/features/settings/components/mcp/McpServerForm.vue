@@ -67,7 +67,7 @@
         </SelectContent>
       </Select>
 
-      <FieldDescription class="form-hint">
+      <FieldDescription>
         {{ t(`settings.mcp.exposureHint.${draft.exposure}`) }}
       </FieldDescription>
     </Field>
@@ -215,24 +215,13 @@ async function submit() {
   font-family: var(--font-mono);
 }
 
-.form-error,
-.form-hint {
-  font-size: var(--text-meta);
-}
-
 .form-error {
+  font-size: var(--text-meta);
   color: var(--danger-text);
 }
 
-.form-hint {
-  color: var(--fg-secondary);
-}
-
 .field-stack {
-  display: flex;
-  flex-direction: column;
   align-items: flex-start;
-  gap: var(--space-2xs);
 }
 
 .field-inline {

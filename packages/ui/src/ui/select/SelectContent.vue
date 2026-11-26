@@ -38,7 +38,7 @@ const size = useSelectSize()
   min-inline-size: var(--anchor-width);
   max-block-size: var(--available-height);
   margin: 0;
-  padding: var(--space-xs);
+  padding: var(--space-2xs);
   overflow-y: auto;
   overscroll-behavior: contain;
   border: 0;

@@ -2,6 +2,7 @@
   <Dialog :open="open" :close-on-outside-press="false" @update:open="emit('update:open', $event)">
     <DialogContent
       class="settings-dialog"
+      bleed
       :show-close-button="false"
       initial-focus="content"
       @keydown="onShellKeydown"
@@ -419,7 +420,6 @@ watch(active, async () => {
   width: min(88vw, var(--dialog-width-lg));
   max-width: min(88vw, var(--dialog-width-lg));
   height: clamp(var(--dialog-height-lg-min), 85vh, var(--dialog-height-lg));
-  padding: 0;
   gap: 0;
   border-radius: var(--radius-dialog);
   overflow: hidden;

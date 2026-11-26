@@ -9,10 +9,10 @@ import Card from "./Card.vue"
 </script>
 
 <style>
-[data-card-list] {
+:where([data-card-list]) {
   --card-border-radius: var(--radius-card);
   display: flex;
   flex-direction: column;
-  padding: var(--border-width);
+  padding: 0;
 }
 </style>

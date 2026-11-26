@@ -4,7 +4,7 @@
     data-button
     :data-size="size"
     :data-variant="variant"
-    :data-tone="color"
+    :data-tone="tone"
     :data-radius="radius"
     :data-loading="loading || undefined"
     :disabled="disabled || loading"
@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
+import { computed, type HTMLAttributes } from "vue"
 import { Button as ButtonPrimitive } from "@ui-sdk/vue/button"
 import type { Size, ToneColor, Radius } from "../../core/types.js"
 import type { ButtonVariant } from "./index.js"
@@ -50,6 +50,7 @@ const props = withDefaults(
     class: undefined,
   },
 )
+const tone = computed(() => props.color ?? (props.variant === "solid" ? "accent" : "neutral"))
 </script>
 
 <style>
@@ -120,7 +121,7 @@ const props = withDefaults(
   box-shadow:
     var(--button-highlight),
     0 1px 2px var(--tone-shadow);
-  color: var(--fg-on-accent);
+  color: var(--tone-on-solid);
 }
 
 @media (hover: hover) {
@@ -142,11 +143,13 @@ const props = withDefaults(
 }
 
 :where([data-button][data-variant="outline"]) {
-  box-shadow: var(--outline-shadow);
+  border-color: var(--outline-ring);
+  background-clip: padding-box;
+  box-shadow: var(--control-shadow);
 }
 
 :where([data-button][data-variant="outline"]:active) {
-  box-shadow: 0 0 0 var(--border-width) var(--outline-ring);
+  box-shadow: none;
 }
 
 @media (hover: hover) {
@@ -199,5 +202,15 @@ const props = withDefaults(
 
 :where([data-button][data-tone]:not([data-tone="neutral"], [data-variant="solid"])) {
   color: var(--tone-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where([data-button]) {
+    transition: none;
+  }
+
+  :where([data-button]:active:not([aria-haspopup], [data-disabled])) {
+    transform: none;
+  }
 }
 </style>

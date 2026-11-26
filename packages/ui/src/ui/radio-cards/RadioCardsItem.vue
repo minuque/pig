@@ -27,7 +27,7 @@ const props = withDefaults(
   gap: var(--space-xs);
   box-sizing: border-box;
   overflow: hidden;
-  padding: 14px var(--space-md);
+  padding: var(--space-sm) var(--space-md);
   border-radius: var(--radius-control);
   font-family: var(--font-sans);
   font-weight: var(--font-weight-normal);
@@ -38,7 +38,7 @@ const props = withDefaults(
 }
 
 :where([data-radio-cards][data-size="s"]) :where([data-radio-cards-item]) {
-  padding: 10px var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
 }
 
 :where([data-radio-cards-item]) > * {

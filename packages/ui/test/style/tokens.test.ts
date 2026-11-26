@@ -37,7 +37,10 @@ describe("@pig/ui tokens.css contract", () => {
     }
   })
 
-  it("六个基础色调均提供 --tone 与 --tone-text", () => {
+  it("六个基础色调均提供 --tone、--tone-text 与 --tone-on-solid", () => {
+    const rootDefaults = varsBySelector(tokensCss, "[data-tone]")
+    expect(rootDefaults.get("--tone-on-solid")).toBeTruthy()
+
     for (const tone of ["accent", "info", "success", "warning", "danger", "neutral"]) {
       const toneVars = varsBySelector(tokensCss, `[data-tone="${tone}"]`)
       expect(toneVars.get("--tone"), `missing --tone for ${tone}`).toBeTruthy()

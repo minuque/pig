@@ -85,7 +85,7 @@ lib/             多处生产消费，或有单测的纯逻辑
 
 ### 单测
 
-`apps/web/test/` 镜像 `src/` 分层：`test/components/ui/` 对 `src/components/ui/`，`test/features/<module>/` 对 `features/<module>/`，`test/style/` 对 `style/`。根级只放 `setup.ts`。测 `src` 根文件的用例用相对路径。整页浏览器旅程不要放进本目录，写到仓库根 `e2e/`。
+`packages/ui/test/` 与 `apps/web/test/` 镜像各自 `src/` 分层：`packages/ui/test/` 测 `@pig/ui` 样式与组件，`apps/web/test/features/<module>/` 对 `features/<module>/`，`apps/web/test/style/` 对 `style/`。根级只放 `setup.ts`。测 `src` 根文件的用例用相对路径。整页浏览器旅程不要放进本目录，写到仓库根 `e2e/`。
 
 ## apps/desktop
 

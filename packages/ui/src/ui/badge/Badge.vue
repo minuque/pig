@@ -4,7 +4,7 @@
     data-slot="badge"
     :data-size="size"
     :data-variant="variant"
-    :data-tone="color"
+    :data-tone="color ?? 'accent'"
     :data-radius="radius"
     :class="props.class"
   >
@@ -66,7 +66,7 @@ const props = withDefaults(
 
 :where([data-slot="badge"][data-variant="solid"]) {
   background-color: var(--tone);
-  color: var(--fg-on-accent);
+  color: var(--tone-on-solid);
 }
 
 :where([data-slot="badge"][data-variant="soft"]) {

@@ -72,6 +72,8 @@ const size = useSelectSize()
   gap: calc(var(--spacing) * 1.5);
   height: var(--control-sm);
   padding-inline: calc(var(--spacing) * 2.5 - var(--border-width));
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
 }
 
 :where([data-slot="select-trigger"]:focus-visible) {
@@ -107,7 +109,9 @@ const size = useSelectSize()
 }
 
 :where([data-slot="select-trigger"][data-variant="surface"]) {
+  border-color: var(--control-border);
   background-color: var(--control-bg);
+  background-clip: padding-box;
   box-shadow: var(--control-shadow);
 }
 

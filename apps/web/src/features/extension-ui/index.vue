@@ -34,11 +34,8 @@
         @keydown.enter="reply({ id: pending.request.id, value: text })"
       />
 
-      <div
-        v-else-if="pending.request.method === 'editor'"
-        class="extension-body extension-editor-box"
-      >
-        <textarea v-model="text" class="extension-editor" autofocus />
+      <div v-else-if="pending.request.method === 'editor'" class="extension-body">
+        <Textarea v-model="text" class="extension-editor" autofocus />
       </div>
 
       <AlertDialogFooter>
@@ -77,6 +74,7 @@ import {
 } from "@pig/ui/alert-dialog"
 import { Button } from "@pig/ui/button"
 import { TextFieldRoot } from "@pig/ui/text-field"
+import { Textarea } from "@pig/ui/textarea"
 import { useExtensionUi } from "@features/extension-ui/index.js"
 
 const { t } = useI18n()
@@ -109,30 +107,7 @@ function cancel() {
   gap: var(--space-xs);
 }
 
-.extension-editor-box {
-  padding: var(--space-xs);
-  border-radius: var(--radius-control);
-  background-color: var(--bg-raised);
-  box-shadow: inset 0 0 0 var(--border-width) var(--border-input);
-}
-
-.extension-editor-box:focus-within {
-  outline: 2px solid var(--focus-color);
-  outline-offset: -1px;
-}
-
 .extension-editor {
-  display: block;
-  inline-size: 100%;
   min-block-size: var(--composer-field-max);
-  border-radius: var(--radius-control);
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  resize: vertical;
-}
-
-.extension-editor:focus-visible {
-  outline: none;
 }
 </style>

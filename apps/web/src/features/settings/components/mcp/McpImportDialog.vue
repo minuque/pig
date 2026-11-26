@@ -4,8 +4,9 @@
       <DialogTitle>{{ t("settings.mcp.importJson") }}</DialogTitle>
       <DialogDescription>{{ t("settings.mcp.import.hint") }}</DialogDescription>
 
-      <textarea
+      <Textarea
         v-model="raw"
+        size="s"
         class="import-input"
         spellcheck="false"
         :aria-label="t('settings.mcp.importJson')"
@@ -58,6 +59,7 @@ import { Checkbox } from "@pig/ui/checkbox"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@pig/ui/dialog"
 import { Field, FieldLabel } from "@pig/ui/field"
 import { TextFieldRoot } from "@pig/ui/text-field"
+import { Textarea } from "@pig/ui/textarea"
 
 type Entry = Record<string, unknown>
 
@@ -128,23 +130,9 @@ async function apply() {
 
 <style scoped>
 .import-input {
-  box-sizing: border-box;
-  width: 100%;
   min-height: 12rem;
   margin-block: var(--space-sm);
-  padding: var(--space-sm);
-  border: var(--border-width) solid var(--border-input);
-  border-radius: var(--radius-control);
-  background: var(--control-bg);
-  color: var(--fg);
   font-family: var(--font-mono);
-  font-size: var(--text-meta);
-  resize: vertical;
-}
-
-.import-input:focus {
-  outline: 2px solid var(--focus-color);
-  outline-offset: -1px;
 }
 
 .import-list {

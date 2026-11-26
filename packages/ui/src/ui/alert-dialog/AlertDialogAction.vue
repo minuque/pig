@@ -2,7 +2,7 @@
   <AlertDialogClose
     value="confirm"
     v-bind="{ ...$attrs, ...buttonAttrs('solid') }"
-    :data-tone="color"
+    :data-tone="color ?? 'accent'"
     :class="props.class"
   >
     <slot />

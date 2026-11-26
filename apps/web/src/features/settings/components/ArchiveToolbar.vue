@@ -16,11 +16,7 @@
 
     <div class="archive-filters">
       <Select :model-value="projectFilter" @update:model-value="onProjectFilterChange">
-        <SelectTrigger
-          size="m"
-          class="project-select"
-          :aria-label="t('settings.archive.allProjects')"
-        >
+        <SelectTrigger class="project-select" :aria-label="t('settings.archive.allProjects')">
           <span class="project-select-label">{{ activeProjectLabel }}</span>
         </SelectTrigger>
 
