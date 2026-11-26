@@ -4,7 +4,6 @@ import { FILLER_PREFIX } from "../support/prebuild-session.js"
 import { installTurnBridge } from "../support/sim-turn.js"
 
 async function enter(page: Page, gateway: E2eGateway) {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
@@ -87,7 +86,6 @@ async function dragCard(page: Page, from: Locator, to: Locator, at: "center" | "
 }
 
 test("拖拽会话进出置顶区：拖进置顶、拖出取消置顶", async ({ page, navGateway }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, navGateway.workspaceId)
   await page.addInitScript(() => {
     localStorage.setItem("pig.sidebarPinnedSessions", JSON.stringify(["e2e-filler-5"]))
@@ -117,7 +115,6 @@ test("键盘拖拽会话进出置顶区与排序：空格拿起、方向键移�
   page,
   navGateway,
 }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, navGateway.workspaceId)
   await page.addInitScript(() => {
     localStorage.setItem("pig.sidebarPinnedSessions", JSON.stringify(["e2e-filler-5"]))

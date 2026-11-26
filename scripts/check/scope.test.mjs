@@ -12,7 +12,7 @@ describe("classifyTouched", () => {
   })
 
   it("根配置改动升级全量 check", () => {
-    assert.equal(classifyTouched(["eslint.config.js"]).escalate, true)
+    assert.equal(classifyTouched([".oxlintrc.json"]).escalate, true)
     assert.equal(classifyTouched(["stylelint.config.js"]).escalate, true)
     assert.equal(classifyTouched(["scripts/check/lint-ignores.mjs"]).escalate, true)
     assert.equal(classifyTouched([".prettierignore"]).escalate, true)

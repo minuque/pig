@@ -63,7 +63,6 @@ function tool(id: string, status: "running" | "complete"): TranscriptItem {
 
 test("一轮工作：工具步骤状态实时、历史重拉不重复", async ({ page, complexGateway }) => {
   test.setTimeout(120_000)
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, complexGateway.workspaceId)
   let persisted: TranscriptItem[] = HISTORY
   await page.route("**/api/v1/platform/transcript**", (route) =>

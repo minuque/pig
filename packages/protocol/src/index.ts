@@ -70,7 +70,6 @@ export type {
   UserRailLayout,
   UserRailSection,
   UserThemeMode,
-  UserWelcomeField,
 } from "./preferences.js"
 
 export type {

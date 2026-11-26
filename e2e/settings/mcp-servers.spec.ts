@@ -3,7 +3,6 @@ import { join } from "node:path"
 import { expect, seedWorkspace, test } from "../support/fixtures.js"
 
 test("MCP：新增 stdio server，停用后仍在列表，删除后清空", async ({ page, gateway }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
@@ -70,8 +69,6 @@ test("MCP：测试连接列出工具，点击工具可在弹窗查看明细与 S
       "})",
     ].join("\n"),
   )
-
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })

@@ -16,7 +16,6 @@ const DONE = "e2e 接管后的回答"
 const FOLLOW = { timeout: 10_000 }
 
 async function openExternalSession(page: Page, gateway: ExternalTurnGateway) {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
 }
 

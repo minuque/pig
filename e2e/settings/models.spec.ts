@@ -2,7 +2,6 @@ import type { Page } from "@playwright/test"
 import { expect, seedWorkspace, test, type E2eGateway } from "../support/fixtures.js"
 
 async function openWorkspace(page: Page, gateway: E2eGateway) {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })

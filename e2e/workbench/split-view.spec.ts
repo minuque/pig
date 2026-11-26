@@ -4,7 +4,6 @@ import { STOP_TURN, installTurnBridge } from "../support/sim-turn.js"
 test("分屏：在右侧打开会话，两侧各自发送，关闭右侧", async ({ page, navGateway }) => {
   test.setTimeout(120_000)
   await page.setViewportSize({ width: 1680, height: 900 })
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, navGateway.workspaceId)
   await installTurnBridge(page)
   await page.goto(navGateway.entryUrl)
@@ -49,7 +48,6 @@ test("分屏：在右侧打开会话，两侧各自发送，关闭右侧", async
 test("分屏：删除另一侧开着的空闲会话，那一侧回到新会话页", async ({ page, navGateway }) => {
   test.setTimeout(120_000)
   await page.setViewportSize({ width: 1680, height: 900 })
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, navGateway.workspaceId)
   await installTurnBridge(page)
   await page.goto(navGateway.entryUrl)

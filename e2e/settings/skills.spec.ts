@@ -3,7 +3,6 @@ import { join } from "node:path"
 import { expect, seedWorkspace, test } from "../support/fixtures.js"
 
 test("Skills：新建后编辑正文，预览看到改动，删除后从列表消失", async ({ page, gateway }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
@@ -51,8 +50,6 @@ test("Skills：附属文件排在路径下方，点击可在弹窗预览", async
   )
   await writeFile(join(skillDir, "scripts", "check.sh"), "#!/bin/sh\necho asset-ok\n")
   await writeFile(join(skillDir, "references", "guide.md"), "# Guide Title\n\nAsset body\n")
-
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })

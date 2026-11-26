@@ -2,12 +2,17 @@ import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
-const agentDir = mkdtempSync(join(tmpdir(), "pig-gateway-agent-"))
+const KEY = Symbol.for("pig.gateway.test.agentDir")
+const globalState = globalThis as Record<symbol, string | undefined>
 
-process.env.PI_CODING_AGENT_DIR = agentDir
+if (!globalState[KEY]) {
+  const agentDir = mkdtempSync(join(tmpdir(), "pig-gateway-agent-"))
 
-process.once("exit", () => {
-  try {
-    rmSync(agentDir, { recursive: true, force: true })
-  } catch {}
-})
+  globalState[KEY] = agentDir
+  process.env.PI_CODING_AGENT_DIR = agentDir
+  process.once("exit", () => {
+    try {
+      rmSync(agentDir, { recursive: true, force: true })
+    } catch {}
+  })
+}

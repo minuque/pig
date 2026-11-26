@@ -7,6 +7,7 @@ export default defineConfig({
   plugins: [vue()],
   test: {
     name: "@pig/ui",
+    isolate: false,
     maxWorkers,
   },
 })

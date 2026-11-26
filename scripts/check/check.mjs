@@ -22,8 +22,8 @@ if (since === "") {
 
 // 外部：prettier 不带 --cache 时会删默认缓存文件，与并发的 lint-staged 撞 ENOENT
 const PRETTIER_CACHE = "node_modules/.cache/prettier/check"
-const ESLINT_CACHE = "node_modules/.cache/eslint/cache"
 const STYLELINT_CACHE = "node_modules/.cache/stylelint/cache"
+const CHECK_CONCURRENCY = 4
 // 外部：Windows 命令行上限 8191 字符，留出环境变量与引号余量
 const MAX_ARG_CHARS = process.platform === "win32" ? 6000 : 100_000
 
@@ -31,14 +31,45 @@ function fileSteps(name, prefix, files) {
   return splitCommandArgs(prefix, files, MAX_ARG_CHARS).map((args) => ({ name, args }))
 }
 
+async function runPool(steps, limit = CHECK_CONCURRENCY) {
+  const results = new Array(steps.length)
+  let cursor = 0
+
+  async function worker() {
+    for (;;) {
+      const index = cursor
+
+      cursor += 1
+
+      if (index >= steps.length) return
+      const step = steps[index]
+      const ran = await runPnpm(step.args, root)
+
+      results[index] = { name: step.name, ...ran }
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(limit, steps.length) }, worker))
+  return results
+}
+
 const CHECK_STEPS = [
+  { name: "test", args: ["test"] },
+  {
+    name: "typecheck:packages",
+    args: ["-r", "--workspace-concurrency=3", "--if-present", "typecheck"],
+  },
   {
     name: "format",
     args: ["exec", "prettier", "--check", "--cache", "--cache-location", PRETTIER_CACHE, "."],
   },
   {
-    name: "eslint",
-    args: ["exec", "eslint", "--cache", "--cache-location", ESLINT_CACHE, "."],
+    name: "typecheck:e2e",
+    args: ["exec", "tsc", "--noEmit", "-p", "e2e/tsconfig.json"],
+  },
+  {
+    name: "typecheck:scripts",
+    args: ["exec", "tsc", "--noEmit", "-p", "scripts/tsconfig.json"],
   },
   {
     name: "stylelint",
@@ -46,22 +77,11 @@ const CHECK_STEPS = [
   },
   {
     name: "vue-template",
-    args: ["exec", "tsx", "scripts/check/vue-template.ts", "apps/web/src", "packages/ui/src"],
+    args: ["exec", "node", "scripts/check/vue-template.mjs", "apps/web/src", "packages/ui/src"],
   },
+  { name: "oxlint", args: ["exec", "oxlint", "."] },
+  { name: "no-comments", args: ["exec", "node", "scripts/check/no-comments.mjs"] },
   { name: "css-tokens", args: ["exec", "node", "scripts/check/css-tokens.mjs"] },
-  {
-    name: "typecheck:scripts",
-    args: ["exec", "tsc", "--noEmit", "-p", "scripts/tsconfig.json"],
-  },
-  {
-    name: "typecheck:e2e",
-    args: ["exec", "tsc", "--noEmit", "-p", "e2e/tsconfig.json"],
-  },
-  {
-    name: "typecheck:packages",
-    args: ["-r", "--if-present", "typecheck"],
-  },
-  { name: "test", args: ["test"] },
 ]
 
 function committedFiles(ref) {
@@ -101,12 +121,7 @@ function existingTouched() {
 }
 
 async function runAll() {
-  const results = await Promise.all(
-    CHECK_STEPS.map(async (step) => {
-      const ran = await runPnpm(step.args, root)
-      return { name: step.name, ...ran }
-    }),
-  )
+  const results = await runPool(CHECK_STEPS)
 
   reportResults("check", results)
 }
@@ -116,13 +131,7 @@ async function fixTouched(scope) {
   const steps = []
 
   steps.push(...fileSteps("format", ["exec", "prettier", "--write"], scope.prettierFiles))
-  steps.push(
-    ...fileSteps(
-      "eslint",
-      ["exec", "eslint", "--cache", "--cache-location", ESLINT_CACHE, "--fix"],
-      scope.lintFiles,
-    ),
-  )
+  steps.push(...fileSteps("oxlint", ["exec", "oxlint", "--fix"], scope.lintFiles))
   steps.push(
     ...fileSteps(
       "stylelint",
@@ -176,12 +185,9 @@ async function checkTouched(scope, files, label = "check:touched") {
       scope.prettierFiles,
     ),
   )
+  steps.push(...fileSteps("oxlint", ["exec", "oxlint"], scope.lintFiles))
   steps.push(
-    ...fileSteps(
-      "eslint",
-      ["exec", "eslint", "--cache", "--cache-location", ESLINT_CACHE],
-      scope.lintFiles,
-    ),
+    ...fileSteps("no-comments", ["exec", "node", "scripts/check/no-comments.mjs"], scope.lintFiles),
   )
   steps.push(
     ...fileSteps(
@@ -191,7 +197,11 @@ async function checkTouched(scope, files, label = "check:touched") {
     ),
   )
   steps.push(
-    ...fileSteps("vue-template", ["exec", "tsx", "scripts/check/vue-template.ts"], scope.vueFiles),
+    ...fileSteps(
+      "vue-template",
+      ["exec", "node", "scripts/check/vue-template.mjs"],
+      scope.vueFiles,
+    ),
   )
 
   if (scope.packages.includes("@pig/web") || scope.packages.includes("@pig/ui") || scope.scripts)
@@ -246,12 +256,7 @@ async function checkTouched(scope, files, label = "check:touched") {
 
   console.log(`${label}: ${files.length} files → ${planned.join(", ")}`)
 
-  const results = await Promise.all(
-    steps.map(async (step) => {
-      const ran = await runPnpm(step.args, root)
-      return { name: step.name, ...ran }
-    }),
-  )
+  const results = await runPool(steps)
 
   if (results.some((result) => result.code !== 0)) {
     reportResults(label, results)

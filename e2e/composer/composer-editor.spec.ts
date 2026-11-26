@@ -8,7 +8,6 @@ import { installTurnBridge } from "../support/sim-turn.js"
 const COMPOSER_MIME = "application/x-pig-composer"
 
 async function openComposer(page: Page, gateway: { entryUrl: string; workspaceId: string }) {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
 
@@ -247,7 +246,6 @@ test("命令浮板浮在输入卡上方不遮挡输入，打开时隐藏状态�
   await installTurnBridge(page)
 
   await page.setViewportSize({ width: 1280, height: 700 })
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, complexGateway.workspaceId)
   await page.goto(complexGateway.entryUrl)
 

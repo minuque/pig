@@ -4,5 +4,5 @@ import { maxWorkers } from "../../vitest.workers.mjs"
 
 export default defineConfig({
   resolve: { tsconfigPaths: true },
-  test: { name: "@pig/desktop", maxWorkers },
+  test: { name: "@pig/desktop", isolate: false, maxWorkers },
 })

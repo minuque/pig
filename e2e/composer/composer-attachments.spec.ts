@@ -3,7 +3,6 @@ import { COMPLEX_SESSION_ID, COMPLEX_SESSION_NAME } from "../support/prebuild-se
 import { installTurnBridge } from "../support/sim-turn.js"
 
 test("输入卡附件：拖入出现 chips，移除后消失", async ({ page, gateway }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
@@ -54,7 +53,6 @@ test("输入卡附件：拖入出现 chips，移除后消失", async ({ page, ga
 })
 
 test("输入卡附件：超量的跳过并提示，附件入口禁用", async ({ page, gateway }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
@@ -73,7 +71,6 @@ test("输入卡附件：超量的跳过并提示，附件入口禁用", async ({
 })
 
 test("输入卡附件：大段粘贴折成 pasted-1.txt 附件", async ({ page, gateway }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
@@ -101,7 +98,6 @@ test("附件随 Prompt 发送：逐个 stage 后由 WS prompt 带 batch 提交",
   complexGateway,
 }) => {
   test.setTimeout(120_000)
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, complexGateway.workspaceId)
   const bridge = await installTurnBridge(page)
 
@@ -137,7 +133,6 @@ test("附件随 Prompt 发送：逐个 stage 后由 WS prompt 带 batch 提交",
 
 test("纯附件发送：不写文字也能发出，批次跟着走", async ({ page, complexGateway }) => {
   test.setTimeout(120_000)
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, complexGateway.workspaceId)
   const bridge = await installTurnBridge(page)
 
@@ -168,7 +163,6 @@ test("纯附件发送：不写文字也能发出，批次跟着走", async ({ pa
 
 test("发送中被中止：不再发 prompt，丢弃批次且保留 chips", async ({ page, complexGateway }) => {
   test.setTimeout(120_000)
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, complexGateway.workspaceId)
   const bridge = await installTurnBridge(page)
   let releaseStage = () => {}
@@ -215,7 +209,6 @@ test("发送中被中止：不再发 prompt，丢弃批次且保留 chips", asyn
 
 test("单个附件上传失败：报错可重试，其他附件与草稿保留", async ({ page, complexGateway }) => {
   test.setTimeout(120_000)
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, complexGateway.workspaceId)
   const bridge = await installTurnBridge(page)
   let failOnce = true

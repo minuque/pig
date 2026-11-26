@@ -1,76 +1,58 @@
-/// <reference types="vitest/config" />
-import { fileURLToPath, URL } from "node:url"
 import vue from "@vitejs/plugin-vue"
 import { defineConfig } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
 
-import { maxWorkers } from "../../vitest.workers.mjs"
+import { webAliases } from "./vitest.shared.ts"
 
 const gatewayTarget = process.env.GATEWAY_TARGET
 const gatewayToken = process.env.GATEWAY_TOKEN
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig({
   plugins: [
     vue(),
-    ...(mode !== "test" && !process.env.VITEST
-      ? [
-          VitePWA({
-            registerType: "autoUpdate",
-            injectRegister: "script-defer",
-            workbox: {
-              globPatterns: [
-                "index.html",
-                "assets/index-*.{js,css}",
-                "assets/WorkbenchShell-*.{js,css}",
-                "logo.png",
-                "pwa-icon-*.png",
-              ],
-              maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
-            },
-            manifest: {
-              name: "pig",
-              short_name: "pig",
-              description: "基于 Pi 的本地 Agent GUI",
-              lang: "zh-CN",
-              theme_color: "#637cd2",
-              background_color: "#fafafb",
-              display: "standalone",
-              start_url: "/",
-              icons: [
-                { src: "/pwa-icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-                { src: "/pwa-icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-                {
-                  src: "/pwa-icon-maskable-192.png",
-                  sizes: "192x192",
-                  type: "image/png",
-                  purpose: "maskable",
-                },
-                {
-                  src: "/pwa-icon-maskable-512.png",
-                  sizes: "512x512",
-                  type: "image/png",
-                  purpose: "maskable",
-                },
-              ],
-            },
-          }),
-        ]
-      : []),
+    VitePWA({
+      registerType: "autoUpdate",
+      injectRegister: "script-defer",
+      workbox: {
+        globPatterns: [
+          "index.html",
+          "assets/index-*.{js,css}",
+          "assets/WorkbenchShell-*.{js,css}",
+          "logo.png",
+          "pwa-icon-*.png",
+        ],
+        maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
+      },
+      manifest: {
+        name: "pig",
+        short_name: "pig",
+        description: "基于 Pi 的本地 Agent GUI",
+        lang: "zh-CN",
+        theme_color: "#637cd2",
+        background_color: "#fafafb",
+        display: "standalone",
+        start_url: "/",
+        icons: [
+          { src: "/pwa-icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: "/pwa-icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+          {
+            src: "/pwa-icon-maskable-192.png",
+            sizes: "192x192",
+            type: "image/png",
+            purpose: "maskable",
+          },
+          {
+            src: "/pwa-icon-maskable-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
+        ],
+      },
+    }),
   ],
   resolve: {
-    alias: {
-      "@pig/protocol": fileURLToPath(
-        new URL("../../packages/protocol/src/index.ts", import.meta.url),
-      ),
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
-      "@style": fileURLToPath(new URL("./src/style", import.meta.url)),
-      "@components": fileURLToPath(new URL("./src/components", import.meta.url)),
-      "@features": fileURLToPath(new URL("./src/features", import.meta.url)),
-      "@client": fileURLToPath(new URL("./src/client", import.meta.url)),
-      "@router": fileURLToPath(new URL("./src/router", import.meta.url)),
-      "@i18n": fileURLToPath(new URL("./src/i18n", import.meta.url)),
-      "@utils": fileURLToPath(new URL("./src/utils", import.meta.url)),
-    },
+    alias: webAliases,
   },
   server: {
     host: "127.0.0.1",
@@ -97,12 +79,4 @@ export default defineConfig(({ mode }) => ({
         }
       : {}),
   },
-  test: {
-    name: "@pig/web",
-    maxWorkers,
-    setupFiles: ["./test/setup.ts"],
-    coverage: {
-      reporter: ["text", "html"],
-    },
-  },
-}))
+})

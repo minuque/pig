@@ -3,7 +3,6 @@ import { expect, seedWorkspace, test, type E2eGateway } from "../support/fixture
 import { FILLER_PREFIX } from "../support/prebuild-session.js"
 
 async function enter(page: Page, gateway: E2eGateway) {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })

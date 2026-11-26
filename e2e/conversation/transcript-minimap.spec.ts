@@ -3,7 +3,6 @@ import { COMPLEX_SESSION_NAME } from "../support/prebuild-session.js"
 
 test("缩略图：回合刻度、上下回合按钮与键盘导航", async ({ page, complexGateway }) => {
   test.setTimeout(120_000)
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, complexGateway.workspaceId)
   await page.goto(complexGateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })

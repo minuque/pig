@@ -6,7 +6,6 @@ import { COMPLEX_SESSION_ID, COMPLEX_SESSION_NAME } from "../support/prebuild-se
 import { installTurnBridge } from "../support/sim-turn.js"
 
 async function openComposer(page: Page, gateway: { entryUrl: string; workspaceId: string }) {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
 

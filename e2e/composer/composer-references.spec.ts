@@ -14,7 +14,6 @@ import { installTurnBridge } from "../support/sim-turn.js"
 const CONTEXT_MIME = "application/x-pig-context"
 
 async function openComplex(page: Page, gateway: { entryUrl: string; workspaceId: string }) {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   await page.goto(gateway.entryUrl)
   await page
@@ -318,7 +317,6 @@ test("刚跑完的回合点引用按钮获真实条目 id，连同会话引用�
       seedRefSession(sessionDir, workspaceDir, REF_SESSION_B_ID, REF_SESSION_B_NAME)
     },
     async (gateway) => {
-      await page.emulateMedia({ reducedMotion: "reduce" })
       await seedWorkspace(page, gateway.workspaceId)
       await page.goto(gateway.entryUrl)
       await page

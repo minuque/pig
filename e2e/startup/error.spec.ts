@@ -1,7 +1,6 @@
 import { expect, seedWorkspace, test } from "../support/fixtures.js"
 
 test("网关连不上时进错误页，重试按钮在", async ({ page, gateway }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   await page.routeWebSocket("**/api/v1/pi", (socket) => socket.close())
 
@@ -14,7 +13,6 @@ test("网关连不上时进错误页，重试按钮在", async ({ page, gateway 
 })
 
 test("错误页恢复后回到工作台", async ({ page, gateway }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
 
   let block = true

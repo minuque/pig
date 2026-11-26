@@ -69,7 +69,7 @@ const E2E_BY_AREA = [
 ]
 const WEB_FALLBACK_SPECS = [NEW_SESSION]
 const ROOT_TOOLING =
-  /^(eslint\.config\.|stylelint\.config\.|vitest\.config\.|vitest\.workers\.mjs$|scripts\/check\/lint-ignores\.mjs$|package\.json$|pnpm-workspace\.yaml$|pnpm-lock\.yaml$|tsconfig\.base\.json$|\.prettierrc|\.prettierignore$|prettier\.config)/
+  /^(\.oxlintrc\.json$|stylelint\.config\.|vitest\.config\.|vitest\.workers\.mjs$|scripts\/check\/lint-ignores\.mjs$|package\.json$|pnpm-workspace\.yaml$|pnpm-lock\.yaml$|tsconfig\.base\.json$|\.prettierrc|\.prettierignore$|prettier\.config)/
 const E2E_ALL =
   /^(e2e\/(support\/|global-setup\.ts$|playwright\.config\.ts$)|packages\/(gateway|protocol|extensions|environment)\/(src\/|package\.json$)|apps\/web\/(vite\.config\.|index\.html$|package\.json$|public\/))/
 const TOUCHED_E2E_SPEC = /^e2e\/(?!electron\/).+\.spec\.ts$/

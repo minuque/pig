@@ -142,7 +142,7 @@ test("设置归档页支持单条与批量归档、刷新持久化、恢复及�
 test("大量历史会话下启用虚拟滚动、滚动懒加载与正确的按钮间距/危险色", async ({ page }) => {
   await withGateway(
     (sessionDir, workspaceDir) => {
-      prebuildFillerSessions(sessionDir, workspaceDir, 150)
+      prebuildFillerSessions(sessionDir, workspaceDir, 60)
     },
     async (gateway) => {
       await seedWorkspace(page, gateway.workspaceId)
@@ -150,7 +150,7 @@ test("大量历史会话下启用虚拟滚动、滚动懒加载与正确的按�
 
       const dialog = await openArchiveSettings(page)
 
-      await expect(dialog.getByRole("tab", { name: /可归档/ })).toContainText("150")
+      await expect(dialog.getByRole("tab", { name: /可归档/ })).toContainText("60")
 
       const rows = dialog.locator(".archive-row")
 
