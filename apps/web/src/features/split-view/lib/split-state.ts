@@ -101,36 +101,3 @@ export function setRatio(state: SplitState, ratio: number, width?: number): Spli
 export function fitsSplit(width: number): boolean {
   return width >= SPLIT_CHAT_MIN * 2
 }
-
-export function serializeSplit(state: SplitState): string {
-  return JSON.stringify(state)
-}
-
-const optionalId = (value: unknown) => (typeof value === "string" && value ? value : undefined)
-const paneView = (value: unknown): PaneView => PANE_VIEWS.find((view) => view === value) ?? "chat"
-
-export function parseSplit(raw: string | undefined): SplitState {
-  try {
-    const value = JSON.parse(raw ?? "") as Partial<Record<keyof SplitState, unknown>>
-
-    if (
-      typeof value.split !== "boolean" ||
-      (value.focused !== "left" && value.focused !== "right") ||
-      typeof value.ratio !== "number"
-    )
-      return emptySplit
-
-    const views = (value.views ?? {}) as Partial<Record<Side, unknown>>
-    const state: SplitState = {
-      left: optionalId(value.left),
-      right: value.split ? optionalId(value.right) : undefined,
-      split: value.split,
-      focused: value.split ? value.focused : "left",
-      ratio: value.ratio,
-      views: { left: paneView(views.left), right: value.split ? paneView(views.right) : "chat" },
-    }
-    return setRatio(state, state.ratio)
-  } catch {
-    return emptySplit
-  }
-}

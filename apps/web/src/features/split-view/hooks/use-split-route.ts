@@ -8,8 +8,7 @@ export function useSplitRoute(
 ) {
   const focusedId = () => state.value[state.value.focused]
 
-  if (route.value === undefined && focusedId() !== undefined) go(focusedId())
-  else if (route.value !== null) state.value = openInFocused(state.value, route.value)
+  if (route.value !== null) state.value = openInFocused(state.value, route.value)
 
   watch(route, (id, previous) => {
     if (id === null) return

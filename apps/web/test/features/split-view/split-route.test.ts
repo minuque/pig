@@ -54,13 +54,6 @@ describe("路由只表示聚焦那一侧", () => {
     expect(pushed).toEqual(["a"])
   })
 
-  it("启动时地址没带会话：恢复上次聚焦的会话", () => {
-    const { route, state } = setup(openToSide(openInFocused(emptySplit, "a"), "b"), undefined)
-
-    expect(route.value).toBe("b")
-    expect(state.value).toMatchObject({ left: "a", right: "b", split: true })
-  })
-
   it("启动失败进出错误页：不清掉上次的分屏，恢复后回到聚焦的会话", async () => {
     const { route, state, pushed } = setup(openToSide(openInFocused(emptySplit, "a"), "b"), "b")
 

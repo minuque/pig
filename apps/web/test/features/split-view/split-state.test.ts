@@ -8,8 +8,6 @@ import {
   newOnRight,
   openInFocused,
   openToSide,
-  parseSplit,
-  serializeSplit,
   setRatio,
   setView,
   stepView,
@@ -80,26 +78,9 @@ describe("分屏状态", () => {
     expect(setRatio(emptySplit, 0.9, 1200).ratio).toBe(0.6)
   })
 
-  it("持久化往返，损坏的存档回落到未分屏", () => {
-    const state = openToSide(openInFocused(emptySplit, "a"), "b")
-
-    expect(parseSplit(serializeSplit(state))).toEqual(state)
-    expect(parseSplit("{bad")).toEqual(emptySplit)
-    expect(parseSplit(JSON.stringify({ split: true, focused: "up" }))).toEqual(emptySplit)
-  })
-
   it("主区放不下两侧各 480px 时不能并排", () => {
     expect(fitsSplit(959)).toBe(false)
     expect(fitsSplit(960)).toBe(true)
-  })
-
-  it("每侧各记一个视图；旧数据没有视图字段时按 chat 读", () => {
-    const state = setView(openToSide(openInFocused(emptySplit, "a"), "b"), "right", "files")
-
-    expect(parseSplit(serializeSplit(state)).views).toEqual({ left: "chat", right: "files" })
-    expect(
-      parseSplit(JSON.stringify({ left: "a", split: false, focused: "left", ratio: 0.5 })).views,
-    ).toEqual({ left: "chat", right: "chat" })
   })
 
   it("换会话保留视图；新建会话与离开会话回到 chat", () => {

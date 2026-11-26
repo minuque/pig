@@ -1,18 +1,16 @@
-import { computed, inject, provide, shallowRef, watch, type InjectionKey, type Ref } from "vue"
-import { readPref, writePref } from "@utils/storage.js"
+import { computed, inject, provide, shallowRef, type InjectionKey, type Ref } from "vue"
 import type { SessionContext } from "@features/session/index.js"
 import { useSplitRoute } from "@features/split-view/hooks/use-split-route.js"
 import { routeAlert, type AlertRoute, type PaneAlert } from "@features/split-view/lib/pane-alert.js"
 import {
   closeSide,
+  emptySplit,
   fitsSplit,
   focusSide,
   leaveSession,
   newOnRight,
   openInFocused,
   openToSide,
-  parseSplit,
-  serializeSplit,
   setRatio,
   setView,
   stepView,
@@ -29,19 +27,16 @@ export type { PaneAlert } from "@features/split-view/lib/pane-alert.js"
 
 export { ALERT_TTL } from "@features/split-view/lib/pane-alert.js"
 
-const STORAGE_KEY = "pig.split"
-
 function createSplitView(
   route: Readonly<Ref<string | undefined | null>>,
   go: (id: string | undefined) => void,
 ) {
-  const state = shallowRef<SplitState>(parseSplit(readPref(STORAGE_KEY)))
+  const state = shallowRef<SplitState>(emptySplit)
   const width = shallowRef(Number.POSITIVE_INFINITY)
   const update = (next: (current: SplitState) => SplitState) => {
     state.value = next(state.value)
   }
 
-  watch(state, (value) => writePref(STORAGE_KEY, serializeSplit(value)))
   useSplitRoute(state, route, go)
   return {
     state,
