@@ -132,9 +132,15 @@
 - 单选点一下 200ms 后自动跳到下一道没答的题；多选打勾后点「下一题」。在输入卡里打字时选项变灰、取消选中，这时的回答就是这段文字。切题时保留每题已选的项和已写的文字。「下一题」跳到下一道没答的题；全部答完按钮变成「提交」。
 - 输入卡里的 `@` 文件引用等能力在回答里照常可用（回答就是普通消息）。
 
-### 8.2 实现来源（待调研结果）
+### 8.2 实现来源（2026-11-26 调研结论）
 
-用户要求先复用 Pi 扩展市场里现成的实现，不从头写。调研任务已派出，结果回来后补本节：选哪个包、复用到什么程度（直接依赖 / 照抄 schema 与工具描述）、许可证。约束不变：放在 `packages/extensions/src/ask/`，只用公开 Extension API；依赖按 AGENTS.md 锁精确版本、禁用生命周期脚本。
+Pi 扩展市场里的 ask 类扩展（`@juicesharp/rpiv-ask-user-question`、`@arhen/pi-core-ask`、`@dreki-gg/pi-questionnaire`、官方 examples `question.ts` / `questionnaire.ts` 等，均 MIT）全部在 `execute` 里阻塞等 `ctx.ui.custom` 或 `ui.select`。pig 用 rpc 模式绑扩展，`custom` 返回 `undefined`，它们要么报错，要么退化成一题一个选择框，没有自定义回答。所以不直接依赖，自己写内置扩展，只照抄 rpiv 的参数 schema 与工具描述（MIT）。
+
+- 位置：`packages/extensions/src/ask/`，工具名 `ask_user_question`，`exposure: "model-only"`，`executionMode: "sequential"`。
+- 结束本轮：`execute` 返回 `terminate: true`（`pi-agent-core` 的 `AgentToolResult`；同批工具全部 terminate 才生效）。`promptGuidelines` 要求单独调用；同批其他调用由 `tool_call` 事件返回 `{ block: true }` 兜底（我定的）。不用 `ctx.abort()`，否则本轮按中断收尾。
+- 参数：`questions[1..4]{ question, header(≤16), options[2..4]{ label(≤60), description }, multiSelect?, allowCustom?(默认 true) }`。rpiv 的 `preview` 字段不收（浮板不画预览）。
+- 前端判定：transcript 里最后一个 `ask_user_question` 工具调用之后没有用户消息、会话 idle → 显示浮板。该轮 assistant 的 `stopReason` 是 `toolUse`，不按中断渲染。
+- 回答消息：每题一行 `<header>：<回答>`（§8.1）。
 
 ## 9. 摘要抽屉
 
