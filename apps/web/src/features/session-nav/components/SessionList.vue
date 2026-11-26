@@ -3,7 +3,6 @@
     :value="lists"
     :order="listOrder"
     :disabled="isLocked"
-    :grab-key="isGrabKey"
     :item-label="titleOf"
     :list-label="listLabel"
     :message="announce"
@@ -217,16 +216,6 @@ const sectionOn = {
   filterProject: (cwd: string) => emit("filterProject", cwd),
 }
 const listOrder = () => [...LISTS]
-const isGrabKey = (event: KeyboardEvent) =>
-  event.key === " " &&
-  !event.altKey &&
-  !event.ctrlKey &&
-  !event.metaKey &&
-  !event.shiftKey &&
-  !(
-    event.target instanceof Element &&
-    event.target.closest("button, input, textarea, select, [contenteditable]")
-  )
 const titleOf = (id: string) => sessionsById.value.get(id)?.title
 
 function isLocked(id: string): boolean {
