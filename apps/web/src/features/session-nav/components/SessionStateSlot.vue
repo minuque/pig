@@ -51,7 +51,10 @@ const emit = defineEmits<{
   sweepStart: [event: PointerEvent]
 }>()
 const { t } = useI18n()
-const working = computed(() => props.variant === "card" && props.startedAt !== undefined)
+const working = computed(
+  () =>
+    props.variant === "card" && props.startedAt !== undefined && props.foot?.state !== "waiting",
+)
 const glyphState = computed(() => sessionGlyph(props.session, props.foot?.state))
 const timeLabel = computed(() => formatRelativeTime(props.session.updatedAt))
 const actionLabel = computed(() => (props.settled ? t("session.unsettle") : t("session.settle")))

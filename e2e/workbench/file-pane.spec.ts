@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises"
 import { join } from "node:path"
+import type { Page } from "@playwright/test"
 
 import { checkpoint } from "../support/checkpoint.js"
 import { expect, seedWorkspace, test } from "../support/fixtures.js"
@@ -10,6 +11,12 @@ import {
 } from "../support/prebuild-session.js"
 
 const SOURCE = "export const fromWorkspace = 42\n"
+
+async function showView(page: Page, name: string) {
+  const island = page.locator(".view-island")
+  await island.hover()
+  await island.getByRole("tab", { name }).click()
+}
 
 test("点工具行里的文件名，Files 面板打开这个文件并标出读过的行", async ({
   page,
@@ -48,14 +55,13 @@ test("点工具行里的文件名，Files 面板打开这个文件并标出读�
   ).toBeVisible()
   await checkpoint(page, "file-pane-open")
 
-  const toggle = page.getByRole("button", { name: "开关文件面板" })
-
-  await toggle.click()
-  await expect(pane).toHaveCount(0)
-  await toggle.click()
-  await expect(
-    page.getByRole("region", { name: "文件" }).getByRole("tab", { name: "example.ts" }),
-  ).toBeVisible()
+  await showView(page, "对话")
+  await expect(pane).not.toBeInViewport()
+  await expect(target).toBeInViewport()
+  await page.keyboard.press("Control+2")
+  await expect(pane.getByRole("tab", { name: "example.ts" })).toBeInViewport()
+  await page.keyboard.press("Control+ArrowLeft")
+  await expect(target).toBeInViewport()
 })
 
 test("从头部打开 Files，在树里展开目录、搜索内容并跳到命中的行", async ({
@@ -73,7 +79,7 @@ test("从头部打开 Files，在树里展开目录、搜索内容并跳到命�
     .click()
   await expect(page.getByText(COMPLEX_MARKER, { exact: true })).toBeVisible({ timeout: 30_000 })
 
-  await page.getByRole("button", { name: "开关文件面板" }).click()
+  await showView(page, "文件")
   const pane = page.getByRole("region", { name: "文件" })
   const tree = pane.getByRole("tree")
   const headerBox = (await page.locator(".workbench-header").boundingBox())!
@@ -126,7 +132,7 @@ test("HTML 在沙箱里跑脚本、加载同目录资源，外链先确认；PDF
     .click()
   await expect(page.getByText(COMPLEX_MARKER, { exact: true })).toBeVisible({ timeout: 30_000 })
 
-  await page.getByRole("button", { name: "开关文件面板" }).click()
+  await showView(page, "文件")
   const pane = page.getByRole("region", { name: "文件" })
   const tree = pane.getByRole("tree")
 
@@ -143,4 +149,37 @@ test("HTML 在沙箱里跑脚本、加载同目录资源，外链先确认；PDF
 
   await tree.getByRole("treeitem", { name: "doc.pdf" }).click()
   await expect(pane.locator("iframe.file-viewer-pdf")).toHaveAttribute("src", /fs\/raw\?.*doc\.pdf/)
+})
+
+test("横滑和 Ctrl+←/→ 切到 Files 再回来，对话的滚动位置不变", async ({ page, complexGateway }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await seedWorkspace(page, complexGateway.workspaceId)
+  await page.goto(complexGateway.entryUrl)
+  await page
+    .locator(".session-card", { has: page.getByText(COMPLEX_SESSION_NAME, { exact: true }) })
+    .click()
+  await expect(page.getByText(COMPLEX_MARKER, { exact: true })).toBeVisible({ timeout: 30_000 })
+
+  const viewport = page.locator('.pane-view[data-view="chat"] .transcript-viewport')
+  await viewport.hover()
+  await page.mouse.wheel(0, -900)
+  const before = await viewport.evaluate((el) => el.scrollTop)
+  expect(before).toBeGreaterThan(0)
+  const files = page.locator('.pane-view[data-view="files"]')
+
+  await page.locator(".island").click()
+  await page.keyboard.press("Control+ArrowRight")
+  await expect(files).not.toHaveAttribute("inert")
+  await page.keyboard.press("Control+ArrowLeft")
+  await expect(files).toHaveAttribute("inert", "")
+  expect(await viewport.evaluate((el) => el.scrollTop)).toBe(before)
+
+  const box = (await viewport.boundingBox())!
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+  await page.mouse.wheel(200, 0)
+  await expect(files).not.toHaveAttribute("inert")
+  await page.waitForTimeout(400)
+  await page.mouse.wheel(-200, 0)
+  await expect(files).toHaveAttribute("inert", "")
+  expect(await viewport.evaluate((el) => el.scrollTop)).toBe(before)
 })

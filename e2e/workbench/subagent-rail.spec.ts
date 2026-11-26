@@ -2,7 +2,7 @@ import { expect, test } from "../support/fixtures.js"
 import { CHILD_MARKER } from "../support/prebuild-session.js"
 import { startSubagentTurn } from "../support/subagent-turn.js"
 
-test("subagent 子任务：时间线卡片与摘要面板都列出进展，点开在右侧面板里只读看子会话", async ({
+test("subagent 子任务：时间线卡片与摘要面板都列出进展，点开任务抽屉后下面照常能输入，抽屉里只读看子会话", async ({
   page,
   subagentGateway,
 }) => {
@@ -20,6 +20,12 @@ test("subagent 子任务：时间线卡片与摘要面板都列出进展，点�
   await expect(popover).toBeHidden()
   const pane = page.locator(".rail-pane")
   await expect(pane.getByText("read service.ts")).toBeVisible()
+
+  const composer = page.getByRole("textbox", { name: "Prompt" })
+  await composer.click({ position: { x: 20, y: 10 } })
+  await page.keyboard.type("still typing")
+  await expect(composer).toContainText("still typing")
+  await expect(pane).toBeVisible()
 
   await pane
     .locator(".rail-task", { hasText: "scout" })

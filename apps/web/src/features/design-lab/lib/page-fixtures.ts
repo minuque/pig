@@ -5,6 +5,7 @@ import type {
   TranscriptItem,
   TurnTiming,
 } from "@/types/common-type.js"
+import type { ExtensionUiDialog } from "@pig/protocol"
 import type { ComposerPreset, ComposerVendor } from "@features/composer/type.js"
 import type { SessionGroup, SidebarPlacement, SidebarRowFoot } from "@features/session-nav/type.js"
 import { PROSE } from "@features/design-lab/lib/fixtures.js"
@@ -319,3 +320,9 @@ export const PAGE_TASKS: Task[] = [
     completedAt: NOW - 5 * MIN,
   },
 ]
+export const PAGE_DIALOG: ExtensionUiDialog = {
+  id: "page-select",
+  method: "select",
+  title: "部署到哪个环境？",
+  options: ["staging", "production", "preview"],
+}

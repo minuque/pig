@@ -25,6 +25,13 @@
     />
 
     <PenIcon v-else-if="status === 'draft'" data-slot="status-glyph" aria-hidden="true" />
+
+    <MessageCircleQuestionMarkIcon
+      v-else-if="status === 'waiting'"
+      data-slot="status-glyph"
+      aria-hidden="true"
+    />
+
     <CircleDashedIcon v-else data-slot="status-glyph" aria-hidden="true" />
     <span v-if="label" data-slot="status-label">{{ label }}</span>
   </span>
@@ -32,7 +39,13 @@
 
 <script setup lang="ts">
 import { computed, type HTMLAttributes } from "vue"
-import { CircleCheckIcon, CircleDashedIcon, CircleExclamationPointIcon, PenIcon } from "@lucide/vue"
+import {
+  CircleCheckIcon,
+  CircleDashedIcon,
+  CircleExclamationPointIcon,
+  MessageCircleQuestionMarkIcon,
+  PenIcon,
+} from "@lucide/vue"
 import type { Size, Tone } from "../../core/types.js"
 
 export type StatusTone = "idle" | "running" | "waiting" | "success" | "warning" | "error" | "draft"

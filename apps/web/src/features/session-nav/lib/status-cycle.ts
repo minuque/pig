@@ -8,6 +8,8 @@ export function sessionGlyph(
   session: Pick<SidebarSession, "draft">,
   state: SidebarSessionState | undefined,
 ): SidebarStateGlyph | undefined {
+  if (state === "waiting") return "waiting"
+
   if (state === "running") return "running"
 
   if (state === "unread") return "unread"

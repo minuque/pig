@@ -11,6 +11,8 @@
     <PromptEditor
       ref="editor"
       v-model:prompt="prompt"
+      :placeholder="answer?.placeholder"
+      :disabled="answer?.locked ?? false"
       :cwd="cwd"
       :has-session="Boolean(sessionId)"
       :reload-revision="reloadRevision"
@@ -90,6 +92,7 @@
           :send-disabled="sendDisabled"
           :has-payload="hasPayload"
           :has-attachments="hasAttachments"
+          :answer="answer"
           @submit="submitIntent"
           @abort="emit('abort')"
         />
@@ -148,6 +151,9 @@ const props = withDefaults(
     cwd?: string | undefined
     usage?: ContextUsage | undefined
     reloadRevision?: number | undefined
+    answer?:
+      | { locked: boolean; placeholder?: string | undefined; label: string; ready: boolean }
+      | undefined
   }>(),
   {
     running: false,
@@ -159,6 +165,7 @@ const props = withDefaults(
     cwd: undefined,
     usage: undefined,
     reloadRevision: undefined,
+    answer: undefined,
   },
 )
 const prompt = defineModel<string>("prompt", { required: true })
@@ -226,6 +233,11 @@ useComposerAbortHotkey({
 })
 
 function submitIntent() {
+  if (props.answer) {
+    if (props.answer.ready) emit("send", prompt.value)
+    return
+  }
+
   if (!hasPayload.value) return
 
   if (props.editingQueue) {

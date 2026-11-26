@@ -77,6 +77,8 @@
 
             <ExternalTurnNotice />
 
+            <QuestionBoard :prompt="prompt" :active="!welcome && host.view.value === 'chat'" />
+
             <Composer
               ref="composer"
               v-model:prompt="prompt"
@@ -92,7 +94,9 @@
               :usage="welcome ? undefined : contextUsage"
               :reload-revision="reloadRevision"
               :send-disabled="sendDisabled"
-              @send="sendNow"
+              :answer="questionBoard.composer.value"
+              :class="{ 'is-answering': Boolean(questionBoard.board.value) }"
+              @send="questionBoard.board.value ? questionBoard.submit() : sendNow($event)"
               @steer="steer"
               @queue="enqueue"
               @save-edit="commitQueueEdit"
@@ -103,7 +107,7 @@
               @jump-reply="jumpToReply"
               @abort="abort"
             >
-              <template v-if="transcriptStatus" #plate>
+              <template v-if="transcriptStatus && !questionBoard.board.value" #plate>
                 <TranscriptStatus v-bind="transcriptStatus" :activity="snapshot?.activity" />
               </template>
             </Composer>
@@ -130,6 +134,8 @@ import { useSound } from "@features/click-sound/index.js"
 import { useI18n } from "@i18n/index.js"
 import { sessionDropTargetAttrs, useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session/index.js"
+import QuestionBoard from "@features/extension-ui/components/QuestionBoard.vue"
+import { useQuestionBoard } from "@features/extension-ui/hooks/use-question-board.js"
 import ExternalTurnNotice from "@features/session-workbench/components/ExternalTurnNotice.vue"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
@@ -146,6 +152,8 @@ import SessionRail from "@features/session-rail/index.vue"
 import { useSessionRail } from "@features/session-rail/index.js"
 import { prefetchTranscriptView, TranscriptStatus } from "@features/transcript-view/index.js"
 import { FilePlusIcon } from "@components/icons/index.js"
+import { notify } from "@pig/ui/toast"
+import { usePanelHost, type PaneAlert } from "@features/panel-host/index.js"
 
 onMounted(() => {
   if (typeof requestIdleCallback === "function")
@@ -155,6 +163,8 @@ onMounted(() => {
 
 const { t } = useI18n()
 const route = useRoute()
+const host = usePanelHost()
+const questionBoard = useQuestionBoard()
 const {
   sessionId,
   transcript,
@@ -244,6 +254,10 @@ const { pendingJump, jumpToReply, onJumpSettled } = useReplyNavigation({
 
 useSessionDrop(panel, (markdown) => composer.value?.insertMarkdown(markdown))
 
+watch(filePane.mention, (request) => {
+  if (request) composer.value?.insertMarkdown(request.markdown)
+})
+
 const composerQueue = useComposerQueue()
 
 watch(
@@ -292,7 +306,22 @@ const { markAborted } = useTurnFinish({
   queue: composerQueue,
   sound,
   sendForeground: deliver,
+  announce,
 })
+
+function announce(kind: "done" | "error", message?: string) {
+  const id = sessionId.value
+
+  if (!id) return
+
+  const alert: PaneAlert =
+    kind === "done"
+      ? { kind, tone: "success", title: t("views.turnDone") }
+      : { kind, tone: "error", title: t("session.turnFailed"), body: message }
+
+  if (host.alerts.route(id, alert) === "toast")
+    notify(message || alert.title, "error", { transient: true })
+}
 
 setWelcomeHandoff((id) => {
   composerQueue.handOff(id)
@@ -411,6 +440,11 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
       black calc(var(--space-sm) + env(safe-area-inset-bottom, 0px) + var(--edge-fade-band))
     ),
     linear-gradient(to right, transparent calc(100% - var(--space-sm)), black 0);
+}
+
+.composer-stack :deep(.prompt.is-answering) {
+  border-radius: var(--radius-card);
+  box-shadow: 0 0 0 var(--border-width) var(--accent-solid);
 }
 
 .composer-stack {

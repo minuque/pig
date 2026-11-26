@@ -2,6 +2,7 @@ import { inject, provide, shallowRef, watch, type InjectionKey } from "vue"
 import type { ExtensionUiDialog, ExtensionUiRequest, ExtensionUiResponse } from "@pig/protocol"
 import type { useGatewayClient } from "@client/gateway-connection.js"
 import { notify } from "@pig/ui/toast"
+import type { PaneAlerts } from "@features/panel-host/index.js"
 import type { SessionContext } from "@features/session/index.js"
 
 type Pending = { sessionId: string; request: ExtensionUiDialog }
@@ -10,7 +11,11 @@ const DIALOGS = new Set(["select", "confirm", "input", "editor"])
 const isDialog = (request: ExtensionUiRequest): request is ExtensionUiDialog =>
   DIALOGS.has(request.method)
 
-function useExtensionUiState(pi: ReturnType<typeof useGatewayClient>, session: SessionContext) {
+function useExtensionUiState(
+  pi: ReturnType<typeof useGatewayClient>,
+  session: SessionContext,
+  alerts: PaneAlerts,
+) {
   const dialogs = shallowRef<readonly Pending[]>([])
   const statuses = shallowRef(new Map<string, ReadonlyMap<string, string>>())
   const widgets = shallowRef(new Map<string, ReadonlyMap<string, readonly string[]>>())
@@ -39,7 +44,14 @@ function useExtensionUiState(pi: ReturnType<typeof useGatewayClient>, session: S
 
     switch (request.method) {
       case "notify":
-        notify(request.message, request.notifyType ?? "info")
+        if (
+          alerts.route(sessionId, {
+            kind: "notify",
+            tone: request.notifyType ?? "info",
+            title: request.message,
+          }) === "toast"
+        )
+          notify(request.message, request.notifyType ?? "info")
         return
       case "setStatus":
         statuses.value = patched(statuses.value, sessionId, request.statusKey, request.statusText)
@@ -64,10 +76,6 @@ function useExtensionUiState(pi: ReturnType<typeof useGatewayClient>, session: S
     { immediate: true },
   )
 
-  function current(): Pending | undefined {
-    return dialogs.value.find((item) => item.sessionId === session.sessionId.value)
-  }
-
   async function answer(pending: Pending, response: ExtensionUiResponse) {
     dialogs.value = dialogs.value.filter((item) => item !== pending)
     await pi.client.value
@@ -75,7 +83,7 @@ function useExtensionUiState(pi: ReturnType<typeof useGatewayClient>, session: S
       .catch(() => undefined)
   }
 
-  return { dialogs, statuses, widgets, current, answer }
+  return { dialogs, statuses, widgets, answer }
 }
 
 export type ExtensionUiContext = ReturnType<typeof useExtensionUiState>
@@ -85,8 +93,9 @@ const key: InjectionKey<ExtensionUiContext> = Symbol("extension-ui")
 export function provideExtensionUi(
   pi: ReturnType<typeof useGatewayClient>,
   session: SessionContext,
+  alerts: PaneAlerts,
 ) {
-  const state = useExtensionUiState(pi, session)
+  const state = useExtensionUiState(pi, session, alerts)
   provide(key, state)
   return state
 }

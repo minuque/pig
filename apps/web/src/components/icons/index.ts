@@ -13,6 +13,7 @@ export {
   ArrowRightIcon,
   ArrowUpIcon,
   ArrowUpRightIcon,
+  AtSignIcon,
   BellIcon,
   BlocksIcon,
   CheckIcon,

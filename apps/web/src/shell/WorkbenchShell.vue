@@ -19,8 +19,6 @@
       :workspace="cwd.lastCwd.value"
       @update:open="onSettingsToggle"
     />
-
-    <ExtensionUi />
   </Startup>
 
   <Toaster />
@@ -28,6 +26,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, provide } from "vue"
+import { useEventListener } from "@vueuse/core"
 import { useRoute, useRouter } from "vue-router"
 import AppLayout from "@components/layout/AppLayout.vue"
 import { Toaster, notify } from "@pig/ui/toast"
@@ -42,8 +41,9 @@ import { bindComposerPreset } from "@features/composer/index.js"
 import { useComposerQueue } from "@features/composer/hooks/use-composer-queue.js"
 import { provideSharedBuckets } from "@features/composer/hooks/use-session-buckets.js"
 import { useSound } from "@features/click-sound/index.js"
-import ExtensionUi from "@features/extension-ui/index.vue"
 import { provideExtensionUi } from "@features/extension-ui/index.js"
+import { PANE_VIEWS, providePanelHost } from "@features/panel-host/index.js"
+import { viewShortcut } from "@features/panel-host/lib/view-shortcut.js"
 import SessionNav from "@features/session-nav/index.vue"
 import { provideNav } from "@features/session-nav/index.js"
 import SettingsDialog from "@features/settings/components/SettingsDialog.vue"
@@ -59,6 +59,7 @@ import {
 import { prefetchHighlighter, transcriptModelsKey } from "@features/transcript-view/index.js"
 import { createBackgroundPump } from "@/shell/hooks/use-background-pump.js"
 import WorkbenchPane from "@/shell/WorkbenchPane.vue"
+import { useWaitingNotices, waitingSessions } from "@/shell/hooks/use-waiting-sessions.js"
 
 const { t } = useI18n()
 const pi = useGatewayClient()
@@ -81,6 +82,7 @@ const backgroundPump = createBackgroundPump({
   send: hub.backgroundSend.send,
   transcriptFor: hub.history.transcriptFor,
   announce(id, outcome) {
+    if (waiting.value.has(id)) return
     const meta = pi.sessions.value.find((item) => item.id === id)
     const title = meta ? sessionTitle(meta) : untitledSession()
     notify(
@@ -100,7 +102,22 @@ const session = useSessionLifecycle(pi, cwd, {
 })
 const preset = bindComposerPreset(session, pi.models, pi.defaultModel)
 const { settingsOpen, settingsPane, openSettings, closeSettings } = useSettingsDialog()
-const nav = provideNav(pi, cwd, session)
+const host = providePanelHost(session.sessionId)
+const extensionUi = provideExtensionUi(pi, session, host.alerts)
+const waiting = waitingSessions({
+  sessions: pi.sessions,
+  dialogs: extensionUi.dialogs,
+  isReady: hub.history.isReady,
+  transcriptFor: hub.history.transcriptFor,
+})
+const nav = provideNav(pi, cwd, session, waiting)
+
+useWaitingNotices(waiting, {
+  sessions: pi.sessions,
+  shownIds: computed(() => [session.sessionId.value]),
+  open: (id) => nav.openSession(id),
+})
+
 const archiveController: ArchiveController = {
   allSessions: nav.allSessions,
   settledIds: nav.settledIds,
@@ -112,7 +129,26 @@ const archiveController: ArchiveController = {
   deleteSessions: nav.deleteSessions,
 }
 
-provideExtensionUi(pi, session)
+const isMac = /mac/i.test(navigator.platform || navigator.userAgent)
+
+function typingIn(target: EventTarget | null) {
+  if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)
+    return target.value !== ""
+  return target instanceof HTMLElement && target.isContentEditable && Boolean(target.textContent)
+}
+
+useEventListener(window, "keydown", (event: KeyboardEvent) => {
+  const view = viewShortcut(event, isMac, typingIn(event.target))
+
+  if (!view || !session.sessionId.value) return
+  const target = "to" in view ? PANE_VIEWS[view.to] : undefined
+
+  if ("to" in view && !target) return
+  event.preventDefault()
+
+  if (target) host.showView(target)
+  else if ("step" in view) host.stepView(view.step)
+})
 
 function initialize() {
   return Promise.all([session.initialize(), hydratePreferences(), hydrateSessionArchives()])

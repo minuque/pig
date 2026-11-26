@@ -40,7 +40,12 @@ export function killTree(child: ChildProcess): Promise<void> {
   if (child.pid === undefined || child.exitCode !== null) return Promise.resolve()
 
   if (process.platform !== "win32") {
-    child.kill("SIGTERM")
+    try {
+      process.kill(-child.pid, "SIGTERM")
+    } catch {
+      child.kill("SIGTERM")
+    }
+
     return Promise.resolve()
   }
 
@@ -61,6 +66,7 @@ export function piRunner(agentDir: string): PiRunner {
         cwd,
         env: { ...process.env, PI_CODING_AGENT_DIR: agentDir, ELECTRON_RUN_AS_NODE: "1" },
         stdio: ["ignore", "pipe", "pipe"],
+        detached: process.platform !== "win32",
         windowsHide: true,
       })
       const stop = () => void killTree(child)

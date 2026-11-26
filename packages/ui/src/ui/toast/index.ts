@@ -2,6 +2,7 @@ export { default as Toaster } from "./Toaster.vue"
 
 export {
   PASSING_MS,
+  dismissNotice,
   noticeOf,
   noticeToaster,
   notify,

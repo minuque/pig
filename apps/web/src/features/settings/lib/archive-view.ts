@@ -25,7 +25,7 @@ export interface ArchiveProjectView {
 export interface ArchiveSessionFoot {
   readonly messageCount: number | undefined
   readonly model: { readonly provider: string; readonly id: string } | undefined
-  readonly state: "running" | "unread" | "error" | undefined
+  readonly state: "waiting" | "running" | "unread" | "error" | undefined
 }
 
 export interface ArchiveSessionRow {

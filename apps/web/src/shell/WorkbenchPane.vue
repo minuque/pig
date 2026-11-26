@@ -1,24 +1,26 @@
 <template>
-  <section class="workbench-pane">
+  <section ref="root" class="workbench-pane" :style="drawerInset">
     <WorkbenchHeader
       :class="{ 'is-overlay': session.welcome.value }"
       :rail="!session.welcome.value"
     />
 
-    <PaneBody :host="host">
-      <SessionWorkbench />
+    <PaneBody :current="host.view.value" @step="host.stepView">
+      <template #chat><SessionWorkbench /></template>
+      <template #files><FilePanel /></template>
     </PaneBody>
-
-    <FilePane />
   </section>
 </template>
 
 <script setup lang="ts">
+import { shallowRef, useTemplateRef } from "vue"
+import { useResizeObserver } from "@vueuse/core"
 import { provideComposerPreset, type ComposerPresetContext } from "@features/composer/index.js"
-import FilePane from "@features/file-pane/index.vue"
+import FilePanel from "@features/file-pane/components/FilePanel.vue"
 import { provideFilePane } from "@features/file-pane/index.js"
+import { provideQuestionBoard } from "@features/extension-ui/hooks/use-question-board.js"
 import PaneBody from "@features/panel-host/components/PaneBody.vue"
-import { providePanelHost } from "@features/panel-host/index.js"
+import { usePanelHost } from "@features/panel-host/index.js"
 import { provideSession, type SessionContext } from "@features/session/index.js"
 import { provideSessionRail } from "@features/session-rail/index.js"
 import SessionWorkbench from "@features/session-workbench/index.vue"
@@ -28,7 +30,18 @@ const props = defineProps<{
   session: SessionContext
   preset: ComposerPresetContext
 }>()
-const host = providePanelHost()
+const host = usePanelHost()
+const root = useTemplateRef("root")
+const drawerInset = shallowRef<Record<string, string>>()
+
+useResizeObserver(root, () => {
+  const rect = root.value?.getBoundingClientRect()
+
+  if (rect)
+    drawerInset.value = {
+      "--drawer-inset": `${rect.top}px ${window.innerWidth - rect.right}px ${window.innerHeight - rect.bottom}px ${rect.left}px`,
+    }
+})
 
 provideSession(props.session)
 
@@ -36,7 +49,9 @@ provideComposerPreset(props.preset)
 
 provideSessionRail()
 
-provideFilePane(props.session)
+provideFilePane(props.session, host.showView)
+
+provideQuestionBoard(props.session)
 </script>
 
 <style scoped>

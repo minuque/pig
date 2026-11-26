@@ -243,7 +243,10 @@ describe("McpCli 缓存与清理", () => {
     const script =
       "const c=require('child_process').spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{stdio:'ignore'});" +
       "console.log(c.pid);setInterval(()=>{},1000)"
-    const parent = spawn(process.execPath, ["-e", script], { stdio: ["ignore", "pipe", "ignore"] })
+    const parent = spawn(process.execPath, ["-e", script], {
+      stdio: ["ignore", "pipe", "ignore"],
+      detached: process.platform !== "win32",
+    })
     const grandchild = await new Promise<number>((resolve) =>
       parent.stdout.once("data", (chunk: Buffer) => resolve(Number(chunk.toString().trim()))),
     )

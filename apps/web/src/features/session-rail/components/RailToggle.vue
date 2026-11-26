@@ -53,6 +53,20 @@
         <RailSummary v-bind="cards" @stop="stopTask" />
       </PopoverContent>
     </Popover>
+
+    <Drawer :open="Boolean(rail.pane.value)" side="right" :modal="false" @open-change="onPane">
+      <DrawerContent v-if="rail.pane.value" class="rail-drawer">
+        <RailPane
+          :pane="rail.pane.value"
+          :sections="sections"
+          :stoppable="cards.stoppable"
+          :stopping="cards.stopping"
+          :session-id="session.sessionId.value"
+          :progress="childProgress"
+          @stop="stopTask"
+        />
+      </DrawerContent>
+    </Drawer>
   </div>
 </template>
 
@@ -61,20 +75,38 @@ import { computed, ref, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { NotepadTextIcon } from "@components/icons/index.js"
 import { IconButton } from "@pig/ui/button"
+import { Drawer, DrawerContent } from "@pig/ui/drawer"
 import { Popover, PopoverContent, PopoverTrigger } from "@pig/ui/popover"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
+import RailPane from "@features/session-rail/components/RailPane.vue"
 import RailSummary from "@features/session-rail/components/RailSummary.vue"
 import { useRailCards } from "@features/session-rail/hooks/use-rail-cards.js"
 import { useSessionRail } from "@features/session-rail/index.js"
 
 const { t } = useI18n()
 const rail = useSessionRail()!
-const { session, tasks, cards, stopTask } = useRailCards()
+const { session, tasks, sections, cards, stopTask } = useRailCards()
 const popoverOpen = ref(false)
+const childProgress = computed(() => {
+  const pane = rail.pane.value
+  const open = pane?.kind === "child" ? pane.child : undefined
+  const task = tasks.value.find(
+    (item) => item.kind === "agent" && item.sessionId === open?.sessionId,
+  )
+  return task?.kind === "agent"
+    ? `${task.status}:${task.steps.length}:${task.steps.at(-1) ?? ""}`
+    : ""
+})
+
+watch(session.sessionId, rail.enterSession, { immediate: true })
 
 watch(rail.pane, (pane) => {
   if (pane) popoverOpen.value = false
 })
+
+function onPane(open: boolean) {
+  if (!open) rail.closePane()
+}
 
 const label = computed(() => {
   const usage = session.contextUsage.value
@@ -108,5 +140,9 @@ const label = computed(() => {
 .rail-popover[data-slot="popover-content"] {
   inline-size: var(--rail-width);
   padding: var(--space-xs);
+}
+
+.rail-drawer[data-slot="drawer-content"] {
+  inline-size: min(var(--rail-pane-width), 100%);
 }
 </style>

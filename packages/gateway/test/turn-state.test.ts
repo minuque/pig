@@ -12,6 +12,11 @@ describe("外部回合是否没结束：看分支里最后一条用户/助手/�
   it.each([
     ["user", [message({ role: "user", content: "hi" })], true],
     ["toolResult", [message({ role: "toolResult", content: [] })], true],
+    [
+      "ask 工具的结果结束本轮",
+      [message({ role: "toolResult", toolName: "ask_user_question" })],
+      false,
+    ],
     ["assistant toolUse", [assistant("toolUse")], true],
     ["assistant stop", [assistant("stop")], false],
     ["assistant length", [assistant("length")], false],

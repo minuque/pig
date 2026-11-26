@@ -29,7 +29,6 @@ export async function seedWorkspaces(page: Page, workspaceIds: readonly string[]
       localStorage.setItem("pig.localWorkspaces", JSON.stringify(ids))
       localStorage.setItem("pig.lastCwd", ids[0] ?? "")
       localStorage.setItem("npg-theme", "light")
-      localStorage.setItem("pig.files.open", "off")
     },
     { ids: workspaceIds },
   )

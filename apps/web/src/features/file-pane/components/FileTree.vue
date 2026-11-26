@@ -1,45 +1,69 @@
 <template>
-  <div ref="scroller" class="file-tree" @scroll="onScroll">
-    <Tree
-      ref="tree"
-      class="file-tree-list"
-      mode="none"
-      :items="items"
-      :expanded="pane.expanded.value"
-      :aria-label="t('files.title')"
-      :style="{ blockSize: `${rows.length * ROW_HEIGHT}px` }"
-      @update:expanded="pane.setExpanded"
-      @highlight="(_value: string, details: ListHighlightDetails) => reveal(details.index)"
-      @action="onAction"
-    >
-      <TreeItem
-        v-for="{ item, index } in visible"
-        :key="item.value"
-        :value="item.value"
-        class="file-tree-row"
-        :data-path="item.value"
-        :data-active="item.value === active || undefined"
-        :style="{ insetBlockStart: `${index * ROW_HEIGHT}px` }"
-        draggable="true"
-        @dragstart="onDragStart($event, item.value)"
-        @dblclick="!item.children && pane.openFile(item.value, { pin: true })"
-      >
-        <TreeItemLabel v-slot="{ state }" class="file-tree-label">
-          <template v-if="item.children">
-            <TreeItemIndicator class="file-tree-caret">
-              <ChevronRightIcon class="file-tree-caret-icon" />
-            </TreeItemIndicator>
+  <ContextMenu>
+    <ContextMenuTrigger>
+      <template #render="{ props: part }">
+        <div
+          v-bind="part"
+          ref="scroller"
+          class="file-tree"
+          @scroll="onScroll"
+          @contextmenu.capture="onContextMenu"
+        >
+          <Tree
+            ref="tree"
+            class="file-tree-list"
+            mode="none"
+            :items="items"
+            :expanded="pane.expanded.value"
+            :aria-label="t('files.title')"
+            :style="{ blockSize: `${rows.length * ROW_HEIGHT}px` }"
+            @update:expanded="pane.setExpanded"
+            @highlight="(_value: string, details: ListHighlightDetails) => reveal(details.index)"
+            @action="onAction"
+          >
+            <TreeItem
+              v-for="{ item, index } in visible"
+              :key="item.value"
+              :value="item.value"
+              class="file-tree-row"
+              :data-path="item.value"
+              :data-active="item.value === active || undefined"
+              :style="{ insetBlockStart: `${index * ROW_HEIGHT}px` }"
+              draggable="true"
+              @dragstart="onDragStart($event, item.value)"
+              @dblclick="!item.children && pane.openFile(item.value, { pin: true })"
+            >
+              <TreeItemLabel v-slot="{ state }" class="file-tree-label">
+                <template v-if="item.children">
+                  <TreeItemIndicator class="file-tree-caret">
+                    <ChevronRightIcon class="file-tree-caret-icon" />
+                  </TreeItemIndicator>
 
-            <FolderOpenIcon v-if="state.expanded" class="file-tree-icon" />
-            <FolderIcon v-else class="file-tree-icon" />
-          </template>
+                  <FolderOpenIcon v-if="state.expanded" class="file-tree-icon" />
+                  <FolderIcon v-else class="file-tree-icon" />
+                </template>
 
-          <LanguageIcon v-else class="file-tree-icon is-file" :language="extension(item.label)" />
-          <span class="file-tree-name">{{ item.label }}</span>
-        </TreeItemLabel>
-      </TreeItem>
-    </Tree>
-  </div>
+                <LanguageIcon
+                  v-else
+                  class="file-tree-icon is-file"
+                  :language="extension(item.label)"
+                />
+
+                <span class="file-tree-name">{{ item.label }}</span>
+              </TreeItemLabel>
+            </TreeItem>
+          </Tree>
+        </div>
+      </template>
+    </ContextMenuTrigger>
+
+    <ContextMenuContent v-if="menuPath" size="s">
+      <ContextMenuItem @select="pane.mentionInChat(menuPath)">
+        <AtSignIcon />
+        {{ t("files.mentionInChat") }}
+      </ContextMenuItem>
+    </ContextMenuContent>
+  </ContextMenu>
 </template>
 
 <script setup lang="ts">
@@ -57,7 +81,18 @@ import {
 import { useI18n } from "@i18n/index.js"
 import { listWorkspaceDir } from "@client/platform.js"
 import LanguageIcon from "@components/icons/LanguageIcon.vue"
-import { ChevronRightIcon, FolderIcon, FolderOpenIcon } from "@components/icons/index.js"
+import {
+  AtSignIcon,
+  ChevronRightIcon,
+  FolderIcon,
+  FolderOpenIcon,
+} from "@components/icons/index.js"
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@pig/ui/context-menu"
 import { COMPOSER_MENTION_MIME, mentionMarkdown } from "@features/composer/lib/composer-trigger.js"
 import { ancestors } from "@features/file-pane/lib/tree.js"
 import { useFilePane } from "@features/file-pane/index.js"
@@ -122,6 +157,13 @@ function onDragStart(event: DragEvent, path: string) {
   if (!event.dataTransfer) return
   event.dataTransfer.effectAllowed = "copy"
   event.dataTransfer.setData(COMPOSER_MENTION_MIME, mentionMarkdown(path))
+}
+
+const menuPath = shallowRef<string>()
+
+function onContextMenu(event: MouseEvent) {
+  const row = event.target instanceof Element ? event.target.closest("[data-path]") : null
+  menuPath.value = row?.getAttribute("data-path") ?? undefined
 }
 
 function onAction(value: string) {

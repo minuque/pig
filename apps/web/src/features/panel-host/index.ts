@@ -1,41 +1,45 @@
-import { computed, inject, provide, shallowReactive, shallowRef, type InjectionKey } from "vue"
-import {
-  closePanel,
-  openPanel,
-  visiblePanels,
-  type PanelKind,
-} from "@features/panel-host/lib/panel-stack.js"
+import { computed, inject, provide, shallowRef, type InjectionKey, type Ref } from "vue"
+import { routeAlert, type AlertRoute, type PaneAlert } from "@features/panel-host/lib/pane-alert.js"
+import { stepView, type PaneView } from "@features/panel-host/lib/pane-view.js"
 
-export type { PanelKind } from "@features/panel-host/lib/panel-stack.js"
+export { PANE_VIEWS, type PaneView } from "@features/panel-host/lib/pane-view.js"
 
-function createPanelHost() {
-  const order = shallowRef<PanelKind[]>([])
-  const height = shallowRef(Number.POSITIVE_INFINITY)
-  const slots = shallowReactive(new Map<PanelKind, HTMLElement>())
-  const covering = shallowRef(false)
-  const narrow = shallowRef(false)
-  const expanded = shallowRef(false)
-  const visible = computed(() => visiblePanels(order.value, height.value))
+export { ALERT_TTL, type PaneAlert } from "@features/panel-host/lib/pane-alert.js"
+
+function createPaneAlerts(shown: (sessionId: string) => PaneView | undefined) {
+  const queue = shallowRef<readonly PaneAlert[]>([])
+
   return {
-    order,
-    visible,
-    covering,
-    narrow,
-    expanded,
-    slots,
-    setHeight: (value: number) => {
-      height.value = value
+    current: () => queue.value[0],
+    pending: () => Math.max(0, queue.value.length - 1),
+    dismiss() {
+      queue.value = queue.value.slice(1)
     },
-    open: (kind: PanelKind) => {
-      order.value = openPanel(order.value, kind)
+    clear() {
+      queue.value = []
     },
-    close: (kind: PanelKind) => {
-      order.value = closePanel(order.value, kind)
+    route(sessionId: string, alert: PaneAlert): AlertRoute {
+      const route = routeAlert(alert.kind, shown(sessionId))
+
+      if (route === "island") queue.value = [...queue.value, alert]
+      return route
     },
-    raise: (kind: PanelKind) => {
-      order.value = [...closePanel(order.value, kind), kind]
+  }
+}
+
+export type PaneAlerts = ReturnType<typeof createPaneAlerts>
+
+function createPanelHost(sessionId: Readonly<Ref<string | undefined>>) {
+  const current = shallowRef<PaneView>("chat")
+  return {
+    view: computed(() => (sessionId.value ? current.value : "chat")),
+    alerts: createPaneAlerts((id) => (id === sessionId.value ? current.value : undefined)),
+    showView: (view: PaneView) => {
+      current.value = view
     },
-    hidden: (kind: PanelKind) => order.value.includes(kind) && !visible.value.includes(kind),
+    stepView: (delta: number) => {
+      current.value = stepView(current.value, delta)
+    },
   }
 }
 
@@ -43,12 +47,15 @@ export type PanelHost = ReturnType<typeof createPanelHost>
 
 const panelHostKey: InjectionKey<PanelHost> = Symbol("panel-host")
 
-export function providePanelHost() {
-  const host = createPanelHost()
+export function providePanelHost(sessionId: Readonly<Ref<string | undefined>>) {
+  const host = createPanelHost(sessionId)
   provide(panelHostKey, host)
   return host
 }
 
-export function usePanelHost(): PanelHost | undefined {
-  return inject(panelHostKey, undefined)
+export function usePanelHost(): PanelHost {
+  const host = inject(panelHostKey)
+
+  if (!host) throw new Error("usePanelHost() 需要先 providePanelHost()")
+  return host
 }

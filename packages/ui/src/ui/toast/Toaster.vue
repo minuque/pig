@@ -61,6 +61,7 @@ import {
   CircleCheckIcon,
   CircleExclamationPointIcon,
   InfoIcon,
+  MessageCircleQuestionMarkIcon,
   TriangleAlertIcon,
   Undo2Icon,
   XIcon,
@@ -85,12 +86,14 @@ const LEVEL_TONE: Record<NoticeLevel, Tone> = {
   success: "success",
   warning: "warning",
   error: "danger",
+  waiting: "warning",
 }
 const LEVEL_ICON: Record<NoticeLevel, Component> = {
   info: InfoIcon,
   success: CircleCheckIcon,
   warning: TriangleAlertIcon,
   error: CircleExclamationPointIcon,
+  waiting: MessageCircleQuestionMarkIcon,
 }
 let pointerX = Number.NaN
 let pointerY = Number.NaN
