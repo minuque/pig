@@ -113,6 +113,8 @@ export type {
 
 export { WEBSOCKET_PATH } from "./wire.js"
 
+export { ASK_TOOL } from "./extension-ui.js"
+
 export type {
   ClientMessage,
   Command,

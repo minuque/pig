@@ -1,6 +1,9 @@
 import type { ExtensionAPI, ToolDefinition } from "@earendil-works/pi-coding-agent"
 
-export const ASK_TOOL = "ask_user_question"
+import { ASK_TOOL } from "@pig/protocol/source"
+
+export { ASK_TOOL }
+
 const option = {
   type: "object",
   properties: {

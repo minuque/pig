@@ -1,6 +1,9 @@
-import type { ExtensionUiDialog, JsonValue, TranscriptItem } from "@pig/protocol"
-
-export const ASK_TOOL = "ask_user_question"
+import {
+  ASK_TOOL,
+  type ExtensionUiDialog,
+  type JsonValue,
+  type TranscriptItem,
+} from "@pig/protocol"
 
 export interface BoardOption {
   label: string
