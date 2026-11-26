@@ -2,39 +2,37 @@ import { expect, test } from "../support/fixtures.js"
 import { CHILD_MARKER } from "../support/prebuild-session.js"
 import { startSubagentTurn } from "../support/subagent-turn.js"
 
-test("摘要抽屉：打开时只盖住右边一条，下面的对话照常能输入", async ({ page, subagentGateway }) => {
+test("摘要面板：窗口变窄时从常驻卡收成头部浮层，变宽再回来", async ({ page, subagentGateway }) => {
   await page.setViewportSize({ width: 1600, height: 900 })
   await startSubagentTurn(page, subagentGateway)
-  await page.locator(".rail-toggle").click()
-  const drawer = page.locator(".rail-drawer")
-  await expect(drawer.getByText("planner")).toBeVisible()
+  await expect(page.locator(".rail-toggle-docked")).toBeVisible()
+  await expect(page.locator(".rail-docked")).toBeVisible()
 
-  const composer = page.getByRole("textbox", { name: "Prompt" })
-  await composer.click()
-  await page.keyboard.type("still typing")
-  await expect(composer).toContainText("still typing")
-  await expect(drawer).toBeVisible()
+  await page.setViewportSize({ width: 1000, height: 800 })
+  await expect(page.locator(".rail-toggle-popover")).toBeVisible()
+  await expect(page.locator(".rail-docked")).toHaveCount(0)
 
-  const drawerBox = (await drawer.boundingBox())!
-  const headerBox = (await page.locator(".workbench-header").boundingBox())!
-  expect(drawerBox.y).toBeGreaterThanOrEqual(headerBox.y)
+  await page.setViewportSize({ width: 1600, height: 900 })
+  await expect(page.locator(".rail-toggle-docked")).toBeVisible()
+  await expect(page.locator(".rail-docked")).toBeVisible()
 })
 
-test("subagent 子任务：时间线卡片与摘要面板都列出进展，点开在右侧面板里只读看子会话", async ({
+test("subagent 子任务：时间线卡片与摘要面板都列出进展，点开在任务抽屉里只读看子会话", async ({
   page,
   subagentGateway,
 }) => {
   await page.setViewportSize({ width: 1000, height: 800 })
   await startSubagentTurn(page, subagentGateway)
 
-  const toggle = page.locator(".rail-toggle")
+  const toggle = page.locator(".rail-toggle-popover")
   await toggle.hover()
   await expect(page.locator('[data-slot="tooltip-content"][data-open]')).toContainText("1/2")
   await toggle.click()
-  const drawer = page.locator(".rail-drawer").first()
-  await expect(drawer.getByText("planner")).toBeVisible()
+  const popover = page.locator(".rail-popover")
+  await expect(popover.getByText("planner")).toBeVisible()
 
-  await drawer.locator(".task-row-open").first().click()
+  await popover.locator(".task-row-open").first().click()
+  await expect(popover).toBeHidden()
   const pane = page.locator(".rail-pane")
   await expect(pane.getByText("read service.ts")).toBeVisible()
 
@@ -50,15 +48,26 @@ test("摘要面板：分节可折叠，刷新后保持", async ({ page, subagent
   await page.setViewportSize({ width: 1680, height: 900 })
   await startSubagentTurn(page, subagentGateway)
 
-  await page.locator(".rail-toggle").click()
-  const rail = page.locator(".rail-drawer")
+  const rail = page.locator(".rail-docked")
   const titles = rail.locator(".rail-title")
   await expect(titles.first()).toHaveText("环境")
   await expect(titles.last()).toHaveText("后台任务")
 
+  const headerBox = (await page.locator(".workbench-header").boundingBox())!
+  const mainBox = (await page.locator(".shell main").boundingBox())!
+  expect(headerBox.x).toBeCloseTo(mainBox.x, 0)
+  expect(headerBox.x + headerBox.width).toBeCloseTo(mainBox.x + mainBox.width, 0)
+
+  const railBox = (await rail.boundingBox())!
+  const composerBox = (await page.locator(".composer-stack").boundingBox())!
+  expect(composerBox.x + composerBox.width).toBeLessThanOrEqual(railBox.x)
+  const viewportBox = (await page.locator(".transcript-viewport").boundingBox())!
+  expect(viewportBox.x + viewportBox.width).toBeGreaterThan(railBox.x)
+  expect(railBox.x + railBox.width).toBeLessThanOrEqual(viewportBox.x + viewportBox.width + 1)
+
   const contextCard = rail.locator(".rail-part", { hasText: "上下文" })
   await contextCard.locator(".ctx-row button").first().click()
-  const preview = page.getByRole("dialog").filter({ has: page.locator(".preview-body") })
+  const preview = page.getByRole("dialog")
   const body = preview.locator(".preview-body")
   await expect(body).not.toBeEmpty({ timeout: 30_000 })
   await expect(body).not.toHaveText("无法加载预览。")
@@ -76,9 +85,19 @@ test("摘要面板：分节可折叠，刷新后保持", async ({ page, subagent
 
   await page.reload()
   await page.locator(".session-card").first().click()
-  await page.locator(".rail-toggle").click({ timeout: 30_000 })
   await expect(rail.locator(".rail-head", { hasText: "环境" })).toHaveAttribute(
     "aria-expanded",
     "false",
+    {
+      timeout: 30_000,
+    },
   )
+  const toggle = page.locator(".rail-toggle-docked")
+  await expect(toggle).toHaveAttribute("aria-pressed", "true")
+  await toggle.click()
+  await expect(rail).toBeHidden()
+  await page.reload()
+  await page.locator(".session-card").first().click()
+  await expect(toggle).toHaveAttribute("aria-pressed", "false", { timeout: 30_000 })
+  await expect(rail).toBeHidden()
 })

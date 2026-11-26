@@ -53,6 +53,8 @@
             :history-ready="!sessionPending"
             @jump-settled="onJumpSettled"
           >
+            <SessionRail />
+
             <template #queue>
               <QueuedPanel
                 :queue="composerQueue"
@@ -68,7 +70,7 @@
         <div
           ref="composerBar"
           class="composer-bar"
-          :class="{ 'is-hero': welcome, 'settle-in': settleIn }"
+          :class="{ 'is-hero': welcome, 'settle-in': settleIn, 'beside-rail': railDocked }"
         >
           <div class="composer-stack">
             <ScrollLatestButton
@@ -124,6 +126,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, useTemplateRef, watch } from "vue"
+import { useResizeObserver } from "@vueuse/core"
 import { useRoute } from "vue-router"
 import Composer from "@features/composer/index.vue"
 import { useComposerPreset } from "@features/composer/index.js"
@@ -153,6 +156,8 @@ import { useSessionDrop } from "@features/session-workbench/hooks/use-session-dr
 import { useTurnFinish } from "@features/session-workbench/hooks/use-turn-finish.js"
 import { useWelcomeWorkspace } from "@features/session-workbench/hooks/use-welcome-workspace.js"
 import TranscriptView from "@features/transcript-view/index.vue"
+import SessionRail from "@features/session-rail/index.vue"
+import { useSessionRail } from "@features/session-rail/index.js"
 import { prefetchTranscriptView, TranscriptStatus } from "@features/transcript-view/index.js"
 import { FilePlusIcon } from "@components/icons/index.js"
 import { notify } from "@pig/ui/toast"
@@ -205,7 +210,16 @@ const pageError = computed(() => {
 
   return route.name === "error" ? {} : null
 })
+const rail = useSessionRail()
+const railDocked = computed(
+  () => !welcome.value && Boolean(sessionId.value) && rail?.dockedShown.value,
+)
 const panel = useTemplateRef<HTMLElement>("panel")
+
+useResizeObserver(panel, ([entry]) => {
+  if (entry) rail?.setWidth(entry.contentRect.width)
+})
+
 const { welcomeWorkspaceId, heroWorkspaceId, composerCwd } = useWelcomeWorkspace({
   sessionId: () => sessionId.value,
   sessionCwd: () => sessionCwd.value,
@@ -418,6 +432,10 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
   z-index: var(--z-sticky);
   padding-bottom: calc(var(--space-sm) + env(safe-area-inset-bottom, 0px));
   pointer-events: none;
+}
+
+.composer-bar.beside-rail {
+  inset-inline-end: var(--rail-width);
 }
 
 .composer-bar.is-hero {

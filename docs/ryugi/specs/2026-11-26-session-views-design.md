@@ -1,12 +1,12 @@
-# 会话视图轮播、灵动岛、摘要抽屉与提问浮板：设计稿
+# 会话视图轮播、灵动岛、任务抽屉与提问浮板：设计稿
 
 2026-11-26 经多轮问答与四份示意页定稿，用户批准「开始写 spec 动手」。标「我定的」的是设计者自定、用户没有逐条确认的取舍。
 
 ## 1. 目的
 
-右侧停靠的摘要列和文件面板会压窄对话区；以后还要加终端、浏览器，再往右边挤，体验更差。改成：一个 pane 里同一时间只显示一个视图，视图围绕当前会话，在标题栏中间的「灵动岛」里切换，切换时整页横滑。Chat 视图以外的视图里没有输入框，main 只做一件事。
+右侧停靠的文件面板会压窄对话区；以后还要加终端、浏览器，再往右边挤，体验更差。改成：一个 pane 里同一时间只显示一个视图，视图围绕当前会话，在标题栏中间的「灵动岛」里切换，切换时整页横滑。Chat 视图以外的视图里没有输入框，main 只做一件事。
 
-一起做的还有三件事，都是为了让 main 保持专注：当前会话的提醒交给灵动岛，摘要与任务改成抽屉，扩展提问和 agent 提问改成贴在输入卡上方的浮板。
+一起做的还有三件事，都是为了让 main 保持专注：当前会话的提醒交给灵动岛，任务详情改成抽屉，扩展提问和 agent 提问改成贴在输入卡上方的浮板。
 
 ## 2. 范围
 
@@ -15,17 +15,17 @@
 | 每个 pane 的视图轨道：Chat、Files，横向轮播 | Terminal、Browser 视图本身（等它们出现时加进视图列表） |
 | 标题栏中间的灵动岛：收起、展开、提醒三态 | 扩展注册视图的接口（没有扩展要用，先不开） |
 | 当前会话的提醒走灵动岛，toast 只管其余 | 同一会话左右各开一个视图（我定的：留到以后，本轮分屏规则不变） |
-| 摘要与任务详情改成 ui-sdk `Drawer` | 摘要独立成一个视图（用户明确不要） |
+| 任务详情、子 agent 详情改成 ui-sdk `Drawer`；摘要常态仍独占一列（用户定的） | 摘要独立成一个视图（用户明确不要） |
 | 扩展 `select` / `confirm` / `input` / `editor` 改成输入卡上方的浮板，替掉 `AlertDialog` | 改 Pi 扩展 UI 协议 |
 | 内置 `ask` 工具：多题、选项说明、多选、直接回复；回答作为普通用户消息发回 | 从零实现 ask 工具（先复用社区现成实现，见 §8） |
-| 删掉右侧面板列（`PanelColumn`、`panel-stack`）与摘要停靠列、popover 两种模式 | |
+| 删掉右侧面板列（`PanelColumn`、`panel-stack`） | |
 
 ## 3. 示意页
 
 都在 `.show-me/`（未提交，只作参照；本节已写清结论）：
 
 - `session-views-carousel.html`：A 横向轮播 / B 轮播 + 总览。**选 A**：标签加横滑。
-- `session-views-island.html`：灵动岛三态与摘要抽屉。
+- `session-views-island.html`：灵动岛三态与摘要抽屉（摘要抽屉已否掉，见 §9）。
 - `island-notify.html`：方案 (b) 下各类提醒在岛上的样子。**选 (b)**。
 - `ask-board.html`：提问浮板。用户改过三点：选项前加 radio / checkbox；补上能直接回复的选择题；去掉底部快捷键提示和倒计时；多题时页码两边能手动切题。
 
@@ -142,19 +142,17 @@ Pi 扩展市场里的 ask 类扩展（`@juicesharp/rpiv-ask-user-question`、`@a
 - 前端判定：transcript 里最后一个 `ask_user_question` 工具调用之后没有用户消息、会话 idle → 显示浮板。该轮 assistant 的 `stopReason` 是 `toolUse`，不按中断渲染。
 - 回答消息：每题一行 `<header>：<回答>`（§8.1）。
 
-## 9. 摘要抽屉
+## 9. 摘要列与任务抽屉
 
-- 原 `RailSummary` 放进 ui-sdk `Drawer`：`side="right"`，`modal={false}`，抽屉开着时下面的视图照常能操作。任何视图里都能打开。
-- 触发按钮留在标题栏右侧原 `RailToggle` 的位置，用 `Drawer` 的 `shortcut` 绑快捷键（具体键位实现时选一个不冲突的）。
-- 任务详情、子 agent 详情（原 `RailPane` 进面板列的两种 pane）改成在抽屉里叠一层子抽屉，用 ui-sdk 自带的嵌套抽屉。
-- 抽屉只盖住所在 pane，不盖另一侧 pane：用 `DrawerContent` 的 `container` 或定位样式把它限定在 pane 内。
-- 删掉：摘要停靠列（`rail-docked`、`beside-rail`、`--rail-width` 的停靠用法）、popover 模式、`railModeOf` 与 `RAIL_DOCKED_MIN`、`pig.rail.docked`。分组折叠、隐藏等 `railLayout` 偏好保留。
+- 摘要照旧：对话列够宽时 `RailSummary` 常驻对话列右侧独占一列，标题栏按钮开关并记住；窄时收成标题栏按钮下的 popover（`railModeOf`）。用户 2026-11-26 否掉了摘要抽屉。
+- 任务详情、子 agent 详情（原 `RailPane` 进面板列的两种 pane）改成 ui-sdk `Drawer`：`side="right"`，`modal={false}`，开着时下面的视图照常能操作。抽屉挂在标题栏的 `RailToggle` 里，切到 Files 也不被 `inert` 盖住。
+- 抽屉只盖住所在 pane，不盖另一侧 pane：pane 写 `--drawer-inset`，抽屉视口按它定位。
 - 按 AGENTS.md 先读 ui-sdk skill 与 `node_modules/@ui-sdk/vue/docs/llms.txt`；`@pig/ui` 还没有 Drawer 封装，先在 `packages/ui` 按 `rendering.md` 加基础件，再在业务里用。
 
 ## 10. 验收
 
 - 单测（只测产品假设与数据路径）：分屏状态读写带视图字段、旧数据兼容；提醒分工的判定（事件 × 当前视图 × 会话是否显示 → 岛 / toast / 不弹）；ask 回答拼成消息；扩展请求排队与对 ask 的优先。
-- e2e（`e2e/workbench/`）：横滑与快捷键切视图后 Chat 滚动位置不变；对话里点文件提及切到 Files 并打开该文件；在 Files 里收到回复完成，岛弹出并能回到 Chat；扩展 select 浮板选中后回到原草稿；ask 两题切题、直接回复、提交后对话里出现那条用户消息；摘要抽屉打开时下面的视图能点。
+- e2e（`e2e/workbench/`）：横滑与快捷键切视图后 Chat 滚动位置不变；对话里点文件提及切到 Files 并打开该文件；在 Files 里收到回复完成，岛弹出并能回到 Chat；扩展 select 浮板选中后回到原草稿；ask 两题切题、直接回复、提交后对话里出现那条用户消息；任务抽屉打开时下面的视图能点。
 - `pnpm fix:touched` → `pnpm check:touched`；耗时、滚动相关跑 `pnpm test:bench`；看画面用 `pnpm dev:desktop`。
 - design-lab 只维护整页 demo：把视图轨道、灵动岛三态、浮板加进 `FullPageDemo.vue` 的 fixture。
 
@@ -163,4 +161,4 @@ Pi 扩展市场里的 ask 类扩展（`@juicesharp/rpiv-ask-user-question`、`@a
 - 灵动岛、轨道、浮板的具体尺寸、阈值与缓动档，从现有 token 里取，缺档先补 token。
 - 状态与模块归属：视图状态放 `split-view`（它已经管 pane 状态）；灵动岛与提醒判定新建模块还是归入 `session-workbench`，按 CODEBASE.md「新领域先归既有模块」判断。
 - 功能代码文件不超过 500 行（`WorkbenchHeader.vue` 已有 538 行，加灵动岛前先拆）。
-- 提交按逻辑任务原子提交，建议顺序：视图轨道与删面板列 → 灵动岛 → 摘要抽屉 → 提问浮板 → ask 工具 → 提醒分工与 DESIGN.md。
+- 提交按逻辑任务原子提交，建议顺序：视图轨道与删面板列 → 灵动岛 → 任务抽屉 → 提问浮板 → ask 工具 → 提醒分工与 DESIGN.md。

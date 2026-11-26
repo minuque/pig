@@ -1,87 +1,92 @@
 <template>
-  <Drawer v-if="session.sessionId.value" v-model:open="rail.open.value" side="right" :modal="false">
-    <Tooltip>
-      <DrawerTrigger v-bind="focused ? { shortcut: 'mod+j' } : {}">
+  <div v-if="session.sessionId.value" class="rail-toggle">
+    <Tooltip v-if="rail.mode.value === 'docked'">
+      <TooltipTrigger>
         <template #render="{ props: part }">
-          <TooltipTrigger v-bind="part">
-            <template #render="{ props: part }">
-              <IconButton
-                v-bind="part"
-                class="rail-toggle"
-                type="button"
-                size="m"
-                color="neutral"
-                variant="ghost"
-                :data-active="rail.open.value || undefined"
-                :aria-label="t('rail.toggle')"
-              >
-                <NotepadTextIcon class="size-icon-lg" />
-              </IconButton>
-            </template>
-          </TooltipTrigger>
+          <IconButton
+            v-bind="part"
+            class="rail-toggle-docked"
+            type="button"
+            size="m"
+            color="neutral"
+            variant="ghost"
+            :data-active="rail.docked.value || undefined"
+            :aria-pressed="rail.docked.value"
+            :aria-label="t('rail.toggle')"
+            @click="rail.toggleDocked"
+          >
+            <NotepadTextIcon class="size-icon-lg" />
+          </IconButton>
         </template>
-      </DrawerTrigger>
+      </TooltipTrigger>
 
       <TooltipContent>{{ label }}</TooltipContent>
     </Tooltip>
 
-    <DrawerContent class="rail-drawer" :aria-label="t('rail.title')">
-      <header class="rail-drawer-head">
-        <DrawerTitle class="rail-drawer-title">{{ t("rail.title") }}</DrawerTitle>
-
-        <DrawerClose>
+    <Popover v-else v-model:open="popoverOpen">
+      <Tooltip>
+        <PopoverTrigger>
           <template #render="{ props: part }">
-            <IconButton
-              v-bind="part"
-              size="s"
-              variant="ghost"
-              color="neutral"
-              :aria-label="t('common.close')"
-            >
-              <XIcon class="size-icon" />
-            </IconButton>
+            <TooltipTrigger v-bind="part">
+              <template #render="{ props: part }">
+                <IconButton
+                  v-bind="part"
+                  class="rail-toggle-popover"
+                  type="button"
+                  size="m"
+                  color="neutral"
+                  variant="ghost"
+                  :data-active="popoverOpen || undefined"
+                  :aria-label="t('rail.toggle')"
+                >
+                  <NotepadTextIcon class="size-icon-lg" />
+                </IconButton>
+              </template>
+            </TooltipTrigger>
           </template>
-        </DrawerClose>
-      </header>
+        </PopoverTrigger>
 
-      <div class="rail-drawer-body">
+        <TooltipContent>{{ label }}</TooltipContent>
+      </Tooltip>
+
+      <PopoverContent class="rail-popover" align="end">
         <RailSummary v-bind="cards" @stop="stopTask" />
-      </div>
+      </PopoverContent>
+    </Popover>
 
-      <Drawer :open="Boolean(rail.pane.value)" side="right" :modal="false" @open-change="onPane">
-        <DrawerContent v-if="rail.pane.value" class="rail-drawer is-pane">
-          <RailPane
-            :pane="rail.pane.value"
-            :sections="sections"
-            :stoppable="cards.stoppable"
-            :stopping="cards.stopping"
-            :session-id="session.sessionId.value"
-            :progress="childProgress"
-            @stop="stopTask"
-          />
-        </DrawerContent>
-      </Drawer>
-    </DrawerContent>
-  </Drawer>
+    <Drawer :open="Boolean(rail.pane.value)" side="right" :modal="false" @open-change="onPane">
+      <DrawerContent v-if="rail.pane.value" class="rail-drawer">
+        <RailPane
+          :pane="rail.pane.value"
+          :sections="sections"
+          :stoppable="cards.stoppable"
+          :stopping="cards.stopping"
+          :session-id="session.sessionId.value"
+          :progress="childProgress"
+          @stop="stopTask"
+        />
+      </DrawerContent>
+    </Drawer>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from "vue"
+import { computed, ref, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { NotepadTextIcon, XIcon } from "@components/icons/index.js"
+import { NotepadTextIcon } from "@components/icons/index.js"
 import { IconButton } from "@pig/ui/button"
-import { Drawer, DrawerClose, DrawerContent, DrawerTitle, DrawerTrigger } from "@pig/ui/drawer"
+import { Drawer, DrawerContent } from "@pig/ui/drawer"
+import { Popover, PopoverContent, PopoverTrigger } from "@pig/ui/popover"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import RailPane from "@features/session-rail/components/RailPane.vue"
 import RailSummary from "@features/session-rail/components/RailSummary.vue"
 import { useRailCards } from "@features/session-rail/hooks/use-rail-cards.js"
 import { useSessionRail } from "@features/session-rail/index.js"
 
-defineProps<{ focused: boolean }>()
-
 const { t } = useI18n()
 const rail = useSessionRail()!
 const { session, tasks, sections, cards, stopTask } = useRailCards()
+const popoverOpen = ref(false)
 const childProgress = computed(() => {
   const pane = rail.pane.value
   const open = pane?.kind === "child" ? pane.child : undefined
@@ -94,6 +99,10 @@ const childProgress = computed(() => {
 })
 
 watch(session.sessionId, rail.enterSession, { immediate: true })
+
+watch(rail.pane, (pane) => {
+  if (pane) popoverOpen.value = false
+})
 
 function onPane(open: boolean) {
   if (!open) rail.closePane()
@@ -115,43 +124,25 @@ const label = computed(() => {
 </script>
 
 <style scoped>
-.rail-toggle[data-active] {
-  color: var(--fg);
-  background: var(--bg-selected);
-}
-
-.rail-drawer-head {
+.rail-toggle {
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: var(--space-xs);
-  padding: var(--space-sm) var(--space-sm) var(--space-xs) var(--space-md);
 }
 
-.rail-drawer-title {
-  flex: 1;
-  margin: 0;
-  font-size: var(--text-body);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--text-body--line-height);
-}
-
-.rail-drawer-body {
-  flex: 1;
-  min-block-size: 0;
-  padding: 0 var(--space-xs) var(--space-xs);
-  overflow-y: auto;
-  overscroll-behavior: contain;
+.rail-toggle [data-active] {
+  color: var(--fg);
+  background: var(--bg-selected);
 }
 </style>
 
 <style>
-.rail-drawer[data-slot="drawer-content"] {
-  inline-size: min(var(--rail-width), 100%);
-  scale: calc(1 - var(--drawer-stack, 0) * 0.04);
+.rail-popover[data-slot="popover-content"] {
+  inline-size: var(--rail-width);
+  padding: var(--space-xs);
 }
 
-.rail-drawer.is-pane[data-slot="drawer-content"] {
+.rail-drawer[data-slot="drawer-content"] {
   inline-size: min(var(--rail-pane-width), 100%);
 }
 </style>

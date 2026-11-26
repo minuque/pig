@@ -29,7 +29,7 @@
     <ViewIsland v-if="rail && sessionId" />
 
     <span class="header-end">
-      <RailToggle v-if="rail" :focused="split.focused.value === side" />
+      <RailToggle v-if="rail" />
 
       <span v-if="split.split.value" class="split-actions">
         <Tooltip v-if="!split.fits.value">
