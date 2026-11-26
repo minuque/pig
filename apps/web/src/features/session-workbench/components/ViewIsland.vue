@@ -1,93 +1,112 @@
 <template>
-  <span
-    class="view-island"
-    data-island
-    :data-expanded="expanded || undefined"
-    @pointerenter="hovered = true"
-    @pointerleave="hovered = false"
-  >
-    <TabsRoot :model-value="current" @update:model-value="show">
-      <TabsList variant="segmented" size="s" :aria-label="t('views.label')">
-        <span v-if="runningLabel" class="island-running">
-          <StatusIndicator status="running" size="s" pulse />
-          {{ runningLabel }}
-        </span>
-
-        <TabsTrigger
-          v-for="view in PANE_VIEWS"
-          :key="view"
-          :value="view"
-          class="island-tab"
-          :data-current="view === current || undefined"
-        >
-          {{ t(`views.${view}`) }}
-        </TabsTrigger>
-
-        <span class="island-position" aria-hidden="true">
-          {{
-            t("views.position", {
-              index: PANE_VIEWS.indexOf(current) + 1,
-              total: PANE_VIEWS.length,
-            })
-          }}
-        </span>
-      </TabsList>
-    </TabsRoot>
-
-    <Transition name="island-alert">
-      <div v-if="waiting" key="waiting" class="island-alert" role="status">
-        <StatusIndicator status="waiting" size="s" pulse />
-
-        <span class="island-alert-text">
-          <span class="island-alert-title">{{ waiting.header }}</span>
-          <span class="island-alert-body">{{ waiting.message || waiting.question }}</span>
-        </span>
-
-        <template v-if="confirming">
-          <Button size="s" variant="secondary" @click="board.pick(0)">
-            {{ t("extensionUi.deny") }}
-          </Button>
-
-          <Button size="s" @click="board.pick(1)">{{ t("extensionUi.allow") }}</Button>
-        </template>
-
-        <Button v-else size="s" variant="secondary" @click="backToChat">
-          {{ t("extensionUi.answer") }}
-        </Button>
-      </div>
-
-      <div
-        v-else-if="alert"
-        :key="alertSeq"
-        class="island-alert"
-        role="status"
-        @pointerenter="holdAlert(true)"
-        @pointerleave="holdAlert(false)"
+  <span class="view-island" :style="{ inlineSize: `${slotWidth}px` }">
+    <span
+      class="island"
+      data-island
+      :data-face="face"
+      :style="{ inlineSize: `${size.width}px`, blockSize: `${size.height}px` }"
+      @pointerenter="hovered = true"
+      @pointerleave="hovered = false"
+      @focusin="focused = true"
+      @focusout="focused = false"
+    >
+      <span
+        ref="compact"
+        class="island-face island-compact"
+        :data-off="face !== 'compact' || undefined"
+        aria-hidden="true"
       >
-        <StatusIndicator :status="alert.tone === 'info' ? 'running' : alert.tone" size="s" />
+        <StatusIndicator
+          v-if="runningLabel"
+          class="island-running"
+          status="running"
+          size="s"
+          pulse
+        />
 
-        <span class="island-alert-text">
-          <span class="island-alert-title">{{ alert.title }}</span>
-          <span v-if="alert.body" class="island-alert-body">{{ alert.body }}</span>
+        <span>{{ t(`views.${current}`) }}</span>
+        <span class="island-meta">{{ runningLabel || position }}</span>
+      </span>
+
+      <span
+        ref="tabs"
+        class="island-face"
+        :data-off="face !== 'tabs' || undefined"
+        :inert="face === 'alert' || undefined"
+      >
+        <Tabs :value="current" @update:value="show">
+          <TabsList class="island-tab-list" :aria-label="t('views.label')">
+            <TabsTab v-for="view in PANE_VIEWS" :key="view" :value="view" class="island-tab">
+              {{ t(`views.${view}`) }}
+            </TabsTab>
+
+            <TabsIndicator class="island-indicator" />
+          </TabsList>
+        </Tabs>
+      </span>
+
+      <Transition name="island-alert">
+        <span
+          v-if="waiting || alert"
+          ref="card"
+          :key="waiting ? 'waiting' : alertSeq"
+          class="island-face island-alert"
+          role="status"
+          @pointerenter="holdAlert(true)"
+          @pointerleave="holdAlert(false)"
+        >
+          <template v-if="waiting">
+            <span class="island-alert-top">
+              <StatusIndicator status="waiting" size="s" pulse />
+              <span class="island-alert-title">{{ waiting.header }}</span>
+            </span>
+
+            <span class="island-alert-body">{{ waiting.message || waiting.question }}</span>
+
+            <span class="island-alert-actions">
+              <template v-if="confirming">
+                <Button size="s" variant="ghost" color="neutral" @click="board.pick(0)">
+                  {{ t("extensionUi.deny") }}
+                </Button>
+
+                <Button size="s" @click="board.pick(1)">{{ t("extensionUi.allow") }}</Button>
+              </template>
+
+              <Button v-else size="s" @click="backToChat">{{ t("extensionUi.answer") }}</Button>
+            </span>
+          </template>
+
+          <template v-else-if="alert">
+            <span class="island-alert-top">
+              <StatusIndicator :status="alert.tone === 'info' ? 'running' : alert.tone" size="s" />
+              <span class="island-alert-title">{{ alert.title }}</span>
+
+              <span v-if="more" class="island-alert-more">
+                {{ t("views.more", { count: more }) }}
+              </span>
+            </span>
+
+            <span v-if="alert.body" class="island-alert-body">{{ alert.body }}</span>
+
+            <span v-if="current !== 'chat'" class="island-alert-actions">
+              <Button size="s" variant="secondary" @click="backToChat">
+                {{ t("views.backToChat") }}
+              </Button>
+            </span>
+          </template>
         </span>
-
-        <span v-if="more" class="island-alert-more">{{ t("views.more", { count: more }) }}</span>
-
-        <Button v-if="current !== 'chat'" size="s" variant="secondary" @click="backToChat">
-          {{ t("views.backToChat") }}
-        </Button>
-      </div>
-    </Transition>
+      </Transition>
+    </span>
   </span>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, shallowRef, watch } from "vue"
-import { useIntervalFn } from "@vueuse/core"
+import { computed, onBeforeUnmount, shallowRef, useTemplateRef, watch } from "vue"
+import { useElementSize, useIntervalFn } from "@vueuse/core"
+import { Tabs, TabsIndicator, TabsList, TabsTab } from "@ui-sdk/vue/tabs"
 import { useI18n } from "@i18n/index.js"
 import { Button } from "@pig/ui/button"
 import { StatusIndicator } from "@pig/ui/status-indicator"
-import { TabsList, TabsRoot, TabsTrigger } from "@pig/ui/tabs"
 import { useSession } from "@features/session/index.js"
 import { useExtensionUi } from "@features/extension-ui/index.js"
 import { useQuestionBoard } from "@features/extension-ui/hooks/use-question-board.js"
@@ -105,9 +124,13 @@ const { t } = useI18n()
 const side = usePaneSide()
 const split = useSplitView()
 const current = computed(() => split.view(side))
+const position = computed(() =>
+  t("views.position", { index: PANE_VIEWS.indexOf(current.value) + 1, total: PANE_VIEWS.length }),
+)
 const hovered = shallowRef(false)
+const focused = shallowRef(false)
 const peeking = shallowRef(false)
-const expanded = computed(() => hovered.value || peeking.value)
+const expanded = computed(() => hovered.value || focused.value || peeking.value)
 let timer: ReturnType<typeof setTimeout> | undefined
 
 watch(current, () => {
@@ -176,6 +199,25 @@ watch(current, (view) => {
   if (view === "chat") split.alerts.clear(side)
 })
 
+const face = computed(() =>
+  waiting.value || alert.value ? "alert" : expanded.value ? "tabs" : "compact",
+)
+const box = { box: "border-box" } as const
+const sizes = {
+  compact: useElementSize(useTemplateRef<HTMLElement>("compact"), undefined, box),
+  tabs: useElementSize(useTemplateRef<HTMLElement>("tabs"), undefined, box),
+  alert: useElementSize(useTemplateRef<HTMLElement>("card"), undefined, box),
+}
+const size = computed(() => {
+  const active = sizes[face.value]
+  return { width: active.width.value, height: active.height.value }
+})
+const slotWidth = shallowRef(0)
+
+watch(size, (next) => {
+  if (face.value !== "alert") slotWidth.value = next.width
+})
+
 function backToChat() {
   split.showView(side, "chat")
 }
@@ -185,7 +227,7 @@ onBeforeUnmount(() => {
   clearTimeout(alertTimer)
 })
 
-function show(view: string) {
+function show(view: string | null) {
   const next = PANE_VIEWS.find((item) => item === view)
 
   if (next) split.showView(side, next satisfies PaneView)
@@ -195,59 +237,141 @@ function show(view: string) {
 <style scoped>
 .view-island {
   position: relative;
-  display: inline-flex;
+  display: block;
   justify-self: center;
+  block-size: var(--control-md);
+  transition: inline-size var(--duration-slow) var(--ease-spring);
 }
 
-.island-running {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2xs);
-  padding-inline: var(--space-xs) var(--space-2xs);
-  color: var(--fg-secondary);
-  font-size: var(--text-meta);
-  font-variant-numeric: tabular-nums;
-}
-
-.island-alert {
+.island {
   position: absolute;
   inset-block-start: 0;
   inset-inline-start: 50%;
   z-index: var(--z-overlay);
+  overflow: hidden;
+  translate: -50% 0;
+  border-radius: var(--radius-pill);
+  corner-shape: round;
+  background-color: var(--bg-surface);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-subtle);
+  transition:
+    inline-size var(--duration-slow) var(--ease-spring),
+    block-size var(--duration-slow) var(--ease-spring),
+    border-radius var(--duration-slow) var(--ease-spring),
+    box-shadow var(--duration-normal) var(--ease-out);
+}
+
+.island[data-face="alert"] {
+  border-radius: var(--radius-card);
+  box-shadow: var(--float-shadow);
+}
+
+.island-face {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  inline-size: max-content;
+  transition:
+    opacity var(--duration-normal) var(--ease-out),
+    filter var(--duration-normal) var(--ease-out),
+    scale var(--duration-slow) var(--ease-spring);
+}
+
+.island-face[data-off] {
+  opacity: 0;
+  filter: blur(4px);
+  scale: 0.96;
+  pointer-events: none;
+}
+
+.island-compact {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  min-inline-size: 280px;
-  max-inline-size: min(420px, 80vw);
-  padding: var(--space-xs) var(--space-xs) var(--space-xs) var(--space-sm);
-  translate: -50% 0;
-  border-radius: var(--radius-card);
-  corner-shape: round;
-  background-color: var(--float-bg);
-  box-shadow: var(--float-shadow);
-  backdrop-filter: var(--glass-filter);
+  block-size: var(--control-md);
+  padding-inline: var(--space-md);
+  color: var(--fg);
+  font-size: var(--text-body);
+  white-space: nowrap;
 }
 
-.island-alert-text {
+.island-meta {
+  color: var(--fg-muted);
+  font-size: var(--text-meta);
+  font-variant-numeric: tabular-nums;
+}
+
+.island-tab-list {
+  position: relative;
   display: flex;
-  flex: 1;
-  flex-direction: column;
+  padding: var(--space-2xs);
+}
+
+.island-tab {
+  position: relative;
+  z-index: var(--z-raise);
+  display: flex;
+  align-items: center;
+  block-size: calc(var(--control-md) - 2 * var(--space-2xs));
+  padding-inline: var(--space-sm);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--fg-secondary);
+  font: inherit;
+  font-size: var(--text-body);
+  white-space: nowrap;
+  cursor: pointer;
+  outline: none;
+  transition: color var(--duration-normal) var(--ease-out);
+}
+
+.island-tab:is(:hover, [data-active]) {
+  color: var(--fg);
+}
+
+.island-tab:focus-visible {
+  box-shadow: inset var(--focus-ring);
+}
+
+.island-indicator {
+  position: absolute;
+  inset-block: var(--space-2xs);
+  inset-inline-start: 0;
+  inline-size: var(--active-tab-width);
+  transform: translateX(var(--active-tab-left));
+  border-radius: var(--radius-pill);
+  background-color: var(--bg-selected);
+  transition-property: transform, inline-size;
+  transition-duration: var(--duration-slow);
+  transition-timing-function: var(--ease-spring);
+}
+
+.island-indicator[data-activation-direction="none"] {
+  transition: none;
+}
+
+.island-alert {
+  display: grid;
+  gap: var(--space-2xs);
+  min-inline-size: 280px;
+  max-inline-size: min(420px, 80vw);
+  padding: var(--space-sm) var(--space-sm) var(--space-sm) var(--space-md);
+}
+
+.island-alert-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
   min-inline-size: 0;
 }
 
 .island-alert-title {
+  flex: 1;
   overflow: hidden;
   color: var(--fg);
   font-size: var(--text-body);
-  font-weight: var(--font-weight-medium);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.island-alert-body {
-  overflow: hidden;
-  color: var(--fg-secondary);
-  font-size: var(--text-meta);
+  font-weight: var(--font-weight-semibold);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -258,51 +382,38 @@ function show(view: string) {
   font-size: var(--text-meta);
 }
 
+.island-alert-body {
+  color: var(--fg-secondary);
+  font-size: var(--text-meta);
+}
+
+.island-alert-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-xs);
+  margin-block-start: var(--space-2xs);
+}
+
 .island-alert-enter-active,
 .island-alert-leave-active {
   transition:
     opacity var(--duration-normal) var(--ease-out),
-    scale var(--duration-normal) var(--ease-spring);
+    filter var(--duration-normal) var(--ease-out),
+    scale var(--duration-slow) var(--ease-spring);
 }
 
 .island-alert-enter-from,
 .island-alert-leave-to {
   opacity: 0;
-  scale: 0.9;
-}
-
-.island-tab:not([data-current]) {
-  max-inline-size: 0;
-  padding-inline: 0;
-  overflow: hidden;
-  opacity: 0;
-  transition:
-    max-inline-size var(--duration-normal) var(--ease-spring),
-    padding var(--duration-normal) var(--ease-spring),
-    opacity var(--duration-fast) var(--ease-out);
-}
-
-.view-island:is([data-expanded], :focus-within) .island-tab:not([data-current]) {
-  max-inline-size: 8em;
-  padding-inline: var(--space-xs);
-  opacity: 1;
-}
-
-.island-position {
-  display: flex;
-  align-items: center;
-  padding-inline: var(--space-2xs) var(--space-xs);
-  color: var(--fg-muted);
-  font-size: var(--text-meta);
-  font-variant-numeric: tabular-nums;
-}
-
-.view-island:is([data-expanded], :focus-within) .island-position {
-  display: none;
+  filter: blur(4px);
+  scale: 0.96;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .island-tab:not([data-current]),
+  .view-island,
+  .island,
+  .island-face,
+  .island-indicator,
   .island-alert-enter-active,
   .island-alert-leave-active {
     transition: none;
