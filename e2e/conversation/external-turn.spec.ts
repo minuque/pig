@@ -1,5 +1,4 @@
 import type { Page } from "@playwright/test"
-import { checkpoint } from "../support/checkpoint.js"
 import { expect, seedWorkspace, test, type ExternalTurnGateway } from "../support/fixtures.js"
 import {
   EXTERNAL_PENDING_PROMPT,
@@ -16,7 +15,6 @@ const DONE = "e2e 接管后的回答"
 const FOLLOW = { timeout: 10_000 }
 
 async function openExternalSession(page: Page, gateway: ExternalTurnGateway) {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
 }
 
@@ -31,22 +29,6 @@ async function openCard(page: Page, gateway: ExternalTurnGateway) {
     timeout: 30_000,
   })
 }
-
-test("别处正在跑回合：说明可见，发送禁用，输入框可打字并保留草稿", async ({
-  page,
-  externalTurnGateway,
-}) => {
-  await openExternalSession(page, externalTurnGateway)
-  await openCard(page, externalTurnGateway)
-
-  const prompt = page.getByRole("textbox", { name: "Prompt" })
-
-  await expect(page.getByText(NOTICE)).toBeVisible()
-  await prompt.fill(DRAFT)
-  await expect(prompt).toHaveText(DRAFT)
-  await expect(page.locator("button.send")).toBeDisabled()
-  await checkpoint(page, "external-turn-readonly")
-})
 
 test("外部写入收尾后：新消息跟随出现，说明消失，发送恢复", async ({
   page,

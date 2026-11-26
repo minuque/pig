@@ -41,7 +41,7 @@ provide(
   computed(() => ({
     size: props.size,
     variant: props.variant,
-    color: props.color,
+    color: props.color ?? "accent",
   })),
 )
 </script>

@@ -227,9 +227,13 @@ html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]
 .nav-toolbar {
   display: flex;
   align-items: stretch;
+  block-size: var(--control-md);
+  overflow: hidden;
   margin-inline: var(--nav-inline);
+  border: var(--border-width) solid var(--control-border);
   border-radius: var(--radius-control);
   background-color: var(--control-bg);
+  background-clip: padding-box;
   box-shadow: var(--control-shadow);
 }
 
@@ -253,9 +257,10 @@ html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]
   background-color: var(--border-subtle);
 }
 
-.nav-search {
+.nav-search[data-button] {
   box-sizing: border-box;
   flex: 1;
+  block-size: auto;
   justify-content: flex-start;
   gap: var(--space-xs);
   min-width: 0;

@@ -10,7 +10,7 @@
             variant="solid"
             radius="full"
             :color="mode === 'stop' ? 'danger' : 'accent'"
-            class="send press-scale"
+            class="send"
             :aria-label="label"
             :aria-keyshortcuts="mode === 'stop' ? 'Escape' : 'Enter'"
             :disabled="disabled"
@@ -41,7 +41,7 @@
             variant="solid"
             radius="full"
             color="danger"
-            class="send press-scale"
+            class="send"
             :aria-label="t('composer.stopTurn')"
             @mousedown.prevent
             @click="emit('abort')"

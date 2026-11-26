@@ -6,18 +6,17 @@ import { useSessionMarkers } from "@features/session-nav/hooks/use-session-marke
 const meta = (id: string, updatedAt: number) =>
   ({ id, cwd: "/w", createdAt: 1, updatedAt }) as unknown as SessionMetadata
 
-describe("分屏时的未读标记", () => {
-  it("两侧开着的会话都算已读，更新后也不冒未读点", () => {
+describe("单会话未读标记", () => {
+  it("当前打开的会话算已读，未打开的会话更新后出现未读点", () => {
     const later = Date.now() + 60_000
-    const sessions = shallowRef([meta("a", later), meta("b", later), meta("c", later)])
+    const sessions = shallowRef([meta("a", later), meta("b", later)])
     const scope = effectScope()
-    const markers = scope.run(() => useSessionMarkers(sessions, () => ["a", "b"]))!
+    const markers = scope.run(() => useSessionMarkers(sessions, () => "a"))!
 
-    sessions.value = [meta("a", later + 1), meta("b", later + 1), meta("c", later + 1)]
+    sessions.value = [meta("a", later + 1), meta("b", later + 1)]
 
     expect(markers.isUnread(sessions.value[0]!)).toBe(false)
-    expect(markers.isUnread(sessions.value[1]!)).toBe(false)
-    expect(markers.isUnread(sessions.value[2]!)).toBe(true)
+    expect(markers.isUnread(sessions.value[1]!)).toBe(true)
     scope.stop()
   })
 })

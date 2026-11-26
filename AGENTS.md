@@ -9,6 +9,7 @@
 - 用 ui-sdk 前，装了 ui-sdk skill 就先按它走，并读 `node_modules/@ui-sdk/vue/docs/llms.txt`；新建组件时再按标题搜 `node_modules/@ui-sdk/vue/docs/core.md`，并读同目录的 `rendering.md`。
 - 依赖缺陷不用 `patchedDependencies`、`patch-package`、本地 vendor 补丁。
 - 单测只验证产品假设和数据路径（编排与状态转换），只测实现细节的不写；整页浏览器旅程写在 `e2e/`。
+- `e2e/` 只保留失败会破坏产品核心形态、本机资产持久化、多会话/外部协作或安全边界的端到端旅程；纯前端微交互、排版样式、控件细节、单测已覆盖的规则与历史 bug 像素级回归不进 `e2e/`；新增验证优先并入已有主干旅程，禁止拆出子集重复用例。
 - 不写恒真断言（已删除的类名、路由、属性不存在），同一用例不重复断言同一事实；删功能时连同针对它的负断言一起删。
 
 ## 文档
@@ -26,7 +27,7 @@
 
 ## 验收
 
-- 代码改动必跑 `pnpm fix:touched` → `pnpm check:touched`，它会自动跑改动映射到的 e2e（`--no-e2e` 可关）；文档改动除外。
+- 代码改动必跑 `pnpm fix:touched` → `pnpm check:touched`（只跑静态分析、类型检查与单测）；文档改动除外。运行时 E2E 在推送分支或提 PR 后由 CI 运行，需要本地复现时手动跑 `pnpm test:e2e`。
 - 只修本次引入的失败；输入未变不重跑。
 - 发版前必跑 `pnpm check:release`（唯一主动 build 的场景）。
 - 主进程改动跑 `pnpm test:electron`；看画面用 `pnpm dev:desktop`（默认 CDP 9999，`PIG_CDP=0` 关）。

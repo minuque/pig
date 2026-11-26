@@ -2,7 +2,6 @@ import { expect, seedWorkspace, test } from "../support/fixtures.js"
 import { installTurnBridge } from "../support/sim-turn.js"
 
 test("首页发首条 Prompt 建出会话，侧栏立刻多一张卡", async ({ page, gateway }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   const bridge = await installTurnBridge(page)
 
@@ -32,7 +31,6 @@ test("一个会话还在跑：回新建页侧栏仍显示工作中，新会话�
   page,
   gateway,
 }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, gateway.workspaceId)
   const bridge = await installTurnBridge(page, { holdPromptReply: true })
 

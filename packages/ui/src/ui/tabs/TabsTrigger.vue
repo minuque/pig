@@ -24,7 +24,7 @@ const variant = inject(TABS_VARIANT, ref("underline"))
   display: flex;
   align-items: center;
   gap: var(--space-2xs);
-  margin-block: var(--space-2xs);
+  margin-block: calc(var(--space-2xs) - var(--border-width));
   padding-inline: calc(var(--spacing) * 2.5);
   border-radius: var(--radius-control);
   color: var(--fg-secondary);

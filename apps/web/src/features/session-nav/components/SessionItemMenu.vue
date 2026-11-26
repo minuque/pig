@@ -1,14 +1,5 @@
 <template>
   <ContextMenuContent class="select-none">
-    <template v-if="split">
-      <ContextMenuItem @select="split.openToSide(sessionId)">
-        <Columns2Icon />
-        {{ split.split.value ? t("split.openToOther") : t("split.openToSide") }}
-      </ContextMenuItem>
-
-      <ContextMenuSeparator />
-    </template>
-
     <ContextMenuItem @select="emit('rename')">
       <PenIcon />
       {{ t("session.rename") }}
@@ -49,11 +40,9 @@
 <script setup lang="ts">
 import { useI18n } from "@i18n/index.js"
 import { ContextMenuContent, ContextMenuItem, ContextMenuSeparator } from "@pig/ui/context-menu"
-import { trySplitView } from "@features/split-view/index.js"
 import {
   ArchiveIcon,
   CircleCheckIcon,
-  Columns2Icon,
   PenIcon,
   PinIcon,
   PinOffIcon,
@@ -77,5 +66,4 @@ const emit = defineEmits<{
   delete: []
 }>()
 const { t } = useI18n()
-const split = trySplitView()
 </script>

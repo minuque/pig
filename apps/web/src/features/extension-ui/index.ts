@@ -2,7 +2,7 @@ import { inject, provide, shallowRef, watch, type InjectionKey } from "vue"
 import type { ExtensionUiDialog, ExtensionUiRequest, ExtensionUiResponse } from "@pig/protocol"
 import type { useGatewayClient } from "@client/gateway-connection.js"
 import { notify } from "@pig/ui/toast"
-import type { FocusedSession } from "@features/split-view/index.js"
+import type { SessionContext } from "@features/session/index.js"
 
 type Pending = { sessionId: string; request: ExtensionUiDialog }
 
@@ -10,7 +10,7 @@ const DIALOGS = new Set(["select", "confirm", "input", "editor"])
 const isDialog = (request: ExtensionUiRequest): request is ExtensionUiDialog =>
   DIALOGS.has(request.method)
 
-function useExtensionUiState(pi: ReturnType<typeof useGatewayClient>, session: FocusedSession) {
+function useExtensionUiState(pi: ReturnType<typeof useGatewayClient>, session: SessionContext) {
   const dialogs = shallowRef<readonly Pending[]>([])
   const statuses = shallowRef(new Map<string, ReadonlyMap<string, string>>())
   const widgets = shallowRef(new Map<string, ReadonlyMap<string, readonly string[]>>())
@@ -84,7 +84,7 @@ const key: InjectionKey<ExtensionUiContext> = Symbol("extension-ui")
 
 export function provideExtensionUi(
   pi: ReturnType<typeof useGatewayClient>,
-  session: FocusedSession,
+  session: SessionContext,
 ) {
   const state = useExtensionUiState(pi, session)
   provide(key, state)

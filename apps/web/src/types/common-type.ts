@@ -57,5 +57,4 @@ export type {
   UserRailSection,
   UserThemeMode,
   UserTranscriptItem,
-  UserWelcomeField,
 } from "@pig/protocol"

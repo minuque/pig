@@ -193,6 +193,7 @@ function onPrimaryAction(): void {
   height: 60px;
   padding-inline: var(--space-md);
   background-color: var(--card-surface);
+  background-clip: padding-box;
   border-inline: var(--border-width) solid var(--border);
   transition: background-color var(--duration-fast) var(--ease-out);
 }

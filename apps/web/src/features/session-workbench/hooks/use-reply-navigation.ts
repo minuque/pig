@@ -1,6 +1,5 @@
 import { provide, shallowRef, watch, type Ref } from "vue"
 import { useRouter } from "vue-router"
-import { trySplitView, usePaneSide } from "@features/split-view/index.js"
 import {
   navigateReplyKey,
   quoteReplyKey,
@@ -16,8 +15,6 @@ export interface UseReplyNavigationOptions {
 
 export function useReplyNavigation(options: UseReplyNavigationOptions) {
   const router = useRouter()
-  const split = trySplitView()
-  const side = usePaneSide()
   const pendingJump = shallowRef<ReplyJumpTarget | null>(null)
   let jumpSeq = 0
 
@@ -28,8 +25,7 @@ export function useReplyNavigation(options: UseReplyNavigationOptions) {
 
     if (target.sessionId === options.sessionId.value) return
 
-    if (split) split.showIn(side, target.sessionId)
-    else void router.push({ name: "session", params: { sessionId: target.sessionId } })
+    void router.push({ name: "session", params: { sessionId: target.sessionId } })
   }
 
   function onJumpSettled(seq: number) {

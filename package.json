@@ -17,12 +17,13 @@
     "start:web": "pnpm build:web && tsx --tsconfig packages/gateway/tsconfig.json packages/gateway/src/cli.ts apps/web/dist",
     "start:desktop": "pnpm build:web && pnpm --filter @pig/desktop start",
     "release:win": "node scripts/release-win.mjs",
-    "test": "pnpm -r --if-present test && node --test \"scripts/**/*.test.mjs\"",
+    "test": "vitest run && node --test \"scripts/**/*.test.mjs\"",
+    "test:platform": "vitest run --project @pig/gateway --project @pig/environment --project @pig/extensions --project @pig/desktop && node --test \"scripts/**/*.test.mjs\"",
     "test:e2e": "playwright test -c e2e/playwright.config.ts",
     "test:electron": "playwright test -c e2e/electron/playwright.config.ts",
     "test:bench": "tsx --tsconfig e2e/tsconfig.json e2e/perf/run.ts",
     "typecheck": "tsc --noEmit -p scripts/tsconfig.json && tsc --noEmit -p e2e/tsconfig.json && pnpm -r --if-present typecheck",
-    "fix": "prettier --write . && eslint . --fix && stylelint \"**/*.{css,vue}\" --fix",
+    "fix": "prettier --write . && oxlint --fix . && stylelint \"**/*.{css,vue}\" --fix",
     "fix:touched": "node scripts/check/check.mjs --touched --fix",
     "check": "node scripts/check/check.mjs",
     "check:touched": "node scripts/check/check.mjs --touched",
@@ -32,39 +33,35 @@
     "prepare": "husky"
   },
   "devDependencies": {
-    "@earendil-works/pi-coding-agent": "1.5.0",
-    "@eslint/js": "10.0.1",
+    "@earendil-works/pi-coding-agent": "1.6.0",
     "@pig/protocol": "workspace:*",
     "@playwright/test": "1.63.0",
-    "@stylistic/eslint-plugin": "5.10.0",
     "@types/node": "24.13.3",
-    "eslint": "10.10.0",
-    "eslint-config-prettier": "10.1.8",
-    "eslint-plugin-vue": "10.11.0",
-    "globals": "17.12.0",
     "husky": "9.1.7",
     "lint-staged": "17.5.1",
+    "oxlint": "1.95.0",
     "postcss-html": "2.0.0",
     "prettier": "3.9.6",
     "stylelint": "17.15.0",
     "tsx": "4.23.13",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.70.0",
     "vitest": "5.0.5"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs,cjs,mts,cts}": [
       "prettier --write",
-      "eslint --cache --fix"
+      "oxlint --fix",
+      "node scripts/check/no-comments.mjs"
     ],
     "*.vue": [
       "prettier --write",
-      "eslint --cache --fix",
-      "stylelint --fix"
+      "oxlint --fix",
+      "node scripts/check/no-comments.mjs",
+      "stylelint --cache --cache-location node_modules/.cache/stylelint/cache --fix"
     ],
     "*.css": [
       "prettier --write",
-      "stylelint --fix"
+      "stylelint --cache --cache-location node_modules/.cache/stylelint/cache --fix"
     ],
     "*.{json,jsonc,html,md,yml,yaml}": "prettier --write"
   }

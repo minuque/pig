@@ -56,7 +56,7 @@
           />
         </Field>
 
-        <div class="field">
+        <Field class="field">
           <FieldLabel class="field-label">
             {{ t("settings.models.apiType") }}
             <span class="required">*</span>
@@ -75,7 +75,7 @@
               </SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </Field>
 
         <Field class="field span-2">
           <FieldLabel class="field-label">{{ t("settings.models.apiKey") }}</FieldLabel>
@@ -88,10 +88,11 @@
             autocomplete="off"
             :placeholder="keyPlaceholder"
           />
+
+          <FieldDescription>{{ t("settings.models.apiKeyHint") }}</FieldDescription>
         </Field>
       </div>
 
-      <p class="hint">{{ t("settings.models.apiKeyHint") }}</p>
       <p v-if="errorField" class="error">{{ t("settings.models.required") }}</p>
       <p v-if="actionError" class="error">{{ actionError }}</p>
     </section>
@@ -175,7 +176,7 @@ import {
 import { Button } from "@pig/ui/button"
 import { Badge } from "@pig/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
-import { Field, FieldLabel } from "@pig/ui/field"
+import { Field, FieldDescription, FieldLabel } from "@pig/ui/field"
 import { TextFieldRoot } from "@pig/ui/text-field"
 import VendorMark from "@components/icons/VendorMark.vue"
 import CustomModelCard from "@features/settings/components/models/CustomModelCard.vue"
@@ -384,13 +385,6 @@ async function remove() {
 
 .api-select {
   width: 100%;
-}
-
-.hint {
-  margin: var(--space-xs) 0 0;
-  color: var(--fg-secondary);
-  font-size: var(--text-meta);
-  line-height: 1.4;
 }
 
 .error {

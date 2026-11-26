@@ -20,13 +20,11 @@ function readEpoch(): number {
 
 export function useSessionMarkers(
   sessions: MaybeRefOrGetter<readonly SessionMetadata[]>,
-  activeSessionId: MaybeRefOrGetter<string | undefined | readonly (string | undefined)[]>,
+  activeSessionId: MaybeRefOrGetter<string | undefined>,
 ) {
   const shownIds = () => {
     const value = toValue(activeSessionId)
-    return (Array.isArray(value) ? value : [value]).filter(
-      (id): id is string => typeof id === "string",
-    )
+    return value ? [value] : []
   }
   const pinnedIdList = shallowRef(readStringArray(PINNED_KEY))
   const settledIdList = shallowRef(readStringArray(SETTLED_KEY))

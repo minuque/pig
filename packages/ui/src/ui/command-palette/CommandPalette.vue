@@ -45,7 +45,7 @@ const labels = useUiLabels()
 </script>
 
 <style>
-[data-command-palette] {
+:where([data-command-palette]) {
   position: fixed;
   inset-block: max(10vh, var(--space-md)) auto;
   inset-inline: var(--space-md);
@@ -86,9 +86,9 @@ const labels = useUiLabels()
   gap: var(--space-2xs);
 }
 
-[data-slot="command-palette-hint"] > [data-slot="kbd"] {
-  min-width: 20px;
-  height: 20px;
+:where([data-slot="command-palette-hint"] > [data-slot="kbd"]) {
+  min-width: var(--control-2xs);
+  height: var(--control-2xs);
   padding-inline: var(--space-2xs);
   border-radius: var(--radius-min);
   background: var(--glass-kbd-bg);
@@ -99,7 +99,7 @@ const labels = useUiLabels()
   font-weight: var(--font-weight-medium);
 }
 
-[data-slot="command-palette-hint"] > [data-slot="kbd"] svg {
+:where([data-slot="command-palette-hint"] > [data-slot="kbd"] svg) {
   width: var(--icon-sm);
   height: var(--icon-sm);
 }

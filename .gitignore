@@ -165,6 +165,7 @@ test-results/
 !.agents/skills/delete-comment/
 .ryugi/
 .diagram-design/
+.show-me/
 skills-lock.json
 sessions.jsonl
 

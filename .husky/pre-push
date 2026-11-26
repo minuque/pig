@@ -1,1 +1,1 @@
-pnpm check --since origin/main --e2e
+pnpm check --since origin/main

@@ -65,8 +65,10 @@ defineExpose({ focus: () => input.value?.$el.focus() })
   display: flex;
   align-items: stretch;
   height: var(--control-md);
-  padding: var(--border-width);
+  padding: 0;
+  border: var(--border-width) solid transparent;
   border-radius: var(--radius-control);
+  background-clip: padding-box;
   font-family: var(--font-sans);
   font-weight: var(--font-weight-normal);
   font-style: normal;
@@ -160,8 +162,6 @@ defineExpose({ focus: () => input.value?.$el.focus() })
 
 :where([data-slot="text-field-slot"]:not([data-side="right"])) {
   order: -1;
-  margin-inline-start: calc(var(--border-width) * -1);
-  margin-inline-end: 0;
 }
 
 :where([data-slot="text-field-slot"][data-side="right"]),
@@ -170,14 +170,11 @@ defineExpose({ focus: () => input.value?.$el.focus() })
     ~ [data-slot="text-field-slot"]:not([data-side="left"])
 ) {
   order: 0;
-  margin-inline-start: 0;
-  margin-inline-end: calc(var(--border-width) * -1);
 }
 
 :where([data-text-field][data-variant="surface"]) {
-  background-clip: content-box;
+  border-color: var(--control-border);
   background-color: var(--control-bg);
-  box-shadow: inset 0 0 0 var(--border-width) var(--border-input);
   color: var(--fg);
 }
 
@@ -188,8 +185,8 @@ defineExpose({ focus: () => input.value?.$el.focus() })
 :where([data-text-field][data-variant="surface"]):has(
   [data-text-field-input]:where(:disabled, :read-only)
 ) {
+  border-color: var(--border-strong);
   background-image: linear-gradient(var(--bg-muted), var(--bg-muted));
-  box-shadow: inset 0 0 0 var(--border-width) var(--border-strong);
 }
 
 :where([data-text-field][data-variant="soft"]) {
@@ -223,7 +220,7 @@ defineExpose({ focus: () => input.value?.$el.focus() })
 }
 
 :where([data-text-field][data-invalid]) {
-  box-shadow: inset 0 0 0 var(--border-width) var(--danger-text);
+  border-color: var(--danger-text);
 }
 
 :where([data-text-field][data-invalid]:has([data-text-field-input]:focus)) {

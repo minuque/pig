@@ -204,4 +204,37 @@ describe("一轮工作：流式视口跟随", () => {
     expect(follow.atBottom.value).toBe(false)
     expect(follow.visuallyAtBottom.value).toBe(true)
   })
+
+  it("scrollHeight 未变化时 DOM 属性变化不抢滚动，真正长高后才贴底", () => {
+    let callback: MutationCallback | undefined
+    const observe = vi.fn()
+    const disconnect = vi.fn()
+
+    vi.stubGlobal(
+      "MutationObserver",
+      class {
+        observe = observe
+        disconnect = disconnect
+
+        constructor(fn: MutationCallback) {
+          callback = fn
+        }
+      },
+    )
+
+    const { root, follow } = fixture()
+
+    follow.observeGrowth({} as HTMLElement)
+    expect(observe).toHaveBeenCalledTimes(1)
+
+    root.scrollTop = 580
+    expect(follow.atBottom.value).toBe(true)
+
+    callback?.([], {} as MutationObserver)
+    expect(root.scrollTop).toBe(580)
+
+    root.scrollHeight += 40
+    callback?.([], {} as MutationObserver)
+    expect(root.scrollTop).toBe(640)
+  })
 })

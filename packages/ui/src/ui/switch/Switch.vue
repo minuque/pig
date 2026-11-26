@@ -2,7 +2,7 @@
   <SwitchRoot
     v-bind="modelValue === undefined ? {} : { checked: modelValue }"
     :disabled="disabled"
-    :data-tone="color"
+    :data-tone="color ?? 'accent'"
     :data-size="size"
     :class="props.class"
     @checked-change="(next: boolean) => emit('update:modelValue', next)"

@@ -1,9 +1,6 @@
 <template>
-  <header
-    class="workbench-header"
-    :class="{ 'is-leftmost': leftmost, 'is-rightmost': rightmost, 'is-dimmed': dimmed }"
-  >
-    <Tooltip v-if="leftmost">
+  <header class="workbench-header">
+    <Tooltip>
       <TooltipTrigger>
         <template #render="{ props: part }">
           <IconButton
@@ -128,48 +125,6 @@
       <TooltipContent>{{ t("files.toggle") }}</TooltipContent>
     </Tooltip>
 
-    <span v-if="split.split.value" class="split-actions">
-      <Tooltip v-if="!split.fits.value">
-        <TooltipTrigger>
-          <template #render="{ props: part }">
-            <IconButton
-              v-bind="part"
-              type="button"
-              size="m"
-              color="neutral"
-              variant="ghost"
-              :aria-label="t('split.switchSide')"
-              @click="split.focusSide(side === 'left' ? 'right' : 'left')"
-            >
-              <ArrowLeftRightIcon class="size-icon-lg" />
-            </IconButton>
-          </template>
-        </TooltipTrigger>
-
-        <TooltipContent>{{ t("split.switchSide") }}</TooltipContent>
-      </Tooltip>
-
-      <Tooltip>
-        <TooltipTrigger>
-          <template #render="{ props: part }">
-            <IconButton
-              v-bind="part"
-              type="button"
-              size="m"
-              color="neutral"
-              variant="ghost"
-              :aria-label="t('split.close')"
-              @click="split.closeSide(side)"
-            >
-              <XIcon class="size-icon-lg" />
-            </IconButton>
-          </template>
-        </TooltipTrigger>
-
-        <TooltipContent>{{ t("split.close") }}</TooltipContent>
-      </Tooltip>
-    </span>
-
     <SessionItemDelete v-model:open="deleteOpen" :title="title" @confirm="confirmDelete" />
   </header>
 </template>
@@ -194,9 +149,8 @@ import { useFilePane } from "@features/file-pane/index.js"
 import { useNav } from "@features/session-nav/index.js"
 import { workspaceName } from "@features/session-nav/lib/format.js"
 import { sessionTitle, untitledSession, useSession } from "@features/session/index.js"
-import { usePaneSide, usePanelHost, useSplitView } from "@features/split-view/index.js"
+import { usePanelHost } from "@features/panel-host/index.js"
 import {
-  ArrowLeftRightIcon,
   ChevronDownIcon,
   FolderIcon,
   FolderOpenIcon,
@@ -205,19 +159,12 @@ import {
   PinIcon,
   PinOffIcon,
   TrashIcon,
-  XIcon,
 } from "@components/icons/index.js"
 
 defineProps<{ rail?: boolean }>()
 
 const { t } = useI18n()
-const side = usePaneSide()
-const split = useSplitView()
 const panels = usePanelHost()
-const sideBySide = computed(() => split.split.value && split.fits.value)
-const leftmost = computed(() => side === "left" || !sideBySide.value)
-const rightmost = computed(() => side === "right" || !sideBySide.value)
-const dimmed = computed(() => sideBySide.value && split.focused.value !== side)
 const { sbState, setSbState } = useLeftPanelToggle()
 const files = useFilePane()
 const { sessionId, projection, sessionCwd } = useSession()
@@ -345,24 +292,10 @@ function confirmDelete(): void {
   width: 100%;
   height: var(--header-height);
   min-height: var(--header-height);
-  padding: var(--space-2xs) var(--space-sm);
+  padding: var(--space-2xs) calc(var(--space-sm) + var(--titlebar-controls-inset)) var(--space-2xs)
+    var(--space-sm);
   background: transparent;
   color: var(--fg);
-}
-
-.split-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  margin-inline-start: auto;
-}
-
-.workbench-header.is-rightmost {
-  padding-inline-end: calc(var(--space-sm) + var(--titlebar-controls-inset));
-}
-
-.workbench-header.is-dimmed .crumb-title {
-  color: var(--fg-secondary);
 }
 
 .workbench-header.is-overlay {
@@ -520,7 +453,7 @@ html[data-pig-desktop-platform]
   app-region: no-drag;
 }
 
-html[data-pig-desktop-platform="darwin"] .shell.sb-offcanvas .workbench-header.is-leftmost {
+html[data-pig-desktop-platform="darwin"] .shell.sb-offcanvas .workbench-header {
   padding-inline-start: calc(var(--space-sm) + var(--traffic-lights-width));
 }
 

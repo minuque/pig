@@ -1,7 +1,7 @@
 <template>
   <RadioGroupRoot
     data-radio-cards
-    :data-tone="color"
+    :data-tone="color ?? 'accent'"
     :data-size="size"
     :data-variant="variant"
     v-bind="modelValue === undefined ? {} : { value: modelValue }"
