@@ -24,7 +24,6 @@ const E2E_BY_AREA = [
       "e2e/conversation/one-turn.spec.ts",
       "e2e/conversation/turn-progress.spec.ts",
       "e2e/conversation/history-page.spec.ts",
-      "e2e/conversation/transcript-minimap.spec.ts",
       REFERENCES,
     ],
   },

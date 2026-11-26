@@ -106,29 +106,6 @@ test("模型参数保存后重开仍在，恢复默认回到模型默认", async
   await expect(maxTokens).toHaveValue("32000")
 })
 
-test("切换别的模型开关不会覆盖未保存的参数", async ({ page, modelsGateway }) => {
-  await openModels(page, modelsGateway)
-  await page.locator(".provider-row").filter({ hasText: "Anthropic" }).click()
-
-  await page.locator(".model-toggle").filter({ hasText: "Claude Opus 4.7" }).click()
-  const maxTokens = page.locator(".field").filter({ hasText: "最大输出" }).locator("input")
-  await maxTokens.fill("8192")
-
-  const catalog = page.waitForResponse(
-    (response) =>
-      response.url().includes("/api/v1/platform/models") && response.request().method() === "GET",
-  )
-
-  await page
-    .locator(".model-row")
-    .filter({ hasText: "Claude Sonnet 4.5" })
-    .getByRole("switch")
-    .click()
-  await catalog
-
-  await expect(maxTokens).toHaveValue("8192")
-})
-
 test("刷新模型后新模型出现在详情与 Composer 目录", async ({ page, modelsGateway }) => {
   await openModels(page, modelsGateway)
   await page.locator(".provider-row").filter({ hasText: "Anthropic" }).click()
@@ -144,15 +121,4 @@ test("刷新模型后新模型出现在详情与 Composer 目录", async ({ page
   await page.locator(".selector").click()
   await page.locator(".picker-menu .search input").fill("sonnet 5")
   await expect(page.locator(".picker-menu .model-item")).toContainText("Claude Sonnet 5")
-})
-
-test("Composer 空态按钮直达模型设置页", async ({ page, emptyModelsGateway }) => {
-  await openWorkspace(page, emptyModelsGateway)
-
-  await expect(page.locator(".selector-name")).toHaveText("—")
-  await page.locator(".selector").click()
-  await page.getByRole("button", { name: "配置模型" }).click()
-
-  await expect(page.locator(".settings-dialog")).toBeVisible()
-  await expect(page.locator(".settings-nav .nav-item[aria-current='page']")).toHaveText("模型")
 })

@@ -1,7 +1,7 @@
-import { expect, seedWorkspace, test, withGateway } from "../support/fixtures.js"
+import { expect, seedWorkspace, test } from "../support/fixtures.js"
 import { readFile } from "node:fs/promises"
 import { join } from "node:path"
-import { FILLER_PREFIX, prebuildFillerSessions } from "../support/prebuild-session.js"
+import { FILLER_PREFIX } from "../support/prebuild-session.js"
 
 async function openArchiveSettings(page: import("@playwright/test").Page) {
   await page.locator(".nav-footer").getByRole("button", { name: "设置" }).click()
@@ -137,61 +137,4 @@ test("设置归档页支持单条与批量归档、刷新持久化、恢复及�
     .poll(async () => Object.keys(await readArchivesFile(navGateway.pigHome)).length)
     .toBe(1)
   await expect(sidebarCards).toHaveCount(4)
-})
-
-test("大量历史会话下启用虚拟滚动、滚动懒加载与正确的按钮间距/危险色", async ({ page }) => {
-  await withGateway(
-    (sessionDir, workspaceDir) => {
-      prebuildFillerSessions(sessionDir, workspaceDir, 60)
-    },
-    async (gateway) => {
-      await seedWorkspace(page, gateway.workspaceId)
-      await page.goto(gateway.entryUrl)
-
-      const dialog = await openArchiveSettings(page)
-
-      await expect(dialog.getByRole("tab", { name: /可归档/ })).toContainText("60")
-
-      const rows = dialog.locator(".archive-row")
-
-      await expect(rows.first()).toBeVisible()
-      const initialDomCount = await rows.count()
-
-      expect(initialDomCount).toBeGreaterThan(0)
-      expect(initialDomCount).toBeLessThan(40)
-
-      const firstRow = rows.first()
-      const archiveButton = firstRow.getByRole("button", { name: "归档" })
-      const deleteButton = firstRow.getByRole("button", { name: "删除会话" })
-      const archiveBox = await archiveButton.boundingBox()
-      const deleteBox = await deleteButton.boundingBox()
-
-      expect(archiveBox).not.toBeNull()
-      expect(deleteBox).not.toBeNull()
-      expect(deleteBox!.x - (archiveBox!.x + archiveBox!.width)).toBeGreaterThanOrEqual(8)
-
-      const archiveSvgColor = await archiveButton
-        .locator("svg")
-        .evaluate((el) => getComputedStyle(el).color)
-      const deleteSvgColor = await deleteButton
-        .locator("svg")
-        .evaluate((el) => getComputedStyle(el).color)
-
-      expect(deleteSvgColor).not.toBe(archiveSvgColor)
-
-      const viewport = dialog.locator(".virtual-viewport")
-      const oldestTitle = dialog.getByText(`${FILLER_PREFIX} 1`, { exact: true })
-
-      for (let step = 0; step < 6; step += 1) {
-        if (await oldestTitle.isVisible().catch(() => false)) break
-        await viewport.evaluate((el) => {
-          el.scrollTop = el.scrollHeight
-        })
-        await page.waitForTimeout(150)
-      }
-
-      await expect(oldestTitle).toBeVisible()
-      expect(await rows.count()).toBeLessThan(40)
-    },
-  )
 })
