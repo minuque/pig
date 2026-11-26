@@ -107,7 +107,6 @@ import {
   shouldSubmitOnKeydown,
   useComposerShortcuts,
 } from "@features/composer/hooks/use-composer-shortcuts.js"
-import { trySplitView, usePaneSide } from "@features/split-view/index.js"
 import { TriggerMenu, TriggerMenuContent, createTriggerMenuController } from "@pig/ui/trigger-menu"
 import CommandMenu from "@features/composer/components/CommandMenu.vue"
 import PromptField from "@features/composer/components/PromptField.vue"
@@ -137,9 +136,6 @@ const field = useTemplateRef("field")
 const composing = ref(false)
 const caret = ref(0)
 const inCode = ref(false)
-const split = trySplitView()
-const side = usePaneSide()
-const isPaneActive = () => !split || split.focused.value === side
 const showPlaceholder = computed(() => !prompt.value.length && !composing.value)
 const placeholderText = computed(() => props.placeholder ?? t("composer.placeholder"))
 const composer = useTemplateRef<HTMLElement>("composer")
@@ -159,7 +155,6 @@ const commandMenu = useCommandMenu({
     field.value?.replaceRange(start, triggerLength, text),
 })
 const shortcuts = useComposerShortcuts({
-  active: isPaneActive,
   menuOpen: () => menuOpen.value,
   closeMenu: () => menuController.close(),
   cancelQueueEdit: () => {

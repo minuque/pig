@@ -98,13 +98,6 @@ export const zh = {
     archiveSkippedRunning: "运行中的会话不能归档",
     reloaded: "已重新加载扩展、技能与模板",
   },
-  split: {
-    close: "关闭这一侧",
-    switchSide: "切到另一侧",
-    openToSide: "在右侧打开",
-    openToOther: "在另一侧打开",
-    dropHere: "在这一侧打开",
-  },
   nav: {
     collapseSidebar: "收起侧边栏",
     sessionActions: "会话操作",
@@ -782,13 +775,6 @@ export const en: Messages = {
     unarchiveFailed: "Couldn't restore session",
     archiveSkippedRunning: "Running sessions cannot be archived",
     reloaded: "Reloaded extensions, skills, and templates",
-  },
-  split: {
-    close: "Close this side",
-    switchSide: "Switch to the other side",
-    openToSide: "Open on the right",
-    openToOther: "Open on the other side",
-    dropHere: "Open on this side",
   },
   nav: {
     collapseSidebar: "Collapse sidebar",

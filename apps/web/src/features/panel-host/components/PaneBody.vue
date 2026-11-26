@@ -1,7 +1,7 @@
 <template>
   <div ref="root" class="pane-body">
     <Resizable orientation="horizontal" auto-save-id="pig.files.split" class="pane-body-group">
-      <ResizablePanel :id="`${side}-chat`" :min-size="`${chatMin}px`" class="pane-body-chat">
+      <ResizablePanel id="chat" :min-size="`${CHAT_MIN}px`" class="pane-body-chat">
         <slot />
       </ResizablePanel>
 
@@ -13,7 +13,7 @@
         </ResizableHandle>
 
         <ResizablePanel
-          :id="`${side}-panels`"
+          id="panels"
           :default-size="PANE_DEFAULT"
           :min-size="PANE_MIN"
           class="pane-body-column pane-enter"
@@ -34,21 +34,18 @@ import { computed, shallowRef, useTemplateRef, watch, watchEffect } from "vue"
 import { useResizeObserver } from "@vueuse/core"
 import { Resizable, ResizableHandle, ResizablePanel } from "@ui-sdk/vue/resizable"
 import { ResizeHandle } from "@pig/ui/resize-handle"
-import PanelColumn from "@features/split-view/components/PanelColumn.vue"
-import { SPLIT_CHAT_MIN } from "@features/split-view/lib/split-state.js"
-import { usePaneSide, type PanelHost } from "@features/split-view/index.js"
+import PanelColumn from "@features/panel-host/components/PanelColumn.vue"
+import type { PanelHost } from "@features/panel-host/index.js"
 
 const CHAT_MIN = 640
 const PANE_MIN_WIDTH = 320
 const PANE_MIN = `${PANE_MIN_WIDTH}px`
 const PANE_DEFAULT = "560px"
-const props = defineProps<{ host: PanelHost; split: boolean }>()
-const side = usePaneSide()
+const props = defineProps<{ host: PanelHost }>()
 const root = useTemplateRef("root")
 const width = shallowRef(Number.POSITIVE_INFINITY)
-const chatMin = computed(() => (props.split ? SPLIT_CHAT_MIN : CHAT_MIN))
 const shown = computed(() => props.host.order.value.length > 0)
-const narrow = computed(() => width.value < chatMin.value + PANE_MIN_WIDTH)
+const narrow = computed(() => width.value < CHAT_MIN + PANE_MIN_WIDTH)
 const docked = computed(() => shown.value && !narrow.value && !props.host.expanded.value)
 const covering = computed(() => shown.value && (narrow.value || props.host.expanded.value))
 

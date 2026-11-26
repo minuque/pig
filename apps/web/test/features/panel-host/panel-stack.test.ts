@@ -4,7 +4,7 @@ import {
   closePanel,
   openPanel,
   visiblePanels,
-} from "@features/split-view/lib/panel-stack.js"
+} from "@features/panel-host/lib/panel-stack.js"
 
 describe("面板列", () => {
   it("按打开顺序追加在最下面", () => {

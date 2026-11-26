@@ -13,11 +13,7 @@
           </template>
         </ResizableHandle>
 
-        <ResizablePanel
-          :id="`${side}-${kind}`"
-          :min-size="`${PANEL_MIN_HEIGHT}px`"
-          class="panel-column-slot"
-        >
+        <ResizablePanel :id="kind" :min-size="`${PANEL_MIN_HEIGHT}px`" class="panel-column-slot">
           <div :ref="(el) => mount(kind, el)" class="panel-column-mount"></div>
         </ResizablePanel>
       </template>
@@ -30,11 +26,10 @@ import { computed, useTemplateRef } from "vue"
 import { useResizeObserver } from "@vueuse/core"
 import { Resizable, ResizableHandle, ResizablePanel } from "@ui-sdk/vue/resizable"
 import { ResizeHandle } from "@pig/ui/resize-handle"
-import { PANEL_MIN_HEIGHT } from "@features/split-view/lib/panel-stack.js"
-import { usePaneSide, type PanelHost, type PanelKind } from "@features/split-view/index.js"
+import { PANEL_MIN_HEIGHT } from "@features/panel-host/lib/panel-stack.js"
+import type { PanelHost, PanelKind } from "@features/panel-host/index.js"
 
 const props = defineProps<{ host: PanelHost }>()
-const side = usePaneSide()
 const column = useTemplateRef("column")
 const layoutKey = computed(() => props.host.visible.value.join("-"))
 

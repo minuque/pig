@@ -13,7 +13,6 @@ const PACKAGE_DEPENDENTS = {
   "@pig/ui": ["@pig/web"],
 }
 const NEW_SESSION = "e2e/conversation/new-session.spec.ts"
-const SPLIT_VIEW = "e2e/workbench/split-view.spec.ts"
 const REFERENCES = "e2e/composer/composer-references.spec.ts"
 const SESSION_ACTIONS = "e2e/sidebar/session-actions.spec.ts"
 const E2E_BY_AREA = [
@@ -45,7 +44,6 @@ const E2E_BY_AREA = [
       "e2e/conversation/external-append.spec.ts",
       NEW_SESSION,
       SESSION_ACTIONS,
-      SPLIT_VIEW,
     ],
   },
   { prefix: "apps/web/src/features/session-nav/", specs: ["e2e/sidebar/"] },
@@ -57,8 +55,11 @@ const E2E_BY_AREA = [
     prefix: "apps/web/src/features/file-pane/",
     specs: ["e2e/workbench/file-pane.spec.ts", REFERENCES],
   },
-  { prefix: "apps/web/src/features/split-view/", specs: [SPLIT_VIEW, NEW_SESSION] },
-  { prefix: "apps/web/src/shell/", specs: [SPLIT_VIEW, NEW_SESSION] },
+  {
+    prefix: "apps/web/src/features/panel-host/",
+    specs: ["e2e/workbench/file-pane.spec.ts", "e2e/workbench/subagent-rail.spec.ts"],
+  },
+  { prefix: "apps/web/src/shell/", specs: [NEW_SESSION] },
   { prefix: "apps/web/src/features/settings/", specs: ["e2e/settings/"] },
   { prefix: "apps/web/src/features/startup/", specs: [NEW_SESSION, "e2e/startup/"] },
   { prefix: "apps/web/src/components/layout/", specs: [NEW_SESSION] },

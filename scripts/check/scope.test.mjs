@@ -68,7 +68,6 @@ describe("classifyTouched", () => {
       "e2e/sidebar/",
     ])
     assert.deepEqual(classifyTouched(["apps/web/src/shell/WorkbenchShell.vue"]).specs, [
-      "e2e/workbench/split-view.spec.ts",
       "e2e/conversation/new-session.spec.ts",
     ])
     assert.deepEqual(classifyTouched(["apps/web/src/features/theme/lib/palette.ts"]).specs, [

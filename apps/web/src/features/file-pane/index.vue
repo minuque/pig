@@ -9,7 +9,7 @@ import { computed, watch, watchEffect } from "vue"
 import { useSession } from "@features/session/index.js"
 import FilePanel from "@features/file-pane/components/FilePanel.vue"
 import { useFilePane } from "@features/file-pane/index.js"
-import { usePanelHost } from "@features/split-view/index.js"
+import { usePanelHost } from "@features/panel-host/index.js"
 
 const pane = useFilePane()
 const { sessionId } = useSession()

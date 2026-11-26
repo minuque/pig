@@ -184,7 +184,16 @@ function buildIgnoreMatcher() {
 
   return (relPath, entryName, isDir) => {
     if (isDir) return dirs.has(relPath) || dirs.has(entryName)
-    return names.has(relPath) || names.has(entryName)
+
+    if (names.has(relPath) || names.has(entryName)) return true
+
+    const parts = relPath.split("/")
+
+    for (let i = 0; i < parts.length - 1; i += 1) {
+      if (dirs.has(parts[i]) || dirs.has(parts.slice(0, i + 1).join("/"))) return true
+    }
+
+    return false
   }
 }
 
