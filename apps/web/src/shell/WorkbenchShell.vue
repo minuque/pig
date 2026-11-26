@@ -179,7 +179,7 @@ const archiveController: ArchiveController = {
   deleteSessions: nav.deleteSessions,
 }
 
-provideExtensionUi(pi, focused)
+provideExtensionUi(pi, focused, split)
 
 const sideBySide = computed(() => split.split.value && split.fits.value)
 const leftShown = computed(() => sideBySide.value || split.focused.value === "left")

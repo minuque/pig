@@ -53,7 +53,7 @@
   Why：状态色与常态一样，就看不出能点、已展开或已选中。
 - **显示模型名的地方，前面一律加 `VendorMark`。**
   Why：和模型选择器一致，一眼认出供应商。
-- **通知一律走 `notify()`（`@pig/ui/toast`），显示在右上角，默认叠放、悬停展开。页面上已能看到同样内容的传 `transient: true`，5 秒后消失；只有页面别处看不到的错误才常驻。**
+- **pane 正在显示的会话的事由该 pane 的灵动岛提醒（`split.alerts.route`），在 Chat 里看得到的不弹；其余走 `notify()`（`@pig/ui/toast`），右上角叠放，页面上已能看到的传 `transient: true`，只有别处看不到的错误才常驻。**
   Why：同一条报错在 toast 和页面里各留一份，常驻的 toast 只是重复。
 - 关闭按钮默认 `s`。`TextFieldRoot` 用 `invalid` 表达错误态。
 - 设置行 = 标题 + 一行说明 + 控件。项目缩写用灰色 soft Badge。

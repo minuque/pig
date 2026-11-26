@@ -147,6 +147,8 @@ import { useWelcomeWorkspace } from "@features/session-workbench/hooks/use-welco
 import TranscriptView from "@features/transcript-view/index.vue"
 import { prefetchTranscriptView, TranscriptStatus } from "@features/transcript-view/index.js"
 import { FilePlusIcon } from "@components/icons/index.js"
+import { notify } from "@pig/ui/toast"
+import { useSplitView, type PaneAlert } from "@features/split-view/index.js"
 
 onMounted(() => {
   if (typeof requestIdleCallback === "function")
@@ -156,6 +158,7 @@ onMounted(() => {
 
 const { t } = useI18n()
 const route = useRoute()
+const split = useSplitView()
 const {
   sessionId,
   transcript,
@@ -289,7 +292,22 @@ const { markAborted } = useTurnFinish({
   queue: composerQueue,
   sound,
   sendForeground: deliver,
+  announce,
 })
+
+function announce(kind: "done" | "error", message?: string) {
+  const id = sessionId.value
+
+  if (!id) return
+
+  const alert: PaneAlert =
+    kind === "done"
+      ? { kind, tone: "success", title: t("views.turnDone") }
+      : { kind, tone: "error", title: t("session.turnFailed"), body: message }
+
+  if (split.alerts.route(id, alert) === "toast")
+    notify(message || alert.title, "error", { transient: true })
+}
 
 setWelcomeHandoff((id) => {
   composerQueue.handOff(id)

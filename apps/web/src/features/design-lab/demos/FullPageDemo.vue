@@ -55,8 +55,7 @@ const buckets = provideSharedBuckets()
 provide(transcriptModelsKey, ref(PAGE_MODELS))
 
 const nav = createPageNav(session)
-
-provideSplitView(
+const split = provideSplitView(
   computed(() => session.sessionId.value),
   (id) => nav.openSession(id ?? ""),
 )
@@ -66,6 +65,7 @@ provide(navKey, nav)
 provideExtensionUi(
   { client: shallowRef() } as unknown as Parameters<typeof provideExtensionUi>[0],
   session as unknown as Parameters<typeof provideExtensionUi>[1],
+  split,
 )
 
 useComposerQueue(buckets).enqueue("跑完测试后截一张 compact 的图")

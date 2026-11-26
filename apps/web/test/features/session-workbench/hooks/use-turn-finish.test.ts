@@ -3,15 +3,13 @@ import { effectScope, nextTick, ref, shallowRef, type EffectScope } from "vue"
 import type { TranscriptItem } from "@/types/common-type.js"
 import { useComposerQueue } from "@features/composer/hooks/use-composer-queue.js"
 
-const notify = vi.fn()
+import { useTurnFinish } from "@features/session-workbench/hooks/use-turn-finish.js"
 
-vi.mock("@pig/ui/toast", () => ({ notify }))
-
-const { useTurnFinish } = await import("@features/session-workbench/hooks/use-turn-finish.js")
+const announce = vi.fn()
 const scopes: EffectScope[] = []
 
 afterEach(() => {
-  notify.mockClear()
+  announce.mockClear()
 
   for (const scope of scopes) scope.stop()
   scopes.length = 0
@@ -52,6 +50,7 @@ function setup() {
         sent.push({ id: "", text })
         return true
       },
+      announce,
     }),
   )!
 
@@ -70,6 +69,7 @@ describe("前台轮次收尾", () => {
     await nextTick()
 
     expect(ctx.sound.play).toHaveBeenCalledWith("done")
+    expect(announce).toHaveBeenCalledWith("done")
   })
 
   it("队列有货：不响完成音，泵出队首", async () => {
@@ -110,7 +110,8 @@ describe("前台轮次收尾", () => {
     await nextTick()
 
     expect(ctx.sound.play).not.toHaveBeenCalled()
-    expect(notify).toHaveBeenCalledWith(expect.any(String), "error", { transient: true })
+    expect(announce).toHaveBeenCalledWith("error", undefined)
+    expect(announce).not.toHaveBeenCalledWith("done")
   })
 
   it("用户中止的轮次不弹出错通知", async () => {
@@ -123,7 +124,7 @@ describe("前台轮次收尾", () => {
     ctx.running.value = false
     await nextTick()
 
-    expect(notify).not.toHaveBeenCalled()
+    expect(announce).not.toHaveBeenCalled()
   })
 
   it("失败路径：切会话时 running 的下降沿属于旧会话", async () => {

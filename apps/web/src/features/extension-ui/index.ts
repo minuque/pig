@@ -2,7 +2,7 @@ import { inject, provide, shallowRef, watch, type InjectionKey } from "vue"
 import type { ExtensionUiDialog, ExtensionUiRequest, ExtensionUiResponse } from "@pig/protocol"
 import type { useGatewayClient } from "@client/gateway-connection.js"
 import { notify } from "@pig/ui/toast"
-import type { FocusedSession } from "@features/split-view/index.js"
+import type { FocusedSession, SplitViewContext } from "@features/split-view/index.js"
 
 type Pending = { sessionId: string; request: ExtensionUiDialog }
 
@@ -10,7 +10,11 @@ const DIALOGS = new Set(["select", "confirm", "input", "editor"])
 const isDialog = (request: ExtensionUiRequest): request is ExtensionUiDialog =>
   DIALOGS.has(request.method)
 
-function useExtensionUiState(pi: ReturnType<typeof useGatewayClient>, session: FocusedSession) {
+function useExtensionUiState(
+  pi: ReturnType<typeof useGatewayClient>,
+  session: FocusedSession,
+  split: SplitViewContext,
+) {
   const dialogs = shallowRef<readonly Pending[]>([])
   const statuses = shallowRef(new Map<string, ReadonlyMap<string, string>>())
   const widgets = shallowRef(new Map<string, ReadonlyMap<string, readonly string[]>>())
@@ -39,7 +43,14 @@ function useExtensionUiState(pi: ReturnType<typeof useGatewayClient>, session: F
 
     switch (request.method) {
       case "notify":
-        notify(request.message, request.notifyType ?? "info")
+        if (
+          split.alerts.route(sessionId, {
+            kind: "notify",
+            tone: request.notifyType ?? "info",
+            title: request.message,
+          }) === "toast"
+        )
+          notify(request.message, request.notifyType ?? "info")
         return
       case "setStatus":
         statuses.value = patched(statuses.value, sessionId, request.statusKey, request.statusText)
@@ -85,8 +96,9 @@ const key: InjectionKey<ExtensionUiContext> = Symbol("extension-ui")
 export function provideExtensionUi(
   pi: ReturnType<typeof useGatewayClient>,
   session: FocusedSession,
+  split: SplitViewContext,
 ) {
-  const state = useExtensionUiState(pi, session)
+  const state = useExtensionUiState(pi, session, split)
   provide(key, state)
   return state
 }

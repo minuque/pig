@@ -495,6 +495,9 @@ export const zh = {
     chat: "对话",
     files: "文件",
     position: "{index}/{total}",
+    turnDone: "回复完成",
+    backToChat: "回到对话",
+    more: "还有 {count} 条",
   },
   files: {
     title: "文件",
@@ -1171,6 +1174,9 @@ export const en: Messages = {
     chat: "Chat",
     files: "Files",
     position: "{index}/{total}",
+    turnDone: "Reply finished",
+    backToChat: "Back to chat",
+    more: "{count} more",
   },
   files: {
     title: "Files",

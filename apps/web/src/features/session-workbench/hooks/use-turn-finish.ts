@@ -4,8 +4,6 @@ import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
 import type { ComposerQueueApi } from "@features/composer/hooks/use-composer-queue.js"
 import { endedCleanly } from "@features/session/index.js"
 import { notifyTurnDone } from "@features/settings/index.js"
-import { notify } from "@pig/ui/toast"
-import { t } from "@i18n/index.js"
 
 interface TurnFinishDeps {
   sessionId(): string | undefined
@@ -15,6 +13,7 @@ interface TurnFinishDeps {
   queue: ComposerQueueApi
   sound: { play(event: "done"): unknown }
   sendForeground(text: string, attachments?: ComposerAttachmentBatch): Promise<boolean>
+  announce(kind: "done" | "error", message?: string): void
 }
 
 export function useTurnFinish(deps: TurnFinishDeps) {
@@ -46,13 +45,14 @@ export function useTurnFinish(deps: TurnFinishDeps) {
     const clean = !abortedTurn && deps.queue.sizeFor(id) === 0 && endedCleanly(items)
 
     if (!abortedTurn && last?.role === "assistant" && last.status === "error")
-      notify(last.errorMessage || t("session.turnFailed"), "error", { transient: true })
+      deps.announce("error", last.errorMessage)
 
     abortedTurn = false
 
     if (clean) {
       void deps.sound.play("done")
       void notifyTurnDone()
+      deps.announce("done")
     }
 
     void pumpForeground()

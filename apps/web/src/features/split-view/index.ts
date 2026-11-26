@@ -2,6 +2,7 @@ import { computed, inject, provide, shallowRef, watch, type InjectionKey, type R
 import { readPref, writePref } from "@utils/storage.js"
 import type { SessionContext } from "@features/session/index.js"
 import { useSplitRoute } from "@features/split-view/hooks/use-split-route.js"
+import { routeAlert, type AlertRoute, type PaneAlert } from "@features/split-view/lib/pane-alert.js"
 import {
   closeSide,
   fitsSplit,
@@ -24,6 +25,10 @@ export type { PaneView, Side, SplitState } from "@features/split-view/lib/split-
 
 export { PANE_VIEWS } from "@features/split-view/lib/split-state.js"
 
+export type { PaneAlert } from "@features/split-view/lib/pane-alert.js"
+
+export { ALERT_TTL } from "@features/split-view/lib/pane-alert.js"
+
 const STORAGE_KEY = "pig.split"
 
 function createSplitView(
@@ -40,6 +45,7 @@ function createSplitView(
   useSplitRoute(state, route, go)
   return {
     state,
+    alerts: createPaneAlerts(state),
     split: computed(() => state.value.split),
     focused: computed(() => state.value.focused),
     fits: computed(() => fitsSplit(width.value)),
@@ -127,3 +133,35 @@ export function providePaneSide(side: Side) {
 export function usePaneSide(): Side {
   return inject(sideKey, "left")
 }
+
+function createPaneAlerts(state: Readonly<Ref<SplitState>>) {
+  const queues = shallowRef<Record<Side, readonly PaneAlert[]>>({ left: [], right: [] })
+  const shownSide = (id: string) => {
+    if (state.value.left === id) return "left"
+    return state.value.split && state.value.right === id ? "right" : undefined
+  }
+
+  function push(side: Side, alert: PaneAlert) {
+    queues.value = { ...queues.value, [side]: [...queues.value[side], alert] }
+  }
+
+  return {
+    current: (side: Side) => queues.value[side][0],
+    pending: (side: Side) => Math.max(0, queues.value[side].length - 1),
+    dismiss(side: Side) {
+      queues.value = { ...queues.value, [side]: queues.value[side].slice(1) }
+    },
+    clear(side: Side) {
+      queues.value = { ...queues.value, [side]: [] }
+    },
+    route(sessionId: string, alert: PaneAlert): AlertRoute {
+      const side = shownSide(sessionId)
+      const route = routeAlert(alert.kind, side && state.value.views[side])
+
+      if (side && route === "island") push(side, alert)
+      return route
+    },
+  }
+}
+
+export type PaneAlerts = ReturnType<typeof createPaneAlerts>

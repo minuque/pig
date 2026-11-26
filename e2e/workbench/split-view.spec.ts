@@ -1,5 +1,5 @@
 import { expect, seedWorkspace, test } from "../support/fixtures.js"
-import { STOP_TURN, installTurnBridge } from "../support/sim-turn.js"
+import { STOP_TURN, installTurnBridge, streamingAssistant } from "../support/sim-turn.js"
 
 test("分屏：在右侧打开会话，两侧各自发送，关闭右侧", async ({ page, navGateway }) => {
   test.setTimeout(120_000)
@@ -84,4 +84,48 @@ test("分屏：删除另一侧开着的空闲会话，那一侧回到新会话�
   await expect(right.locator("h1.hero-title")).toBeVisible()
   await expect(page.getByText("会话仍在运行，请先停止再删除。")).toHaveCount(0)
   await expect(page).toHaveURL(new RegExp(`${leftHref}$`))
+})
+
+test("在 Files 视图里回复完成：灵动岛先显示在跑，完成后弹提醒，点「回到对话」切回 Chat", async ({
+  page,
+  navGateway,
+}) => {
+  test.setTimeout(120_000)
+  await page.emulateMedia({ reducedMotion: "reduce" })
+  await seedWorkspace(page, navGateway.workspaceId)
+  const bridge = await installTurnBridge(page)
+  await page.goto(navGateway.entryUrl)
+
+  const cards = page.locator(".session-card")
+  await expect(cards.first()).toBeVisible({ timeout: 30_000 })
+  await cards.first().click()
+  await page.getByRole("textbox", { name: "Prompt" }).fill("看完文件告诉我")
+  await page.locator("button.send").click()
+  const id = await bridge.waitForPrompt()
+
+  await page.keyboard.press("Control+2")
+  const island = page.locator(".view-island")
+  await expect(page.locator('.pane-view[data-view="files"]')).not.toHaveAttribute("inert")
+  await expect(island.locator(".island-running")).toBeVisible()
+
+  const snapshot = bridge.snapshots.get(id)!
+  const idle = { ...snapshot, phase: "idle" as const, revision: snapshot.revision + 1 }
+  bridge.send({
+    type: "event",
+    event: {
+      type: "session_progress",
+      sessionId: id,
+      progress: {
+        type: "item_finished",
+        item: { ...streamingAssistant(snapshot, "看完了"), status: "complete", stopReason: "stop" },
+      },
+    },
+  })
+  bridge.send({ type: "event", event: { type: "session_snapshot", snapshot: idle } })
+
+  const alert = island.locator(".island-alert")
+  await expect(alert).toContainText("回复完成")
+  await alert.getByRole("button", { name: "回到对话" }).click()
+  await expect(page.locator('.pane-view[data-view="chat"]')).not.toHaveAttribute("inert")
+  await expect(alert).toHaveCount(0)
 })
