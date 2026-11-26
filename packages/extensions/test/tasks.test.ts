@@ -1,3 +1,5 @@
+import { once } from "node:events"
+import type { WriteStream } from "node:fs"
 import { mkdtemp, readFile, rm } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
@@ -12,8 +14,11 @@ vi.mock("node:fs", async (importOriginal) => {
   const fs = await importOriginal<typeof import("node:fs")>()
   return {
     ...fs,
-    createWriteStream: (path: string, options?: unknown) =>
-      fs.createWriteStream(brokenLogPath ?? path, options as never),
+    createWriteStream: (path: string, options?: unknown) => {
+      const stream = fs.createWriteStream(brokenLogPath ?? path, options as never)
+      logStreams.push(stream)
+      return stream
+    },
   }
 })
 
@@ -28,12 +33,16 @@ type Sent = { message: { content: string; details: Task }; options: Record<strin
 
 let logDir: string
 let sessions = 0
+const logStreams: WriteStream[] = []
+const shutdowns: Array<() => void> = []
 
 beforeEach(async () => {
   logDir = await mkdtemp(join(tmpdir(), "pig-tasks-"))
 })
 
 afterEach(async () => {
+  for (const shutdown of shutdowns.splice(0)) shutdown()
+  await Promise.all(logStreams.splice(0).map((stream) => stream.closed || once(stream, "close")))
   brokenLogPath = undefined
   await rm(logDir, { recursive: true, force: true })
 })
@@ -96,6 +105,7 @@ function setup(overrides: { maxRunning?: number; logMaxBytes?: number } = {}) {
   })(pi as never)
   pi.events.on("pig:tasks", (data) => published.push((data as { tasks: Task[] }).tasks))
   void handlers.get("session_start")?.(...([{}, ctx] as never[]))
+  shutdowns.push(() => void handlers.get("session_shutdown")?.(...([{}, ctx] as never[])))
 
   const call = async (name: string, params: unknown) => {
     const result = (await tools.get(name)!.execute("call", params, undefined, undefined, ctx)) as {
