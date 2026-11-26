@@ -24,7 +24,7 @@
           pulse
         />
 
-        <span>{{ t(`views.${current}`) }}</span>
+        <component :is="VIEW_ICONS[current]" class="size-icon" />
         <span class="island-meta">{{ runningLabel || position }}</span>
       </span>
 
@@ -37,6 +37,7 @@
         <Tabs :value="current" @update:value="show">
           <TabsList class="island-tab-list" :aria-label="t('views.label')">
             <TabsTab v-for="view in PANE_VIEWS" :key="view" :value="view" class="island-tab">
+              <component :is="VIEW_ICONS[view]" class="size-icon" />
               {{ t(`views.${view}`) }}
             </TabsTab>
 
@@ -118,8 +119,13 @@ import {
   type PaneView,
 } from "@features/split-view/index.js"
 import { formatElapsed } from "@utils/time.js"
+import { FolderIcon, MessageSquareIcon } from "@components/icons/index.js"
 
 const PEEK_MS = 1200
+const VIEW_ICONS = { chat: MessageSquareIcon, files: FolderIcon } satisfies Record<
+  PaneView,
+  unknown
+>
 const { t } = useI18n()
 const side = usePaneSide()
 const split = useSplitView()
@@ -139,9 +145,15 @@ watch(current, () => {
   timer = setTimeout(() => (peeking.value = false), PEEK_MS)
 })
 
-const { turnPending } = useSession()
+const { turnPending, turnTimings } = useSession()
 const now = shallowRef(Date.now())
-const since = shallowRef<number>()
+const busySince = shallowRef<number>()
+const since = computed(() =>
+  turnPending.value
+    ? (turnTimings.value?.findLast((timing) => timing.outcome === "running")?.startedAt ??
+      busySince.value)
+    : undefined,
+)
 const tick = useIntervalFn(() => (now.value = Date.now()), 1000, { immediate: false })
 const runningLabel = computed(() =>
   since.value === undefined ? "" : formatElapsed(now.value - since.value, { showMs: false }),
@@ -151,7 +163,7 @@ watch(
   turnPending,
   (busy) => {
     now.value = Date.now()
-    since.value = busy ? now.value : undefined
+    busySince.value = busy ? now.value : undefined
 
     if (busy) tick.resume()
     else tick.pause()
@@ -289,7 +301,7 @@ function show(view: string | null) {
   align-items: center;
   gap: var(--space-xs);
   block-size: var(--control-md);
-  padding-inline: var(--space-md);
+  padding-inline: var(--space-sm);
   color: var(--fg);
   font-size: var(--text-body);
   white-space: nowrap;
@@ -312,6 +324,7 @@ function show(view: string | null) {
   z-index: var(--z-raise);
   display: flex;
   align-items: center;
+  gap: var(--space-2xs);
   block-size: calc(var(--control-md) - 2 * var(--space-2xs));
   padding-inline: var(--space-sm);
   border: 0;
