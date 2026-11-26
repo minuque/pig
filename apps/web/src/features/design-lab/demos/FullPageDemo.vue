@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, provide, ref, shallowRef } from "vue"
+import { computed, onMounted, provide, ref, shallowRef } from "vue"
 import { onBeforeRouteLeave, RouterLink } from "vue-router"
 import { ArrowLeftIcon } from "@components/icons/index.js"
 import { Button } from "@pig/ui/button"
@@ -46,6 +46,7 @@ import {
   createPageSession,
   PAGE_MODELS,
 } from "@features/design-lab/lib/page-contexts.js"
+import { PAGE_DIALOG, PAGE_SESSION_ID } from "@features/design-lab/lib/page-fixtures.js"
 
 const session = createPageSession()
 const preset = createPagePreset()
@@ -62,10 +63,16 @@ const split = provideSplitView(
 
 provide(navKey, nav)
 
-provideExtensionUi(
+const extensionUi = provideExtensionUi(
   { client: shallowRef() } as unknown as Parameters<typeof provideExtensionUi>[0],
   session as unknown as Parameters<typeof provideExtensionUi>[1],
   split,
+)
+
+extensionUi.dialogs.value = [{ sessionId: PAGE_SESSION_ID, request: PAGE_DIALOG }]
+
+onMounted(() =>
+  split.alerts.route(PAGE_SESSION_ID, { kind: "notify", tone: "info", title: "lint 规则已更新" }),
 )
 
 useComposerQueue(buckets).enqueue("跑完测试后截一张 compact 的图")
