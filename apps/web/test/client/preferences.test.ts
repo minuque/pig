@@ -10,7 +10,6 @@ vi.mock("@client/platform.js", () => api)
 
 const DEFAULTS: UserPreferences = {
   theme: "auto",
-  welcomeField: "mask",
   uiFont: "",
   codeFont: "",
   codeSize: 13,

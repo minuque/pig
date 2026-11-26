@@ -85,7 +85,7 @@ lib/             多处生产消费，或有单测的纯逻辑
 
 ### 单测
 
-`apps/web/test/` 镜像 `src/` 分层：`test/components/ui/` 对 `src/components/ui/`，`test/features/<module>/` 对 `features/<module>/`，`test/style/` 对 `style/`。根级只放 `setup.ts`。测 `src` 根文件的用例用相对路径。整页浏览器旅程不要放进本目录，写到仓库根 `e2e/`。
+`packages/ui/test/` 与 `apps/web/test/` 镜像各自 `src/` 分层：`packages/ui/test/` 测 `@pig/ui` 样式与组件，`apps/web/test/features/<module>/` 对 `features/<module>/`，`apps/web/test/style/` 对 `style/`。根级只放 `setup.ts`。测 `src` 根文件的用例用相对路径。整页浏览器旅程不要放进本目录，写到仓库根 `e2e/`。
 
 ## apps/desktop
 
@@ -139,7 +139,7 @@ SDK 跟版：
 
 浏览器 UI 旅程在仓库根 `e2e/`（Playwright，跨 Web 构建物与 Gateway），不是 `apps/web/test/` 的模块单测。`pnpm test:e2e` 写出 `playwright-report/`。
 
-按界面区域分目录：`startup/` 启动与错误页，`sidebar/` 侧栏与目录，`conversation/` 会话与回合，`composer/` 输入卡，`workbench/` 面板与分屏，`settings/` 设置页。共用的夹具与替身放 `support/`，桌面壳冒烟在 `electron/`，性能基准在 `perf/`。新用例放进它测的区域，并在 `scripts/check/scope.mjs` 登记源码前缀到用例的映射。
+按界面区域分目录：`startup/` 启动与错误页，`sidebar/` 侧栏与目录，`conversation/` 会话与回合，`composer/` 输入卡，`workbench/` 面板，`settings/` 设置页。共用的夹具与替身放 `support/`，桌面壳冒烟在 `electron/`，性能基准在 `perf/`。新用例放进它测的区域。
 
 ## scripts 与 docs
 

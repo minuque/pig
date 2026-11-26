@@ -1,10 +1,8 @@
-/// <reference types="vitest/config" />
-import { fileURLToPath, URL } from "node:url"
 import vue from "@vitejs/plugin-vue"
 import { defineConfig } from "vite"
 import { VitePWA } from "vite-plugin-pwa"
 
-import { maxWorkers } from "../../vitest.workers.mjs"
+import { webAliases } from "./vitest.shared.ts"
 
 const gatewayTarget = process.env.GATEWAY_TARGET
 const gatewayToken = process.env.GATEWAY_TOKEN
@@ -54,19 +52,7 @@ export default defineConfig({
     }),
   ],
   resolve: {
-    alias: {
-      "@pig/protocol": fileURLToPath(
-        new URL("../../packages/protocol/src/index.ts", import.meta.url),
-      ),
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
-      "@style": fileURLToPath(new URL("./src/style", import.meta.url)),
-      "@components": fileURLToPath(new URL("./src/components", import.meta.url)),
-      "@features": fileURLToPath(new URL("./src/features", import.meta.url)),
-      "@client": fileURLToPath(new URL("./src/client", import.meta.url)),
-      "@router": fileURLToPath(new URL("./src/router", import.meta.url)),
-      "@i18n": fileURLToPath(new URL("./src/i18n", import.meta.url)),
-      "@utils": fileURLToPath(new URL("./src/utils", import.meta.url)),
-    },
+    alias: webAliases,
   },
   server: {
     host: "127.0.0.1",
@@ -92,20 +78,5 @@ export default defineConfig({
           },
         }
       : {}),
-  },
-  test: {
-    maxWorkers,
-    coverage: {
-      reporter: ["text", "html"],
-    },
-    projects: [
-      {
-        extends: true,
-        test: {
-          name: "unit",
-          setupFiles: ["./test/setup.ts"],
-        },
-      },
-    ],
   },
 })

@@ -7,12 +7,9 @@ import {
   updatePreferences,
 } from "@client/preferences.js"
 
-export type WelcomeField = "mask" | "off"
-
 export { CODE_SIZES, CONTRAST_RANGE }
 
 const CODE_SIZE_DEFAULT = 13
-const welcomeField = computed(() => userPreferences.value.welcomeField)
 const uiFont = computed(() => userPreferences.value.uiFont)
 const codeFont = computed(() => userPreferences.value.codeFont)
 const codeSize = computed(() => userPreferences.value.codeSize)
@@ -42,7 +39,6 @@ function applyContrast(value: number): void {
   const entries = {
     "--contrast-base": `${Math.min(value, 100)}%`,
     "--contrast-boost": `${boost}%`,
-    "--contrast-border-boost": `${boost / 4}%`,
   }
 
   for (const [name, next] of Object.entries(entries)) {
@@ -71,14 +67,10 @@ function load(): void {
 export function useAppearancePrefs() {
   load()
   return {
-    welcomeField,
     uiFont,
     codeFont,
     codeSize,
     contrast,
-    setWelcomeField(next: WelcomeField) {
-      updatePreferences({ welcomeField: next })
-    },
     setUiFont(next: string) {
       updatePreferences({ uiFont: next })
     },

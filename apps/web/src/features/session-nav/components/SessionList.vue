@@ -79,7 +79,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onUpdated, shallowRef } from "vue"
+import { computed, onBeforeUnmount, onMounted, onUpdated, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
 import {
   TransferListsRoot,
@@ -91,6 +91,7 @@ import SessionDragGhost from "@features/session-nav/components/SessionDragGhost.
 import SessionSection from "@features/session-nav/components/SessionSection.vue"
 import { useRowSweep } from "@features/session-nav/hooks/use-row-sweep.js"
 import { useSessionDropOut } from "@features/session-nav/hooks/use-session-drop-out.js"
+import { trackHoverGate } from "@features/session-nav/lib/hover-gate.js"
 import {
   pinnedSlot,
   planDrop,
@@ -177,6 +178,14 @@ const lists = computed<TransferLists>(() =>
 const listEl = shallowRef<HTMLElement>()
 const scrolled = shallowRef(false)
 const windowEl = shallowRef<HTMLElement>()
+let stopGate: (() => void) | undefined
+
+onMounted(() => {
+  if (listEl.value) stopGate = trackHoverGate(listEl.value)
+})
+
+onBeforeUnmount(() => stopGate?.())
+
 const dropOut = useSessionDropOut({
   bounds: () => listEl.value,
   title: (id) => sessionsById.value.get(id)?.title,

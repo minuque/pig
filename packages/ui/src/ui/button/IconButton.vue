@@ -5,7 +5,7 @@
     data-icon-button
     :data-size="size"
     :data-variant="variant"
-    :data-tone="color"
+    :data-tone="tone"
     :data-radius="radius"
     :data-loading="loading || undefined"
     :disabled="disabled || loading"
@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
+import { computed, type HTMLAttributes } from "vue"
 import { Button as ButtonPrimitive } from "@ui-sdk/vue/button"
 import type { Size, ToneColor, Radius } from "../../core/types.js"
 import type { ButtonVariant } from "./index.js"
@@ -50,6 +50,7 @@ const props = withDefaults(
     class: undefined,
   },
 )
+const tone = computed(() => props.color ?? (props.variant === "solid" ? "accent" : "neutral"))
 </script>
 
 <style>

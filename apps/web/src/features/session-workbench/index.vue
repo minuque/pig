@@ -20,10 +20,6 @@
       <StartupError v-if="pageError" v-bind="pageError" />
 
       <template v-else>
-        <Transition name="welcome-field" appear>
-          <WelcomeField v-if="welcome && welcomeField !== 'off'" />
-        </Transition>
-
         <div class="session-stage">
           <Transition name="dock-hero" appear>
             <div v-if="welcome" key="hero" class="idle-hero">
@@ -134,10 +130,8 @@ import { useSound } from "@features/click-sound/index.js"
 import { useI18n } from "@i18n/index.js"
 import { sessionDropTargetAttrs, useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session/index.js"
-import { useAppearancePrefs } from "@features/settings/index.js"
 import ExternalTurnNotice from "@features/session-workbench/components/ExternalTurnNotice.vue"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
-import WelcomeField from "@features/session-workbench/components/WelcomeField.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { useComposerDock } from "@features/session-workbench/hooks/use-composer-dock.js"
 import { useComposerReserve } from "@features/session-workbench/hooks/use-composer-reserve.js"
@@ -188,7 +182,6 @@ const {
 } = useSession()
 const { catalog, preset, switchLocked } = useComposerPreset()
 const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
-const { welcomeField } = useAppearancePrefs()
 const workspaces = computed(() => groups.value.map((group) => group.canonicalPath))
 const pageError = computed(() => {
   if (connectionError.value && connected.value) {

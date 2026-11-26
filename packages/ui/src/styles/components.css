@@ -52,10 +52,6 @@
   block-size: var(--icon-lg);
 }
 
-.surface-float {
-  background-color: var(--bg-raised);
-}
-
 .glass-backdrop {
   position: fixed;
   z-index: var(--z-modal);

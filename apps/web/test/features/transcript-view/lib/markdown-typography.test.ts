@@ -27,8 +27,8 @@ describe("Markdown 排版增强", () => {
     )
     const paragraphs = findNodes(doc.nodes, "p")
 
-    expect((paragraphs[0]?.[1] as Record<string, unknown>)["lang"]).toBe("zh-Hans")
-    expect((paragraphs[1]?.[1] as Record<string, unknown>)["lang"]).toBe("en")
+    expect((paragraphs[0]?.[1] as Record<string, unknown> | undefined)?.lang).toBe("zh-Hans")
+    expect((paragraphs[1]?.[1] as Record<string, unknown> | undefined)?.lang).toBe("en")
   })
 
   it("中文 h1-h3 插入 wbr 并标 data-phrase-break，且不拆分代码、正文与英文标题", async () => {

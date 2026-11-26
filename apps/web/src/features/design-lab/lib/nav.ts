@@ -22,12 +22,12 @@ const LAYOUT: { id: string; title: Label; items: (string | [string, Label])[] }[
     title: { zh: "表单", en: "Forms" },
     items: [
       "TextField",
+      "Textarea",
       "Select",
       "Checkbox",
       "Switch",
       "Slider",
       "RadioGroup",
-      "Radio",
       "RadioCards",
     ],
   },

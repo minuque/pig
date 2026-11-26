@@ -185,21 +185,6 @@
   transition: transform var(--duration-fast) var(--ease-out);
 }
 
-.welcome-field-enter-active,
-.welcome-field-appear-active {
-  transition: opacity var(--duration-slow) var(--ease-out);
-}
-
-.welcome-field-leave-active {
-  transition: opacity var(--duration-fast) var(--ease-out);
-}
-
-.welcome-field-enter-from,
-.welcome-field-appear-from,
-.welcome-field-leave-to {
-  opacity: 0;
-}
-
 @keyframes motion-blur-in {
   from {
     opacity: 0.35;
@@ -305,10 +290,7 @@
 
   .dock-hero-enter-active,
   .dock-hero-appear-active,
-  .dock-hero-leave-active,
-  .welcome-field-enter-active,
-  .welcome-field-appear-active,
-  .welcome-field-leave-active {
+  .dock-hero-leave-active {
     transition: none;
   }
 

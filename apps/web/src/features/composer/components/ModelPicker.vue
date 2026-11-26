@@ -65,7 +65,7 @@ import {
   displayThinkingLevel,
   formatThinkingLevel,
   pickerTriggerText,
-} from "@features/composer/lib/thinking-level.js"
+} from "@utils/thinking-level.js"
 import type { ComposerModel, ComposerVendor } from "@features/composer/type.js"
 
 const props = withDefaults(

@@ -4,9 +4,7 @@
       <SessionNav @navigate="onNavigate()" @settings="settingsOpen = true" />
     </template>
 
-    <div class="split-area">
-      <WorkbenchPane side="left" :session="session" :preset="preset" />
-    </div>
+    <WorkbenchPane :session="session" :preset="preset" />
   </AppLayout>
 
   <SettingsDialog v-model:open="settingsOpen" />
@@ -25,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, provide, ref, shallowRef } from "vue"
+import { provide, ref, shallowRef } from "vue"
 import { onBeforeRouteLeave, RouterLink } from "vue-router"
 import { ArrowLeftIcon } from "@components/icons/index.js"
 import { Button } from "@pig/ui/button"
@@ -37,7 +35,6 @@ import { provideExtensionUi } from "@features/extension-ui/index.js"
 import SessionNav from "@features/session-nav/index.vue"
 import { navKey } from "@features/session-nav/index.js"
 import SettingsDialog from "@features/settings/components/SettingsDialog.vue"
-import { provideSplitView } from "@features/split-view/index.js"
 import { transcriptModelsKey } from "@features/transcript-view/index.js"
 import WorkbenchPane from "@/shell/WorkbenchPane.vue"
 import {
@@ -55,11 +52,6 @@ const buckets = provideSharedBuckets()
 provide(transcriptModelsKey, ref(PAGE_MODELS))
 
 const nav = createPageNav(session)
-
-provideSplitView(
-  computed(() => session.sessionId.value),
-  (id) => nav.openSession(id ?? ""),
-)
 
 provide(navKey, nav)
 
@@ -79,13 +71,5 @@ onBeforeRouteLeave((to) => to.path.startsWith("/design"))
   z-index: var(--z-drawer);
   inset-block-end: var(--space-md);
   inset-inline-end: var(--space-md);
-}
-
-.split-area {
-  position: relative;
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
 }
 </style>

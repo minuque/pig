@@ -1,17 +1,11 @@
 <template>
-  <section
-    class="workbench-pane"
-    :data-side="side"
-    :data-focused="split.focused.value === side || undefined"
-    @pointerdown.capture="split.focusSide(side)"
-    @focusin="split.focusSide(side)"
-  >
+  <section class="workbench-pane">
     <WorkbenchHeader
       :class="{ 'is-overlay': session.welcome.value }"
       :rail="!session.welcome.value"
     />
 
-    <PaneBody :host="host" :split="split.split.value">
+    <PaneBody :host="host">
       <SessionWorkbench />
     </PaneBody>
 
@@ -23,27 +17,17 @@
 import { provideComposerPreset, type ComposerPresetContext } from "@features/composer/index.js"
 import FilePane from "@features/file-pane/index.vue"
 import { provideFilePane } from "@features/file-pane/index.js"
+import PaneBody from "@features/panel-host/components/PaneBody.vue"
+import { providePanelHost } from "@features/panel-host/index.js"
 import { provideSession, type SessionContext } from "@features/session/index.js"
 import { provideSessionRail } from "@features/session-rail/index.js"
 import SessionWorkbench from "@features/session-workbench/index.vue"
 import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHeader.vue"
-import PaneBody from "@features/split-view/components/PaneBody.vue"
-import {
-  providePaneSide,
-  providePanelHost,
-  useSplitView,
-  type Side,
-} from "@features/split-view/index.js"
 
 const props = defineProps<{
-  side: Side
   session: SessionContext
   preset: ComposerPresetContext
 }>()
-const split = useSplitView()
-
-providePaneSide(props.side)
-
 const host = providePanelHost()
 
 provideSession(props.session)

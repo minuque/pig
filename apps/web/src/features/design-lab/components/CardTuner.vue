@@ -101,7 +101,6 @@ import { TabsList, TabsRoot, TabsTrigger } from "@pig/ui/tabs"
 import { Slider } from "@pig/ui/slider"
 import { Switch } from "@pig/ui/switch"
 import { CircleExclamationPointIcon } from "@components/icons/index.js"
-import tokensCss from "@style/tokens.css?raw"
 import uiTokensCss from "@pig/ui/styles/tokens.css?raw"
 import MarkdownContent from "@features/transcript-view/components/markdown/MarkdownContent.vue"
 import { useMarkdownNodes } from "@features/transcript-view/hooks/use-markdown-nodes.js"
@@ -119,7 +118,7 @@ const CURRENT: Values = {
   border: "--border",
   divider: "--border-subtle",
   radius: Number(declared(uiTokensCss, "--radius-card", /([\d.]+)px/)),
-  surface: declared(tokensCss, "--card-surface", /(transparent)/) ? "none" : "surface",
+  surface: declared(uiTokensCss, "--card-surface", /(transparent)/) ? "none" : "surface",
 }
 const PRESETS: (Values & { name: string })[] = [
   { name: "当前", ...CURRENT },
@@ -185,14 +184,14 @@ const previewVars = computed(() => ({
 }))
 const output = computed(() =>
   [
-    `/* style/tokens.css → ${isDark.value ? "html.dark" : ":root"} */`,
-    `--border: ${neutral(value.border)};`,
-    `--border-subtle: ${neutral(value.divider)};`,
+    `/* packages/ui/src/styles/tokens.css → ${isDark.value ? "html.dark" : ":root"} */`,
+    `--border-base: ${neutral(value.border)};`,
+    `--border-subtle-base: ${neutral(value.divider)};`,
     "",
-    "/* style/tokens.css → :root */",
+    "/* packages/ui/src/styles/tokens.css → :root */",
     `--card-surface: ${SURFACES[value.surface]};`,
     "",
-    "/* style/tokens.css → :root */",
+    "/* packages/ui/src/styles/tokens.css → :root */",
     `--radius-card: ${value.radius}px;`,
   ].join("\n"),
 )

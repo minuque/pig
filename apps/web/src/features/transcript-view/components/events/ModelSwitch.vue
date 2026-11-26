@@ -35,7 +35,7 @@
 import { computed } from "vue"
 import VendorMark from "@components/icons/VendorMark.vue"
 import { ArrowRightIcon } from "@components/icons/index.js"
-import { formatThinkingLevel } from "@features/composer/index.js"
+import { formatThinkingLevel } from "@utils/thinking-level.js"
 import { settingChanged } from "@features/transcript-view/lib/transcript-events.js"
 import { useModelName } from "@features/transcript-view/lib/transcript-models.js"
 import type { ModelSetting } from "@features/transcript-view/type.js"
