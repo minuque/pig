@@ -11,6 +11,8 @@ export const RUNTIME_TOKENS = new Set([
   "--collapsible-panel-height",
   "--drag-x",
   "--drag-y",
+  "--drawer-inset",
+  "--drawer-stack",
   "--toast-count",
   "--toast-front-height",
   "--toast-height",

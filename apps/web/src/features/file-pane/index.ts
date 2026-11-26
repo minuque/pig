@@ -1,6 +1,8 @@
 import { computed, inject, nextTick, provide, shallowRef, watch, type InjectionKey } from "vue"
-import { readFlag, readPref, writeFlag } from "@utils/storage.js"
+import { readFlag, writeFlag } from "@utils/storage.js"
 import type { SessionContext } from "@features/session/index.js"
+import type { PaneView } from "@features/split-view/index.js"
+import { mentionMarkdown } from "@features/composer/lib/composer-trigger.js"
 import { openFileKey } from "@features/transcript-view/index.js"
 import { finishedWrites, workspacePath } from "@features/file-pane/lib/paths.js"
 import { readSessionValue, writeSessionValue } from "@features/file-pane/lib/session-memory.js"
@@ -29,7 +31,6 @@ export interface OpenOptions {
   pin?: boolean
 }
 
-const OPEN_KEY = "pig.files.open"
 const TREE_KEY = "pig.files.tree"
 const EXPANDED_KEY = "pig.files.expanded"
 const isStringArray = (value: unknown): value is string[] =>
@@ -37,11 +38,12 @@ const isStringArray = (value: unknown): value is string[] =>
 
 type SessionSource = Pick<SessionContext, "sessionId" | "sessionCwd" | "transcript">
 
-function useFilePaneState(session: SessionSource) {
-  const savedPref = readPref(OPEN_KEY)
-  const saved = shallowRef(savedPref === undefined ? undefined : savedPref !== "off")
-  const fits = shallowRef(true)
-  const open = computed(() => saved.value ?? fits.value)
+export interface MentionRequest {
+  markdown: string
+  seq: number
+}
+
+function useFilePaneState(session: SessionSource, show: (view: PaneView) => void) {
   const tabs = shallowRef<TabsState>(emptyTabs())
   const request = shallowRef<FileRequest>()
   const revisions = shallowRef<Record<string, number>>({})
@@ -49,6 +51,7 @@ function useFilePaneState(session: SessionSource) {
   const treeShown = shallowRef(readFlag(TREE_KEY))
   const searchRequest = shallowRef(0)
   const expanded = shallowRef<string[]>([])
+  const mention = shallowRef<MentionRequest>()
   const cwd = computed(() => session.sessionCwd.value)
   let seq = 0
 
@@ -69,11 +72,6 @@ function useFilePaneState(session: SessionSource) {
     if (id) writeSessionTabs(id, next)
   }
 
-  function setOpen(next: boolean) {
-    saved.value = next
-    writeFlag(OPEN_KEY, next)
-  }
-
   function revealFolder(path: string) {
     const parts = path.split("/").filter(Boolean)
     const chain = parts.map((_, index) => parts.slice(0, index + 1).join("/"))
@@ -83,7 +81,7 @@ function useFilePaneState(session: SessionSource) {
     if (id) writeSessionValue(EXPANDED_KEY, id, expanded.value)
     treeShown.value = true
     writeFlag(TREE_KEY, true)
-    setOpen(true)
+    show("files")
   }
 
   function openFile(path: string, options: OpenOptions = {}) {
@@ -95,7 +93,7 @@ function useFilePaneState(session: SessionSource) {
       find: options.find,
       seq: ++seq,
     }
-    setOpen(true)
+    show("files")
   }
 
   let seen = new Set<string>()
@@ -124,16 +122,17 @@ function useFilePaneState(session: SessionSource) {
   }
 
   return {
-    open,
     tabs,
     request,
     revisions,
     cwd,
     openFile,
     revealFolder,
-    setOpen,
-    setFits: (next: boolean) => (fits.value = next),
-    toggle: () => setOpen(!open.value),
+    mention,
+    mentionInChat(path: string) {
+      mention.value = { markdown: mentionMarkdown(path), seq: ++seq }
+      show("chat")
+    },
     activate: (path: string) => update(openTab(tabs.value, path, false)),
     pin: (path: string) => update(pinTab(tabs.value, path)),
     close: (path: string) => update(closeTab(tabs.value, path)),
@@ -167,8 +166,8 @@ export type FilePaneContext = ReturnType<typeof useFilePaneState>
 
 const key: InjectionKey<FilePaneContext> = Symbol("file-pane")
 
-export function provideFilePane(session: SessionSource) {
-  const state = useFilePaneState(session)
+export function provideFilePane(session: SessionSource, show: (view: PaneView) => void) {
+  const state = useFilePaneState(session, show)
   const resolve = (raw: string) =>
     state.cwd.value ? workspacePath(state.cwd.value, raw) : undefined
 

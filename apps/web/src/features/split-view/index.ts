@@ -1,22 +1,7 @@
-import {
-  computed,
-  inject,
-  provide,
-  shallowReactive,
-  shallowRef,
-  watch,
-  type InjectionKey,
-  type Ref,
-} from "vue"
+import { computed, inject, provide, shallowRef, watch, type InjectionKey, type Ref } from "vue"
 import { readPref, writePref } from "@utils/storage.js"
 import type { SessionContext } from "@features/session/index.js"
 import { useSplitRoute } from "@features/split-view/hooks/use-split-route.js"
-import {
-  closePanel,
-  openPanel,
-  visiblePanels,
-  type PanelKind,
-} from "@features/split-view/lib/panel-stack.js"
 import {
   closeSide,
   fitsSplit,
@@ -28,13 +13,16 @@ import {
   parseSplit,
   serializeSplit,
   setRatio,
+  setView,
+  stepView,
+  type PaneView,
   type Side,
   type SplitState,
 } from "@features/split-view/lib/split-state.js"
 
-export type { Side, SplitState } from "@features/split-view/lib/split-state.js"
+export type { PaneView, Side, SplitState } from "@features/split-view/lib/split-state.js"
 
-export type { PanelKind } from "@features/split-view/lib/panel-stack.js"
+export { PANE_VIEWS } from "@features/split-view/lib/split-state.js"
 
 const STORAGE_KEY = "pig.split"
 
@@ -68,6 +56,9 @@ function createSplitView(
     leaveSession: (id: string) => update((s) => leaveSession(s, id)),
     setRatio: (ratio: number) => update((s) => setRatio(s, ratio, width.value)),
     showIn: (side: Side, id: string) => update((s) => ({ ...s, [side]: id, focused: side })),
+    view: (side: Side) => state.value.views[side],
+    showView: (side: Side, view: PaneView) => update((s) => setView(s, side, view)),
+    stepView: (side: Side, delta: number) => update((s) => stepView(s, side, delta)),
   }
 }
 
@@ -135,49 +126,4 @@ export function providePaneSide(side: Side) {
 
 export function usePaneSide(): Side {
   return inject(sideKey, "left")
-}
-
-function createPanelHost() {
-  const order = shallowRef<PanelKind[]>([])
-  const height = shallowRef(Number.POSITIVE_INFINITY)
-  const slots = shallowReactive(new Map<PanelKind, HTMLElement>())
-  const covering = shallowRef(false)
-  const narrow = shallowRef(false)
-  const expanded = shallowRef(false)
-  const visible = computed(() => visiblePanels(order.value, height.value))
-  return {
-    order,
-    visible,
-    covering,
-    narrow,
-    expanded,
-    slots,
-    setHeight: (value: number) => {
-      height.value = value
-    },
-    open: (kind: PanelKind) => {
-      order.value = openPanel(order.value, kind)
-    },
-    close: (kind: PanelKind) => {
-      order.value = closePanel(order.value, kind)
-    },
-    raise: (kind: PanelKind) => {
-      order.value = [...closePanel(order.value, kind), kind]
-    },
-    hidden: (kind: PanelKind) => order.value.includes(kind) && !visible.value.includes(kind),
-  }
-}
-
-export type PanelHost = ReturnType<typeof createPanelHost>
-
-const panelHostKey: InjectionKey<PanelHost> = Symbol("panel-host")
-
-export function providePanelHost() {
-  const host = createPanelHost()
-  provide(panelHostKey, host)
-  return host
-}
-
-export function usePanelHost(): PanelHost | undefined {
-  return inject(panelHostKey, undefined)
 }

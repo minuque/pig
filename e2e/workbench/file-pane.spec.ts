@@ -1,5 +1,6 @@
 import { mkdir, writeFile } from "node:fs/promises"
 import { join } from "node:path"
+import type { Page } from "@playwright/test"
 
 import { checkpoint } from "../support/checkpoint.js"
 import { expect, seedWorkspace, test } from "../support/fixtures.js"
@@ -10,6 +11,12 @@ import {
 } from "../support/prebuild-session.js"
 
 const SOURCE = "export const fromWorkspace = 42\n"
+
+async function showView(page: Page, name: string) {
+  const island = page.locator(".view-island")
+  await island.hover()
+  await island.getByRole("tab", { name }).click()
+}
 
 test("点工具行里的文件名，Files 面板打开这个文件并标出读过的行", async ({
   page,
@@ -48,14 +55,11 @@ test("点工具行里的文件名，Files 面板打开这个文件并标出读�
   ).toBeVisible()
   await checkpoint(page, "file-pane-open")
 
-  const toggle = page.getByRole("button", { name: "开关文件面板" })
-
-  await toggle.click()
-  await expect(pane).toHaveCount(0)
-  await toggle.click()
-  await expect(
-    page.getByRole("region", { name: "文件" }).getByRole("tab", { name: "example.ts" }),
-  ).toBeVisible()
+  await showView(page, "对话")
+  await expect(pane).not.toBeInViewport()
+  await expect(target).toBeInViewport()
+  await page.keyboard.press("Control+2")
+  await expect(pane.getByRole("tab", { name: "example.ts" })).toBeInViewport()
 })
 
 test("从头部打开 Files，在树里展开目录、搜索内容并跳到命中的行", async ({
@@ -73,7 +77,7 @@ test("从头部打开 Files，在树里展开目录、搜索内容并跳到命�
     .click()
   await expect(page.getByText(COMPLEX_MARKER, { exact: true })).toBeVisible({ timeout: 30_000 })
 
-  await page.getByRole("button", { name: "开关文件面板" }).click()
+  await showView(page, "文件")
   const pane = page.getByRole("region", { name: "文件" })
   const tree = pane.getByRole("tree")
   const headerBox = (await page.locator(".workbench-header").boundingBox())!
@@ -119,7 +123,7 @@ test("上千个文件的目录与数千行的文件只渲染看得见的行，�
     .click()
   await expect(page.getByText(COMPLEX_MARKER, { exact: true })).toBeVisible({ timeout: 30_000 })
 
-  await page.getByRole("button", { name: "开关文件面板" }).click()
+  await showView(page, "文件")
   const pane = page.getByRole("region", { name: "文件" })
   const search = pane.getByRole("textbox", { name: "搜索文件" })
 
@@ -167,7 +171,7 @@ test("HTML 在沙箱里跑脚本、加载同目录资源，外链先确认；PDF
     .click()
   await expect(page.getByText(COMPLEX_MARKER, { exact: true })).toBeVisible({ timeout: 30_000 })
 
-  await page.getByRole("button", { name: "开关文件面板" }).click()
+  await showView(page, "文件")
   const pane = page.getByRole("region", { name: "文件" })
   const tree = pane.getByRole("tree")
 

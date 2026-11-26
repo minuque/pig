@@ -1,11 +1,16 @@
 export type Side = "left" | "right"
 
+export const PANE_VIEWS = ["chat", "files"] as const
+
+export type PaneView = (typeof PANE_VIEWS)[number]
+
 export interface SplitState {
   left: string | undefined
   right: string | undefined
   split: boolean
   focused: Side
   ratio: number
+  views: Record<Side, PaneView>
 }
 
 export const SPLIT_CHAT_MIN = 480
@@ -17,6 +22,7 @@ export const emptySplit: SplitState = {
   split: false,
   focused: "left",
   ratio: 0.5,
+  views: { left: "chat", right: "chat" },
 }
 const other = (side: Side): Side => (side === "left" ? "right" : "left")
 
@@ -38,7 +44,8 @@ export function openInFocused(state: SplitState, id: string | undefined): SplitS
   if (shown) return focusSide(state, shown)
 
   if (state[state.focused] === id) return state
-  return { ...state, [state.focused]: id }
+  const next = { ...state, [state.focused]: id }
+  return id ? next : setView(next, state.focused, "chat")
 }
 
 export function openToSide(state: SplitState, id: string | undefined): SplitState {
@@ -46,24 +53,42 @@ export function openToSide(state: SplitState, id: string | undefined): SplitStat
 
   if (shown) return focusSide(state, shown)
 
-  if (!state.split) return { ...state, split: true, right: id, focused: "right" }
-  const target = other(state.focused)
-  return { ...state, [target]: id, focused: target }
+  const target = state.split ? other(state.focused) : "right"
+  const next = { ...state, [target]: id, split: true, focused: target }
+  return id ? next : setView(next, target, "chat")
 }
 
 export function leaveSession(state: SplitState, id: string): SplitState {
   const side = sideShowing(state, id)
-  return side ? { ...state, [side]: undefined } : state
+  return side ? setView({ ...state, [side]: undefined }, side, "chat") : state
 }
 
 export function newOnRight(state: SplitState): SplitState {
-  return { ...state, split: true, right: undefined, focused: "right" }
+  return setView({ ...state, split: true, right: undefined, focused: "right" }, "right", "chat")
 }
 
 export function closeSide(state: SplitState, side: Side): SplitState {
   if (!state.split) return state
-  const kept = side === "left" ? state.right : state.left
-  return { ...state, left: kept, right: undefined, split: false, focused: "left" }
+  const keptSide = other(side)
+  return {
+    ...state,
+    left: state[keptSide],
+    right: undefined,
+    split: false,
+    focused: "left",
+    views: { left: state.views[keptSide], right: "chat" },
+  }
+}
+
+export function setView(state: SplitState, side: Side, view: PaneView): SplitState {
+  if (state.views[side] === view) return state
+  return { ...state, views: { ...state.views, [side]: view } }
+}
+
+export function stepView(state: SplitState, side: Side, delta: number): SplitState {
+  const index = PANE_VIEWS.indexOf(state.views[side]) + delta
+  const view = PANE_VIEWS[Math.min(PANE_VIEWS.length - 1, Math.max(0, index))]
+  return view ? setView(state, side, view) : state
 }
 
 export function setRatio(state: SplitState, ratio: number, width?: number): SplitState {
@@ -82,6 +107,7 @@ export function serializeSplit(state: SplitState): string {
 }
 
 const optionalId = (value: unknown) => (typeof value === "string" && value ? value : undefined)
+const paneView = (value: unknown): PaneView => PANE_VIEWS.find((view) => view === value) ?? "chat"
 
 export function parseSplit(raw: string | undefined): SplitState {
   try {
@@ -94,12 +120,14 @@ export function parseSplit(raw: string | undefined): SplitState {
     )
       return emptySplit
 
+    const views = (value.views ?? {}) as Partial<Record<Side, unknown>>
     const state: SplitState = {
       left: optionalId(value.left),
       right: value.split ? optionalId(value.right) : undefined,
       split: value.split,
       focused: value.split ? value.focused : "left",
       ratio: value.ratio,
+      views: { left: paneView(views.left), right: value.split ? paneView(views.right) : "chat" },
     }
     return setRatio(state, state.ratio)
   } catch {

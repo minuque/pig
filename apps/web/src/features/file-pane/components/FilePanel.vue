@@ -3,26 +3,6 @@
     <template #render="{ props: part }">
       <section v-bind="part">
         <header class="file-panel-head">
-          <Tooltip v-if="narrowCover">
-            <TooltipTrigger>
-              <template #render="{ props: part }">
-                <IconButton
-                  v-bind="part"
-                  type="button"
-                  size="s"
-                  variant="ghost"
-                  color="neutral"
-                  :aria-label="t('files.back')"
-                  @click="pane.setOpen(false)"
-                >
-                  <ArrowLeftIcon class="size-icon" />
-                </IconButton>
-              </template>
-            </TooltipTrigger>
-
-            <TooltipContent>{{ t("files.back") }}</TooltipContent>
-          </Tooltip>
-
           <Tooltip>
             <TooltipTrigger>
               <template #render="{ props: part }">
@@ -47,7 +27,7 @@
 
           <FileTabs class="file-panel-tabs" />
 
-          <Tooltip v-for="action in actions" :key="action.key">
+          <Tooltip>
             <TooltipTrigger>
               <template #render="{ props: part }">
                 <IconButton
@@ -56,16 +36,15 @@
                   size="s"
                   variant="ghost"
                   color="neutral"
-                  :aria-label="action.label"
-                  :aria-pressed="action.pressed"
-                  @click="action.run"
+                  :aria-label="t('files.search')"
+                  @click="pane.focusSearch()"
                 >
-                  <component :is="action.icon" class="size-icon" />
+                  <SearchIcon class="size-icon" />
                 </IconButton>
               </template>
             </TooltipTrigger>
 
-            <TooltipContent>{{ action.label }}</TooltipContent>
+            <TooltipContent>{{ t("files.search") }}</TooltipContent>
           </Tooltip>
         </header>
 
@@ -112,59 +91,19 @@ import { IconButton } from "@pig/ui/button"
 import { Card } from "@pig/ui/card"
 import { ResizeHandle } from "@pig/ui/resize-handle"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
-import {
-  ArrowLeftIcon,
-  Maximize2Icon,
-  Minimize2Icon,
-  PanelLeftIcon,
-  SquarePaddingLeftIcon,
-  SearchIcon,
-  XIcon,
-} from "@components/icons/index.js"
+import { PanelLeftIcon, SquarePaddingLeftIcon, SearchIcon } from "@components/icons/index.js"
 import FileTabs from "@features/file-pane/components/FileTabs.vue"
 import FileSearch from "@features/file-pane/components/FileSearch.vue"
 import FileTree from "@features/file-pane/components/FileTree.vue"
 import FileViewer from "@features/file-pane/components/FileViewer.vue"
 import { useFilePane } from "@features/file-pane/index.js"
-import { usePanelHost } from "@features/split-view/index.js"
 
 const TREE_DEFAULT = 240
 const TREE_MIN = 160
 const VIEWER_MIN = 200
-const props = defineProps<{ covering?: boolean }>()
 const { t } = useI18n()
 const pane = useFilePane()
-const host = usePanelHost()
 const active = computed(() => pane.tabs.value.active)
-const expanded = computed(() => host?.expanded.value ?? false)
-const narrowCover = computed(() => props.covering && !expanded.value)
-const actions = computed(() => [
-  {
-    key: "search",
-    label: t("files.search"),
-    icon: SearchIcon,
-    pressed: undefined,
-    run: () => void pane.focusSearch(),
-  },
-  ...(narrowCover.value || !host
-    ? []
-    : [
-        {
-          key: "expand",
-          label: expanded.value ? t("common.collapse") : t("common.expand"),
-          icon: expanded.value ? Minimize2Icon : Maximize2Icon,
-          pressed: expanded.value,
-          run: () => (host.expanded.value = !host.expanded.value),
-        },
-        {
-          key: "close",
-          label: t("common.close"),
-          icon: XIcon,
-          pressed: undefined,
-          run: () => pane.setOpen(false),
-        },
-      ]),
-])
 </script>
 
 <style scoped>

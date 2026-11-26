@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { splitShortcut } from "@features/split-view/lib/split-shortcut.js"
+import { splitShortcut, viewShortcut } from "@features/split-view/lib/split-shortcut.js"
 
 const key = (code: string, mods: Partial<KeyboardEvent> = {}) =>
   ({
@@ -40,5 +40,13 @@ describe("分屏快捷键", () => {
     expect(
       splitShortcut(key("BracketRight", { ctrlKey: true, defaultPrevented: true }), true),
     ).toBeNull()
+  })
+
+  it("视图：Ctrl/⌘+数字直达，Ctrl+PageUp/PageDown 相邻翻页", () => {
+    expect(viewShortcut(key("Digit2", { ctrlKey: true }), false)).toEqual({ to: 1 })
+    expect(viewShortcut(key("Digit2", { metaKey: true }), true)).toEqual({ to: 1 })
+    expect(viewShortcut(key("Digit2", { ctrlKey: true }), true)).toBeNull()
+    expect(viewShortcut(key("PageDown", { ctrlKey: true }), false)).toEqual({ step: 1 })
+    expect(viewShortcut(key("PageUp", { ctrlKey: true }), true)).toEqual({ step: -1 })
   })
 })

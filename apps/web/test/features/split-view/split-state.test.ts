@@ -4,12 +4,15 @@ import {
   emptySplit,
   fitsSplit,
   focusSide,
+  leaveSession,
   newOnRight,
   openInFocused,
   openToSide,
   parseSplit,
   serializeSplit,
   setRatio,
+  setView,
+  stepView,
 } from "@features/split-view/lib/split-state.js"
 
 describe("分屏状态", () => {
@@ -88,5 +91,35 @@ describe("分屏状态", () => {
   it("主区放不下两侧各 480px 时不能并排", () => {
     expect(fitsSplit(959)).toBe(false)
     expect(fitsSplit(960)).toBe(true)
+  })
+
+  it("每侧各记一个视图；旧数据没有视图字段时按 chat 读", () => {
+    const state = setView(openToSide(openInFocused(emptySplit, "a"), "b"), "right", "files")
+
+    expect(parseSplit(serializeSplit(state)).views).toEqual({ left: "chat", right: "files" })
+    expect(
+      parseSplit(JSON.stringify({ left: "a", split: false, focused: "left", ratio: 0.5 })).views,
+    ).toEqual({ left: "chat", right: "chat" })
+  })
+
+  it("换会话保留视图；新建会话与离开会话回到 chat", () => {
+    const state = setView(openInFocused(emptySplit, "a"), "left", "files")
+
+    expect(openInFocused(state, "b").views.left).toBe("files")
+    expect(openInFocused(state, undefined).views.left).toBe("chat")
+    expect(leaveSession(state, "a").views.left).toBe("chat")
+  })
+
+  it("关闭一侧时留下的那侧带着自己的视图", () => {
+    const state = setView(openToSide(openInFocused(emptySplit, "a"), "b"), "right", "files")
+
+    expect(closeSide(state, "left").views).toEqual({ left: "files", right: "chat" })
+  })
+
+  it("相邻翻页到头就停，不循环", () => {
+    const state = openInFocused(emptySplit, "a")
+
+    expect(stepView(state, "left", -1).views.left).toBe("chat")
+    expect(stepView(stepView(state, "left", 1), "left", 1).views.left).toBe("files")
   })
 })

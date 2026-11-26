@@ -103,7 +103,8 @@ import {
   useSessionLifecycle,
 } from "@features/session/index.js"
 import { focusedSession, provideSplitView, type Side } from "@features/split-view/index.js"
-import { splitShortcut } from "@features/split-view/lib/split-shortcut.js"
+import { splitShortcut, viewShortcut } from "@features/split-view/lib/split-shortcut.js"
+import { PANE_VIEWS } from "@features/split-view/index.js"
 import { prefetchHighlighter, transcriptModelsKey } from "@features/transcript-view/index.js"
 import { createBackgroundPump } from "@/shell/hooks/use-background-pump.js"
 import WorkbenchPane from "@/shell/WorkbenchPane.vue"
@@ -203,6 +204,16 @@ function onLayoutChange(next: number[]) {
 const isMac = /mac/i.test(navigator.platform || navigator.userAgent)
 
 useEventListener(window, "keydown", (event: KeyboardEvent) => {
+  const view = viewShortcut(event, isMac)
+  const target = view && ("to" in view ? PANE_VIEWS[view.to] : undefined)
+
+  if (view && ("step" in view || target) && onSide(split.focused.value).sessionId.value) {
+    event.preventDefault()
+    return target
+      ? split.showView(split.focused.value, target)
+      : "step" in view && split.stepView(split.focused.value, view.step)
+  }
+
   const command = splitShortcut(event, isMac)
 
   if (!command) return

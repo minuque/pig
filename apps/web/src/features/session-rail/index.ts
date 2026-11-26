@@ -1,8 +1,6 @@
 import { computed, inject, provide, shallowRef, type InjectionKey } from "vue"
 import { updatePreferences, userPreferences } from "@client/preferences.js"
-import { readFlag, writeFlag } from "@utils/storage.js"
 import { openTaskSessionKey } from "@features/transcript-view/index.js"
-import { railModeOf } from "@features/session-rail/lib/layout.js"
 import { dismissTasks, readDismissed } from "@features/session-rail/lib/task-list.js"
 import {
   RAIL_SECTIONS,
@@ -18,17 +16,12 @@ export interface OpenChild {
 export type RailPane =
   { kind: "tasks"; focus?: string | undefined } | { kind: "child"; child: OpenChild }
 
-const DOCKED_KEY = "pig.rail.docked"
-
 function useSessionRailState() {
   const pane = shallowRef<RailPane>()
   let paneOwner: string | undefined
   const dismissed = shallowRef<string[]>([])
   const layout = computed(() => userPreferences.value.railLayout)
-  const docked = shallowRef(readFlag(DOCKED_KEY))
-  const width = shallowRef(window.innerWidth)
-  const mode = computed(() => railModeOf(width.value))
-  const dockedShown = computed(() => docked.value && mode.value === "docked")
+  const open = shallowRef(false)
   const toggled = (list: RailSectionId[], id: RailSectionId) =>
     list.includes(id) ? list.filter((item) => item !== id) : [...list, id]
 
@@ -38,9 +31,11 @@ function useSessionRailState() {
 
   function openPane(next: RailPane) {
     pane.value = next
+    open.value = true
   }
 
   return {
+    open,
     pane,
     openPane,
     openChild(child: OpenChild) {
@@ -57,16 +52,6 @@ function useSessionRailState() {
     dismissed,
     dismiss(sessionId: string, ids: readonly string[]) {
       if (ids.length) dismissed.value = dismissTasks(sessionId, ids)
-    },
-    docked,
-    dockedShown,
-    mode,
-    setWidth(next: number) {
-      width.value = next
-    },
-    toggleDocked() {
-      docked.value = !docked.value
-      writeFlag(DOCKED_KEY, docked.value)
     },
     layout,
     toggleOpen(id: RailSectionId) {
