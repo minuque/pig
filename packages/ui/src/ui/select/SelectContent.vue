@@ -70,6 +70,10 @@ const size = useSelectSize()
   overflow: hidden;
 }
 
+:where([data-slot="select-content"]:has([data-slot="select-search"])) {
+  inline-size: min(22rem, var(--available-width));
+}
+
 :where([data-slot="select-content"]:has([data-slot="select-list"])) > * + * {
   margin-block-start: 0;
 }
