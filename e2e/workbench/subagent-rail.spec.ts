@@ -17,7 +17,7 @@ test("摘要面板：窗口变窄时从常驻卡收成头部浮层，变宽再�
   await expect(page.locator(".rail-docked")).toBeVisible()
 })
 
-test("subagent 子任务：时间线卡片与摘要面板都列出进展，点开在任务抽屉里只读看子会话", async ({
+test("subagent 子任务：时间线卡片与摘要面板都列出进展，点开任务抽屉后下面照常能输入，抽屉里只读看子会话", async ({
   page,
   subagentGateway,
 }) => {
@@ -35,6 +35,12 @@ test("subagent 子任务：时间线卡片与摘要面板都列出进展，点�
   await expect(popover).toBeHidden()
   const pane = page.locator(".rail-pane")
   await expect(pane.getByText("read service.ts")).toBeVisible()
+
+  const composer = page.getByRole("textbox", { name: "Prompt" })
+  await composer.click({ position: { x: 20, y: 10 } })
+  await page.keyboard.type("still typing")
+  await expect(composer).toContainText("still typing")
+  await expect(pane).toBeVisible()
 
   await pane
     .locator(".rail-task", { hasText: "scout" })
