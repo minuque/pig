@@ -75,10 +75,6 @@ function useExtensionUiState(
     { immediate: true },
   )
 
-  function current(): Pending | undefined {
-    return dialogs.value.find((item) => item.sessionId === session.sessionId.value)
-  }
-
   async function answer(pending: Pending, response: ExtensionUiResponse) {
     dialogs.value = dialogs.value.filter((item) => item !== pending)
     await pi.client.value
@@ -86,7 +82,7 @@ function useExtensionUiState(
       .catch(() => undefined)
   }
 
-  return { dialogs, statuses, widgets, current, answer }
+  return { dialogs, statuses, widgets, answer }
 }
 
 export type ExtensionUiContext = ReturnType<typeof useExtensionUiState>

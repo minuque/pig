@@ -283,7 +283,7 @@ test("命令浮板浮在输入卡上方不遮挡输入，打开时隐藏状态�
   await prompt.press("Control+Space")
   await expect(menuList.getByRole("option", { name: "/compact" })).toBeVisible()
 
-  await page.locator(".workbench-header").click()
+  await page.locator(".workbench-header .crumb-separator").click()
   await expect(menuPanel).toHaveCount(0)
 
   await prompt.click()

@@ -60,8 +60,6 @@
       :workspace="cwd.lastCwd.value"
       @update:open="onSettingsToggle"
     />
-
-    <ExtensionUi />
   </Startup>
 
   <Toaster />
@@ -88,7 +86,6 @@ import { bindComposerPreset } from "@features/composer/index.js"
 import { useComposerQueue } from "@features/composer/hooks/use-composer-queue.js"
 import { provideSharedBuckets } from "@features/composer/hooks/use-session-buckets.js"
 import { useSound } from "@features/click-sound/index.js"
-import ExtensionUi from "@features/extension-ui/index.vue"
 import { provideExtensionUi } from "@features/extension-ui/index.js"
 import SessionNav from "@features/session-nav/index.vue"
 import { provideNav } from "@features/session-nav/index.js"

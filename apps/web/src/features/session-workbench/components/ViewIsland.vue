@@ -35,8 +35,29 @@
     </TabsRoot>
 
     <Transition name="island-alert">
+      <div v-if="waiting" key="waiting" class="island-alert" role="status">
+        <StatusIndicator status="waiting" size="s" pulse />
+
+        <span class="island-alert-text">
+          <span class="island-alert-title">{{ waiting.header }}</span>
+          <span class="island-alert-body">{{ waiting.message || waiting.question }}</span>
+        </span>
+
+        <template v-if="confirming">
+          <Button size="s" variant="secondary" @click="board.pick(0)">
+            {{ t("extensionUi.deny") }}
+          </Button>
+
+          <Button size="s" @click="board.pick(1)">{{ t("extensionUi.allow") }}</Button>
+        </template>
+
+        <Button v-else size="s" variant="secondary" @click="backToChat">
+          {{ t("extensionUi.answer") }}
+        </Button>
+      </div>
+
       <div
-        v-if="alert"
+        v-else-if="alert"
         :key="alertSeq"
         class="island-alert"
         role="status"
@@ -68,6 +89,8 @@ import { Button } from "@pig/ui/button"
 import { StatusIndicator } from "@pig/ui/status-indicator"
 import { TabsList, TabsRoot, TabsTrigger } from "@pig/ui/tabs"
 import { useSession } from "@features/session/index.js"
+import { useExtensionUi } from "@features/extension-ui/index.js"
+import { useQuestionBoard } from "@features/extension-ui/hooks/use-question-board.js"
 import {
   ALERT_TTL,
   PANE_VIEWS,
@@ -113,6 +136,20 @@ watch(
   { immediate: true },
 )
 
+const board = useQuestionBoard()
+const { dialogs } = useExtensionUi()
+const { sessionId } = useSession()
+const waiting = computed(() => (current.value === "chat" ? undefined : board.question.value))
+const confirming = computed(
+  () =>
+    board.board.value?.source === "extension" &&
+    dialogs.value.some(
+      (item) =>
+        item.sessionId === sessionId.value &&
+        item.request.id === board.board.value?.id &&
+        item.request.method === "confirm",
+    ),
+)
 const alert = computed(() => split.alerts.current(side))
 const more = computed(() => split.alerts.pending(side))
 const alertSeq = shallowRef(0)

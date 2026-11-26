@@ -57,6 +57,10 @@ const E2E_BY_AREA = [
     prefix: "apps/web/src/features/file-pane/",
     specs: ["e2e/workbench/file-pane.spec.ts", REFERENCES],
   },
+  {
+    prefix: "apps/web/src/features/extension-ui/",
+    specs: ["e2e/workbench/question-board.spec.ts"],
+  },
   { prefix: "apps/web/src/features/split-view/", specs: [SPLIT_VIEW, NEW_SESSION] },
   { prefix: "apps/web/src/shell/", specs: [SPLIT_VIEW, NEW_SESSION] },
   { prefix: "apps/web/src/features/settings/", specs: ["e2e/settings/"] },

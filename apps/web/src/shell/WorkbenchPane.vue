@@ -26,6 +26,7 @@ import { useResizeObserver } from "@vueuse/core"
 import { provideComposerPreset, type ComposerPresetContext } from "@features/composer/index.js"
 import FilePanel from "@features/file-pane/components/FilePanel.vue"
 import { provideFilePane } from "@features/file-pane/index.js"
+import { provideQuestionBoard } from "@features/extension-ui/hooks/use-question-board.js"
 import { provideSession, type SessionContext } from "@features/session/index.js"
 import { provideSessionRail } from "@features/session-rail/index.js"
 import SessionWorkbench from "@features/session-workbench/index.vue"
@@ -60,7 +61,9 @@ provideComposerPreset(props.preset)
 
 provideSessionRail()
 
-provideFilePane(props.session, () => split.showView(props.side, "files"))
+provideFilePane(props.session, (next) => split.showView(props.side, next))
+
+provideQuestionBoard(props.session)
 </script>
 
 <style scoped>

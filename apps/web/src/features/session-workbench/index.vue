@@ -79,6 +79,11 @@
 
             <ExternalTurnNotice />
 
+            <QuestionBoard
+              :prompt="prompt"
+              :active="!welcome && split.focused.value === side && split.view(side) === 'chat'"
+            />
+
             <Composer
               ref="composer"
               v-model:prompt="prompt"
@@ -94,7 +99,8 @@
               :usage="welcome ? undefined : contextUsage"
               :reload-revision="reloadRevision"
               :send-disabled="sendDisabled"
-              @send="sendNow"
+              :class="{ 'is-answering': Boolean(questionBoard.board.value) }"
+              @send="questionBoard.board.value ? questionBoard.submit() : sendNow($event)"
               @steer="steer"
               @queue="enqueue"
               @save-edit="commitQueueEdit"
@@ -132,6 +138,8 @@ import { useI18n } from "@i18n/index.js"
 import { sessionDropTargetAttrs, useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session/index.js"
 import { useAppearancePrefs } from "@features/settings/index.js"
+import QuestionBoard from "@features/extension-ui/components/QuestionBoard.vue"
+import { useQuestionBoard } from "@features/extension-ui/hooks/use-question-board.js"
 import ExternalTurnNotice from "@features/session-workbench/components/ExternalTurnNotice.vue"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
 import WelcomeField from "@features/session-workbench/components/WelcomeField.vue"
@@ -148,7 +156,7 @@ import TranscriptView from "@features/transcript-view/index.vue"
 import { prefetchTranscriptView, TranscriptStatus } from "@features/transcript-view/index.js"
 import { FilePlusIcon } from "@components/icons/index.js"
 import { notify } from "@pig/ui/toast"
-import { useSplitView, type PaneAlert } from "@features/split-view/index.js"
+import { usePaneSide, useSplitView, type PaneAlert } from "@features/split-view/index.js"
 
 onMounted(() => {
   if (typeof requestIdleCallback === "function")
@@ -159,6 +167,8 @@ onMounted(() => {
 const { t } = useI18n()
 const route = useRoute()
 const split = useSplitView()
+const side = usePaneSide()
+const questionBoard = useQuestionBoard()
 const {
   sessionId,
   transcript,
@@ -422,6 +432,11 @@ const { dropActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop
       black calc(var(--space-sm) + env(safe-area-inset-bottom, 0px) + var(--edge-fade-band))
     ),
     linear-gradient(to right, transparent calc(100% - var(--space-sm)), black 0);
+}
+
+.composer-stack :deep(.prompt.is-answering) {
+  border-radius: var(--radius-card);
+  box-shadow: 0 0 0 var(--border-width) var(--accent-solid);
 }
 
 .composer-stack {

@@ -59,7 +59,7 @@ async function selectElementTextByDrag(page: Page, target: Locator) {
   return coords.lastRect
 }
 
-test("文件树里的文件与目录拖到输入卡成为 @ chip，带图标与语义色且使用 Tooltip，提交原文带路径", async ({
+test("文件树里的文件与目录「引用到对话」成为 @ chip，带图标与语义色且使用 Tooltip，提交原文带路径", async ({
   page,
   complexGateway,
 }) => {
@@ -69,13 +69,21 @@ test("文件树里的文件与目录拖到输入卡成为 @ chip，带图标与�
   const bridge = await installTurnBridge(page)
 
   await openComplex(page, complexGateway)
-  await page.getByRole("button", { name: "开关文件面板" }).click()
+  await page.keyboard.press("Control+2")
   const pane = page.getByRole("region", { name: "文件" })
   await pane.locator('.file-tree-row[data-path="src"]').click()
 
   const prompt = field(page)
-  await pane.locator('.file-tree-row[data-path="src/example.ts"]').dragTo(prompt)
-  await pane.locator('.file-tree-row[data-path="src/nested"]').dragTo(prompt)
+  const mentionBoth = async () => {
+    for (const path of ["src/example.ts", "src/nested"]) {
+      await page.keyboard.press("Control+2")
+      await pane.locator(`.file-tree-row[data-path="${path}"]`).click({ button: "right" })
+      await page.getByRole("menuitem", { name: "引用到对话" }).click()
+      await expect(page.locator('.pane-view[data-view="chat"]')).not.toHaveAttribute("inert")
+    }
+  }
+
+  await mentionBoth()
 
   const fileChip = prompt.locator('.chip[data-file-mention="src/example.ts"]')
   const dirChip = prompt.locator('.chip[data-file-mention="src/nested"]')
@@ -114,8 +122,7 @@ test("文件树里的文件与目录拖到输入卡成为 @ chip，带图标与�
 
   await prompt.press("Control+a")
   await prompt.press("Delete")
-  await pane.locator('.file-tree-row[data-path="src/example.ts"]').dragTo(prompt)
-  await pane.locator('.file-tree-row[data-path="src/nested"]').dragTo(prompt)
+  await mentionBoth()
   await prompt.press("Control+Enter")
   await expect.poll(() => bridge.prompts.length).toBe(1)
   expect(bridge.prompts[0]?.trim()).toBe("@src/example.ts @src/nested")
