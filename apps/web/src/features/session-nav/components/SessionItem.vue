@@ -10,7 +10,8 @@
     <ContextMenu :modal="false" @update:open="menuOpen = $event">
       <HoverCard
         v-model:open="hoverOpen"
-        :disabled="placeholder || renaming || menuOpen || forkHover || blocked"
+        :disabled="placeholder || renaming || menuOpen || forkHover"
+        @open-change="onHoverOpenChange"
       >
         <HoverCardTrigger>
           <template #render="{ props: card }">
@@ -215,6 +216,10 @@ const blocked = computed(() => hoverBlocked.value)
 watch(blocked, (value) => {
   if (value) hoverOpen.value = false
 })
+
+function onHoverOpenChange(open: boolean, details: { cancel(): void }) {
+  if (open && blocked.value) details.cancel()
+}
 
 const deleteOpen = shallowRef(false)
 const renaming = shallowRef(false)

@@ -300,11 +300,11 @@ importers:
         specifier: 3.35.0
         version: 3.35.0(@floating-ui/dom@1.8.0)(@tiptap/core@3.35.0(@tiptap/pm@3.35.0))(@tiptap/pm@3.35.0)(vue@3.5.42(typescript@6.0.3))
       '@ui-sdk/core':
-        specifier: 0.1.0-beta.14
-        version: 0.1.0-beta.14
+        specifier: 0.1.0-beta.17
+        version: 0.1.0-beta.17
       '@ui-sdk/vue':
-        specifier: 0.1.0-beta.14
-        version: 0.1.0-beta.14(@ui-sdk/core@0.1.0-beta.14)(vue@3.5.42(typescript@6.0.3))
+        specifier: 0.1.0-beta.17
+        version: 0.1.0-beta.17(@ui-sdk/core@0.1.0-beta.17)(vue@3.5.42(typescript@6.0.3))
       '@vueuse/core':
         specifier: 14.4.0
         version: 14.4.0(vue@3.5.42(typescript@6.0.3))
@@ -413,11 +413,11 @@ importers:
         specifier: 1.72.0
         version: 1.72.0(vue@3.5.42(typescript@6.0.3))
       '@ui-sdk/core':
-        specifier: 0.1.0-beta.14
-        version: 0.1.0-beta.14
+        specifier: 0.1.0-beta.17
+        version: 0.1.0-beta.17
       '@ui-sdk/vue':
-        specifier: 0.1.0-beta.14
-        version: 0.1.0-beta.14(@ui-sdk/core@0.1.0-beta.14)(vue@3.5.42(typescript@6.0.3))
+        specifier: 0.1.0-beta.17
+        version: 0.1.0-beta.17(@ui-sdk/core@0.1.0-beta.17)(vue@3.5.42(typescript@6.0.3))
     devDependencies:
       '@vitejs/plugin-vue':
         specifier: 6.0.8
@@ -2220,15 +2220,15 @@ packages:
   '@types/ws@8.18.1':
     resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
-  '@ui-sdk/core@0.1.0-beta.14':
-    resolution: {integrity: sha512-SHm5qLYBqxT5+d3svaBeP5uoBMIQbETKBqcZ/6b+WhhXlz6YoeNqjtMfpmq4yGA329DFwzu+y7+xGJjw4fnTPQ==}
+  '@ui-sdk/core@0.1.0-beta.17':
+    resolution: {integrity: sha512-wBWNqT0Qf1sE6fqD1XuBnSGBFcY6+cek1z7rKl/r4j2bsv2or9i7z44PLy0J9hmflm3IJ5MLW0P4ur2H9BCIvg==}
 
-  '@ui-sdk/vue@0.1.0-beta.14':
-    resolution: {integrity: sha512-J3cqsQ6NzYeVeJ7/cmRnAbajdo7ml+djOk7vogCzgDnkYfr+ltpMaG+WXwULMrgVtVTfuNr7/veFDwhACJZuPA==}
+  '@ui-sdk/vue@0.1.0-beta.17':
+    resolution: {integrity: sha512-4wx8xdVwXLp++/XEnf0MEMeshHb0UDdotTatfIObbQ2D+QQUG3OMLD0thjQWayMFY5phdYBM9t+YlIJdzYAq5Q==}
     peerDependencies:
       '@nuxt/kit': ^4.0.0 || ^5.0.0-0
       '@nuxt/schema': ^4.0.0 || ^5.0.0-0
-      '@ui-sdk/core': ^0.1.0-beta.14
+      '@ui-sdk/core': ^0.1.0-beta.17
       nuxt: ^4.0.0 || ^5.0.0-0
       vue: '>=3.5'
     peerDependenciesMeta:
@@ -7080,11 +7080,11 @@ snapshots:
     dependencies:
       '@types/node': 24.13.3
 
-  '@ui-sdk/core@0.1.0-beta.14': {}
+  '@ui-sdk/core@0.1.0-beta.17': {}
 
-  '@ui-sdk/vue@0.1.0-beta.14(@ui-sdk/core@0.1.0-beta.14)(vue@3.5.42(typescript@6.0.3))':
+  '@ui-sdk/vue@0.1.0-beta.17(@ui-sdk/core@0.1.0-beta.17)(vue@3.5.42(typescript@6.0.3))':
     dependencies:
-      '@ui-sdk/core': 0.1.0-beta.14
+      '@ui-sdk/core': 0.1.0-beta.17
       vue: 3.5.42(typescript@6.0.3)
 
   '@ungap/structured-clone@1.3.3': {}
