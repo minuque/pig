@@ -1,5 +1,5 @@
 <template>
-  <HoverCardContent side="right" size="s" max-width="20rem" class="session-hover">
+  <HoverCardContent side="right" size="s" max-width="20rem" class="session-hover" @pointerdown.stop>
     <p class="hover-title">{{ session.title }}</p>
 
     <div class="hover-rows">

@@ -79,21 +79,14 @@
           aria-hidden="true"
         />
 
-        <RadioGroup
-          v-else
-          class="board-mark"
-          size="s"
-          :model-value="answer.picked.includes(option.label) ? option.label : ''"
-          inert
-          aria-hidden="true"
-        >
-          <RadioGroupItem :value="option.label" />
-        </RadioGroup>
-
         <span class="board-option-text">
           <span class="board-option-label">{{ option.label }}</span>
           <span v-if="option.description" class="board-option-desc">{{ option.description }}</span>
         </span>
+
+        <ListboxItemIndicator v-if="!question.multiple" class="board-mark">
+          <CheckIcon class="size-icon" aria-hidden="true" />
+        </ListboxItemIndicator>
 
         <Kbd v-if="position < 9" class="board-key">{{ position + 1 }}</Kbd>
       </ListboxItem>
@@ -108,14 +101,18 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from "vue"
 import { useEventListener } from "@vueuse/core"
-import { Listbox, ListboxItem, createListboxController } from "@ui-sdk/vue/listbox"
+import {
+  Listbox,
+  ListboxItem,
+  ListboxItemIndicator,
+  createListboxController,
+} from "@ui-sdk/vue/listbox"
 import { useI18n } from "@i18n/index.js"
 import { Button, IconButton } from "@pig/ui/button"
 import { Checkbox } from "@pig/ui/checkbox"
 import { Kbd } from "@pig/ui/kbd"
-import { RadioGroup, RadioGroupItem } from "@pig/ui/radio-group"
 import { StatusIndicator } from "@pig/ui/status-indicator"
-import { ChevronLeftIcon, ChevronRightIcon, XIcon } from "@components/icons/index.js"
+import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, XIcon } from "@components/icons/index.js"
 import { useQuestionBoard } from "@features/extension-ui/hooks/use-question-board.js"
 import { emptyAnswer } from "@features/extension-ui/lib/board.js"
 

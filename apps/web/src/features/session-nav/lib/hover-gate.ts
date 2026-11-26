@@ -35,6 +35,8 @@ function track(event: PointerEvent): void {
 }
 
 function press(event: PointerEvent): void {
+  if (event.target instanceof Element && event.target.closest('[data-slot="hover-card-content"]'))
+    return
   hold({ x: event.clientX, y: event.clientY })
 }
 

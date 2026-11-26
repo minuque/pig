@@ -17,7 +17,7 @@
       </template>
     </HoverCardTrigger>
 
-    <HoverCardContent side="top" size="s" max-width="20rem" class="fork-card">
+    <HoverCardContent side="top" size="s" max-width="20rem" class="fork-card" @pointerdown.stop>
       <button
         type="button"
         class="fork-row"
