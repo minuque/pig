@@ -49,6 +49,11 @@ export class WorkspaceResources {
     return slot.loader
   }
 
+  invalidate(workspace?: string): void {
+    if (workspace === undefined) this.slots.clear()
+    else this.slots.delete(canonicalizePath(workspace))
+  }
+
   async dispose(): Promise<void> {
     this.disposed = true
     const pending = [...this.slots.values()]

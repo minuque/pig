@@ -31,7 +31,7 @@ export const layers: Record<string, Layer[]> = {
       name: "功能",
       note: "业务逻辑",
       dirs: [
-        "features/split-view",
+        "features/panel-host",
         "features/composer",
         "features/transcript-view",
         "features/settings",

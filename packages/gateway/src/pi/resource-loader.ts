@@ -68,7 +68,7 @@ function stripPackagesFromSettingsJson(raw: string | undefined): string | undefi
   }
 }
 
-function settingsWithoutPackages(cwd: string, agentDir: string): SettingsManager {
+export function settingsWithoutPackages(cwd: string, agentDir: string): SettingsManager {
   const globalPath = join(resolve(agentDir), "settings.json")
   const projectPath = join(resolve(cwd), CONFIG_DIR_NAME, "settings.json")
   const settings = SettingsManager.fromStorage({

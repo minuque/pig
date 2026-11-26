@@ -7,7 +7,7 @@
       :align="align"
       size="s"
       max-width="360px"
-      :initial-focus="() => input"
+      :initial-focus="() => input?.el ?? null"
       final-focus="none"
       class="reply-popover"
       @pointerdown.stop
@@ -20,14 +20,14 @@
           <span class="reply-preview-text">{{ quotePreview }}</span>
         </div>
 
-        <textarea
+        <Textarea
           ref="input"
           v-model="draft"
           rows="2"
           class="reply-input"
           :aria-label="t('composer.replyCommentLabel')"
           :aria-description="t('composer.replyCommentHint')"
-          :aria-invalid="tooLong || undefined"
+          :invalid="tooLong"
           :placeholder="t('composer.replyCommentPlaceholder')"
           @keydown="onInputKeydown"
         />
@@ -74,6 +74,7 @@ import { useI18n } from "@i18n/index.js"
 import { QuoteIcon } from "@components/icons/index.js"
 import { Button } from "@pig/ui/button"
 import { Popover, PopoverContent } from "@pig/ui/popover"
+import { Textarea } from "@pig/ui/textarea"
 import { resolveReplyCommentDismissal } from "@features/composer/lib/editor/reply-citation.js"
 
 const props = withDefaults(
@@ -94,7 +95,7 @@ const emit = defineEmits<{
   dismiss: []
 }>()
 const { t } = useI18n()
-const input = useTemplateRef<HTMLTextAreaElement>("input")
+const input = useTemplateRef<InstanceType<typeof Textarea>>("input")
 const draft = ref("")
 const dirty = ref(false)
 const quotePreview = computed(() => (props.reference?.text ?? "").replace(/\s+/g, " ").trim())
@@ -118,11 +119,14 @@ watch(draft, (value) => {
   if (props.open && value !== (props.reference?.comment ?? "")) dirty.value = true
 })
 
-watch(input, (el) => {
-  if (!el || !props.open) return
-  el.setSelectionRange(el.value.length, el.value.length)
-  el.scrollTop = el.scrollHeight
-})
+watch(
+  () => input.value?.el,
+  (el) => {
+    if (!el || !props.open) return
+    el.setSelectionRange(el.value.length, el.value.length)
+    el.scrollTop = el.scrollHeight
+  },
+)
 
 function submitSave() {
   if (!tooLong.value) emit("save", draft.value)
@@ -221,33 +225,9 @@ function onOpenChange(nextOpen: boolean, details: ChangeDetails<PopoverOpenChang
 }
 
 .reply-input {
-  box-sizing: border-box;
-  display: block;
-  width: 100%;
   min-height: 4lh;
   max-height: 160px;
-  padding: var(--space-2xs) var(--space-xs);
-  border-radius: var(--radius-control);
-  background: var(--control-bg);
-  box-shadow: var(--control-shadow);
-  color: var(--fg);
-  font: inherit;
-  font-size: var(--text-body);
-  line-height: var(--text-body--line-height);
   resize: none;
-  outline: none;
-}
-
-.reply-input:focus {
-  box-shadow: var(--focus-ring);
-}
-
-.reply-input[aria-invalid="true"] {
-  box-shadow: 0 0 0 2px var(--danger-text);
-}
-
-.reply-input::placeholder {
-  color: var(--fg-muted);
 }
 
 .reply-error {

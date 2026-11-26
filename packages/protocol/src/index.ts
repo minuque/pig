@@ -32,6 +32,22 @@ export {
   type SessionReference,
 } from "./context-reference.js"
 
+export type {
+  AgentConfigScope,
+  McpExposure,
+  McpInvalidEntry,
+  McpProbe,
+  McpProbeReport,
+  McpScopeView,
+  McpServerView,
+  McpToolAnnotations,
+  McpToolView,
+  SkillDiagnosticView,
+  SkillFileView,
+  SkillScopeView,
+  SkillView,
+} from "./agent-config.js"
+
 export type { ExtensionUiDialog, ExtensionUiRequest, ExtensionUiResponse } from "./extension-ui.js"
 
 export type {
@@ -54,7 +70,6 @@ export type {
   UserRailLayout,
   UserRailSection,
   UserThemeMode,
-  UserWelcomeField,
 } from "./preferences.js"
 
 export type {

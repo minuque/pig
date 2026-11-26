@@ -16,7 +16,6 @@ import {
 
 test("一轮工作：复杂历史上发送、流式、中止", async ({ page, complexGateway }) => {
   test.setTimeout(120_000)
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, complexGateway.workspaceId)
   const bridge = await installTurnBridge(page)
   await page.goto(complexGateway.entryUrl)

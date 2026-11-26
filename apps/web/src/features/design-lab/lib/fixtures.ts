@@ -7,7 +7,7 @@ export const PROSE = `## 改动摘要
 - [x] 设置页已切换
 - [ ] DESIGN.md 待同步
 
-> 卡片边框用内阴影画，非整数缩放下不会被取整成实线。
+> 卡片边框用原生 \`border\` 配 \`background-clip: padding-box\`，行悬停不会叠亮圆角。
 
 \`\`\`ts
 export const card = { ring: "--border", radius: "--radius-card" }

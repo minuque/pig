@@ -6,7 +6,7 @@
     :data-tone="color"
     :data-dismissible="dismissible || undefined"
     :data-has-icon="Boolean($slots.icon) || undefined"
-    :class="[floating && 'surface-float', props.class]"
+    :class="props.class"
   >
     <div v-if="$slots.icon" data-slot="banner-icon">
       <slot name="icon" />
@@ -22,15 +22,18 @@
       </div>
     </div>
 
-    <button
+    <IconButton
       v-if="dismissible"
       type="button"
+      size="s"
+      variant="ghost"
+      color="neutral"
       data-slot="banner-action"
       :aria-label="labels.close"
       @click="emit('close')"
     >
       <XIcon class="size-icon" />
-    </button>
+    </IconButton>
   </div>
 </template>
 
@@ -39,6 +42,7 @@ import type { HTMLAttributes } from "vue"
 import { XIcon } from "@lucide/vue"
 import { useUiLabels } from "../../core/config.js"
 import type { Size } from "../../core/types.js"
+import { IconButton } from "../button/index.js"
 import { type BannerColor, type BannerVariant } from "./index.js"
 
 const labels = useUiLabels()
@@ -48,7 +52,6 @@ interface Props {
   color?: BannerColor
   size?: Size
   dismissible?: boolean
-  floating?: boolean
   class?: HTMLAttributes["class"]
 }
 
@@ -57,7 +60,6 @@ const props = withDefaults(defineProps<Props>(), {
   color: "neutral",
   size: "m",
   dismissible: false,
-  floating: false,
   class: undefined,
 })
 const emit = defineEmits<{ close: [] }>()
@@ -152,23 +154,5 @@ const emit = defineEmits<{ close: [] }>()
   position: absolute;
   inset-block-start: var(--space-xs);
   inset-inline-end: var(--space-xs);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  inline-size: 20px;
-  block-size: 20px;
-  border: 0;
-  border-radius: var(--radius-control);
-  background: transparent;
-  color: currentColor;
-  cursor: pointer;
-}
-
-:where([data-slot="banner-action"]:hover) {
-  background: var(--bg-hover);
-}
-
-:where([data-slot="banner-action"]:focus-visible) {
-  outline: 2px solid var(--focus-color);
 }
 </style>

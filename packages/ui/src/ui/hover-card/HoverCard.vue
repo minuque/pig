@@ -1,5 +1,5 @@
 <template>
-  <HoverCardRoot :delay="200" :close-delay="150" v-bind="$attrs">
+  <HoverCardRoot v-bind="$attrs">
     <slot />
   </HoverCardRoot>
 </template>

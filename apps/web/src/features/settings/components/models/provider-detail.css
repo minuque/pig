@@ -9,15 +9,15 @@
   display: grid;
   place-items: center;
   flex: none;
-  width: 36px;
-  height: 36px;
+  width: var(--control-lg);
+  height: var(--control-lg);
 }
 
 .detail-copy {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 3px;
+  gap: calc(var(--space-2xs) * 0.75);
 }
 
 .provider-detail-title {
@@ -65,7 +65,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  min-height: 46px;
+  min-height: calc(var(--control-lg) + var(--space-xs));
 }
 
 .kvlabel {
@@ -99,14 +99,14 @@
 }
 
 .switch-icon {
-  inline-size: 13px;
-  block-size: 13px;
+  inline-size: var(--icon-md);
+  block-size: var(--icon-md);
 }
 
 .rowicons {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: calc(var(--space-2xs) / 2);
   margin-inline-start: auto;
 }
 

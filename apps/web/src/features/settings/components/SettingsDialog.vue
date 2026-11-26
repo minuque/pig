@@ -2,6 +2,7 @@
   <Dialog :open="open" :close-on-outside-press="false" @update:open="emit('update:open', $event)">
     <DialogContent
       class="settings-dialog"
+      bleed
       :show-close-button="false"
       initial-focus="content"
       @keydown="onShellKeydown"
@@ -24,7 +25,7 @@
               </template>
 
               <TextFieldSlot side="left">
-                <SearchIcon class="size-icon" />
+                <SearchIcon class="size-icon-lg" />
               </TextFieldSlot>
 
               <TextFieldSlot side="right">
@@ -74,7 +75,7 @@
               :aria-current="active === item.id ? 'page' : undefined"
               @click="select(item.id)"
             >
-              <component :is="item.icon" class="size-icon" />
+              <component :is="item.icon" class="size-icon-lg" />
               <span class="nav-label">{{ item.label }}</span>
               <span v-if="item.count" class="nav-count">{{ item.count }}</span>
             </button>
@@ -129,6 +130,8 @@
                 <AppearancePane v-else-if="active === 'appearance'" />
                 <NotificationsPane v-else-if="active === 'notifications'" />
                 <ArchivePane v-else-if="active === 'archive' && archive" :controller="archive" />
+                <McpPane v-else-if="active === 'mcp'" :workspace="workspace" />
+                <SkillsPane v-else-if="active === 'skills'" :workspace="workspace" />
                 <ModelsPane v-else :refresh-models="refreshModels" />
               </div>
             </div>
@@ -141,6 +144,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, provide, ref, useTemplateRef, watch } from "vue"
+import { PlugIcon, SparklesIcon } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@pig/ui/dialog"
 import {
@@ -160,8 +164,10 @@ import { TextFieldRoot, TextFieldSlot } from "@pig/ui/text-field"
 import AppearancePane from "./AppearancePane.vue"
 import ArchivePane from "./ArchivePane.vue"
 import GeneralPane from "./GeneralPane.vue"
+import McpPane from "./mcp/McpPane.vue"
 import ModelsPane from "./models/ModelsPane.vue"
 import NotificationsPane from "./NotificationsPane.vue"
+import SkillsPane from "./skills/SkillsPane.vue"
 import { countArchiveTabs, type ArchiveController } from "@features/settings/lib/archive-view.js"
 import { matchSettings, type SettingsSearchEntry } from "@features/settings/lib/settings-search.js"
 
@@ -176,6 +182,7 @@ const props = defineProps<{
   initialPane?: Pane | undefined
   refreshModels?: (() => Promise<void>) | undefined
   archive?: ArchiveController | undefined
+  workspace?: string | undefined
 }>()
 const emit = defineEmits<{ "update:open": [open: boolean] }>()
 const { t } = useI18n()
@@ -195,6 +202,8 @@ const tabs = computed<
   },
   { id: "appearance", label: t("settings.appearance"), icon: PaletteIcon },
   { id: "models", label: t("settings.models.title"), icon: CloudIcon },
+  { id: "mcp", label: t("settings.mcp.title"), icon: PlugIcon },
+  { id: "skills", label: t("settings.skills.title"), icon: SparklesIcon },
   { id: "notifications", label: t("settings.notifications"), icon: BellIcon },
   ...(props.archive
     ? [
@@ -238,12 +247,6 @@ const searchEntries = computed<SettingsSearchEntry[]>(() => [
     section: t("settings.appearance"),
   },
   {
-    id: "setting-welcome-field",
-    pane: "appearance",
-    title: t("settings.welcomeField"),
-    section: t("settings.appearance"),
-  },
-  {
     id: "setting-ui-font",
     pane: "appearance",
     title: t("settings.uiFont"),
@@ -278,6 +281,18 @@ const searchEntries = computed<SettingsSearchEntry[]>(() => [
     pane: "models",
     title: t("settings.models.providers"),
     section: t("settings.models.title"),
+  },
+  {
+    id: "",
+    pane: "mcp",
+    title: t("settings.mcp.title"),
+    section: t("settings.mcp.title"),
+  },
+  {
+    id: "",
+    pane: "skills",
+    title: t("settings.skills.title"),
+    section: t("settings.skills.title"),
   },
   {
     id: "setting-notify-system",
@@ -399,7 +414,6 @@ watch(active, async () => {
   width: min(88vw, var(--dialog-width-lg));
   max-width: min(88vw, var(--dialog-width-lg));
   height: clamp(var(--dialog-height-lg-min), 85vh, var(--dialog-height-lg));
-  padding: 0;
   gap: 0;
   border-radius: var(--radius-dialog);
   overflow: hidden;

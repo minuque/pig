@@ -15,21 +15,29 @@
     </TabsRoot>
 
     <div class="archive-filters">
-      <Select :model-value="projectFilter" @update:model-value="onProjectFilterChange">
-        <SelectTrigger
-          size="m"
-          class="project-select"
-          :aria-label="t('settings.archive.allProjects')"
-        >
+      <Select
+        :model-value="projectFilter"
+        :items="projectItems"
+        @update:model-value="onProjectFilterChange"
+      >
+        <SelectTrigger class="project-select" :aria-label="t('settings.archive.allProjects')">
           <span class="project-select-label">{{ activeProjectLabel }}</span>
         </SelectTrigger>
 
         <SelectContent>
-          <SelectItem :value="ALL_PROJECTS">{{ t("settings.archive.allProjects") }}</SelectItem>
+          <SelectInput :placeholder="t('session.searchProjects')" />
+          <SelectEmpty>{{ t("session.noMatchingProjects") }}</SelectEmpty>
 
-          <SelectItem v-for="option in projectOptions" :key="option.cwd" :value="option.cwd">
-            {{ option.name }}
-          </SelectItem>
+          <SelectList v-slot="{ state }">
+            <SelectItem
+              v-for="item in state.items as { value: string; label: string }[]"
+              :key="item.value"
+              :value="item.value"
+              :label="item.label"
+            >
+              <SelectItemText>{{ item.label }}</SelectItemText>
+            </SelectItem>
+          </SelectList>
         </SelectContent>
       </Select>
 
@@ -93,7 +101,16 @@ import { computed } from "vue"
 import { SearchIcon, XIcon } from "@components/icons/index.js"
 import { Button, IconButton } from "@pig/ui/button"
 import { Checkbox } from "@pig/ui/checkbox"
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectEmpty,
+  SelectInput,
+  SelectItem,
+  SelectItemText,
+  SelectList,
+  SelectTrigger,
+} from "@pig/ui/select"
 import { TabsList, TabsRoot, TabsTrigger } from "@pig/ui/tabs"
 import { TextFieldRoot, TextFieldSlot } from "@pig/ui/text-field"
 import { ALL_PROJECTS, type QuickRuleChip } from "@features/settings/hooks/use-archive-pane.js"
@@ -122,6 +139,14 @@ const emit = defineEmits<{
   toggleQuickRule: [rule: ArchiveQuickRule]
 }>()
 const { t } = useI18n()
+const projectItems = computed(() => [
+  { value: ALL_PROJECTS, label: t("settings.archive.allProjects") },
+  ...props.projectOptions.map((option) => ({
+    value: option.cwd,
+    label: option.name,
+    keywords: [option.cwd],
+  })),
+])
 const activeProjectLabel = computed(() => {
   if (projectFilter.value === ALL_PROJECTS) return t("settings.archive.allProjects")
   return (

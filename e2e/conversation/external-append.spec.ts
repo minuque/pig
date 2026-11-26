@@ -42,7 +42,6 @@ test("pig 持有会话时被外部追加：提示、显示外部那一轮、草�
   appendGateway,
 }) => {
   test.setTimeout(120_000)
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, appendGateway.workspaceId)
   await page.goto(appendGateway.entryUrl)
   await page

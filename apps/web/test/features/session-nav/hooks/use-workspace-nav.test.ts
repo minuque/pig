@@ -30,10 +30,9 @@ function localWorkspaces(paths: string[]) {
   }
 }
 
-function admin(sessionId?: string, running = false, otherId?: string) {
+function admin(sessionId?: string, running = false) {
   return {
     sessionId: ref<string | undefined>(sessionId),
-    shownIds: ref([sessionId, otherId]),
     isRunning: (id: string) => running && id === sessionId,
     leave: vi.fn(),
     refreshSessions: vi.fn(async () => undefined),
@@ -112,7 +111,7 @@ describe("useWorkspaceNav", () => {
     expect(navError.value).not.toBe("")
   })
 
-  it("删除另一侧开着的会话时，先让那一侧离开再发删除请求", async () => {
+  it("删除当前打开的会话时，先离开再发删除请求", async () => {
     const sessions = ref<SessionMetadata[]>([{ id: "s1", createdAt: 1, cwd: "/a" }])
     const calls: string[] = []
     platformRequestMock.mockImplementation(async (path: string) => {
@@ -123,7 +122,7 @@ describe("useWorkspaceNav", () => {
 
       return { cards: [] }
     })
-    const adm = admin("s0", false, "s1")
+    const adm = admin("s1")
     adm.leave = vi.fn(() => {
       calls.push("leave")
     })

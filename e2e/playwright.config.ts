@@ -13,7 +13,7 @@ export default defineConfig({
     timeout: 15_000,
     toHaveScreenshot: { maxDiffPixels: 200 },
   },
-  fullyParallel: false,
+  fullyParallel: true,
   workers: 4,
   retries: process.env.CI ? 2 : 0,
   forbidOnly: true,
@@ -31,6 +31,7 @@ export default defineConfig({
   use: {
     ...devices["Desktop Chrome"],
     viewport: { width: 1280, height: 800 },
+    reducedMotion: "reduce",
     screenshot: "only-on-failure",
     trace: "retain-on-failure",
     video: "off",

@@ -70,6 +70,8 @@ export * from "./ui/tabs/index.js"
 
 export * from "./ui/text-field/index.js"
 
+export * from "./ui/textarea/index.js"
+
 export * from "./ui/toast/index.js"
 
 export * from "./ui/toggle/index.js"

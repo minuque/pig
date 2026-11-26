@@ -1,4 +1,11 @@
 /** 平台 HTTP 契约：键是「方法 路径」，路径里的 :name 由 params 填。只有类型，没有运行时代码。 */
+import type {
+  McpExposure,
+  McpProbeReport,
+  McpScopeView,
+  SkillFileView,
+  SkillScopeView,
+} from "./agent-config.js"
 import type { ModelMetadata } from "./model.js"
 import type {
   CustomProviderInput,
@@ -173,6 +180,75 @@ export interface PlatformHttpRoutes {
   "PUT /api/v1/platform/providers/:providerId/models/:modelId/enabled": {
     params: { providerId: string; modelId: string }
     body: { enabled: boolean }
+    response: { ok: true }
+  }
+  "GET /api/v1/platform/mcp": { query: { scope: string }; response: McpScopeView }
+  "PUT /api/v1/platform/mcp/server": {
+    body: {
+      scope: string
+      name: string
+      previousName?: string
+      overwrite?: boolean
+      config: Record<string, unknown>
+    }
+    response: { ok: true } | { ok: false; error: string }
+  }
+  "PATCH /api/v1/platform/mcp/server": {
+    body: { scope: string; name: string; enabled?: boolean; exposure?: McpExposure }
+    response: { ok: true }
+  }
+  "DELETE /api/v1/platform/mcp/server": {
+    body: { scope: string; name: string }
+    response: { ok: true }
+  }
+  "GET /api/v1/platform/mcp/probes": {
+    query: { scope: string }
+    response: McpProbeReport
+  }
+  "POST /api/v1/platform/mcp/probe": {
+    body: { scope: string }
+    response: McpProbeReport
+  }
+  "POST /api/v1/platform/mcp/login": {
+    body: { scope: string; name: string }
+    response: { loginId: string }
+  }
+  "GET /api/v1/platform/mcp/login/:loginId/events": {
+    params: { loginId: string }
+    query: { after?: string }
+    stream: true
+  }
+  "POST /api/v1/platform/mcp/login/:loginId/cancel": {
+    params: { loginId: string }
+    response: { ok: true }
+  }
+  "POST /api/v1/platform/mcp/logout": {
+    body: { scope: string; name: string }
+    response: { ok: true }
+  }
+  "GET /api/v1/platform/skill-settings": { query: { scope: string }; response: SkillScopeView }
+  "GET /api/v1/platform/skill-settings/file": {
+    query: { scope: string; path: string }
+    response: SkillFileView
+  }
+  "GET /api/v1/platform/skill-settings/asset": {
+    query: { scope: string; path: string; file: string }
+    response: FileTextResponse
+  }
+  "PUT /api/v1/platform/skill-settings/file": {
+    body: { scope: string; path: string; raw: string }
+    response: { ok: true } | { ok: false; error: string }
+  }
+  "POST /api/v1/platform/skill-settings": {
+    body: { scope: string; name: string; description: string }
+    response: { filePath: string } | { error: string }
+  }
+  "PATCH /api/v1/platform/skill-settings/enabled": {
+    body: { scope: string; filePath: string; enabled: boolean }
+    response: { ok: true }
+  }
+  "DELETE /api/v1/platform/skill-settings": {
+    body: { scope: string; path: string }
     response: { ok: true }
   }
 }

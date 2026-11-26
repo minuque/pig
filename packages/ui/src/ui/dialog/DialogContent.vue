@@ -4,6 +4,7 @@
   <DialogContentPrimitive
     :data-size="size"
     :data-align="align"
+    :data-bleed="bleed || undefined"
     v-bind="$attrs"
     :class="props.class"
     :style="widthStyle"
@@ -51,12 +52,14 @@ const props = withDefaults(
     size?: Size
     maxWidth?: string
     align?: "start" | "center"
+    bleed?: boolean
   }>(),
   {
     class: undefined,
     showCloseButton: true,
     size: "m",
     align: "center",
+    bleed: false,
   },
 )
 const labels = useUiLabels()
@@ -99,18 +102,17 @@ const widthStyle = computed(() =>
   max-inline-size: var(--dialog-max-width, var(--dialog-width-sm));
 }
 
+:where([data-slot="dialog-content"][data-bleed]) {
+  padding: 0;
+}
+
 :where([data-slot="dialog-content"] [data-slot="dialog-title"]) {
   margin-block-end: var(--space-sm);
 }
 
-:where([data-slot="dialog-content"]) > [data-dialog-close] {
+:where([data-slot="dialog-content"] > [data-dialog-close]) {
   position: absolute;
-  inset-block-start: calc(var(--space-md) - (var(--space-lg) - var(--icon-md)) / 2);
-  inset-inline-end: calc(var(--space-md) - (var(--space-lg) - var(--icon-md)) / 2);
-}
-
-:where([data-slot="dialog-content"][data-size="s"]) > [data-dialog-close] {
-  inset-block-start: calc(var(--space-sm) - (var(--space-lg) - var(--icon-md)) / 2);
-  inset-inline-end: calc(var(--space-sm) - (var(--space-lg) - var(--icon-md)) / 2);
+  inset-block-start: calc(var(--space-sm) - (var(--control-xs) - var(--icon-md)) / 2);
+  inset-inline-end: calc(var(--space-sm) - (var(--control-xs) - var(--icon-md)) / 2);
 }
 </style>

@@ -46,7 +46,7 @@
         <template #render="{ props: part }">
           <IconButton
             v-bind="part"
-            class="footer-btn press-scale"
+            class="footer-btn"
             type="button"
             size="m"
             variant="ghost"

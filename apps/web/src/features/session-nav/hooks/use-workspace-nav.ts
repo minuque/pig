@@ -47,7 +47,6 @@ export function useWorkspaceNav(
   error: Ref<string>,
   admin: {
     sessionId: Ref<string | undefined>
-    shownIds: Ref<readonly (string | undefined)[]>
     isRunning(id: string): boolean
     leave(id: string): void
     refreshSessions(): Promise<void>
@@ -242,7 +241,7 @@ export function useWorkspaceNav(
     setDeleting(id, true)
 
     try {
-      if (admin.shownIds.value.includes(id)) {
+      if (admin.sessionId.value === id) {
         admin.leave(id)
         await nextTick()
       }
@@ -317,7 +316,7 @@ export function useWorkspaceNav(
       await requestArchiveSessions(eligible)
 
       for (const id of eligible) {
-        if (admin.shownIds.value.includes(id)) admin.leave(id)
+        if (admin.sessionId.value === id) admin.leave(id)
       }
 
       if (options?.silent) return

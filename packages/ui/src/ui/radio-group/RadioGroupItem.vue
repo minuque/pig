@@ -50,7 +50,7 @@ const group = inject(
       ({
         size: "m",
         variant: "surface",
-        color: undefined,
+        color: "accent",
       }) as const,
   ),
 )
@@ -139,7 +139,7 @@ const group = inject(
 }
 
 :where([data-radio-group-item][data-variant="surface"])::after {
-  background-color: var(--bg);
+  background-color: var(--tone-on-solid);
 }
 
 :where([data-radio-group-item][data-variant="surface"][data-disabled])::before {

@@ -5,7 +5,6 @@ import { CHILD_SESSION_ID, FILLER_PREFIX } from "./prebuild-session.js"
 import { installTurnBridge } from "./sim-turn.js"
 
 export async function startSubagentTurn(page: Page, subagentGateway: E2eGateway) {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, subagentGateway.workspaceId)
   const bridge = await installTurnBridge(page)
   await page.goto(subagentGateway.entryUrl)

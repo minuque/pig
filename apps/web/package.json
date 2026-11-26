@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "vitest run --project unit",
+    "test": "vitest run --root ../.. --project @pig/web --project @pig/web:isolated",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {

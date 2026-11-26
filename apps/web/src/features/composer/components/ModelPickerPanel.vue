@@ -141,7 +141,7 @@ import {
   listPickerRows,
   resolveModelInfo,
 } from "@features/composer/lib/model-preset.js"
-import { displayThinkingLevel } from "@features/composer/lib/thinking-level.js"
+import { displayThinkingLevel } from "@utils/thinking-level.js"
 import type { ComposerModel, ComposerVendor } from "@features/composer/type.js"
 
 const props = withDefaults(
