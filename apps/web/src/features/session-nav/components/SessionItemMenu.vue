@@ -1,5 +1,5 @@
 <template>
-  <ContextMenuContent class="select-none">
+  <ContextMenuContent class="select-none" @pointerdown.stop>
     <ContextMenuItem @select="emit('rename')">
       <PenIcon />
       {{ t("session.rename") }}
