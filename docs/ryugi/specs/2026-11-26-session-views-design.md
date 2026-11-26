@@ -137,7 +137,7 @@
 Pi 扩展市场里的 ask 类扩展（`@juicesharp/rpiv-ask-user-question`、`@arhen/pi-core-ask`、`@dreki-gg/pi-questionnaire`、官方 examples `question.ts` / `questionnaire.ts` 等，均 MIT）全部在 `execute` 里阻塞等 `ctx.ui.custom` 或 `ui.select`。pig 用 rpc 模式绑扩展，`custom` 返回 `undefined`，它们要么报错，要么退化成一题一个选择框，没有自定义回答。所以不直接依赖，自己写内置扩展，只照抄 rpiv 的参数 schema 与工具描述（MIT）。
 
 - 位置：`packages/extensions/src/ask/`，工具名 `ask_user_question`，`exposure: "model-only"`，`executionMode: "sequential"`。
-- 结束本轮：`execute` 返回 `terminate: true`（`pi-agent-core` 的 `AgentToolResult`；同批工具全部 terminate 才生效）。`promptGuidelines` 要求单独调用；同批其他调用由 `tool_call` 事件返回 `{ block: true }` 兜底（我定的）。不用 `ctx.abort()`，否则本轮按中断收尾。
+- 结束本轮：`execute` 返回 `terminate: true`（`pi-agent-core` 的 `AgentToolResult`；同批工具全部 terminate 才生效）。`promptGuidelines` 要求单独调用；同批其他调用只靠工具描述约束（我定的：`tool_call` 事件看不到同批其他调用，拦不全）。不用 `ctx.abort()`，否则本轮按中断收尾。
 - 参数：`questions[1..4]{ question, header(≤16), options[2..4]{ label(≤60), description }, multiSelect?, allowCustom?(默认 true) }`。rpiv 的 `preview` 字段不收（浮板不画预览）。
 - 前端判定：transcript 里最后一个 `ask_user_question` 工具调用之后没有用户消息、会话 idle → 显示浮板。该轮 assistant 的 `stopReason` 是 `toolUse`，不按中断渲染。
 - 回答消息：每题一行 `<header>：<回答>`（§8.1）。
