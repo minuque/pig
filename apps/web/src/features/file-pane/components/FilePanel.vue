@@ -163,15 +163,4 @@ const active = computed(() => pane.tabs.value.active)
   color: var(--fg-secondary);
   font-size: var(--text-body);
 }
-
-html[data-pig-desktop-platform] .file-panel-head {
-  -webkit-app-region: drag;
-  app-region: drag;
-  user-select: none;
-}
-
-html[data-pig-desktop-platform] .file-panel-head :deep(:is(button, [role="tab"])) {
-  -webkit-app-region: no-drag;
-  app-region: no-drag;
-}
 </style>
