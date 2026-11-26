@@ -25,7 +25,6 @@ export type TransferListsOptions = {
   onMovingChange?: (moving: TransferDraft | null) => void
   order?: () => string[]
   disabled?: (key: string) => boolean
-  grabKey?: (event: KeyboardEvent) => boolean
   itemLabel?: (key: string) => string | undefined
   listLabel?: (list: string) => string | undefined
   message?: (message: TransferMessage) => string
@@ -45,7 +44,6 @@ const transferLists = definePrimitive({
     onMovingChange: "callback",
     order: "value",
     disabled: "value",
-    grabKey: "value",
     itemLabel: "value",
     listLabel: "value",
     message: "value",
@@ -84,12 +82,6 @@ const transferLists = definePrimitive({
     return {
       transfer,
       move: (key: string, list: string, index: number) => transfer.move(key, list, index),
-      keydown(event: KeyboardEvent, key: string) {
-        const grab = options().grabKey
-
-        if (grab && !transfer.moving(context.store.get(), key) && !grab(event)) return
-        transfer.keydown(event, key)
-      },
     }
   },
   slots: (slot) => ({
@@ -119,7 +111,6 @@ const transferLists = definePrimitive({
         "data-dragging": part.api.transfer.dragging(state, part.props.value) ? "" : undefined,
       }),
       on: {
-        keydown: (event, { api, props }) => api.keydown(event, props.value),
         pointerdown: (event, { api, props }) => api.transfer.pointerdown(event, props.value),
       },
       bind: (el, part) => part.api.transfer.bindItem(el, part.props.value),
@@ -141,7 +132,6 @@ export const TransferListsRoot = defineComponent(
       ...(props.defaultValue && { defaultValue: props.defaultValue }),
       ...(props.order && { order: props.order }),
       ...(props.disabled && { disabled: props.disabled }),
-      ...(props.grabKey && { grabKey: props.grabKey }),
       ...(props.itemLabel && { itemLabel: props.itemLabel }),
       ...(props.listLabel && { listLabel: props.listLabel }),
       ...(props.message && { message: props.message }),
@@ -153,16 +143,7 @@ export const TransferListsRoot = defineComponent(
   },
   {
     inheritAttrs: false,
-    props: [
-      "value",
-      "defaultValue",
-      "order",
-      "disabled",
-      "grabKey",
-      "itemLabel",
-      "listLabel",
-      "message",
-    ],
+    props: ["value", "defaultValue", "order", "disabled", "itemLabel", "listLabel", "message"],
     emits: ["value-change", "moving-change"],
     slots: Object as SlotsType<{
       default?: (scope: RootScope) => VNode[]

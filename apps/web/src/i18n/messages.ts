@@ -77,8 +77,7 @@ export const zh = {
     unpinProject: "取消置顶 {name}",
     noMatchingProjects: "没有匹配的项目",
     sectionInbox: "收件箱",
-    dragGrab:
-      "已拿起{label}，在{list}第 {position} 条，共 {total} 条。上下键排序，左右键换分组，空格放下，Esc 取消",
+    dragGrab: "已拿起{label}，在{list}第 {position} 条，共 {total} 条",
     dragMove: "{label}到{list}第 {position} 条，共 {total} 条",
     dragDrop: "{label}放在{list}第 {position} 条",
     dragCancel: "已取消，{label}回到{list}第 {position} 条",
@@ -761,8 +760,7 @@ export const en: Messages = {
     unpinProject: "Unpin {name}",
     noMatchingProjects: "No matching projects",
     sectionInbox: "Inbox",
-    dragGrab:
-      "Picked up {label}, item {position} of {total} in {list}. Up and Down reorder, Left and Right change group, Space drops, Escape cancels",
+    dragGrab: "Picked up {label}, item {position} of {total} in {list}",
     dragMove: "{label} moved to item {position} of {total} in {list}",
     dragDrop: "{label} dropped at item {position} in {list}",
     dragCancel: "Canceled, {label} is back at item {position} in {list}",
