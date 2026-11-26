@@ -1,4 +1,4 @@
-import { writeFile } from "node:fs/promises"
+import { mkdir, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import type { Page } from "@playwright/test"
 import { expect, seedWorkspace, test } from "../support/fixtures.js"
@@ -50,7 +50,13 @@ test("输入卡实时渲染 Markdown，提交时发送原文", async ({ page, co
 
 test("@ 与 / 在代码块里不弹菜单，普通段落与列表项照旧", async ({ page, complexGateway }) => {
   test.setTimeout(120_000)
+  const skillDir = join(complexGateway.workspaceDir, ".agents", "skills", "lint-fix")
   await writeFile(join(complexGateway.workspaceDir, "note.md"), "# note")
+  await mkdir(skillDir, { recursive: true })
+  await writeFile(
+    join(skillDir, "SKILL.md"),
+    "---\nname: lint-fix\ndescription: 修复 lint 报错\n---\n",
+  )
   await installTurnBridge(page)
 
   await openComposer(page, complexGateway)
@@ -78,7 +84,7 @@ test("@ 与 / 在代码块里不弹菜单，普通段落与列表项照旧", asy
   await expect(prompt.locator("ul > li")).toHaveText(["甲"])
   await prompt.press("Enter")
   await prompt.pressSequentially("/")
-  await expect(menu).toBeVisible()
+  await expect(menu.getByRole("option", { name: /lint-fix/ })).toBeVisible()
 
   await prompt.press("Escape")
   await prompt.press("Backspace")
