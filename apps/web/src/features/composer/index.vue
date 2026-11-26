@@ -285,7 +285,6 @@ watch(previewItem, (item, previous) => {
 :global(.session-panel[data-session-drop-over]) .prompt :deep(.composer-card) {
   box-shadow:
     0 0 0 var(--border-width) var(--accent-solid),
-    var(--composer-inset),
-    var(--composer-shadow);
+    var(--float-shadow);
 }
 </style>

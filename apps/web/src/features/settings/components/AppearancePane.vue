@@ -58,16 +58,24 @@
             </SelectTrigger>
 
             <SelectContent>
-              <SelectItem :value="DEFAULT">{{ t("settings.fontDefault") }}</SelectItem>
+              <SelectInput :placeholder="t('settings.searchFonts')" />
+              <SelectEmpty>{{ t("settings.noMatchingFonts") }}</SelectEmpty>
 
-              <SelectItem
-                v-for="family in fontList(families, uiFont)"
-                :key="family"
-                :value="family"
-                :style="{ fontFamily: quote(family) }"
-              >
-                {{ family }}
-              </SelectItem>
+              <SelectList>
+                <SelectItem :value="DEFAULT" :label="t('settings.fontDefault')">
+                  <SelectItemText>{{ t("settings.fontDefault") }}</SelectItemText>
+                </SelectItem>
+
+                <SelectItem
+                  v-for="family in fontList(families, uiFont)"
+                  :key="family"
+                  :value="family"
+                  :label="family"
+                  :style="{ fontFamily: quote(family) }"
+                >
+                  <SelectItemText>{{ family }}</SelectItemText>
+                </SelectItem>
+              </SelectList>
             </SelectContent>
           </Select>
         </CardRow>
@@ -129,16 +137,24 @@
             </SelectTrigger>
 
             <SelectContent>
-              <SelectItem :value="DEFAULT">{{ t("settings.fontDefault") }}</SelectItem>
+              <SelectInput :placeholder="t('settings.searchFonts')" />
+              <SelectEmpty>{{ t("settings.noMatchingFonts") }}</SelectEmpty>
 
-              <SelectItem
-                v-for="family in fontList(mono, codeFont)"
-                :key="family"
-                :value="family"
-                :style="{ fontFamily: quote(family) }"
-              >
-                {{ family }}
-              </SelectItem>
+              <SelectList>
+                <SelectItem :value="DEFAULT" :label="t('settings.fontDefault')">
+                  <SelectItemText>{{ t("settings.fontDefault") }}</SelectItemText>
+                </SelectItem>
+
+                <SelectItem
+                  v-for="family in fontList(mono, codeFont)"
+                  :key="family"
+                  :value="family"
+                  :label="family"
+                  :style="{ fontFamily: quote(family) }"
+                >
+                  <SelectItemText>{{ family }}</SelectItemText>
+                </SelectItem>
+              </SelectList>
             </SelectContent>
           </Select>
         </CardRow>
@@ -214,7 +230,16 @@ import {
   type WelcomeField,
 } from "@features/settings/index.js"
 import { useLocalFonts } from "@features/settings/hooks/use-local-fonts.js"
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
+import {
+  Select,
+  SelectContent,
+  SelectEmpty,
+  SelectInput,
+  SelectItem,
+  SelectItemText,
+  SelectList,
+  SelectTrigger,
+} from "@pig/ui/select"
 import { CardList, CardRow } from "@pig/ui/card"
 import { Slider } from "@pig/ui/slider"
 import SettingReset from "./SettingReset.vue"

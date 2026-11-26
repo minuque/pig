@@ -133,3 +133,56 @@ test("深色模式下关闭设置弹窗时遮罩与内容单调淡出不回闪",
     }
   }
 })
+
+test("字体选择器支持顶部搜索过滤、空态提示、回车选中并在重开时清空", async ({ page, gateway }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "queryLocalFonts", {
+      configurable: true,
+      value: async () => [
+        { family: "Fira Code" },
+        { family: "Inter" },
+        { family: "JetBrains Mono" },
+        { family: "Roboto" },
+      ],
+    })
+  })
+
+  await seedWorkspace(page, gateway.workspaceId)
+  await page.goto(gateway.entryUrl)
+  await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })
+
+  await page.locator(".nav-footer").getByRole("button", { name: "设置" }).click()
+  const dialog = page.locator(".settings-dialog")
+
+  await dialog.locator(".settings-nav").getByRole("button", { name: "外观" }).click()
+
+  const trigger = dialog.locator("#setting-ui-font").getByRole("combobox", { name: "界面字体" })
+
+  await trigger.click()
+
+  const search = page.locator('[data-slot="select-input"]')
+
+  await expect(search).toBeVisible()
+  await expect(search).toBeFocused()
+  await expect(page.getByRole("option", { name: "JetBrains Mono" })).toBeVisible()
+
+  await search.fill("zzzz")
+  await expect(page.getByText("没有匹配的字体")).toBeVisible()
+
+  await search.fill("jet")
+  await expect(page.getByRole("option", { name: "JetBrains Mono" })).toBeVisible()
+  await expect(page.getByRole("option", { name: "Roboto" })).toBeHidden()
+
+  await search.press("Enter")
+  await expect(trigger).toContainText("JetBrains Mono")
+  await expect(search).toBeHidden()
+
+  await trigger.click()
+  await expect(search).toBeVisible()
+  await expect(search).toHaveValue("")
+  await expect(page.getByRole("option", { name: "Roboto" })).toBeVisible()
+
+  await search.press("Escape")
+  await expect(search).toBeHidden()
+  await expect(dialog).toBeVisible()
+})

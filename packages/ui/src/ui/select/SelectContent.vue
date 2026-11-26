@@ -36,6 +36,7 @@ const size = useSelectSize()
 :where([data-slot="select-content"]) {
   box-sizing: border-box;
   min-inline-size: var(--anchor-width);
+  max-inline-size: var(--available-width);
   max-block-size: var(--available-height);
   margin: 0;
   padding: var(--space-2xs);
@@ -58,5 +59,18 @@ const size = useSelectSize()
 :where([data-slot="select-content"][data-size="s"]) {
   padding: var(--space-2xs);
   border-radius: var(--radius-control);
+}
+
+:where([data-slot="select-content"]:has([data-slot="select-list"])) {
+  display: flex;
+  flex-direction: column;
+  max-inline-size: min(22rem, var(--available-width));
+  max-block-size: min(22rem, var(--available-height));
+  padding: 0;
+  overflow: hidden;
+}
+
+:where([data-slot="select-content"]:has([data-slot="select-list"])) > * + * {
+  margin-block-start: 0;
 }
 </style>

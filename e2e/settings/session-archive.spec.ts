@@ -62,6 +62,29 @@ test("设置归档页支持单条与批量归档、刷新持久化、恢复及�
   const rows = dialog.locator(".archive-row")
 
   await expect(rows).toHaveCount(6)
+
+  const projectTrigger = dialog.locator(".project-select")
+
+  await projectTrigger.click()
+  const projectSearch = page.locator('[data-slot="select-input"]')
+
+  await expect(projectSearch).toBeFocused()
+  await projectSearch.fill("__no_match__")
+  await expect(page.getByText("没有匹配的项目")).toBeVisible()
+
+  await projectSearch.fill("pig-e2e-")
+  await expect(page.getByRole("option", { name: "workspace" })).toBeVisible()
+  await expect(page.getByRole("option", { name: "全部项目" })).toBeHidden()
+
+  await projectSearch.press("Enter")
+  await expect(projectTrigger).toContainText("workspace")
+  await expect(rows).toHaveCount(6)
+
+  await projectTrigger.click()
+  await expect(projectSearch).toHaveValue("")
+  await page.getByRole("option", { name: "全部项目" }).click()
+  await expect(projectTrigger).toContainText("全部项目")
+
   const row6 = rows.filter({ hasText: `${FILLER_PREFIX} 6` })
 
   await row6.getByRole("button", { name: "归档" }).click()

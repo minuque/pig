@@ -250,18 +250,14 @@ defineExpose({
   border-radius: var(--composer-radius);
   background: var(--composer-bg);
   backdrop-filter: var(--glass-filter);
-  box-shadow:
-    0 0 0 var(--border-width) var(--composer-border),
-    var(--composer-inset),
-    var(--composer-shadow);
+  box-shadow: var(--float-shadow);
 }
 
 .composer-card:hover,
 .composer-card:has(.field-wrap:focus-within) {
   box-shadow:
-    0 0 0 var(--border-width) var(--composer-border-hover),
-    var(--composer-inset),
-    var(--composer-shadow);
+    0 0 0 var(--border-width) var(--border-strong),
+    var(--float-shadow);
 }
 
 .notice {

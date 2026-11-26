@@ -17,6 +17,7 @@ defineProps<{ value: string }>()
   position: relative;
   display: flex;
   align-items: center;
+  gap: var(--space-xs);
   box-sizing: border-box;
   block-size: var(--control-sm);
   padding-inline: var(--space-xs);
@@ -24,6 +25,7 @@ defineProps<{ value: string }>()
   outline: none;
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
+  white-space: nowrap;
   user-select: none;
   cursor: pointer;
 }
