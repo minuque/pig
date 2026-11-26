@@ -1,5 +1,5 @@
 // 外部：preload 以 sandbox 脚本加载，没有 ESM 加载器，只能 require。
-// eslint-disable-next-line @typescript-eslint/no-require-imports -- sandbox preload 只能 require
+// oxlint-disable-next-line typescript/no-require-imports -- sandbox preload 只能 require
 const { contextBridge, ipcRenderer } = require("electron")
 const GATEWAY_ORIGIN_ARG_PREFIX = "--pig-gateway-origin="
 

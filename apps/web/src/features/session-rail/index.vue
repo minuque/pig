@@ -25,7 +25,7 @@ import RailSummary from "@features/session-rail/components/RailSummary.vue"
 import RailPane from "@features/session-rail/components/RailPane.vue"
 import { useRailCards } from "@features/session-rail/hooks/use-rail-cards.js"
 import { useSessionRail } from "@features/session-rail/index.js"
-import { usePanelHost } from "@features/split-view/index.js"
+import { usePanelHost } from "@features/panel-host/index.js"
 
 const { t } = useI18n()
 const rail = useSessionRail()!

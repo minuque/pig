@@ -6,6 +6,4 @@ export { useAppearancePrefs } from "@features/settings/hooks/use-appearance-pref
 
 export { CODE_SIZES, CONTRAST_RANGE } from "@features/settings/hooks/use-appearance-prefs.js"
 
-export type { WelcomeField } from "@features/settings/hooks/use-appearance-prefs.js"
-
 export type { ArchiveController, ArchiveProjectView } from "@features/settings/lib/archive-view.js"

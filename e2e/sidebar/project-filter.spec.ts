@@ -1,7 +1,6 @@
 import { expect, seedWorkspaces, test } from "../support/fixtures.js"
 
 test("项目筛选支持多选，全部项目恢复全量", async ({ page, multiGateway }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspaces(page, [multiGateway.workspaceId, multiGateway.secondWorkspaceId])
   await page.goto(multiGateway.entryUrl)
   await expect(page.locator("nav.session-list")).toBeVisible({ timeout: 30_000 })

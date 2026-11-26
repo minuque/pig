@@ -1,0 +1,71 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "vue"],
+  "categories": {
+    "correctness": "error"
+  },
+  "rules": {
+    "no-unused-vars": "off",
+    "no-control-regex": "off",
+    "no-empty": "off",
+    "no-empty-pattern": "off",
+    "prefer-const": "off",
+    "typescript/no-unused-vars": "off",
+    "typescript/no-require-imports": "error"
+  },
+  "overrides": [
+    {
+      "files": ["apps/web/src/features/session/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@features/*", "!@features/session", "!@features/session/**"],
+                "message": "features/session 是状态层，不引用别的 feature。"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["packages/ui/src/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "regex": "^(@/|@(features|client|router|components|style|i18n|utils)/|@vueuse/|.*apps/web)",
+                "message": "packages/ui 是独立可复用设计系统包，禁止依赖应用路径或应用工具库。"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "node_modules",
+    "dist",
+    "out",
+    ".claude",
+    ".agents",
+    "docs",
+    ".tmp",
+    ".worktrees",
+    ".ryugi",
+    ".show-me",
+    ".diagram-design",
+    "packages/gateway/web",
+    "release",
+    "playwright-report",
+    "test-results",
+    "coverage",
+    ".smoke-ui",
+    ".release-install",
+    "release-artifact"
+  ]
+}

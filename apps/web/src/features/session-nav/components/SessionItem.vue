@@ -23,7 +23,7 @@
                   :class="[
                     variant,
                     {
-                      active: active || splitShown,
+                      active,
                       'is-placeholder': placeholder,
                       'is-settled': settled,
                       renaming,
@@ -171,7 +171,6 @@ import ProjectIcon from "@features/session-nav/components/ProjectIcon.vue"
 import { hoverBlocked } from "@features/session-nav/lib/hover-gate.js"
 import { workspaceName } from "@features/session-nav/lib/format.js"
 import type { SidebarRowFoot, SidebarSession } from "@features/session-nav/type.js"
-import { trySplitView } from "@features/split-view/index.js"
 import { FolderGit2Icon, GitBranchIcon } from "@components/icons/index.js"
 
 const props = withDefaults(
@@ -209,12 +208,6 @@ const emit = defineEmits<{
   filterProject: [cwd: string]
 }>()
 const forkHover = shallowRef(false)
-const split = trySplitView()
-const splitShown = computed(
-  () =>
-    Boolean(split?.split.value) &&
-    (split!.state.value.left === props.session.id || split!.state.value.right === props.session.id),
-)
 const menuOpen = shallowRef(false)
 const hoverOpen = shallowRef(false)
 const blocked = computed(() => hoverBlocked.value)
@@ -272,12 +265,6 @@ function onCardClick(event: MouseEvent) {
   }
 
   emit("navigate")
-
-  if (split && event.altKey && event.button === 0) {
-    event.preventDefault()
-    split.openToSide(props.session.id)
-    return
-  }
 
   if (isModifiedSessionClick(event)) return
   event.preventDefault()

@@ -9,33 +9,6 @@
       <h2 class="group-title">{{ t("settings.display") }}</h2>
 
       <CardList>
-        <CardRow id="setting-welcome-field" class="row">
-          <div class="copy">
-            <div class="title">
-              <h3 class="label">{{ t("settings.welcomeField") }}</h3>
-
-              <SettingReset
-                v-if="welcomeField !== DEFAULTS.welcomeField"
-                @reset="setWelcomeField(DEFAULTS.welcomeField)"
-              />
-            </div>
-
-            <p class="desc">{{ t("settings.welcomeFieldHint") }}</p>
-          </div>
-
-          <Select :model-value="welcomeField" @update:model-value="onWelcomeField">
-            <SelectTrigger class="setting-select" :aria-label="t('settings.welcomeField')">
-              {{ welcomeLabel }}
-            </SelectTrigger>
-
-            <SelectContent>
-              <SelectItem v-for="option in fields" :key="option.id" :value="option.id">
-                {{ option.label }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </CardRow>
-
         <CardRow id="setting-ui-font" class="row">
           <div class="copy">
             <div class="title">
@@ -212,7 +185,6 @@ import {
   useAppearancePrefs,
   useGeneralPrefs,
   type ChatWidth,
-  type WelcomeField,
 } from "@features/settings/index.js"
 import { useLocalFonts } from "@features/settings/hooks/use-local-fonts.js"
 import {
@@ -234,18 +206,8 @@ import { fontOptions, type FontOption } from "@features/settings/lib/font-option
 const DEFAULT = "__default__"
 const { t } = useI18n()
 const { chatWidth, setChatWidth } = useGeneralPrefs()
-const {
-  welcomeField,
-  uiFont,
-  codeFont,
-  codeSize,
-  contrast,
-  setWelcomeField,
-  setUiFont,
-  setCodeFont,
-  setCodeSize,
-  setContrast,
-} = useAppearancePrefs()
+const { uiFont, codeFont, codeSize, contrast, setUiFont, setCodeFont, setCodeSize, setContrast } =
+  useAppearancePrefs()
 const { families, mono, load } = useLocalFonts()
 const uiFontList = shallowRef<InstanceType<typeof FontOptionList>>()
 const codeFontList = shallowRef<InstanceType<typeof FontOptionList>>()
@@ -288,27 +250,16 @@ function onFontsOpen(open: boolean) {
   if (open) void load()
 }
 
-function onWelcomeField(value: string) {
-  setWelcomeField(value as WelcomeField)
-}
-
 function onChatWidth(value: string) {
   setChatWidth(value as ChatWidth)
 }
 
-const fields = computed<{ id: WelcomeField; label: string }[]>(() => [
-  { id: "mask", label: t("settings.welcomeFieldMask") },
-  { id: "off", label: t("settings.welcomeFieldOff") },
-])
 const widths = computed<{ id: ChatWidth; label: string }[]>(() => [
   { id: "comfortable", label: t("settings.chatWidthComfortable") },
   { id: "wide", label: t("settings.chatWidthWide") },
   { id: "full", label: t("settings.chatWidthFull") },
 ])
 const codeSizes = CODE_SIZES
-const welcomeLabel = computed(
-  () => fields.value.find((option) => option.id === welcomeField.value)?.label ?? "",
-)
 const widthLabel = computed(
   () => widths.value.find((option) => option.id === chatWidth.value)?.label ?? "",
 )

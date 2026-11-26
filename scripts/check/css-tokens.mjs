@@ -38,18 +38,55 @@ function collectWalk(dir, matcher, out = []) {
   return out
 }
 
-export function collectRootTokens(tokensCss) {
-  const rootVars = new Set()
+export function collectSelectorTokens(tokensCss, selector) {
+  const vars = new Map()
 
   for (const match of stripComments(tokensCss).matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
     const selectors = match[1].split(",").map((part) => part.trim())
 
-    if (!selectors.includes(":root")) continue
+    if (!selectors.includes(selector)) continue
 
-    for (const decl of match[2].matchAll(/(?:^|[\s;])(--[\w-]+)\s*:/g)) rootVars.add(decl[1])
+    for (const decl of match[2].matchAll(/(?:^|[\s;])(--[\w-]+)\s*:\s*([^;]+)/g))
+      vars.set(decl[1], decl[2].replace(/\s+/g, " ").trim())
   }
 
-  return rootVars
+  return vars
+}
+
+export function collectRootTokens(tokensCss) {
+  return new Set(collectSelectorTokens(tokensCss, ":root").keys())
+}
+
+export function missingDarkBaseline(tokensCss) {
+  const rootVars = collectSelectorTokens(tokensCss, ":root")
+  const darkVars = collectSelectorTokens(tokensCss, "html.dark")
+  return [...darkVars.keys()].filter((name) => !rootVars.has(name)).sort()
+}
+
+export function missingUiContracts(uiTokensCss) {
+  const rootVars = collectSelectorTokens(uiTokensCss, ":root")
+  const darkVars = collectSelectorTokens(uiTokensCss, "html.dark")
+  const missing = []
+
+  for (const token of ["--switch-thumb-unchecked", "--tone-hover-target"]) {
+    if (!rootVars.has(token)) missing.push(`:root ${token}`)
+
+    if (!darkVars.has(token)) missing.push(`html.dark ${token}`)
+  }
+
+  if (!collectSelectorTokens(uiTokensCss, "[data-tone]").get("--tone-on-solid"))
+    missing.push("[data-tone] --tone-on-solid")
+
+  for (const tone of ["accent", "info", "success", "warning", "danger", "neutral"]) {
+    const selector = `[data-tone="${tone}"]`
+    const toneVars = collectSelectorTokens(uiTokensCss, selector)
+
+    if (!toneVars.get("--tone")) missing.push(`${selector} --tone`)
+
+    if (!toneVars.get("--tone-text")) missing.push(`${selector} --tone-text`)
+  }
+
+  return missing
 }
 
 export function auditCssTokens({ tokensCss, files, runtimeTokens = RUNTIME_TOKENS }) {
@@ -192,6 +229,9 @@ export function auditRepoCssTokens(root) {
   return {
     uiUndefinedRefs: uiAudit.undefinedRefs,
     duplicateRootTokens,
+    uiMissingDarkBaseline: missingDarkBaseline(uiTokensCss),
+    appMissingDarkBaseline: missingDarkBaseline(appTokensCss),
+    uiMissingContracts: missingUiContracts(uiTokensCss),
     undefinedRefs: fullAudit.undefinedRefs,
     unusedTokens: fullAudit.unusedTokens,
   }
@@ -213,6 +253,30 @@ function main() {
     console.error("Duplicate :root tokens between @pig/ui and apps/web:")
 
     for (const name of result.duplicateRootTokens) console.error(`  ${name}`)
+
+    process.exitCode = 1
+  }
+
+  if (result.uiMissingDarkBaseline.length) {
+    console.error("Dark overrides missing :root baseline in @pig/ui:")
+
+    for (const name of result.uiMissingDarkBaseline) console.error(`  ${name}`)
+
+    process.exitCode = 1
+  }
+
+  if (result.appMissingDarkBaseline.length) {
+    console.error("Dark overrides missing :root baseline in apps/web:")
+
+    for (const name of result.appMissingDarkBaseline) console.error(`  ${name}`)
+
+    process.exitCode = 1
+  }
+
+  if (result.uiMissingContracts.length) {
+    console.error("Missing required UI token contracts in @pig/ui:")
+
+    for (const item of result.uiMissingContracts) console.error(`  ${item}`)
 
     process.exitCode = 1
   }

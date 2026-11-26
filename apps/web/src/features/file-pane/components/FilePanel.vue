@@ -126,7 +126,7 @@ import FileSearch from "@features/file-pane/components/FileSearch.vue"
 import FileTree from "@features/file-pane/components/FileTree.vue"
 import FileViewer from "@features/file-pane/components/FileViewer.vue"
 import { useFilePane } from "@features/file-pane/index.js"
-import { usePanelHost } from "@features/split-view/index.js"
+import { usePanelHost } from "@features/panel-host/index.js"
 
 const TREE_DEFAULT = 240
 const TREE_MIN = 160

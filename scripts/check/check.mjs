@@ -9,8 +9,6 @@ import { reportResults, splitCommandArgs } from "./runner.mjs"
 const root = resolve(import.meta.dirname, "../..")
 const touched = process.argv.includes("--touched")
 const fix = process.argv.includes("--fix")
-const withE2e = process.argv.includes("--e2e")
-const noE2e = process.argv.includes("--no-e2e")
 const sinceIndex = process.argv.indexOf("--since")
 const since = sinceIndex >= 0 ? (process.argv[sinceIndex + 1] ?? "") : undefined
 
@@ -21,7 +19,8 @@ if (since === "") {
 
 // 外部：prettier 不带 --cache 时会删默认缓存文件，与并发的 lint-staged 撞 ENOENT
 const PRETTIER_CACHE = "node_modules/.cache/prettier/check"
-const ESLINT_CACHE = "node_modules/.cache/eslint/check"
+const STYLELINT_CACHE = "node_modules/.cache/stylelint/cache"
+const CHECK_CONCURRENCY = 4
 // 外部：Windows 命令行上限 8191 字符，留出环境变量与引号余量
 const MAX_ARG_CHARS = process.platform === "win32" ? 6000 : 100_000
 
@@ -29,23 +28,57 @@ function fileSteps(name, prefix, files) {
   return splitCommandArgs(prefix, files, MAX_ARG_CHARS).map((args) => ({ name, args }))
 }
 
+async function runPool(steps, limit = CHECK_CONCURRENCY) {
+  const results = new Array(steps.length)
+  let cursor = 0
+
+  async function worker() {
+    for (;;) {
+      const index = cursor
+
+      cursor += 1
+
+      if (index >= steps.length) return
+      const step = steps[index]
+      const ran = await runPnpm(step.args, root)
+
+      results[index] = { name: step.name, ...ran }
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(limit, steps.length) }, worker))
+  return results
+}
+
 const CHECK_STEPS = [
+  { name: "test", args: ["test"] },
+  {
+    name: "typecheck:packages",
+    args: ["-r", "--workspace-concurrency=3", "--if-present", "typecheck"],
+  },
   {
     name: "format",
     args: ["exec", "prettier", "--check", "--cache", "--cache-location", PRETTIER_CACHE, "."],
   },
   {
-    name: "eslint",
-    args: ["exec", "eslint", "--cache", "--cache-location", ESLINT_CACHE, "."],
+    name: "typecheck:e2e",
+    args: ["exec", "tsc", "--noEmit", "-p", "e2e/tsconfig.json"],
   },
-  { name: "stylelint", args: ["exec", "stylelint", "**/*.{css,vue}"] },
+  {
+    name: "typecheck:scripts",
+    args: ["exec", "tsc", "--noEmit", "-p", "scripts/tsconfig.json"],
+  },
+  {
+    name: "stylelint",
+    args: ["exec", "stylelint", "--cache", "--cache-location", STYLELINT_CACHE, "**/*.{css,vue}"],
+  },
   {
     name: "vue-template",
-    args: ["exec", "tsx", "scripts/check/vue-template.ts", "apps/web/src", "packages/ui/src"],
+    args: ["exec", "node", "scripts/check/vue-template.mjs", "apps/web/src", "packages/ui/src"],
   },
+  { name: "oxlint", args: ["exec", "oxlint", "."] },
+  { name: "no-comments", args: ["exec", "node", "scripts/check/no-comments.mjs"] },
   { name: "css-tokens", args: ["exec", "node", "scripts/check/css-tokens.mjs"] },
-  { name: "typecheck", args: ["typecheck"] },
-  { name: "test", args: ["test"] },
 ]
 
 function committedFiles(ref) {
@@ -85,12 +118,7 @@ function existingTouched() {
 }
 
 async function runAll() {
-  const results = await Promise.all(
-    CHECK_STEPS.map(async (step) => {
-      const ran = await runPnpm(step.args, root)
-      return { name: step.name, ...ran }
-    }),
-  )
+  const results = await runPool(CHECK_STEPS)
 
   reportResults("check", results)
 }
@@ -100,8 +128,14 @@ async function fixTouched(scope) {
   const steps = []
 
   steps.push(...fileSteps("format", ["exec", "prettier", "--write"], scope.prettierFiles))
-  steps.push(...fileSteps("eslint", ["exec", "eslint", "--cache", "--fix"], scope.lintFiles))
-  steps.push(...fileSteps("stylelint", ["exec", "stylelint", "--fix"], scope.stylelintFiles))
+  steps.push(...fileSteps("oxlint", ["exec", "oxlint", "--fix"], scope.lintFiles))
+  steps.push(
+    ...fileSteps(
+      "stylelint",
+      ["exec", "stylelint", "--cache", "--cache-location", STYLELINT_CACHE, "--fix"],
+      scope.stylelintFiles,
+    ),
+  )
 
   if (steps.length === 0) {
     console.log("fix:touched: 无文件需要格式化")
@@ -130,12 +164,9 @@ async function checkTouched(scope, files, label = "check:touched") {
     const ran = await runPnpm(["check"], root)
     process.stdout.write(ran.out)
     process.exitCode = ran.code
-
-    if (ran.code === 0 && withE2e && !noE2e) await runFullE2e(label)
     return
   }
 
-  const fullE2e = withE2e && !noE2e && scope.e2eAll
   const steps = []
 
   steps.push(
@@ -145,16 +176,23 @@ async function checkTouched(scope, files, label = "check:touched") {
       scope.prettierFiles,
     ),
   )
+  steps.push(...fileSteps("oxlint", ["exec", "oxlint"], scope.lintFiles))
+  steps.push(
+    ...fileSteps("no-comments", ["exec", "node", "scripts/check/no-comments.mjs"], scope.lintFiles),
+  )
   steps.push(
     ...fileSteps(
-      "eslint",
-      ["exec", "eslint", "--cache", "--cache-location", ESLINT_CACHE],
-      scope.lintFiles,
+      "stylelint",
+      ["exec", "stylelint", "--cache", "--cache-location", STYLELINT_CACHE],
+      scope.stylelintFiles,
     ),
   )
-  steps.push(...fileSteps("stylelint", ["exec", "stylelint"], scope.stylelintFiles))
   steps.push(
-    ...fileSteps("vue-template", ["exec", "tsx", "scripts/check/vue-template.ts"], scope.vueFiles),
+    ...fileSteps(
+      "vue-template",
+      ["exec", "node", "scripts/check/vue-template.mjs"],
+      scope.vueFiles,
+    ),
   )
 
   if (scope.packages.includes("@pig/web") || scope.packages.includes("@pig/ui") || scope.scripts)
@@ -185,41 +223,16 @@ async function checkTouched(scope, files, label = "check:touched") {
     steps.push({ name: `test:${id}`, args: ["--filter", id, "test"] })
   }
 
-  if (!fullE2e && scope.specs.length) {
-    if ((withE2e || scope.ui) && !noE2e)
-      steps.push(
-        ...fileSteps(
-          `e2e:${scope.specs.length}条`,
-          ["exec", "playwright", "test", "-c", "e2e/playwright.config.ts"],
-          scope.specs,
-        ),
-      )
-    else console.log(`${label}: 建议补跑 e2e → pnpm test:e2e ${scope.specs.join(" ")}`)
-  }
-
-  if (steps.length === 0 && !fullE2e) {
+  if (steps.length === 0) {
     console.log(`${label}: ${files.length} 个文件无需脚本/测试/lint`)
     return
   }
 
   console.log(`${label}: ${files.length} files → ${steps.map((step) => step.name).join(", ")}`)
 
-  const results = await Promise.all(
-    steps.map(async (step) => {
-      const ran = await runPnpm(step.args, root)
-      return { name: step.name, ...ran }
-    }),
-  )
+  const results = await runPool(steps)
 
-  reportResults("check:touched", results)
-
-  if (fullE2e && !process.exitCode) await runFullE2e(label)
-}
-
-async function runFullE2e(label) {
-  console.log(`${label}: 改动波及全部旅程，跑全量 e2e`)
-  const ran = await runPnpm(["test:e2e"], root)
-  reportResults(`${label} e2e`, [{ name: "e2e:全量", ...ran }])
+  reportResults(label, results)
 }
 
 if (fix && !touched) {
