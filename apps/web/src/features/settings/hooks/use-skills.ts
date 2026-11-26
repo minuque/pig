@@ -6,6 +6,7 @@ import {
   deleteSkill,
   getSkillScope,
   readSkill,
+  readSkillAsset,
   setSkillEnabled,
   writeSkill,
 } from "@client/agent-config.js"
@@ -61,6 +62,10 @@ export function useSkills(scope: Ref<string>) {
     return readSkill(scope.value, path)
   }
 
+  function readAsset(path: string, file: string) {
+    return readSkillAsset(scope.value, path, file)
+  }
+
   async function write(path: string, raw: string): Promise<string | undefined> {
     let invalid: string | undefined
 
@@ -80,7 +85,7 @@ export function useSkills(scope: Ref<string>) {
   }
 
   watch(scope, refresh, { immediate: true })
-  return { view, error, refresh, setEnabled, create, read, write, remove }
+  return { view, error, refresh, setEnabled, create, read, readAsset, write, remove }
 }
 
 export type SkillsState = ReturnType<typeof useSkills>

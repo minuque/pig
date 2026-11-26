@@ -13,6 +13,7 @@
   --titlebar-inset: 0px;
   --titlebar-controls-inset: 0px;
   --header-height: 44px;
+  --content-width: 768px;
 
   /* --- 层级 --- */
   --z-window-controls: 1;
@@ -30,10 +31,6 @@
   --chart-free: var(--bg-emphasis);
   --composer-field-max: 208px;
   --composer-bg: color-mix(in srgb, var(--bg-raised) 92%, transparent);
-  --composer-border: rgba(0, 0, 0, 0.08);
-  --composer-border-hover: rgba(0, 0, 0, 0.13);
-  --composer-inset: inset 0 1px 0 rgba(255, 255, 255, 0.72);
-  --composer-shadow: 0 1px 2px rgba(0, 0, 0, 0.03), 0 4px 12px -4px rgba(0, 0, 0, 0.05);
   --composer-radius: 16px;
   --composer-reserve: 7rem;
   --edge-fade-band: 24px;
@@ -71,14 +68,18 @@ html:is([data-pig-desktop-platform="win32"], [data-pig-desktop-platform="linux"]
   --titlebar-controls-inset: calc(3 * var(--control-sm) + 2 * var(--space-2xs) + var(--space-xs));
 }
 
+html[data-chat-width="wide"] {
+  --content-width: 920px;
+}
+
+html[data-chat-width="full"] {
+  --content-width: 100%;
+}
+
 /* ------ 深色覆盖：只覆盖颜色与阴影 ------ */
 html.dark {
   /* ====== 组件层：按组件前缀排列，只给单个组件或一类内容用 ====== */
   --composer-bg: color-mix(in srgb, var(--bg-surface) 90%, transparent);
-  --composer-border: var(--border);
-  --composer-border-hover: var(--border-strong);
-  --composer-inset: inset 0 1px 0 rgba(255, 255, 255, 0.06);
-  --composer-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.32);
   --language-gray: #adadb1;
   --language-red: #ff6762;
   --language-orange: #ffa359;

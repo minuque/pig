@@ -21,7 +21,7 @@
 
 1. **一页一个强调色。** 强调色只给主操作、焦点、选中底；活动态走 cyan；卡片、区块不铺强调色。
 2. **最多 4 种字号。** 层级靠字重（400 / 500 / 600）和三级文字色。对话区 Markdown 不受此约束。
-3. **默认扁平，有阴影就用环。** 只有浮起来的层才有阴影和毛玻璃；环写进阴影 token，组件只写一行 `box-shadow: var(--…)`，不补 `border`。
+3. **默认扁平，边框用原生 border。** 卡片、表格、输入框等静态容器与控件直接写 `border`（配 `background-clip: padding-box` 防止底色渗角）；只有浮起来的层才有阴影和毛玻璃。
 4. **不卡片套卡片。** 卡片里分组用标题加分割线；分行卡片用 `CardList` + `CardRow`。
 5. **圆角同心。** 内层 = 外层 − 内边距，取整到 4px，不低于 `--radius-min`；同层同圆角。
    连续圆角由全局 `corner-shape: superellipse(1.25)` 提供，药丸、圆形写 `corner-shape: round`。
@@ -39,11 +39,12 @@
 
 ## 表面
 
-- 提示、悬停卡、拖拽中的行：`--shadow-popover`；对话框、抽屉、图片预览：`--shadow-dialog`。
-- 菜单、下拉、浮卡、toast：`--float-bg` + `--float-shadow` + `--glass-filter`；命令面板、警告框：`--glass-*`。
+- 拖拽卡与拖拽中的行：`--shadow-popover`；对话框、抽屉、图片预览：`--shadow-dialog`。
+- 菜单、下拉、悬停卡、浮卡、toast：`--float-bg` + `--float-shadow` + `--glass-filter`；警告框与输入卡同用 `--float-shadow` + `--glass-filter`；命令面板：`--glass-*`。
+- 提示卡片（tooltip）：高对比实底（`--tooltip-bg`），不加阴影或毛玻璃。
 - 输入卡上方的状态条：`--bg-raised` + 环，上圆角 `--composer-radius`，底部伸进输入卡。
 - 命令、文件浮板按菜单表面挂 body，离输入卡 8px；浮板打开时隐藏状态条，二者不叠放。
-- 静态卡片：`--bg-surface` 或细线环二选一，不加阴影。
+- 静态卡片：`--bg-surface` 或 `border: var(--border-width) solid var(--border)`（配 `background-clip: padding-box`），不加阴影。
 - 菜单、下拉、浮卡、提示挂 body，取 `--z-popover`。
 
 ## 控件

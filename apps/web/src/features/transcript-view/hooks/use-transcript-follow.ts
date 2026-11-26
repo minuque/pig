@@ -44,6 +44,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
   let glideRaf = 0
   let lastScrollTop = 0
   let lastWritten = 0
+  let lastScrollHeight = 0
 
   function inCooldown() {
     return performance.now() < cooldownUntil
@@ -84,6 +85,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
       lastWritten = root.scrollTop
     }
 
+    lastScrollHeight = root.scrollHeight
     markProgrammatic()
     visuallyAtBottom.value = true
   }
@@ -235,11 +237,12 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     if (applying || !atBottom.value || pointerDown || userTookOver || navigating) return
     const root = getRoot()
 
-    if (!root) return
+    if (!root || root.scrollHeight === lastScrollHeight) return
     scrollToBottomNow(root)
   }
 
   function observeGrowth(el: HTMLElement) {
+    lastScrollHeight = getRoot()?.scrollHeight ?? 0
     const observer = new MutationObserver(pinNow)
     observer.observe(el, {
       subtree: true,
@@ -319,6 +322,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     const previous = lastScrollTop
 
     lastScrollTop = root.scrollTop
+    lastScrollHeight = root.scrollHeight
     updateVisual(root)
 
     if (navigating) return
@@ -382,6 +386,7 @@ export function useTranscriptFollow(getRoot: () => HTMLElement | null) {
     detachFollow()
     pointerDown = false
     userTookOver = false
+    lastScrollHeight = 0
     atBottom.value = false
     visuallyAtBottom.value = false
   }

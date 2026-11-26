@@ -29,7 +29,7 @@ const emit = defineEmits<{ select: [] }>()
   align-items: center;
   gap: var(--space-xs);
   padding: calc(var(--spacing) * 1.5) var(--space-xs);
-  border-radius: var(--radius-min);
+  border-radius: var(--radius-card);
   color: var(--fg);
   font-size: var(--text-body);
   outline: none;
@@ -48,7 +48,7 @@ const emit = defineEmits<{ select: [] }>()
 
 :where([data-slot="command-palette-item-icon"]) {
   display: flex;
-  height: 20px;
+  height: var(--control-2xs);
   flex: none;
   align-items: center;
   align-self: flex-start;
@@ -70,7 +70,7 @@ const emit = defineEmits<{ select: [] }>()
 }
 
 :where([data-slot="command-palette-item-title"]) {
-  line-height: 20px;
+  line-height: var(--control-2xs);
 }
 
 :where([data-slot="command-palette-item-description"]) {

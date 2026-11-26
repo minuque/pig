@@ -39,19 +39,10 @@ const props = withDefaults(
 :where([data-slot="table"][data-variant="surface"]) {
   position: relative;
   overflow: hidden;
-  border: 0;
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-card);
   background-color: var(--card-surface);
   background-clip: padding-box;
-}
-
-:where([data-slot="table"][data-variant="surface"])::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  box-shadow: inset 0 0 0 var(--border-width) var(--border);
-  pointer-events: none;
 }
 
 :where([data-slot="table-element"]) {
@@ -82,20 +73,24 @@ const props = withDefaults(
 
 :where([data-slot="table-cell"]) {
   background-color: transparent;
-  box-shadow: inset 0 -1px var(--border-strong);
+  border-block-end: var(--border-width) solid var(--border-subtle);
   box-sizing: border-box;
   vertical-align: inherit;
   font-variant-numeric: tabular-nums;
 }
 
+:where([data-slot="table-header"] [data-slot="table-cell"]) {
+  border-block-end-color: var(--border);
+}
+
 :where([data-slot="table"][data-size="s"] [data-slot="table-cell"]) {
   padding: var(--space-xs);
-  height: 36px;
+  height: var(--control-lg);
 }
 
 :where([data-slot="table"][data-size="m"] [data-slot="table-cell"]) {
   padding: var(--space-sm);
-  height: 44px;
+  height: calc(var(--control-lg) + var(--space-xs));
 }
 
 :where([data-slot="table-cell"][data-kind="column-header"]) {
@@ -118,6 +113,6 @@ const props = withDefaults(
     [data-slot="table-row"]:last-child
     [data-slot="table-cell"]
 ) {
-  box-shadow: none;
+  border-block-end: 0;
 }
 </style>

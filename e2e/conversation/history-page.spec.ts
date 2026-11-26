@@ -58,7 +58,6 @@ test("打开会话一次显示全部历史；展开被截断的工具输出时�
   page,
   complexGateway,
 }) => {
-  await page.emulateMedia({ reducedMotion: "reduce" })
   await seedWorkspace(page, complexGateway.workspaceId)
   const fetched: string[] = []
 

@@ -1,5 +1,6 @@
 import { onBeforeUnmount, type Ref } from "vue"
 import { useResizeObserver } from "@vueuse/core"
+import { prefersReducedMotion } from "@utils/motion.js"
 
 const RESERVE_DEBOUNCE_MS = 120
 
@@ -24,7 +25,7 @@ export function useComposerReserve(
       if (prev === next) return
       window.clearTimeout(timer)
 
-      if (prev && !hero()) {
+      if (prev && !hero() && !prefersReducedMotion()) {
         timer = window.setTimeout(() => {
           timer = 0
           column.style.setProperty("--composer-reserve", next)

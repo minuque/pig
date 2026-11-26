@@ -24,7 +24,7 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, ref, shallowRef, useSlots, useTemplateRef, watch } from "vue"
 
-const ROLL_MS = 180
+const ROLL_MS = 200
 const props = defineProps<{
   text: string
   live?: boolean
@@ -81,7 +81,7 @@ watch([() => props.text, () => Boolean(props.live)], async ([text, live]) => {
 
   const animation = node.animate([{ width: `${from}px` }, { width: `${width}px` }], {
     duration: ROLL_MS,
-    easing: "cubic-bezier(0.2, 0, 0, 1)",
+    easing: "cubic-bezier(0.17, 1, 0.32, 1)",
     fill: "forwards",
   })
 

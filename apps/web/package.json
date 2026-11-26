@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "test": "vitest run --project unit",
+    "test": "vitest run --root ../.. --project @pig/web --project @pig/web:isolated",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
@@ -32,8 +32,8 @@
     "@tiptap/extension-task-list": "3.35.0",
     "@tiptap/pm": "3.35.0",
     "@tiptap/vue-3": "3.35.0",
-    "@ui-sdk/core": "0.1.0-beta.14",
-    "@ui-sdk/vue": "0.1.0-beta.14",
+    "@ui-sdk/core": "0.1.0-beta.17",
+    "@ui-sdk/vue": "0.1.0-beta.17",
     "@vueuse/core": "14.4.0",
     "budoux": "0.10.4",
     "comark": "0.8.1",

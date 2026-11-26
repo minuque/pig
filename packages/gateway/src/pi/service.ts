@@ -87,7 +87,11 @@ export class PiHostService implements SessionService {
     this.workspaceGit = new WorkspaceGitStore(workspaceGitFile(options.sessionDir, options.pigHome))
     this.events = options.events ?? createEventBus()
     this.agentDir = options.agentDir ?? getAgentDir()
-    this.mcpCli = new McpCli({ agentDir: this.agentDir })
+    this.mcpCli = new McpCli({
+      agentDir: this.agentDir,
+      providerToken: async (provider) =>
+        (await (await this.modelRuntime()).getAuth(provider).catch(() => undefined))?.auth.apiKey,
+    })
     this.resources = new WorkspaceResources(
       {
         ...(options.agentDir ? { agentDir: options.agentDir } : {}),

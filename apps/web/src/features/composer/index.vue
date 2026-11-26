@@ -53,7 +53,6 @@
                 size="s"
                 variant="ghost"
                 color="neutral"
-                class="press-scale"
                 :aria-label="t('composer.addAttachment')"
                 :disabled="attachmentsFull"
                 @mousedown.prevent
@@ -121,7 +120,6 @@ import ContextRing from "@features/composer/components/ContextRing.vue"
 import ModelPicker from "@features/composer/components/ModelPicker.vue"
 import PromptEditor from "@features/composer/components/PromptEditor.vue"
 import PreviewDialog from "@features/preview/index.vue"
-import { trySplitView, usePaneSide } from "@features/split-view/index.js"
 import type { ComposerAttachment } from "@/types/attachment-type.js"
 import { useComposerAbortHotkey } from "@features/composer/hooks/use-composer-abort-hotkey.js"
 import { useMentionDrop } from "@features/composer/hooks/use-mention-drop.js"
@@ -209,9 +207,6 @@ const attachmentsFull = computed(() => attachmentFiles.value.length >= MAX_COMPO
 const hasAttachments = computed(() => attachmentFiles.value.length > 0)
 const hasPayload = computed(() => prompt.value.trim().length > 0 || hasAttachments.value)
 const steerHeld = computed(() => editor.value?.steerHeld ?? false)
-const split = trySplitView()
-const side = usePaneSide()
-const isPaneActive = () => !split || split.focused.value === side
 const insertMarkdown = (markdown: string) => editor.value?.insertMarkdown(markdown)
 const insertReply = (request: ReplyInsertRequest) => editor.value?.insertReply(request)
 const mentionDrop = useMentionDrop(insertMarkdown)
@@ -226,7 +221,6 @@ watch(
 )
 
 useComposerAbortHotkey({
-  active: isPaneActive,
   running: () => props.running,
   stopping: () => props.stopPhase === "pending",
   blocked: () =>
@@ -298,7 +292,6 @@ watch(previewItem, (item, previous) => {
 :global(.session-panel[data-session-drop-over]) .prompt :deep(.composer-card) {
   box-shadow:
     0 0 0 var(--border-width) var(--accent-solid),
-    var(--composer-inset),
-    var(--composer-shadow);
+    var(--float-elevation);
 }
 </style>

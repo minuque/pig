@@ -20,10 +20,6 @@
       <StartupError v-if="pageError" v-bind="pageError" />
 
       <template v-else>
-        <Transition name="welcome-field" appear>
-          <WelcomeField v-if="welcome && welcomeField !== 'off'" />
-        </Transition>
-
         <div class="session-stage">
           <Transition name="dock-hero" appear>
             <div v-if="welcome" key="hero" class="idle-hero">
@@ -81,10 +77,7 @@
 
             <ExternalTurnNotice />
 
-            <QuestionBoard
-              :prompt="prompt"
-              :active="!welcome && split.focused.value === side && split.view(side) === 'chat'"
-            />
+            <QuestionBoard :prompt="prompt" :active="!welcome && host.view.value === 'chat'" />
 
             <Composer
               ref="composer"
@@ -141,12 +134,10 @@ import { useSound } from "@features/click-sound/index.js"
 import { useI18n } from "@i18n/index.js"
 import { sessionDropTargetAttrs, useNav } from "@features/session-nav/index.js"
 import { useSession } from "@features/session/index.js"
-import { useAppearancePrefs } from "@features/settings/index.js"
 import QuestionBoard from "@features/extension-ui/components/QuestionBoard.vue"
 import { useQuestionBoard } from "@features/extension-ui/hooks/use-question-board.js"
 import ExternalTurnNotice from "@features/session-workbench/components/ExternalTurnNotice.vue"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
-import WelcomeField from "@features/session-workbench/components/WelcomeField.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { useComposerDock } from "@features/session-workbench/hooks/use-composer-dock.js"
 import { useComposerReserve } from "@features/session-workbench/hooks/use-composer-reserve.js"
@@ -162,7 +153,7 @@ import { useSessionRail } from "@features/session-rail/index.js"
 import { prefetchTranscriptView, TranscriptStatus } from "@features/transcript-view/index.js"
 import { FilePlusIcon } from "@components/icons/index.js"
 import { notify } from "@pig/ui/toast"
-import { usePaneSide, useSplitView, type PaneAlert } from "@features/split-view/index.js"
+import { usePanelHost, type PaneAlert } from "@features/panel-host/index.js"
 
 onMounted(() => {
   if (typeof requestIdleCallback === "function")
@@ -172,8 +163,7 @@ onMounted(() => {
 
 const { t } = useI18n()
 const route = useRoute()
-const split = useSplitView()
-const side = usePaneSide()
+const host = usePanelHost()
 const questionBoard = useQuestionBoard()
 const {
   sessionId,
@@ -202,7 +192,6 @@ const {
 } = useSession()
 const { catalog, preset, switchLocked } = useComposerPreset()
 const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
-const { welcomeField } = useAppearancePrefs()
 const workspaces = computed(() => groups.value.map((group) => group.canonicalPath))
 const pageError = computed(() => {
   if (connectionError.value && connected.value) {
@@ -330,7 +319,7 @@ function announce(kind: "done" | "error", message?: string) {
       ? { kind, tone: "success", title: t("views.turnDone") }
       : { kind, tone: "error", title: t("session.turnFailed"), body: message }
 
-  if (split.alerts.route(id, alert) === "toast")
+  if (host.alerts.route(id, alert) === "toast")
     notify(message || alert.title, "error", { transient: true })
 }
 

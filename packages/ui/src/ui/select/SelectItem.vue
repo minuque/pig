@@ -17,6 +17,7 @@ defineProps<{ value: string }>()
   position: relative;
   display: flex;
   align-items: center;
+  gap: var(--space-xs);
   box-sizing: border-box;
   block-size: var(--control-sm);
   padding-inline: var(--space-xs);
@@ -24,12 +25,16 @@ defineProps<{ value: string }>()
   outline: none;
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
+  white-space: nowrap;
   user-select: none;
   cursor: pointer;
 }
 
 :where([data-slot="select-content"][data-size="s"]) :where([data-slot="select-item"]) {
   block-size: var(--space-lg);
+  border-radius: var(--radius-min);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
 }
 
 :where([data-slot="select-item"][data-disabled]) {
@@ -38,14 +43,14 @@ defineProps<{ value: string }>()
 }
 
 :where([data-slot="select-item"][data-selected]:not([data-highlighted])) {
-  background-color: var(--bg-emphasis);
+  background-color: var(--bg-selected);
   color: var(--fg);
 }
 
 :where([data-slot="select-content"][data-variant="solid"])
   :where([data-slot="select-item"][data-highlighted]) {
   background-color: var(--tone);
-  color: var(--fg-on-accent);
+  color: var(--tone-on-solid);
 }
 
 :where([data-slot="select-content"][data-variant="soft"])

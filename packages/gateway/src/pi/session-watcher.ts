@@ -11,6 +11,7 @@ interface WatchedFile {
 export interface SessionFileWatcherOptions {
   resolvePath(sessionId: string): Promise<string | undefined>
   debounceMs?: number
+  watchDir?: typeof watch
 }
 
 // 外部：盯目录按文件名过滤，文件被原子替换（重命名覆盖）后 watcher 不会失效
@@ -78,7 +79,8 @@ export class SessionFileWatcher {
     let watcher: FSWatcher
 
     try {
-      watcher = watch(dir, (_event, filename) => {
+      const watchDir = this.options.watchDir ?? watch
+      watcher = watchDir(dir, (_event, filename) => {
         if (filename && filename.toString().toLowerCase() !== name) return
         this.schedule(sessionId)
       })

@@ -2,7 +2,7 @@ import { computed, inject, provide, shallowRef, watch, type InjectionKey, type R
 import { useRouter } from "vue-router"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
-import type { FocusedSession } from "@features/split-view/index.js"
+import type { SessionContext } from "@features/session/index.js"
 import type { ArchiveProjectView } from "@features/settings/index.js"
 import { useProjectPrefs } from "@features/session-nav/hooks/use-project-prefs.js"
 import { useSessionCards } from "@features/session-nav/hooks/use-session-cards.js"
@@ -39,7 +39,7 @@ export const navKey: InjectionKey<NavContext> = Symbol("nav")
 function createNav(
   pi: ReturnType<typeof useGatewayClient>,
   cwd: ReturnType<typeof useLocalWorkspaces>,
-  session: FocusedSession,
+  session: SessionContext,
   waitingIds: Ref<ReadonlyMap<string, unknown>>,
 ) {
   const router = useRouter()
@@ -54,14 +54,13 @@ function createNav(
   const activeSessionRunning = computed(() => session.projection.value?.running ?? false)
   const nav = useWorkspaceNav(pi.sessions, cwd, navError, {
     sessionId: session.sessionId,
-    shownIds: session.shownIds,
     isRunning: (id) =>
       (session.sessionId.value === id && activeSessionRunning.value) ||
       session.backgroundRunningIds.value.has(id),
-    leave: session.leave,
+    leave: () => closeSession(),
     refreshSessions: pi.refreshSessions,
   })
-  const markers = useSessionMarkers(nav.allSessions, session.shownIds)
+  const markers = useSessionMarkers(nav.allSessions, session.sessionId)
   const { iconOf } = useProjectPrefs()
   const projectByCwd = computed(() => {
     const map = new Map<string, ArchiveProjectView>()
@@ -238,7 +237,7 @@ function createNav(
 export function provideNav(
   pi: ReturnType<typeof useGatewayClient>,
   cwd: ReturnType<typeof useLocalWorkspaces>,
-  session: FocusedSession,
+  session: SessionContext,
   waitingIds: Ref<ReadonlyMap<string, unknown>>,
 ) {
   const nav = createNav(pi, cwd, session, waitingIds)

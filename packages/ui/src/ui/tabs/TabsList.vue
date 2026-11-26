@@ -151,10 +151,11 @@ provide(TABS_VARIANT, toRef(props, "variant"))
   align-items: stretch;
   align-self: flex-start;
   block-size: var(--control-md);
-  padding-inline: var(--space-2xs);
+  padding-inline: calc(var(--space-2xs) - var(--border-width));
+  border: var(--border-width) solid var(--border-subtle);
   border-radius: var(--radius-card);
   background: var(--sidebar);
-  box-shadow: inset 0 0 0 var(--border-width) var(--border-subtle);
+  background-clip: padding-box;
   font-size: var(--text-body);
   isolation: isolate;
 }
@@ -165,32 +166,36 @@ provide(TABS_VARIANT, toRef(props, "variant"))
   font-size: var(--text-meta);
 }
 
-:where([data-slot="tabs-list"][data-variant="segmented"]) .segmented-indicator {
+:where([data-slot="tabs-list"][data-variant="segmented"] > .segmented-indicator) {
+  box-sizing: border-box;
   position: absolute;
   z-index: var(--z-behind);
-  inset-block: var(--space-2xs);
+  inset-block: calc(var(--space-2xs) - var(--border-width));
   inset-inline-start: 0;
   inline-size: var(--active-tab-width);
+  border: var(--border-width) solid var(--border-strong);
   border-radius: var(--radius-control);
   background: var(--bg-raised);
-  box-shadow: 0 0 0 var(--border-width) var(--border-strong);
+  background-clip: padding-box;
   transform: translateX(var(--active-tab-left));
   transition-property: transform, inline-size;
   transition-duration: var(--duration-normal);
   transition-timing-function: var(--ease-out);
 }
 
-:where([data-slot="tabs-list"][data-variant="segmented"])
-  .segmented-indicator[data-activation-direction="none"] {
+:where(
+  [data-slot="tabs-list"][data-variant="segmented"]
+    > .segmented-indicator[data-activation-direction="none"]
+) {
   transition: none;
 }
 
-:where([data-slot="tabs-list"][data-variant="segmented"][data-size="s"]) .segmented-indicator {
+:where([data-slot="tabs-list"][data-variant="segmented"][data-size="s"] > .segmented-indicator) {
   border-radius: var(--radius-min);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :where([data-slot="tabs-list"][data-variant="segmented"]) .segmented-indicator {
+  :where([data-slot="tabs-list"][data-variant="segmented"] > .segmented-indicator) {
     transition: none;
   }
 }

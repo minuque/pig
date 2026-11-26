@@ -43,15 +43,6 @@ export default defineComponent({
   contain: paint;
 }
 
-:where([data-slot="card"])::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  transition: inherit;
-}
-
 :where([data-slot="card"]:focus-visible) {
   outline: 2px solid var(--focus-color);
   outline-offset: -1px;
@@ -67,21 +58,20 @@ export default defineComponent({
 
 :where([data-slot="card"][data-variant="surface"]) {
   --card-background-color: var(--card-surface);
+  border: var(--border-width) solid var(--border);
   background-color: var(--card-background-color);
-}
-
-:where([data-slot="card"][data-variant="surface"])::after {
-  box-shadow: inset 0 0 0 var(--border-width) var(--border);
+  background-clip: padding-box;
+  transition: border-color var(--duration-fast) var(--ease-out);
 }
 
 @media (hover: hover) {
-  :where([data-slot="card"][data-variant="surface"]:is(:any-link, button, label):hover)::after {
-    box-shadow: inset 0 0 0 var(--border-width) var(--border-strong);
+  :where([data-slot="card"][data-variant="surface"]:is(:any-link, button, label):hover) {
+    border-color: var(--border-strong);
   }
 }
 
-:where([data-slot="card"][data-variant="surface"]:is(:any-link, button, label):active)::after {
-  box-shadow: inset 0 0 0 var(--border-width) var(--border);
+:where([data-slot="card"][data-variant="surface"]:is(:any-link, button, label):active) {
+  border-color: var(--border);
 }
 
 :where([data-slot="card"][data-variant="ghost"]) {
@@ -97,6 +87,12 @@ export default defineComponent({
     [data-slot="card"][data-variant="ghost"]:is(:any-link, button, label):hover:focus-visible
   ) {
     background-color: var(--tone-subtle);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where([data-slot="card"][data-variant="surface"]) {
+    transition: none;
   }
 }
 </style>

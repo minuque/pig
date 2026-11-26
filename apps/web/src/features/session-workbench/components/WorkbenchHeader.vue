@@ -1,7 +1,7 @@
 <template>
-  <header class="workbench-header" :class="{ 'is-leftmost': leftmost, 'is-rightmost': rightmost }">
+  <header class="workbench-header">
     <span class="header-start">
-      <Tooltip v-if="leftmost">
+      <Tooltip>
         <TooltipTrigger>
           <template #render="{ props: part }">
             <IconButton
@@ -23,61 +23,18 @@
         <TooltipContent>{{ t("nav.openSidebar") }}</TooltipContent>
       </Tooltip>
 
-      <HeaderCrumbs :class="{ 'is-dimmed': dimmed }" />
+      <HeaderCrumbs />
     </span>
 
     <ViewIsland v-if="rail && sessionId" />
 
     <span class="header-end">
       <RailToggle v-if="rail" />
-
-      <span v-if="split.split.value" class="split-actions">
-        <Tooltip v-if="!split.fits.value">
-          <TooltipTrigger>
-            <template #render="{ props: part }">
-              <IconButton
-                v-bind="part"
-                type="button"
-                size="m"
-                color="neutral"
-                variant="ghost"
-                :aria-label="t('split.switchSide')"
-                @click="split.focusSide(side === 'left' ? 'right' : 'left')"
-              >
-                <ArrowLeftRightIcon class="size-icon-lg" />
-              </IconButton>
-            </template>
-          </TooltipTrigger>
-
-          <TooltipContent>{{ t("split.switchSide") }}</TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger>
-            <template #render="{ props: part }">
-              <IconButton
-                v-bind="part"
-                type="button"
-                size="m"
-                color="neutral"
-                variant="ghost"
-                :aria-label="t('split.close')"
-                @click="split.closeSide(side)"
-              >
-                <XIcon class="size-icon-lg" />
-              </IconButton>
-            </template>
-          </TooltipTrigger>
-
-          <TooltipContent>{{ t("split.close") }}</TooltipContent>
-        </Tooltip>
-      </span>
     </span>
   </header>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
@@ -86,18 +43,11 @@ import RailToggle from "@features/session-rail/components/RailToggle.vue"
 import HeaderCrumbs from "@features/session-workbench/components/HeaderCrumbs.vue"
 import ViewIsland from "@features/session-workbench/components/ViewIsland.vue"
 import { useSession } from "@features/session/index.js"
-import { usePaneSide, useSplitView } from "@features/split-view/index.js"
-import { ArrowLeftRightIcon, SquarePaddingLeftIcon, XIcon } from "@components/icons/index.js"
+import { SquarePaddingLeftIcon } from "@components/icons/index.js"
 
 defineProps<{ rail?: boolean }>()
 
 const { t } = useI18n()
-const side = usePaneSide()
-const split = useSplitView()
-const sideBySide = computed(() => split.split.value && split.fits.value)
-const leftmost = computed(() => side === "left" || !sideBySide.value)
-const rightmost = computed(() => side === "right" || !sideBySide.value)
-const dimmed = computed(() => sideBySide.value && split.focused.value !== side)
 const { sbState, setSbState } = useLeftPanelToggle()
 const { sessionId } = useSession()
 </script>
@@ -113,19 +63,10 @@ const { sessionId } = useSession()
   width: 100%;
   height: var(--header-height);
   min-height: var(--header-height);
-  padding: var(--space-2xs) var(--space-sm);
+  padding: var(--space-2xs) calc(var(--space-sm) + var(--titlebar-controls-inset)) var(--space-2xs)
+    var(--space-sm);
   background: transparent;
   color: var(--fg);
-}
-
-.split-actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-}
-
-.workbench-header.is-rightmost {
-  padding-inline-end: calc(var(--space-sm) + var(--titlebar-controls-inset));
 }
 
 .workbench-header.is-overlay {
@@ -186,7 +127,7 @@ html[data-pig-desktop-platform]
   app-region: no-drag;
 }
 
-html[data-pig-desktop-platform="darwin"] .shell.sb-offcanvas .workbench-header.is-leftmost {
+html[data-pig-desktop-platform="darwin"] .shell.sb-offcanvas .workbench-header {
   padding-inline-start: calc(var(--space-sm) + var(--traffic-lights-width));
 }
 

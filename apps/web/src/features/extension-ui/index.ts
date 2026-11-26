@@ -2,7 +2,8 @@ import { inject, provide, shallowRef, watch, type InjectionKey } from "vue"
 import type { ExtensionUiDialog, ExtensionUiRequest, ExtensionUiResponse } from "@pig/protocol"
 import type { useGatewayClient } from "@client/gateway-connection.js"
 import { notify } from "@pig/ui/toast"
-import type { FocusedSession, SplitViewContext } from "@features/split-view/index.js"
+import type { PaneAlerts } from "@features/panel-host/index.js"
+import type { SessionContext } from "@features/session/index.js"
 
 type Pending = { sessionId: string; request: ExtensionUiDialog }
 
@@ -12,8 +13,8 @@ const isDialog = (request: ExtensionUiRequest): request is ExtensionUiDialog =>
 
 function useExtensionUiState(
   pi: ReturnType<typeof useGatewayClient>,
-  session: FocusedSession,
-  split: SplitViewContext,
+  session: SessionContext,
+  alerts: PaneAlerts,
 ) {
   const dialogs = shallowRef<readonly Pending[]>([])
   const statuses = shallowRef(new Map<string, ReadonlyMap<string, string>>())
@@ -44,7 +45,7 @@ function useExtensionUiState(
     switch (request.method) {
       case "notify":
         if (
-          split.alerts.route(sessionId, {
+          alerts.route(sessionId, {
             kind: "notify",
             tone: request.notifyType ?? "info",
             title: request.message,
@@ -91,10 +92,10 @@ const key: InjectionKey<ExtensionUiContext> = Symbol("extension-ui")
 
 export function provideExtensionUi(
   pi: ReturnType<typeof useGatewayClient>,
-  session: FocusedSession,
-  split: SplitViewContext,
+  session: SessionContext,
+  alerts: PaneAlerts,
 ) {
-  const state = useExtensionUiState(pi, session, split)
+  const state = useExtensionUiState(pi, session, alerts)
   provide(key, state)
   return state
 }

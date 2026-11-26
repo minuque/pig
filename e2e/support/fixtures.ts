@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url"
 
 import Gateway from "../../packages/gateway/src/index.js"
 import type { DirectoryPort } from "../../packages/gateway/src/system/directory.js"
-import { createFakeRuntime, type FakeProviderSpec } from "./fake-model-runtime.js"
+import { createFakeRuntime } from "./fake-model-runtime.js"
 import { BUILTIN_PROVIDERS } from "./fake-provider-registry.js"
 import {
   prebuildComplexSession,
@@ -89,7 +89,6 @@ type TestFixtures = {
   navGateway: E2eGateway
   multiGateway: MultiE2eGateway
   modelsGateway: E2eGateway
-  emptyModelsGateway: E2eGateway
   subagentGateway: E2eGateway
 }
 
@@ -222,10 +221,7 @@ async function withTwoWorkspaces(use: (gateway: MultiE2eGateway) => Promise<void
   }
 }
 
-async function withModelsGateway(
-  use: (gateway: E2eGateway) => Promise<void>,
-  specs?: FakeProviderSpec[],
-) {
+async function withModelsGateway(use: (gateway: E2eGateway) => Promise<void>) {
   const temp = await mkdtemp(join(tmpdir(), "pig-e2e-models-"))
   const workspaceDir = join(temp, "workspace")
   const sessionDir = join(temp, "sessions")
@@ -268,7 +264,7 @@ async function withModelsGateway(
   )
 
   const runtime = createFakeRuntime(
-    specs ?? [
+    [
       {
         id: "anthropic",
         name: "Anthropic",
@@ -409,12 +405,6 @@ export const test = base.extend<TestFixtures>({
   modelsGateway: [
     async ({}, use) => {
       await withModelsGateway(use)
-    },
-    { scope: "test" },
-  ],
-  emptyModelsGateway: [
-    async ({}, use) => {
-      await withModelsGateway(use, [])
     },
     { scope: "test" },
   ],

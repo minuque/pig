@@ -99,9 +99,11 @@ const workspaceName = computed(() => props.workspace?.split(/[\\/]/).filter(Bool
   display: flex;
   align-items: center;
   gap: var(--space-2xs);
-  padding: var(--space-2xs);
+  padding: calc(var(--space-2xs) - var(--border-width));
+  border: var(--border-width) solid var(--control-border);
   border-radius: var(--radius-control);
   background-color: var(--control-bg);
+  background-clip: padding-box;
   box-shadow: var(--control-shadow);
 }
 

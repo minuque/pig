@@ -8,6 +8,7 @@ import {
   deleteSkill,
   isKnownSkillPath,
   listSkills,
+  readSkillAsset,
   readSkillFile,
   setSkillEnabled,
   writeSkillFile,
@@ -183,6 +184,16 @@ const agentConfigRoutes = {
   "GET /api/v1/platform/skill-settings/file": async ({ url, deps }) => {
     const scope = await scopeOf(url.searchParams.get("scope"), deps)
     return readSkillFile(await knownSkill(deps, scope, text(url.searchParams.get("path"))))
+  },
+
+  "GET /api/v1/platform/skill-settings/asset": async ({ url, deps }) => {
+    const scope = await scopeOf(url.searchParams.get("scope"), deps)
+    const path = await knownSkill(deps, scope, text(url.searchParams.get("path")))
+    const result = await readSkillAsset(path, url.searchParams.get("file") ?? "")
+
+    if (result.status !== 200)
+      throw new HttpError(result.status, result.status === 403 ? "FORBIDDEN" : "NOT_FOUND")
+    return result.data
   },
 
   "PUT /api/v1/platform/skill-settings/file": async (ctx) => {

@@ -8,48 +8,7 @@
         />
       </template>
 
-      <div
-        ref="area"
-        class="split-area"
-        :class="{ 'is-split': sideBySide }"
-        :style="sideBySide ? { '--split-left': `${split.state.value.ratio * 100}%` } : undefined"
-      >
-        <Resizable class="split-panels" :layout="layout" @layout-change="onLayoutChange">
-          <ResizablePanel id="split-left" class="split-panel">
-            <WorkbenchPane v-show="leftShown" side="left" :session="left" :preset="leftPreset" />
-          </ResizablePanel>
-
-          <ResizableHandle v-if="sideBySide">
-            <template #render="{ props: part }">
-              <ResizeHandle v-bind="part" class="split-resizer" @dblclick="split.setRatio(0.5)" />
-            </template>
-          </ResizableHandle>
-
-          <ResizablePanel v-if="split.split.value" id="split-right" class="split-panel">
-            <WorkbenchPane
-              v-show="rightShown"
-              side="right"
-              :session="right"
-              :preset="rightPreset"
-            />
-          </ResizablePanel>
-        </Resizable>
-
-        <div class="split-drop" aria-hidden="true">
-          <div
-            v-for="zone in dropZones"
-            :key="zone"
-            class="split-drop-zone"
-            v-bind="sessionDropTargetAttrs"
-            @pig-session-drop="onSessionDrop(zone, $event)"
-          >
-            <span class="split-drop-label">
-              <Columns2Icon class="split-drop-icon" />
-              {{ t("split.dropHere") }}
-            </span>
-          </div>
-        </div>
-      </div>
+      <WorkbenchPane :session="session" :preset="preset" />
     </AppLayout>
 
     <SettingsDialog
@@ -66,12 +25,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, provide, useTemplateRef } from "vue"
-import { useEventListener, useResizeObserver } from "@vueuse/core"
+import { computed, onBeforeUnmount, onMounted, provide } from "vue"
+import { useEventListener } from "@vueuse/core"
 import { useRoute, useRouter } from "vue-router"
 import AppLayout from "@components/layout/AppLayout.vue"
-import { ResizeHandle } from "@pig/ui/resize-handle"
-import { Resizable, ResizableHandle, ResizablePanel } from "@ui-sdk/vue/resizable"
 import { Toaster, notify } from "@pig/ui/toast"
 
 import { useLocalWorkspaces } from "@client/local-cwd.js"
@@ -79,14 +36,14 @@ import { useGatewayClient } from "@client/gateway-connection.js"
 import { hydratePreferences } from "@client/preferences.js"
 import { hydrateSessionArchives } from "@client/session-archives.js"
 
-import { Columns2Icon } from "@components/icons/index.js"
 import { useI18n } from "@i18n/index.js"
-import { sessionDropTargetAttrs, type DroppedSession } from "@features/session-nav/index.js"
 import { bindComposerPreset } from "@features/composer/index.js"
 import { useComposerQueue } from "@features/composer/hooks/use-composer-queue.js"
 import { provideSharedBuckets } from "@features/composer/hooks/use-session-buckets.js"
 import { useSound } from "@features/click-sound/index.js"
 import { provideExtensionUi } from "@features/extension-ui/index.js"
+import { PANE_VIEWS, providePanelHost } from "@features/panel-host/index.js"
+import { viewShortcut } from "@features/panel-host/lib/view-shortcut.js"
 import SessionNav from "@features/session-nav/index.vue"
 import { provideNav } from "@features/session-nav/index.js"
 import SettingsDialog from "@features/settings/components/SettingsDialog.vue"
@@ -99,9 +56,6 @@ import {
   untitledSession,
   useSessionLifecycle,
 } from "@features/session/index.js"
-import { focusedSession, provideSplitView, type Side } from "@features/split-view/index.js"
-import { splitShortcut, viewShortcut } from "@features/split-view/lib/split-shortcut.js"
-import { PANE_VIEWS } from "@features/split-view/index.js"
 import { prefetchHighlighter, transcriptModelsKey } from "@features/transcript-view/index.js"
 import { createBackgroundPump } from "@/shell/hooks/use-background-pump.js"
 import WorkbenchPane from "@/shell/WorkbenchPane.vue"
@@ -116,12 +70,9 @@ const cwd = useLocalWorkspaces()
 const route = useRoute()
 const router = useRouter()
 const routeSessionId = computed(() => {
-  if (route.name === "error") return null
+  if (route.name === "error") return undefined
   const raw = route.params.sessionId
   return typeof raw === "string" && raw.length > 0 ? raw : undefined
-})
-const split = provideSplitView(routeSessionId, (id) => {
-  void router.replace(id ? { name: "session", params: { sessionId: id } } : "/")
 })
 const sharedBuckets = provideSharedBuckets()
 const hub = createSessionHub(pi)
@@ -144,40 +95,26 @@ const backgroundPump = createBackgroundPump({
 
 hub.setBackgroundIdle(backgroundPump.onIdle)
 
-const sideSession = (side: Side) =>
-  useSessionLifecycle(pi, cwd, {
-    hub,
-    sessionId: computed(() =>
-      side === "left" || split.split.value ? split.state.value[side] : undefined,
-    ),
-    navigate: (id) => split.showIn(side, id),
-  })
-const left = sideSession("left")
-const right = sideSession("right")
-const leftPreset = bindComposerPreset(left, pi.models, pi.defaultModel)
-const rightPreset = bindComposerPreset(right, pi.models, pi.defaultModel)
-const onSide = (side: Side) => (side === "right" ? right : left)
-const focused = focusedSession(
-  () => onSide(split.focused.value),
-  () =>
-    split.split.value
-      ? onSide(split.focused.value === "left" ? "right" : "left")
-      : onSide(split.focused.value),
-  split.leaveSession,
-)
+const session = useSessionLifecycle(pi, cwd, {
+  hub,
+  sessionId: routeSessionId,
+  navigate: (id) => router.replace({ name: "session", params: { sessionId: id } }),
+})
+const preset = bindComposerPreset(session, pi.models, pi.defaultModel)
 const { settingsOpen, settingsPane, openSettings, closeSettings } = useSettingsDialog()
-const extensionUi = provideExtensionUi(pi, focused, split)
+const host = providePanelHost(session.sessionId)
+const extensionUi = provideExtensionUi(pi, session, host.alerts)
 const waiting = waitingSessions({
   sessions: pi.sessions,
   dialogs: extensionUi.dialogs,
   isReady: hub.history.isReady,
   transcriptFor: hub.history.transcriptFor,
 })
-const nav = provideNav(pi, cwd, focused, waiting)
+const nav = provideNav(pi, cwd, session, waiting)
 
 useWaitingNotices(waiting, {
   sessions: pi.sessions,
-  shownIds: focused.shownIds,
+  shownIds: computed(() => [session.sessionId.value]),
   open: (id) => nav.openSession(id),
 })
 
@@ -191,25 +128,6 @@ const archiveController: ArchiveController = {
   unarchiveSessions: nav.unarchiveSessions,
   deleteSessions: nav.deleteSessions,
 }
-const sideBySide = computed(() => split.split.value && split.fits.value)
-const leftShown = computed(() => sideBySide.value || split.focused.value === "left")
-const rightShown = computed(() => sideBySide.value || split.focused.value === "right")
-const area = useTemplateRef("area")
-const layout = computed(() => {
-  if (!split.split.value) return [100]
-
-  if (!sideBySide.value) return leftShown.value ? [100, 0] : [0, 100]
-  const left = split.state.value.ratio * 100
-  return [left, 100 - left]
-})
-
-useResizeObserver(area, ([entry]) => {
-  if (entry) split.setWidth(entry.contentRect.width)
-})
-
-function onLayoutChange(next: number[]) {
-  if (sideBySide.value && next[0] !== undefined) split.setRatio(next[0] / 100)
-}
 
 const isMac = /mac/i.test(navigator.platform || navigator.userAgent)
 
@@ -221,46 +139,19 @@ function typingIn(target: EventTarget | null) {
 
 useEventListener(window, "keydown", (event: KeyboardEvent) => {
   const view = viewShortcut(event, isMac, typingIn(event.target))
-  const target = view && ("to" in view ? PANE_VIEWS[view.to] : undefined)
 
-  if (view && ("step" in view || target) && onSide(split.focused.value).sessionId.value) {
-    event.preventDefault()
-    return target
-      ? split.showView(split.focused.value, target)
-      : "step" in view && split.stepView(split.focused.value, view.step)
-  }
+  if (!view || !session.sessionId.value) return
+  const target = "to" in view ? PANE_VIEWS[view.to] : undefined
 
-  const command = splitShortcut(event, isMac)
-
-  if (!command) return
+  if ("to" in view && !target) return
   event.preventDefault()
 
-  if (command === "new-right") return split.newOnRight()
-
-  if (!split.split.value) return
-
-  if (command === "close") return split.closeSide(split.focused.value)
-  split.focusSide(split.focused.value === "left" ? "right" : "left")
+  if (target) host.showView(target)
+  else if ("step" in view) host.stepView(view.step)
 })
 
-const dropZones: Side[] = ["left", "right"]
-
-function onSessionDrop(zone: Side, event: Event) {
-  const id = (event as CustomEvent<readonly DroppedSession[]>).detail[0]?.id
-
-  if (!id) return
-
-  if (zone === split.focused.value) split.openInFocused(id)
-  else split.openToSide(id)
-}
-
 function initialize() {
-  return Promise.all([
-    left.initialize(),
-    right.initialize(),
-    hydratePreferences(),
-    hydrateSessionArchives(),
-  ])
+  return Promise.all([session.initialize(), hydratePreferences(), hydrateSessionArchives()])
 }
 
 onMounted(() => {
@@ -279,84 +170,3 @@ function handleSidebarNavigate(canonicalPath: string, closeMobilePanels: () => v
   closeMobilePanels()
 }
 </script>
-
-<style scoped>
-.split-area {
-  position: relative;
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
-}
-
-.split-panels {
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
-}
-
-.split-panel {
-  display: flex;
-  min-width: 0;
-  min-height: 0;
-}
-
-.split-drop {
-  position: absolute;
-  inset: 0 0 50%;
-  z-index: var(--z-resizer);
-  display: none;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-sm);
-  padding: var(--space-sm);
-  padding-block-start: var(--header-height);
-}
-
-.split-area.is-split > .split-drop {
-  grid-template-columns: calc(var(--split-left) - var(--space-sm)) 1fr;
-}
-
-html[data-session-dragging] .split-drop {
-  display: grid;
-}
-
-.split-drop-zone {
-  display: grid;
-  place-items: center;
-  border: var(--border-width) dashed transparent;
-  border-radius: var(--radius-card);
-  transition:
-    border-color var(--duration-fast) var(--ease-out),
-    background-color var(--duration-fast) var(--ease-out);
-}
-
-.split-drop-zone[data-session-drop-over] {
-  border-color: var(--accent-solid);
-  background: var(--bg-surface);
-}
-
-.split-drop-label {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-xs);
-  color: var(--fg-secondary);
-  font-size: var(--text-body);
-  line-height: var(--text-body--line-height);
-  pointer-events: none;
-}
-
-.split-drop-zone[data-session-drop-over] .split-drop-label {
-  color: var(--accent-text);
-}
-
-.split-drop-icon {
-  width: var(--icon-md);
-  height: var(--icon-md);
-}
-
-.split-resizer {
-  z-index: var(--z-resizer);
-  width: 0;
-  margin-block-start: var(--header-height);
-}
-</style>

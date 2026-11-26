@@ -1,7 +1,7 @@
 import { existsSync } from "node:fs"
-import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises"
+import { mkdir, readdir, readFile, realpath, rm, stat, writeFile } from "node:fs/promises"
 import { homedir } from "node:os"
-import { basename, dirname, join, relative, resolve, sep } from "node:path"
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path"
 import {
   DefaultPackageManager,
   DefaultResourceLoader,
@@ -11,6 +11,7 @@ import {
 } from "@earendil-works/pi-coding-agent"
 import type {
   AgentConfigScope,
+  FileTextResponse,
   SkillDiagnosticView,
   SkillFileView,
   SkillScopeView,
@@ -21,6 +22,8 @@ import { settingsWithoutPackages } from "./resource-loader.js"
 
 const SKILL_NAME = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 const MAX_FILES = 200
+const TEXT_LIMIT = 1024 * 1024
+const BINARY_PROBE = 8000
 
 function key(path: string): string {
   const full = resolve(path)
@@ -202,9 +205,57 @@ function isSkillDir(path: string): boolean {
   return basename(path) === "SKILL.md"
 }
 
+function inside(root: string, target: string): boolean {
+  const rel = relative(key(root), key(target))
+  return rel !== "" && !rel.startsWith("..") && !isAbsolute(rel)
+}
+
 export async function readSkillFile(path: string): Promise<SkillFileView> {
   const raw = await readFile(path, "utf8")
   return { raw, files: isSkillDir(path) ? (await listFiles(dirname(path))).sort() : [] }
+}
+
+export async function readSkillAsset(
+  skillPath: string,
+  file: string,
+): Promise<{ status: 200; data: FileTextResponse } | { status: 403 | 404 }> {
+  const name = file.trim()
+
+  if (!isSkillDir(skillPath) || !name) return { status: 403 }
+  const root = dirname(skillPath)
+  const candidate = resolve(root, name)
+
+  if (!inside(root, candidate)) return { status: 403 }
+  let realRoot: string
+  let realFile: string
+
+  try {
+    ;[realRoot, realFile] = await Promise.all([realpath(root), realpath(candidate)])
+  } catch {
+    return { status: 404 }
+  }
+
+  if (!inside(realRoot, realFile)) return { status: 403 }
+  let size: number
+
+  try {
+    const info = await stat(realFile)
+
+    if (!info.isFile()) return { status: 404 }
+    size = info.size
+  } catch {
+    return { status: 404 }
+  }
+
+  if (size > TEXT_LIMIT) return { status: 200, data: { size, binary: false, tooLarge: true } }
+  const bytes = await readFile(realFile)
+  const binary = bytes.subarray(0, BINARY_PROBE).includes(0)
+
+  if (binary) return { status: 200, data: { size, binary: true, tooLarge: false } }
+  return {
+    status: 200,
+    data: { content: bytes.toString("utf8"), size, binary: false, tooLarge: false },
+  }
 }
 
 export async function writeSkillFile(path: string, raw: string): Promise<void> {

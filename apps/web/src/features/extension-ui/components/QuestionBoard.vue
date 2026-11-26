@@ -79,15 +79,16 @@
           aria-hidden="true"
         />
 
-        <Radio
+        <RadioGroup
           v-else
           class="board-mark"
           size="s"
-          :value="option.label"
-          :checked="answer.picked.includes(option.label)"
-          tabindex="-1"
+          :model-value="answer.picked.includes(option.label) ? option.label : ''"
+          inert
           aria-hidden="true"
-        />
+        >
+          <RadioGroupItem :value="option.label" />
+        </RadioGroup>
 
         <span class="board-option-text">
           <span class="board-option-label">{{ option.label }}</span>
@@ -112,7 +113,7 @@ import { useI18n } from "@i18n/index.js"
 import { Button, IconButton } from "@pig/ui/button"
 import { Checkbox } from "@pig/ui/checkbox"
 import { Kbd } from "@pig/ui/kbd"
-import { Radio } from "@pig/ui/radio-group"
+import { RadioGroup, RadioGroupItem } from "@pig/ui/radio-group"
 import { StatusIndicator } from "@pig/ui/status-indicator"
 import { ChevronLeftIcon, ChevronRightIcon, XIcon } from "@components/icons/index.js"
 import { useQuestionBoard } from "@features/extension-ui/hooks/use-question-board.js"

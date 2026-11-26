@@ -1,7 +1,7 @@
 <template>
   <AlertDialogBackdrop class="glass-backdrop" />
 
-  <AlertDialogContentPrimitive v-bind="$attrs" class="glass-panel">
+  <AlertDialogContentPrimitive v-bind="$attrs">
     <slot />
   </AlertDialogContentPrimitive>
 </template>
@@ -28,5 +28,11 @@ defineOptions({ inheritAttrs: false })
   min-height: 0;
   margin: auto;
   overflow: hidden;
+  border-radius: var(--radius-dialog);
+  background: var(--glass-bg);
+  box-shadow: var(--float-shadow);
+  backdrop-filter: var(--glass-filter);
+  color: var(--fg);
+  outline: none;
 }
 </style>

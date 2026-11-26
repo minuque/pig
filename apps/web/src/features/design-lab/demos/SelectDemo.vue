@@ -69,6 +69,25 @@
         </Select>
       </div>
     </Variant>
+
+    <Variant title="Searchable">
+      <div style="max-width: 240px">
+        <Select v-model="font">
+          <SelectTrigger placeholder="Pick a font" aria-label="Searchable font select" />
+
+          <SelectContent>
+            <SelectInput placeholder="Search fonts" />
+            <SelectEmpty>No matching fonts</SelectEmpty>
+
+            <SelectList>
+              <SelectItem v-for="item in fonts" :key="item" :value="item" :label="item">
+                <SelectItemText>{{ item }}</SelectItemText>
+              </SelectItem>
+            </SelectList>
+          </SelectContent>
+        </Select>
+      </div>
+    </Variant>
   </Story>
 </template>
 
@@ -79,13 +98,35 @@ import { ref } from "vue"
 import {
   Select,
   SelectContent,
+  SelectEmpty,
   SelectGroup,
+  SelectInput,
   SelectItem,
+  SelectItemText,
   SelectLabel,
+  SelectList,
   SelectSeparator,
   SelectTrigger,
 } from "@pig/ui/select"
 
+const fonts = [
+  "Inter",
+  "JetBrains Mono",
+  "Fira Code",
+  "Cascadia Code",
+  "IBM Plex Mono",
+  "Roboto Mono",
+  "Source Code Pro",
+  "Geist Mono",
+  "SF Mono",
+  "Menlo",
+  "Consolas",
+  "Monaco",
+  "Inconsolata",
+  "Ubuntu Mono",
+  "Hack",
+]
 const value = ref("apple")
 const empty = ref("")
+const font = ref("JetBrains Mono")
 </script>

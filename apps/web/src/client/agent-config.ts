@@ -1,5 +1,6 @@
 import type {
   AgentConfigScope,
+  FileTextResponse,
   LoginEvent,
   McpExposure,
   McpProbeReport,
@@ -77,6 +78,14 @@ export function getSkillScope(scope: AgentConfigScope): Promise<SkillScopeView> 
 
 export function readSkill(scope: AgentConfigScope, path: string): Promise<SkillFileView> {
   return request("GET /api/v1/platform/skill-settings/file", { query: { scope, path } })
+}
+
+export function readSkillAsset(
+  scope: AgentConfigScope,
+  path: string,
+  file: string,
+): Promise<FileTextResponse> {
+  return request("GET /api/v1/platform/skill-settings/asset", { query: { scope, path, file } })
 }
 
 export async function writeSkill(

@@ -111,13 +111,7 @@ import { StatusIndicator } from "@pig/ui/status-indicator"
 import { useSession } from "@features/session/index.js"
 import { useExtensionUi } from "@features/extension-ui/index.js"
 import { useQuestionBoard } from "@features/extension-ui/hooks/use-question-board.js"
-import {
-  ALERT_TTL,
-  PANE_VIEWS,
-  usePaneSide,
-  useSplitView,
-  type PaneView,
-} from "@features/split-view/index.js"
+import { ALERT_TTL, PANE_VIEWS, usePanelHost, type PaneView } from "@features/panel-host/index.js"
 import { formatElapsed } from "@utils/time.js"
 import { FolderIcon, MessageSquareIcon } from "@components/icons/index.js"
 
@@ -127,9 +121,8 @@ const VIEW_ICONS = { chat: MessageSquareIcon, files: FolderIcon } satisfies Reco
   unknown
 >
 const { t } = useI18n()
-const side = usePaneSide()
-const split = useSplitView()
-const current = computed(() => split.view(side))
+const host = usePanelHost()
+const current = host.view
 const position = computed(() =>
   t("views.position", { index: PANE_VIEWS.indexOf(current.value) + 1, total: PANE_VIEWS.length }),
 )
@@ -185,8 +178,8 @@ const confirming = computed(
         item.request.method === "confirm",
     ),
 )
-const alert = computed(() => split.alerts.current(side))
-const more = computed(() => split.alerts.pending(side))
+const alert = computed(() => host.alerts.current())
+const more = computed(() => host.alerts.pending())
 const alertSeq = shallowRef(0)
 let alertTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -194,7 +187,7 @@ function armAlert() {
   clearTimeout(alertTimer)
   const next = alert.value
 
-  if (next) alertTimer = setTimeout(() => split.alerts.dismiss(side), ALERT_TTL[next.kind])
+  if (next) alertTimer = setTimeout(() => host.alerts.dismiss(), ALERT_TTL[next.kind])
 }
 
 function holdAlert(held: boolean) {
@@ -208,7 +201,7 @@ watch(alert, () => {
 })
 
 watch(current, (view) => {
-  if (view === "chat") split.alerts.clear(side)
+  if (view === "chat") host.alerts.clear()
 })
 
 const face = computed(() =>
@@ -231,7 +224,7 @@ watch(size, (next) => {
 })
 
 function backToChat() {
-  split.showView(side, "chat")
+  host.showView("chat")
 }
 
 onBeforeUnmount(() => {
@@ -242,7 +235,7 @@ onBeforeUnmount(() => {
 function show(view: string | null) {
   const next = PANE_VIEWS.find((item) => item === view)
 
-  if (next) split.showView(side, next satisfies PaneView)
+  if (next) host.showView(next satisfies PaneView)
 }
 </script>
 

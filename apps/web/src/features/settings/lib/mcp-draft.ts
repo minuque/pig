@@ -150,3 +150,28 @@ export function searchText(config: Record<string, unknown>): string {
     typeof config.command === "string" ? `${config.command} ${joinArgs(config.args)}` : ""
   return [config.description, command.trim(), config.url].filter(Boolean).join(" ")
 }
+
+function toolPatternRegExp(pattern: string): RegExp {
+  const source = pattern
+    .split("*")
+    .map((part) => part.replace(/[.+?^${}()|[\]\\]/g, "\\$&"))
+    .join(".*")
+  return new RegExp(`^${source}$`)
+}
+
+export function toolExposureFor(
+  server: Pick<McpServerView, "exposure" | "config">,
+  toolName: string,
+): McpExposure {
+  const overrides = (server.config.toolExposure ?? {}) as Record<string, McpExposure>
+
+  if (Object.hasOwn(overrides, toolName) && overrides[toolName] !== undefined) {
+    return overrides[toolName]
+  }
+
+  for (const [pattern, exposure] of Object.entries(overrides)) {
+    if (pattern.includes("*") && toolPatternRegExp(pattern).test(toolName)) return exposure
+  }
+
+  return server.exposure
+}

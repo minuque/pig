@@ -40,6 +40,8 @@ export type {
   McpProbeReport,
   McpScopeView,
   McpServerView,
+  McpToolAnnotations,
+  McpToolView,
   SkillDiagnosticView,
   SkillFileView,
   SkillScopeView,
@@ -68,7 +70,6 @@ export type {
   UserRailLayout,
   UserRailSection,
   UserThemeMode,
-  UserWelcomeField,
 } from "./preferences.js"
 
 export type {

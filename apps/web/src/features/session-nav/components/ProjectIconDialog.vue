@@ -1,6 +1,6 @@
 <template>
   <Dialog :open="path !== undefined" @update:open="!$event && emit('close')">
-    <DialogContent class="project-icon-dialog">
+    <DialogContent size="s">
       <DialogTitle>{{ t("session.projectIcon") }}</DialogTitle>
       <DialogDescription>{{ path ? workspaceName(path) : "" }}</DialogDescription>
 
@@ -110,18 +110,14 @@ function reset(): void {
 }
 </script>
 
-<style>
-.project-icon-dialog[data-slot="dialog-content"] {
-  max-inline-size: var(--dialog-width-sm);
-}
-
-.project-icon-dialog .icon-colors {
+<style scoped>
+.icon-colors {
   display: flex;
   gap: var(--space-2xs);
   margin-block: var(--space-md) var(--space-sm);
 }
 
-.project-icon-dialog .swatch {
+.swatch {
   inline-size: var(--icon-sm);
   block-size: var(--icon-sm);
   border-radius: var(--radius-pill);
@@ -129,14 +125,14 @@ function reset(): void {
   background-color: var(--tint);
 }
 
-.project-icon-dialog .icon-grid {
+.icon-grid {
   display: grid;
   grid-template-columns: repeat(10, var(--control-sm));
   justify-content: space-between;
   row-gap: var(--space-2xs);
 }
 
-.project-icon-dialog .icon-actions {
+.icon-actions {
   display: flex;
   justify-content: space-between;
   margin-block-start: var(--space-md);

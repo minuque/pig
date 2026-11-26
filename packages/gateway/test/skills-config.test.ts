@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs"
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
+import { mkdir, mkdtemp, readFile, rm, symlink, writeFile } from "node:fs/promises"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
@@ -9,6 +9,7 @@ import {
   deleteSkill,
   isKnownSkillPath,
   listSkills,
+  readSkillAsset,
   readSkillFile,
   setSkillEnabled,
 } from "../src/pi/skills-config.js"
@@ -190,5 +191,46 @@ describe("Skill 文件", () => {
 
     expect(existsSync(dirname(file))).toBe(false)
     expect(existsSync(join(agentDir, "skills"))).toBe(true)
+  })
+
+  it("readSkillAsset 安全读取附属文件，拦截越界路径与符号链接，区分二进制和超大文件", async () => {
+    const file = await skill(agentDir, "alpha")
+    const dir = dirname(file)
+    const outsideDir = join(temp, "outside-secret")
+
+    await mkdir(join(dir, "scripts"), { recursive: true })
+    await mkdir(outsideDir, { recursive: true })
+    await writeFile(join(dir, "scripts", "run.sh"), "#!/bin/sh\necho hi\n")
+    await writeFile(join(dir, "bin.dat"), Buffer.from([0x01, 0x00, 0x02]))
+    await writeFile(join(dir, "huge.txt"), "x".repeat(1024 * 1024 + 1))
+    await writeFile(join(outsideDir, "secret.txt"), "top-secret")
+    await symlink(
+      outsideDir,
+      join(dir, "escape"),
+      process.platform === "win32" ? "junction" : "dir",
+    )
+
+    expect(await readSkillAsset(file, "scripts/run.sh")).toEqual({
+      status: 200,
+      data: {
+        content: "#!/bin/sh\necho hi\n",
+        size: Buffer.byteLength("#!/bin/sh\necho hi\n"),
+        binary: false,
+        tooLarge: false,
+      },
+    })
+    expect(await readSkillAsset(file, "bin.dat")).toEqual({
+      status: 200,
+      data: { size: 3, binary: true, tooLarge: false },
+    })
+    expect(await readSkillAsset(file, "huge.txt")).toEqual({
+      status: 200,
+      data: { size: 1024 * 1024 + 1, binary: false, tooLarge: true },
+    })
+    expect(await readSkillAsset(file, "")).toEqual({ status: 403 })
+    expect(await readSkillAsset(file, "../secret.txt")).toEqual({ status: 403 })
+    expect(await readSkillAsset(file, "escape/secret.txt")).toEqual({ status: 403 })
+    expect(await readSkillAsset(file, "scripts")).toEqual({ status: 404 })
+    expect(await readSkillAsset(file, "missing.txt")).toEqual({ status: 404 })
   })
 })

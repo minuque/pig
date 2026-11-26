@@ -1,9 +1,10 @@
-import { appendFile, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises"
+import { mkdtemp, rm } from "node:fs/promises"
+import type { FSWatcher, WatchListener } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { SessionManager } from "@earendil-works/pi-coding-agent"
 import type { ClientMessage, Command, ServerMessage } from "@pig/protocol"
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { WebSocket } from "ws"
 
 import Gateway from "../src/index.js"
@@ -27,14 +28,6 @@ const runtime = {
   getModel: () => model,
 }
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-
-async function until(check: () => boolean, timeout = 3_000) {
-  const deadline = Date.now() + timeout
-
-  while (!check() && Date.now() < deadline) await sleep(10)
-  return check()
-}
-
 let root: string | undefined
 let gateway: Gateway | undefined
 const sockets: WebSocket[] = []
@@ -48,100 +41,154 @@ afterEach(async () => {
   root = undefined
 })
 
-async function tempFile() {
-  root = await mkdtemp(join(tmpdir(), "pig-watch-"))
-  const dir = join(root, "sessions")
+function fakeWatchDir() {
+  const active = new Set<(event: string, filename: string) => void>()
+  const watchDir = ((_dir: string, listener: WatchListener<string>) => {
+    const fn = listener as (event: string, filename: string) => void
+    active.add(fn)
 
-  await mkdir(dir, { recursive: true })
-  const file = join(dir, "s-1.jsonl")
+    const watcher = {
+      on: () => watcher,
+      unref: () => watcher,
+      close: () => {
+        active.delete(fn)
+      },
+    }
+    return watcher as unknown as FSWatcher
+  }) as unknown as typeof import("node:fs").watch
+  const emit = (filename: string, event = "change") => {
+    for (const fn of [...active]) fn(event, filename)
+  }
 
-  await writeFile(file, "")
-  return { dir, file }
+  return { watchDir, active, emit }
 }
 
 describe("会话文件监听：按需开关", () => {
-  it("没有订阅者不开 watcher，最后一个退订就关", async () => {
-    const { file } = await tempFile()
-    const changes: number[] = []
-    const watcher = new SessionFileWatcher({ resolvePath: async () => file, debounceMs: 20 })
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
 
-    await appendFile(file, "a\n")
-    await sleep(200)
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it("没有订阅者不开 watcher，最后一个退订就关", async () => {
+    const { watchDir, active, emit } = fakeWatchDir()
+    const changes: number[] = []
+    const watcher = new SessionFileWatcher({
+      resolvePath: async () => "/tmp/sessions/s-1.jsonl",
+      debounceMs: 20,
+      watchDir,
+    })
+
+    expect(active.size).toBe(0)
+    emit("s-1.jsonl")
+    await vi.advanceTimersByTimeAsync(100)
     expect(changes).toEqual([])
 
-    const stop = watcher.subscribe("s-1", () => changes.push(Date.now()))
+    const stop = watcher.subscribe("s-1", () => changes.push(1))
+    await vi.advanceTimersByTimeAsync(0)
+    expect(active.size).toBe(1)
 
-    await sleep(100)
-    await appendFile(file, "b\n")
-    expect(await until(() => changes.length === 1)).toBe(true)
+    emit("s-1.jsonl")
+    await vi.advanceTimersByTimeAsync(20)
+    expect(changes).toHaveLength(1)
 
     stop()
-    await appendFile(file, "c\n")
-    await sleep(200)
-    expect(changes.length).toBe(1)
+    expect(active.size).toBe(0)
+    emit("s-1.jsonl")
+    await vi.advanceTimersByTimeAsync(100)
+    expect(changes).toHaveLength(1)
     watcher.close()
   })
 
   it("同一会话多订阅者共用一份监听，退订一个不影响另一个", async () => {
-    const { file } = await tempFile()
+    const { watchDir, active, emit } = fakeWatchDir()
     const first: number[] = []
     const second: number[] = []
-    const watcher = new SessionFileWatcher({ resolvePath: async () => file, debounceMs: 20 })
+    const watcher = new SessionFileWatcher({
+      resolvePath: async () => "/tmp/sessions/s-1.jsonl",
+      debounceMs: 20,
+      watchDir,
+    })
     const stopFirst = watcher.subscribe("s-1", () => first.push(1))
 
     watcher.subscribe("s-1", () => second.push(1))
-    await sleep(100)
-    await appendFile(file, "a\n")
-    expect(await until(() => first.length === 1 && second.length === 1)).toBe(true)
+    await vi.advanceTimersByTimeAsync(0)
+    expect(active.size).toBe(1)
+
+    emit("s-1.jsonl")
+    await vi.advanceTimersByTimeAsync(20)
+    expect(first).toHaveLength(1)
+    expect(second).toHaveLength(1)
 
     stopFirst()
-    await appendFile(file, "b\n")
-    expect(await until(() => second.length === 2)).toBe(true)
-    expect(first.length).toBe(1)
+    expect(active.size).toBe(1)
+    emit("s-1.jsonl")
+    await vi.advanceTimersByTimeAsync(20)
+    expect(first).toHaveLength(1)
+    expect(second).toHaveLength(2)
     watcher.close()
   })
 
   it("高频写入在防抖窗口里合并成一次通知，别的文件不触发", async () => {
-    const { dir, file } = await tempFile()
+    const { watchDir, emit } = fakeWatchDir()
     const changes: number[] = []
-    const watcher = new SessionFileWatcher({ resolvePath: async () => file, debounceMs: 200 })
+    const watcher = new SessionFileWatcher({
+      resolvePath: async () => "/tmp/sessions/s-1.jsonl",
+      debounceMs: 200,
+      watchDir,
+    })
 
     watcher.subscribe("s-1", () => changes.push(1))
-    await sleep(100)
-    await appendFile(join(dir, "other.jsonl"), "x\n")
+    await vi.advanceTimersByTimeAsync(0)
+    emit("other.jsonl")
 
-    for (let index = 0; index < 5; index += 1) await appendFile(file, `${index}\n`)
-    expect(await until(() => changes.length > 0)).toBe(true)
+    for (let index = 0; index < 5; index += 1) emit("s-1.jsonl")
+    await vi.advanceTimersByTimeAsync(199)
+    expect(changes).toHaveLength(0)
 
-    await sleep(400)
-    expect(changes.length).toBe(1)
+    await vi.advanceTimersByTimeAsync(1)
+    expect(changes).toHaveLength(1)
+
+    await vi.advanceTimersByTimeAsync(400)
+    expect(changes).toHaveLength(1)
     watcher.close()
   })
 
   it("close 之后不再通知", async () => {
-    const { file } = await tempFile()
+    const { watchDir, active, emit } = fakeWatchDir()
     const changes: number[] = []
-    const watcher = new SessionFileWatcher({ resolvePath: async () => file, debounceMs: 20 })
+    const watcher = new SessionFileWatcher({
+      resolvePath: async () => "/tmp/sessions/s-1.jsonl",
+      debounceMs: 20,
+      watchDir,
+    })
 
     watcher.subscribe("s-1", () => changes.push(1))
-    await sleep(100)
-    await appendFile(file, "before\n")
-    expect(await until(() => changes.length > 0)).toBe(true)
+    await vi.advanceTimersByTimeAsync(0)
+    emit("s-1.jsonl")
+    await vi.advanceTimersByTimeAsync(20)
+    expect(changes).toHaveLength(1)
 
     watcher.close()
-    const countAtClose = changes.length
-
-    await appendFile(file, "after\n")
-    await sleep(200)
-    expect(changes.length).toBe(countAtClose)
+    expect(active.size).toBe(0)
+    emit("s-1.jsonl")
+    await vi.advanceTimersByTimeAsync(100)
+    expect(changes).toHaveLength(1)
   })
 
   it("会话不在磁盘上就没有可监听的文件", async () => {
+    const { watchDir, active } = fakeWatchDir()
     const changes: number[] = []
-    const watcher = new SessionFileWatcher({ resolvePath: async () => undefined })
+    const watcher = new SessionFileWatcher({
+      resolvePath: async () => undefined,
+      watchDir,
+    })
 
     watcher.subscribe("missing", () => changes.push(1))
-    await sleep(100)
+    await vi.advanceTimersByTimeAsync(100)
+    expect(active.size).toBe(0)
     expect(changes).toEqual([])
     watcher.close()
   })

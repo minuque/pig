@@ -1,7 +1,7 @@
 import { computed, inject, nextTick, provide, shallowRef, watch, type InjectionKey } from "vue"
 import { readFlag, writeFlag } from "@utils/storage.js"
 import type { SessionContext } from "@features/session/index.js"
-import type { PaneView } from "@features/split-view/index.js"
+import type { PaneView } from "@features/panel-host/index.js"
 import { mentionMarkdown } from "@features/composer/lib/composer-trigger.js"
 import { openFileKey } from "@features/transcript-view/index.js"
 import { finishedWrites, workspacePath } from "@features/file-pane/lib/paths.js"

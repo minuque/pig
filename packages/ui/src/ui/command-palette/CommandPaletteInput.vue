@@ -20,7 +20,7 @@ defineProps<{ placeholder: string }>()
   padding: calc(var(--spacing) * 1.5) var(--space-xs);
 }
 
-[data-slot="command-palette-input"] > [data-slot="command-palette-lead"] {
+:where([data-slot="command-palette-input"] > [data-slot="command-palette-lead"]) {
   flex: none;
   inline-size: var(--space-2xl);
   color: var(--fg-muted);

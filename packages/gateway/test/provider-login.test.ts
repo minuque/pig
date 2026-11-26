@@ -24,6 +24,7 @@ function loginRuntime(options: { fail?: boolean } = {}) {
     },
   }
   const runtime = {
+    getAvailable: async () => [],
     getProvider: (id: string) => (id === "anthropic" ? provider : undefined),
     getProviders: () => [provider],
     login: async (
