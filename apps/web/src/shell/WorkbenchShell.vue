@@ -200,8 +200,14 @@ function onLayoutChange(next: number[]) {
 
 const isMac = /mac/i.test(navigator.platform || navigator.userAgent)
 
+function typingIn(target: EventTarget | null) {
+  if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement)
+    return target.value !== ""
+  return target instanceof HTMLElement && target.isContentEditable && Boolean(target.textContent)
+}
+
 useEventListener(window, "keydown", (event: KeyboardEvent) => {
-  const view = viewShortcut(event, isMac)
+  const view = viewShortcut(event, isMac, typingIn(event.target))
   const target = view && ("to" in view ? PANE_VIEWS[view.to] : undefined)
 
   if (view && ("step" in view || target) && onSide(split.focused.value).sessionId.value) {

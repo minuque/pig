@@ -26,13 +26,13 @@ export function splitShortcut(event: KeyLike, mac: boolean): SplitCommand | null
 
 export type ViewCommand = { to: number } | { step: 1 | -1 }
 
-export function viewShortcut(event: KeyLike, mac: boolean): ViewCommand | null {
+export function viewShortcut(event: KeyLike, mac: boolean, typing = false): ViewCommand | null {
   if (event.defaultPrevented || event.shiftKey || event.altKey) return null
 
   if (event.ctrlKey && !event.metaKey && !event.repeat) {
-    if (event.code === "PageUp") return { step: -1 }
+    if (event.code === "PageUp" || (event.code === "ArrowLeft" && !typing)) return { step: -1 }
 
-    if (event.code === "PageDown") return { step: 1 }
+    if (event.code === "PageDown" || (event.code === "ArrowRight" && !typing)) return { step: 1 }
   }
 
   const digit = /^Digit([1-9])$/.exec(event.code)?.[1]

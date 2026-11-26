@@ -60,6 +60,8 @@ test("点工具行里的文件名，Files 面板打开这个文件并标出读�
   await expect(target).toBeInViewport()
   await page.keyboard.press("Control+2")
   await expect(pane.getByRole("tab", { name: "example.ts" })).toBeInViewport()
+  await page.keyboard.press("Control+ArrowLeft")
+  await expect(target).toBeInViewport()
 })
 
 test("从头部打开 Files，在树里展开目录、搜索内容并跳到命中的行", async ({

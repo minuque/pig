@@ -49,4 +49,11 @@ describe("分屏快捷键", () => {
     expect(viewShortcut(key("PageDown", { ctrlKey: true }), false)).toEqual({ step: 1 })
     expect(viewShortcut(key("PageUp", { ctrlKey: true }), true)).toEqual({ step: -1 })
   })
+
+  it("视图：Ctrl+←/→ 相邻翻页，输入框里有字时让给按词移动光标", () => {
+    expect(viewShortcut(key("ArrowRight", { ctrlKey: true }), false)).toEqual({ step: 1 })
+    expect(viewShortcut(key("ArrowLeft", { ctrlKey: true }), true)).toEqual({ step: -1 })
+    expect(viewShortcut(key("ArrowLeft", { ctrlKey: true }), false, true)).toBeNull()
+    expect(viewShortcut(key("PageDown", { ctrlKey: true }), false, true)).toEqual({ step: 1 })
+  })
 })
