@@ -202,7 +202,8 @@ test("横滑和 Ctrl+←/→ 切到 Files 再回来，对话的滚动位置不�
   await expect(page.getByText(COMPLEX_MARKER, { exact: true })).toBeVisible({ timeout: 30_000 })
 
   const viewport = page.locator('.pane-view[data-view="chat"] .transcript-viewport')
-  await viewport.evaluate((el) => (el.scrollTop = Math.floor(el.scrollHeight / 3)))
+  await viewport.hover()
+  await page.mouse.wheel(0, -900)
   const before = await viewport.evaluate((el) => el.scrollTop)
   expect(before).toBeGreaterThan(0)
   const files = page.locator('.pane-view[data-view="files"]')
