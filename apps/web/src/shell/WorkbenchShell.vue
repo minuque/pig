@@ -131,6 +131,7 @@ const backgroundPump = createBackgroundPump({
   send: hub.backgroundSend.send,
   transcriptFor: hub.history.transcriptFor,
   announce(id, outcome) {
+    if (waiting.value.has(id)) return
     const meta = pi.sessions.value.find((item) => item.id === id)
     const title = meta ? sessionTitle(meta) : untitledSession()
     notify(
