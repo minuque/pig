@@ -25,6 +25,7 @@ function testRuntime(
   }
   return {
     completeSimple,
+    getAvailable: async () => [model],
     getProvider: (id: string) => (id === "anthropic" ? provider : undefined),
     getProviderAuthStatus: () => ({ configured: options.configured ?? true, source: "stored" }),
     getModels: (id?: string) => (id === "anthropic" ? [model] : []),

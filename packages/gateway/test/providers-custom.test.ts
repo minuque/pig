@@ -25,6 +25,7 @@ function customRuntime() {
   }
   return {
     refresh,
+    getAvailable: async () => [],
     getProvider: (id: string) => (id === "ollama" ? provider : undefined),
     getProviders: () => [provider],
     getProviderAuthStatus: () => ({ configured: false }),

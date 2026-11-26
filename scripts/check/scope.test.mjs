@@ -82,6 +82,14 @@ describe("classifyTouched", () => {
       "e2e/conversation/new-session.spec.ts",
     ])
     assert.deepEqual(classifyTouched(["e2e/support/fixtures.ts"]).specs, [])
+    assert.deepEqual(classifyTouched(["e2e/composer/composer-queue.spec.ts"]).specs, [
+      "e2e/composer/composer-queue.spec.ts",
+    ])
+    assert.deepEqual(classifyTouched(["packages/ui/src/ui/button/Button.vue"]).specs, [
+      "e2e/conversation/new-session.spec.ts",
+    ])
+    assert.deepEqual(classifyTouched(["packages/gateway/test/host.test.ts"]).specs, [])
+    assert.deepEqual(classifyTouched(["apps/web/test/client/local-cwd.test.ts"]).specs, [])
     assert.deepEqual(classifyTouched(["docs/CODEBASE.md"]).specs, [])
   })
 
@@ -95,7 +103,14 @@ describe("classifyTouched", () => {
     ])
       assert.equal(classifyTouched([file]).e2eAll, true, file)
 
-    for (const file of ["apps/web/src/features/composer/index.vue", "docs/CODEBASE.md"])
+    for (const file of [
+      "apps/web/src/features/composer/index.vue",
+      "e2e/composer/composer-queue.spec.ts",
+      "packages/ui/src/ui/button/Button.vue",
+      "packages/gateway/test/host.test.ts",
+      "apps/web/test/client/local-cwd.test.ts",
+      "docs/CODEBASE.md",
+    ])
       assert.equal(classifyTouched([file]).e2eAll, false, file)
   })
 

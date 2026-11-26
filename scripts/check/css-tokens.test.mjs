@@ -1,7 +1,13 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
 
-import { auditCssTokens, auditRepoCssTokens, collectRootTokens } from "./css-tokens.mjs"
+import {
+  auditCssTokens,
+  auditRepoCssTokens,
+  collectRootTokens,
+  missingDarkBaseline,
+  missingUiContracts,
+} from "./css-tokens.mjs"
 
 describe("auditCssTokens", () => {
   it("检出未定义的 CSS 变量并指出文件", () => {
@@ -73,11 +79,21 @@ describe("auditCssTokens", () => {
     assert.deepEqual([...vars].sort(), ["--a", "--b", "--d"])
   })
 
-  it("仓库现状 @pig/ui 自洽、无重复 :root 变量且无未定义或死变量", () => {
+  it("检出缺少 :root 基线的 html.dark 变量与缺失的色调契约", () => {
+    assert.deepEqual(missingDarkBaseline(":root { --a: 1; } html.dark { --a: 2; --b: 3; }"), [
+      "--b",
+    ])
+    assert.ok(missingUiContracts(":root { --switch-thumb-unchecked: 2px; }").length > 0)
+  })
+
+  it("仓库现状 @pig/ui 自洽、无重复 :root 变量、深色覆写有基线且无未定义或死变量", () => {
     const result = auditRepoCssTokens(process.cwd())
 
     assert.deepEqual(result.uiUndefinedRefs, [])
     assert.deepEqual(result.duplicateRootTokens, [])
+    assert.deepEqual(result.uiMissingDarkBaseline, [])
+    assert.deepEqual(result.appMissingDarkBaseline, [])
+    assert.deepEqual(result.uiMissingContracts, [])
     assert.deepEqual(result.undefinedRefs, [])
     assert.deepEqual(result.unusedTokens, [])
   })

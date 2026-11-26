@@ -13,7 +13,7 @@ export default defineConfig({
     timeout: 15_000,
     toHaveScreenshot: { maxDiffPixels: 200 },
   },
-  fullyParallel: false,
+  fullyParallel: true,
   workers: 4,
   retries: process.env.CI ? 2 : 0,
   forbidOnly: true,

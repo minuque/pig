@@ -2,6 +2,8 @@
   "extends": "../tsconfig.base.json",
   "compilerOptions": {
     "noEmit": true,
+    "incremental": true,
+    "tsBuildInfoFile": "../node_modules/.cache/tsc-e2e.tsbuildinfo",
     "allowJs": true
   },
   "include": ["./**/*.ts"]

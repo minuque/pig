@@ -10,6 +10,7 @@ const root = resolve(import.meta.dirname, "../..")
 const touched = process.argv.includes("--touched")
 const fix = process.argv.includes("--fix")
 const withE2e = process.argv.includes("--e2e")
+const mappedE2e = process.argv.includes("--mapped-e2e")
 const noE2e = process.argv.includes("--no-e2e")
 const sinceIndex = process.argv.indexOf("--since")
 const since = sinceIndex >= 0 ? (process.argv[sinceIndex + 1] ?? "") : undefined
@@ -21,7 +22,8 @@ if (since === "") {
 
 // 外部：prettier 不带 --cache 时会删默认缓存文件，与并发的 lint-staged 撞 ENOENT
 const PRETTIER_CACHE = "node_modules/.cache/prettier/check"
-const ESLINT_CACHE = "node_modules/.cache/eslint/check"
+const ESLINT_CACHE = "node_modules/.cache/eslint/cache"
+const STYLELINT_CACHE = "node_modules/.cache/stylelint/cache"
 // 外部：Windows 命令行上限 8191 字符，留出环境变量与引号余量
 const MAX_ARG_CHARS = process.platform === "win32" ? 6000 : 100_000
 
@@ -38,13 +40,27 @@ const CHECK_STEPS = [
     name: "eslint",
     args: ["exec", "eslint", "--cache", "--cache-location", ESLINT_CACHE, "."],
   },
-  { name: "stylelint", args: ["exec", "stylelint", "**/*.{css,vue}"] },
+  {
+    name: "stylelint",
+    args: ["exec", "stylelint", "--cache", "--cache-location", STYLELINT_CACHE, "**/*.{css,vue}"],
+  },
   {
     name: "vue-template",
     args: ["exec", "tsx", "scripts/check/vue-template.ts", "apps/web/src", "packages/ui/src"],
   },
   { name: "css-tokens", args: ["exec", "node", "scripts/check/css-tokens.mjs"] },
-  { name: "typecheck", args: ["typecheck"] },
+  {
+    name: "typecheck:scripts",
+    args: ["exec", "tsc", "--noEmit", "-p", "scripts/tsconfig.json"],
+  },
+  {
+    name: "typecheck:e2e",
+    args: ["exec", "tsc", "--noEmit", "-p", "e2e/tsconfig.json"],
+  },
+  {
+    name: "typecheck:packages",
+    args: ["-r", "--if-present", "typecheck"],
+  },
   { name: "test", args: ["test"] },
 ]
 
@@ -100,8 +116,20 @@ async function fixTouched(scope) {
   const steps = []
 
   steps.push(...fileSteps("format", ["exec", "prettier", "--write"], scope.prettierFiles))
-  steps.push(...fileSteps("eslint", ["exec", "eslint", "--cache", "--fix"], scope.lintFiles))
-  steps.push(...fileSteps("stylelint", ["exec", "stylelint", "--fix"], scope.stylelintFiles))
+  steps.push(
+    ...fileSteps(
+      "eslint",
+      ["exec", "eslint", "--cache", "--cache-location", ESLINT_CACHE, "--fix"],
+      scope.lintFiles,
+    ),
+  )
+  steps.push(
+    ...fileSteps(
+      "stylelint",
+      ["exec", "stylelint", "--cache", "--cache-location", STYLELINT_CACHE, "--fix"],
+      scope.stylelintFiles,
+    ),
+  )
 
   if (steps.length === 0) {
     console.log("fix:touched: 无文件需要格式化")
@@ -131,11 +159,14 @@ async function checkTouched(scope, files, label = "check:touched") {
     process.stdout.write(ran.out)
     process.exitCode = ran.code
 
-    if (ran.code === 0 && withE2e && !noE2e) await runFullE2e(label)
+    if (ran.code === 0 && withE2e && !mappedE2e && !noE2e) await runFullE2e(label)
+    else if (ran.code === 0 && mappedE2e && !noE2e)
+      console.log(`${label}: 根配置有改动；全量 e2e 交由 CI 兜底（本地全跑可执行 pnpm test:e2e）`)
     return
   }
 
-  const fullE2e = withE2e && !noE2e && scope.e2eAll
+  const fullE2e = withE2e && !mappedE2e && !noE2e && scope.e2eAll
+  const existingSpecs = scope.specs.filter((spec) => existsSync(resolve(root, spec)))
   const steps = []
 
   steps.push(
@@ -152,7 +183,13 @@ async function checkTouched(scope, files, label = "check:touched") {
       scope.lintFiles,
     ),
   )
-  steps.push(...fileSteps("stylelint", ["exec", "stylelint"], scope.stylelintFiles))
+  steps.push(
+    ...fileSteps(
+      "stylelint",
+      ["exec", "stylelint", "--cache", "--cache-location", STYLELINT_CACHE],
+      scope.stylelintFiles,
+    ),
+  )
   steps.push(
     ...fileSteps("vue-template", ["exec", "tsx", "scripts/check/vue-template.ts"], scope.vueFiles),
   )
@@ -185,24 +222,29 @@ async function checkTouched(scope, files, label = "check:touched") {
     steps.push({ name: `test:${id}`, args: ["--filter", id, "test"] })
   }
 
-  if (!fullE2e && scope.specs.length) {
-    if ((withE2e || scope.ui) && !noE2e)
-      steps.push(
-        ...fileSteps(
-          `e2e:${scope.specs.length}条`,
-          ["exec", "playwright", "test", "-c", "e2e/playwright.config.ts"],
-          scope.specs,
-        ),
-      )
-    else console.log(`${label}: 建议补跑 e2e → pnpm test:e2e ${scope.specs.join(" ")}`)
-  }
+  const runMappedE2e =
+    !fullE2e &&
+    existingSpecs.length > 0 &&
+    (withE2e || mappedE2e || scope.ui || scope.e2e) &&
+    !noE2e
 
-  if (steps.length === 0 && !fullE2e) {
-    console.log(`${label}: ${files.length} 个文件无需脚本/测试/lint`)
+  if (steps.length === 0 && !fullE2e && !runMappedE2e) {
+    if (mappedE2e && !noE2e && scope.e2eAll)
+      console.log(
+        `${label}: 改动波及全部旅程；全量 e2e 交由 CI 兜底（本地全跑可执行 pnpm test:e2e）`,
+      )
+    else if (existingSpecs.length)
+      console.log(`${label}: 建议补跑 e2e → pnpm test:e2e ${existingSpecs.join(" ")}`)
+    else console.log(`${label}: ${files.length} 个文件无需脚本/测试/lint`)
     return
   }
 
-  console.log(`${label}: ${files.length} files → ${steps.map((step) => step.name).join(", ")}`)
+  const planned = [
+    ...steps.map((step) => step.name),
+    ...(runMappedE2e ? [`e2e:${existingSpecs.length}条`] : []),
+  ]
+
+  console.log(`${label}: ${files.length} files → ${planned.join(", ")}`)
 
   const results = await Promise.all(
     steps.map(async (step) => {
@@ -211,7 +253,32 @@ async function checkTouched(scope, files, label = "check:touched") {
     }),
   )
 
-  reportResults("check:touched", results)
+  if (results.some((result) => result.code !== 0)) {
+    reportResults(label, results)
+    return
+  }
+
+  if (mappedE2e && !noE2e && scope.e2eAll)
+    console.log(`${label}: 改动波及全部旅程；全量 e2e 交由 CI 兜底（本地全跑可执行 pnpm test:e2e）`)
+
+  if (runMappedE2e) {
+    const e2eSteps = fileSteps(
+      `e2e:${existingSpecs.length}条`,
+      ["exec", "playwright", "test", "-c", "e2e/playwright.config.ts"],
+      existingSpecs,
+    )
+
+    for (const step of e2eSteps) {
+      const ran = await runPnpm(step.args, root)
+      results.push({ name: step.name, ...ran })
+
+      if (ran.code !== 0) break
+    }
+  } else if (!fullE2e && existingSpecs.length && !noE2e) {
+    console.log(`${label}: 建议补跑 e2e → pnpm test:e2e ${existingSpecs.join(" ")}`)
+  }
+
+  if (results.length) reportResults(label, results)
 
   if (fullE2e && !process.exitCode) await runFullE2e(label)
 }

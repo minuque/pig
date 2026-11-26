@@ -1,5 +1,13 @@
-import { mkdtempSync } from "node:fs"
+import { mkdtempSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
-process.env.PI_CODING_AGENT_DIR = mkdtempSync(join(tmpdir(), "pig-gateway-agent-"))
+const agentDir = mkdtempSync(join(tmpdir(), "pig-gateway-agent-"))
+
+process.env.PI_CODING_AGENT_DIR = agentDir
+
+process.once("exit", () => {
+  try {
+    rmSync(agentDir, { recursive: true, force: true })
+  } catch {}
+})

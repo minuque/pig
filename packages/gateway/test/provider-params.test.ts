@@ -31,6 +31,7 @@ function paramRuntime() {
   }))
   return {
     refresh,
+    getAvailable: async () => [],
     getProvider: (id: string) => providers.find((provider) => provider.id === id),
     getProviders: () => providers,
   }

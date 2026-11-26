@@ -15,6 +15,7 @@ const PACKAGE_DEPENDENTS = {
 const NEW_SESSION = "e2e/conversation/new-session.spec.ts"
 const SPLIT_VIEW = "e2e/workbench/split-view.spec.ts"
 const REFERENCES = "e2e/composer/composer-references.spec.ts"
+const SESSION_ACTIONS = "e2e/sidebar/session-actions.spec.ts"
 const E2E_BY_AREA = [
   { prefix: "apps/web/src/features/composer/", specs: ["e2e/composer/"] },
   {
@@ -32,7 +33,7 @@ const E2E_BY_AREA = [
     specs: [
       "e2e/conversation/one-turn.spec.ts",
       NEW_SESSION,
-      "e2e/sidebar/workspace.spec.ts",
+      SESSION_ACTIONS,
       "e2e/sidebar/session-nav.spec.ts",
       REFERENCES,
     ],
@@ -44,7 +45,7 @@ const E2E_BY_AREA = [
       "e2e/conversation/external-turn.spec.ts",
       "e2e/conversation/external-append.spec.ts",
       NEW_SESSION,
-      "e2e/sidebar/workspace.spec.ts",
+      SESSION_ACTIONS,
       SPLIT_VIEW,
     ],
   },
@@ -68,9 +69,10 @@ const E2E_BY_AREA = [
 ]
 const WEB_FALLBACK_SPECS = [NEW_SESSION]
 const ROOT_TOOLING =
-  /^(eslint\.config\.|stylelint\.config\.|scripts\/check\/lint-ignores\.mjs$|package\.json$|pnpm-workspace\.yaml$|pnpm-lock\.yaml$|tsconfig\.base\.json$|\.prettierrc|\.prettierignore$|prettier\.config)/
+  /^(eslint\.config\.|stylelint\.config\.|vitest\.config\.|vitest\.workers\.mjs$|scripts\/check\/lint-ignores\.mjs$|package\.json$|pnpm-workspace\.yaml$|pnpm-lock\.yaml$|tsconfig\.base\.json$|\.prettierrc|\.prettierignore$|prettier\.config)/
 const E2E_ALL =
-  /^(e2e\/|packages\/|apps\/web\/(vite\.config\.|index\.html$|package\.json$|public\/))/
+  /^(e2e\/(support\/|global-setup\.ts$|playwright\.config\.ts$)|packages\/(gateway|protocol|extensions|environment)\/(src\/|package\.json$)|apps\/web\/(vite\.config\.|index\.html$|package\.json$|public\/))/
+const TOUCHED_E2E_SPEC = /^e2e\/(?!electron\/).+\.spec\.ts$/
 const LINTABLE = /\.(?:[cm]?[jt]sx?|vue)$/
 const STYLELINTABLE = /\.(?:css|vue)$/
 const PRETTIER = /\.(?:[cm]?[jt]sx?|vue|jsonc?|css|html|md|ya?ml)$/
@@ -81,12 +83,13 @@ export function normalizeRepoPath(path) {
 
 /**
  * @param {readonly string[]} files
- * @param {readonly string[]} packages
- * @param {boolean} e2e
  */
-function e2eSpecs(files, packages, e2e) {
-  if (e2e) return []
+function e2eSpecs(files) {
   const specs = new Set()
+
+  for (const file of files) {
+    if (TOUCHED_E2E_SPEC.test(file)) specs.add(file)
+  }
 
   for (const area of E2E_BY_AREA) {
     if (!files.some((file) => file.startsWith(area.prefix))) continue
@@ -94,7 +97,7 @@ function e2eSpecs(files, packages, e2e) {
     for (const spec of area.specs) specs.add(spec)
   }
 
-  if (specs.size === 0 && packages.includes("@pig/web")) {
+  if (specs.size === 0 && files.some((file) => file.startsWith("apps/web/src/"))) {
     for (const spec of WEB_FALLBACK_SPECS) specs.add(spec)
   }
 
@@ -132,7 +135,7 @@ export function classifyTouched(files) {
   return {
     packages,
     e2e,
-    specs: e2eSpecs(normalized, packages, e2e),
+    specs: e2eSpecs(normalized),
     e2eAll,
     scripts,
     ui,

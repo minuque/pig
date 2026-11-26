@@ -6,6 +6,7 @@ import { maxWorkers } from "../../vitest.workers.mjs"
 export default defineConfig({
   plugins: [vue()],
   test: {
+    name: "@pig/ui",
     maxWorkers,
   },
 })

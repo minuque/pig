@@ -36,7 +36,7 @@ jobs:
         run: pnpm check
 
       - if: matrix.os != 'ubuntu-latest'
-        run: pnpm test
+        run: pnpm test:platform
 
   # pre-push 只跑改动映射到的用例，全量旅程在这里兜底
   e2e:
@@ -55,7 +55,20 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - run: pnpm exec playwright install --with-deps chromium
+      - id: pw-ver
+        run: echo "version=$(node -p "require('./package.json').devDependencies['@playwright/test']")" >> "$GITHUB_OUTPUT"
+
+      - id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw-ver.outputs.version }}
+
+      - if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install --with-deps chromium
+
+      - if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: pnpm exec playwright install-deps chromium
 
       - run: pnpm test:e2e
 

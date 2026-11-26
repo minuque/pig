@@ -7,7 +7,16 @@ import { run } from "../scripts/run.mjs"
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const webRoot = join(root, "apps/web")
 const distEntry = join(webRoot, "dist/index.html")
-const INPUTS = ["src", "public", "index.html", "vite.config.ts", "package.json"]
+const INPUTS = [
+  "apps/web/src",
+  "apps/web/public",
+  "apps/web/index.html",
+  "apps/web/vite.config.ts",
+  "apps/web/package.json",
+  "packages/ui/src",
+  "packages/ui/package.json",
+  "packages/protocol/src",
+]
 
 function newestMtime(path: string): number {
   if (!existsSync(path)) return 0
@@ -27,7 +36,7 @@ function newestMtime(path: string): number {
 function distIsFresh(): boolean {
   if (!existsSync(distEntry)) return false
   const builtAt = statSync(distEntry).mtimeMs
-  return builtAt > Math.max(...INPUTS.map((name) => newestMtime(join(webRoot, name))))
+  return builtAt > Math.max(...INPUTS.map((name) => newestMtime(join(root, name))))
 }
 
 export default function globalSetup() {

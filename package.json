@@ -17,7 +17,8 @@
     "start:web": "pnpm build:web && tsx --tsconfig packages/gateway/tsconfig.json packages/gateway/src/cli.ts apps/web/dist",
     "start:desktop": "pnpm build:web && pnpm --filter @pig/desktop start",
     "release:win": "node scripts/release-win.mjs",
-    "test": "pnpm -r --if-present test && node --test \"scripts/**/*.test.mjs\"",
+    "test": "vitest run && node --test \"scripts/**/*.test.mjs\"",
+    "test:platform": "vitest run --project @pig/gateway --project @pig/environment --project @pig/extensions --project @pig/desktop && node --test \"scripts/**/*.test.mjs\"",
     "test:e2e": "playwright test -c e2e/playwright.config.ts",
     "test:electron": "playwright test -c e2e/electron/playwright.config.ts",
     "test:bench": "tsx --tsconfig e2e/tsconfig.json e2e/perf/run.ts",
@@ -55,16 +56,16 @@
   "lint-staged": {
     "*.{js,jsx,ts,tsx,mjs,cjs,mts,cts}": [
       "prettier --write",
-      "eslint --cache --fix"
+      "eslint --cache --cache-location node_modules/.cache/eslint/cache --fix"
     ],
     "*.vue": [
       "prettier --write",
-      "eslint --cache --fix",
-      "stylelint --fix"
+      "eslint --cache --cache-location node_modules/.cache/eslint/cache --fix",
+      "stylelint --cache --cache-location node_modules/.cache/stylelint/cache --fix"
     ],
     "*.css": [
       "prettier --write",
-      "stylelint --fix"
+      "stylelint --cache --cache-location node_modules/.cache/stylelint/cache --fix"
     ],
     "*.{json,jsonc,html,md,yml,yaml}": "prettier --write"
   }

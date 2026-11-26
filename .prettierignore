@@ -8,6 +8,8 @@ docs
 .tmp
 .worktrees
 .ryugi
+.show-me
+.diagram-design
 packages/gateway/web
 release
 playwright-report

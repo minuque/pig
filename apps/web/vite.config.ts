@@ -9,49 +9,53 @@ import { maxWorkers } from "../../vitest.workers.mjs"
 const gatewayTarget = process.env.GATEWAY_TARGET
 const gatewayToken = process.env.GATEWAY_TOKEN
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [
     vue(),
-    VitePWA({
-      registerType: "autoUpdate",
-      injectRegister: "script-defer",
-      workbox: {
-        globPatterns: [
-          "index.html",
-          "assets/index-*.{js,css}",
-          "assets/WorkbenchShell-*.{js,css}",
-          "logo.png",
-          "pwa-icon-*.png",
-        ],
-        maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
-      },
-      manifest: {
-        name: "pig",
-        short_name: "pig",
-        description: "基于 Pi 的本地 Agent GUI",
-        lang: "zh-CN",
-        theme_color: "#637cd2",
-        background_color: "#fafafb",
-        display: "standalone",
-        start_url: "/",
-        icons: [
-          { src: "/pwa-icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-          { src: "/pwa-icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-          {
-            src: "/pwa-icon-maskable-192.png",
-            sizes: "192x192",
-            type: "image/png",
-            purpose: "maskable",
-          },
-          {
-            src: "/pwa-icon-maskable-512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable",
-          },
-        ],
-      },
-    }),
+    ...(mode !== "test" && !process.env.VITEST
+      ? [
+          VitePWA({
+            registerType: "autoUpdate",
+            injectRegister: "script-defer",
+            workbox: {
+              globPatterns: [
+                "index.html",
+                "assets/index-*.{js,css}",
+                "assets/WorkbenchShell-*.{js,css}",
+                "logo.png",
+                "pwa-icon-*.png",
+              ],
+              maximumFileSizeToCacheInBytes: 2 * 1024 * 1024,
+            },
+            manifest: {
+              name: "pig",
+              short_name: "pig",
+              description: "基于 Pi 的本地 Agent GUI",
+              lang: "zh-CN",
+              theme_color: "#637cd2",
+              background_color: "#fafafb",
+              display: "standalone",
+              start_url: "/",
+              icons: [
+                { src: "/pwa-icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+                { src: "/pwa-icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+                {
+                  src: "/pwa-icon-maskable-192.png",
+                  sizes: "192x192",
+                  type: "image/png",
+                  purpose: "maskable",
+                },
+                {
+                  src: "/pwa-icon-maskable-512.png",
+                  sizes: "512x512",
+                  type: "image/png",
+                  purpose: "maskable",
+                },
+              ],
+            },
+          }),
+        ]
+      : []),
   ],
   resolve: {
     alias: {
@@ -94,18 +98,11 @@ export default defineConfig({
       : {}),
   },
   test: {
+    name: "@pig/web",
     maxWorkers,
+    setupFiles: ["./test/setup.ts"],
     coverage: {
       reporter: ["text", "html"],
     },
-    projects: [
-      {
-        extends: true,
-        test: {
-          name: "unit",
-          setupFiles: ["./test/setup.ts"],
-        },
-      },
-    ],
   },
-})
+}))
