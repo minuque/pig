@@ -89,10 +89,13 @@ const props = defineProps<{
   sendDisabled: boolean
   hasPayload: boolean
   hasAttachments: boolean
+  answer?: { label: string; ready: boolean } | undefined
 }>()
 const emit = defineEmits<{ submit: []; abort: [] }>()
 const { t } = useI18n()
 const mode = computed<PrimaryMode>(() => {
+  if (props.answer) return "send"
+
   if (props.editingQueue) return "save"
 
   if (props.stopPhase === "pending") return "stopping"
@@ -104,10 +107,13 @@ const mode = computed<PrimaryMode>(() => {
 })
 const steerLocked = computed(() => mode.value === "steer" && props.hasAttachments)
 const label = computed(() => {
+  if (props.answer) return props.answer.label
   const { key } = MODES[mode.value]
   return steerLocked.value ? t("composer.steerNoAttachments") : t(`composer.${key}`)
 })
 const disabled = computed(() => {
+  if (props.answer) return !props.answer.ready
+
   if (mode.value === "save") return !props.hasPayload
 
   if (mode.value === "stopping" || props.stopPhase === "landed") return true

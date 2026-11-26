@@ -486,6 +486,8 @@ export const zh = {
   },
   extensionUi: {
     submit: "提交",
+    pick: "选择",
+    pickAbove: "从上面选一项",
     allow: "允许",
     deny: "拒绝",
     skip: "跳过",
@@ -1171,6 +1173,8 @@ export const en: Messages = {
   },
   extensionUi: {
     submit: "Submit",
+    pick: "Choose",
+    pickAbove: "Choose an option above",
     allow: "Allow",
     deny: "Deny",
     skip: "Skip",

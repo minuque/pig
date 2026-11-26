@@ -174,7 +174,35 @@ function useQuestionBoardState(session: BoardSession) {
     )
   }
 
-  return { board, question, index, current, complete, go, pick, submit, skip }
+  const composer = computed(() => {
+    const active = board.value
+    const q = question.value
+
+    if (!active || !q) return undefined
+
+    if (q.reply === "none")
+      return {
+        locked: true,
+        placeholder: t("extensionUi.pickAbove"),
+        label: t("extensionUi.pick"),
+        ready: false,
+      }
+
+    if (active.source === "extension")
+      return {
+        locked: false,
+        placeholder: q.placeholder,
+        label: t("extensionUi.submit"),
+        ready: true,
+      }
+    return {
+      locked: false,
+      placeholder: undefined,
+      label: complete.value ? t("extensionUi.submit") : t("extensionUi.nextQuestion"),
+      ready: answered(current.value[index.value]) || complete.value,
+    }
+  })
+  return { board, question, index, current, complete, composer, go, pick, submit, skip }
 }
 
 export type QuestionBoardContext = ReturnType<typeof useQuestionBoardState>

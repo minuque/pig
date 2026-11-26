@@ -56,6 +56,7 @@
       v-if="question.options.length"
       :key="`${board.board.value.id}-${board.index.value}`"
       class="board-options"
+      :controller="list"
       activation="manual"
       :multiple="question.multiple"
       :value="question.multiple ? answer.picked : (answer.picked[0] ?? null)"
@@ -97,8 +98,8 @@
       </ListboxItem>
     </Listbox>
 
-    <footer v-if="action" class="board-foot">
-      <Button size="s" :disabled="!actionReady" @click="board.submit">{{ action }}</Button>
+    <footer v-if="action && !action.locked" class="board-foot">
+      <Button size="s" :disabled="!action.ready" @click="board.submit">{{ action.label }}</Button>
     </footer>
   </section>
 </template>
@@ -106,7 +107,7 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from "vue"
 import { useEventListener } from "@vueuse/core"
-import { Listbox, ListboxItem } from "@ui-sdk/vue/listbox"
+import { Listbox, ListboxItem, createListboxController } from "@ui-sdk/vue/listbox"
 import { useI18n } from "@i18n/index.js"
 import { Button, IconButton } from "@pig/ui/button"
 import { Checkbox } from "@pig/ui/checkbox"
@@ -115,28 +116,18 @@ import { Radio } from "@pig/ui/radio-group"
 import { StatusIndicator } from "@pig/ui/status-indicator"
 import { ChevronLeftIcon, ChevronRightIcon, XIcon } from "@components/icons/index.js"
 import { useQuestionBoard } from "@features/extension-ui/hooks/use-question-board.js"
-import { answered, emptyAnswer } from "@features/extension-ui/lib/board.js"
+import { emptyAnswer } from "@features/extension-ui/lib/board.js"
 
 const props = defineProps<{ prompt: string; active: boolean }>()
 const { t } = useI18n()
 const board = useQuestionBoard()
 const root = useTemplateRef("root")
+const list = createListboxController<string, boolean>()
 const question = computed(() => board.question.value)
 const total = computed(() => board.board.value?.questions.length ?? 0)
 const answer = computed(() => board.current.value[board.index.value] ?? emptyAnswer())
 const typing = computed(() => question.value?.reply !== "none" && props.prompt.trim().length > 0)
-const action = computed(() => {
-  const active = board.board.value
-
-  if (!active || !question.value) return ""
-
-  if (active.source === "extension")
-    return question.value.reply === "none" ? "" : t("extensionUi.submit")
-  return board.complete.value ? t("extensionUi.submit") : t("extensionUi.nextQuestion")
-})
-const actionReady = computed(() =>
-  board.board.value?.source === "extension" ? true : answered(answer.value) || board.complete.value,
-)
+const action = computed(() => board.composer.value)
 
 function onChange(next: unknown) {
   const options = question.value?.options ?? []
@@ -181,6 +172,16 @@ useEventListener(
     if (digit >= 0 && digit < (question.value?.options.length ?? 0)) {
       event.preventDefault()
       return board.pick(digit)
+    }
+
+    const options = question.value?.options ?? []
+    const vertical = event.key === "ArrowDown" || event.key === "ArrowUp"
+
+    if (vertical && options.length && !el.contains(document.activeElement)) {
+      event.preventDefault()
+      event.stopPropagation()
+      list.highlight(answer.value.picked[0] ?? options[0]!.label)
+      return list.focus()
     }
 
     if (total.value > 1 && (event.key === "ArrowLeft" || event.key === "ArrowRight")) {

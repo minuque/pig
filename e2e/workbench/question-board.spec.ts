@@ -1,7 +1,7 @@
 import { expect, seedWorkspace, test } from "../support/fixtures.js"
 import { installTurnBridge } from "../support/sim-turn.js"
 
-test("扩展 select：浮板贴在输入卡上方，按数字选中后浮板收起，原草稿放回", async ({
+test("扩展 select：输入卡锁住，方向键移到第二项回车选中，浮板收起后原草稿放回", async ({
   page,
   navGateway,
 }) => {
@@ -32,8 +32,12 @@ test("扩展 select：浮板贴在输入卡上方，按数字选中后浮板收�
   const board = page.locator(".question-board")
   await expect(board.getByRole("option", { name: /prod/ })).toBeVisible()
   await expect(prompt).toHaveText("")
+  await expect(prompt).toHaveAttribute("contenteditable", "false")
+  await expect(page.locator(".composer-stack .field-placeholder")).toHaveText("从上面选一项")
 
-  await page.keyboard.press("2")
+  await page.keyboard.press("ArrowDown")
+  await page.keyboard.press("ArrowDown")
+  await page.keyboard.press("Enter")
   await expect(board).toHaveCount(0)
   await expect(prompt).toHaveText("我的草稿")
 })

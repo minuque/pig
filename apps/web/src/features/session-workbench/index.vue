@@ -101,6 +101,7 @@
               :usage="welcome ? undefined : contextUsage"
               :reload-revision="reloadRevision"
               :send-disabled="sendDisabled"
+              :answer="questionBoard.composer.value"
               :class="{ 'is-answering': Boolean(questionBoard.board.value) }"
               @send="questionBoard.board.value ? questionBoard.submit() : sendNow($event)"
               @steer="steer"
@@ -113,7 +114,7 @@
               @jump-reply="jumpToReply"
               @abort="abort"
             >
-              <template v-if="transcriptStatus" #plate>
+              <template v-if="transcriptStatus && !questionBoard.board.value" #plate>
                 <TranscriptStatus v-bind="transcriptStatus" :activity="snapshot?.activity" />
               </template>
             </Composer>
