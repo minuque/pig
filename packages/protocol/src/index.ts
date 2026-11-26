@@ -40,6 +40,8 @@ export type {
   McpProbeReport,
   McpScopeView,
   McpServerView,
+  McpToolAnnotations,
+  McpToolView,
   SkillDiagnosticView,
   SkillFileView,
   SkillScopeView,

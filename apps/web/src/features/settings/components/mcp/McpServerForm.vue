@@ -7,10 +7,10 @@
       </Button>
     </div>
 
-    <Field>
+    <Field :invalid="Boolean(nameError)">
       <FieldLabel>{{ t("settings.mcp.form.name") }}</FieldLabel>
       <TextFieldRoot v-model="draft.name" size="m" class="mono" :invalid="Boolean(nameError)" />
-      <span v-if="nameError" class="form-error">{{ nameError }}</span>
+      <FieldError v-if="nameError" match>{{ nameError }}</FieldError>
     </Field>
 
     <TabsRoot v-model="draft.transport">
@@ -149,7 +149,7 @@ import { useI18n } from "@i18n/index.js"
 import { Banner } from "@pig/ui/banner"
 import { Button } from "@pig/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@pig/ui/collapsible"
-import { Field, FieldDescription, FieldLabel } from "@pig/ui/field"
+import { Field, FieldDescription, FieldError, FieldLabel } from "@pig/ui/field"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
 import { Switch } from "@pig/ui/switch"
 import { TabsList, TabsRoot, TabsTrigger } from "@pig/ui/tabs"
@@ -215,11 +215,6 @@ async function submit() {
   font-family: var(--font-mono);
 }
 
-.form-error {
-  font-size: var(--text-meta);
-  color: var(--danger-text);
-}
-
 .field-stack {
   align-items: flex-start;
 }
@@ -242,6 +237,10 @@ async function submit() {
   font: inherit;
   font-size: var(--text-meta);
   cursor: pointer;
+}
+
+.fold-trigger:hover {
+  color: var(--fg);
 }
 
 .fold-chevron {

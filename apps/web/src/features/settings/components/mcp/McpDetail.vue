@@ -131,12 +131,39 @@
 
       <CardList v-if="probe?.tools.length">
         <div class="tool-list">
-          <CardRow v-for="tool in probe.tools" :key="tool" class="tool-row">{{ tool }}</CardRow>
+          <CardRow v-for="tool in probe.tools" :key="tool.name" interactive class="tool-row">
+            <button type="button" class="tool-open" @click="selectedTool = tool">
+              <span class="tool-main">
+                <span class="tool-head">
+                  <span class="tool-name">{{ tool.name }}</span>
+
+                  <Badge
+                    v-if="exposureOf(tool.name) !== server.exposure"
+                    size="s"
+                    variant="soft"
+                    color="neutral"
+                  >
+                    {{ exposureOf(tool.name) }}
+                  </Badge>
+                </span>
+
+                <span v-if="tool.description" class="tool-desc">{{ tool.description }}</span>
+              </span>
+
+              <ChevronRightIcon class="tool-chevron" />
+            </button>
+          </CardRow>
         </div>
       </CardList>
 
       <p v-else class="section-note">{{ t("settings.mcp.toolsEmpty") }}</p>
     </section>
+
+    <McpToolDialog
+      :tool="selectedTool"
+      :exposure="selectedExposure"
+      @close="selectedTool = undefined"
+    />
 
     <section v-if="rules.length" class="detail-section">
       <h3 class="section-title">{{ t("settings.mcp.rules") }}</h3>
@@ -182,14 +209,20 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue"
+import { computed, ref, watch } from "vue"
 import { RefreshCwIcon } from "@lucide/vue"
-import type { McpExposure, McpServerView } from "@pig/protocol"
+import type { McpExposure, McpServerView, McpToolView } from "@pig/protocol"
 
-import { TriangleAlertIcon } from "@components/icons/index.js"
+import { ChevronRightIcon, TriangleAlertIcon } from "@components/icons/index.js"
 import McpLogin from "@features/settings/components/mcp/McpLogin.vue"
+import McpToolDialog from "@features/settings/components/mcp/McpToolDialog.vue"
 import type { McpState } from "@features/settings/hooks/use-mcp.js"
-import { EXPOSURES, joinArgs, oauthAction } from "@features/settings/lib/mcp-draft.js"
+import {
+  EXPOSURES,
+  joinArgs,
+  oauthAction,
+  toolExposureFor,
+} from "@features/settings/lib/mcp-draft.js"
 import { useI18n } from "@i18n/index.js"
 import {
   AlertDialog,
@@ -226,7 +259,25 @@ const emit = defineEmits<{ edit: []; removed: []; jumpGlobal: [] }>()
 const { t } = useI18n()
 const confirming = ref(false)
 const loggingIn = ref(false)
+const selectedTool = ref<McpToolView>()
 const probe = computed(() => props.state.probes.value[props.server.name])
+const selectedExposure = computed(() =>
+  selectedTool.value
+    ? toolExposureFor(props.server, selectedTool.value.name)
+    : props.server.exposure,
+)
+
+function exposureOf(toolName: string): McpExposure {
+  return toolExposureFor(props.server, toolName)
+}
+
+watch(
+  () => props.server.name,
+  () => {
+    selectedTool.value = undefined
+  },
+)
+
 const oauth = computed(() => oauthAction(props.server, probe.value))
 const tone = computed(() => TONES[props.state.statusOf(props.server)])
 const description = computed(() => String(props.server.config.description ?? ""))
@@ -284,6 +335,7 @@ async function onSignedIn() {
 
 .detail-mono,
 .tool-row,
+.tool-name,
 .detail-error {
   font-family: var(--font-mono);
 }
@@ -339,8 +391,63 @@ async function onSignedIn() {
 }
 
 .tool-row {
-  padding-block: var(--space-xs);
-  color: var(--fg);
+  padding-block: 0;
   font-size: var(--text-meta);
+}
+
+.tool-open {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  inline-size: 100%;
+  padding: var(--space-xs) 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.tool-main {
+  display: flex;
+  flex: 1;
+  min-inline-size: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tool-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.tool-name {
+  color: var(--fg-secondary);
+  font-size: var(--text-meta);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.tool-desc {
+  overflow: hidden;
+  color: var(--fg-muted);
+  font-family: var(--font-sans);
+  font-size: var(--text-meta);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tool-chevron {
+  flex: none;
+  color: var(--fg-muted);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.tool-open:hover .tool-name,
+.tool-open:hover .tool-chevron {
+  color: var(--fg);
 }
 </style>

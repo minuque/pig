@@ -204,4 +204,54 @@ describe("Skills 路由", () => {
 
     expect(view.skills).toEqual([expect.objectContaining({ name: "fresh", enabled: false })])
   })
+
+  it("读取 Skill 附属文件时校验归属、路径边界与存在性", async () => {
+    const file = await skill("alpha")
+
+    await mkdir(join(dirname(file), "scripts"), { recursive: true })
+    await writeFile(join(dirname(file), "scripts", "check.sh"), "echo ok\n")
+    await writeFile(join(agentDir, "secret.txt"), "secret")
+
+    const ok = await call(
+      "GET",
+      scoped("/api/v1/platform/skill-settings/asset", "global", {
+        path: file,
+        file: "scripts/check.sh",
+      }),
+    )
+
+    expect(ok.status).toBe(200)
+    expect(await ok.json()).toEqual({
+      content: "echo ok\n",
+      size: 8,
+      binary: false,
+      tooLarge: false,
+    })
+
+    const traversal = await call(
+      "GET",
+      scoped("/api/v1/platform/skill-settings/asset", "global", {
+        path: file,
+        file: "../secret.txt",
+      }),
+    )
+    const missing = await call(
+      "GET",
+      scoped("/api/v1/platform/skill-settings/asset", "global", {
+        path: file,
+        file: "scripts/missing.sh",
+      }),
+    )
+    const unknownSkill = await call(
+      "GET",
+      scoped("/api/v1/platform/skill-settings/asset", "global", {
+        path: join(agentDir, "unknown", "SKILL.md"),
+        file: "scripts/check.sh",
+      }),
+    )
+
+    expect(traversal.status).toBe(403)
+    expect(missing.status).toBe(404)
+    expect(unknownSkill.status).toBe(403)
+  })
 })

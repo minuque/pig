@@ -1,6 +1,6 @@
 <template>
   <form class="skill-create" @submit.prevent="submit">
-    <Field>
+    <Field :invalid="Boolean(nameError)">
       <FieldLabel>{{ t("settings.skills.name") }}</FieldLabel>
 
       <TextFieldRoot
@@ -11,16 +11,27 @@
         :invalid="Boolean(nameError)"
       />
 
-      <span v-if="nameError" class="form-error">{{ nameError }}</span>
+      <FieldError v-if="nameError" match>{{ nameError }}</FieldError>
     </Field>
 
     <Field>
       <FieldLabel>{{ t("settings.skills.whenToUse") }}</FieldLabel>
-      <TextFieldRoot v-model="description" size="m" :placeholder="t('settings.skills.whenHint')" />
+
+      <Textarea
+        v-model="description"
+        size="m"
+        rows="3"
+        auto-resize
+        class="when-input"
+        :placeholder="t('settings.skills.whenHint')"
+      />
     </Field>
 
     <p class="form-note">{{ t("settings.skills.writeTo", { path: target }) }}</p>
-    <p v-if="createError" class="form-error">{{ createError }}</p>
+
+    <Banner v-if="createError" color="danger" variant="surface" size="s">
+      {{ createError }}
+    </Banner>
 
     <div class="form-footer">
       <Button type="button" size="s" variant="outline" @click="emit('cancel')">
@@ -40,9 +51,11 @@ import { computed, ref } from "vue"
 import type { SkillsState } from "@features/settings/hooks/use-skills.js"
 import { isValidSkillName } from "@features/settings/lib/skill-source.js"
 import { useI18n } from "@i18n/index.js"
+import { Banner } from "@pig/ui/banner"
 import { Button } from "@pig/ui/button"
-import { Field, FieldLabel } from "@pig/ui/field"
+import { Field, FieldError, FieldLabel } from "@pig/ui/field"
 import { TextFieldRoot } from "@pig/ui/text-field"
+import { Textarea } from "@pig/ui/textarea"
 
 const props = defineProps<{ state: SkillsState }>()
 const emit = defineEmits<{ created: [path: string]; cancel: [] }>()
@@ -87,15 +100,13 @@ async function submit() {
   font-family: var(--font-mono);
 }
 
+.when-input {
+  max-block-size: 10rem;
+}
+
 .form-note {
   margin: 0;
   color: var(--fg-muted);
-  font-size: var(--text-meta);
-}
-
-.form-error {
-  margin: 0;
-  color: var(--danger-text);
   font-size: var(--text-meta);
 }
 

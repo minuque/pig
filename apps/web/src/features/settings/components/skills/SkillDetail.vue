@@ -1,40 +1,77 @@
 <template>
   <section class="skill-detail">
     <header class="detail-head">
-      <h2 class="detail-title">
-        {{ title }}
+      <div class="detail-top">
+        <h2 class="detail-title">
+          {{ title }}
 
-        <Badge v-if="broken" size="s" variant="soft" color="warning">
-          {{ t("settings.skills.broken") }}
-        </Badge>
+          <Badge v-if="broken" size="s" variant="soft" color="warning">
+            {{ t("settings.skills.broken") }}
+          </Badge>
 
-        <Badge v-if="skill?.disableModelInvocation" size="s" variant="soft" color="neutral">
-          {{ t("settings.skills.manualOnly") }}
-        </Badge>
-      </h2>
+          <Badge v-if="skill?.disableModelInvocation" size="s" variant="soft" color="neutral">
+            {{ t("settings.skills.manualOnly") }}
+          </Badge>
+        </h2>
+
+        <div class="detail-actions">
+          <Button
+            v-if="inherited"
+            type="button"
+            size="s"
+            variant="outline"
+            @click="emit('jumpGlobal')"
+          >
+            {{ t("settings.skills.jumpGlobal") }}
+          </Button>
+
+          <template v-else>
+            <TabsRoot v-model="mode">
+              <TabsList variant="segmented" size="s" :aria-label="t('settings.skills.preview')">
+                <TabsTrigger value="preview">{{ t("settings.skills.preview") }}</TabsTrigger>
+                <TabsTrigger value="edit">{{ t("settings.skills.edit") }}</TabsTrigger>
+              </TabsList>
+            </TabsRoot>
+
+            <Button
+              type="button"
+              size="s"
+              variant="ghost"
+              color="danger"
+              @click="confirming = true"
+            >
+              {{ t("settings.skills.delete") }}
+            </Button>
+          </template>
+        </div>
+      </div>
 
       <p v-if="skill?.description" class="detail-desc">{{ skill.description }}</p>
-      <p class="detail-desc detail-mono">{{ path }}</p>
+
+      <dl class="detail-meta">
+        <div class="meta-row">
+          <dt class="meta-label">{{ t("settings.skills.path") }}</dt>
+          <dd class="meta-value meta-path">{{ path }}</dd>
+        </div>
+
+        <div v-if="files.length" class="meta-row">
+          <dt class="meta-label">{{ t("settings.skills.files") }}</dt>
+
+          <dd class="meta-value file-chips">
+            <button
+              v-for="file in files"
+              :key="file"
+              type="button"
+              class="file-chip"
+              @click="previewFile = file"
+            >
+              <FileTextIcon class="size-icon-sm" />
+              <span>{{ file }}</span>
+            </button>
+          </dd>
+        </div>
+      </dl>
     </header>
-
-    <div class="detail-bar">
-      <Button v-if="inherited" type="button" size="s" variant="outline" @click="emit('jumpGlobal')">
-        {{ t("settings.skills.jumpGlobal") }}
-      </Button>
-
-      <template v-else>
-        <TabsRoot v-model="mode">
-          <TabsList variant="segmented" size="s" :aria-label="t('settings.skills.preview')">
-            <TabsTrigger value="preview">{{ t("settings.skills.preview") }}</TabsTrigger>
-            <TabsTrigger value="edit">{{ t("settings.skills.edit") }}</TabsTrigger>
-          </TabsList>
-        </TabsRoot>
-
-        <Button type="button" size="s" variant="ghost" color="danger" @click="confirming = true">
-          {{ t("settings.skills.delete") }}
-        </Button>
-      </template>
-    </div>
 
     <template v-if="mode === 'edit' && !inherited">
       <Textarea
@@ -42,6 +79,7 @@
         size="s"
         class="skill-source"
         spellcheck="false"
+        :invalid="Boolean(check.error || invalid)"
         aria-label="SKILL.md"
       />
 
@@ -75,13 +113,12 @@
       <MarkdownContent :nodes="nodes" />
     </div>
 
-    <section v-if="files.length" class="detail-section">
-      <h3 class="section-title">{{ t("settings.skills.files") }}</h3>
-
-      <CardList>
-        <CardRow v-for="file in files" :key="file" class="file-row">{{ file }}</CardRow>
-      </CardList>
-    </section>
+    <SkillAssetDialog
+      :state="state"
+      :skill-path="path"
+      :file="previewFile"
+      @close="previewFile = undefined"
+    />
 
     <AlertDialog v-model:open="confirming">
       <AlertDialogContent>
@@ -111,6 +148,8 @@
 import { computed, onMounted, ref, watch } from "vue"
 import type { SkillView } from "@pig/protocol"
 
+import { FileTextIcon } from "@components/icons/index.js"
+import SkillAssetDialog from "@features/settings/components/skills/SkillAssetDialog.vue"
 import type { SkillsState } from "@features/settings/hooks/use-skills.js"
 import { checkSkillSource, deleteTarget, skillBody } from "@features/settings/lib/skill-source.js"
 import MarkdownContent from "@features/transcript-view/components/markdown/MarkdownContent.vue"
@@ -128,7 +167,6 @@ import {
 } from "@pig/ui/alert-dialog"
 import { Badge } from "@pig/ui/badge"
 import { Button } from "@pig/ui/button"
-import { CardList, CardRow } from "@pig/ui/card"
 import { TabsList, TabsRoot, TabsTrigger } from "@pig/ui/tabs"
 import { Textarea } from "@pig/ui/textarea"
 
@@ -149,6 +187,7 @@ const saved = ref("")
 const files = ref<string[]>([])
 const saving = ref(false)
 const confirming = ref(false)
+const previewFile = ref<string>()
 const invalid = ref<string>()
 const title = computed(() => props.skill?.name ?? props.name)
 const dirty = computed(() => raw.value !== saved.value)
@@ -163,6 +202,13 @@ const dir = computed(() => target.value.path)
 const standard = computed(() => target.value.standard)
 
 watch(raw, () => (invalid.value = undefined))
+
+watch(
+  () => props.path,
+  () => {
+    previewFile.value = undefined
+  },
+)
 
 const nodes = useMarkdownNodes({
   text: () => skillBody(raw.value),
@@ -208,8 +254,7 @@ defineExpose({ dirty })
 
 <style scoped>
 .skill-detail,
-.detail-head,
-.detail-section {
+.detail-head {
   display: flex;
   flex-direction: column;
 }
@@ -218,14 +263,28 @@ defineExpose({ dirty })
   gap: var(--space-md);
 }
 
-.detail-head,
-.detail-section {
-  gap: var(--space-2xs);
+.detail-head {
+  gap: var(--space-xs);
+}
+
+.detail-top,
+.detail-actions,
+.detail-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.detail-top {
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
 }
 
 .detail-title {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--space-xs);
   margin: 0;
   color: var(--fg);
@@ -239,18 +298,84 @@ defineExpose({ dirty })
   font-size: var(--text-meta);
 }
 
-.detail-mono,
-.file-row,
+.detail-meta {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--space-xs) var(--space-md);
+  margin: 0;
+  padding-block: var(--space-xs) var(--space-sm);
+  border-block-end: var(--border-width) solid var(--border-subtle);
+}
+
+.meta-row {
+  display: contents;
+}
+
+.meta-label {
+  padding-block: 2px;
+  color: var(--fg-muted);
+  font-size: var(--text-meta);
+  white-space: nowrap;
+}
+
+.meta-value {
+  margin: 0;
+  min-inline-size: 0;
+}
+
+.meta-path,
+.file-chip,
 .skill-source {
   font-family: var(--font-mono);
 }
 
-.detail-bar,
-.detail-footer {
+.meta-path {
+  color: var(--fg-secondary);
+  font-size: var(--text-meta);
+  overflow-wrap: anywhere;
+}
+
+.file-chips {
   display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+  max-block-size: 7.5rem;
+  overflow-y: auto;
+}
+
+.file-chip {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-xs);
+  gap: var(--space-2xs);
+  max-inline-size: 100%;
+  padding: 2px var(--space-xs);
+  border: var(--border-width) solid var(--border);
+  border-radius: var(--radius-control);
+  background: var(--bg-surface);
+  background-clip: padding-box;
+  color: var(--fg-secondary);
+  font-size: var(--text-meta);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.file-chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-chip:hover {
+  background: var(--bg-hover);
+  color: var(--fg);
+}
+
+.file-chip:focus-visible {
+  outline: 2px solid var(--focus-color);
+  outline-offset: -1px;
 }
 
 .detail-footer {
@@ -284,20 +409,9 @@ defineExpose({ dirty })
 
 .skill-preview {
   padding: var(--space-sm) var(--space-md);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-control);
   background: var(--bg-surface);
-}
-
-.section-title {
-  margin: 0;
-  padding-inline: var(--space-md);
-  color: var(--fg-secondary);
-  font-size: var(--text-body);
-  font-weight: var(--font-weight-semibold);
-}
-
-.file-row {
-  color: var(--fg-secondary);
-  font-size: var(--text-meta);
+  background-clip: padding-box;
 }
 </style>

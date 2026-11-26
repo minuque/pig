@@ -3,7 +3,9 @@ import { randomUUID } from "node:crypto"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { ProjectTrustStore } from "@earendil-works/pi-coding-agent"
-import type { AgentConfigScope, LoginEvent, McpProbe, McpProbeReport } from "@pig/protocol"
+import type { AgentConfigScope, LoginEvent, McpProbeReport } from "@pig/protocol"
+
+import { probeMcpScope } from "./mcp-probe.js"
 
 const PROBE_TIMEOUT_MS = 60_000
 const LOGIN_TIMEOUT_S = 300
@@ -91,35 +93,30 @@ export function piRunner(agentDir: string): PiRunner {
     })
 }
 
-export function parseMcpList(stdout: string): McpProbeReport {
-  const start = stdout.indexOf("{")
-  const parsed = JSON.parse(stdout.slice(start)) as {
-    servers?: Array<{ name: string; state: McpProbe["status"]; tools?: string[]; error?: string }>
-    note?: string
-  }
-  const probes = Object.fromEntries(
-    (parsed.servers ?? []).map((server) => [
-      server.name,
-      {
-        status: server.state,
-        tools: server.tools ?? [],
-        ...(server.error ? { error: server.error } : {}),
-      },
-    ]),
-  )
-  return parsed.note ? { probes, note: parsed.note } : { probes }
-}
-
 export class McpCli {
   private readonly agentDir: string
   private readonly run: PiRunner
+  private readonly prober: (scope: AgentConfigScope, signal: AbortSignal) => Promise<McpProbeReport>
   private readonly probes = new Map<string, McpProbeReport>()
   private readonly logins = new Map<string, LoginSession>()
   private readonly running = new Set<AbortController>()
 
-  constructor(options: { agentDir: string; run?: PiRunner }) {
+  constructor(options: {
+    agentDir: string
+    run?: PiRunner
+    probe?: (scope: AgentConfigScope, signal: AbortSignal) => Promise<McpProbeReport>
+    providerToken?: (provider: string) => Promise<string | undefined>
+  }) {
     this.agentDir = options.agentDir
     this.run = options.run ?? piRunner(options.agentDir)
+    this.prober =
+      options.probe ??
+      ((scope, signal) =>
+        probeMcpScope(
+          scope,
+          { agentDir: options.agentDir, providerToken: options.providerToken },
+          signal,
+        ))
   }
 
   cached(scope: AgentConfigScope): McpProbeReport {
@@ -127,10 +124,7 @@ export class McpCli {
   }
 
   async probe(scope: AgentConfigScope): Promise<McpProbeReport> {
-    const { stdout } = await this.track(PROBE_TIMEOUT_MS, (signal) =>
-      this.run(["mcp", "list", "--json"], { cwd: this.cwd(scope), signal }),
-    )
-    const result = parseMcpList(stdout)
+    const result = await this.track(PROBE_TIMEOUT_MS, (signal) => this.prober(scope, signal))
 
     this.probes.set(scope, result)
     return result

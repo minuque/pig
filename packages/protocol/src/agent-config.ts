@@ -50,9 +50,26 @@ export interface SkillFileView {
   files: string[]
 }
 
+export interface McpToolAnnotations {
+  title?: string
+  readOnlyHint?: boolean
+  destructiveHint?: boolean
+  idempotentHint?: boolean
+  openWorldHint?: boolean
+}
+
+export interface McpToolView {
+  name: string
+  title?: string
+  description?: string
+  inputSchema?: Record<string, unknown>
+  outputSchema?: Record<string, unknown>
+  annotations?: McpToolAnnotations
+}
+
 export interface McpProbe {
   status: "connected" | "needs-auth" | "failed" | "disabled"
-  tools: string[]
+  tools: McpToolView[]
   error?: string
 }
 

@@ -9,6 +9,7 @@
         size="s"
         class="import-input"
         spellcheck="false"
+        :invalid="Boolean(parsed.error)"
         :aria-label="t('settings.mcp.importJson')"
       />
 

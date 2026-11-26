@@ -231,6 +231,10 @@ export interface PlatformHttpRoutes {
     query: { scope: string; path: string }
     response: SkillFileView
   }
+  "GET /api/v1/platform/skill-settings/asset": {
+    query: { scope: string; path: string; file: string }
+    response: FileTextResponse
+  }
   "PUT /api/v1/platform/skill-settings/file": {
     body: { scope: string; path: string; raw: string }
     response: { ok: true } | { ok: false; error: string }
