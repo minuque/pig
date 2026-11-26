@@ -1,64 +1,59 @@
 <template>
-  <Card class="rail-pane" :aria-label="title">
-    <template #render="{ props: part }">
-      <aside v-bind="part">
-        <header class="rail-pane-head">
-          <h2 class="rail-pane-title">
-            <OverflowTooltip class="rail-pane-name" :text="title" />
+  <aside class="rail-pane" :aria-label="title">
+    <header class="rail-pane-head">
+      <h2 class="rail-pane-title">
+        <OverflowTooltip class="rail-pane-name" :text="title" />
 
-            <span v-if="pane.kind === 'child'" class="rail-pane-meta">
-              {{ t("rail.readOnly") }}
-            </span>
-          </h2>
+        <span v-if="pane.kind === 'child'" class="rail-pane-meta">
+          {{ t("rail.readOnly") }}
+        </span>
+      </h2>
 
-          <Tooltip v-for="action in actions" :key="action.key">
-            <TooltipTrigger>
-              <template #render="{ props: part }">
-                <IconButton
-                  v-bind="part"
-                  type="button"
-                  size="s"
-                  variant="ghost"
-                  color="neutral"
-                  :aria-label="action.label"
-                  :disabled="action.disabled"
-                  @click="action.run"
-                >
-                  <component :is="action.icon" class="size-icon" />
-                </IconButton>
-              </template>
-            </TooltipTrigger>
+      <Tooltip v-for="action in actions" :key="action.key">
+        <TooltipTrigger>
+          <template #render="{ props: part }">
+            <IconButton
+              v-bind="part"
+              type="button"
+              size="s"
+              variant="ghost"
+              color="neutral"
+              :aria-label="action.label"
+              :disabled="action.disabled"
+              @click="action.run"
+            >
+              <component :is="action.icon" class="size-icon" />
+            </IconButton>
+          </template>
+        </TooltipTrigger>
 
-            <TooltipContent>{{ action.label }}</TooltipContent>
-          </Tooltip>
-        </header>
+        <TooltipContent>{{ action.label }}</TooltipContent>
+      </Tooltip>
+    </header>
 
-        <div v-if="pane.kind === 'tasks'" class="rail-pane-scroll">
-          <div class="rail-pane-body" data-kind="tasks">
-            <RailTasks
-              :sections="sections"
-              :stoppable="stoppable"
-              :stopping="stopping"
-              :focus="pane.focus"
-              @open="rail.openChild"
-              @stop="emit('stop', $event)"
-            />
-          </div>
-        </div>
+    <div v-if="pane.kind === 'tasks'" class="rail-pane-scroll">
+      <div class="rail-pane-body" data-kind="tasks">
+        <RailTasks
+          :sections="sections"
+          :stoppable="stoppable"
+          :stopping="stopping"
+          :focus="pane.focus"
+          @open="rail.openChild"
+          @stop="emit('stop', $event)"
+        />
+      </div>
+    </div>
 
-        <div v-else class="rail-pane-body" data-kind="child">
-          <RailChild :child="pane.child" :progress="progress" />
-        </div>
-      </aside>
-    </template>
-  </Card>
+    <div v-else class="rail-pane-body" data-kind="child">
+      <RailChild :child="pane.child" :progress="progress" />
+    </div>
+  </aside>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@pig/ui/button"
-import { Card } from "@pig/ui/card"
 import { OverflowTooltip, Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { XIcon, TrashIcon } from "@components/icons/index.js"
 import RailChild from "@features/session-rail/components/RailChild.vue"
@@ -111,7 +106,6 @@ function clearFinished() {
   flex: 1;
   flex-direction: column;
   min-block-size: 0;
-  padding: 0;
 }
 
 .rail-pane-head {
@@ -162,7 +156,7 @@ function clearFinished() {
   flex: 1;
   flex-direction: column;
   min-block-size: 0;
-  padding: 0 var(--space-md) var(--space-md);
+  padding: var(--space-sm) var(--space-sm) var(--space-md);
 }
 
 .rail-pane-body[data-kind="child"] {

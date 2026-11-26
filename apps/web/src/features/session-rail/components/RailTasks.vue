@@ -1,7 +1,10 @@
 <template>
   <div ref="root" class="rail-tasks">
     <section v-for="section in shown" :key="section.id" class="rail-tasks-section">
-      <h3 class="rail-tasks-head">{{ section.title }}</h3>
+      <h3 class="rail-tasks-head">
+        {{ section.title }}
+        <span class="rail-tasks-count">{{ section.tasks.length }}</span>
+      </h3>
 
       <Collapsible
         v-for="task in section.tasks"
@@ -21,14 +24,30 @@
               <CollapsibleTrigger v-if="task.kind === 'bash'">
                 <template #render="{ props: part }">
                   <button v-bind="part" type="button" class="rail-task-title">
+                    <StatusIndicator
+                      class="rail-task-status"
+                      :status="STATUS_TONE[task.status]"
+                      size="s"
+                      :pulse="task.status === 'running'"
+                    />
+
                     <span class="rail-task-name" :class="{ shimmer: task.status === 'running' }">
                       {{ task.description }}
                     </span>
+
+                    <ChevronRightIcon class="rail-task-chevron size-icon" />
                   </button>
                 </template>
               </CollapsibleTrigger>
 
               <span v-else class="rail-task-title">
+                <StatusIndicator
+                  class="rail-task-status"
+                  :status="STATUS_TONE[task.status]"
+                  size="s"
+                  :pulse="task.status === 'running'"
+                />
+
                 <span class="rail-task-name" :class="{ shimmer: task.status === 'running' }">
                   {{ task.description }}
                 </span>
@@ -41,7 +60,7 @@
                       v-bind="part"
                       type="button"
                       size="s"
-                      variant="secondary"
+                      variant="ghost"
                       color="neutral"
                       :aria-label="t('rail.stopTask')"
                       :disabled="stopping.has(task.id)"
@@ -57,7 +76,7 @@
             </div>
 
             <div class="rail-task-meta">
-              <span class="rail-task-value">{{ t(`rail.taskKind.${task.kind}`) }}</span>
+              <span>{{ t(`rail.taskKind.${task.kind}`) }}</span>
 
               <span
                 v-if="statusText(task)"
@@ -66,38 +85,40 @@
                 {{ statusText(task) }}
               </span>
 
-              <span class="rail-task-time">{{ taskElapsed(task, now.getTime()) }}</span>
-            </div>
+              <span class="rail-task-value">{{ taskElapsed(task, now.getTime()) }}</span>
 
-            <div v-if="task.kind === 'agent'" class="rail-task-meta">
-              <span v-if="task.tokens > 0">
+              <span v-if="task.kind === 'agent' && task.tokens > 0">
                 <span class="rail-task-value">{{ formatTokenCount(task.tokens) }}</span>
                 {{ t("rail.tokens") }}
               </span>
-
-              <span v-if="task.status === 'running' && task.steps.length" class="rail-task-step">
-                {{ task.steps.at(-1) }}
-              </span>
-
-              <button
-                v-if="task.sessionId"
-                type="button"
-                class="rail-task-link"
-                @click="emit('open', { sessionId: task.sessionId, agent: task.description })"
-              >
-                {{ t("rail.viewTranscript") }}
-              </button>
             </div>
+
+            <p
+              v-if="task.kind === 'agent' && task.status === 'running' && task.steps.length"
+              class="rail-task-step"
+            >
+              {{ task.steps.at(-1) }}
+            </p>
+
+            <Button
+              v-if="task.kind === 'agent' && task.sessionId"
+              class="rail-task-open"
+              size="s"
+              variant="secondary"
+              @click="emit('open', { sessionId: task.sessionId, agent: task.description })"
+            >
+              {{ t("rail.viewTranscript") }}
+            </Button>
 
             <CollapsibleContent v-if="task.kind === 'bash'">
               <div class="rail-task-output">
-                <div class="rail-task-command">{{ task.command }}</div>
+                <code class="rail-task-command">{{ task.command }}</code>
 
                 <pre v-if="task.output" :ref="(el) => bindOutput(task.id, el)">{{
                   plainOutput(task.output)
                 }}</pre>
 
-                <span v-else>
+                <span v-else class="rail-task-empty">
                   {{ task.status === "running" ? t("rail.noOutputYet") : t("rail.noOutput") }}
                 </span>
               </div>
@@ -113,10 +134,11 @@
 import { computed, nextTick, ref, useTemplateRef, watch, type ComponentPublicInstance } from "vue"
 import { useNow } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
-import { IconButton } from "@pig/ui/button"
+import { Button, IconButton } from "@pig/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@pig/ui/collapsible"
+import { StatusIndicator, type StatusTone } from "@pig/ui/status-indicator"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
-import { SquareIcon } from "@components/icons/index.js"
+import { ChevronRightIcon, SquareIcon } from "@components/icons/index.js"
 import { formatTokenCount } from "@features/composer/lib/context-usage.js"
 import type { OpenChild } from "@features/session-rail/index.js"
 import {
@@ -126,6 +148,13 @@ import {
 } from "@features/session-rail/lib/task-list.js"
 import type { Task } from "@/types/common-type.js"
 
+const STATUS_TONE: Record<Task["status"], StatusTone> = {
+  queued: "idle",
+  running: "running",
+  completed: "success",
+  failed: "error",
+  stopped: "idle",
+}
 const props = defineProps<{
   sections: TaskSections
   stoppable: ReadonlySet<string>
@@ -204,7 +233,7 @@ function statusText(task: Task): string {
 .rail-tasks {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
+  gap: var(--space-lg);
 }
 
 .rail-tasks-section {
@@ -214,67 +243,114 @@ function statusText(task: Task): string {
 }
 
 .rail-tasks-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
   margin: 0;
+  padding-inline: var(--space-xs);
   color: var(--fg-secondary);
   font-size: var(--text-meta);
-  font-weight: var(--font-weight-normal);
+  font-weight: var(--font-weight-medium);
   line-height: var(--text-meta--line-height);
+}
+
+.rail-tasks-count {
+  color: var(--fg-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .rail-task {
   display: flex;
   flex-direction: column;
   gap: var(--space-2xs);
-  padding: var(--space-sm);
+  padding: var(--space-2xs) var(--space-2xs) var(--space-xs);
   overflow-wrap: anywhere;
-  background: var(--bg-muted);
   border-radius: var(--radius-card);
+  corner-shape: round;
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-subtle);
+}
+
+.rail-task[data-status="running"] {
+  background: var(--bg-surface);
+  box-shadow: inset 0 0 0 var(--border-width) var(--border-strong);
 }
 
 .rail-task-top {
   display: flex;
-  align-items: flex-start;
-  gap: var(--space-xs);
+  align-items: center;
+  gap: var(--space-2xs);
 }
 
 .rail-task-title {
   display: flex;
   flex: 1;
+  align-items: center;
+  gap: var(--space-xs);
   min-inline-size: 0;
-  padding: 0;
+  padding: var(--space-2xs) var(--space-xs);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: none;
   color: var(--fg-secondary);
   font: inherit;
   font-size: var(--text-body);
   line-height: var(--text-body--line-height);
   text-align: start;
-  background: none;
-  border: 0;
-}
-
-button.rail-task-title {
-  cursor: pointer;
-}
-
-button.rail-task-title:hover .rail-task-name {
-  color: var(--link);
 }
 
 .rail-task[data-status="running"] .rail-task-title {
   color: var(--fg);
+  font-weight: var(--font-weight-medium);
+}
+
+button.rail-task-title {
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+button.rail-task-title:hover {
+  background: var(--bg-hover);
+  color: var(--fg);
+}
+
+button.rail-task-title:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.rail-task-status {
+  flex-shrink: 0;
+}
+
+.rail-task-name {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.rail-task-chevron {
+  flex-shrink: 0;
+  color: var(--fg-muted);
+  transition: rotate var(--duration-fast) var(--ease-out);
+}
+
+.rail-task[data-open] .rail-task-chevron {
+  rotate: 90deg;
+}
+
+.rail-task-meta,
+.rail-task-step,
+.rail-task-output {
+  margin-inline: var(--space-xs);
 }
 
 .rail-task-meta {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: var(--space-2xs) var(--space-xs);
-  color: var(--fg-secondary);
+  gap: var(--space-2xs) var(--space-sm);
+  color: var(--fg-muted);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
-}
-
-.rail-task[data-status="running"] .rail-task-value {
-  color: var(--fg-secondary);
 }
 
 .rail-task-value {
@@ -285,35 +361,25 @@ button.rail-task-title:hover .rail-task-name {
   color: var(--danger-text);
 }
 
-.rail-task-time {
-  font-variant-numeric: tabular-nums;
-}
-
-.rail-task-link {
-  flex-shrink: 0;
-  padding: 0;
-  color: var(--link);
-  font: inherit;
+.rail-task-step {
+  margin-block: 0;
+  overflow: hidden;
+  color: var(--fg-secondary);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+  text-overflow: ellipsis;
   white-space: nowrap;
-  background: none;
-  border: 0;
-  border-radius: var(--radius-control);
-  cursor: pointer;
 }
 
-.rail-task-link:hover {
-  text-decoration: underline;
-  text-underline-offset: 1px;
-}
-
-.rail-task-link:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
+.rail-task-open {
+  align-self: flex-start;
+  margin: var(--space-2xs) var(--space-xs) 0;
 }
 
 .rail-task-output {
   display: grid;
-  gap: var(--space-2xs);
+  gap: var(--space-xs);
+  margin-block-start: var(--space-2xs);
   color: var(--fg-secondary);
   font-family: var(--font-mono);
   font-size: var(--text-meta);
@@ -325,20 +391,37 @@ button.rail-task-title:hover .rail-task-name {
 .rail-task-command {
   max-block-size: 200px;
   overflow: auto;
-  color: var(--fg-secondary);
+  color: var(--fg);
+  font: inherit;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
+.rail-task-command::before {
+  content: "$ ";
+  color: var(--fg-muted);
+}
+
 .rail-task-output pre {
-  max-block-size: 200px;
+  max-block-size: 240px;
   margin: 0;
-  padding: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
   overflow: auto;
   color: var(--fg-secondary);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   background: var(--bg-muted);
   border-radius: var(--radius-control);
+}
+
+.rail-task-empty {
+  color: var(--fg-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button.rail-task-title,
+  .rail-task-chevron {
+    transition: none;
+  }
 }
 </style>
