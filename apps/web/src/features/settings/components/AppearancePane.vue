@@ -47,9 +47,13 @@
           </div>
 
           <Select
+            :items="uiFontItems"
             :model-value="uiFont || DEFAULT"
             @update:open="onFontsOpen"
             @update:model-value="onUiFont"
+            @highlight="
+              (_value: unknown, details: { index: number }) => revealFont(uiFontList, details.index)
+            "
           >
             <SelectTrigger class="setting-select" :aria-label="t('settings.uiFont')">
               <span class="font-name" :style="{ fontFamily: 'var(--font-sans)' }">
@@ -61,20 +65,8 @@
               <SelectInput :placeholder="t('settings.searchFonts')" />
               <SelectEmpty>{{ t("settings.noMatchingFonts") }}</SelectEmpty>
 
-              <SelectList>
-                <SelectItem :value="DEFAULT" :label="t('settings.fontDefault')">
-                  <SelectItemText>{{ t("settings.fontDefault") }}</SelectItemText>
-                </SelectItem>
-
-                <SelectItem
-                  v-for="family in fontList(families, uiFont)"
-                  :key="family"
-                  :value="family"
-                  :label="family"
-                  :style="{ fontFamily: quote(family) }"
-                >
-                  <SelectItemText>{{ family }}</SelectItemText>
-                </SelectItem>
+              <SelectList v-slot="{ state }" class="font-list">
+                <FontOptionList ref="uiFontList" :items="asFontOptions(state.items)" />
               </SelectList>
             </SelectContent>
           </Select>
@@ -126,9 +118,14 @@
           </div>
 
           <Select
+            :items="codeFontItems"
             :model-value="codeFont || DEFAULT"
             @update:open="onFontsOpen"
             @update:model-value="onCodeFont"
+            @highlight="
+              (_value: unknown, details: { index: number }) =>
+                revealFont(codeFontList, details.index)
+            "
           >
             <SelectTrigger class="setting-select" :aria-label="t('settings.codeFont')">
               <span class="font-name" :style="{ fontFamily: 'var(--font-mono)' }">
@@ -140,20 +137,8 @@
               <SelectInput :placeholder="t('settings.searchFonts')" />
               <SelectEmpty>{{ t("settings.noMatchingFonts") }}</SelectEmpty>
 
-              <SelectList>
-                <SelectItem :value="DEFAULT" :label="t('settings.fontDefault')">
-                  <SelectItemText>{{ t("settings.fontDefault") }}</SelectItemText>
-                </SelectItem>
-
-                <SelectItem
-                  v-for="family in fontList(mono, codeFont)"
-                  :key="family"
-                  :value="family"
-                  :label="family"
-                  :style="{ fontFamily: quote(family) }"
-                >
-                  <SelectItemText>{{ family }}</SelectItemText>
-                </SelectItem>
+              <SelectList v-slot="{ state }" class="font-list">
+                <FontOptionList ref="codeFontList" :items="asFontOptions(state.items)" />
               </SelectList>
             </SelectContent>
           </Select>
@@ -218,7 +203,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue"
+import { computed, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { DEFAULT_PREFERENCES as DEFAULTS } from "@client/preferences.js"
 import {
@@ -236,14 +221,15 @@ import {
   SelectEmpty,
   SelectInput,
   SelectItem,
-  SelectItemText,
   SelectList,
   SelectTrigger,
 } from "@pig/ui/select"
 import { CardList, CardRow } from "@pig/ui/card"
 import { Slider } from "@pig/ui/slider"
+import FontOptionList from "./FontOptionList.vue"
 import SettingReset from "./SettingReset.vue"
 import SchemeCards from "./SchemeCards.vue"
+import { fontOptions, type FontOption } from "@features/settings/lib/font-options.js"
 
 const DEFAULT = "__default__"
 const { t } = useI18n()
@@ -261,6 +247,16 @@ const {
   setContrast,
 } = useAppearancePrefs()
 const { families, mono, load } = useLocalFonts()
+const uiFontList = shallowRef<InstanceType<typeof FontOptionList>>()
+const codeFontList = shallowRef<InstanceType<typeof FontOptionList>>()
+const uiFontItems = computed<FontOption[]>(() => [
+  { value: DEFAULT, label: t("settings.fontDefault") },
+  ...fontOptions(families.value, uiFont.value),
+])
+const codeFontItems = computed<FontOption[]>(() => [
+  { value: DEFAULT, label: t("settings.fontDefault") },
+  ...fontOptions(mono.value, codeFont.value),
+])
 
 function onUiFont(value: string) {
   setUiFont(value === DEFAULT ? "" : value)
@@ -280,12 +276,12 @@ function onContrast(value: number[]) {
   if (next !== undefined) setContrast(next)
 }
 
-function quote(family: string): string {
-  return JSON.stringify(family)
+function asFontOptions(items: readonly unknown[]): FontOption[] {
+  return items as FontOption[]
 }
 
-function fontList(list: readonly string[], current: string): string[] {
-  return current && !list.includes(current) ? [current, ...list] : [...list]
+function revealFont(list: InstanceType<typeof FontOptionList> | undefined, index: number) {
+  list?.revealRow(index)
 }
 
 function onFontsOpen(open: boolean) {
@@ -346,5 +342,11 @@ const codeSizeLabel = computed(() => `${codeSize.value}px`)
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.font-list {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
 }
 </style>

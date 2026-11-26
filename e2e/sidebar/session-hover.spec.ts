@@ -22,6 +22,19 @@ async function expectStaysClosed(page: Page) {
   await expect(hoverCard(page)).toHaveCount(0)
 }
 
+test("滚轮划过侧栏后指针停在卡片上不弹详情，移动指针才恢复", async ({ page, navGateway }) => {
+  await enter(page, navGateway)
+
+  await card(page, 2).hover()
+  await expect(hoverCard(page)).toBeVisible()
+
+  await page.mouse.wheel(0, 240)
+  await expectStaysClosed(page)
+
+  await card(page, 4).hover()
+  await expect(hoverCard(page)).toBeVisible()
+})
+
 test("侧栏会话卡悬停弹出详情；点击、右键与拖动侧栏宽度时不弹出", async ({ page, navGateway }) => {
   await enter(page, navGateway)
 

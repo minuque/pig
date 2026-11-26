@@ -236,7 +236,9 @@
   --glass-kbd-bg: color-mix(in srgb, var(--fg-base) 8%, transparent);
   --float-bg: color-mix(in srgb, var(--bg-raised) 84%, transparent);
   --float-ring: rgba(0, 0, 0, 0.1);
-  --float-shadow: 0 0 0 var(--border-width) var(--float-ring), 0 4px 12px -4px rgba(0, 0, 0, 0.08);
+  --float-ring-hover: var(--border-strong);
+  --float-elevation: 0 4px 12px -4px rgba(0, 0, 0, 0.08);
+  --float-shadow: 0 0 0 var(--border-width) var(--float-ring), var(--float-elevation);
   --menu-item-gap: calc(var(--spacing) / 2);
   --slider-badge-bg: var(--fg);
   --slider-badge-fg: var(--fg-inverse);
@@ -314,7 +316,9 @@ html.dark {
     0 24px 72px -20px rgba(0, 0, 0, 0.9);
   --glass-backdrop: color-mix(in srgb, var(--bg) 64%, transparent);
   --float-ring: rgba(255, 255, 255, 0.12);
-  --float-shadow: 0 0 0 var(--border-width) var(--float-ring), 0 4px 12px -4px rgba(0, 0, 0, 0.32);
+  --float-ring-hover: color-mix(in srgb, var(--white) 17%, transparent);
+  --float-elevation: 0 4px 12px -4px rgba(0, 0, 0, 0.32);
+  --float-shadow: 0 0 0 var(--border-width) var(--float-ring), var(--float-elevation);
   --slider-badge-bg: var(--fg);
   --slider-badge-fg: var(--fg-inverse);
   --slider-grip: color-mix(in srgb, var(--fg-base) 32%, transparent);

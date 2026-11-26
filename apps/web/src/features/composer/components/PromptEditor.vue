@@ -256,8 +256,8 @@ defineExpose({
 .composer-card:hover,
 .composer-card:has(.field-wrap:focus-within) {
   box-shadow:
-    0 0 0 var(--border-width) var(--border-strong),
-    var(--float-shadow);
+    0 0 0 var(--border-width) var(--float-ring-hover),
+    var(--float-elevation);
 }
 
 .notice {

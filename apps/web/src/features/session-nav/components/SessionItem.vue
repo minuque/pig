@@ -10,7 +10,7 @@
     <ContextMenu :modal="false" @update:open="menuOpen = $event">
       <HoverCard
         v-model:open="hoverOpen"
-        :disabled="placeholder || renaming || menuOpen || forkHover || pressed"
+        :disabled="placeholder || renaming || menuOpen || forkHover || blocked"
       >
         <HoverCardTrigger>
           <template #render="{ props: card }">
@@ -19,7 +19,6 @@
                 <component
                   v-bind="part"
                   :is="placeholder ? 'div' : RouterLink"
-                  :ref="setCardEl"
                   class="session-card"
                   :class="[
                     variant,
@@ -37,7 +36,6 @@
                   @click="onCardClick"
                   @dblclick="onCardDblclick"
                   @pointerdown.left="onCardPointerDown"
-                  @pointerleave="onCardLeave"
                   @dragstart.prevent
                   @keydown="onCardKeydown"
                 >
@@ -158,7 +156,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef, watch, type ComponentPublicInstance } from "vue"
+import { computed, shallowRef, watch } from "vue"
 import { RouterLink } from "vue-router"
 import { ContextMenu, ContextMenuTrigger } from "@pig/ui/context-menu"
 import { HoverCard, HoverCardTrigger } from "@pig/ui/hover-card"
@@ -170,7 +168,7 @@ import SessionPinToggle from "@features/session-nav/components/SessionPinToggle.
 import SessionRenameInput from "@features/session-nav/components/SessionRenameInput.vue"
 import SessionStateSlot from "@features/session-nav/components/SessionStateSlot.vue"
 import ProjectIcon from "@features/session-nav/components/ProjectIcon.vue"
-import { pressedCard, trackPressedCard } from "@features/session-nav/lib/pressed-card.js"
+import { hoverBlocked } from "@features/session-nav/lib/hover-gate.js"
 import { workspaceName } from "@features/session-nav/lib/format.js"
 import type { SidebarRowFoot, SidebarSession } from "@features/session-nav/type.js"
 import { trySplitView } from "@features/split-view/index.js"
@@ -219,12 +217,9 @@ const splitShown = computed(
 )
 const menuOpen = shallowRef(false)
 const hoverOpen = shallowRef(false)
-const cardEl = shallowRef<Element | null>(null)
-const pressed = computed(() => cardEl.value !== null && pressedCard.value === cardEl.value)
+const blocked = computed(() => hoverBlocked.value)
 
-trackPressedCard()
-
-watch(pressed, (value) => {
+watch(blocked, (value) => {
   if (value) hoverOpen.value = false
 })
 
@@ -260,14 +255,6 @@ function commitRename(name: string) {
 
 function isModifiedSessionClick(event: MouseEvent) {
   return event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey
-}
-
-function setCardEl(el: Element | ComponentPublicInstance | null) {
-  cardEl.value = el instanceof Element ? el : ((el?.$el as Element | undefined) ?? null)
-}
-
-function onCardLeave() {
-  if (pressed.value) pressedCard.value = null
 }
 
 function onCardPointerDown(event: PointerEvent) {
