@@ -2,11 +2,11 @@ name: ci
 
 on:
   push:
-    branches: [main]
+    branches: ["**"]
   pull_request:
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -38,7 +38,7 @@ jobs:
       - if: matrix.os != 'ubuntu-latest'
         run: pnpm test:platform
 
-  # pre-push 只跑改动映射到的用例，全量旅程在这里兜底
+  # 本地只跑静态分析与单测，推送分支与 PR 的全量端到端旅程在 CI 运行
   e2e:
     name: e2e
     runs-on: ubuntu-latest

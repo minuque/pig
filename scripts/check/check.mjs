@@ -9,9 +9,6 @@ import { reportResults, splitCommandArgs } from "./runner.mjs"
 const root = resolve(import.meta.dirname, "../..")
 const touched = process.argv.includes("--touched")
 const fix = process.argv.includes("--fix")
-const withE2e = process.argv.includes("--e2e")
-const mappedE2e = process.argv.includes("--mapped-e2e")
-const noE2e = process.argv.includes("--no-e2e")
 const sinceIndex = process.argv.indexOf("--since")
 const since = sinceIndex >= 0 ? (process.argv[sinceIndex + 1] ?? "") : undefined
 
@@ -167,15 +164,9 @@ async function checkTouched(scope, files, label = "check:touched") {
     const ran = await runPnpm(["check"], root)
     process.stdout.write(ran.out)
     process.exitCode = ran.code
-
-    if (ran.code === 0 && withE2e && !mappedE2e && !noE2e) await runFullE2e(label)
-    else if (ran.code === 0 && mappedE2e && !noE2e)
-      console.log(`${label}: 根配置有改动；全量 e2e 交由 CI 兜底（本地全跑可执行 pnpm test:e2e）`)
     return
   }
 
-  const fullE2e = withE2e && !mappedE2e && !noE2e && scope.e2eAll
-  const existingSpecs = scope.specs.filter((spec) => existsSync(resolve(root, spec)))
   const steps = []
 
   steps.push(
@@ -232,66 +223,16 @@ async function checkTouched(scope, files, label = "check:touched") {
     steps.push({ name: `test:${id}`, args: ["--filter", id, "test"] })
   }
 
-  const runMappedE2e =
-    !fullE2e &&
-    existingSpecs.length > 0 &&
-    (withE2e || mappedE2e || scope.ui || scope.e2e) &&
-    !noE2e
-
-  if (steps.length === 0 && !fullE2e && !runMappedE2e) {
-    if (mappedE2e && !noE2e && scope.e2eAll)
-      console.log(
-        `${label}: 改动波及全部旅程；全量 e2e 交由 CI 兜底（本地全跑可执行 pnpm test:e2e）`,
-      )
-    else if (existingSpecs.length)
-      console.log(`${label}: 建议补跑 e2e → pnpm test:e2e ${existingSpecs.join(" ")}`)
-    else console.log(`${label}: ${files.length} 个文件无需脚本/测试/lint`)
+  if (steps.length === 0) {
+    console.log(`${label}: ${files.length} 个文件无需脚本/测试/lint`)
     return
   }
 
-  const planned = [
-    ...steps.map((step) => step.name),
-    ...(runMappedE2e ? [`e2e:${existingSpecs.length}条`] : []),
-  ]
-
-  console.log(`${label}: ${files.length} files → ${planned.join(", ")}`)
+  console.log(`${label}: ${files.length} files → ${steps.map((step) => step.name).join(", ")}`)
 
   const results = await runPool(steps)
 
-  if (results.some((result) => result.code !== 0)) {
-    reportResults(label, results)
-    return
-  }
-
-  if (mappedE2e && !noE2e && scope.e2eAll)
-    console.log(`${label}: 改动波及全部旅程；全量 e2e 交由 CI 兜底（本地全跑可执行 pnpm test:e2e）`)
-
-  if (runMappedE2e) {
-    const e2eSteps = fileSteps(
-      `e2e:${existingSpecs.length}条`,
-      ["exec", "playwright", "test", "-c", "e2e/playwright.config.ts"],
-      existingSpecs,
-    )
-
-    for (const step of e2eSteps) {
-      const ran = await runPnpm(step.args, root)
-      results.push({ name: step.name, ...ran })
-
-      if (ran.code !== 0) break
-    }
-  } else if (!fullE2e && existingSpecs.length && !noE2e) {
-    console.log(`${label}: 建议补跑 e2e → pnpm test:e2e ${existingSpecs.join(" ")}`)
-  }
-
-  if (results.length) reportResults(label, results)
-
-  if (fullE2e && !process.exitCode) await runFullE2e(label)
-}
-
-async function runFullE2e(label) {
-  console.log(`${label}: 改动波及全部旅程，跑全量 e2e`)
-  const ran = await runPnpm(["test:e2e"], root)
-  reportResults(`${label} e2e`, [{ name: "e2e:全量", ...ran }])
+  reportResults(label, results)
 }
 
 if (fix && !touched) {

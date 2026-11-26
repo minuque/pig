@@ -139,7 +139,7 @@ SDK 跟版：
 
 浏览器 UI 旅程在仓库根 `e2e/`（Playwright，跨 Web 构建物与 Gateway），不是 `apps/web/test/` 的模块单测。`pnpm test:e2e` 写出 `playwright-report/`。
 
-按界面区域分目录：`startup/` 启动与错误页，`sidebar/` 侧栏与目录，`conversation/` 会话与回合，`composer/` 输入卡，`workbench/` 面板，`settings/` 设置页。共用的夹具与替身放 `support/`，桌面壳冒烟在 `electron/`，性能基准在 `perf/`。新用例放进它测的区域，并在 `scripts/check/scope.mjs` 登记源码前缀到用例的映射。
+按界面区域分目录：`startup/` 启动与错误页，`sidebar/` 侧栏与目录，`conversation/` 会话与回合，`composer/` 输入卡，`workbench/` 面板，`settings/` 设置页。共用的夹具与替身放 `support/`，桌面壳冒烟在 `electron/`，性能基准在 `perf/`。新用例放进它测的区域。
 
 ## scripts 与 docs
 
