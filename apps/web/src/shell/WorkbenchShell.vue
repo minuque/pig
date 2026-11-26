@@ -105,6 +105,7 @@ import { PANE_VIEWS } from "@features/split-view/index.js"
 import { prefetchHighlighter, transcriptModelsKey } from "@features/transcript-view/index.js"
 import { createBackgroundPump } from "@/shell/hooks/use-background-pump.js"
 import WorkbenchPane from "@/shell/WorkbenchPane.vue"
+import { useWaitingNotices, waitingSessions } from "@/shell/hooks/use-waiting-sessions.js"
 
 const { t } = useI18n()
 const pi = useGatewayClient()
@@ -164,7 +165,21 @@ const focused = focusedSession(
   split.leaveSession,
 )
 const { settingsOpen, settingsPane, openSettings, closeSettings } = useSettingsDialog()
-const nav = provideNav(pi, cwd, focused)
+const extensionUi = provideExtensionUi(pi, focused, split)
+const waiting = waitingSessions({
+  sessions: pi.sessions,
+  dialogs: extensionUi.dialogs,
+  isReady: hub.history.isReady,
+  transcriptFor: hub.history.transcriptFor,
+})
+const nav = provideNav(pi, cwd, focused, waiting)
+
+useWaitingNotices(waiting, {
+  sessions: pi.sessions,
+  shownIds: focused.shownIds,
+  open: (id) => nav.openSession(id),
+})
+
 const archiveController: ArchiveController = {
   allSessions: nav.allSessions,
   settledIds: nav.settledIds,
@@ -175,9 +190,6 @@ const archiveController: ArchiveController = {
   unarchiveSessions: nav.unarchiveSessions,
   deleteSessions: nav.deleteSessions,
 }
-
-provideExtensionUi(pi, focused, split)
-
 const sideBySide = computed(() => split.split.value && split.fits.value)
 const leftShown = computed(() => sideBySide.value || split.focused.value === "left")
 const rightShown = computed(() => sideBySide.value || split.focused.value === "right")

@@ -15,6 +15,7 @@ import { useI18n } from "@i18n/index.js"
 import type { SidebarStateGlyph } from "@features/session-nav/type.js"
 
 const STATUS_BY_GLYPH: Record<SidebarStateGlyph, StatusTone> = {
+  waiting: "waiting",
   running: "running",
   unread: "success",
   error: "error",
@@ -25,6 +26,8 @@ const props = defineProps<{
 }>()
 const { t } = useI18n()
 const label = computed(() => {
+  if (props.state === "waiting") return t("session.waitingAnswer")
+
   if (props.state === "unread") return t("session.done")
 
   if (props.state === "error") return t("session.failed")

@@ -21,6 +21,7 @@
         <StatusIndicator appearance="icon" status="warning" label="Warning" />
         <StatusIndicator appearance="icon" status="error" label="Failed" />
         <StatusIndicator appearance="icon" status="draft" label="Draft" />
+        <StatusIndicator appearance="icon" status="waiting" label="Waiting" />
       </div>
     </Variant>
 

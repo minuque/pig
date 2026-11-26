@@ -1,6 +1,6 @@
 import { createToaster, type ToastData } from "@ui-sdk/vue/toast"
 
-export type NoticeLevel = "info" | "success" | "warning" | "error"
+export type NoticeLevel = "info" | "success" | "warning" | "error" | "waiting"
 
 export interface NoticeAction {
   label: string
@@ -9,6 +9,7 @@ export interface NoticeAction {
 }
 
 export interface NoticeExtra {
+  id?: string | undefined
   title?: string | undefined
   action?: NoticeAction | undefined
   transient?: boolean | undefined
@@ -37,16 +38,21 @@ export function notify(
 
   if (!text) return
 
-  const { action, title, transient } = extra
+  const { action, id, title, transient } = extra
   const notice: Notice = { message: text, level, title, action }
   noticeToaster({
+    ...(id && { id }),
     title: title ?? text,
     ...(title && { description: text }),
-    type: level,
-    duration: level === "error" && !transient ? Infinity : PASSING_MS,
+    type: level === "waiting" ? "warning" : level,
+    duration: (level === "error" || level === "waiting") && !transient ? Infinity : PASSING_MS,
     data: notice,
     ...(action && { action: { label: action.label, onAction: () => action.run() } }),
   })
+}
+
+export function dismissNotice(id: string): void {
+  noticeToaster.dismiss(id)
 }
 
 export function notifyAction(message: string): void {

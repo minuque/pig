@@ -15,7 +15,7 @@ export interface SidebarSession {
   draft?: boolean
 }
 
-export type SidebarSessionState = "running" | "unread" | "error"
+export type SidebarSessionState = "waiting" | "running" | "unread" | "error"
 
 export type SidebarStateGlyph = SidebarSessionState | "draft"
 

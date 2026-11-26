@@ -1,4 +1,4 @@
-import { computed, inject, provide, shallowRef, watch, type InjectionKey } from "vue"
+import { computed, inject, provide, shallowRef, watch, type InjectionKey, type Ref } from "vue"
 import { useRouter } from "vue-router"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
@@ -40,6 +40,7 @@ function createNav(
   pi: ReturnType<typeof useGatewayClient>,
   cwd: ReturnType<typeof useLocalWorkspaces>,
   session: FocusedSession,
+  waitingIds: Ref<ReadonlyMap<string, unknown>>,
 ) {
   const router = useRouter()
   const {
@@ -109,13 +110,15 @@ function createNav(
       const isRunning =
         (liveId === item.id && activeSessionRunning.value) ||
         session.backgroundRunningIds.value.has(item.id)
-      const state: SidebarSessionState | undefined = isRunning
-        ? "running"
-        : foot.outcome === "error"
-          ? "error"
-          : markers.isUnread(item)
-            ? "unread"
-            : undefined
+      const state: SidebarSessionState | undefined = waitingIds.value.has(item.id)
+        ? "waiting"
+        : isRunning
+          ? "running"
+          : foot.outcome === "error"
+            ? "error"
+            : markers.isUnread(item)
+              ? "unread"
+              : undefined
       const parent = item.parentSessionId ? byId.get(item.parentSessionId) : undefined
       const git = item.cwd ? cards.workspaceGit.value.get(item.cwd) : undefined
 
@@ -236,8 +239,9 @@ export function provideNav(
   pi: ReturnType<typeof useGatewayClient>,
   cwd: ReturnType<typeof useLocalWorkspaces>,
   session: FocusedSession,
+  waitingIds: Ref<ReadonlyMap<string, unknown>>,
 ) {
-  const nav = createNav(pi, cwd, session)
+  const nav = createNav(pi, cwd, session, waitingIds)
   provide(navKey, nav)
   return nav
 }
