@@ -275,10 +275,11 @@ useEventListener(
   padding: var(--space-xs);
   border-radius: var(--radius-control);
   cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-out);
 }
 
-.board-option[data-highlighted] {
-  background: var(--bg-muted);
+.board-option:is(:hover, [data-highlighted]) {
+  background: var(--bg-hover);
 }
 
 .board-mark {
@@ -314,7 +315,8 @@ useEventListener(
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .board-options {
+  .board-options,
+  .board-option {
     transition: none;
   }
 }
