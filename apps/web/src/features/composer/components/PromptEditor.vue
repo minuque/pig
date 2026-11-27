@@ -283,6 +283,10 @@ defineExpose({
   pointer-events: none;
 }
 
+.field-placeholder > [data-slot="kbd"] {
+  margin-inline: var(--space-2xs);
+}
+
 .footer {
   display: flex;
   align-items: center;
