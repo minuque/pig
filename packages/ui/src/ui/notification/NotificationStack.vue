@@ -413,7 +413,14 @@ onBeforeUnmount(() => {
   inset-inline-end: 0;
   pointer-events: auto;
   border-radius: var(--radius-control);
+  background-color: var(--float-bg);
+  backdrop-filter: var(--glass-filter);
   box-shadow: var(--float-shadow);
+  color: var(--fg-secondary);
+}
+
+.notif-clear-all:is(:hover, :focus-visible) {
+  color: var(--fg);
 }
 
 @media (prefers-reduced-motion: reduce) {
