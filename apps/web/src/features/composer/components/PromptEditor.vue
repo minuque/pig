@@ -68,7 +68,7 @@
                 <span>{{ t("composer.placeholderPrefix") }}</span>
                 <Kbd size="s" variant="soft">Enter</Kbd>
                 <span>{{ t("composer.placeholderQueue") }}</span>
-                <Kbd size="s" variant="soft">{{ modKey }} Enter</Kbd>
+                <Kbd size="s" variant="soft">{{ modKey }} + Enter</Kbd>
                 <span>{{ t("composer.placeholderSteer") }}</span>
               </template>
 
