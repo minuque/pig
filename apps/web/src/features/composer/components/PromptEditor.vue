@@ -110,13 +110,14 @@ import {
 import { TriggerMenu, TriggerMenuContent, createTriggerMenuController } from "@pig/ui/trigger-menu"
 import CommandMenu from "@features/composer/components/CommandMenu.vue"
 import PromptField from "@features/composer/components/PromptField.vue"
-import type { ComposerCaret, ReplyInsertRequest } from "@features/composer/type.js"
+import type { ComposerCaret, MentionSession, ReplyInsertRequest } from "@features/composer/type.js"
 
 const props = defineProps<{
   placeholder?: string | undefined
   cwd?: string | undefined
   hasSession?: boolean
   reloadRevision?: number | undefined
+  mentionSessions?: ((query: string) => readonly MentionSession[]) | undefined
   editingQueue?: boolean
   disabled?: boolean
   disabledReason?: string | undefined
@@ -150,6 +151,7 @@ const commandMenu = useCommandMenu({
   cwd: () => props.cwd,
   hasSession: () => props.hasSession ?? false,
   reloadRevision: () => props.reloadRevision,
+  mentionSessions: (query) => props.mentionSessions?.(query) ?? [],
   onChip: (chip) => field.value?.insertChip(chip),
   onReplaceText: (start, triggerLength, text) =>
     field.value?.replaceRange(start, triggerLength, text),

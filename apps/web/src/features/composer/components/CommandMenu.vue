@@ -61,7 +61,13 @@ import {
   type TriggerMenuDataGroup,
   type TriggerMenuDataItem,
 } from "@pig/ui/trigger-menu"
-import { SquareCodeIcon, FileTextIcon, FolderIcon, BlocksIcon } from "@components/icons/index.js"
+import {
+  SquareCodeIcon,
+  FileTextIcon,
+  FolderIcon,
+  BlocksIcon,
+  MessageSquareIcon,
+} from "@components/icons/index.js"
 import LanguageIcon from "@components/icons/LanguageIcon.vue"
 import type { CommandMenuRow } from "@features/composer/type.js"
 
@@ -69,6 +75,7 @@ const KIND_ICONS: Record<string, Component> = {
   skill: BlocksIcon,
   builtin: SquareCodeIcon,
   directory: FolderIcon,
+  session: MessageSquareIcon,
 }
 
 defineProps<{

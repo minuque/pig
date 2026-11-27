@@ -1,14 +1,21 @@
 import type { ComposerCommand, FileSearchEntry } from "@/types/common-type.js"
-import type { ChipInsert, CommandMenuGroup, CommandMenuRow } from "@features/composer/type.js"
+import type {
+  ChipInsert,
+  CommandMenuGroup,
+  CommandMenuRow,
+  MentionSession,
+} from "@features/composer/type.js"
 
 export const DIR_PREFIX = "dir:"
 export const FILE_PREFIX = "file:"
 export const SKILL_PREFIX = "skill:"
 export const TEMPLATE_PREFIX = "template:"
 export const BUILTIN_PREFIX = "builtin:"
+export const SESSION_PREFIX = "session:"
 export const CLEAR_COMMAND = "clear"
 export const COMPACT_COMMAND = "compact"
 export const RELOAD_COMMAND = "reload"
+const MENTION_SESSION_LIMIT = 5
 
 export interface CommandGroupSource {
   kind: "none" | "mention" | "command"
@@ -16,6 +23,7 @@ export interface CommandGroupSource {
   clearApplicable: boolean
   hasSession?: boolean
   files: FileSearchEntry[]
+  sessions?: readonly MentionSession[]
   skills: ComposerCommand[]
   prompts: ComposerCommand[]
   label(key: string): string
@@ -23,8 +31,15 @@ export interface CommandGroupSource {
 
 export function buildCommandGroups(source: CommandGroupSource): CommandMenuGroup[] {
   if (source.kind === "mention") {
-    const rows = fileRows(source)
-    return rows.length ? [{ id: "files", label: source.label("composer.commandFiles"), rows }] : []
+    const groups: CommandMenuGroup[] = [
+      {
+        id: "sessions",
+        label: source.label("composer.commandSessions"),
+        rows: sessionRows(source),
+      },
+      { id: "files", label: source.label("composer.commandFiles"), rows: fileRows(source) },
+    ]
+    return groups.filter((group) => group.rows.length > 0)
   }
 
   if (source.kind !== "command") return []
@@ -41,6 +56,15 @@ const COMMAND_GROUPS = [
   ["templates", "composer.commandTemplates", TEMPLATE_PREFIX],
   ["skills", "composer.commandSkills", SKILL_PREFIX],
 ] as const
+
+function sessionRows(source: CommandGroupSource): CommandMenuRow[] {
+  return (source.sessions ?? []).slice(0, MENTION_SESSION_LIMIT).map((session) => ({
+    id: `${SESSION_PREFIX}${session.id}`,
+    title: session.title,
+    secondary: session.project,
+    kind: "session",
+  }))
+}
 
 function fileRows(source: CommandGroupSource): CommandMenuRow[] {
   return source.files.map((entry) => {
@@ -91,11 +115,21 @@ function commandRows(source: CommandGroupSource): CommandMenuRow[] {
 }
 
 export function chipForRow(
-  id: string,
+  row: CommandMenuRow,
   start: number,
   triggerLength: number,
 ): ChipInsert | undefined {
+  const { id } = row
   const range = { start, triggerLength }
+
+  if (id.startsWith(SESSION_PREFIX)) {
+    return {
+      kind: "session",
+      sessionId: id.slice(SESSION_PREFIX.length),
+      label: row.title,
+      ...range,
+    }
+  }
 
   if (id.startsWith(BUILTIN_PREFIX)) {
     const name = id.slice(BUILTIN_PREFIX.length)

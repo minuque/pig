@@ -7,7 +7,12 @@ import type {
   TriggerMenuSelectDetails,
 } from "@pig/ui/trigger-menu"
 import type { ComposerCommand } from "@/types/common-type.js"
-import type { ChipInsert, CommandMenuGroup, CommandMenuRow } from "@features/composer/type.js"
+import type {
+  ChipInsert,
+  CommandMenuGroup,
+  CommandMenuRow,
+  MentionSession,
+} from "@features/composer/type.js"
 import { composerTriggerAt } from "@features/composer/lib/composer-trigger.js"
 import {
   BUILTIN_PREFIX,
@@ -23,6 +28,7 @@ export interface CommandMenuOptions {
   inCode(): boolean
   cwd(): string | undefined
   hasSession?(): boolean
+  mentionSessions?(query: string): readonly MentionSession[]
   reloadRevision?(): number | undefined
   markdownOffset(pos: number): number
   onChip(chip: ChipInsert): void
@@ -79,7 +85,8 @@ export function useCommandMenu(options: CommandMenuOptions) {
   async function mentions(query: string, { signal }: { signal: AbortSignal }) {
     const dir = options.cwd()
     const files = dir ? await searchWorkspaceFiles(dir, query, signal).catch(() => []) : []
-    return toData(buildCommandGroups({ ...source("mention", query), files }))
+    const sessions = options.mentionSessions?.(query) ?? []
+    return toData(buildCommandGroups({ ...source("mention", query), files, sessions }))
   }
 
   async function workspaceCommands(query: string) {
@@ -121,7 +128,8 @@ export function useCommandMenu(options: CommandMenuOptions) {
       return
     }
 
-    const chip = chipForRow(id, start, length)
+    const row = rows.value.get(id)
+    const chip = row && chipForRow(row, start, length)
 
     if (chip) options.onChip(chip)
   }
