@@ -91,6 +91,11 @@ export function createPageSession(): SessionContext {
     sessionPending: computed(() => false),
     connected: computed(() => true),
     connectionError: shallowRef<Error>(),
+    reconnecting: shallowRef(false),
+    reconnectFailed: shallowRef(false),
+    reconnectNow: resolved,
+    historyError: computed(() => undefined),
+    retryHistory: resolved,
     transcript: computed(() => (sessionId.value ? transcriptOf(sessionId.value) : [])),
     welcome: computed(() => !sessionId.value),
     loadHistory: resolved,
@@ -136,6 +141,9 @@ export function createPagePreset(): ComposerPresetContext {
 export function createPageNav(session: SessionContext): NavContext {
   const allSessions = ref<SessionMetadata[]>(PAGE_SESSIONS)
   const pinnedIds = ref(new Set(PAGE_PINNED))
+  const settledIds = ref(
+    new Set(PAGE_SESSIONS.filter((item) => pagePlacement(item.id).settled).map((item) => item.id)),
+  )
   const expandedSections = ref(new Set<string>())
   const moreBySection = ref<Record<string, number>>({})
 
@@ -147,7 +155,10 @@ export function createPageNav(session: SessionContext): NavContext {
       return sidebarSections({
         sessions: filter ? allSessions.value.filter(filter) : allSessions.value,
         pinnedOrder: [...pinnedIds.value],
-        placement: pagePlacement,
+        placement: (id: string) => ({
+          ...pagePlacement(id),
+          settled: settledIds.value.has(id),
+        }),
         moreBySection: moreBySection.value,
       })
     })
@@ -177,14 +188,17 @@ export function createPageNav(session: SessionContext): NavContext {
     sectionsFor,
     moreBySection,
     runningSince: shallowRef(PAGE_RUNNING_SINCE),
-    settledIds: computed(
-      () =>
-        new Set(
-          PAGE_SESSIONS.filter((item) => pagePlacement(item.id).settled).map((item) => item.id),
-        ),
-    ),
-    settle: noop,
-    unsettle: noop,
+    settledIds: computed(() => settledIds.value),
+    settle: (id: string) => {
+      if (settledIds.value.has(id)) return
+      settledIds.value = new Set(settledIds.value).add(id)
+    },
+    unsettle: (id: string) => {
+      if (!settledIds.value.has(id)) return
+      const next = new Set(settledIds.value)
+      next.delete(id)
+      settledIds.value = next
+    },
     expandedSections,
     toggleSection: (key: string) => toggle(expandedSections, key),
     expandSection: noop,

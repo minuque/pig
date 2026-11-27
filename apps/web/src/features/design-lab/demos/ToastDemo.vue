@@ -28,15 +28,49 @@
       </div>
     </Variant>
 
+    <Variant title="With modal Dialog">
+      <div class="demo-row">
+        <Button variant="secondary" color="neutral" @click="openModalToast">
+          Open Dialog + Toast
+        </Button>
+      </div>
+
+      <Dialog v-model:open="dialogOpen">
+        <DialogContent>
+          <DialogTitle>Modal overlay check</DialogTitle>
+
+          <DialogDescription>
+            Click Undo or Close on the top-center Toast while this Dialog stays open.
+          </DialogDescription>
+
+          <div class="demo-dialog-foot">
+            <Button variant="secondary" color="neutral" @click="showUndo">
+              Trigger Action Toast
+            </Button>
+
+            <DialogClose>
+              <template #render="{ props: part }">
+                <Button v-bind="part">Close</Button>
+              </template>
+            </DialogClose>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </Variant>
+
     <Toaster />
   </Story>
 </template>
 
 <script setup lang="ts">
+import { onBeforeUnmount, ref } from "vue"
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
-import { Toaster, toastAction, toastProgress, toastStatus } from "@pig/ui/toast"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle } from "@pig/ui/dialog"
+import { Toaster, dismissToast, toastAction, toastProgress, toastStatus } from "@pig/ui/toast"
 import { Button } from "@pig/ui/button"
+
+const dialogOpen = ref(false)
 
 function showInfo() {
   toastStatus("会话在别处已更新，消息未发送，已刷新", { tone: "info" })
@@ -85,6 +119,15 @@ function runProgress(succeed: boolean) {
     else handle.finish({ message: "连接网关超时", tone: "error" })
   }, 1200)
 }
+
+function openModalToast() {
+  dialogOpen.value = true
+  showUndo()
+}
+
+onBeforeUnmount(() => {
+  dismissToast()
+})
 </script>
 
 <style scoped>
@@ -92,5 +135,12 @@ function runProgress(succeed: boolean) {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-xs);
+}
+
+.demo-dialog-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-xs);
+  margin-block-start: var(--space-md);
 }
 </style>
