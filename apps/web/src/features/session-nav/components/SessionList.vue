@@ -57,8 +57,15 @@
             v-on="sectionOn"
           />
 
-          <EmptyState v-else-if="!pinnedSection && !state.moving" :title="t('session.inboxEmpty')">
+          <EmptyState v-else-if="!pinnedSection && !state.moving">
             <template #art><HairlineArt figure="basket" /></template>
+
+            <template #actions>
+              <Button variant="outline" color="neutral" class="new-session" @click="emit('create')">
+                <MessageCirclePlusIcon class="size-icon" />
+                {{ t("session.newSession") }}
+              </Button>
+            </template>
           </EmptyState>
 
           <div class="session-edge-bottom edge-veil-bottom" aria-hidden="true"></div>
@@ -86,6 +93,8 @@ import { computed, onBeforeUnmount, onMounted, onUpdated, shallowRef } from "vue
 import { useI18n } from "@i18n/index.js"
 import { EmptyState } from "@pig/ui/empty-state"
 import HairlineArt from "@components/empty/HairlineArt.vue"
+import { MessageCirclePlusIcon } from "@components/icons/index.js"
+import { Button } from "@pig/ui/button"
 import {
   TransferListsRoot,
   type TransferChangeDetails,
@@ -135,6 +144,7 @@ const emit = defineEmits<{
   delete: [id: string]
   settle: [id: string]
   unsettle: [id: string]
+  create: []
   archive: [id: string]
   reorderPinned: [id: string, toIndex: number]
   pinAt: [id: string, toIndex: number]
@@ -428,6 +438,10 @@ onUpdated(() => {
 
 :global(html[data-session-dragging] [data-drag-preview]) {
   opacity: 0;
+}
+
+.new-session {
+  border-style: dashed;
 }
 
 .session-empty {

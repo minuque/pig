@@ -9,7 +9,7 @@
       <slot name="art" />
     </div>
 
-    <p data-slot="empty-state-title">{{ title }}</p>
+    <p v-if="title" data-slot="empty-state-title">{{ title }}</p>
 
     <p v-if="description && size === 'page'" data-slot="empty-state-description">
       {{ description }}
@@ -46,14 +46,21 @@ const labels = useUiLabels()
 
 const props = withDefaults(
   defineProps<{
-    title: string
+    title?: string | undefined
     description?: string | undefined
     detail?: string | undefined
     size?: EmptyStateSize
     live?: boolean
     class?: HTMLAttributes["class"]
   }>(),
-  { description: undefined, detail: undefined, size: "page", live: false, class: undefined },
+  {
+    title: undefined,
+    description: undefined,
+    detail: undefined,
+    size: "page",
+    live: false,
+    class: undefined,
+  },
 )
 </script>
 
