@@ -39,7 +39,7 @@
               @click="emit('cancelQueueEdit')"
             >
               {{ t("composer.queueEditCancel") }}
-              <Kbd size="s" variant="soft">Esc</Kbd>
+              <Kbd variant="soft">Esc</Kbd>
             </Button>
           </div>
 
@@ -66,17 +66,19 @@
 
               <template v-else-if="props.running">
                 <span>{{ t("composer.placeholderPrefix") }}</span>
-                <Kbd size="s" variant="soft">Enter</Kbd>
+                <Kbd variant="soft">Enter</Kbd>
                 <span>{{ t("composer.placeholderQueue") }}</span>
-                <Kbd size="s" variant="soft">{{ modKey }} + Enter</Kbd>
+                <Kbd variant="soft">{{ modKey }}</Kbd>
+                <span>+</span>
+                <Kbd variant="soft">Enter</Kbd>
                 <span>{{ t("composer.placeholderSteer") }}</span>
               </template>
 
               <template v-else>
                 <span>{{ t("composer.placeholderPrefix") }}</span>
-                <Kbd size="s" variant="soft">/</Kbd>
+                <Kbd variant="soft">/</Kbd>
                 <span>{{ t("composer.placeholderCommand") }}</span>
-                <Kbd size="s" variant="soft">@</Kbd>
+                <Kbd variant="soft">@</Kbd>
                 <span>{{ t("composer.placeholderMention") }}</span>
               </template>
             </div>
