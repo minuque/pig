@@ -70,6 +70,7 @@ export {
   SparklesIcon,
   SquareCodeIcon,
   SquareIcon,
+  SquareTerminalIcon,
   SquarePaddingLeftIcon,
   StarIcon,
   SunIcon,

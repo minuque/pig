@@ -62,7 +62,7 @@ import {
   type TriggerMenuDataItem,
 } from "@pig/ui/trigger-menu"
 import {
-  SquareCodeIcon,
+  SquareTerminalIcon,
   FileTextIcon,
   FolderIcon,
   ZapIcon,
@@ -73,7 +73,8 @@ import type { CommandMenuRow } from "@features/composer/type.js"
 
 const KIND_ICONS: Record<string, Component> = {
   skill: ZapIcon,
-  builtin: SquareCodeIcon,
+  builtin: SquareTerminalIcon,
+  template: SquareTerminalIcon,
   directory: FolderIcon,
   session: MessageSquareIcon,
 }

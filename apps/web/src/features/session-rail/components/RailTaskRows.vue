@@ -7,7 +7,7 @@
         :aria-label="t('rail.openTask', { name: task.description })"
         @click="emit('open', task.id)"
       >
-        <component :is="task.kind === 'agent' ? BotIcon : SquareCodeIcon" />
+        <component :is="task.kind === 'agent' ? BotIcon : SquareTerminalIcon" />
 
         <OverflowTooltip
           class="task-row-name"
@@ -68,7 +68,7 @@ import { OverflowTooltip } from "@pig/ui/tooltip"
 import {
   BotIcon,
   CircleCheckIcon,
-  SquareCodeIcon,
+  SquareTerminalIcon,
   SparklesIcon,
   SquareIcon,
 } from "@components/icons/index.js"
