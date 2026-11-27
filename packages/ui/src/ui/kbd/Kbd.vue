@@ -20,7 +20,7 @@ const props = withDefaults(
   defineProps<{
     class?: HTMLAttributes["class"]
     size?: Size
-    variant?: "surface" | "soft"
+    variant?: "surface" | "soft" | "outline"
   }>(),
   { size: "m", variant: "surface", class: undefined },
 )
@@ -92,6 +92,13 @@ const props = withDefaults(
 
 :where([data-slot="kbd"][data-variant="soft"]:is(:any-link, button):active:not([data-open])) {
   background-color: var(--bg-emphasis);
+}
+
+:where([data-slot="kbd"][data-variant="outline"]) {
+  border: var(--border-width) solid var(--border-strong);
+  border-block-end-width: calc(var(--border-width) * 2);
+  color: var(--fg-muted);
+  font-weight: var(--font-weight-medium);
 }
 
 :where([data-slot="kbd"]:is(:any-link, button):focus-visible) {
