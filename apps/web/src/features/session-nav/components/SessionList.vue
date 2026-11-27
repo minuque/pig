@@ -129,6 +129,8 @@ const emit = defineEmits<{
   delete: [id: string]
   settle: [id: string]
   unsettle: [id: string]
+  settleMany: [ids: readonly string[]]
+  unsettleMany: [ids: readonly string[]]
   archive: [id: string]
   reorderPinned: [id: string, toIndex: number]
   pinAt: [id: string, toIndex: number]
@@ -193,10 +195,10 @@ const sweep = useRowSweep({
   list: listEl,
   sections: () => props.sections,
   apply: (ids, settled) => {
-    for (const id of ids) {
-      if (settled) emit("unsettle", id)
-      else emit("settle", id)
-    }
+    if (ids.length === 0) return
+
+    if (settled) emit("unsettleMany", ids)
+    else emit("settleMany", ids)
   },
 })
 const sectionOn = {

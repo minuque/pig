@@ -6,6 +6,12 @@ export type UiLocale = "en" | "zh-CN"
 
 export type ChatWidth = "comfortable" | "wide" | "full"
 
+export interface SystemNotificationOptions {
+  title: string
+  body?: string | undefined
+  onClick?: (() => void) | undefined
+}
+
 const locale = computed(() => userPreferences.value.locale)
 const chatWidth = computed(() => userPreferences.value.chatWidth)
 const notifyOn = computed(() => userPreferences.value.notify)
@@ -63,19 +69,45 @@ export function useGeneralPrefs() {
   }
 }
 
-export async function notifyTurnDone(): Promise<void> {
+function windowUnfocused(): boolean {
+  if (typeof document === "undefined") return false
+  return Boolean(document.hidden) || !document.hasFocus()
+}
+
+export async function notifySystem(options: SystemNotificationOptions): Promise<void> {
   if (
     !notifyOn.value ||
     typeof Notification === "undefined" ||
-    Notification.permission !== "granted"
+    Notification.permission !== "granted" ||
+    !windowUnfocused()
   )
     return
 
   try {
-    new Notification(t("settings.notifyTurnDone"), {
-      body: t("settings.notifyTurnDoneBody"),
-    })
+    const notice = new Notification(
+      options.title,
+      options.body ? { body: options.body } : undefined,
+    )
+
+    if (options.onClick) {
+      const click = options.onClick
+      notice.onclick = () => {
+        window.focus()
+        click()
+        notice.close()
+      }
+    }
   } catch {
     // 外部：桌面壳拒绝通知时会抛错，不能打断回合收尾
   }
+}
+
+export async function notifyTurnDone(
+  options: Partial<SystemNotificationOptions> = {},
+): Promise<void> {
+  await notifySystem({
+    title: options.title ?? t("settings.notifyTurnDone"),
+    body: options.body ?? t("settings.notifyTurnDoneBody"),
+    onClick: options.onClick,
+  })
 }

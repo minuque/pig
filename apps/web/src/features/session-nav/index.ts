@@ -26,6 +26,8 @@ import type {
 
 export { workspaceName } from "@features/session-nav/lib/format.js"
 
+export { default as ProjectIcon } from "@features/session-nav/components/ProjectIcon.vue"
+
 export {
   SESSION_DROP_EVENT,
   sessionDropTargetAttrs,

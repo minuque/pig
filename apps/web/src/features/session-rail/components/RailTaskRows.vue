@@ -1,37 +1,43 @@
 <template>
   <div class="task-rows">
-    <div v-for="task in shownRunning" :key="task.id" class="task-row">
-      <button
-        type="button"
-        class="task-row-open"
-        :aria-label="t('rail.openTask', { name: task.description })"
-        @click="emit('open', task.id)"
-      >
-        <component :is="task.kind === 'agent' ? BotIcon : SquareTerminalIcon" />
+    <template v-for="task in shownRunning" :key="task.id">
+      <div class="task-row">
+        <button
+          type="button"
+          class="task-row-open"
+          :aria-label="t('rail.openTask', { name: task.description })"
+          @click="emit('open', task.id)"
+        >
+          <component :is="task.kind === 'agent' ? BotIcon : SquareTerminalIcon" />
 
-        <OverflowTooltip
-          class="task-row-name"
-          :class="{ shimmer: task.status === 'running' }"
-          :text="task.description"
-        />
+          <OverflowTooltip
+            class="task-row-name"
+            :class="{ shimmer: task.status === 'running' }"
+            :text="task.description"
+          />
 
-        <span class="task-row-time">{{ taskElapsed(task, now.getTime()) }}</span>
-      </button>
+          <span class="task-row-time">{{ taskElapsed(task, now.getTime()) }}</span>
+        </button>
 
-      <IconButton
-        v-if="stoppable.has(task.id)"
-        type="button"
-        size="s"
-        variant="ghost"
-        color="neutral"
-        class="task-stop"
-        :aria-label="t('rail.stopTask')"
-        :disabled="stopping.has(task.id)"
-        @click="emit('stop', task.id)"
-      >
-        <SquareIcon class="size-icon" fill="currentColor" />
-      </IconButton>
-    </div>
+        <IconButton
+          v-if="stoppable.has(task.id)"
+          type="button"
+          size="s"
+          variant="ghost"
+          color="neutral"
+          class="task-stop"
+          :aria-label="t('rail.stopTask')"
+          :disabled="stopping.has(task.id)"
+          @click="emit('stop', task.id)"
+        >
+          <SquareIcon class="size-icon" fill="currentColor" />
+        </IconButton>
+      </div>
+
+      <p v-if="stopErrors?.get(task.id)" class="task-stop-error" role="alert">
+        {{ stopErrors.get(task.id) }}
+      </p>
+    </template>
 
     <button
       v-if="moreCount > 0"
@@ -79,6 +85,7 @@ const props = defineProps<{
   sections: TaskSections
   stoppable: ReadonlySet<string>
   stopping: ReadonlySet<string>
+  stopErrors?: ReadonlyMap<string, string> | undefined
 }>()
 const emit = defineEmits<{ open: [taskId: string | undefined]; stop: [taskId: string] }>()
 const { t } = useI18n()
@@ -152,5 +159,13 @@ const moreCount = computed(() => props.sections.running.length - shownRunning.va
   flex-shrink: 0;
   color: var(--fg-secondary);
   font-variant-numeric: tabular-nums;
+}
+
+.task-stop-error {
+  margin: 0;
+  padding-inline: var(--space-2xs);
+  color: var(--danger-text);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
 }
 </style>

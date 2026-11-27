@@ -62,6 +62,10 @@
         <Spinner size="m" />
       </div>
 
+      <p v-if="!searching && searchFailed" class="file-search-empty" role="alert">
+        {{ t("files.searchFailed") }}
+      </p>
+
       <p v-else-if="!searching && !names.length && !matches.length" class="file-search-empty">
         {{ t("files.noMatches") }}
       </p>
@@ -91,6 +95,7 @@ const matches = shallowRef<ContentSearchMatch[]>([])
 const reasons = shallowRef<SearchTruncation[]>([])
 const notice = computed(() => searchLimitNotice(reasons.value, matches.value.length))
 const searching = shallowRef(false)
+const searchFailed = shallowRef(false)
 const parent = (path: string) => path.split("/").slice(0, -1).join("/")
 const field = useTemplateRef<{ focus: () => void }>("field")
 
@@ -109,6 +114,7 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
   names.value = []
   matches.value = []
   reasons.value = []
+  searchFailed.value = false
 
   if (!text || !cwd) return
   searching.value = true
@@ -117,14 +123,18 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
     .then((entries) => {
       if (!signal.aborted) names.value = entries.filter((entry) => entry.kind === "file")
     })
-    .catch(() => undefined)
+    .catch(() => {
+      if (!signal.aborted) searchFailed.value = true
+    })
   const contents = searchWorkspaceContents(cwd, text, signal)
     .then((result) => {
       if (signal.aborted) return
       matches.value = result.matches
       reasons.value = result.truncationReasons
     })
-    .catch(() => undefined)
+    .catch(() => {
+      if (!signal.aborted) searchFailed.value = true
+    })
 
   await Promise.all([files, contents])
 

@@ -34,7 +34,12 @@
     <audio v-else-if="kind === 'audio'" :src="rawUrl" controls class="file-viewer-audio" />
     <iframe v-else-if="kind === 'pdf'" :src="rawUrl" :title="path" class="file-viewer-pdf" />
     <div v-else-if="loading" class="file-viewer-status"><Spinner size="m" /></div>
-    <FileNotice v-else-if="failure" :text="failure" />
+    <FileNotice
+      v-else-if="failure"
+      :text="failure"
+      :action="t('common.retry')"
+      @action="load(false)"
+    />
 
     <FileNotice
       v-else-if="loaded?.binary && loaded.content === undefined"

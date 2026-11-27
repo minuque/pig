@@ -4,25 +4,15 @@ export type AlertKind = "done" | "error" | "notify" | "changed"
 
 export type AlertTone = "success" | "error" | "info" | "warning"
 
-export interface PaneAlert {
-  kind: AlertKind
-  tone: AlertTone
-  title: string
-  body?: string | undefined
-}
-
-export type AlertRoute = "island" | "toast" | "none"
-
-const SEEN_IN_CHAT = new Set<AlertKind>(["done", "error"])
+export type AlertRoute = "toast" | "notification" | "none"
 
 export function routeAlert(kind: AlertKind, view: PaneView | undefined): AlertRoute {
-  if (!view) return kind === "done" ? "none" : "toast"
-  return view === "chat" && SEEN_IN_CHAT.has(kind) ? "none" : "island"
-}
+  if (kind === "changed") return "toast"
 
-export const ALERT_TTL: Record<AlertKind, number> = {
-  done: 4000,
-  error: 6000,
-  notify: 4000,
-  changed: 4000,
+  if (kind === "notify") return view ? "toast" : "notification"
+
+  if (view === "chat") return "none"
+
+  if (view) return "notification"
+  return kind === "done" ? "none" : "notification"
 }

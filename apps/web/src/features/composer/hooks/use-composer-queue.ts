@@ -17,6 +17,7 @@ export interface QueuedPrompt {
 export interface ComposerQueueApi {
   items: ComputedRef<QueuedPrompt[]>
   enqueue(text: string, attachments?: ComposerAttachmentBatch, preview?: ComposerAttachment[]): void
+  insertAt(item: QueuedPrompt, index: number): void
   update(patch: QueueDraftPatch): void
   remove(id: string): void
   reorder(id: string, toIndex: number): void
@@ -58,6 +59,17 @@ export function useComposerQueue(store?: SharedBuckets): ComposerQueueApi {
         createdAt: Date.now(),
       },
     ]
+  }
+
+  function insertAt(item: QueuedPrompt, index: number) {
+    const current = bucket().value
+
+    if (current.some((entry) => entry.id === item.id)) return
+    const next = [...current]
+    const at = Math.max(0, Math.min(next.length, index))
+
+    next.splice(at, 0, item)
+    bucket().value = next
   }
 
   function update(patch: QueueDraftPatch) {
@@ -125,6 +137,7 @@ export function useComposerQueue(store?: SharedBuckets): ComposerQueueApi {
   return {
     items,
     enqueue,
+    insertAt,
     update,
     remove,
     reorder,

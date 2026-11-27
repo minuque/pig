@@ -57,6 +57,7 @@ import { IconButton } from "@pig/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { useI18n } from "@i18n/index.js"
 
+const props = defineProps<{ hasRunningSessions?: boolean | undefined }>()
 const platform = document.documentElement.dataset.pigDesktopPlatform
 const bridge = platform === "win32" || platform === "linux" ? window.pigDesktop?.window : undefined
 const { t } = useI18n()
@@ -88,7 +89,7 @@ const controls = computed(() => [
     label: t("window.close"),
     icon: XIcon,
     iconClass: "size-icon-lg",
-    run: () => (closeOpen.value = true),
+    run: () => (props.hasRunningSessions ? (closeOpen.value = true) : bridge?.close()),
   },
 ])
 </script>

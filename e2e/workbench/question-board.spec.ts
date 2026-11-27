@@ -124,7 +124,7 @@ test("agent 提问：两题切题、第二题直接回复，提交后作为一�
   await expect(board).toHaveCount(0)
 })
 
-test("后台会话收到扩展提问：侧栏显示等你回答，toast 点打开后在那个会话里显示浮板", async ({
+test("后台会话收到扩展提问：侧栏显示等你回答，通知卡片点打开后在那个会话里显示浮板", async ({
   page,
   navGateway,
 }) => {
@@ -152,10 +152,10 @@ test("后台会话收到扩展提问：侧栏显示等你回答，toast 点打�
   })
 
   await expect(page.locator(`.session-row[data-id="${background}"]`)).toContainText("等你回答")
-  const toast = page.locator('[data-slot="toast"]', { hasText: "等你回答" })
-  await expect(toast).toBeVisible()
-  await toast.getByRole("button", { name: "打开" }).click()
+  const card = page.locator('[data-slot="notification-card"]', { hasText: "等你回答" })
+  await expect(card).toBeVisible()
+  await card.getByRole("button", { name: "打开" }).click()
   await expect(page).toHaveURL(new RegExp(`/sessions/${background}$`))
   await expect(page.locator(".question-board").getByRole("option", { name: /prod/ })).toBeVisible()
-  await expect(toast).toHaveCount(0)
+  await expect(card).toHaveCount(0)
 })

@@ -41,6 +41,8 @@
       {{ t("composer.attachmentRetry") }}
     </Button>
 
+    <span v-if="status === 'error' && failure" class="chip-error" role="alert">{{ failure }}</span>
+
     <IconButton
       type="button"
       size="s"
@@ -184,6 +186,25 @@ const { t } = useI18n()
 
 .retry {
   flex: none;
+}
+
+.chip-error {
+  max-inline-size: 200px;
+  overflow: hidden;
+  color: var(--danger-text);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip--media .chip-error {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline: 0;
+  max-inline-size: none;
+  padding-inline: var(--space-2xs);
+  background: var(--danger-subtle);
 }
 
 .remove {

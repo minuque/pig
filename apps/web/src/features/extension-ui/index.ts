@@ -1,11 +1,18 @@
 import { inject, provide, shallowRef, watch, type InjectionKey } from "vue"
 import type { ExtensionUiDialog, ExtensionUiRequest, ExtensionUiResponse } from "@pig/protocol"
 import type { useGatewayClient } from "@client/gateway-connection.js"
-import { notify } from "@pig/ui/toast"
-import type { PaneAlerts } from "@features/panel-host/index.js"
-import type { SessionContext } from "@features/session/index.js"
+import { t } from "@i18n/index.js"
+import { pushNotification } from "@pig/ui/notification"
+import { toastStatus } from "@pig/ui/toast"
+import type { PanelHost } from "@features/panel-host/index.js"
+import { sessionTitle, untitledSession, type SessionContext } from "@features/session/index.js"
 
 type Pending = { sessionId: string; request: ExtensionUiDialog }
+
+export interface ExtensionUiHostOptions {
+  setTitle?: ((title: string) => void) | undefined
+  openSession?: ((sessionId: string) => void) | undefined
+}
 
 const DIALOGS = new Set(["select", "confirm", "input", "editor"])
 const isDialog = (request: ExtensionUiRequest): request is ExtensionUiDialog =>
@@ -14,7 +21,8 @@ const isDialog = (request: ExtensionUiRequest): request is ExtensionUiDialog =>
 function useExtensionUiState(
   pi: ReturnType<typeof useGatewayClient>,
   session: SessionContext,
-  alerts: PaneAlerts,
+  host: PanelHost,
+  options: ExtensionUiHostOptions = {},
 ) {
   const dialogs = shallowRef<readonly Pending[]>([])
   const statuses = shallowRef(new Map<string, ReadonlyMap<string, string>>())
@@ -43,16 +51,36 @@ function useExtensionUiState(
     }
 
     switch (request.method) {
-      case "notify":
-        if (
-          alerts.route(sessionId, {
-            kind: "notify",
-            tone: request.notifyType ?? "info",
-            title: request.message,
-          }) === "toast"
-        )
-          notify(request.message, request.notifyType ?? "info")
+      case "notify": {
+        const tone = request.notifyType ?? "info"
+
+        if (host.routeAlert(sessionId, "notify") === "toast") {
+          toastStatus(request.message, { tone })
+          return
+        }
+
+        const meta = pi.sessions.value?.find((item) => item.id === sessionId)
+        const title = meta ? sessionTitle(meta) : untitledSession()
+        pushNotification({
+          title,
+          body: request.message,
+          tone,
+          sessionId,
+          avatar: meta?.cwd ? { kind: "project", cwd: meta.cwd } : { kind: "brand" },
+          ...(options.openSession
+            ? {
+                actions: [
+                  {
+                    label: t("session.openSession"),
+                    primary: true,
+                    run: () => options.openSession?.(sessionId),
+                  },
+                ],
+              }
+            : {}),
+        })
         return
+      }
       case "setStatus":
         statuses.value = patched(statuses.value, sessionId, request.statusKey, request.statusText)
         return
@@ -60,7 +88,8 @@ function useExtensionUiState(
         widgets.value = patched(widgets.value, sessionId, request.widgetKey, request.widgetLines)
         return
       case "setTitle":
-        document.title = request.title
+        if (options.setTitle) options.setTitle(request.title)
+        else document.title = request.title
         return
       case "set_editor_text":
         if (session.sessionId.value === sessionId) session.prompt.value = request.text
@@ -93,9 +122,10 @@ const key: InjectionKey<ExtensionUiContext> = Symbol("extension-ui")
 export function provideExtensionUi(
   pi: ReturnType<typeof useGatewayClient>,
   session: SessionContext,
-  alerts: PaneAlerts,
+  host: PanelHost,
+  options?: ExtensionUiHostOptions,
 ) {
-  const state = useExtensionUiState(pi, session, alerts)
+  const state = useExtensionUiState(pi, session, host, options)
   provide(key, state)
   return state
 }

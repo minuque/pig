@@ -174,6 +174,7 @@ import {
   AlertDialogTitle,
 } from "@pig/ui/alert-dialog"
 import { Button } from "@pig/ui/button"
+import { toastStatus } from "@pig/ui/toast"
 import { Badge } from "@pig/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
 import { Field, FieldDescription, FieldLabel } from "@pig/ui/field"
@@ -269,6 +270,7 @@ async function save() {
 
   try {
     await saveCustomProvider(result.payload)
+    toastStatus(t("settings.models.providerSaved"), { tone: "success" })
     emit("saved", result.payload.id)
   } catch (cause) {
     actionError.value = errorMessage(cause)
@@ -283,6 +285,7 @@ async function remove() {
 
   try {
     await deleteCustomProvider(props.provider.id)
+    toastStatus(t("settings.models.providerDeleted"), { tone: "success" })
     emit("deleted", props.provider.id)
   } catch (cause) {
     actionError.value = errorMessage(cause)

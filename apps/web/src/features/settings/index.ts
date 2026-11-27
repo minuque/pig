@@ -1,4 +1,9 @@
-export { useGeneralPrefs, notifyTurnDone } from "@features/settings/hooks/use-general-prefs.js"
+export {
+  useGeneralPrefs,
+  notifySystem,
+  notifyTurnDone,
+  type SystemNotificationOptions,
+} from "@features/settings/hooks/use-general-prefs.js"
 
 export type { ChatWidth, UiLocale } from "@features/settings/hooks/use-general-prefs.js"
 

@@ -21,6 +21,8 @@ export { sessionTitle, untitledSession } from "@features/session/lib/session-tit
 
 export { endedCleanly } from "@features/session/lib/ended-cleanly.js"
 
+export { isChangedElsewhere } from "@features/session/hooks/abortable-open.js"
+
 export type { BackgroundIdleResult } from "@features/session/hooks/use-live-subscriptions.js"
 
 export { useSessionLifecycle } from "@features/session/hooks/use-session.js"

@@ -1,9 +1,15 @@
 <template>
+  <span class="sr-only" role="status" aria-live="polite">
+    {{
+      status === "copied" ? t("common.copied") : status === "error" ? t("common.copyFailed") : ""
+    }}
+  </span>
+
   <Tooltip>
     <TooltipTrigger>
       <template #render="{ props: part }">
         <IconButton
-          v-bind="part"
+          v-bind="{ ...part, ...$attrs }"
           type="button"
           size="s"
           variant="ghost"
@@ -29,6 +35,8 @@ import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@pig/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { CheckIcon, CopyIcon } from "@components/icons/index.js"
+
+defineOptions({ inheritAttrs: false })
 
 const props = defineProps<{ text: string; label?: string }>()
 const { t } = useI18n()

@@ -41,7 +41,7 @@
       </ResizablePanel>
     </Resizable>
 
-    <WindowControls />
+    <WindowControls :has-running-sessions="hasRunningSessions" />
   </div>
 </template>
 
@@ -66,6 +66,8 @@ import {
 } from "@components/layout/hooks/use-left-panel.js"
 import { ResizeHandle } from "@pig/ui/resize-handle"
 import WindowControls from "@components/layout/WindowControls.vue"
+
+defineProps<{ hasRunningSessions?: boolean | undefined }>()
 
 defineSlots<{
   default(): unknown

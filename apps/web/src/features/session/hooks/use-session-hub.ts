@@ -1,4 +1,5 @@
 import { reactive, watch } from "vue"
+import type { Task } from "@/types/common-type.js"
 import type { GatewaySession } from "@client/gateway-session.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
 import { createAbortableOpen } from "@features/session/hooks/abortable-open.js"
@@ -23,10 +24,12 @@ export function createSessionHub(
   const { raceRemoteOpen, discard } = createAbortableOpen()
   const live = useLiveSubscriptions({ history, discard })
   const states = reactive(new Map<string, ReturnType<typeof sessionState>>())
+  let backgroundSendError: ((id: string, message: string) => void) | undefined
   const backgroundSend = createBackgroundSender({
     states,
     backgroundSubscription: live.backgroundSubscription,
     transcriptFor: history.transcriptFor,
+    onError: (id, message) => backgroundSendError?.(id, message),
   })
   const foregrounds = new Set<ForegroundEntry>()
 
@@ -66,10 +69,20 @@ export function createSessionHub(
     live.setBackgroundIdle(handler)
   }
 
+  function setBackgroundSendError(handler?: (id: string, message: string) => void) {
+    backgroundSendError = handler
+  }
+
+  function setTaskObserver(handler?: (sessionId: string, tasks: readonly Task[]) => void) {
+    live.setTaskObserver(handler)
+  }
+
   async function dispose() {
     stopClientSync()
     pi.bindAttachedReconnect()
     setBackgroundIdle()
+    setBackgroundSendError()
+    setTaskObserver()
 
     for (const sub of live.takeBackground()) await discard(sub.session)
   }
@@ -84,6 +97,8 @@ export function createSessionHub(
     registerForeground,
     claim,
     setBackgroundIdle,
+    setBackgroundSendError,
+    setTaskObserver,
     dispose,
   }
 }

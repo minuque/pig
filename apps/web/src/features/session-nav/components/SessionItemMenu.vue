@@ -30,7 +30,7 @@
 
     <ContextMenuSeparator />
 
-    <ContextMenuItem color="danger" @select="emit('delete')">
+    <ContextMenuItem color="danger" :disabled="working" @select="emit('delete')">
       <TrashIcon />
       {{ t("session.deleteTitle") }}
     </ContextMenuItem>

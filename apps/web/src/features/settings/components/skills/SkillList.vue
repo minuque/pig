@@ -11,7 +11,7 @@
       @add="emit('add')"
     />
 
-    <p v-if="state.error.value" class="list-note">{{ state.error.value }}</p>
+    <Banner v-if="state.error.value" color="danger" size="s">{{ state.error.value }}</Banner>
 
     <section v-for="group in groups" :key="group.dir" class="skill-group">
       <h3 class="group-path">{{ group.dir }}</h3>
@@ -119,6 +119,7 @@ import ScopeToolbar from "@features/settings/components/ScopeToolbar.vue"
 import type { SkillsState } from "@features/settings/hooks/use-skills.js"
 import { useI18n } from "@i18n/index.js"
 import { Badge } from "@pig/ui/badge"
+import { Banner } from "@pig/ui/banner"
 import { CardList, CardRow } from "@pig/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@pig/ui/collapsible"
 import { Switch } from "@pig/ui/switch"

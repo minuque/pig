@@ -9,6 +9,7 @@
 
   <SettingsDialog v-model:open="settingsOpen" />
   <Toaster />
+  <NotificationStack />
 
   <Button variant="secondary" color="neutral" size="s" class="lab-back">
     <template #render="{ props: part }">
@@ -23,12 +24,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, provide, ref, shallowRef } from "vue"
+import { computed, onBeforeUnmount, onMounted, provide, ref, shallowRef } from "vue"
 import { onBeforeRouteLeave, RouterLink } from "vue-router"
 import { ArrowLeftIcon } from "@components/icons/index.js"
 import { Button } from "@pig/ui/button"
 import AppLayout from "@components/layout/AppLayout.vue"
-import { Toaster } from "@pig/ui/toast"
+import { NotificationStack, pushNotification, resetNotifications } from "@pig/ui/notification"
+import { Toaster, dismissToast, toastStatus } from "@pig/ui/toast"
 import { provideSharedBuckets } from "@features/composer/hooks/use-session-buckets.js"
 import { useComposerQueue } from "@features/composer/hooks/use-composer-queue.js"
 import { provideExtensionUi } from "@features/extension-ui/index.js"
@@ -61,14 +63,26 @@ provide(navKey, nav)
 const extensionUi = provideExtensionUi(
   { client: shallowRef() } as unknown as Parameters<typeof provideExtensionUi>[0],
   session as unknown as Parameters<typeof provideExtensionUi>[1],
-  host.alerts,
+  host,
 )
 
 extensionUi.dialogs.value = [{ sessionId: PAGE_SESSION_ID, request: PAGE_DIALOG }]
 
-onMounted(() =>
-  host.alerts.route(PAGE_SESSION_ID, { kind: "notify", tone: "info", title: "lint 规则已更新" }),
-)
+onMounted(() => {
+  toastStatus("lint 规则已更新", { tone: "info" })
+  pushNotification({
+    id: "lab-bg-done",
+    title: "pi-cc-extensions",
+    body: "这一轮已完成",
+    tone: "success",
+    avatar: { kind: "brand" },
+  })
+})
+
+onBeforeUnmount(() => {
+  dismissToast()
+  resetNotifications()
+})
 
 useComposerQueue(buckets).enqueue("跑完测试后截一张 compact 的图")
 

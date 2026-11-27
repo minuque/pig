@@ -1,5 +1,5 @@
 <template>
-  <Collapsible :open="open" class="timeline-alert" :data-level="row.level" role="alert">
+  <Collapsible :open="open" class="timeline-alert" :data-level="row.level">
     <button type="button" class="alert-head" :aria-expanded="open" @click="emit('toggle', !open)">
       <component :is="icon" class="size-icon alert-icon" aria-hidden="true" />
       <span class="alert-label">{{ label }}</span>

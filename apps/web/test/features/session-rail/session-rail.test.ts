@@ -15,15 +15,21 @@ describe("停止任务：请求在飞时按钮置灰，失败后能再点", () =
     expect(stopping.value.has("t")).toBe(true)
   })
 
-  it("请求失败：不再置灰", async () => {
-    const { stopping, stopTask } = useTaskStopping(async () => {
-      throw new Error("网关拒绝")
+  it("请求失败：不再置灰，并记录就地错误，重试时清除", async () => {
+    let fail = true
+    const { stopping, stopErrors, stopTask } = useTaskStopping(async () => {
+      if (fail) throw new Error("网关拒绝")
     })
     const pending = stopTask("t")
 
     expect(stopping.value.has("t")).toBe(true)
     await pending
     expect(stopping.value.has("t")).toBe(false)
+    expect(stopErrors.value.has("t")).toBe(true)
+
+    fail = false
+    await stopTask("t")
+    expect(stopErrors.value.has("t")).toBe(false)
   })
 })
 

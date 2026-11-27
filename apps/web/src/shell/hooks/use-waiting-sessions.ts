@@ -1,10 +1,11 @@
 import { computed, watch, type Ref } from "vue"
 import { t } from "@i18n/index.js"
-import { dismissNotice, notify } from "@pig/ui/toast"
+import { pushNotification, resolveNotification } from "@pig/ui/notification"
 import type { SessionMetadata, TranscriptItem } from "@/types/common-type.js"
 import type { ExtensionUiContext } from "@features/extension-ui/index.js"
 import { askBoard } from "@features/extension-ui/lib/board.js"
 import { sessionTitle, untitledSession } from "@features/session/index.js"
+import { notifySystem } from "@features/settings/index.js"
 
 type WaitingKind = "confirm" | "answer"
 
@@ -46,15 +47,31 @@ export function useWaitingNotices(
       const before = previous?.[0] ?? new Map<string, WaitingKind>()
 
       for (const id of before.keys())
-        if (!next.has(id) || shown.includes(id)) dismissNotice(noticeId(id))
+        if (!next.has(id) || shown.includes(id)) resolveNotification(noticeId(id))
 
       for (const [id, kind] of next) {
         if (before.get(id) === kind || shown.includes(id)) continue
         const meta = deps.sessions.value.find((item) => item.id === id)
-        notify(meta ? sessionTitle(meta) : untitledSession(), "waiting", {
+        const sessionName = meta ? sessionTitle(meta) : untitledSession()
+        const waitingLabel = t(
+          kind === "confirm" ? "session.waitingConfirm" : "session.waitingAnswer",
+        )
+
+        pushNotification({
           id: noticeId(id),
-          title: t(kind === "confirm" ? "session.waitingConfirm" : "session.waitingAnswer"),
-          action: { label: t("session.openSession"), run: () => deps.open(id) },
+          title: waitingLabel,
+          body: sessionName,
+          tone: "warning",
+          keepUntilResolved: true,
+          sessionId: id,
+          avatar: meta?.cwd ? { kind: "project", cwd: meta.cwd } : { kind: "brand" },
+          actions: [{ label: t("session.openSession"), primary: true, run: () => deps.open(id) }],
+        })
+
+        void notifySystem({
+          title: waitingLabel,
+          body: sessionName,
+          onClick: () => deps.open(id),
         })
       }
     },

@@ -1,12 +1,13 @@
 <template>
+  <span class="sr-only" role="status" aria-live="polite" aria-atomic="true">
+    {{ shown ? (detail ? `${label} · ${detail}` : label) : "" }}
+  </span>
+
   <div
     v-if="shown"
     class="turn-status"
     :data-tone="retry ? 'warning' : undefined"
     data-testid="turn-status"
-    role="status"
-    aria-live="polite"
-    aria-atomic="true"
   >
     <RotateCcwIcon v-if="retry" class="turn-status-icon size-icon-sm" aria-hidden="true" />
 

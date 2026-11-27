@@ -1,12 +1,18 @@
 import { ref } from "vue"
-import { notify } from "@pig/ui/toast"
 import { t } from "@i18n/index.js"
 
 export function useTaskStopping(stop: (taskId: string) => Promise<void>) {
   const stopping = ref<ReadonlySet<string>>(new Set())
+  const stopErrors = ref<ReadonlyMap<string, string>>(new Map())
 
   async function stopTask(taskId: string) {
     stopping.value = new Set(stopping.value).add(taskId)
+
+    if (stopErrors.value.has(taskId)) {
+      const cleared = new Map(stopErrors.value)
+      cleared.delete(taskId)
+      stopErrors.value = cleared
+    }
 
     try {
       await stop(taskId)
@@ -14,9 +20,12 @@ export function useTaskStopping(stop: (taskId: string) => Promise<void>) {
       const next = new Set(stopping.value)
       next.delete(taskId)
       stopping.value = next
-      notify(t("rail.stopFailed"), "error")
+
+      const nextErrors = new Map(stopErrors.value)
+      nextErrors.set(taskId, t("rail.stopFailed"))
+      stopErrors.value = nextErrors
     }
   }
 
-  return { stopping, stopTask }
+  return { stopping, stopErrors, stopTask }
 }

@@ -37,6 +37,7 @@ const LAYOUT: { id: string; title: Label; items: (string | [string, Label])[] }[
     items: [
       "Banner",
       "Toast",
+      "Notification",
       "Badge",
       "StatusIndicator",
       "RollText",

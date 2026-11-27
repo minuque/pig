@@ -229,6 +229,122 @@
   }
 }
 
+@keyframes toast-enter {
+  from {
+    opacity: 0;
+    translate: 0 -10px;
+    scale: 0.96;
+    filter: blur(8px);
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+    scale: 1;
+    filter: blur(0);
+  }
+}
+
+@keyframes toast-leave {
+  from {
+    opacity: 1;
+    translate: 0 0;
+    filter: blur(0);
+  }
+
+  to {
+    opacity: 0;
+    translate: 0 -6px;
+    filter: blur(6px);
+  }
+}
+
+@keyframes toast-content-out {
+  from {
+    opacity: 1;
+    translate: 0 0;
+    filter: blur(0);
+  }
+
+  to {
+    opacity: 0;
+    translate: 0 -5px;
+    filter: blur(4px);
+  }
+}
+
+@keyframes toast-content-in {
+  from {
+    opacity: 0;
+    translate: 0 5px;
+    filter: blur(4px);
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+    filter: blur(0);
+  }
+}
+
+@keyframes toast-icon-in {
+  from {
+    opacity: 0;
+    scale: 0.5;
+    rotate: -40deg;
+    filter: blur(4px);
+  }
+
+  to {
+    opacity: 1;
+    scale: 1;
+    rotate: 0deg;
+    filter: blur(0);
+  }
+}
+
+@keyframes toast-sheen {
+  from {
+    translate: -120% 0;
+  }
+
+  to {
+    translate: 120% 0;
+  }
+}
+
+@keyframes toast-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes notif-enter {
+  from {
+    opacity: 0;
+    translate: 0 -56px;
+    filter: blur(4px);
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+    filter: blur(0);
+  }
+}
+
+@keyframes notif-dismiss {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateX(48px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .press-scale:not(:disabled):active {
     scale: 1;

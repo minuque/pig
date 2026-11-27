@@ -1,6 +1,6 @@
 import { shallowRef } from "vue"
 import type { GatewaySession, SessionState } from "@client/gateway-session.js"
-import type { TranscriptItem } from "@/types/common-type.js"
+import type { Task, TranscriptItem } from "@/types/common-type.js"
 import type { HistoryStore } from "@features/session/hooks/use-session-history.js"
 import { coalesceByFrame } from "@features/session/lib/coalesce-by-frame.js"
 import { NO_TOOL_STARTS, recordToolStartedAt } from "@features/session/lib/transcript-timeline.js"
@@ -57,9 +57,14 @@ export function useLiveSubscriptions(deps: LiveDeps) {
   const subscriptions = new Map<string, LiveSubscription>()
   const backgroundRunningIds = shallowRef<ReadonlySet<string>>(new Set())
   let backgroundIdleHandler: ((id: string) => Promise<BackgroundIdleResult>) | undefined
+  let taskObserver: ((sessionId: string, tasks: readonly Task[]) => void) | undefined
 
   function setBackgroundIdle(fn?: (id: string) => Promise<BackgroundIdleResult>) {
     backgroundIdleHandler = fn
+  }
+
+  function setTaskObserver(fn?: (sessionId: string, tasks: readonly Task[]) => void) {
+    taskObserver = fn
   }
 
   function syncBackgroundRunning() {
@@ -132,6 +137,8 @@ export function useLiveSubscriptions(deps: LiveDeps) {
       }
 
       const id = session.id
+
+      if (id && nextState.snapshot) taskObserver?.(id, nextState.snapshot.tasks)
 
       if (sub.liveItems.size > 0 && id) history.overlayLive(id, [...sub.liveItems.values()])
       const revision = nextState.snapshot?.revision
@@ -249,6 +256,7 @@ export function useLiveSubscriptions(deps: LiveDeps) {
     backgroundSubscription,
     toolStartedAtFor,
     setBackgroundIdle,
+    setTaskObserver,
     takeBackground,
     dropBackground,
   }
