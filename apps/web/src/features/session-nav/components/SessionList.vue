@@ -57,6 +57,13 @@
             v-on="sectionOn"
           />
 
+          <EmptyState
+            v-else-if="!pinnedSection && !state.moving"
+            size="row"
+            class="session-empty"
+            :title="t('session.inboxEmpty')"
+          />
+
           <div class="session-edge-bottom edge-veil-bottom" aria-hidden="true"></div>
         </div>
 
