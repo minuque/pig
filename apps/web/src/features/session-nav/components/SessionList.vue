@@ -57,12 +57,9 @@
             v-on="sectionOn"
           />
 
-          <EmptyState
-            v-else-if="!pinnedSection && !state.moving"
-            size="row"
-            class="session-empty"
-            :title="t('session.inboxEmpty')"
-          />
+          <EmptyState v-else-if="!pinnedSection && !state.moving" :title="t('session.inboxEmpty')">
+            <template #art><HairlineArt figure="basket" /></template>
+          </EmptyState>
 
           <div class="session-edge-bottom edge-veil-bottom" aria-hidden="true"></div>
         </div>
@@ -88,6 +85,7 @@
 import { computed, onBeforeUnmount, onMounted, onUpdated, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { EmptyState } from "@pig/ui/empty-state"
+import HairlineArt from "@components/empty/HairlineArt.vue"
 import {
   TransferListsRoot,
   type TransferChangeDetails,
