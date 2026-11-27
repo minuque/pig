@@ -30,6 +30,7 @@ function session(id: string, name: string, cwd: string, ago: number): SessionMet
   return { id, sessionName: name, cwd, createdAt: NOW - ago * MIN, updatedAt: NOW - ago * MIN }
 }
 
+export const PAGE_HISTORY_FAILED_ID = "page-history-failed"
 export const PAGE_SESSIONS: SessionMetadata[] = [
   session(PAGE_SESSION_ID, "布局密度：compact / normal", PIG, 1),
   session("page-pinned", "发版清单", PIG, 300),
@@ -37,6 +38,7 @@ export const PAGE_SESSIONS: SessionMetadata[] = [
   session("page-unread", "Banner 文案收敛", KUMO, 12),
   session("page-error", "gateway 断线重连", PIG, 25),
   session("page-plain", "Select 组件对齐", KUMO, 90),
+  session(PAGE_HISTORY_FAILED_ID, "历史记录读取失败", KUMO, 180),
   session("page-settled-1", "toast 关闭按钮", PIG, 1440),
   session("page-settled-2", "图标库切换到 lucide", KUMO, 2880),
 ]

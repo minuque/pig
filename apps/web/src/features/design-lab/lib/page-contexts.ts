@@ -17,6 +17,7 @@ import {
   PAGE_CATALOG,
   PAGE_FOOTS,
   PAGE_GROUPS,
+  PAGE_HISTORY_FAILED_ID,
   PAGE_PINNED,
   PAGE_PRESET,
   PAGE_RUNNING_SINCE,
@@ -81,6 +82,8 @@ export function createPageSession(): SessionContext {
   )
   const clientState = computed(() => emptyClientState())
   const draft = ref("把 compact 的头部高也对齐到 40px")
+  const historyFailed = ref(true)
+  const failing = computed(() => historyFailed.value && sessionId.value === PAGE_HISTORY_FAILED_ID)
   return {
     sessionId,
     projection,
@@ -91,7 +94,17 @@ export function createPageSession(): SessionContext {
     sessionPending: computed(() => false),
     connected: computed(() => true),
     connectionError: shallowRef<Error>(),
-    transcript: computed(() => (sessionId.value ? transcriptOf(sessionId.value) : [])),
+    historyFailed: failing,
+    retryHistory: () =>
+      new Promise<void>((resolve) =>
+        setTimeout(() => {
+          historyFailed.value = false
+          resolve()
+        }, 1200),
+      ),
+    transcript: computed(() =>
+      sessionId.value && !failing.value ? transcriptOf(sessionId.value) : [],
+    ),
     welcome: computed(() => !sessionId.value),
     loadHistory: resolved,
     historyFresh: () => true,
