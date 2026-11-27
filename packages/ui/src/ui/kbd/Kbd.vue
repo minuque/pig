@@ -97,6 +97,7 @@ const props = withDefaults(
 :where([data-slot="kbd"][data-variant="outline"]) {
   border: var(--border-width) solid var(--border-strong);
   border-block-end-width: calc(var(--border-width) * 2);
+  line-height: 1.3em;
   color: var(--fg-muted);
   font-weight: var(--font-weight-medium);
 }
