@@ -24,7 +24,7 @@
                     data-drag-flow
                     type="button"
                     class="section-toggle"
-                    :class="{ 'is-dragging': Boolean(state.moving) }"
+                    :class="{ 'is-dragging': Boolean(state.moving) && !state.outside }"
                     :data-target="state.to === 'settled' ? '' : undefined"
                     @click="settledOpen = !settledOpen"
                   >
@@ -42,6 +42,7 @@
                     v-if="
                       section.id === 'settled' &&
                       state.moving &&
+                      !state.outside &&
                       (!settledOpen || (state.lists.settled ?? []).length === 0)
                     "
                     data-drop-hint-box
@@ -56,7 +57,7 @@
                     v-show="section.id !== 'settled' || settledOpen"
                     class="section-list"
                     :class="{
-                      'is-drop': Boolean(state.moving),
+                      'is-drop': Boolean(state.moving) && !state.outside,
                       'is-target': state.to === section.id,
                     }"
                   >
@@ -273,13 +274,13 @@ const listLabel = (id: string) => SECTIONS.find((section) => section.id === id)?
   color: var(--fg-muted);
 }
 
-.transfer-item[data-dragging] {
+.transfer-root:not([data-outside]) .transfer-item[data-dragging] {
   border-style: dashed;
   border-color: var(--accent-solid);
   background: var(--info-subtle);
 }
 
-.transfer-item[data-dragging] > * {
+.transfer-root:not([data-outside]) .transfer-item[data-dragging] > * {
   visibility: hidden;
 }
 

@@ -7,7 +7,7 @@
       <section
         v-bind="part"
         class="session-section"
-        :class="{ 'is-shelf': isShelf }"
+        :class="{ 'is-shelf': isShelf, 'is-dragging': Boolean(dragging) }"
         :data-key="section.key"
       >
         <component
@@ -330,17 +330,17 @@ function itemBind(session: SidebarSession) {
   cursor: pointer;
 }
 
-.session-row[data-dragging] {
+.session-section.is-dragging .session-row[data-dragging] {
   z-index: 0;
 }
 
-.session-row[data-dragging] :deep(.session-card) {
+.session-section.is-dragging .session-row[data-dragging] :deep(.session-card) {
   outline: var(--border-width) dashed var(--accent-solid);
   outline-offset: -1px;
   background: var(--info-subtle);
 }
 
-.session-row[data-dragging] :deep(.session-card > *) {
+.session-section.is-dragging .session-row[data-dragging] :deep(.session-card > *) {
   visibility: hidden;
 }
 

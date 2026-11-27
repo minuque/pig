@@ -118,20 +118,22 @@ export function createTransferController(
     let lastY = downPoint.y
     let wasOutside = false
 
-    function applyDraft(nextLists: TransferLists, nextTo: string | null) {
+    function applyDraft(nextLists: TransferLists, nextTo: string | null, nextOutside = false) {
       const state = context.store.get()
       const current = state.moving
 
       if (!current) return
 
       const listsSame = sameLists(nextLists, current.lists)
+      const outsideSame = state.outside === nextOutside
 
-      if (listsSame && state.to === nextTo) return
+      if (listsSame && state.to === nextTo && outsideSame) return
 
-      if (listsSame || reduced) {
+      if ((listsSame && outsideSame) || reduced) {
         context.store.set({
           moving: listsSame ? current : { ...current, lists: nextLists },
           to: nextTo,
+          outside: nextOutside,
         })
         return
       }
@@ -142,8 +144,9 @@ export function createTransferController(
       const seq = flipSeq
 
       context.store.set({
-        moving: { ...current, lists: nextLists },
+        moving: listsSame ? current : { ...current, lists: nextLists },
         to: nextTo,
+        outside: nextOutside,
       })
 
       void nextTick(() => {
@@ -160,7 +163,7 @@ export function createTransferController(
       if (!current) return
 
       if (isOutsideBounds(listEls, options().bounds?.(), x, y)) {
-        applyDraft(originLists, null)
+        applyDraft(originLists, null, true)
         wasOutside = true
         lastY = y
         return
@@ -170,7 +173,7 @@ export function createTransferController(
       const accepted = Boolean(hit && (options().accepts?.(key, from!, hit) ?? true))
 
       if (!accepted || !hit) {
-        applyDraft(originLists, null)
+        applyDraft(originLists, null, false)
         wasOutside = false
         lastY = y
         return
@@ -215,7 +218,7 @@ export function createTransferController(
       const nextLists = transferred(current.lists, key, hit, index)
       const changed = !sameLists(nextLists, current.lists)
 
-      applyDraft(nextLists, hit)
+      applyDraft(nextLists, hit, false)
       wasOutside = false
       lastY = y
 
@@ -258,6 +261,7 @@ export function createTransferController(
         context.store.set({
           moving: { key, from: from!, lists: currentLists, pointer: true },
           to: null,
+          outside: false,
           reduced,
         })
         say("grab", key, currentLists, from)

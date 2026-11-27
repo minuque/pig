@@ -38,6 +38,7 @@ export type TransferState = {
   value: TransferLists
   moving: TransferDraft | null
   to: string | null
+  outside: boolean
   settling: string | null
   reduced: boolean
 }
@@ -192,7 +193,7 @@ export function settleTransfer({
       flip.cancelAll()
     })
     preview?.destroy()
-    store.set({ moving: null, to: null, settling: null })
+    store.set({ moving: null, to: null, outside: false, settling: null })
     void nextTick(() => {
       if (cancelled) return
       flip.play(flipSnapshot, reduced)
@@ -204,7 +205,7 @@ export function settleTransfer({
   if (reduced || !preview) {
     preview?.destroy()
     flip.cancelAll()
-    store.set({ moving: null, to: null, settling: null })
+    store.set({ moving: null, to: null, outside: false, settling: null })
     return
   }
 
@@ -228,7 +229,7 @@ export function settleTransfer({
     setCancelSettle(undefined)
   }
 
-  store.set({ moving: null, to: null, settling: key })
+  store.set({ moving: null, to: null, outside: false, settling: key })
   void nextTick(() => {
     if (cancelled) return
     flip.play(flipSnapshot, false)

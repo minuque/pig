@@ -21,7 +21,7 @@
         class="nav-body session-list"
         :class="{
           'is-dragging': !!state.moving,
-          'is-outside': dropOut.outside.value,
+          'is-outside': dropOut.outside.value || state.outside,
           'is-scrolled': scrolled,
         }"
       >
@@ -32,7 +32,7 @@
           @scroll.passive="onScroll"
         >
           <div
-            v-if="state.moving"
+            v-if="isSidebarDrag(state)"
             data-drag-flow
             class="drag-label"
             :class="{ 'is-target': state.to === 'pinned' }"
@@ -48,7 +48,7 @@
           />
 
           <div
-            v-if="state.moving"
+            v-if="isSidebarDrag(state)"
             data-drag-flow
             class="drag-label"
             :class="{ 'is-target': state.to === 'active' }"
@@ -58,7 +58,7 @@
           </div>
 
           <SessionSection
-            v-if="activeSection || state.moving"
+            v-if="activeSection || isSidebarDrag(state)"
             v-bind="sectionBind(activeSection ?? emptyActive, state)"
             class="active-section"
             :class="{ 'empty-drop': (state.lists.active?.length ?? 0) === 0 }"
@@ -286,16 +286,22 @@ function commit(id: string, plan: DropPlan): void {
   else if (plan.kind === "unsettle") emit("unsettle", id)
 }
 
+function isSidebarDrag(state: { moving: string | null; outside?: boolean }): boolean {
+  return Boolean(state.moving) && !dropOut.outside.value && !state.outside
+}
+
 function sectionBind(
   section: SidebarSection,
   state: {
     lists: TransferLists
     moving: string | null
     to?: string | null
+    outside?: boolean
     settling?: string | null
   },
 ) {
   const list = (LISTS as readonly string[]).includes(section.kind) ? section.kind : undefined
+  const activeDrag = isSidebarDrag(state)
   return {
     section,
     list,
@@ -307,8 +313,8 @@ function sectionBind(
     pinnedIds: props.pinnedIds,
     runningSince: props.runningSince,
     motion: !state.moving && !state.settling,
-    dragging: Boolean(state.moving) && !dropOut.outside.value,
-    dropTarget: Boolean(list && state.to === list),
+    dragging: activeDrag,
+    dropTarget: Boolean(list && activeDrag && state.to === list),
     swept: sweep.swept.value,
     moreBySection: props.moreBySection,
   }

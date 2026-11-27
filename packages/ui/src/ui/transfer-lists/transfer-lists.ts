@@ -31,6 +31,7 @@ const transferLists = definePrimitive({
     value: options.value ?? options.defaultValue ?? {},
     moving: null as TransferDraft | null,
     to: null as string | null,
+    outside: false,
     settling: null as string | null,
     reduced: false,
   }),
@@ -44,6 +45,7 @@ const transferLists = definePrimitive({
         moving: string | null
         from: string | null
         to: string | null
+        outside: boolean
         settling: string | null
       }
     >({
@@ -52,10 +54,12 @@ const transferLists = definePrimitive({
         moving: state.moving?.key ?? null,
         from: state.moving?.from ?? null,
         to: state.to,
+        outside: state.outside,
         settling: state.settling,
       }),
       attrs: (state) => ({
         "data-dragging": state.moving?.pointer ? "" : undefined,
+        "data-outside": state.moving && state.outside ? "" : undefined,
       }),
       bind: (el, part) => part.api.bindRoot(el),
     }),
@@ -97,6 +101,7 @@ type RootScope = {
     moving: string | null
     from: string | null
     to: string | null
+    outside: boolean
     settling: string | null
   }
 }
