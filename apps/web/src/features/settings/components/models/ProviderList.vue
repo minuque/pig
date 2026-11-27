@@ -86,13 +86,15 @@
 
     <EmptyState
       v-if="!loading && !groups.length && query.trim()"
-      size="row"
+      class="list-empty"
       live
-      class="list-no-match"
       :title="t('settings.models.noMatch', { query: query.trim() })"
+      :description="t('settings.models.noMatchBody')"
     >
+      <template #art><HairlineArt figure="query" /></template>
+
       <template #actions>
-        <Button type="button" size="s" variant="ghost" color="neutral" @click="query = ''">
+        <Button type="button" variant="secondary" color="neutral" @click="query = ''">
           {{ t("common.clearSearch") }}
         </Button>
       </template>
@@ -218,10 +220,6 @@ function sourceKind(provider: ProviderView) {
 
 .list-empty {
   padding-block: var(--space-2xl);
-}
-
-.list-no-match {
-  padding-inline: var(--space-md);
 }
 
 .list-state {
