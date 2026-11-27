@@ -1,6 +1,6 @@
 <template>
   <section class="startup-error">
-    <EmptyState :title="heading" :description="t('startup.startupError')" :detail="detail">
+    <EmptyState :title="heading" :description="t('startup.startupError')">
       <template #art><HairlineArt figure="plug" /></template>
 
       <template #actions>
@@ -15,20 +15,11 @@ import { computed } from "vue"
 import { Button } from "@pig/ui/button"
 import { EmptyState } from "@pig/ui/empty-state"
 import { useI18n } from "@i18n/index.js"
-import { useStartupError } from "@features/startup/index.js"
 import HairlineArt from "@components/empty/HairlineArt.vue"
 
 const { t } = useI18n()
-const props = withDefaults(
-  defineProps<{
-    title?: string
-    detail?: string
-  }>(),
-  { title: "", detail: "" },
-)
-const stored = useStartupError()
+const props = withDefaults(defineProps<{ title?: string }>(), { title: "" })
 const heading = computed(() => props.title || t("startup.startupFailed"))
-const detail = computed(() => props.detail.trim() || stored.value.trim() || undefined)
 
 function retry() {
   window.location.reload()

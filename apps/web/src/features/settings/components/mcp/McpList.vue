@@ -13,10 +13,8 @@
 
     <EmptyState
       v-if="state.error.value && !state.view.value"
-      class="list-empty"
       :title="t('settings.mcp.loadFailedTitle')"
       :description="t('settings.mcp.loadFailedBody')"
-      :detail="state.error.value"
     >
       <template #art><HairlineArt figure="plug" /></template>
       <template #actions><RetryButton :action="state.refresh" /></template>
@@ -78,7 +76,6 @@
 
     <EmptyState
       v-else-if="state.view.value && !query.trim()"
-      class="list-empty"
       :title="t('settings.mcp.emptyTitle')"
       :description="t('settings.mcp.emptyBody')"
     >
@@ -87,7 +84,6 @@
 
     <EmptyState
       v-else-if="state.view.value && !inherited.length"
-      class="list-empty"
       live
       :title="t('settings.mcp.noMatch', { query: query.trim() })"
       :description="t('settings.mcp.noMatchBody')"
@@ -196,6 +192,7 @@ function tone(status: McpStatus): StatusTone {
 <style scoped>
 .mcp-list {
   display: flex;
+  flex: 1 0 auto;
   flex-direction: column;
   gap: var(--space-lg);
 }
@@ -293,10 +290,6 @@ function tone(status: McpStatus): StatusTone {
 
 .fold-body {
   margin-block-start: var(--space-xs);
-}
-
-.list-empty {
-  padding-block: var(--space-2xl);
 }
 
 .list-note {

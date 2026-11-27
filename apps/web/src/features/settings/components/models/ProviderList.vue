@@ -23,10 +23,8 @@
 
     <EmptyState
       v-else-if="error && !providers.length"
-      class="list-empty"
       :title="t('settings.models.loadFailedTitle')"
       :description="t('settings.models.loadFailedBody')"
-      :detail="error"
     >
       <template #art><HairlineArt figure="plug" /></template>
       <template #actions><RetryButton :action="onRetry" /></template>
@@ -86,7 +84,6 @@
 
     <EmptyState
       v-if="providers.length && !groups.length && query.trim()"
-      class="list-empty"
       live
       :title="t('settings.models.noMatch', { query: query.trim() })"
       :description="t('settings.models.noMatchBody')"
@@ -137,6 +134,7 @@ function sourceKind(provider: ProviderView) {
 <style scoped>
 .provider-list {
   display: flex;
+  flex: 1 0 auto;
   flex-direction: column;
 }
 
@@ -216,10 +214,6 @@ function sourceKind(provider: ProviderView) {
 .provider-chevron {
   flex: none;
   color: var(--fg-secondary);
-}
-
-.list-empty {
-  padding-block: var(--space-2xl);
 }
 
 .list-state {

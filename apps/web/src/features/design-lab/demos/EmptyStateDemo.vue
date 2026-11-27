@@ -34,11 +34,7 @@
 
     <Variant title="Failed">
       <div class="frame">
-        <EmptyState
-          title="没能加载这个会话"
-          description="会话记录没有被改动，可以再试一次。"
-          detail="请求失败（HTTP_500）。关联 ID 3f2a9c1e-7b4d-4e0a-9f61-2c8d5e7a1b30"
-        >
+        <EmptyState title="没能加载这个会话" description="会话记录没有被改动，可以再试一次。">
           <template #art><HairlineArt figure="plug" /></template>
           <template #actions><RetryButton :action="wait" /></template>
         </EmptyState>

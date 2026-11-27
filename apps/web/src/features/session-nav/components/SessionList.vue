@@ -21,12 +21,7 @@
           'is-scrolled': scrolled,
         }"
       >
-        <div
-          v-if="sections.length"
-          ref="windowEl"
-          class="session-window"
-          @scroll.passive="onScroll"
-        >
+        <div ref="windowEl" class="session-window" @scroll.passive="onScroll">
           <div
             v-if="state.moving"
             class="drag-label"
@@ -57,7 +52,10 @@
             v-on="sectionOn"
           />
 
-          <EmptyState v-else-if="!pinnedSection && !state.moving">
+          <EmptyState
+            v-else-if="!pinnedSection && !state.moving"
+            :title="sections.length ? t('session.inboxEmpty') : t('session.empty')"
+          >
             <template #art><HairlineArt figure="basket" /></template>
 
             <template #actions>
@@ -70,8 +68,6 @@
 
           <div class="session-edge-bottom edge-veil-bottom" aria-hidden="true"></div>
         </div>
-
-        <EmptyState v-else size="row" class="session-empty" :title="t('session.empty')" />
 
         <div v-if="shelfSections.length" class="session-shelves">
           <SessionSection
@@ -442,10 +438,6 @@ onUpdated(() => {
 
 .new-session {
   border-style: dashed;
-}
-
-.session-empty {
-  padding-inline: var(--space-xs);
 }
 
 @media (prefers-reduced-motion: reduce) {

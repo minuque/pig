@@ -197,7 +197,7 @@ const workspaces = computed(() => groups.value.map((group) => group.canonicalPat
 const mentionSessions = useMentionSessions(sessionId)
 const pageError = computed(() => {
   if (connectionError.value && connected.value) {
-    return { title: t("startup.connectFailed"), detail: connectionError.value.message }
+    return { title: t("startup.connectFailed") }
   }
 
   return route.name === "error" ? {} : null

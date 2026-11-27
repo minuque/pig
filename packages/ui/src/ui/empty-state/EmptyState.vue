@@ -18,37 +18,17 @@
     <div v-if="$slots.actions" data-slot="empty-state-actions">
       <slot name="actions" />
     </div>
-
-    <Collapsible v-if="detail && size === 'page'" data-slot="empty-state-detail">
-      <CollapsibleTrigger>
-        <template #render="{ props: part }">
-          <Button v-bind="part" type="button" size="s" variant="ghost" color="neutral">
-            {{ labels.details }}
-          </Button>
-        </template>
-      </CollapsibleTrigger>
-
-      <CollapsibleContent>
-        <code data-slot="empty-state-detail-text">{{ detail }}</code>
-      </CollapsibleContent>
-    </Collapsible>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { HTMLAttributes } from "vue"
-import { useUiLabels } from "../../core/config.js"
-import { Button } from "../button/index.js"
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../collapsible/index.js"
 import type { EmptyStateSize } from "./index.js"
-
-const labels = useUiLabels()
 
 const props = withDefaults(
   defineProps<{
     title?: string | undefined
     description?: string | undefined
-    detail?: string | undefined
     size?: EmptyStateSize
     live?: boolean
     class?: HTMLAttributes["class"]
@@ -56,7 +36,6 @@ const props = withDefaults(
   {
     title: undefined,
     description: undefined,
-    detail: undefined,
     size: "page",
     live: false,
     class: undefined,
@@ -142,24 +121,5 @@ const props = withDefaults(
   display: flex;
   flex: none;
   gap: var(--space-2xs);
-}
-
-:where([data-slot="empty-state-detail"]) {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-block-start: var(--space-xs);
-}
-
-:where([data-slot="empty-state-detail-text"]) {
-  display: block;
-  max-inline-size: 28rem;
-  margin-block-start: var(--space-2xs);
-  font-family: var(--font-mono);
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
-  color: var(--fg-muted);
-  overflow-wrap: anywhere;
-  user-select: text;
 }
 </style>

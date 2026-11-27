@@ -14,7 +14,6 @@ export interface UiLabels {
   select: string
   notifications: string
   error: string
-  details: string
 }
 
 export const DEFAULT_UI_LABELS: UiLabels = {
@@ -23,7 +22,6 @@ export const DEFAULT_UI_LABELS: UiLabels = {
   select: "Select",
   notifications: "Notifications",
   error: "Error",
-  details: "Details",
 }
 const UI_LABELS_KEY: InjectionKey<ComputedRef<UiLabels>> = Symbol("pig-ui-labels")
 const FALLBACK_LABELS: ComputedRef<UiLabels> = computed(() => DEFAULT_UI_LABELS)

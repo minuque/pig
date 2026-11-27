@@ -13,10 +13,8 @@
 
     <EmptyState
       v-if="state.error.value && !state.view.value"
-      class="list-empty"
       :title="t('settings.skills.loadFailedTitle')"
       :description="t('settings.skills.loadFailedBody')"
-      :detail="state.error.value"
     >
       <template #art><HairlineArt figure="plug" /></template>
       <template #actions><RetryButton :action="state.refresh" /></template>
@@ -92,7 +90,6 @@
     <template v-if="state.view.value && !groups.length">
       <EmptyState
         v-if="!query.trim()"
-        class="list-empty"
         :title="t('settings.skills.emptyTitle')"
         :description="t('settings.skills.emptyBody')"
       >
@@ -101,7 +98,6 @@
 
       <EmptyState
         v-else-if="!inherited.length"
-        class="list-empty"
         live
         :title="t('settings.skills.noMatch', { query: query.trim() })"
         :description="t('settings.skills.noMatchBody')"
@@ -220,6 +216,7 @@ const inherited = computed(() =>
 <style scoped>
 .skill-list {
   display: flex;
+  flex: 1 0 auto;
   flex-direction: column;
   gap: var(--space-lg);
 }
@@ -320,10 +317,6 @@ button.row-open {
 
 .fold-body {
   margin-block-start: var(--space-xs);
-}
-
-.list-empty {
-  padding-block: var(--space-2xl);
 }
 
 .list-note {

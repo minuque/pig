@@ -1,8 +1,6 @@
 import { readonly, shallowRef } from "vue"
 import { useRouter } from "vue-router"
-import { errorMessage } from "@client/http.js"
 import { t } from "@i18n/index.js"
-import { setStartupError } from "@features/startup/index.js"
 
 export interface StartupSequenceOptions {
   connect: () => Promise<unknown>
@@ -70,7 +68,7 @@ export function useStartupSequence(options: StartupSequenceOptions) {
       settled.value = true
     } catch (error) {
       failed.value = true
-      setStartupError(error instanceof Error && error.message ? error.message : errorMessage(error))
+      console.error("startup failed:", error)
       await router.replace({ name: "error" })
       settled.value = true
     }
