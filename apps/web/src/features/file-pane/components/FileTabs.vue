@@ -100,7 +100,7 @@ watch(
     measure()
     list.value?.$el
       .querySelector<HTMLElement>(".file-tab[data-selected]")
-      ?.scrollIntoView({ block: "nearest", inline: "nearest" })
+      ?.scrollIntoView({ block: "nearest", inline: "nearest", container: "nearest" })
   },
 )
 </script>
