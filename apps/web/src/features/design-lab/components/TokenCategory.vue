@@ -200,7 +200,59 @@ function fontStyle(token: Token): Record<string, string> {
   return token.name.includes("weight") ? { fontWeight: css(token) } : { fontFamily: css(token) }
 }
 
+function linearPath(value: string): string | null {
+  const match = /^linear\(\s*(.+)\s*\)$/s.exec(value)
+
+  if (!match) return null
+
+  const entries: { v: number; t: number | undefined }[] = []
+
+  for (const part of match[1]!.split(",")) {
+    const tokens = part.trim().split(/\s+/)
+    const v = Number(tokens[0])
+
+    if (!Number.isFinite(v)) continue
+
+    const percents = tokens
+      .slice(1)
+      .filter((token) => token.endsWith("%"))
+      .map((token) => parseFloat(token) / 100)
+      .filter((n) => Number.isFinite(n))
+
+    if (percents.length === 0) entries.push({ v, t: undefined })
+    else for (const t of percents) entries.push({ v, t })
+  }
+
+  if (entries.length < 2) return null
+
+  if (entries[0]!.t === undefined) entries[0]!.t = 0
+
+  if (entries[entries.length - 1]!.t === undefined) entries[entries.length - 1]!.t = 1
+
+  let prevIndex = 0
+
+  for (let i = 1; i < entries.length; i += 1) {
+    if (entries[i]!.t === undefined) continue
+    const gap = i - prevIndex
+    const startT = entries[prevIndex]!.t!
+    const spanT = entries[i]!.t! - startT
+
+    for (let k = 1; k < gap; k += 1) entries[prevIndex + k]!.t = startT + (spanT * k) / gap
+    prevIndex = i
+  }
+
+  const coords = entries.map(
+    ({ t, v }) => `${(4 + (t ?? 0) * 40).toFixed(1)} ${(24 - v * 20).toFixed(1)}`,
+  )
+
+  return `M ${coords[0]} L ${coords.slice(1).join(" L ")}`
+}
+
 function easePath(value: string): string {
+  const linear = linearPath(value)
+
+  if (linear) return linear
+
   const match = /cubic-bezier\(\s*([\d.-]+),\s*([\d.-]+),\s*([\d.-]+),\s*([\d.-]+)\s*\)/.exec(value)
 
   if (!match) return "M4 24 C 16 24, 28 4, 44 4"
