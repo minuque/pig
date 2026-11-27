@@ -69,11 +69,7 @@
           :class="{ 'is-hero': welcome, 'settle-in': settleIn, 'beside-rail': railDocked }"
         >
           <div class="composer-stack">
-            <ScrollLatestButton
-              :shown="showScrollToLatest"
-              :pending="turnPending"
-              @click="scrollToLatest('smooth')"
-            />
+            <ScrollLatestButton :shown="showScrollToLatest" @click="scrollToLatest('smooth')" />
 
             <ExternalTurnNotice />
 
