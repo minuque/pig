@@ -85,7 +85,7 @@
     </div>
 
     <EmptyState
-      v-if="!loading && !groups.length && query.trim()"
+      v-if="providers.length && !groups.length && query.trim()"
       class="list-empty"
       live
       :title="t('settings.models.noMatch', { query: query.trim() })"
