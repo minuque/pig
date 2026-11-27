@@ -3,7 +3,10 @@ import path from "node:path"
 import { pathToFileURL } from "node:url"
 
 export const RUNTIME_TOKENS = new Set([
+  "--active-tab-bottom",
   "--active-tab-left",
+  "--active-tab-right",
+  "--active-tab-top",
   "--active-tab-width",
   "--anchor-width",
   "--available-height",

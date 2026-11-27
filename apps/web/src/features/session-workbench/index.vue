@@ -20,7 +20,7 @@
       <StartupError v-if="pageError" v-bind="pageError" />
 
       <template v-else>
-        <div class="session-stage">
+        <div ref="stage" class="session-stage">
           <Transition name="dock-hero" appear>
             <div v-if="welcome" key="hero" class="idle-hero">
               <WorkbenchHero
@@ -93,7 +93,7 @@
               :send-disabled="sendDisabled"
               :answer="questionBoard.composer.value"
               :class="{ 'is-answering': Boolean(questionBoard.board.value) }"
-              @send="questionBoard.board.value ? questionBoard.submit() : sendNow($event)"
+              @send="onSend"
               @steer="steer"
               @queue="enqueue"
               @save-edit="commitQueueEdit"
@@ -116,7 +116,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, useTemplateRef, watch } from "vue"
+import { computed, nextTick, onMounted, useTemplateRef, watch } from "vue"
 import { useResizeObserver } from "@vueuse/core"
 import { useRoute } from "vue-router"
 import Composer from "@features/composer/index.vue"
@@ -152,6 +152,7 @@ import { prefetchTranscriptView, TranscriptStatus } from "@features/transcript-v
 import { FilePlusIcon } from "@components/icons/index.js"
 import { notify } from "@pig/ui/toast"
 import { usePanelHost, type PaneAlert } from "@features/panel-host/index.js"
+import { carry, fadeSwap, glide } from "@utils/motion.js"
 
 onMounted(() => {
   if (typeof requestIdleCallback === "function")
@@ -204,6 +205,25 @@ const railDocked = computed(
   () => !welcome.value && Boolean(sessionId.value) && rail?.dockedShown.value,
 )
 const panel = useTemplateRef<HTMLElement>("panel")
+const stage = useTemplateRef<HTMLElement>("stage")
+
+watch(
+  sessionId,
+  (next, prev) => {
+    if (next && prev) fadeSwap(stage.value)
+  },
+  { flush: "post" },
+)
+
+watch(railDocked, () => {
+  const moving = [
+    panel.value?.querySelector<HTMLElement>(".transcript-list"),
+    composerBar.value?.querySelector<HTMLElement>(".composer-stack"),
+  ]
+  const before = moving.map((el) => el?.getBoundingClientRect())
+
+  void nextTick(() => moving.forEach((el, index) => glide(el, before[index])))
+})
 
 useResizeObserver(panel, ([entry]) => {
   if (entry) rail?.setWidth(entry.contentRect.width)
@@ -297,6 +317,12 @@ const {
   steer: sessionSteer,
   abort: onAbort,
 })
+function onSend(text: string) {
+  if (questionBoard.board.value) return questionBoard.submit()
+  carry("composer-send")
+  sendNow(text)
+}
+
 const { markAborted } = useTurnFinish({
   sessionId: () => sessionId.value,
   running: () => running.value,
