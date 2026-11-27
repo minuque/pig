@@ -8,7 +8,7 @@ import type {
 import type { ComposerPreset } from "@features/composer/type.js"
 import type { ComposerPresetContext } from "@features/composer/index.js"
 import type { NavContext } from "@features/session-nav/index.js"
-import { sidebarSections } from "@features/session-nav/lib/session-list.js"
+import { moveSessionId, sidebarSections } from "@features/session-nav/lib/session-list.js"
 import type { SidebarSection } from "@features/session-nav/type.js"
 import type { SessionContext } from "@features/session/index.js"
 import { emptyClientState, projectSessionSnapshot } from "@features/session/lib/session-state.js"
@@ -155,7 +155,11 @@ export function createPagePreset(): ComposerPresetContext {
 
 export function createPageNav(session: SessionContext): NavContext {
   const allSessions = ref<SessionMetadata[]>(PAGE_SESSIONS)
-  const pinnedIds = ref(new Set(PAGE_PINNED))
+  const pinnedOrder = ref<string[]>([...PAGE_PINNED])
+  const pinnedIds = computed(() => new Set(pinnedOrder.value))
+  const settledSet = ref(
+    new Set(PAGE_SESSIONS.filter((item) => pagePlacement(item.id).settled).map((item) => item.id)),
+  )
   const expandedSections = ref(new Set<string>())
   const moreBySection = ref<Record<string, number>>({})
 
@@ -166,11 +170,35 @@ export function createPageNav(session: SessionContext): NavContext {
       const filter = include === undefined ? undefined : toValue(include)
       return sidebarSections({
         sessions: filter ? allSessions.value.filter(filter) : allSessions.value,
-        pinnedOrder: [...pinnedIds.value],
-        placement: pagePlacement,
+        pinnedOrder: pinnedOrder.value,
+        placement: (id) => ({
+          running: pagePlacement(id).running,
+          settled: settledSet.value.has(id),
+        }),
         moreBySection: moreBySection.value,
       })
     })
+  }
+
+  function unsettle(id: string) {
+    if (!settledSet.value.has(id)) return
+    const next = new Set(settledSet.value)
+
+    next.delete(id)
+    settledSet.value = next
+  }
+
+  function settle(id: string) {
+    if (!settledSet.value.has(id)) {
+      const next = new Set(settledSet.value)
+
+      next.add(id)
+      settledSet.value = next
+    }
+
+    if (pinnedIds.value.has(id)) {
+      pinnedOrder.value = pinnedOrder.value.filter((item) => item !== id)
+    }
   }
 
   function toggle(set: typeof expandedSections, key: string) {
@@ -197,28 +225,36 @@ export function createPageNav(session: SessionContext): NavContext {
     sectionsFor,
     moreBySection,
     runningSince: shallowRef(PAGE_RUNNING_SINCE),
-    settledIds: computed(
-      () =>
-        new Set(
-          PAGE_SESSIONS.filter((item) => pagePlacement(item.id).settled).map((item) => item.id),
-        ),
-    ),
-    settle: noop,
-    unsettle: noop,
+    settledIds: computed(() => settledSet.value),
+    settle,
+    unsettle,
     expandedSections,
     toggleSection: (key: string) => toggle(expandedSections, key),
     expandSection: noop,
     pinnedIds,
-    pinnedSessions: computed(() => PAGE_SESSIONS.filter((item) => pinnedIds.value.has(item.id))),
+    pinnedSessions: computed(() =>
+      pinnedOrder.value.flatMap((id) => {
+        const match = PAGE_SESSIONS.find((item) => item.id === id)
+        return match ? [match] : []
+      }),
+    ),
     togglePinned: (id: string) => {
-      const next = new Set(pinnedIds.value)
+      if (pinnedIds.value.has(id)) {
+        pinnedOrder.value = pinnedOrder.value.filter((item) => item !== id)
+        return
+      }
 
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      pinnedIds.value = next
+      unsettle(id)
+      pinnedOrder.value = [...pinnedOrder.value, id]
     },
-    reorderPinned: noop,
-    pinAt: noop,
+    reorderPinned: (id: string, toIndex: number) => {
+      if (!pinnedIds.value.has(id)) return
+      pinnedOrder.value = moveSessionId(pinnedOrder.value, id, toIndex)
+    },
+    pinAt: (id: string, toIndex: number) => {
+      unsettle(id)
+      pinnedOrder.value = moveSessionId(pinnedOrder.value, id, toIndex)
+    },
     addingWorkspace: ref(false),
     connected: computed(() => true),
     navError: shallowRef(""),

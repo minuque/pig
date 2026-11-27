@@ -229,6 +229,103 @@
   }
 }
 
+html[data-drag-active],
+html[data-drag-active] [data-drag-handle],
+html[data-drag-active] [data-slot="sortable-list-root"] *,
+html[data-drag-active] [data-slot="sortable-list-item"],
+html[data-drag-active] [data-slot="transfer-lists-root"] [data-slot="transfer-lists-item"],
+html[data-drag-active] [data-slot="transfer-lists-root"] [data-slot="transfer-lists-item"] * {
+  cursor: grabbing;
+}
+
+[data-drag-handle] {
+  cursor: pointer;
+}
+
+[data-slot="sortable-list-root"][data-dragging] [data-slot="sortable-list-item"],
+[data-slot="transfer-lists-root"][data-dragging] [data-slot="transfer-lists-item"] {
+  pointer-events: none;
+}
+
+[data-slot="transfer-lists-root"][data-dragging]
+  [data-slot="transfer-lists-item"]:not([data-dragging]) {
+  position: relative;
+  z-index: var(--z-raise);
+}
+
+[data-drag-host] {
+  position: relative;
+}
+
+[data-drag-preview] {
+  list-style: none;
+  will-change: transform;
+}
+
+[data-drag-hidden] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+[data-drag-motion] {
+  transition: transform var(--duration-drag-ripple) var(--ease-drag-spring);
+  will-change: transform;
+}
+
+[data-drag-instant] {
+  transition: none;
+}
+
+[data-slot="sortable-list-item"][data-keyboard-dragging] {
+  position: relative;
+  z-index: var(--z-drag);
+  transform: translate3d(var(--drag-kb-x, 0px), var(--drag-kb-y, 0px), 0)
+    scale(var(--drag-kb-scale, 1));
+  transition: transform var(--duration-drag-lift) var(--ease-drag-pop);
+  will-change: transform;
+}
+
+[data-drag-hint] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: var(--z-drag);
+  pointer-events: none;
+  transition: transform var(--duration-drag-hint) var(--ease-drag-glide);
+  will-change: transform;
+}
+
+[data-drag-hint][data-instant] {
+  transition: none;
+}
+
+[data-drag-hint-bar] {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--drag-hint);
+  opacity: 0;
+  transform-origin: center;
+  transition:
+    transform var(--duration-drag-hint) var(--ease-drag-pop),
+    opacity var(--duration-fast) var(--ease-out);
+  will-change: transform, opacity;
+}
+
+[data-drag-hint][data-orientation="vertical"] [data-drag-hint-bar] {
+  transform: scaleX(0);
+}
+
+[data-drag-hint][data-orientation="horizontal"] [data-drag-hint-bar] {
+  transform: scaleY(0);
+}
+
+[data-drag-hint][data-visible] [data-drag-hint-bar] {
+  opacity: 1;
+  transform: scale(1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .press-scale:not(:disabled):active {
     scale: 1;
@@ -280,5 +377,17 @@
 
   [data-slot="skeleton"] {
     animation: none;
+  }
+
+  [data-drag-motion],
+  [data-slot="sortable-list-item"][data-keyboard-dragging],
+  [data-drag-hint],
+  [data-drag-hint-bar] {
+    transition: none;
+  }
+
+  [data-drag-hint][data-orientation="vertical"] [data-drag-hint-bar],
+  [data-drag-hint][data-orientation="horizontal"] [data-drag-hint-bar] {
+    transform: none;
   }
 }

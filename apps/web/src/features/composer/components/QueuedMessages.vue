@@ -5,6 +5,7 @@
       class="rows"
       :aria-label="t('composer.queueLabel')"
       aria-live="polite"
+      lift-side="start"
       :value="ids"
       :item-label="labelOf"
       :message="announce"
