@@ -27,7 +27,7 @@
 
 ## 验收
 
-- 代码改动必跑 `pnpm fix:touched` → `pnpm check:touched`（只跑静态分析、类型检查与单测）；文档改动除外。运行时 E2E 在推送分支或提 PR 后由 CI 运行，需要本地复现时手动跑 `pnpm test:e2e`。
+- 代码改动必跑 `pnpm fix:touched` → `pnpm check:touched`（只跑静态分析、类型检查与单测）；文档改动除外。运行时 E2E 在提 PR 或合入 main 后由 CI 运行，需要本地复现时手动跑 `pnpm test:e2e`。
 - 只修本次引入的失败；输入未变不重跑。
 - 发版前必跑 `pnpm check:release`（唯一主动 build 的场景）。
 - 主进程改动跑 `pnpm test:electron`；看画面用 `pnpm dev:desktop`（默认 CDP 9999，`PIG_CDP=0` 关）。
