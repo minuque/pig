@@ -5,9 +5,10 @@ import { useComposerAttachments } from "@features/composer/hooks/use-composer-at
 import type { ComposerDraftApi } from "@features/composer/hooks/use-composer-draft.js"
 import type { ComposerQueueApi, QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
 
-const notify = vi.fn()
+const toastStatus = vi.fn()
+const toastAction = vi.fn()
 
-vi.mock("@pig/ui/toast", () => ({ notify }))
+vi.mock("@pig/ui/toast", () => ({ toastStatus, toastAction }))
 
 const { useComposerSubmit } =
   await import("@features/session-workbench/hooks/use-composer-submit.js")
@@ -43,9 +44,12 @@ function setup(
     editingQueueId.value = null
   })
   const remove = vi.fn()
+  const insertAt = vi.fn()
+  const queueItems = ref<QueuedPrompt[]>([])
   const queue = {
-    items: ref([]),
+    items: queueItems,
     enqueue: () => {},
+    insertAt,
     update: () => {},
     remove,
   } as unknown as ComposerQueueApi
@@ -67,11 +71,23 @@ function setup(
 
   vi.spyOn(URL, "createObjectURL").mockReturnValue("blob:1")
   attachments.addFiles([file("shot.png", "image/png"), file("note.md")])
-  return { attachments, composer, queue, revoke, editingQueueId, cancelQueueEdit, remove, steer }
+  return {
+    attachments,
+    composer,
+    queue,
+    queueItems,
+    revoke,
+    editingQueueId,
+    cancelQueueEdit,
+    remove,
+    insertAt,
+    steer,
+  }
 }
 
 afterEach(() => {
-  notify.mockClear()
+  toastStatus.mockClear()
+  toastAction.mockClear()
   vi.restoreAllMocks()
 })
 
@@ -169,9 +185,9 @@ describe("useComposerSubmit", () => {
     expect(cancelQueueEdit).toHaveBeenCalledOnce()
   })
 
-  it("运行中立即发送带附件排队项时直接提示警告，不提交也不移除", () => {
+  it("运行中立即发送带附件排队项时设置就地错误，不弹 toast、不提交也不移除", () => {
     const submit = vi.fn(() => Promise.resolve(true))
-    const { composer, remove, steer } = setup(submit, true)
+    const { attachments, composer, remove, steer } = setup(submit, true)
     const item: QueuedPrompt = {
       id: "q2",
       text: "带附件",
@@ -182,7 +198,8 @@ describe("useComposerSubmit", () => {
 
     composer.sendQueued(item)
 
-    expect(notify).toHaveBeenCalledWith(expect.any(String), "warning")
+    expect(attachments.error.value).not.toBe("")
+    expect(toastStatus).not.toHaveBeenCalled()
     expect(submit).not.toHaveBeenCalled()
     expect(steer).not.toHaveBeenCalled()
     expect(remove).not.toHaveBeenCalled()
@@ -205,5 +222,32 @@ describe("useComposerSubmit", () => {
     expect(submit).toHaveBeenCalledWith("立即发出", undefined, undefined, undefined, {
       preserveDraft: true,
     })
+  })
+
+  it("移除排队项弹出撤销 Action Toast，点撤销放回原位，过期才释放附件", () => {
+    const submit = vi.fn(() => Promise.resolve(true))
+    const { attachments, composer, queueItems, revoke, remove, insertAt } = setup(submit, false)
+    const batch = attachments.consumeForSend()!
+    const item: QueuedPrompt = {
+      id: "q4",
+      text: "排队项",
+      attachments: batch,
+      attachmentsPreview: [],
+      createdAt: 0,
+    }
+
+    queueItems.value = [item]
+    composer.removeQueued("q4")
+
+    expect(remove).toHaveBeenCalledWith("q4")
+    expect(revoke).not.toHaveBeenCalled()
+    expect(toastAction).toHaveBeenCalledTimes(1)
+
+    const [, action, options] = toastAction.mock.calls[0]!
+    action.run()
+    expect(insertAt).toHaveBeenCalledWith(item, 0)
+
+    options.onExpire()
+    expect(revoke).toHaveBeenCalled()
   })
 })

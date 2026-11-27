@@ -32,8 +32,8 @@
           @keydown="onInputKeydown"
         />
 
-        <p v-if="tooLong" role="status" class="reply-error">
-          {{ t("composer.replyCommentTooLong", { max: REPLY_COMMENT_MAX }) }}
+        <p role="status" aria-live="polite" class="reply-error" :hidden="!tooLong">
+          {{ tooLong ? t("composer.replyCommentTooLong", { max: REPLY_COMMENT_MAX }) : "" }}
         </p>
 
         <div class="reply-actions">

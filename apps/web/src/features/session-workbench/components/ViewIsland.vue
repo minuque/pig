@@ -1,4 +1,8 @@
 <template>
+  <span class="sr-only" role="status" aria-live="polite" aria-atomic="true">
+    {{ waitingAnnouncement }}
+  </span>
+
   <span class="view-island" :style="{ inlineSize: `${slotWidth}px` }">
     <span
       class="island"
@@ -8,7 +12,8 @@
       @pointerenter="hovered = true"
       @pointerleave="hovered = false"
       @focusin="focused = true"
-      @focusout="focused = false"
+      @focusout="onFocusOut"
+      @keydown.escape="collapse"
     >
       <span
         ref="compact"
@@ -32,7 +37,7 @@
         ref="tabs"
         class="island-face"
         :data-off="face !== 'tabs' || undefined"
-        :inert="face === 'alert' || undefined"
+        :inert="face === 'waiting' || undefined"
       >
         <Tabs :value="current" @update:value="show">
           <TabsList class="island-tab-list" :aria-label="t('views.label')">
@@ -47,54 +52,25 @@
       </span>
 
       <Transition name="island-alert">
-        <span
-          v-if="waiting || alert"
-          ref="card"
-          :key="waiting ? 'waiting' : alertSeq"
-          class="island-face island-alert"
-          role="status"
-          @pointerenter="holdAlert(true)"
-          @pointerleave="holdAlert(false)"
-        >
-          <template v-if="waiting">
-            <span class="island-alert-top">
-              <StatusIndicator status="waiting" size="s" pulse />
-              <span class="island-alert-title">{{ waiting.header }}</span>
-            </span>
+        <span v-if="waiting" ref="card" key="waiting" class="island-face island-alert">
+          <span class="island-alert-top">
+            <StatusIndicator status="waiting" size="s" pulse />
+            <span class="island-alert-title">{{ waiting.header }}</span>
+          </span>
 
-            <span class="island-alert-body">{{ waiting.message || waiting.question }}</span>
+          <span class="island-alert-body">{{ waiting.message || waiting.question }}</span>
 
-            <span class="island-alert-actions">
-              <template v-if="confirming">
-                <Button size="s" variant="ghost" color="neutral" @click="board.pick(0)">
-                  {{ t("extensionUi.deny") }}
-                </Button>
-
-                <Button size="s" @click="board.pick(1)">{{ t("extensionUi.allow") }}</Button>
-              </template>
-
-              <Button v-else size="s" @click="backToChat">{{ t("extensionUi.answer") }}</Button>
-            </span>
-          </template>
-
-          <template v-else-if="alert">
-            <span class="island-alert-top">
-              <StatusIndicator :status="alert.tone === 'info' ? 'running' : alert.tone" size="s" />
-              <span class="island-alert-title">{{ alert.title }}</span>
-
-              <span v-if="more" class="island-alert-more">
-                {{ t("views.more", { count: more }) }}
-              </span>
-            </span>
-
-            <span v-if="alert.body" class="island-alert-body">{{ alert.body }}</span>
-
-            <span v-if="current !== 'chat'" class="island-alert-actions">
-              <Button size="s" variant="secondary" @click="backToChat">
-                {{ t("views.backToChat") }}
+          <span class="island-alert-actions">
+            <template v-if="confirming">
+              <Button size="s" variant="ghost" color="neutral" @click="board.pick(0)">
+                {{ t("extensionUi.deny") }}
               </Button>
-            </span>
-          </template>
+
+              <Button size="s" @click="board.pick(1)">{{ t("extensionUi.allow") }}</Button>
+            </template>
+
+            <Button v-else size="s" @click="backToChat">{{ t("extensionUi.answer") }}</Button>
+          </span>
         </span>
       </Transition>
     </span>
@@ -111,7 +87,7 @@ import { StatusIndicator } from "@pig/ui/status-indicator"
 import { useSession } from "@features/session/index.js"
 import { useExtensionUi } from "@features/extension-ui/index.js"
 import { useQuestionBoard } from "@features/extension-ui/hooks/use-question-board.js"
-import { ALERT_TTL, PANE_VIEWS, usePanelHost, type PaneView } from "@features/panel-host/index.js"
+import { PANE_VIEWS, usePanelHost, type PaneView } from "@features/panel-host/index.js"
 import { formatElapsed } from "@utils/time.js"
 import { FolderIcon, MessageSquareIcon } from "@components/icons/index.js"
 
@@ -138,7 +114,7 @@ watch(current, () => {
   timer = setTimeout(() => (peeking.value = false), PEEK_MS)
 })
 
-const { turnPending, turnTimings } = useSession()
+const { turnPending, turnTimings, sessionId } = useSession()
 const now = shallowRef(Date.now())
 const busySince = shallowRef<number>()
 const since = computed(() =>
@@ -166,8 +142,14 @@ watch(
 
 const board = useQuestionBoard()
 const { dialogs } = useExtensionUi()
-const { sessionId } = useSession()
 const waiting = computed(() => (current.value === "chat" ? undefined : board.question.value))
+const waitingAnnouncement = computed(() => {
+  const question = waiting.value
+
+  if (!question) return ""
+  const detail = question.message || question.question
+  return detail ? `${question.header}. ${detail}` : question.header
+})
 const confirming = computed(
   () =>
     board.board.value?.source === "extension" &&
@@ -178,40 +160,13 @@ const confirming = computed(
         item.request.method === "confirm",
     ),
 )
-const alert = computed(() => host.alerts.current())
-const more = computed(() => host.alerts.pending())
-const alertSeq = shallowRef(0)
-let alertTimer: ReturnType<typeof setTimeout> | undefined
 
-function armAlert() {
-  clearTimeout(alertTimer)
-  const next = alert.value
-
-  if (next) alertTimer = setTimeout(() => host.alerts.dismiss(), ALERT_TTL[next.kind])
-}
-
-function holdAlert(held: boolean) {
-  if (held) clearTimeout(alertTimer)
-  else armAlert()
-}
-
-watch(alert, () => {
-  alertSeq.value += 1
-  armAlert()
-})
-
-watch(current, (view) => {
-  if (view === "chat") host.alerts.clear()
-})
-
-const face = computed(() =>
-  waiting.value || alert.value ? "alert" : expanded.value ? "tabs" : "compact",
-)
+const face = computed(() => (waiting.value ? "waiting" : expanded.value ? "tabs" : "compact"))
 const box = { box: "border-box" } as const
 const sizes = {
   compact: useElementSize(useTemplateRef<HTMLElement>("compact"), undefined, box),
   tabs: useElementSize(useTemplateRef<HTMLElement>("tabs"), undefined, box),
-  alert: useElementSize(useTemplateRef<HTMLElement>("card"), undefined, box),
+  waiting: useElementSize(useTemplateRef<HTMLElement>("card"), undefined, box),
 }
 const size = computed(() => {
   const active = sizes[face.value]
@@ -220,16 +175,29 @@ const size = computed(() => {
 const slotWidth = shallowRef(0)
 
 watch(size, (next) => {
-  if (face.value !== "alert") slotWidth.value = next.width
+  if (face.value !== "waiting") slotWidth.value = next.width
 })
 
 function backToChat() {
   host.showView("chat")
 }
 
+function collapse() {
+  hovered.value = false
+  focused.value = false
+  peeking.value = false
+}
+
+function onFocusOut(event: FocusEvent) {
+  const next = event.relatedTarget
+  const currentTarget = event.currentTarget
+
+  if (next instanceof Node && currentTarget instanceof Node && currentTarget.contains(next)) return
+  focused.value = false
+}
+
 onBeforeUnmount(() => {
   clearTimeout(timer)
-  clearTimeout(alertTimer)
 })
 
 function show(view: string | null) {
@@ -266,7 +234,7 @@ function show(view: string | null) {
     box-shadow var(--duration-normal) var(--ease-out);
 }
 
-.island[data-face="alert"] {
+.island[data-face="waiting"] {
   border-radius: var(--radius-card);
   box-shadow: var(--float-shadow);
 }
@@ -380,12 +348,6 @@ function show(view: string | null) {
   font-weight: var(--font-weight-semibold);
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.island-alert-more {
-  flex-shrink: 0;
-  color: var(--fg-muted);
-  font-size: var(--text-meta);
 }
 
 .island-alert-body {

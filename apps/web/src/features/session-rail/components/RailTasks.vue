@@ -94,6 +94,10 @@
               </span>
             </div>
 
+            <p v-if="stopErrors?.get(task.id)" class="rail-task-error" role="alert">
+              {{ stopErrors.get(task.id) }}
+            </p>
+
             <p
               v-if="task.kind === 'agent' && task.status === 'running' && task.steps.length"
               class="rail-task-step"
@@ -160,6 +164,7 @@ const props = defineProps<{
   sections: TaskSections
   stoppable: ReadonlySet<string>
   stopping: ReadonlySet<string>
+  stopErrors?: ReadonlyMap<string, string> | undefined
   focus?: string | undefined
 }>()
 const emit = defineEmits<{ open: [child: OpenChild]; stop: [taskId: string] }>()
@@ -366,6 +371,13 @@ button.rail-task-title:focus-visible {
 
 .rail-task-failed {
   color: var(--danger-text);
+}
+
+.rail-task-error {
+  margin: 0 var(--space-xs);
+  color: var(--danger-text);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
 }
 
 .rail-task-step {

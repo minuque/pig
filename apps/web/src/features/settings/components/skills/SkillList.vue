@@ -20,7 +20,7 @@
       <template #actions><RetryButton :action="state.refresh" /></template>
     </EmptyState>
 
-    <p v-else-if="state.error.value" class="list-note">{{ state.error.value }}</p>
+    <Banner v-else-if="state.error.value" color="danger" size="s">{{ state.error.value }}</Banner>
 
     <section v-for="group in groups" :key="group.dir" class="skill-group">
       <h3 class="group-path">{{ group.dir }}</h3>
@@ -151,6 +151,7 @@ import { useI18n } from "@i18n/index.js"
 import HairlineArt from "@components/empty/HairlineArt.vue"
 import RetryButton from "@components/empty/RetryButton.vue"
 import { Badge } from "@pig/ui/badge"
+import { Banner } from "@pig/ui/banner"
 import { Button } from "@pig/ui/button"
 import { CardList, CardRow } from "@pig/ui/card"
 import { EmptyState } from "@pig/ui/empty-state"

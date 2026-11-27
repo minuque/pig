@@ -40,7 +40,7 @@
 ## 表面
 
 - 拖拽卡与拖拽中的行：`--shadow-popover`；对话框、抽屉、图片预览：`--shadow-dialog`。
-- 菜单、下拉、悬停卡、浮卡、toast：`--float-bg` + `--float-shadow` + `--glass-filter`；警告框与输入卡同用 `--float-shadow` + `--glass-filter`；命令面板：`--glass-*`。
+- 菜单、下拉、悬停卡、浮卡：`--float-bg` + `--float-shadow` + `--glass-filter`；Toast（叠加扫光）与 Notification：`--bg-raised` 实底、`--border` 描边配 `--toast-shadow` / `--float-elevation`；警告框与输入卡同用 `--float-shadow` + `--glass-filter`；命令面板：`--glass-*`。
 - 提示卡片（tooltip）：高对比实底（`--tooltip-bg`），不加阴影或毛玻璃。
 - 输入卡上方的状态条：`--bg-raised` + 环，上圆角 `--composer-radius`，底部伸进输入卡。
 - 命令、文件浮板按菜单表面挂 body，离输入卡 8px；浮板打开时隐藏状态条，二者不叠放。
@@ -54,8 +54,8 @@
   Why：状态色与常态一样，就看不出能点、已展开或已选中。
 - **显示模型名的地方，前面一律加 `VendorMark`。**
   Why：和模型选择器一致，一眼认出供应商。
-- **pane 正在显示的会话的事由该 pane 的灵动岛提醒（`split.alerts.route`），在 Chat 里看得到的不弹；其余走 `notify()`（`@pig/ui/toast`），右上角叠放，页面上已能看到的传 `transient: true`，只有别处看不到的错误才常驻。**
-  Why：同一条报错在 toast 和页面里各留一份，常驻的 toast 只是重复。
+- **轻量状态、可撤销、进度反馈走顶部居中单条替换的 `Toast`（`toastStatus` / `toastAction` / `toastProgress`）；跨会话完成、待决策与持久化异常走右上角堆叠的 `Notification`，留存铃铛历史且仅窗口失焦时发系统通知；页面内看得见的校验与重试就地用 `Banner` 或行内文案。**
+  Why：单行瞬时反馈与跨会话决策分层承接，避免顶栏冲突及页面与浮层双份报错。
 - 关闭按钮默认 `s`。`TextFieldRoot` 用 `invalid` 表达错误态。
 - 设置行 = 标题 + 一行说明 + 控件。项目缩写用灰色 soft Badge。
 

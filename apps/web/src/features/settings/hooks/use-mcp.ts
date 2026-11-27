@@ -12,7 +12,7 @@ import {
 } from "@client/agent-config.js"
 import { errorMessage } from "@client/http.js"
 import { t } from "@i18n/index.js"
-import { notify } from "@pig/ui/toast"
+import { toastStatus } from "@pig/ui/toast"
 
 export type McpStatus = "idle" | "probing" | "connected" | "needsAuth" | "failed" | "disabled"
 
@@ -23,8 +23,8 @@ export function useMcp(scope: Ref<string>) {
   const probing = ref(false)
   const error = ref<string>()
 
-  async function refresh() {
-    error.value = undefined
+  async function refresh(options?: { preserveError?: boolean }) {
+    if (!options?.preserveError) error.value = undefined
 
     try {
       const current = scope.value
@@ -39,7 +39,8 @@ export function useMcp(scope: Ref<string>) {
     }
   }
 
-  async function probe() {
+  async function probe(options?: { preserveError?: boolean }) {
+    if (!options?.preserveError) error.value = undefined
     probing.value = true
 
     try {
@@ -66,16 +67,20 @@ export function useMcp(scope: Ref<string>) {
     return "idle"
   }
 
-  async function mutate(task: () => Promise<unknown>): Promise<boolean> {
+  async function mutate(task: () => Promise<unknown>, successMessage?: string): Promise<boolean> {
+    error.value = undefined
+    let failed = false
+
     try {
       await task()
-      notify(t("settings.mcp.saved"), "success")
+      toastStatus(successMessage ?? t("settings.mcp.saved"), { tone: "success" })
       return true
     } catch (cause) {
-      notify(errorMessage(cause), "error")
+      failed = true
+      error.value = errorMessage(cause)
       return false
     } finally {
-      await refresh()
+      await refresh({ preserveError: failed })
     }
   }
 
@@ -106,20 +111,27 @@ export function useMcp(scope: Ref<string>) {
   }
 
   function remove(server: McpServerView) {
-    return mutate(() => deleteMcpServer(scope.value, server.name))
+    return mutate(
+      () => deleteMcpServer(scope.value, server.name),
+      server.override ? t("settings.mcp.restored") : t("settings.mcp.deleted"),
+    )
   }
 
   async function logout(server: McpServerView) {
+    error.value = undefined
+    let failed = false
+
     try {
       await logoutMcp(scope.value, server.name)
     } catch (cause) {
-      notify(errorMessage(cause), "error")
+      failed = true
+      error.value = errorMessage(cause)
     }
 
-    await probe()
+    await probe({ preserveError: failed })
   }
 
-  watch(scope, refresh, { immediate: true })
+  watch(scope, () => void refresh(), { immediate: true })
   return {
     view,
     probes,

@@ -40,6 +40,8 @@ export * from "./ui/link/index.js"
 
 export * from "./ui/meter/index.js"
 
+export * from "./ui/notification/index.js"
+
 export * from "./ui/popover/index.js"
 
 export * from "./ui/progress/index.js"

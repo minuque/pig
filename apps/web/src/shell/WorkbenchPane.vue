@@ -13,8 +13,8 @@
 </template>
 
 <script setup lang="ts">
-import { shallowRef, useTemplateRef } from "vue"
-import { useResizeObserver } from "@vueuse/core"
+import { shallowRef, useTemplateRef, watch } from "vue"
+import { useEventListener, useResizeObserver } from "@vueuse/core"
 import { provideComposerPreset, type ComposerPresetContext } from "@features/composer/index.js"
 import FilePanel from "@features/file-pane/components/FilePanel.vue"
 import { provideFilePane } from "@features/file-pane/index.js"
@@ -29,25 +29,48 @@ import WorkbenchHeader from "@features/session-workbench/components/WorkbenchHea
 const props = defineProps<{
   session: SessionContext
   preset: ComposerPresetContext
+  focusTask?: { sessionId: string; taskId: string; seq: number } | undefined
+}>()
+const emit = defineEmits<{
+  centerChange: [centerX: number]
+  railTasksVisibleChange: [visible: boolean]
 }>()
 const host = usePanelHost()
 const root = useTemplateRef("root")
 const drawerInset = shallowRef<Record<string, string>>()
 
-useResizeObserver(root, () => {
+function measureRect() {
   const rect = root.value?.getBoundingClientRect()
 
-  if (rect)
-    drawerInset.value = {
-      "--drawer-inset": `${rect.top}px ${window.innerWidth - rect.right}px ${window.innerHeight - rect.bottom}px ${rect.left}px`,
-    }
-})
+  if (!rect) return
+  drawerInset.value = {
+    "--drawer-inset": `${rect.top}px ${window.innerWidth - rect.right}px ${window.innerHeight - rect.bottom}px ${rect.left}px`,
+  }
+  emit("centerChange", rect.left + rect.width / 2)
+}
+
+useResizeObserver(root, measureRect)
+
+useEventListener(window, "resize", measureRect)
 
 provideSession(props.session)
 
 provideComposerPreset(props.preset)
 
-provideSessionRail()
+const rail = provideSessionRail()
+
+watch(
+  () => Boolean(rail.dockedShown.value || rail.pane.value?.kind === "tasks"),
+  (visible) => emit("railTasksVisibleChange", visible),
+  { immediate: true },
+)
+
+watch([() => props.focusTask?.seq, () => props.session.sessionId.value], ([_seq, activeId]) => {
+  const target = props.focusTask
+
+  if (target && activeId === target.sessionId)
+    rail.openPane({ kind: "tasks", focus: target.taskId })
+})
 
 provideFilePane(props.session, host.showView)
 

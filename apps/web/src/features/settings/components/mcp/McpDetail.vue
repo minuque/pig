@@ -72,6 +72,16 @@
       </template>
     </div>
 
+    <Banner
+      v-if="state.error.value"
+      color="danger"
+      size="s"
+      dismissible
+      @close="state.error.value = undefined"
+    >
+      {{ state.error.value }}
+    </Banner>
+
     <McpLogin
       v-if="loggingIn"
       :scope="scope"

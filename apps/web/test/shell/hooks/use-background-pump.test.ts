@@ -157,8 +157,10 @@ describe("后台泵队挂在 Hub 上", () => {
     ctx.scope.stop()
   })
 
-  it("后台发送被拒：条目回队首，不响完成音", async () => {
+  it("后台发送被拒：条目回队首，不响完成音，回调报错", async () => {
     const ctx = setup()
+    const onSendError = vi.fn()
+    ctx.hub.setBackgroundSendError(onSendError)
     const a = await ctx.background("a")
     a.rejectSubmit = true
     ctx.paneQueue.setKey("a")
@@ -172,6 +174,7 @@ describe("后台泵队挂在 Hub 上", () => {
     expect(ctx.paneQueue.sizeFor("a")).toBe(2)
     expect(ctx.sound.play).not.toHaveBeenCalled()
     expect(ctx.announce).not.toHaveBeenCalled()
+    expect(onSendError).toHaveBeenCalledWith("a", expect.any(String))
     ctx.scope.stop()
   })
 

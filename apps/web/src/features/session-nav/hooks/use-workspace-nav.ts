@@ -16,7 +16,7 @@ import {
   removeArchivedSessionLocal,
   unarchiveSessions as requestUnarchiveSessions,
 } from "@client/session-archives.js"
-import { notify } from "@pig/ui/toast"
+import { toastAction, toastStatus } from "@pig/ui/toast"
 import { t } from "@i18n/index.js"
 import {
   deleteSession as requestDeleteSession,
@@ -283,11 +283,9 @@ export function useWorkspaceNav(
     if (deletedCount > 0) await admin.refreshSessions()
 
     if (deletedCount > 1)
-      notify(t("settings.archive.deleteBatchDone", { count: deletedCount }), "info", {
-        transient: true,
+      toastStatus(t("settings.archive.deleteBatchDone", { count: deletedCount }), {
+        tone: "success",
       })
-
-    if (error.value) notify(error.value, "error", { transient: true })
   }
 
   function formatArchiveNotice(
@@ -308,7 +306,7 @@ export function useWorkspaceNav(
     const eligible = unique.filter((id) => !admin.isRunning(id))
 
     if (eligible.length === 0) {
-      notify(t("session.archiveSkippedRunning"), "warning", { transient: true })
+      toastStatus(t("session.archiveSkippedRunning"), { tone: "warning" })
       return
     }
 
@@ -327,18 +325,26 @@ export function useWorkspaceNav(
         eligible,
       )
 
-      notify(message, "info", {
-        transient: true,
-        action: {
-          label: t("session.undo"),
-          icon: "undo",
-          run: () => {
-            void unarchiveSessions(eligible, { silent: true })
-          },
+      toastAction(message, {
+        label: t("session.undo"),
+        icon: "undo",
+        revertedLabel: t("session.unarchived"),
+        run: () => {
+          void unarchiveSessions(eligible, { silent: true })
         },
       })
     } catch {
-      notify(t("session.archiveFailed"), "error", { transient: true })
+      toastAction(
+        t("session.archiveFailed"),
+        {
+          label: t("common.retry"),
+          icon: "retry",
+          run: () => {
+            void archiveSessions(eligible)
+          },
+        },
+        { tone: "error" },
+      )
     }
   }
 
@@ -358,18 +364,26 @@ export function useWorkspaceNav(
         unique,
       )
 
-      notify(message, "info", {
-        transient: true,
-        action: {
-          label: t("session.undo"),
-          icon: "undo",
-          run: () => {
-            void archiveSessions(unique, { silent: true })
-          },
+      toastAction(message, {
+        label: t("session.undo"),
+        icon: "undo",
+        revertedLabel: t("session.archived"),
+        run: () => {
+          void archiveSessions(unique, { silent: true })
         },
       })
     } catch {
-      notify(t("session.unarchiveFailed"), "error", { transient: true })
+      toastAction(
+        t("session.unarchiveFailed"),
+        {
+          label: t("common.retry"),
+          icon: "retry",
+          run: () => {
+            void unarchiveSessions(unique)
+          },
+        },
+        { tone: "error" },
+      )
     }
   }
 

@@ -1,7 +1,9 @@
 import { onBeforeUnmount, ref, watch, type Ref } from "vue"
 import type { ComposerAttachmentBatch, SendAttachmentsHooks } from "@/types/attachment-type.js"
-import { notify } from "@pig/ui/toast"
+import { errorMessage } from "@client/http.js"
+import { toastAction, toastStatus } from "@pig/ui/toast"
 import { t } from "@i18n/index.js"
+import { isChangedElsewhere } from "@features/session/index.js"
 import type { ComposerAttachmentsApi } from "@features/composer/hooks/use-composer-attachments.js"
 import type { ComposerDraftApi } from "@features/composer/hooks/use-composer-draft.js"
 import type { ComposerQueueApi, QueuedPrompt } from "@features/composer/hooks/use-composer-queue.js"
@@ -57,6 +59,7 @@ export function useComposerSubmit(deps: ComposerSubmitDeps) {
             deps.attachments.detach(batch)
           },
           onStageDropped: () => deps.attachments.revertStaged(batch),
+          onInlineError: (message) => deps.attachments.setError(message),
         }
       : undefined
     return deps
@@ -71,8 +74,10 @@ export function useComposerSubmit(deps: ComposerSubmitDeps) {
         if (batch && (sent || (remember && dispatched))) deps.attachments.settle(batch)
         return sent
       })
-      .catch(() => {
+      .catch((error) => {
         if (batch && remember && dispatched) deps.attachments.restore(batch)
+
+        if (!isChangedElsewhere(error)) toastStatus(errorMessage(error), { tone: "error" })
         return false
       })
   }
@@ -93,14 +98,17 @@ export function useComposerSubmit(deps: ComposerSubmitDeps) {
   function sendQueued(item: QueuedPrompt) {
     if (deps.running()) {
       if (item.attachments) {
-        notify(t("composer.steerNoAttachments"), "warning")
+        deps.attachments.setError(t("composer.steerNoAttachments"))
         return
       }
 
       if (!item.text.trim()) return
       void deps
         .steer(item.text)
-        .catch(() => false)
+        .catch((error) => {
+          toastStatus(errorMessage(error), { tone: "error" })
+          return false
+        })
         .then((steered) => {
           if (!steered) return
 
@@ -137,11 +145,14 @@ export function useComposerSubmit(deps: ComposerSubmitDeps) {
     if (!typed) return false
 
     if (deps.attachments.files.value.length) {
-      notify(t("composer.steerNoAttachments"), "warning")
+      deps.attachments.setError(t("composer.steerNoAttachments"))
       return false
     }
 
-    const steered = await deps.steer(typed).catch(() => false)
+    const steered = await deps.steer(typed).catch((error) => {
+      toastStatus(errorMessage(error), { tone: "error" })
+      return false
+    })
 
     if (steered) {
       history(typed)
@@ -167,12 +178,31 @@ export function useComposerSubmit(deps: ComposerSubmitDeps) {
   }
 
   function removeQueued(id: string) {
-    const item = deps.queue.items.value.find((entry) => entry.id === id)
+    const items = deps.queue.items.value
+    const index = items.findIndex((entry) => entry.id === id)
+    const item = index >= 0 ? items[index] : undefined
+
+    if (!item) return
 
     if (editingQueueId.value === id) cancelQueueEdit()
     deps.queue.remove(id)
 
-    if (item?.attachments) deps.attachments.settle(item.attachments)
+    toastAction(
+      t("composer.queueRemoved"),
+      {
+        label: t("session.undo"),
+        icon: "undo",
+        revertedLabel: t("composer.queueRestored"),
+        run: () => {
+          deps.queue.insertAt(item, index)
+        },
+      },
+      {
+        onExpire: () => {
+          if (item.attachments) deps.attachments.settle(item.attachments)
+        },
+      },
+    )
   }
 
   function abort() {
@@ -182,6 +212,10 @@ export function useComposerSubmit(deps: ComposerSubmitDeps) {
     phaseAfter("pending", STOP_TIMEOUT_MS, "timedOut")
     void deps.abort()
   }
+
+  watch(stopPhase, (next) => {
+    if (next === "timedOut") toastStatus(t("session.stopTimedOut"), { tone: "warning" })
+  })
 
   watch(deps.running, (now) => {
     if (now) {

@@ -46,7 +46,7 @@
       </ResizablePanel>
     </Resizable>
 
-    <WindowControls />
+    <WindowControls :has-running-sessions="hasRunningSessions" />
   </div>
 </template>
 
@@ -72,6 +72,8 @@ import {
 import { ResizeHandle } from "@pig/ui/resize-handle"
 import WindowControls from "@components/layout/WindowControls.vue"
 import { prefersReducedMotion } from "@utils/motion.js"
+
+defineProps<{ hasRunningSessions?: boolean | undefined }>()
 
 defineSlots<{
   default(): unknown

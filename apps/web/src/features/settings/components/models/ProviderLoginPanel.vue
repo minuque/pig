@@ -6,6 +6,8 @@
       <span>{{ statusText }}</span>
     </div>
 
+    <span class="sr-only" role="status" aria-live="polite">{{ copiedAnnouncement }}</span>
+
     <p v-if="state.instruction" class="login-note">{{ state.instruction }}</p>
     <p v-if="state.progress" class="login-note">{{ state.progress }}</p>
 
@@ -102,6 +104,7 @@
 import { computed, ref, watch } from "vue"
 
 import { Button, IconButton } from "@pig/ui/button"
+import { toastStatus } from "@pig/ui/toast"
 import { Link } from "@pig/ui/link"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
 import { Field, FieldDescription, FieldLabel } from "@pig/ui/field"
@@ -122,6 +125,7 @@ const emit = defineEmits<{ answer: [value: string]; cancel: [] }>()
 const { t } = useI18n()
 const value = ref("")
 const copied = ref<string>()
+const copiedAnnouncement = ref("")
 const statusText = computed(() => {
   if (props.state.phase === "error") return props.state.error ?? t("common.error")
 
@@ -147,11 +151,19 @@ function submit() {
 }
 
 async function copy(text: string) {
-  await navigator.clipboard.writeText(text)
-  copied.value = text
-  setTimeout(() => {
-    if (copied.value === text) copied.value = undefined
-  }, 1500)
+  copiedAnnouncement.value = ""
+
+  try {
+    await navigator.clipboard.writeText(text)
+    copied.value = text
+    copiedAnnouncement.value = t("common.copied")
+    setTimeout(() => {
+      if (copied.value === text) copied.value = undefined
+    }, 1500)
+  } catch {
+    toastStatus(t("common.copyFailed"), { tone: "error" })
+    copiedAnnouncement.value = t("common.copyFailed")
+  }
 }
 </script>
 

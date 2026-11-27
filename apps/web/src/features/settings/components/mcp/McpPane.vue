@@ -32,7 +32,7 @@
       @add="view = 'create'"
     />
 
-    <McpImportDialog v-model:open="importing" :state="state" @imported="back" />
+    <McpImportDialog v-model:open="importing" :state="state" @imported="onImported" />
   </section>
 </template>
 
@@ -46,7 +46,7 @@ import McpServerForm from "@features/settings/components/mcp/McpServerForm.vue"
 import { useMcp } from "@features/settings/hooks/use-mcp.js"
 import { SETTINGS_TRAIL, type SettingsCrumb } from "@features/settings/hooks/use-settings-dialog.js"
 import { useI18n } from "@i18n/index.js"
-import { notify } from "@pig/ui/toast"
+import { toastStatus } from "@pig/ui/toast"
 
 defineProps<{ workspace: string | undefined }>()
 
@@ -77,8 +77,13 @@ function open(name: string) {
 }
 
 function onSaved(name: string) {
-  notify(t("settings.mcp.saved"), "success")
+  toastStatus(t("settings.mcp.saved"), { tone: "success" })
   open(name)
+}
+
+function onImported(count: number) {
+  toastStatus(t("settings.mcp.imported", { count }), { tone: "success" })
+  back()
 }
 
 async function jumpGlobal() {

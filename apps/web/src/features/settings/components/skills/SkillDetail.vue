@@ -73,6 +73,16 @@
       </dl>
     </header>
 
+    <Banner
+      v-if="readError || state.error.value"
+      color="danger"
+      size="s"
+      dismissible
+      @close="clearError"
+    >
+      {{ readError || state.error.value }}
+    </Banner>
+
     <template v-if="mode === 'edit' && !inherited">
       <Textarea
         v-model="raw"
@@ -152,6 +162,7 @@ import { FileTextIcon } from "@components/icons/index.js"
 import SkillAssetDialog from "@features/settings/components/skills/SkillAssetDialog.vue"
 import type { SkillsState } from "@features/settings/hooks/use-skills.js"
 import { checkSkillSource, deleteTarget, skillBody } from "@features/settings/lib/skill-source.js"
+import { errorMessage } from "@client/http.js"
 import MarkdownContent from "@features/transcript-view/components/markdown/MarkdownContent.vue"
 import { useMarkdownNodes } from "@features/transcript-view/hooks/use-markdown-nodes.js"
 import { useI18n } from "@i18n/index.js"
@@ -166,6 +177,7 @@ import {
   AlertDialogTitle,
 } from "@pig/ui/alert-dialog"
 import { Badge } from "@pig/ui/badge"
+import { Banner } from "@pig/ui/banner"
 import { Button } from "@pig/ui/button"
 import { TabsList, TabsRoot, TabsTrigger } from "@pig/ui/tabs"
 import { Textarea } from "@pig/ui/textarea"
@@ -189,6 +201,7 @@ const saving = ref(false)
 const confirming = ref(false)
 const previewFile = ref<string>()
 const invalid = ref<string>()
+const readError = ref<string>()
 const title = computed(() => props.skill?.name ?? props.name)
 const dirty = computed(() => raw.value !== saved.value)
 const check = computed(() => checkSkillSource(raw.value))
@@ -217,12 +230,21 @@ const nodes = useMarkdownNodes({
 })
 
 onMounted(async () => {
-  const file = await props.state.read(props.path)
+  try {
+    const file = await props.state.read(props.path)
 
-  raw.value = file.raw
-  saved.value = file.raw
-  files.value = file.files
+    raw.value = file.raw
+    saved.value = file.raw
+    files.value = file.files
+  } catch (cause) {
+    readError.value = errorMessage(cause)
+  }
 })
+
+function clearError() {
+  readError.value = undefined
+  props.state.error.value = undefined
+}
 
 async function save() {
   saving.value = true

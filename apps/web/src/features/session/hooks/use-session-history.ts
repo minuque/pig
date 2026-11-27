@@ -1,7 +1,6 @@
 import { computed, shallowReactive, shallowRef } from "vue"
 import type { TranscriptItem } from "@/types/common-type.js"
-import { notifyAction } from "@pig/ui/toast"
-import { t } from "@i18n/index.js"
+import { errorMessage } from "@client/http.js"
 import { sessionTranscript } from "@client/platform.js"
 import {
   absorbTranscriptPage,
@@ -18,20 +17,15 @@ export function createHistoryStore() {
   const version = shallowRef(0)
   const requestById = new Map<string, number>()
   const inflight = new Map<string, Promise<void>>()
-  const shown = shallowReactive(new Map<symbol, string>())
+  const errors = shallowReactive(new Map<string, string>())
 
   function bump() {
     version.value += 1
   }
 
-  function show(owner: symbol, id: string | undefined) {
-    if (id) {
-      shown.set(owner, id)
-      cache.touch(id)
-    } else shown.delete(owner)
+  function show(_owner: symbol, id: string | undefined) {
+    if (id) cache.touch(id)
   }
-
-  const isShown = (id: string) => [...shown.values()].includes(id)
 
   function overlayLive(id: string, live: readonly TranscriptItem[]) {
     if (live.length === 0) return
@@ -56,6 +50,7 @@ export function createHistoryStore() {
     const run = (async () => {
       const request = (requestById.get(id) ?? 0) + 1
       requestById.set(id, request)
+      errors.delete(id)
 
       try {
         const cached = cache.peek(id)
@@ -85,13 +80,13 @@ export function createHistoryStore() {
           failed: false,
         })
         bump()
-      } catch {
+      } catch (error) {
         if (requestById.get(id) !== request) return
 
         if (!cache.isReady(id)) {
           cache.write(id, { failed: true })
           bump()
-        } else if (isShown(id)) notifyAction(t("session.historyRefreshFailed"))
+        } else errors.set(id, errorMessage(error))
       }
     })()
 
@@ -141,6 +136,7 @@ export function createHistoryStore() {
       return cache.peek(id)?.externalTurn ?? false
     },
     timingsFor: (id: string) => cache.peek(id)?.timings ?? [],
+    errorFor: (id: string) => errors.get(id),
     loadHistory,
     refreshHistory,
   }
@@ -194,6 +190,7 @@ export function useHistoryView(store: HistoryStore) {
     releaseLive: store.releaseLive,
     timelineSource: store.timelineSource,
     transcriptFor,
+    errorFor: store.errorFor,
     isFresh: store.isFresh,
     loadHistory: store.loadHistory,
     refreshHistory: store.refreshHistory,

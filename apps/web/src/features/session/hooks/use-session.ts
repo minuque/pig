@@ -3,7 +3,7 @@ import type { ModelRef, ThinkingLevel } from "@/types/common-type.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
 import type { ComposerAttachmentBatch, SendAttachmentsHooks } from "@/types/attachment-type.js"
-import { notify } from "@pig/ui/toast"
+import { toastProgress, toastStatus } from "@pig/ui/toast"
 import { errorMessage } from "@client/http.js"
 import { t } from "@i18n/index.js"
 import { isChangedElsewhere } from "@features/session/hooks/abortable-open.js"
@@ -123,7 +123,7 @@ export function useSessionLifecycle(
 
   function retryHistory() {
     const id = sessionId.value
-    return id ? history.loadHistory(id) : Promise.resolve()
+    return id ? history.refreshHistory(id) : Promise.resolve()
   }
   const projection = computed(() => {
     const current = snapshot.value ? projectSessionSnapshot(snapshot.value) : undefined
@@ -214,6 +214,8 @@ export function useSessionLifecycle(
 
     if (!options?.preserveDraft) thread.draft = ""
 
+    let reloadProgress: ReturnType<typeof toastProgress> | undefined
+
     try {
       await ensureRemote(id)
 
@@ -221,15 +223,19 @@ export function useSessionLifecycle(
 
       if (command.name === "compact") await remote.value.compact(command.instructions)
       else {
+        reloadProgress = toastProgress(t("session.reloading"))
         await remote.value.reload()
         reloadRevision.value += 1
-        notify(t("session.reloaded"), "success")
+        reloadProgress.finish({ message: t("session.reloaded"), tone: "success" })
       }
 
       return true
     } catch (error) {
       if (!options?.preserveDraft && !thread.draft) thread.draft = previousDraft
-      notify(errorMessage(error), "error")
+      const message = errorMessage(error)
+
+      if (reloadProgress) reloadProgress.finish({ message, tone: "error" })
+      else toastStatus(message, { tone: "error" })
       return false
     } finally {
       thread.submitting = false
@@ -251,7 +257,10 @@ export function useSessionLifecycle(
     const builtin = sessionId.value ? parseBuiltinCommand(normalized) : undefined
 
     if (builtin && attachments) {
-      notify(t("composer.builtinNoAttachments"), "warning")
+      const message = t("composer.builtinNoAttachments")
+
+      if (hooks?.onInlineError) hooks.onInlineError(message)
+      else toastStatus(message, { tone: "warning" })
       return false
     }
 
@@ -326,7 +335,7 @@ export function useSessionLifecycle(
 
       if (isChangedElsewhere(error) && sessionId.value) {
         dropChanged(sessionId.value)
-        notify(t("session.changedElsewhere"), "info")
+        toastStatus(t("session.changedElsewhere"), { tone: "info" })
       }
 
       throw error
@@ -360,7 +369,8 @@ export function useSessionLifecycle(
 
     try {
       await abortRemote()
-    } catch {
+    } catch (error) {
+      toastStatus(errorMessage(error), { tone: "error" })
     } finally {
       thread.aborting = false
     }
@@ -399,6 +409,10 @@ export function useSessionLifecycle(
     return true
   })
 
+  const historyError = computed(() =>
+    sessionId.value ? history.errorFor(sessionId.value) : undefined,
+  )
+
   function teardown() {
     stopRouteSync()
     stopClientSync()
@@ -418,6 +432,10 @@ export function useSessionLifecycle(
     retryHistory,
     connected: pi.connected,
     connectionError: pi.connectionError,
+    reconnecting: pi.reconnecting,
+    reconnectFailed: pi.reconnectFailed,
+    reconnectNow: pi.reconnectNow,
+    historyError,
     transcript,
     welcome,
     loadHistory: history.loadHistory,

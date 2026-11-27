@@ -1,6 +1,7 @@
 <template>
   <div
     data-slot="banner"
+    :role="ariaRole"
     :data-size="size"
     :data-variant="variant"
     :data-tone="color"
@@ -38,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
+import { computed, type HTMLAttributes } from "vue"
 import { XIcon } from "@lucide/vue"
 import { useUiLabels } from "../../core/config.js"
 import type { Size } from "../../core/types.js"
@@ -52,6 +53,7 @@ interface Props {
   color?: BannerColor
   size?: Size
   dismissible?: boolean
+  role?: "alert" | "status" | "none" | undefined
   class?: HTMLAttributes["class"]
 }
 
@@ -60,9 +62,18 @@ const props = withDefaults(defineProps<Props>(), {
   color: "neutral",
   size: "m",
   dismissible: false,
+  role: undefined,
   class: undefined,
 })
 const emit = defineEmits<{ close: [] }>()
+const ariaRole = computed(() => {
+  if (props.role === "none") return undefined
+
+  if (props.role) return props.role
+
+  if (props.color === "danger" || props.color === "warning") return "alert"
+  return undefined
+})
 </script>
 
 <style>

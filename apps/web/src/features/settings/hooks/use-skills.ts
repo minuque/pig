@@ -12,14 +12,14 @@ import {
 } from "@client/agent-config.js"
 import { errorMessage } from "@client/http.js"
 import { t } from "@i18n/index.js"
-import { notify } from "@pig/ui/toast"
+import { toastStatus } from "@pig/ui/toast"
 
 export function useSkills(scope: Ref<string>) {
   const view = ref<SkillScopeView>()
   const error = ref<string>()
 
-  async function refresh() {
-    error.value = undefined
+  async function refresh(options?: { preserveError?: boolean }) {
+    if (!options?.preserveError) error.value = undefined
 
     try {
       const current = scope.value
@@ -31,16 +31,25 @@ export function useSkills(scope: Ref<string>) {
     }
   }
 
-  async function mutate(task: () => Promise<unknown>, saved = () => true): Promise<void> {
+  async function mutate(
+    task: () => Promise<unknown>,
+    options: { saved?: () => boolean; messageKey?: string } = {},
+  ): Promise<void> {
+    error.value = undefined
+    const saved = options.saved ?? (() => true)
+    let failed = false
+
     try {
       await task()
 
-      if (saved()) notify(t("settings.skills.saved"), "success")
+      if (saved())
+        toastStatus(t(options.messageKey ?? "settings.skills.saved"), { tone: "success" })
     } catch (cause) {
-      notify(errorMessage(cause), "error")
+      failed = true
+      error.value = errorMessage(cause)
       throw cause
     } finally {
-      await refresh()
+      await refresh({ preserveError: failed })
     }
   }
 
@@ -75,16 +84,16 @@ export function useSkills(scope: Ref<string>) {
 
         if (!result.ok) invalid = result.error
       },
-      () => !invalid,
+      { saved: () => !invalid },
     )
     return invalid
   }
 
   function remove(path: string) {
-    return mutate(() => deleteSkill(scope.value, path))
+    return mutate(() => deleteSkill(scope.value, path), { messageKey: "settings.skills.deleted" })
   }
 
-  watch(scope, refresh, { immediate: true })
+  watch(scope, () => void refresh(), { immediate: true })
   return { view, error, refresh, setEnabled, create, read, readAsset, write, remove }
 }
 

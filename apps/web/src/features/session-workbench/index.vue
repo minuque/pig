@@ -20,6 +20,8 @@
       <StartupError v-if="pageError" v-bind="pageError" />
 
       <template v-else>
+        <WorkbenchBanners />
+
         <div ref="stage" class="session-stage">
           <Transition name="dock-hero" appear>
             <div v-if="welcome" key="hero" class="idle-hero">
@@ -136,6 +138,7 @@ import QuestionBoard from "@features/extension-ui/components/QuestionBoard.vue"
 import { useQuestionBoard } from "@features/extension-ui/hooks/use-question-board.js"
 import ExternalTurnNotice from "@features/session-workbench/components/ExternalTurnNotice.vue"
 import StartupError from "@features/session-workbench/components/StartupError.vue"
+import WorkbenchBanners from "@features/session-workbench/components/WorkbenchBanners.vue"
 import WorkbenchHero from "@features/session-workbench/components/WorkbenchHero.vue"
 import { useComposerDock } from "@features/session-workbench/hooks/use-composer-dock.js"
 import { useComposerReserve } from "@features/session-workbench/hooks/use-composer-reserve.js"
@@ -144,6 +147,7 @@ import { useFileDrop } from "@features/session-workbench/hooks/use-file-drop.js"
 import { useReplyNavigation } from "@features/session-workbench/hooks/use-reply-navigation.js"
 import { useSessionDrop } from "@features/session-workbench/hooks/use-session-drop.js"
 import { useMentionSessions } from "@features/session-workbench/hooks/use-mention-sessions.js"
+import { useTurnAnnounce } from "@features/session-workbench/hooks/use-turn-announce.js"
 import { useTurnFinish } from "@features/session-workbench/hooks/use-turn-finish.js"
 import { useWelcomeWorkspace } from "@features/session-workbench/hooks/use-welcome-workspace.js"
 import TranscriptView from "@features/transcript-view/index.vue"
@@ -151,8 +155,7 @@ import SessionRail from "@features/session-rail/index.vue"
 import { useSessionRail } from "@features/session-rail/index.js"
 import { prefetchTranscriptView, TranscriptStatus } from "@features/transcript-view/index.js"
 import { FilePlusIcon } from "@components/icons/index.js"
-import { notify } from "@pig/ui/toast"
-import { usePanelHost, type PaneAlert } from "@features/panel-host/index.js"
+import { usePanelHost } from "@features/panel-host/index.js"
 import { carry, fadeSwap, glide } from "@utils/motion.js"
 
 onMounted(() => {
@@ -178,6 +181,8 @@ const {
   retryHistory,
   connectionError,
   connected,
+  reconnecting,
+  reconnectFailed,
   prompt,
   aborting,
   steer: sessionSteer,
@@ -193,11 +198,11 @@ const {
   reloadRevision,
 } = useSession()
 const { catalog, preset, switchLocked } = useComposerPreset()
-const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
+const { groups, lastCwd, addingWorkspace, addWorkspace, allSessions, openSession } = useNav()
 const workspaces = computed(() => groups.value.map((group) => group.canonicalPath))
 const mentionSessions = useMentionSessions(sessionId)
 const pageError = computed(() => {
-  if (connectionError.value && connected.value) {
+  if (!reconnecting.value && !reconnectFailed.value && connectionError.value && connected.value) {
     return { title: t("startup.connectFailed") }
   }
 
@@ -326,6 +331,12 @@ function onSend(text: string) {
   sendNow(text)
 }
 
+const announce = useTurnAnnounce({
+  sessionId,
+  sessions: allSessions,
+  host,
+  openSession,
+})
 const { markAborted } = useTurnFinish({
   sessionId: () => sessionId.value,
   running: () => running.value,
@@ -336,20 +347,6 @@ const { markAborted } = useTurnFinish({
   sendForeground: deliver,
   announce,
 })
-
-function announce(kind: "done" | "error", message?: string) {
-  const id = sessionId.value
-
-  if (!id) return
-
-  const alert: PaneAlert =
-    kind === "done"
-      ? { kind, tone: "success", title: t("views.turnDone") }
-      : { kind, tone: "error", title: t("session.turnFailed"), body: message }
-
-  if (host.alerts.route(id, alert) === "toast")
-    notify(message || alert.title, "error", { transient: true })
-}
 
 setWelcomeHandoff((id) => {
   composerQueue.handOff(id)

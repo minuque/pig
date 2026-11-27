@@ -3,7 +3,6 @@ import type { TranscriptItem } from "@/types/common-type.js"
 import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
 import type { ComposerQueueApi } from "@features/composer/hooks/use-composer-queue.js"
 import { endedCleanly } from "@features/session/index.js"
-import { notifyTurnDone } from "@features/settings/index.js"
 
 interface TurnFinishDeps {
   sessionId(): string | undefined
@@ -51,7 +50,6 @@ export function useTurnFinish(deps: TurnFinishDeps) {
 
     if (clean) {
       void deps.sound.play("done")
-      void notifyTurnDone()
       deps.announce("done")
     }
 

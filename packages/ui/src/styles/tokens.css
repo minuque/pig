@@ -191,6 +191,8 @@
   --ease-out: cubic-bezier(0.17, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.66, 0, 0.34, 1);
   --ease-spring: cubic-bezier(0.22, 1.18, 0.36, 1);
+  --ease-smooth: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-toast-enter: cubic-bezier(0.25, 0.1, 0.25, 1);
   --ease-drag-pop: cubic-bezier(0.34, 1.42, 0.64, 1);
   --ease-drag-glide: cubic-bezier(0.22, 1.06, 0.36, 1);
   --ease-drag-spring: linear(
@@ -208,6 +210,15 @@
   --duration-fast: 150ms;
   --duration-normal: 200ms;
   --duration-slow: 300ms;
+  --duration-toast-enter: 500ms;
+  --duration-toast-leave: 220ms;
+  --duration-toast-morph: 380ms;
+  --duration-toast-morph-out: 180ms;
+  --duration-toast-sheen: 900ms;
+  --duration-notif-enter: 560ms;
+  --duration-notif-expand: 240ms;
+  --duration-notif-dismiss: 150ms;
+  --duration-notif-settle: 220ms;
   --duration-drag-lift: 180ms;
   --duration-drag-hint: 180ms;
   --duration-drag-ripple: 250ms;
@@ -225,7 +236,11 @@
   --icon-stroke: 1.75px;
 
   /* --- 布局 --- */
-  --toast-width: 22rem;
+  --toast-top: 56px;
+  --toast-anchor-x: 50vw;
+  --notification-width: 344px;
+  --notification-top: 56px;
+  --notification-right: 16px;
   --dialog-width-sm: 420px;
   --dialog-width-lg: 80rem;
   --dialog-height-lg: 60rem;
@@ -267,6 +282,18 @@
   --slider-track-bg: var(--bg-surface);
   --slider-track-ring: inset 0 0 0 var(--border-width) var(--border);
   --switch-thumb-unchecked: var(--bg);
+  --toast-pill-height: 40px;
+  --toast-radius: 16px;
+  --toast-max-width: 520px;
+  --toast-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
+  --toast-sheen: linear-gradient(
+    105deg,
+    transparent 22%,
+    rgba(255, 255, 255, 0.45) 50%,
+    transparent 78%
+  );
+  --notif-peek: 12px;
+  --notif-gap: 8px;
 }
 
 /* ------ 深色覆盖：只覆盖颜色与阴影 ------ */
@@ -348,6 +375,13 @@ html.dark {
   --slider-track-bg: var(--sidebar);
   --slider-track-ring: inset 0 0 0 var(--border-width) var(--border-strong);
   --switch-thumb-unchecked: var(--fg-muted);
+  --toast-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.48), 0 2px 8px rgba(0, 0, 0, 0.24);
+  --toast-sheen: linear-gradient(
+    105deg,
+    transparent 22%,
+    rgba(255, 255, 255, 0.14) 50%,
+    transparent 78%
+  );
 
   /* --- 浅色里冻结成字面值、深色取值不同的 token --- */
   --success-text: #3dd68c;

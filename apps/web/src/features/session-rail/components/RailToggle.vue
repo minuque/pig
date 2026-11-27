@@ -61,6 +61,7 @@
           :sections="sections"
           :stoppable="cards.stoppable"
           :stopping="cards.stopping"
+          :stop-errors="cards.stopErrors"
           :session-id="session.sessionId.value"
           :progress="childProgress"
           @stop="stopTask"

@@ -97,6 +97,10 @@ export function createPageSession(): SessionContext {
     sessionPending: computed(() => false),
     connected: computed(() => true),
     connectionError: shallowRef<Error>(),
+    reconnecting: shallowRef(false),
+    reconnectFailed: shallowRef(false),
+    reconnectNow: resolved,
+    historyError: computed(() => undefined),
     historyFailed: failing,
     retryHistory: () =>
       new Promise<void>((resolve) =>
@@ -184,8 +188,8 @@ export function createPageNav(session: SessionContext): NavContext {
       return sidebarSections({
         sessions: filter ? allSessions.value.filter(filter) : allSessions.value,
         pinnedOrder: pinnedOrder.value,
-        placement: (id) => ({
-          running: pagePlacement(id).running,
+        placement: (id: string) => ({
+          ...pagePlacement(id),
           settled: settledSet.value.has(id),
         }),
         moreBySection: moreBySection.value,

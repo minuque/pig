@@ -16,7 +16,7 @@ import {
   prebuildAppendSession,
 } from "../support/prebuild-session.js"
 
-const NOTICE = "会话在别处有更新，已刷新"
+const NOTICE = "会话在别处已更新，消息未发送，已刷新"
 const FIRST = "e2e pig 的第一句"
 const SECOND = "e2e pig 的第二句"
 const test = base.extend<{ appendGateway: ExternalTurnGateway }>({
@@ -61,9 +61,7 @@ test("pig 持有会话时被外部追加：提示、显示外部那一轮、草�
   await prompt.fill(SECOND)
   await expect(send).toBeEnabled()
   await send.click()
-  await expect(
-    page.getByRole("region", { name: "通知" }).getByText(NOTICE, { exact: true }),
-  ).toBeVisible()
+  await expect(page.locator('[data-slot="toast"]', { hasText: NOTICE })).toBeVisible()
   await expect(page.getByText(APPEND_EXTERNAL_REPLY, { exact: true })).toBeVisible()
   await expect(prompt).toHaveText(SECOND)
 

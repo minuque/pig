@@ -20,7 +20,7 @@
       <template #actions><RetryButton :action="state.refresh" /></template>
     </EmptyState>
 
-    <p v-else-if="state.error.value" class="list-note">{{ state.error.value }}</p>
+    <Banner v-else-if="state.error.value" color="danger" size="s">{{ state.error.value }}</Banner>
 
     <Banner v-if="state.note.value" color="warning" variant="surface" size="s">
       {{ state.note.value }}

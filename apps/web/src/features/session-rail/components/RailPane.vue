@@ -37,6 +37,7 @@
           :sections="sections"
           :stoppable="stoppable"
           :stopping="stopping"
+          :stop-errors="stopErrors"
           :focus="pane.focus"
           @open="rail.openChild"
           @stop="emit('stop', $event)"
@@ -66,6 +67,7 @@ const props = defineProps<{
   sections: TaskSections
   stoppable: ReadonlySet<string>
   stopping: ReadonlySet<string>
+  stopErrors?: ReadonlyMap<string, string> | undefined
   sessionId: string | undefined
   progress: string
 }>()

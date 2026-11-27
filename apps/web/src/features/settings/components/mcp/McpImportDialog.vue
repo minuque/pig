@@ -65,7 +65,7 @@ import { Textarea } from "@pig/ui/textarea"
 type Entry = Record<string, unknown>
 
 const props = defineProps<{ state: McpState }>()
-const emit = defineEmits<{ imported: [] }>()
+const emit = defineEmits<{ imported: [count: number] }>()
 const open = defineModel<boolean>("open", { required: true })
 const { t } = useI18n()
 const raw = ref("")
@@ -123,9 +123,11 @@ async function apply() {
   }
 
   if (errors.value.length) return
+  const count = selected.value.length
+
   raw.value = ""
   open.value = false
-  emit("imported")
+  emit("imported", count)
 }
 </script>
 

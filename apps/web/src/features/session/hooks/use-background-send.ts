@@ -63,6 +63,7 @@ interface BackgroundSendDeps {
   states: Map<string, SessionClientState>
   backgroundSubscription(id: string): LiveSubscription | undefined
   transcriptFor(id: string): readonly TranscriptItem[]
+  onError?(id: string, message: string): void
 }
 
 export function createBackgroundSender(deps: BackgroundSendDeps) {
@@ -103,7 +104,8 @@ export function createBackgroundSender(deps: BackgroundSendDeps) {
 
       if (attachments) releaseAttachments(attachments.files)
       return true
-    } catch {
+    } catch (error) {
+      deps.onError?.(id, errorMessage(error))
       await dropBatch(attachments)
       return false
     } finally {

@@ -16,7 +16,7 @@ const api = vi.hoisted(() => ({
   createSkill: vi.fn(),
   readSkill: vi.fn(),
 }))
-const toast = vi.hoisted(() => ({ notify: vi.fn() }))
+const toast = vi.hoisted(() => ({ toastStatus: vi.fn() }))
 
 vi.mock("@client/agent-config.js", () => api)
 
@@ -44,37 +44,40 @@ beforeEach(() => {
 })
 
 describe("设置写入的反馈", () => {
-  it("MCP 开关写入失败时提示出错，成功时提示新会话生效", async () => {
+  it("MCP 开关写入失败时写入就地错误，成功时提示新会话生效", async () => {
     const { useMcp } = await import("@features/settings/hooks/use-mcp.js")
     const state = useMcp(ref("global"))
 
     api.patchMcpServer.mockRejectedValueOnce(new Error("mcp.json 无法解析"))
     await state.setEnabled(server, false)
-    expect(toast.notify).toHaveBeenLastCalledWith(expect.any(String), "error")
+    expect(state.error.value).toBeTruthy()
+    expect(toast.toastStatus).not.toHaveBeenCalled()
 
     api.patchMcpServer.mockResolvedValueOnce(undefined)
     await state.setEnabled(server, false)
-    expect(toast.notify).toHaveBeenLastCalledWith(expect.any(String), "success")
+    expect(state.error.value).toBeUndefined()
+    expect(toast.toastStatus).toHaveBeenLastCalledWith(expect.any(String), { tone: "success" })
   })
 
-  it("Skill 保存失败时提示出错并抛给调用方", async () => {
+  it("Skill 保存失败时写入就地错误并抛给调用方，不弹 toast", async () => {
     const { useSkills } = await import("@features/settings/hooks/use-skills.js")
     const state = useSkills(ref("global"))
 
     api.writeSkill.mockRejectedValueOnce(new Error("磁盘只读"))
 
     await expect(state.write("a/SKILL.md", "x")).rejects.toThrow()
-    expect(toast.notify).toHaveBeenLastCalledWith(expect.any(String), "error")
+    expect(state.error.value).toBeTruthy()
+    expect(toast.toastStatus).not.toHaveBeenCalled()
   })
 
   it("Skill 的 YAML 写错时返回原因，不提示已保存", async () => {
     const { useSkills } = await import("@features/settings/hooks/use-skills.js")
     const state = useSkills(ref("global"))
 
-    toast.notify.mockClear()
+    toast.toastStatus.mockClear()
     api.writeSkill.mockResolvedValueOnce({ ok: false, error: "bad yaml" })
 
     await expect(state.write("a/SKILL.md", "x")).resolves.toBe("bad yaml")
-    expect(toast.notify).not.toHaveBeenCalled()
+    expect(toast.toastStatus).not.toHaveBeenCalled()
   })
 })

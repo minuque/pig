@@ -22,7 +22,7 @@ export function useRailCards() {
           .map((task) => task.id),
       ),
   )
-  const { stopping, stopTask } = useTaskStopping((taskId) => session.stopTask(taskId))
+  const { stopping, stopErrors, stopTask } = useTaskStopping((taskId) => session.stopTask(taskId))
   const cards = computed(() => {
     const model = session.projection.value?.model
     const id = session.sessionId.value
@@ -34,6 +34,7 @@ export function useRailCards() {
       sections: sections.value,
       stoppable: stoppable.value,
       stopping: stopping.value,
+      stopErrors: stopErrors.value,
       statuses: id ? ui.statuses.value.get(id) : undefined,
     }
   })

@@ -49,6 +49,7 @@ export interface ComposerAttachmentsApi {
   revertStaged(batch: ComposerAttachmentBatch): void
   settle(batch: ComposerAttachmentBatch): void
   retryItem(id: string): void
+  setError(message: string): void
   dismissError(): void
   setKey(sessionId: string | undefined): void
   handOff(sessionId: string): void
@@ -266,6 +267,10 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     void stageItem(stash, item)
   }
 
+  function setError(message: string) {
+    bucket().error.value = message
+  }
+
   function dismissError() {
     bucket().error.value = ""
   }
@@ -286,6 +291,7 @@ export function useComposerAttachments(): ComposerAttachmentsApi {
     revertStaged,
     settle,
     retryItem,
+    setError,
     dismissError,
     setKey: buckets.setKey,
     handOff: buckets.handOff,

@@ -18,4 +18,5 @@ export interface ComposerAttachmentBatch {
 export interface SendAttachmentsHooks {
   onDispatched?(): void
   onStageDropped?(): void
+  onInlineError?(message: string): void
 }

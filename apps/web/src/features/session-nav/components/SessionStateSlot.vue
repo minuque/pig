@@ -1,6 +1,6 @@
 <template>
   <span class="state-slot">
-    <span class="state-mark" aria-hidden="true">
+    <span class="state-mark">
       <span v-if="working" class="working-status">
         <CircleDashedIcon class="size-icon-lg working-icon" />
         <span>{{ t("session.sectionWorking") }}</span>

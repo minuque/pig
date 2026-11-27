@@ -99,6 +99,7 @@
 import { reactive, ref, watch } from "vue"
 
 import { Button, IconButton } from "@pig/ui/button"
+import { toastStatus } from "@pig/ui/toast"
 import { TrashIcon } from "@components/icons/index.js"
 import { TabsList, TabsRoot, TabsTrigger } from "@pig/ui/tabs"
 import { Field, FieldLabel } from "@pig/ui/field"
@@ -167,6 +168,7 @@ async function save() {
   try {
     await updateModelParams(props.providerId, props.model.id, result.patch)
     dirty.value = false
+    toastStatus(t("settings.models.paramsSaved"), { tone: "success" })
     emit("saved")
   } catch (cause) {
     error.value = errorMessage(cause)
@@ -188,6 +190,7 @@ async function restore() {
       samplingParams: null,
     })
     dirty.value = false
+    toastStatus(t("settings.models.paramsRestored"), { tone: "success" })
     emit("saved")
   } catch (cause) {
     error.value = errorMessage(cause)

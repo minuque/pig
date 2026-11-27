@@ -2,19 +2,20 @@ import type { TranscriptItem } from "@/types/common-type.js"
 import type { ComposerAttachmentBatch } from "@/types/attachment-type.js"
 import type { ComposerQueueApi } from "@features/composer/hooks/use-composer-queue.js"
 import { endedCleanly, type BackgroundIdleResult } from "@features/session/index.js"
-import { notifyTurnDone } from "@features/settings/index.js"
 
 interface BackgroundPumpDeps {
   queue: ComposerQueueApi
   sound: { play(event: "done"): unknown }
   send(id: string, text: string, attachments?: ComposerAttachmentBatch): Promise<boolean>
   transcriptFor(id: string): readonly TranscriptItem[]
-  announce(id: string, outcome: "complete" | "error"): void
+  announce(id: string, outcome: "complete" | "error", detail?: string): void
 }
 
-function failed(items: readonly TranscriptItem[]): boolean {
+function failed(items: readonly TranscriptItem[]): { failed: boolean; errorMessage?: string } {
   const last = items.findLast((item) => item.role === "assistant")
-  return last?.role === "assistant" && last.status === "error"
+
+  if (last?.role !== "assistant" || last.status !== "error") return { failed: false }
+  return { failed: true, ...(last.errorMessage ? { errorMessage: last.errorMessage } : {}) }
 }
 
 export function createBackgroundPump(deps: BackgroundPumpDeps) {
@@ -26,9 +27,13 @@ export function createBackgroundPump(deps: BackgroundPumpDeps) {
 
       if (endedCleanly(items)) {
         void deps.sound.play("done")
-        void notifyTurnDone()
         deps.announce(id, "complete")
-      } else if (failed(items)) deps.announce(id, "error")
+      } else {
+        const failure = failed(items)
+
+        if (failure.failed) deps.announce(id, "error", failure.errorMessage)
+      }
+
       return "done"
     }
 

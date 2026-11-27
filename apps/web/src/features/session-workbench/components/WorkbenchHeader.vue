@@ -29,6 +29,23 @@
     <ViewIsland v-if="rail && sessionId" />
 
     <span class="header-end">
+      <NotificationBell>
+        <template #avatar="{ item }">
+          <ProjectIcon
+            v-if="item.avatar?.kind === 'project'"
+            :path="item.avatar.cwd"
+            fallback="monogram"
+          />
+
+          <img
+            v-else-if="item.avatar?.kind === 'brand'"
+            src="/pwa-icon-192.png"
+            alt=""
+            class="notif-brand-icon"
+          />
+        </template>
+      </NotificationBell>
+
       <RailToggle v-if="rail" />
     </span>
   </header>
@@ -37,8 +54,10 @@
 <script setup lang="ts">
 import { useI18n } from "@i18n/index.js"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
+import { NotificationBell } from "@pig/ui/notification"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { IconButton } from "@pig/ui/button"
+import { ProjectIcon } from "@features/session-nav/index.js"
 import RailToggle from "@features/session-rail/components/RailToggle.vue"
 import HeaderCrumbs from "@features/session-workbench/components/HeaderCrumbs.vue"
 import ViewIsland from "@features/session-workbench/components/ViewIsland.vue"
@@ -99,6 +118,12 @@ const { sessionId } = useSession()
 
 .header-end {
   justify-content: flex-end;
+}
+
+.notif-brand-icon {
+  inline-size: var(--icon-xl);
+  block-size: var(--icon-xl);
+  object-fit: cover;
 }
 
 html[data-pig-desktop-platform] .workbench-header {

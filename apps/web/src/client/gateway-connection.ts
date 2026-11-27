@@ -29,7 +29,8 @@ export function useGatewayClient() {
   let disposed = false
   let attachedReconnect: (() => Promise<void>) | undefined
   let wasConnected = false
-  let reconnecting = false
+  const reconnecting = shallowRef(false)
+  const reconnectFailed = shallowRef(false)
 
   function bindAttachedReconnect(fn?: () => Promise<void>) {
     attachedReconnect = fn
@@ -128,12 +129,40 @@ export function useGatewayClient() {
     unsubscribeAll()
     client.value = undefined
     connectionState.value = "disconnected"
+    reconnecting.value = false
+    reconnectFailed.value = false
     serverSnapshot.value = undefined
     await current?.dispose()
   }
 
+  async function reconnectNow() {
+    if (reconnecting.value || disposed) return
+    reconnecting.value = true
+    reconnectFailed.value = false
+
+    try {
+      for (let attempt = 1; attempt <= RECONNECT_ATTEMPTS; attempt++) {
+        if (attempt > 1) await new Promise((resolve) => setTimeout(resolve, 400 * (attempt - 1)))
+
+        if (disposed || connectionState.value === "connected") break
+
+        try {
+          if (attachedReconnect) await attachedReconnect()
+          else await client.value?.reconnect()
+        } catch {}
+      }
+
+      if (!disposed && connectionState.value !== "connected") reconnectFailed.value = true
+    } finally {
+      reconnecting.value = false
+    }
+  }
+
   watch(connectionState, (state) => {
     if (state === "connected") {
+      reconnecting.value = false
+      reconnectFailed.value = false
+
       if (wasConnected) {
         void hydratePreferences()
         void hydrateSessionArchives()
@@ -143,24 +172,8 @@ export function useGatewayClient() {
       return
     }
 
-    if (state !== "disconnected" || !wasConnected || reconnecting || disposed) return
-    reconnecting = true
-    void (async () => {
-      try {
-        for (let attempt = 1; attempt <= RECONNECT_ATTEMPTS; attempt++) {
-          if (attempt > 1) await new Promise((resolve) => setTimeout(resolve, 400 * (attempt - 1)))
-
-          if (disposed || connectionState.value === "connected") break
-
-          try {
-            if (attachedReconnect) await attachedReconnect()
-            else await client.value?.reconnect()
-          } catch {}
-        }
-      } finally {
-        reconnecting = false
-      }
-    })()
+    if (state !== "disconnected" || !wasConnected || reconnecting.value || disposed) return
+    void reconnectNow()
   })
 
   onBeforeUnmount(() => {
@@ -171,6 +184,9 @@ export function useGatewayClient() {
     connectionState,
     connectionError,
     connected,
+    reconnecting,
+    reconnectFailed,
+    reconnectNow,
     sessions,
     models,
     defaultModel,

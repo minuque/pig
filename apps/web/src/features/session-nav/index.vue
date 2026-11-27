@@ -27,8 +27,10 @@
       @toggle-pinned="togglePinned"
       @rename="renameSession"
       @delete="deleteSession"
-      @settle="settle"
+      @settle="onSettleOne"
       @unsettle="unsettle"
+      @settle-many="onSettleMany"
+      @unsettle-many="onUnsettleMany"
       @archive="onArchiveSession"
       @create="onCreateSession()"
       @reorder-pinned="reorderPinned"
@@ -48,9 +50,10 @@
 import { computed, shallowRef, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import { useRouter } from "vue-router"
+import { useI18n } from "@i18n/index.js"
 import { canonicalizeWorkspacePath } from "@client/local-cwd.js"
 import { useLeftPanelToggle } from "@components/layout/hooks/use-left-panel.js"
-import { notifyAction } from "@pig/ui/toast"
+import { toastAction, toastStatus } from "@pig/ui/toast"
 import { useNav } from "@features/session-nav/index.js"
 import { sessionInProjects } from "@features/session-nav/lib/session-list.js"
 import NavFooter from "@features/session-nav/components/NavFooter.vue"
@@ -64,6 +67,7 @@ const emit = defineEmits<{
 const { sbState, setSbState } = useLeftPanelToggle()
 const {
   groups,
+  allSessions,
   pinnedSessions,
   lastCwd,
   highlightedSessionId,
@@ -92,6 +96,7 @@ const {
   reorderPinned,
   pinAt,
 } = useNav()
+const { t } = useI18n()
 const router = useRouter()
 const scopeFilter = shallowRef<ReadonlySet<string>>(new Set())
 const searchOpen = shallowRef(false)
@@ -143,7 +148,9 @@ useEventListener(window, "keydown", (event) => {
 watch(workspaceError, (message) => {
   const text = message.trim()
 
-  if (text) notifyAction(text)
+  if (!text) return
+  toastStatus(text, { tone: "error" })
+  workspaceError.value = ""
 })
 
 function onToggleSidebar(): void {
@@ -174,6 +181,36 @@ function onCreateSession(cwd?: string): void {
 
 function onArchiveSession(id: string): void {
   void archiveSessions([id])
+}
+
+function onSettleOne(id: string): void {
+  settle(id)
+  const found = allSessions.value.find((item) => item.id === id)
+  const title = found?.sessionName?.trim() || t("session.untitled")
+
+  toastAction(t("session.settledSingle", { title }), {
+    label: t("session.undo"),
+    icon: "undo",
+    revertedLabel: t("session.restoredToInbox"),
+    run: () => unsettle(id),
+  })
+}
+
+function onSettleMany(ids: readonly string[]): void {
+  if (ids.length === 1) return onSettleOne(ids[0]!)
+
+  for (const id of ids) settle(id)
+
+  toastAction(t("session.settledBatch", { count: ids.length }), {
+    label: t("session.undo"),
+    icon: "undo",
+    revertedLabel: t("session.restoredToInbox"),
+    run: () => onUnsettleMany(ids),
+  })
+}
+
+function onUnsettleMany(ids: readonly string[]): void {
+  for (const id of ids) unsettle(id)
 }
 </script>
 
