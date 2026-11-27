@@ -69,11 +69,7 @@
           :class="{ 'is-hero': welcome, 'settle-in': settleIn, 'beside-rail': railDocked }"
         >
           <div class="composer-stack">
-            <ScrollLatestButton
-              :shown="showScrollToLatest"
-              :pending="turnPending"
-              @click="scrollToLatest('smooth')"
-            />
+            <ScrollLatestButton :shown="showScrollToLatest" @click="scrollToLatest('smooth')" />
 
             <ExternalTurnNotice />
 
@@ -93,6 +89,7 @@
               :cwd="composerCwd"
               :usage="welcome ? undefined : contextUsage"
               :reload-revision="reloadRevision"
+              :mention-sessions="mentionSessions"
               :send-disabled="sendDisabled"
               :answer="questionBoard.composer.value"
               :class="{ 'is-answering': Boolean(questionBoard.board.value) }"
@@ -145,6 +142,7 @@ import { useComposerSubmit } from "@features/session-workbench/hooks/use-compose
 import { useFileDrop } from "@features/session-workbench/hooks/use-file-drop.js"
 import { useReplyNavigation } from "@features/session-workbench/hooks/use-reply-navigation.js"
 import { useSessionDrop } from "@features/session-workbench/hooks/use-session-drop.js"
+import { useMentionSessions } from "@features/session-workbench/hooks/use-mention-sessions.js"
 import { useTurnFinish } from "@features/session-workbench/hooks/use-turn-finish.js"
 import { useWelcomeWorkspace } from "@features/session-workbench/hooks/use-welcome-workspace.js"
 import TranscriptView from "@features/transcript-view/index.vue"
@@ -193,6 +191,7 @@ const {
 const { catalog, preset, switchLocked } = useComposerPreset()
 const { groups, lastCwd, addingWorkspace, addWorkspace } = useNav()
 const workspaces = computed(() => groups.value.map((group) => group.canonicalPath))
+const mentionSessions = useMentionSessions(sessionId)
 const pageError = computed(() => {
   if (connectionError.value && connected.value) {
     return { title: t("startup.connectFailed"), detail: connectionError.value.message }

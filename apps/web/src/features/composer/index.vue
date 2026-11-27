@@ -12,10 +12,12 @@
       ref="editor"
       v-model:prompt="prompt"
       :placeholder="answer?.placeholder"
+      :running="running"
       :disabled="answer?.locked ?? false"
       :cwd="cwd"
       :has-session="Boolean(sessionId)"
       :reload-revision="reloadRevision"
+      :mention-sessions="mentionSessions"
       :editing-queue="editingQueue"
       @submit="submitIntent"
       @paste-files="attachments.addFiles"
@@ -132,6 +134,7 @@ import type {
   ComposerPreset,
   ComposerVendor,
   ContextUsage,
+  MentionSession,
   ReplyInsertRequest,
   StopPhase,
 } from "@features/composer/type.js"
@@ -151,6 +154,7 @@ const props = withDefaults(
     cwd?: string | undefined
     usage?: ContextUsage | undefined
     reloadRevision?: number | undefined
+    mentionSessions?: ((query: string) => readonly MentionSession[]) | undefined
     answer?:
       | { locked: boolean; placeholder?: string | undefined; label: string; ready: boolean }
       | undefined
@@ -165,6 +169,7 @@ const props = withDefaults(
     cwd: undefined,
     usage: undefined,
     reloadRevision: undefined,
+    mentionSessions: undefined,
     answer: undefined,
   },
 )

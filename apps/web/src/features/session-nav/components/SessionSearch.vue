@@ -15,7 +15,7 @@
         :value="row.id"
         @select="activate(row.id)"
       >
-        <template #icon><SquareCodeIcon class="size-icon" /></template>
+        <template #icon><MessageSquareIcon class="size-icon-lg" /></template>
         {{ row.title }}
         <template v-if="row.project" #description>{{ row.project }}</template>
 
@@ -43,7 +43,7 @@ import {
   CommandPaletteItem,
   CommandPaletteList,
 } from "@pig/ui/command-palette"
-import { SquareCodeIcon } from "@components/icons/index.js"
+import { MessageSquareIcon } from "@components/icons/index.js"
 
 const props = defineProps<{
   open: boolean

@@ -12,6 +12,10 @@ declare module "*.svg?url" {
   export default src
 }
 
+interface ScrollIntoViewOptions {
+  container?: "all" | "nearest"
+}
+
 interface Window {
   pigDesktop?: {
     setThemeColor(color: string): void

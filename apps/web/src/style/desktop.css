@@ -7,3 +7,8 @@ html[data-pig-desktop-platform]:has(.mermaid-modal-overlay)
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
+
+html[data-pig-desktop-platform] [popover] {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}

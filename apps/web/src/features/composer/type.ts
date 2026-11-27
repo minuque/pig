@@ -50,14 +50,21 @@ export interface ComposerCaret {
 }
 
 export interface ChipInsert {
-  kind: "skill" | "template" | "builtin" | "file"
+  kind: "skill" | "template" | "builtin" | "file" | "session"
   label: string
   path?: string | undefined
+  sessionId?: string | undefined
   start: number
   triggerLength: number
 }
 
-export type CommandMenuRowKind = "skill" | "template" | "builtin" | "file" | "directory"
+export type CommandMenuRowKind = "skill" | "template" | "builtin" | "file" | "directory" | "session"
+
+export interface MentionSession {
+  id: string
+  title: string
+  project?: string | undefined
+}
 
 export interface CommandMenuRow {
   id: string

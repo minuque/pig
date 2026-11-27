@@ -10,8 +10,7 @@
         radius="full"
         @click="emit('click')"
       >
-        <LoaderIcon v-if="pending" class="size-icon is-spinning" />
-        <ArrowDownIcon v-else class="size-icon" />
+        <ArrowDownIcon class="size-icon" />
         {{ t("transcript.scrollToBottom") }}
       </Button>
     </span>
@@ -19,13 +18,12 @@
 </template>
 
 <script setup lang="ts">
-import { ArrowDownIcon, LoaderIcon } from "@components/icons/index.js"
+import { ArrowDownIcon } from "@components/icons/index.js"
 import { Button } from "@pig/ui/button"
 import { useI18n } from "@i18n/index.js"
 
 defineProps<{
   shown: boolean
-  pending: boolean
 }>()
 
 const emit = defineEmits<{

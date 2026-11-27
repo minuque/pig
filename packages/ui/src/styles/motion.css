@@ -192,7 +192,8 @@
 }
 
 .collapsible-content {
-  overflow: hidden;
+  overflow: clip;
+  overflow-clip-margin: var(--border-width);
   height: var(--collapsible-panel-height);
   transition:
     height var(--duration-normal) var(--ease-out),

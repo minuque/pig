@@ -61,14 +61,22 @@ import {
   type TriggerMenuDataGroup,
   type TriggerMenuDataItem,
 } from "@pig/ui/trigger-menu"
-import { SquareCodeIcon, FileTextIcon, FolderIcon, BlocksIcon } from "@components/icons/index.js"
+import {
+  SquareTerminalIcon,
+  FileTextIcon,
+  FolderIcon,
+  ZapIcon,
+  MessageSquareIcon,
+} from "@components/icons/index.js"
 import LanguageIcon from "@components/icons/LanguageIcon.vue"
 import type { CommandMenuRow } from "@features/composer/type.js"
 
 const KIND_ICONS: Record<string, Component> = {
-  skill: BlocksIcon,
-  builtin: SquareCodeIcon,
+  skill: ZapIcon,
+  builtin: SquareTerminalIcon,
+  template: SquareTerminalIcon,
   directory: FolderIcon,
+  session: MessageSquareIcon,
 }
 
 defineProps<{
@@ -165,9 +173,12 @@ function rowLanguage(name: string): string {
 
 .command-status {
   margin: 0;
-  padding: var(--space-xs) var(--space-sm);
   color: var(--fg-muted);
   font-size: var(--text-meta);
+}
+
+.command-status[data-empty] {
+  padding: var(--space-xs) var(--space-sm);
 }
 
 @media (prefers-reduced-motion: reduce) {

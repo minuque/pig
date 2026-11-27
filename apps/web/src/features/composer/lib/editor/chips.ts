@@ -7,7 +7,7 @@ import type { Node as ProseMirrorNode } from "@tiptap/pm/model"
 import { TextSelection, type EditorState } from "@tiptap/pm/state"
 import { Plugin, PluginKey } from "@tiptap/pm/state"
 import { Decoration, DecorationSet } from "@tiptap/pm/view"
-import { contextReferenceAt, formatContextReference } from "@pig/protocol"
+import { contextReferenceAt, formatContextReference, sessionReference } from "@pig/protocol"
 import CommandChipView from "@features/composer/components/CommandChipView.vue"
 import ContextReferenceChipView from "@features/composer/components/ContextReferenceChipView.vue"
 import FileMentionChipView from "@features/composer/components/FileMentionChipView.vue"
@@ -177,6 +177,10 @@ export function createComposerChipNode(
 
   if (chip.kind === "file") {
     return nodes["fileMention"]?.create({ path: chip.path ?? chip.label, label: chip.label })
+  }
+
+  if (chip.kind === "session") {
+    return nodes["contextReference"]?.create(sessionReference(chip.sessionId ?? "", chip.label))
   }
 
   return nodes["commandChip"]?.create({

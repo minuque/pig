@@ -1,43 +1,32 @@
 <template>
   <Popover v-model:open="open">
-    <Tooltip :disabled="!labelsOverflow && !locked">
-      <TooltipTrigger>
-        <template #render="{ props: part }">
-          <PopoverTrigger v-bind="part">
-            <template #render="{ props: part }">
-              <Button
-                v-bind="part"
-                variant="ghost"
-                color="neutral"
-                size="s"
-                class="selector"
-                :disabled="disabled"
-                :aria-label="t('composer.selectModel', { model: triggerText })"
-                @pointerenter="measureLabels"
-              >
-                <VendorMark
-                  v-if="current.vendor"
-                  :vendor="current.vendor.id"
-                  :name="current.vendor.name"
-                  :size="16"
-                />
+    <PopoverTrigger>
+      <template #render="{ props: part }">
+        <Button
+          v-bind="part"
+          variant="ghost"
+          color="neutral"
+          size="s"
+          class="selector"
+          :disabled="disabled"
+          :aria-label="t('composer.selectModel', { model: triggerText })"
+        >
+          <VendorMark
+            v-if="current.vendor"
+            :vendor="current.vendor.id"
+            :name="current.vendor.name"
+            :size="16"
+          />
 
-                <span ref="labelsRef" class="selector-labels">
-                  <span class="selector-name">{{ label }}</span>
-                  <RollText v-if="effortLabel" class="selector-effort" :text="effortLabel" />
-                </span>
+          <span class="selector-labels">
+            <span class="selector-name">{{ label }}</span>
+            <RollText v-if="effortLabel" class="selector-effort" :text="effortLabel" />
+          </span>
 
-                <slot name="trailing" />
-              </Button>
-            </template>
-          </PopoverTrigger>
-        </template>
-      </TooltipTrigger>
-
-      <TooltipContent>
-        {{ locked ? t("composer.modelLockedWhileRunning") : triggerText }}
-      </TooltipContent>
-    </Tooltip>
+          <slot name="trailing" />
+        </Button>
+      </template>
+    </PopoverTrigger>
 
     <ModelPickerPanel
       v-model:open="open"
@@ -52,12 +41,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, shallowRef, useTemplateRef } from "vue"
+import { computed } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { Button } from "@pig/ui/button"
 import { Popover, PopoverTrigger } from "@pig/ui/popover"
 import { RollText } from "@pig/ui/roll-text"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import VendorMark from "@components/icons/VendorMark.vue"
 import ModelPickerPanel from "@features/composer/components/ModelPickerPanel.vue"
 import { resolveModelInfo } from "@features/composer/lib/model-preset.js"
@@ -83,8 +71,6 @@ const emit = defineEmits<{
   "update:level": [value: string]
 }>()
 const open = defineModel<boolean>("open", { default: false })
-const labelsRef = useTemplateRef<HTMLElement>("labelsRef")
-const labelsOverflow = shallowRef(false)
 const { t } = useI18n()
 const current = computed(() => resolveModelInfo(props.catalog, props.model))
 const label = computed(() => current.value.model?.name ?? props.model?.id ?? "—")
@@ -94,12 +80,6 @@ const effortLabel = computed(() =>
 const triggerText = computed(() =>
   pickerTriggerText(label.value, props.level, current.value.levels),
 )
-
-function measureLabels() {
-  const el = labelsRef.value
-
-  labelsOverflow.value = el ? el.scrollWidth > el.clientWidth + 1 : false
-}
 </script>
 
 <style scoped>

@@ -17,7 +17,7 @@
               :value="item"
               @select="open = false"
             >
-              <template #icon><SquareCodeIcon class="size-icon" /></template>
+              <template #icon><MessageSquareIcon class="size-icon-lg" /></template>
               {{ item }}
             </CommandPaletteItem>
           </CommandPaletteGroup>
@@ -32,7 +32,7 @@ import { computed, ref } from "vue"
 import Story from "@features/design-lab/components/DemoStory.vue"
 import Variant from "@features/design-lab/components/DemoVariant.vue"
 import { Button } from "@pig/ui/button"
-import { SquareCodeIcon } from "@components/icons/index.js"
+import { MessageSquareIcon } from "@components/icons/index.js"
 import {
   CommandPalette,
   CommandPaletteEmpty,

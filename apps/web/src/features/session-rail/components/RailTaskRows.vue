@@ -7,7 +7,7 @@
         :aria-label="t('rail.openTask', { name: task.description })"
         @click="emit('open', task.id)"
       >
-        <component :is="task.kind === 'agent' ? SparklesIcon : SquareCodeIcon" />
+        <component :is="task.kind === 'agent' ? BotIcon : SquareTerminalIcon" />
 
         <OverflowTooltip
           class="task-row-name"
@@ -24,11 +24,12 @@
         size="s"
         variant="ghost"
         color="neutral"
+        class="task-stop"
         :aria-label="t('rail.stopTask')"
         :disabled="stopping.has(task.id)"
         @click="emit('stop', task.id)"
       >
-        <SquareIcon class="size-icon" />
+        <SquareIcon class="size-icon" fill="currentColor" />
       </IconButton>
     </div>
 
@@ -65,8 +66,9 @@ import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@pig/ui/button"
 import { OverflowTooltip } from "@pig/ui/tooltip"
 import {
+  BotIcon,
   CircleCheckIcon,
-  SquareCodeIcon,
+  SquareTerminalIcon,
   SparklesIcon,
   SquareIcon,
 } from "@components/icons/index.js"
@@ -86,6 +88,12 @@ const moreCount = computed(() => props.sections.running.length - shownRunning.va
 </script>
 
 <style scoped>
+@media (hover: hover) {
+  [data-button].task-stop:hover:not(:disabled) {
+    color: var(--danger-text);
+  }
+}
+
 .task-rows {
   display: flex;
   flex-direction: column;

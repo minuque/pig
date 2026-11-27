@@ -39,7 +39,7 @@
               @click="emit('cancelQueueEdit')"
             >
               {{ t("composer.queueEditCancel") }}
-              <Kbd size="s" variant="soft">Esc</Kbd>
+              <Kbd variant="outline">Esc</Kbd>
             </Button>
           </div>
 
@@ -64,11 +64,37 @@
             <div v-if="showPlaceholder" class="field-placeholder" aria-hidden="true">
               <template v-if="props.placeholder">{{ props.placeholder }}</template>
 
+              <template v-else-if="props.running">
+                <span>{{ t("composer.placeholderPrefix") }}</span>
+                <Kbd variant="outline">Enter</Kbd>
+                <span>{{ t("composer.placeholderQueue") }}</span>
+                <Kbd variant="outline">{{ modKey }}</Kbd>
+                <span>+</span>
+                <Kbd variant="outline">Enter</Kbd>
+                <span>{{ t("composer.placeholderSteer") }}</span>
+              </template>
+
               <template v-else>
                 <span>{{ t("composer.placeholderPrefix") }}</span>
-                <Kbd size="s" variant="soft">/</Kbd>
+                <button
+                  type="button"
+                  tabindex="-1"
+                  class="placeholder-key"
+                  @pointerdown.prevent
+                  @click="insertTrigger('/')"
+                >
+                  <Kbd variant="outline">/</Kbd>
+                </button>
                 <span>{{ t("composer.placeholderCommand") }}</span>
-                <Kbd size="s" variant="soft">@</Kbd>
+                <button
+                  type="button"
+                  tabindex="-1"
+                  class="placeholder-key"
+                  @pointerdown.prevent
+                  @click="insertTrigger('@')"
+                >
+                  <Kbd variant="outline">@</Kbd>
+                </button>
                 <span>{{ t("composer.placeholderMention") }}</span>
               </template>
             </div>
@@ -110,18 +136,21 @@ import {
 import { TriggerMenu, TriggerMenuContent, createTriggerMenuController } from "@pig/ui/trigger-menu"
 import CommandMenu from "@features/composer/components/CommandMenu.vue"
 import PromptField from "@features/composer/components/PromptField.vue"
-import type { ComposerCaret, ReplyInsertRequest } from "@features/composer/type.js"
+import type { ComposerCaret, MentionSession, ReplyInsertRequest } from "@features/composer/type.js"
 
 const props = defineProps<{
   placeholder?: string | undefined
+  running?: boolean
   cwd?: string | undefined
   hasSession?: boolean
   reloadRevision?: number | undefined
+  mentionSessions?: ((query: string) => readonly MentionSession[]) | undefined
   editingQueue?: boolean
   disabled?: boolean
   disabledReason?: string | undefined
 }>()
 const { t } = useI18n()
+const modKey = /mac/i.test(navigator.platform || navigator.userAgent) ? "⌘" : "Ctrl"
 const prompt = defineModel<string>("prompt", { required: true })
 const emit = defineEmits<{
   submit: []
@@ -150,6 +179,7 @@ const commandMenu = useCommandMenu({
   cwd: () => props.cwd,
   hasSession: () => props.hasSession ?? false,
   reloadRevision: () => props.reloadRevision,
+  mentionSessions: (query) => props.mentionSessions?.(query) ?? [],
   onChip: (chip) => field.value?.insertChip(chip),
   onReplaceText: (start, triggerLength, text) =>
     field.value?.replaceRange(start, triggerLength, text),
@@ -197,6 +227,10 @@ function onEditorKeydown(event: KeyboardEvent) {
 }
 
 const focus = () => field.value?.focus()
+
+function insertTrigger(char: "/" | "@") {
+  field.value?.insertMarkdown(char)
+}
 
 function onComposerMousedown(e: MouseEvent) {
   const control = "button, input, textarea, a, [role='menuitem']"
@@ -281,6 +315,33 @@ defineExpose({
   font-size: var(--text-body);
   line-height: 1.625;
   pointer-events: none;
+}
+
+.field-placeholder > :is([data-slot="kbd"], .placeholder-key) {
+  margin-inline: var(--space-2xs);
+}
+
+.placeholder-key {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.field-placeholder [data-slot="kbd"] {
+  vertical-align: middle;
+}
+
+.placeholder-key > [data-slot="kbd"] {
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .placeholder-key:hover > [data-slot="kbd"] {
+    color: var(--fg);
+  }
 }
 
 .footer {

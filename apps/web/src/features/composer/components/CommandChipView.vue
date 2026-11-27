@@ -10,8 +10,8 @@
             :data-command-chip="name"
             :data-command-kind="isSkill ? 'skill' : undefined"
           >
-            <BlocksIcon v-if="isSkill" class="inline-chip-icon" aria-hidden="true" />
-            <SquareCodeIcon v-else class="inline-chip-icon" aria-hidden="true" />
+            <ZapIcon v-if="isSkill" class="inline-chip-icon" aria-hidden="true" />
+            <SquareTerminalIcon v-else class="inline-chip-icon" aria-hidden="true" />
             <span class="inline-chip-label">{{ label }}</span>
           </span>
         </template>
@@ -25,7 +25,7 @@
 <script setup lang="ts">
 import { computed } from "vue"
 import { NodeViewWrapper, nodeViewProps } from "@tiptap/vue-3"
-import { BlocksIcon, SquareCodeIcon } from "@components/icons/index.js"
+import { SquareTerminalIcon, ZapIcon } from "@components/icons/index.js"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 
 const props = defineProps(nodeViewProps)

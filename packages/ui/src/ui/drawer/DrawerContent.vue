@@ -19,7 +19,6 @@ const props = defineProps<{ class?: HTMLAttributes["class"] }>()
   inset: var(--drawer-inset, 0);
   display: flex;
   justify-content: flex-end;
-  padding: var(--space-xs);
   pointer-events: none;
 }
 
@@ -33,8 +32,6 @@ const props = defineProps<{ class?: HTMLAttributes["class"] }>()
   box-sizing: border-box;
   block-size: 100%;
   overflow: hidden;
-  border-radius: var(--radius-dialog);
-  corner-shape: round;
   background-color: var(--bg);
   box-shadow: var(--shadow-dialog);
   color: var(--fg);

@@ -74,7 +74,7 @@ const size = useSelectSize()
   inline-size: min(22rem, var(--available-width));
 }
 
-:where([data-slot="select-content"]:has([data-slot="select-list"])) > * + * {
+:where([data-slot="select-content"] > :is([data-slot="select-empty"], [data-slot="select-list"])) {
   margin-block-start: 0;
 }
 </style>
