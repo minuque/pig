@@ -42,7 +42,7 @@
 
           <SessionSection
             v-bind="sectionBind(pinnedSection ?? emptyPinned, state)"
-            :class="{ 'pinned-drop': !pinnedSection }"
+            :class="{ 'empty-drop': (state.lists.pinned?.length ?? 0) === 0 }"
             v-on="sectionOn"
           />
 
@@ -56,8 +56,10 @@
           </div>
 
           <SessionSection
-            v-if="activeSection"
-            v-bind="sectionBind(activeSection, state)"
+            v-if="activeSection || state.moving"
+            v-bind="sectionBind(activeSection ?? emptyActive, state)"
+            class="active-section"
+            :class="{ 'empty-drop': (state.lists.active?.length ?? 0) === 0 }"
             v-on="sectionOn"
           />
 
@@ -152,6 +154,14 @@ const emptyPinned = computed<SidebarSection>(() => ({
   key: "pinned",
   kind: "pinned",
   label: t("session.pinned"),
+  sessions: [],
+  shown: 0,
+  total: 0,
+}))
+const emptyActive = computed<SidebarSection>(() => ({
+  key: "active",
+  kind: "active",
+  label: t("session.sectionInbox"),
   sessions: [],
   shown: 0,
   total: 0,
@@ -276,7 +286,12 @@ function commit(id: string, plan: DropPlan): void {
 
 function sectionBind(
   section: SidebarSection,
-  state: { lists: TransferLists; moving: string | null; settling?: string | null },
+  state: {
+    lists: TransferLists
+    moving: string | null
+    to?: string | null
+    settling?: string | null
+  },
 ) {
   const list = (LISTS as readonly string[]).includes(section.kind) ? section.kind : undefined
   return {
@@ -290,6 +305,8 @@ function sectionBind(
     pinnedIds: props.pinnedIds,
     runningSince: props.runningSince,
     motion: !state.moving && !state.settling,
+    dragging: Boolean(state.moving) && !dropOut.outside.value,
+    dropTarget: Boolean(list && state.to === list),
     swept: sweep.swept.value,
     moreBySection: props.moreBySection,
   }
@@ -415,15 +432,31 @@ onUpdated(() => {
   background: var(--accent-solid);
 }
 
-.session-list.is-dragging:not(.is-outside) .pinned-drop :deep(.section-body) {
+.active-section {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.active-section :deep(.section-body) {
+  flex: 1;
+}
+
+.session-list.is-dragging:not(.is-outside) .empty-drop :deep(.section-body) {
   min-height: var(--control-lg);
 }
 
 .session-list.is-dragging:not(.is-outside)
-  .pinned-drop
+  .empty-drop
   :deep(.section-body:not(:has(.session-row))) {
-  border: var(--border-width) dashed var(--accent-solid);
+  border: var(--border-width) dashed var(--border-strong);
   border-radius: var(--radius-control);
+}
+
+.session-list.is-dragging:not(.is-outside)
+  .empty-drop
+  :deep(.section-body[data-drop-target]:not(:has(.session-row))) {
+  border-color: var(--accent-solid);
   background: var(--info-subtle);
 }
 

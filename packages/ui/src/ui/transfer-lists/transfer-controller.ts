@@ -12,36 +12,25 @@ import {
   type TransferMessage,
 } from "@ui-sdk/core"
 import {
-  computeItemMotions,
-  computeLinePosition,
-  findDropGap,
-  RIPPLE_AMPLITUDE,
-  type DragLiftSide,
-} from "../../core/drag-physics.js"
-import {
   acquireGlobalDragging,
-  applyItemMotions,
   clearItemStyles,
-  createDropHint,
   createLiftedPreview,
-  measureContainerRects,
-  pointerToContainerAxis,
   prefersReducedMotion,
-  type DropHintHandle,
+  runFlipSettle,
   type FlipEntry,
   type LiftedPreviewHandle,
 } from "../../core/drag-stage.js"
 import {
+  dropIndex,
   isOutsideBounds,
+  layoutMidY,
   listAt,
   listWith,
-  measureList,
   sameLists,
   settleTransfer,
   transferred,
   type TransferChange,
   type TransferChangeDetails,
-  type TransferListMetrics,
   type TransferListsOptions,
   type TransferState,
 } from "./transfer-helpers.js"
@@ -55,15 +44,13 @@ export function createTransferController(
   const options = () => context.options()
   const listEls = new Map<string, HTMLElement>()
   const itemEls = new Map<string, HTMLElement>()
-  const hints = new Map<string, DropHintHandle>()
   let stopDrag: (() => void) | undefined
   let stopScroll: (() => void) | undefined
   let releaseCursor: (() => void) | undefined
   let preview: LiftedPreviewHandle | undefined
   let cancelSettle: (() => void) | undefined
-
-  const amplitude = () => RIPPLE_AMPLITUDE[options().density ?? "card"]
-  const liftSide = (): DragLiftSide => options().liftSide ?? "end"
+  let stopLiveFlip: (() => void) | undefined
+  let flipSeq = 0
 
   function say(type: TransferMessage["type"], key: string, current: TransferLists, list?: string) {
     const el = itemEls.get(key)
@@ -82,21 +69,15 @@ export function createTransferController(
     announce(text, { priority: "assertive" })
   }
 
-  function hideAllHints() {
-    for (const hint of hints.values()) hint.hide()
-  }
-
-  function destroyHints() {
-    for (const hint of hints.values()) hint.destroy()
-    hints.clear()
-  }
-
   function cancelPendingSettle() {
+    flipSeq += 1
+    stopLiveFlip?.()
+    stopLiveFlip = undefined
     cancelSettle?.()
     cancelSettle = undefined
     preview?.destroy()
     preview = undefined
-    destroyHints()
+    clearItemStyles(itemEls.values())
 
     if (context.store.get().settling !== null) context.store.set({ settling: null })
   }
@@ -118,81 +99,59 @@ export function createTransferController(
 
     const downPoint = { x: event.clientX, y: event.clientY }
     let active = false
-    let measured = false
     let reduced = false
-    let fromIndex = -1
+    let originLists = context.store.get().value
     let lastPoint = { ...downPoint }
-    let targetList: string | null = null
-    let targetGap: number | null = null
-    const metricsByList = new Map<string, TransferListMetrics>()
 
-    function measureAllLists() {
-      metricsByList.clear()
-      const current = context.store.get().value
+    function applyDraft(nextLists: TransferLists, nextTo: string | null) {
+      const state = context.store.get()
+      const current = state.moving
 
-      for (const [listName, el] of listEls) {
-        if (!el.isConnected) continue
-        metricsByList.set(listName, measureList(current[listName] ?? [], el, itemEls, key))
+      if (!current) return
+
+      const listsSame = sameLists(nextLists, current.lists)
+
+      if (listsSame && state.to === nextTo) return
+
+      if (listsSame || reduced) {
+        context.store.set({
+          moving: listsSame ? current : { ...current, lists: nextLists },
+          to: nextTo,
+        })
+        return
       }
 
-      const fromMetrics = metricsByList.get(from!)
+      const entries: FlipEntry[] = []
 
-      fromIndex = fromMetrics ? fromMetrics.keys.indexOf(key) : -1
-      measured = true
-
-      if (!reduced && fromMetrics && fromIndex >= 0) {
-        applyItemMotions(
-          fromMetrics.elements,
-          computeItemMotions(
-            fromMetrics.elements.length,
-            fromIndex,
-            fromMetrics.closed.stride,
-            null,
-            {
-              amplitude: amplitude(),
-              reducedMotion: false,
-            },
-          ),
-          "vertical",
-          fromIndex,
-        )
+      for (const [itemKey, el] of itemEls) {
+        if (itemKey === key || !el.isConnected) continue
+        entries.push({ el, before: el.getBoundingClientRect() })
       }
-    }
 
-    function relaxOtherLists(activeList: string | null) {
-      for (const [listName, metrics] of metricsByList) {
-        if (listName === activeList) continue
-        hints.get(listName)?.hide()
-        const dragIndex = listName === from ? fromIndex : -1
+      flipSeq += 1
+      const seq = flipSeq
 
-        applyItemMotions(
-          metrics.elements,
-          computeItemMotions(metrics.elements.length, dragIndex, metrics.closed.stride, null, {
-            amplitude: amplitude(),
-            reducedMotion: reduced,
-          }),
-          "vertical",
-          dragIndex,
-        )
-      }
-    }
+      context.store.set({
+        moving: { ...current, lists: nextLists },
+        to: nextTo,
+      })
 
-    function clearTarget() {
-      relaxOtherLists(null)
-
-      if (targetList === null && targetGap === null) return
-      targetList = null
-      targetGap = null
-      context.store.set({ to: null })
+      void nextTick(() => {
+        if (!active || seq !== flipSeq) return
+        stopLiveFlip?.()
+        stopLiveFlip = runFlipSettle(entries, false)
+      })
     }
 
     function track(x: number, y: number) {
       if (!active) return
 
-      if (!measured) measureAllLists()
+      const current = context.store.get().moving
+
+      if (!current) return
 
       if (isOutsideBounds(listEls, options().bounds?.(), x, y)) {
-        clearTarget()
+        applyDraft(originLists, null)
         return
       }
 
@@ -200,80 +159,29 @@ export function createTransferController(
       const accepted = Boolean(hit && (options().accepts?.(key, from!, hit) ?? true))
 
       if (!accepted || !hit) {
-        clearTarget()
+        applyDraft(originLists, null)
         return
       }
 
       const canReorder = options().reorderable?.(hit, key) ?? true
-      const hitMetrics = metricsByList.get(hit)
+      let index = 0
 
-      if (!canReorder || !hitMetrics) {
-        relaxOtherLists(null)
+      if (canReorder) {
+        const others = (current.lists[hit] ?? []).filter((itemKey) => itemKey !== key)
+        const middles = others.map((itemKey) => {
+          const itemEl = itemEls.get(itemKey)
+          return itemEl && itemEl.isConnected ? layoutMidY(itemEl) : 0
+        })
 
-        if (targetList !== hit || targetGap !== 0) {
-          targetList = hit
-          targetGap = 0
-          context.store.set({ to: hit })
-          say("move", key, transferred(context.store.get().value, key, hit, 0), hit)
-        }
-
-        return
+        index = dropIndex(middles, y)
       }
 
-      if (hitMetrics.closed.remaining.length === 0) {
-        hitMetrics.containerRect = measureContainerRects(
-          hitMetrics.el,
-          [],
-          "vertical",
-        ).containerRect
-      }
+      const nextLists = transferred(current.lists, key, hit, index)
+      const changed = !sameLists(nextLists, current.lists)
 
-      const axis = pointerToContainerAxis(hitMetrics.el, { x, y }, "vertical")
-      const gap = findDropGap(hitMetrics.closed.remaining, axis)
+      applyDraft(nextLists, hit)
 
-      if (targetList === hit && targetGap === gap) return
-
-      relaxOtherLists(hit)
-      const dragIndex = hit === from ? fromIndex : -1
-      const isOwnSlot = hit === from && gap === fromIndex
-
-      if (isOwnSlot) {
-        hints.get(hit)?.hide()
-      } else {
-        let hint = hints.get(hit)
-
-        if (!hint) {
-          hint = createDropHint(hitMetrics.el, "vertical")
-          hints.set(hit, hint)
-        }
-
-        const line = computeLinePosition(
-          hitMetrics.closed.remaining,
-          gap,
-          hitMetrics.closed.interGap,
-          hitMetrics.containerRect,
-        )
-
-        if (line) hint.show(line, reduced)
-      }
-
-      applyItemMotions(
-        hitMetrics.elements,
-        computeItemMotions(
-          hitMetrics.elements.length,
-          dragIndex,
-          hitMetrics.closed.stride,
-          isOwnSlot ? null : gap,
-          { amplitude: amplitude(), reducedMotion: reduced },
-        ),
-        "vertical",
-        dragIndex,
-      )
-
-      targetList = hit
-      targetGap = gap
-      context.store.set({ to: hit })
-      say("move", key, transferred(context.store.get().value, key, hit, gap), hit)
+      if (changed) say("move", key, nextLists, hit)
     }
 
     const scroller = createAutoScroll({
@@ -293,6 +201,7 @@ export function createTransferController(
           return false
         }
 
+        originLists = currentLists
         reduced = prefersReducedMotion()
         active = true
 
@@ -300,7 +209,8 @@ export function createTransferController(
           preview = createLiftedPreview(startEl, {
             start: downPoint,
             orientation: "vertical",
-            liftSide: liftSide(),
+            liftSide: "end",
+            lift: "inline",
           })
         }
 
@@ -312,9 +222,6 @@ export function createTransferController(
           reduced,
         })
         say("grab", key, currentLists, from)
-        void nextTick(() => {
-          if (active) measureAllLists()
-        })
         return true
       },
       onMove({ x, y, event: moveEvent }) {
@@ -333,13 +240,15 @@ export function createTransferController(
         stopScroll = undefined
         releaseCursor?.()
         releaseCursor = undefined
-        hideAllHints()
 
+        const state = context.store.get()
         const outside = isOutsideBounds(listEls, options().bounds?.(), lastPoint.x, lastPoint.y)
         const externalDrop = options().outsideConsumed?.() ?? false
-        const isOwnSlot = targetList === from && targetGap === fromIndex
-        const shouldCommit =
-          !canceled && !outside && !externalDrop && targetList !== null && !isOwnSlot
+        const draftLists = state.moving?.lists ?? originLists
+        const destList = listWith(draftLists, key) ?? from!
+        const destIndex = Math.max(0, (draftLists[destList] ?? []).indexOf(key))
+        const moved = !sameLists(draftLists, originLists)
+        const shouldCommit = !canceled && !outside && !externalDrop && moved
         const siblingEntries: FlipEntry[] = []
 
         for (const [itemKey, el] of itemEls) {
@@ -347,21 +256,24 @@ export function createTransferController(
           siblingEntries.push({ el, before: el.getBoundingClientRect() })
         }
 
+        flipSeq += 1
+        stopLiveFlip?.()
+        stopLiveFlip = undefined
+
         const activePreview = preview
 
         preview = undefined
-        const settle = (destList: string | null, isExternalDrop = false) =>
+        const settle = (settleList: string | null, isExternalDrop = false) =>
           settleTransfer({
             store: context.store,
             key,
-            destList,
+            destList: settleList,
             externalDrop: isExternalDrop,
             reduced,
             preview: activePreview,
             siblingEntries,
             itemEls,
             listEls,
-            destroyHints,
             setCancelSettle: (cleanup) => {
               cancelSettle = cleanup
             },
@@ -372,21 +284,19 @@ export function createTransferController(
           return
         }
 
-        if (shouldCommit && targetList !== null) {
-          const index = targetGap ?? 0
-          const nextLists = transferred(context.store.get().value, key, targetList, index)
-          const accepted = change("value", nextLists, {
+        if (shouldCommit) {
+          const accepted = change("value", draftLists, {
             reason: "drag",
             event: endEvent,
             key,
             from: from!,
-            to: targetList,
-            index,
+            to: destList,
+            index: destIndex,
           })
 
           if (accepted) {
-            say("drop", key, nextLists, targetList)
-            settle(targetList)
+            say("drop", key, draftLists, destList)
+            settle(destList)
             return
           }
 
@@ -396,12 +306,12 @@ export function createTransferController(
         }
 
         say(
-          canceled || outside || targetList === null ? "cancel" : "drop",
+          canceled || outside || state.to === null ? "cancel" : "drop",
           key,
           context.store.get().value,
           from,
         )
-        settle(null)
+        settle(state.to !== null && !canceled && !outside ? destList : null)
       },
     })
   }

@@ -20,8 +20,6 @@ const transferLists = definePrimitive({
     disabled: "value",
     reorderable: "value",
     accepts: "value",
-    density: "string",
-    liftSide: "string",
     bounds: "value",
     outsideConsumed: "value",
     itemLabel: "value",
@@ -50,7 +48,7 @@ const transferLists = definePrimitive({
       }
     >({
       state: (state) => ({
-        lists: state.value,
+        lists: state.moving?.lists ?? state.value,
         moving: state.moving?.key ?? null,
         from: state.moving?.from ?? null,
         to: state.to,
@@ -73,7 +71,7 @@ const transferLists = definePrimitive({
         const key = part.props.value
         const moving = state.moving?.key === key
         const pointer = Boolean(moving && state.moving?.pointer)
-        const hidden = state.settling === key || (pointer && !state.reduced)
+        const hidden = state.settling === key
         return {
           "data-draggable": !part.api.isDisabled(key) ? "" : undefined,
           "data-grabbed": moving ? "" : undefined,
@@ -111,8 +109,6 @@ export const TransferListsRoot = defineComponent(
       ...(props.disabled && { disabled: props.disabled }),
       ...(props.reorderable && { reorderable: props.reorderable }),
       ...(props.accepts && { accepts: props.accepts }),
-      ...(props.density && { density: props.density }),
-      ...(props.liftSide && { liftSide: props.liftSide }),
       ...(props.bounds && { bounds: props.bounds }),
       ...(props.outsideConsumed && { outsideConsumed: props.outsideConsumed }),
       ...(props.itemLabel && { itemLabel: props.itemLabel }),
@@ -133,8 +129,6 @@ export const TransferListsRoot = defineComponent(
       "disabled",
       "reorderable",
       "accepts",
-      "density",
-      "liftSide",
       "bounds",
       "outsideConsumed",
       "itemLabel",

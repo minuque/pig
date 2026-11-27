@@ -7,18 +7,9 @@ import type {
   TransferMessage,
   TransferReason,
 } from "@ui-sdk/core"
-import {
-  computeClosedMetrics,
-  isPointOutsideRect,
-  OUTSIDE_SLOP_PX,
-  type AxisRect,
-  type ClosedMetrics,
-  type DragItemDensity,
-  type DragLiftSide,
-} from "../../core/drag-physics.js"
+import { isPointOutsideRect, OUTSIDE_SLOP_PX } from "../../core/drag-physics.js"
 import {
   clearItemStyles,
-  measureContainerRects,
   runFlipSettle,
   type FlipEntry,
   type LiftedPreviewHandle,
@@ -40,8 +31,6 @@ export type TransferListsOptions = {
   disabled?: (key: string) => boolean
   reorderable?: (list: string, key: string) => boolean
   accepts?: (key: string, from: string, to: string) => boolean
-  density?: DragItemDensity
-  liftSide?: DragLiftSide
   bounds?: () => HTMLElement | undefined
   outsideConsumed?: () => boolean
   itemLabel?: (key: string) => string | undefined
@@ -80,16 +69,7 @@ export type TransferSettleParams = {
   siblingEntries: readonly FlipEntry[]
   itemEls: ReadonlyMap<string, HTMLElement>
   listEls: ReadonlyMap<string, HTMLElement>
-  destroyHints: () => void
   setCancelSettle: (cleanup: (() => void) | undefined) => void
-}
-
-export type TransferListMetrics = {
-  el: HTMLElement
-  keys: string[]
-  elements: HTMLElement[]
-  containerRect: AxisRect
-  closed: ClosedMetrics
 }
 
 export function listWith(lists: TransferLists, key: string): string | undefined {
@@ -178,28 +158,35 @@ export function isOutsideBounds(
   return isPointOutsideRect({ x, y }, { left, top, right, bottom }, OUTSIDE_SLOP_PX)
 }
 
-export function measureList(
-  order: readonly string[],
-  el: HTMLElement,
-  itemEls: ReadonlyMap<string, HTMLElement>,
-  dragKey: string,
-): TransferListMetrics {
-  const keys: string[] = []
-  const elements: HTMLElement[] = []
+export function layoutMidY(el: HTMLElement): number {
+  const rect = el.getBoundingClientRect()
+  const view = el.ownerDocument.defaultView ?? window
+  const transform = view.getComputedStyle(el).transform
+  let translateY = 0
 
-  for (const itemKey of order) {
-    const itemEl = itemEls.get(itemKey)
+  if (transform && transform !== "none") {
+    const Matrix = view.DOMMatrixReadOnly ?? globalThis.DOMMatrixReadOnly
 
-    if (!itemEl || !itemEl.isConnected) continue
-    keys.push(itemKey)
-    elements.push(itemEl)
+    if (Matrix) {
+      try {
+        translateY = new Matrix(transform).m42
+      } catch {
+        translateY = 0
+      }
+    }
   }
 
-  const dragIndex = keys.indexOf(dragKey)
-  const measured = measureContainerRects(el, elements, "vertical")
-  const closed = computeClosedMetrics(measured.items, dragIndex)
+  return rect.top - translateY + rect.height / 2
+}
 
-  return { el, keys, elements, containerRect: measured.containerRect, closed }
+export function dropIndex(middles: readonly number[], y: number): number {
+  let index = 0
+
+  for (const mid of middles) {
+    if (mid < y) index += 1
+  }
+
+  return index
 }
 
 export function settleTransfer({
@@ -212,7 +199,6 @@ export function settleTransfer({
   siblingEntries,
   itemEls,
   listEls,
-  destroyHints,
   setCancelSettle,
 }: TransferSettleParams): void {
   if (externalDrop) {
@@ -222,7 +208,6 @@ export function settleTransfer({
     setCancelSettle(() => {
       cancelled = true
       stopFlip?.()
-      destroyHints()
     })
     preview?.destroy()
     store.set({ moving: null, to: null, settling: null })
@@ -231,14 +216,12 @@ export function settleTransfer({
       stopFlip = runFlipSettle(siblingEntries, reduced, () => {
         if (!cancelled) setCancelSettle(undefined)
       })
-      destroyHints()
     })
     return
   }
 
   if (reduced || !preview) {
     preview?.destroy()
-    destroyHints()
     clearItemStyles(itemEls.values())
     store.set({ moving: null, to: null, settling: null })
     return
@@ -251,13 +234,17 @@ export function settleTransfer({
     cancelled = true
     stopFlip?.()
     preview.destroy()
-    destroyHints()
   })
+
+  const fallbackEl = destList
+    ? (listEls.get(destList)?.querySelector<HTMLElement>("[data-drop-hint-box]") ??
+      listEls.get(destList))
+    : null
+  const fallbackRect = fallbackEl?.getBoundingClientRect() ?? null
 
   const finishSettle = () => {
     if (cancelled) return
     if (store.get().settling === key) store.set({ settling: null })
-    destroyHints()
     setCancelSettle(undefined)
   }
 
@@ -273,8 +260,6 @@ export function settleTransfer({
       return
     }
 
-    const shelfRect = destList ? (listEls.get(destList)?.getBoundingClientRect() ?? null) : null
-
-    preview.settleTo(shelfRect, { fadeOut: Boolean(shelfRect), onDone: finishSettle })
+    preview.settleTo(fallbackRect, { fadeOut: Boolean(fallbackRect), onDone: finishSettle })
   })
 }

@@ -168,17 +168,21 @@ export function createLiftedPreview(
     start: { x: number; y: number }
     orientation: DragOrientation
     liftSide: DragLiftSide
+    lift?: "aside" | "inline"
   },
 ): LiftedPreviewHandle {
   const startRect = sourceEl.getBoundingClientRect()
   const preview = bindDragPreview(sourceEl, options.start)
   const view = sourceEl.ownerDocument.defaultView ?? window
-  const lift = computeLiftOffset(
-    options.orientation,
-    { width: startRect.width, height: startRect.height },
-    options.liftSide,
-    isRTL(sourceEl),
-  )
+  const lift =
+    options.lift === "inline"
+      ? { x: 0, y: 0, scale: 1 }
+      : computeLiftOffset(
+          options.orientation,
+          { width: startRect.width, height: startRect.height },
+          options.liftSide,
+          isRTL(sourceEl),
+        )
 
   preview.el.removeAttribute("data-moving")
   preview.el.removeAttribute("data-dragging")
