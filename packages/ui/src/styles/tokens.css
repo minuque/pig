@@ -266,9 +266,7 @@
   --toast-pill-height: 40px;
   --toast-radius: 16px;
   --toast-max-width: 520px;
-  --toast-shadow:
-    0 0 0 var(--border-width) var(--float-ring), 0 8px 24px -6px rgba(0, 0, 0, 0.12),
-    0 2px 6px rgba(0, 0, 0, 0.06);
+  --toast-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06);
   --toast-sheen: linear-gradient(
     105deg,
     transparent 22%,
@@ -357,9 +355,7 @@ html.dark {
   --slider-track-bg: var(--sidebar);
   --slider-track-ring: inset 0 0 0 var(--border-width) var(--border-strong);
   --switch-thumb-unchecked: var(--fg-muted);
-  --toast-shadow:
-    0 0 0 var(--border-width) var(--float-ring), 0 10px 28px -6px rgba(0, 0, 0, 0.48),
-    0 2px 8px rgba(0, 0, 0, 0.24);
+  --toast-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.48), 0 2px 8px rgba(0, 0, 0, 0.24);
   --toast-sheen: linear-gradient(
     105deg,
     transparent 22%,

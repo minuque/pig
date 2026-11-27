@@ -146,7 +146,7 @@ const timeLabel = computed(() => {
   background-color: var(--bg-raised);
   background-clip: padding-box;
   border: var(--border-width) solid var(--border);
-  box-shadow: var(--float-shadow);
+  box-shadow: var(--float-elevation);
   color: var(--fg);
   outline: none;
   user-select: none;
@@ -164,7 +164,7 @@ const timeLabel = computed(() => {
 }
 
 .notif-card:focus-visible {
-  box-shadow: var(--focus-ring), var(--float-shadow);
+  box-shadow: var(--focus-ring), var(--float-elevation);
 }
 
 .notif-close {

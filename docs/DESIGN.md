@@ -40,7 +40,7 @@
 ## 表面
 
 - 拖拽卡与拖拽中的行：`--shadow-popover`；对话框、抽屉、图片预览：`--shadow-dialog`。
-- 菜单、下拉、悬停卡、浮卡：`--float-bg` + `--float-shadow` + `--glass-filter`；Toast（叠加扫光）与 Notification：`--bg-raised` 实底配 `--toast-shadow` / `--float-shadow`；警告框与输入卡同用 `--float-shadow` + `--glass-filter`；命令面板：`--glass-*`。
+- 菜单、下拉、悬停卡、浮卡：`--float-bg` + `--float-shadow` + `--glass-filter`；Toast（叠加扫光）与 Notification：`--bg-raised` 实底、`--border` 描边配 `--toast-shadow` / `--float-elevation`；警告框与输入卡同用 `--float-shadow` + `--glass-filter`；命令面板：`--glass-*`。
 - 提示卡片（tooltip）：高对比实底（`--tooltip-bg`），不加阴影或毛玻璃。
 - 输入卡上方的状态条：`--bg-raised` + 环，上圆角 `--composer-radius`，底部伸进输入卡。
 - 命令、文件浮板按菜单表面挂 body，离输入卡 8px；浮板打开时隐藏状态条，二者不叠放。

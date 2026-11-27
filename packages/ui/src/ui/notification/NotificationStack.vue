@@ -385,7 +385,7 @@ onBeforeUnmount(() => {
 }
 
 :where([data-slot="notification-region"]:not([data-expanded])) .notif-slot.is-front .notif-card {
-  box-shadow: var(--shadow-popover);
+  box-shadow: var(--toast-shadow);
 }
 
 :where([data-slot="notification-region"][data-expanded]) .notif-slot {
@@ -412,9 +412,11 @@ onBeforeUnmount(() => {
   inset-block-start: calc(var(--notif-stack-height) + var(--notif-gap));
   inset-inline-end: 0;
   pointer-events: auto;
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-control);
   background-color: var(--bg-raised);
-  box-shadow: var(--float-shadow);
+  background-clip: padding-box;
+  box-shadow: var(--float-elevation);
   color: var(--fg-secondary);
 }
 

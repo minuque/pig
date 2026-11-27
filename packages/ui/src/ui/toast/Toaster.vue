@@ -229,8 +229,10 @@ watch(
   block-size: var(--toast-pill-height);
   max-inline-size: min(var(--toast-max-width), calc(100vw - 2 * var(--space-md)));
   padding-inline: var(--space-xs);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--toast-radius);
   background-color: var(--bg-raised);
+  background-clip: padding-box;
   box-shadow: var(--toast-shadow);
   color: var(--fg);
   font-size: var(--text-body);
