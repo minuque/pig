@@ -52,7 +52,7 @@
             </template>
           </DropdownMenuTrigger>
 
-          <DropdownMenuContent align="end" class="select-none">
+          <DropdownMenuContent align="start" class="select-none">
             <DropdownMenuItem @select="onTogglePinned">
               <PinOffIcon v-if="isPinned" />
               <PinIcon v-else />
