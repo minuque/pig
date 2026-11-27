@@ -30,13 +30,17 @@ function session(id: string, name: string, cwd: string, ago: number): SessionMet
   return { id, sessionName: name, cwd, createdAt: NOW - ago * MIN, updatedAt: NOW - ago * MIN }
 }
 
+export const PAGE_HISTORY_FAILED_ID = "page-history-failed"
 export const PAGE_SESSIONS: SessionMetadata[] = [
   session(PAGE_SESSION_ID, "布局密度：compact / normal", PIG, 1),
   session("page-pinned", "发版清单", PIG, 300),
+  session("page-pinned-2", "拖拽波纹手感", PIG, 240),
+  session("page-pinned-3", "设计变量巡检", KUMO, 180),
   session("page-running", "侧栏虚拟滚动", PIG, 3),
   session("page-unread", "Banner 文案收敛", KUMO, 12),
   session("page-error", "gateway 断线重连", PIG, 25),
   session("page-plain", "Select 组件对齐", KUMO, 90),
+  session(PAGE_HISTORY_FAILED_ID, "历史记录读取失败", KUMO, 180),
   session("page-settled-1", "toast 关闭按钮", PIG, 1440),
   session("page-settled-2", "图标库切换到 lucide", KUMO, 2880),
 ]
@@ -44,7 +48,7 @@ export const PAGE_GROUPS: SessionGroup[] = [
   { canonicalPath: PIG, sessions: PAGE_SESSIONS.filter((item) => item.cwd === PIG) },
   { canonicalPath: KUMO, sessions: PAGE_SESSIONS.filter((item) => item.cwd === KUMO) },
 ]
-export const PAGE_PINNED = ["page-pinned"]
+export const PAGE_PINNED = ["page-pinned", "page-pinned-2", "page-pinned-3"]
 const RUNNING = new Set([PAGE_SESSION_ID, "page-running"])
 
 export function pagePlacement(id: string): SidebarPlacement {
@@ -54,6 +58,8 @@ export function pagePlacement(id: string): SidebarPlacement {
 export const PAGE_FOOTS = new Map<string, SidebarRowFoot>([
   [PAGE_SESSION_ID, { state: "running", model: SONNET, messageCount: 18 }],
   ["page-pinned", { state: undefined, model: GPT, messageCount: 42 }],
+  ["page-pinned-2", { state: undefined, model: SONNET, messageCount: 11 }],
+  ["page-pinned-3", { state: "unread", model: GPT, messageCount: 7 }],
   [
     "page-running",
     {
@@ -326,3 +332,10 @@ export const PAGE_DIALOG: ExtensionUiDialog = {
   title: "部署到哪个环境？",
   options: ["staging", "production", "preview"],
 }
+
+export const PAGE_QUEUED_PROMPTS = [
+  "检查待发队列拖拽排序和落位弹簧",
+  "把侧栏置顶分组调成三条方便试拖",
+  "跑完测试后截一张 compact 的图",
+  "切到减弱动画模式确认只保留落点线",
+]

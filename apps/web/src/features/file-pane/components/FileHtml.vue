@@ -9,7 +9,10 @@
     class="file-html"
   />
 
-  <FileNotice v-else-if="failed" :text="t('files.loadFailed')" />
+  <EmptyState v-else-if="failed" :title="t('rail.previewFailed')">
+    <template #art><CircleExclamationPointIcon class="file-html-art" /></template>
+    <template #actions><RetryButton :action="load" /></template>
+  </EmptyState>
 
   <AlertDialog v-model:open="confirming">
     <AlertDialogContent>
@@ -42,7 +45,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@pig/ui/alert-dialog"
-import FileNotice from "@features/file-pane/components/FileNotice.vue"
+import { EmptyState } from "@pig/ui/empty-state"
+import { CircleExclamationPointIcon } from "@components/icons/index.js"
+import RetryButton from "@components/empty/RetryButton.vue"
 import { useFilePane } from "@features/file-pane/index.js"
 
 const props = defineProps<{ path: string; revision: number }>()
@@ -54,23 +59,32 @@ const failed = shallowRef(false)
 const link = shallowRef("")
 const confirming = shallowRef(false)
 
+let loadSeq = 0
+
+async function load() {
+  const seq = ++loadSeq
+  const cwd = pane.cwd.value
+  const { path, revision } = props
+
+  if (!cwd) return
+
+  try {
+    const token = await filePreviewToken(cwd)
+    const encoded = path.split("/").map(encodeURIComponent).join("/")
+
+    if (seq !== loadSeq) return
+    src.value = `/api/v1/preview/${token}/${encoded}?r=${revision}`
+    failed.value = false
+  } catch {
+    if (seq === loadSeq) failed.value = true
+  }
+}
+
 watch(
   () => [pane.cwd.value, props.path, props.revision] as const,
-  async ([cwd, path, revision], _, onCleanup) => {
-    let active = true
-    onCleanup(() => (active = false))
+  () => {
     failed.value = false
-
-    if (!cwd) return
-
-    try {
-      const token = await filePreviewToken(cwd)
-      const encoded = path.split("/").map(encodeURIComponent).join("/")
-
-      if (active) src.value = `/api/v1/preview/${token}/${encoded}?r=${revision}`
-    } catch {
-      if (active) failed.value = true
-    }
+    void load()
   },
   { immediate: true },
 )
@@ -92,6 +106,11 @@ function openLink() {
   inline-size: 100%;
   border: 0;
   background: var(--bg-surface);
+}
+
+.file-html-art {
+  inline-size: var(--icon-xl);
+  block-size: var(--icon-xl);
 }
 
 .file-html-link {

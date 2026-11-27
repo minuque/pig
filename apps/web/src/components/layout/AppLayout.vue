@@ -1,5 +1,9 @@
 <template>
-  <div ref="shell" class="shell" :class="[sbClass, { 'is-narrow': isNarrow }]">
+  <div
+    ref="shell"
+    class="shell"
+    :class="[sbClass, { 'is-narrow': isNarrow, 'is-toggling': toggling }]"
+  >
     <aside
       v-if="isNarrow"
       class="drawer"
@@ -14,6 +18,7 @@
       class="shell-panels"
       :controller="panels"
       :disabled="isNarrow"
+      @layout-change="onLayoutChange"
       @layout-commit="onCommit"
     >
       <ResizablePanel
@@ -46,7 +51,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, provide, useTemplateRef, watch } from "vue"
+import { computed, provide, shallowRef, useTemplateRef, watch } from "vue"
 import { useEventListener } from "@vueuse/core"
 import {
   createResizableController,
@@ -66,6 +71,7 @@ import {
 } from "@components/layout/hooks/use-left-panel.js"
 import { ResizeHandle } from "@pig/ui/resize-handle"
 import WindowControls from "@components/layout/WindowControls.vue"
+import { prefersReducedMotion } from "@utils/motion.js"
 
 defineProps<{ hasRunningSessions?: boolean | undefined }>()
 
@@ -84,7 +90,32 @@ const isOffcanvas = computed(() => sbState.value === "offcanvas")
 
 provide(leftPanelKey, { leftOpen, sbState, setSbState, toggle, isNarrow })
 
-watch(docked, (open) => {
+const toggling = shallowRef(false)
+let settleToggle: ReturnType<typeof setTimeout> | undefined
+
+function animateToggle(width = storedPanelWidth()) {
+  const root = shell.value
+  const nav = root?.querySelector<HTMLElement>(".sidebar > *")
+
+  if (!root || prefersReducedMotion()) return
+  clearTimeout(settleToggle)
+  toggling.value = true
+  root.classList.add("is-toggling")
+  nav?.style.setProperty("min-inline-size", `${width}px`)
+  settleToggle = setTimeout(
+    () => {
+      toggling.value = false
+      nav?.style.removeProperty("min-inline-size")
+    },
+    Number.parseFloat(getComputedStyle(root).getPropertyValue("--duration-slow")) || 300,
+  )
+}
+
+watch([docked, isNarrow], ([open, narrow], [wasOpen, wasNarrow]) => {
+  if (open === wasOpen) return
+
+  if (!narrow && !wasNarrow) animateToggle()
+
   if (!open) {
     panels.collapse("sidebar")
     return
@@ -93,6 +124,16 @@ watch(docked, (open) => {
   panels.expand("sidebar")
   panels.resize("sidebar", `${storedPanelWidth()}px`)
 })
+
+let wasCollapsed = !docked.value
+
+function onLayoutChange() {
+  const collapsed = panels.isCollapsed("sidebar")
+
+  if (collapsed !== wasCollapsed && !isNarrow.value && !toggling.value)
+    animateToggle(LEFT_PANEL_MIN)
+  wasCollapsed = collapsed
+}
 
 function onCommit(layout: number[]) {
   if (isNarrow.value) return
@@ -137,6 +178,10 @@ useEventListener(window, "keydown", (event) => {
   overflow: hidden;
   background: var(--sidebar);
   contain: layout style;
+}
+
+.shell.is-toggling :is(.sidebar, .content) {
+  transition: flex-basis var(--duration-slow) var(--ease-out);
 }
 
 .sidebar:not([data-collapsed]) {

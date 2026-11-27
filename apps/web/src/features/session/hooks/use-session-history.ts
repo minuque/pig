@@ -77,10 +77,16 @@ export function createHistoryStore() {
           externalTurn,
           ready: true,
           stale: false,
+          failed: false,
         })
         bump()
       } catch (error) {
-        if (requestById.get(id) === request) errors.set(id, errorMessage(error))
+        if (requestById.get(id) !== request) return
+
+        if (!cache.isReady(id)) {
+          cache.write(id, { failed: true })
+          bump()
+        } else errors.set(id, errorMessage(error))
       }
     })()
 
@@ -121,6 +127,10 @@ export function createHistoryStore() {
     transcriptFor,
     isFresh: (id: string) => cache.isFresh(id),
     isReady: (id: string) => cache.isReady(id),
+    isFailed: (id: string) => {
+      void version.value
+      return cache.peek(id)?.failed === true && !cache.isReady(id)
+    },
     externalTurnFor: (id: string) => {
       void version.value
       return cache.peek(id)?.externalTurn ?? false
@@ -153,6 +163,10 @@ export function useHistoryView(store: HistoryStore) {
     if (!id || !store.isReady(id)) return undefined
     return id
   })
+  const historyFailedId = computed(() => {
+    const id = activeId.value
+    return id && store.isFailed(id) ? id : undefined
+  })
   const turnTimings = computed(() => {
     const id = activeId.value
     void version.value
@@ -168,6 +182,7 @@ export function useHistoryView(store: HistoryStore) {
     activeId,
     liveTranscript,
     historyReadyId,
+    historyFailedId,
     turnTimings,
     externalTurn,
     setActive,

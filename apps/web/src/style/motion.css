@@ -277,6 +277,42 @@
   }
 }
 
+.travel-indicator {
+  transition-property: left, right, top, bottom;
+  transition-duration: var(--duration-slow);
+  transition-timing-function: var(--ease-in-out);
+}
+
+.travel-indicator[data-activation-direction="right"] {
+  transition-delay: 40ms, 0s, 0s, 0s;
+}
+
+.travel-indicator[data-activation-direction="left"] {
+  transition-delay: 0s, 40ms, 0s, 0s;
+}
+
+.travel-indicator[data-activation-direction="down"] {
+  transition-delay: 0s, 0s, 40ms, 0s;
+}
+
+.travel-indicator[data-activation-direction="up"] {
+  transition-delay: 0s, 0s, 0s, 40ms;
+}
+
+.travel-indicator[data-activation-direction="none"] {
+  transition: none;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   #startup-splash .startup-logo,
   .startup-screen.leaving .startup-logo {
@@ -319,5 +355,9 @@
 
   .is-spinning {
     animation: none;
+  }
+
+  .travel-indicator {
+    transition: none;
   }
 }

@@ -121,6 +121,7 @@
   --control-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   --outline-ring: color-mix(in srgb, currentColor 24%, transparent);
   --thumb-shadow: rgba(0, 0, 0, 0.1);
+  --drag-hint: color-mix(in srgb, var(--fg) 15%, transparent);
 
   /* --- 状态 --- */
   --success-solid: #228559;
@@ -192,6 +193,20 @@
   --ease-spring: cubic-bezier(0.22, 1.18, 0.36, 1);
   --ease-smooth: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-toast-enter: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-drag-pop: cubic-bezier(0.34, 1.42, 0.64, 1);
+  --ease-drag-glide: cubic-bezier(0.22, 1.06, 0.36, 1);
+  --ease-drag-spring: linear(
+    0,
+    0.21 10%,
+    0.544 20%,
+    0.798 30%,
+    0.941 40%,
+    1.003 50%,
+    1.02 63%,
+    1.012 78%,
+    1.005 90%,
+    1
+  );
   --duration-fast: 150ms;
   --duration-normal: 200ms;
   --duration-slow: 300ms;
@@ -204,6 +219,9 @@
   --duration-notif-expand: 240ms;
   --duration-notif-dismiss: 150ms;
   --duration-notif-settle: 220ms;
+  --duration-drag-lift: 180ms;
+  --duration-drag-hint: 180ms;
+  --duration-drag-ripple: 250ms;
 
   /* --- 图标与控件高 --- */
   --control-2xs: 20px;
@@ -241,6 +259,7 @@
 
   /* ====== 组件层：按组件前缀排列，只给单个组件或一类内容用 ====== */
   --card-surface: transparent;
+  --empty-art: #7a869d;
   --glass-bg: color-mix(in srgb, var(--bg) 80%, transparent);
   --glass-filter: blur(12px) saturate(1.14);
   --glass-shadow: 0 0 0 var(--border-width) var(--border), 0 24px 64px -24px rgba(0, 0, 0, 0.65);
@@ -337,6 +356,7 @@ html.dark {
   --success-solid: #228559;
 
   /* ====== 组件层：按组件前缀排列，只给单个组件或一类内容用 ====== */
+  --empty-art: #9aa4b8;
   --glass-filter: blur(16px) saturate(1.08);
   --glass-shadow:
     0 0 0 var(--border-width) var(--border), inset 0 1px rgba(255, 255, 255, 0.05),

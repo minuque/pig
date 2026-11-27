@@ -26,7 +26,9 @@
 
         <SelectContent>
           <SelectInput :placeholder="t('session.searchProjects')" />
-          <SelectEmpty>{{ t("session.noMatchingProjects") }}</SelectEmpty>
+          <SelectEmpty v-slot="{ state }">
+            {{ t("session.noMatchingProjects", { query: state.query.trim() }) }}
+          </SelectEmpty>
 
           <SelectList v-slot="{ state }">
             <SelectItem

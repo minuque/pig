@@ -13,6 +13,7 @@ export type SessionHistoryPage = {
   heldLive: TranscriptItem[]
   ready: boolean
   stale: boolean
+  failed: boolean
 }
 
 export function emptyHistoryPage(): SessionHistoryPage {
@@ -25,6 +26,7 @@ export function emptyHistoryPage(): SessionHistoryPage {
     heldLive: [],
     ready: false,
     stale: false,
+    failed: false,
   }
 }
 

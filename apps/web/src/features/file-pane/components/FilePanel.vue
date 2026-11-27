@@ -71,12 +71,12 @@
 
             <ResizablePanel id="files-viewer" :min-size="`${VIEWER_MIN}px`" class="file-panel-col">
               <FileViewer v-if="active" :key="active" :path="active" />
-              <p v-else class="file-panel-empty">{{ t("files.empty") }}</p>
+              <EmptyState v-else :title="t('files.empty')" :description="t('files.emptyHint')" />
             </ResizablePanel>
           </Resizable>
 
           <FileViewer v-else-if="active" :key="active" :path="active" />
-          <p v-else class="file-panel-empty">{{ t("files.empty") }}</p>
+          <EmptyState v-else :title="t('files.empty')" />
         </div>
       </section>
     </template>
@@ -89,6 +89,7 @@ import { Resizable, ResizableHandle, ResizablePanel } from "@ui-sdk/vue/resizabl
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@pig/ui/button"
 import { Card } from "@pig/ui/card"
+import { EmptyState } from "@pig/ui/empty-state"
 import { ResizeHandle } from "@pig/ui/resize-handle"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { PanelLeftIcon, SquarePaddingLeftIcon, SearchIcon } from "@components/icons/index.js"
@@ -153,14 +154,5 @@ const active = computed(() => pane.tabs.value.active)
 .file-panel-handle {
   inline-size: var(--border-width);
   background: var(--border-subtle);
-}
-
-.file-panel-empty {
-  display: grid;
-  flex: 1;
-  place-items: center;
-  margin: 0;
-  color: var(--fg-secondary);
-  font-size: var(--text-body);
 }
 </style>

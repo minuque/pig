@@ -11,7 +11,16 @@
       @add="emit('add')"
     />
 
-    <Banner v-if="state.error.value" color="danger" size="s">{{ state.error.value }}</Banner>
+    <EmptyState
+      v-if="state.error.value && !state.view.value"
+      :title="t('settings.mcp.loadFailedTitle')"
+      :description="t('settings.mcp.loadFailedBody')"
+    >
+      <template #art><HairlineArt figure="plug" /></template>
+      <template #actions><RetryButton :action="state.refresh" /></template>
+    </EmptyState>
+
+    <Banner v-else-if="state.error.value" color="danger" size="s">{{ state.error.value }}</Banner>
 
     <Banner v-if="state.note.value" color="warning" variant="surface" size="s">
       {{ state.note.value }}
@@ -65,7 +74,28 @@
       </CardList>
     </section>
 
-    <p v-else-if="state.view.value" class="list-note">{{ t("settings.mcp.empty") }}</p>
+    <EmptyState
+      v-else-if="state.view.value && !query.trim()"
+      :title="t('settings.mcp.emptyTitle')"
+      :description="t('settings.mcp.emptyBody')"
+    >
+      <template #art><HairlineArt figure="hub" /></template>
+    </EmptyState>
+
+    <EmptyState
+      v-else-if="state.view.value && !inherited.length"
+      live
+      :title="t('settings.mcp.noMatch', { query: query.trim() })"
+      :description="t('settings.mcp.noMatchBody')"
+    >
+      <template #art><HairlineArt figure="query" /></template>
+
+      <template #actions>
+        <Button type="button" variant="secondary" color="neutral" @click="query = ''">
+          {{ t("common.clearSearch") }}
+        </Button>
+      </template>
+    </EmptyState>
 
     <Collapsible v-if="inherited.length" v-model:open="inheritedOpen">
       <CollapsibleTrigger>
@@ -107,8 +137,12 @@ import ScopeToolbar from "@features/settings/components/ScopeToolbar.vue"
 import type { McpState, McpStatus } from "@features/settings/hooks/use-mcp.js"
 import { joinArgs, searchText } from "@features/settings/lib/mcp-draft.js"
 import { useI18n } from "@i18n/index.js"
+import HairlineArt from "@components/empty/HairlineArt.vue"
+import RetryButton from "@components/empty/RetryButton.vue"
 import { Badge } from "@pig/ui/badge"
 import { Banner } from "@pig/ui/banner"
+import { Button } from "@pig/ui/button"
+import { EmptyState } from "@pig/ui/empty-state"
 import { CardList, CardRow } from "@pig/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@pig/ui/collapsible"
 import { StatusIndicator, type StatusTone } from "@pig/ui/status-indicator"
@@ -158,6 +192,7 @@ function tone(status: McpStatus): StatusTone {
 <style scoped>
 .mcp-list {
   display: flex;
+  flex: 1 0 auto;
   flex-direction: column;
   gap: var(--space-lg);
 }

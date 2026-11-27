@@ -36,6 +36,7 @@ const LAYOUT: { id: string; title: Label; items: (string | [string, Label])[] }[
     title: { zh: "反馈", en: "Feedback" },
     items: [
       "Banner",
+      "EmptyState",
       "Toast",
       "Notification",
       "Badge",
@@ -62,7 +63,15 @@ const LAYOUT: { id: string; title: Label; items: (string | [string, Label])[] }[
   {
     id: "layout",
     title: { zh: "布局", en: "Layout" },
-    items: ["Card", "Collapsible", "Table", "Tabs", "ResizeHandle"],
+    items: [
+      "Card",
+      "Collapsible",
+      "Table",
+      "Tabs",
+      "ResizeHandle",
+      "SortableList",
+      "TransferLists",
+    ],
   },
   {
     id: "business",

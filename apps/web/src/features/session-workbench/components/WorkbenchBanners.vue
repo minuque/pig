@@ -24,7 +24,7 @@
 
   <Banner v-if="historyError && sessionId" class="workbench-banner" color="danger" size="s">
     <div class="workbench-banner-row">
-      <span>{{ t("session.historyLoadFailed") }}</span>
+      <span>{{ t("session.historyRefreshFailed") }}</span>
 
       <Button type="button" size="s" variant="secondary" @click="retryHistory">
         {{ t("common.retry") }}

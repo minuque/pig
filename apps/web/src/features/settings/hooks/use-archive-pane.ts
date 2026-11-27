@@ -144,19 +144,45 @@ export function useArchivePane(controller: () => ArchiveController) {
 
     return chips
   })
-  const emptyMessage = computed(() => {
-    const filtered = projectFilter.value !== ALL_PROJECTS || query.value.trim().length > 0
+  const emptyState = computed(() => {
+    const text = query.value.trim()
+    const inbox = tab.value === "inbox"
 
-    if (tab.value === "inbox") {
-      return filtered
-        ? t("settings.archive.emptyInboxFiltered")
-        : t("settings.archive.emptyInboxTitle")
+    if (text) {
+      return {
+        title: t("settings.archive.emptyQuery", { query: text }),
+        description: t("settings.archive.emptyQueryBody"),
+        filtered: true,
+      }
     }
 
-    return filtered
-      ? t("settings.archive.emptyArchivedFiltered")
-      : t("settings.archive.emptyArchivedTitle")
+    if (projectFilter.value !== ALL_PROJECTS) {
+      return {
+        title: inbox
+          ? t("settings.archive.emptyProjectInbox")
+          : t("settings.archive.emptyProjectArchived"),
+        description: undefined,
+        filtered: true,
+      }
+    }
+
+    return inbox
+      ? {
+          title: t("settings.archive.emptyInboxTitle"),
+          description: t("settings.archive.emptyInboxBody"),
+          filtered: false,
+        }
+      : {
+          title: t("settings.archive.emptyArchivedTitle"),
+          description: t("settings.archive.emptyArchivedBody"),
+          filtered: false,
+        }
   })
+
+  function clearFilters() {
+    projectFilter.value = ALL_PROJECTS
+    query.value = ""
+  }
   const deleteDialogTitle = computed(() =>
     pendingDelete.value.length > 1
       ? t("settings.archive.deleteConfirmBatchTitle", { count: pendingDelete.value.length })
@@ -295,7 +321,8 @@ export function useArchivePane(controller: () => ArchiveController) {
     selectedCount,
     masterCheckState,
     visibleQuickRules,
-    emptyMessage,
+    emptyState,
+    clearFilters,
     deleteDialogOpen,
     deleteDialogTitle,
     deleteDialogDescription,

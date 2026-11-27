@@ -7,7 +7,7 @@
     <WorkbenchPane :session="session" :preset="preset" @center-change="paneCenterX = $event" />
   </AppLayout>
 
-  <SettingsDialog v-model:open="settingsOpen" />
+  <SettingsDialog v-model:open="settingsOpen" :archive="nav" />
   <Toaster />
 
   <NotificationStack>
@@ -62,7 +62,11 @@ import {
   createPageSession,
   PAGE_MODELS,
 } from "@features/design-lab/lib/page-contexts.js"
-import { PAGE_DIALOG, PAGE_SESSION_ID } from "@features/design-lab/lib/page-fixtures.js"
+import {
+  PAGE_DIALOG,
+  PAGE_QUEUED_PROMPTS,
+  PAGE_SESSION_ID,
+} from "@features/design-lab/lib/page-fixtures.js"
 
 const session = createPageSession()
 const preset = createPagePreset()
@@ -136,7 +140,10 @@ onBeforeUnmount(() => {
   resetNotifications()
 })
 
-useComposerQueue(buckets).enqueue("跑完测试后截一张 compact 的图")
+const queue = useComposerQueue(buckets)
+
+queue.setKey(PAGE_SESSION_ID)
+for (const text of PAGE_QUEUED_PROMPTS) queue.enqueue(text)
 
 onBeforeRouteLeave((to) => to.path.startsWith("/design"))
 </script>

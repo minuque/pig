@@ -28,6 +28,8 @@ export * from "./ui/dialog/index.js"
 
 export * from "./ui/dropdown-menu/index.js"
 
+export * from "./ui/empty-state/index.js"
+
 export * from "./ui/field/index.js"
 
 export * from "./ui/hover-card/index.js"

@@ -7,7 +7,7 @@
       <section
         v-bind="part"
         class="session-section"
-        :class="{ 'is-shelf': isShelf }"
+        :class="{ 'is-shelf': isShelf, 'is-dragging': Boolean(dragging) }"
         :data-key="section.key"
       >
         <component
@@ -15,7 +15,12 @@
           v-bind="list ? { value: list } : {}"
           class="section-body"
         >
-          <div v-if="isShelf" class="section-head">
+          <div
+            v-if="isShelf"
+            data-drag-flow
+            class="section-head"
+            :class="{ 'is-dragging': section.kind === 'settled' && dragging }"
+          >
             <CollapsibleTrigger>
               <template #render="{ props: trigger }">
                 <button v-bind="trigger" class="section-toggle" type="button">
@@ -26,6 +31,16 @@
                 </button>
               </template>
             </CollapsibleTrigger>
+          </div>
+
+          <div
+            v-if="showSettledHint"
+            data-drop-hint-box
+            class="settled-drop-hint"
+            :class="{ 'is-target': dropTarget }"
+            aria-hidden="true"
+          >
+            {{ section.label }}
           </div>
 
           <CollapsibleContent class="section-panel">
@@ -118,6 +133,8 @@ const props = defineProps<{
   order?: readonly string[] | undefined
   sessionsById: ReadonlyMap<string, SidebarSession>
   motion: boolean
+  dragging?: boolean
+  dropTarget?: boolean
   swept: ReadonlySet<string>
   moreBySection: Record<string, number>
 }>()
@@ -144,6 +161,10 @@ const rows = computed<readonly SidebarSession[]>(() =>
   props.order
     ? props.order.flatMap((id) => props.sessionsById.get(id) ?? [])
     : props.section.sessions,
+)
+const showSettledHint = computed(
+  () =>
+    props.section.kind === "settled" && props.dragging && (!open.value || rows.value.length === 0),
 )
 
 function itemBind(session: SidebarSession) {
@@ -195,7 +216,35 @@ function itemBind(session: SidebarSession) {
   min-width: 0;
 }
 
+.section-head.is-dragging .section-toggle {
+  color: var(--fg-secondary);
+}
+
 .section-body[data-drop-target] .section-toggle {
+  color: var(--accent-text);
+}
+
+.settled-drop-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--control-lg);
+  margin: var(--space-2xs) var(--space-2xs) 0;
+  border: var(--border-width) dashed var(--border-strong);
+  border-radius: var(--radius-control);
+  color: var(--fg-secondary);
+  font-size: var(--text-meta);
+  line-height: var(--text-meta--line-height);
+  pointer-events: none;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.settled-drop-hint.is-target {
+  border-color: var(--accent-solid);
+  background: var(--info-subtle);
   color: var(--accent-text);
 }
 
@@ -277,11 +326,22 @@ function itemBind(session: SidebarSession) {
   padding-block: 2px;
 }
 
-.session-row[data-dragging] :deep(.session-card) {
+.session-row[data-draggable] :deep(.session-card) {
+  cursor: pointer;
+}
+
+.session-section.is-dragging .session-row[data-dragging] {
+  z-index: 0;
+}
+
+.session-section.is-dragging .session-row[data-dragging] :deep(.session-card) {
   outline: var(--border-width) dashed var(--accent-solid);
   outline-offset: -1px;
   background: var(--info-subtle);
-  opacity: 0.6;
+}
+
+.session-section.is-dragging .session-row[data-dragging] :deep(.session-card > *) {
+  visibility: hidden;
 }
 
 .more-button {
@@ -317,7 +377,8 @@ function itemBind(session: SidebarSession) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .section-chevron {
+  .section-chevron,
+  .settled-drop-hint {
     transition: none;
   }
 }

@@ -34,12 +34,28 @@
     <audio v-else-if="kind === 'audio'" :src="rawUrl" controls class="file-viewer-audio" />
     <iframe v-else-if="kind === 'pdf'" :src="rawUrl" :title="path" class="file-viewer-pdf" />
     <div v-else-if="loading" class="file-viewer-status"><Spinner size="m" /></div>
-    <FileNotice
-      v-else-if="failure"
-      :text="failure"
-      :action="t('common.retry')"
-      @action="load(false)"
-    />
+    <EmptyState
+      v-else-if="failure === 'missing'"
+      :title="t('files.missing')"
+      :description="t('files.missingBody')"
+    >
+      <template #art><FileXCornerIcon class="file-viewer-art" /></template>
+
+      <template #actions>
+        <Button type="button" variant="secondary" color="neutral" @click="pane.close(path)">
+          {{ t("files.closeTab") }}
+        </Button>
+      </template>
+    </EmptyState>
+
+    <EmptyState
+      v-else-if="failure === 'failed'"
+      :title="t('files.loadFailed')"
+      :description="t('files.loadFailedBody')"
+    >
+      <template #art><CircleExclamationPointIcon class="file-viewer-art" /></template>
+      <template #actions><RetryButton :action="() => load(false, true)" /></template>
+    </EmptyState>
 
     <FileNotice
       v-else-if="loaded?.binary && loaded.content === undefined"
@@ -79,10 +95,17 @@ import { computed, shallowRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { fileRawUrl, readWorkspaceFile } from "@client/platform.js"
 import { PlatformRequestError } from "@client/http.js"
-import { IconButton } from "@pig/ui/button"
+import { Button, IconButton } from "@pig/ui/button"
+import { EmptyState } from "@pig/ui/empty-state"
 import { Spinner } from "@pig/ui/spinner"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
-import { SquareCodeIcon, EyeIcon } from "@components/icons/index.js"
+import {
+  CircleExclamationPointIcon,
+  EyeIcon,
+  FileXCornerIcon,
+  SquareCodeIcon,
+} from "@components/icons/index.js"
+import RetryButton from "@components/empty/RetryButton.vue"
 import MarkdownContent from "@features/transcript-view/components/markdown/MarkdownContent.vue"
 import { useMarkdownNodes } from "@features/transcript-view/hooks/use-markdown-nodes.js"
 import FileCode from "@features/file-pane/components/FileCode.vue"
@@ -103,7 +126,7 @@ const crumbs = computed(() => props.path.split(/[\\/]/).filter(Boolean))
 const rawUrl = computed(() => (pane.cwd.value ? fileRawUrl(pane.cwd.value, props.path) : ""))
 const loaded = shallowRef<FileTextResponse>()
 const loading = shallowRef(false)
-const failure = shallowRef("")
+const failure = shallowRef<"" | "missing" | "failed">("")
 const source = shallowRef(false)
 const previewable = computed(() => ["markdown", "csv", "svg", "html"].includes(kind.value))
 const svgUrl = computed(
@@ -138,20 +161,22 @@ async function load(force = false, quiet = false) {
 
   const seq = ++loadSeq
 
-  if (!quiet) loading.value = true
-  failure.value = ""
+  if (!quiet) {
+    loading.value = true
+    failure.value = ""
+  }
 
   try {
     const result = await readWorkspaceFile(cwd, props.path, force)
 
-    if (seq === loadSeq) loaded.value = result
+    if (seq !== loadSeq) return
+    loaded.value = result
+    failure.value = ""
   } catch (error) {
     if (seq !== loadSeq) return
     loaded.value = undefined
     failure.value =
-      error instanceof PlatformRequestError && error.code === "NOT_FOUND"
-        ? t("files.missing")
-        : t("files.loadFailed")
+      error instanceof PlatformRequestError && error.code === "NOT_FOUND" ? "missing" : "failed"
   } finally {
     if (seq === loadSeq) loading.value = false
   }
@@ -217,6 +242,11 @@ watch(
 
 .file-viewer-crumb:last-child {
   color: var(--fg-secondary);
+}
+
+.file-viewer-art {
+  inline-size: var(--icon-xl);
+  block-size: var(--icon-xl);
 }
 
 .file-viewer-status {

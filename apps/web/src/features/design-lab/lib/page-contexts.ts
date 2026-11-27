@@ -8,7 +8,7 @@ import type {
 import type { ComposerPreset } from "@features/composer/type.js"
 import type { ComposerPresetContext } from "@features/composer/index.js"
 import type { NavContext } from "@features/session-nav/index.js"
-import { sidebarSections } from "@features/session-nav/lib/session-list.js"
+import { moveSessionId, sidebarSections } from "@features/session-nav/lib/session-list.js"
 import type { SidebarSection } from "@features/session-nav/type.js"
 import type { SessionContext } from "@features/session/index.js"
 import { emptyClientState, projectSessionSnapshot } from "@features/session/lib/session-state.js"
@@ -17,6 +17,7 @@ import {
   PAGE_CATALOG,
   PAGE_FOOTS,
   PAGE_GROUPS,
+  PAGE_HISTORY_FAILED_ID,
   PAGE_PINNED,
   PAGE_PRESET,
   PAGE_RUNNING_SINCE,
@@ -69,8 +70,11 @@ function snapshotOf(id: string): SessionSnapshot {
   }
 }
 
+const sentBySession = ref<Record<string, TranscriptItem[]>>({})
+
 function transcriptOf(id: string): TranscriptItem[] {
-  return id === PAGE_SESSION_ID ? PAGE_TRANSCRIPT : PAGE_TRANSCRIPT.slice(0, 8)
+  const base = id === PAGE_SESSION_ID ? PAGE_TRANSCRIPT : PAGE_TRANSCRIPT.slice(0, 8)
+  return [...base, ...(sentBySession.value[id] ?? [])]
 }
 
 export function createPageSession(): SessionContext {
@@ -81,6 +85,8 @@ export function createPageSession(): SessionContext {
   )
   const clientState = computed(() => emptyClientState())
   const draft = ref("把 compact 的头部高也对齐到 40px")
+  const historyFailed = ref(true)
+  const failing = computed(() => historyFailed.value && sessionId.value === PAGE_HISTORY_FAILED_ID)
   return {
     sessionId,
     projection,
@@ -95,8 +101,17 @@ export function createPageSession(): SessionContext {
     reconnectFailed: shallowRef(false),
     reconnectNow: resolved,
     historyError: computed(() => undefined),
-    retryHistory: resolved,
-    transcript: computed(() => (sessionId.value ? transcriptOf(sessionId.value) : [])),
+    historyFailed: failing,
+    retryHistory: () =>
+      new Promise<void>((resolve) =>
+        setTimeout(() => {
+          historyFailed.value = false
+          resolve()
+        }, 1200),
+      ),
+    transcript: computed(() =>
+      sessionId.value && !failing.value ? transcriptOf(sessionId.value) : [],
+    ),
     welcome: computed(() => !sessionId.value),
     loadHistory: resolved,
     historyFresh: () => true,
@@ -115,7 +130,24 @@ export function createPageSession(): SessionContext {
     submitting: computed(() => false),
     aborting: computed(() => false),
     createSession: resolved,
-    sendPrompt: resolved,
+    sendPrompt: async (text: string) => {
+      const id = sessionId.value
+
+      if (!id) return false
+      const item: TranscriptItem = {
+        id: `page-sent-${Date.now()}`,
+        role: "user",
+        content: [{ type: "text", text }],
+        timestamp: Date.now(),
+      }
+
+      sentBySession.value = {
+        ...sentBySession.value,
+        [id]: [...(sentBySession.value[id] ?? []), item],
+      }
+      draft.value = ""
+      return true
+    },
     steer: resolved,
     setWelcomeHandoff: noop,
     transcriptFor: (id: string) => transcriptOf(id),
@@ -140,8 +172,9 @@ export function createPagePreset(): ComposerPresetContext {
 
 export function createPageNav(session: SessionContext): NavContext {
   const allSessions = ref<SessionMetadata[]>(PAGE_SESSIONS)
-  const pinnedIds = ref(new Set(PAGE_PINNED))
-  const settledIds = ref(
+  const pinnedOrder = ref<string[]>([...PAGE_PINNED])
+  const pinnedIds = computed(() => new Set(pinnedOrder.value))
+  const settledSet = ref(
     new Set(PAGE_SESSIONS.filter((item) => pagePlacement(item.id).settled).map((item) => item.id)),
   )
   const expandedSections = ref(new Set<string>())
@@ -154,14 +187,35 @@ export function createPageNav(session: SessionContext): NavContext {
       const filter = include === undefined ? undefined : toValue(include)
       return sidebarSections({
         sessions: filter ? allSessions.value.filter(filter) : allSessions.value,
-        pinnedOrder: [...pinnedIds.value],
+        pinnedOrder: pinnedOrder.value,
         placement: (id: string) => ({
           ...pagePlacement(id),
-          settled: settledIds.value.has(id),
+          settled: settledSet.value.has(id),
         }),
         moreBySection: moreBySection.value,
       })
     })
+  }
+
+  function unsettle(id: string) {
+    if (!settledSet.value.has(id)) return
+    const next = new Set(settledSet.value)
+
+    next.delete(id)
+    settledSet.value = next
+  }
+
+  function settle(id: string) {
+    if (!settledSet.value.has(id)) {
+      const next = new Set(settledSet.value)
+
+      next.add(id)
+      settledSet.value = next
+    }
+
+    if (pinnedIds.value.has(id)) {
+      pinnedOrder.value = pinnedOrder.value.filter((item) => item !== id)
+    }
   }
 
   function toggle(set: typeof expandedSections, key: string) {
@@ -188,31 +242,36 @@ export function createPageNav(session: SessionContext): NavContext {
     sectionsFor,
     moreBySection,
     runningSince: shallowRef(PAGE_RUNNING_SINCE),
-    settledIds: computed(() => settledIds.value),
-    settle: (id: string) => {
-      if (settledIds.value.has(id)) return
-      settledIds.value = new Set(settledIds.value).add(id)
-    },
-    unsettle: (id: string) => {
-      if (!settledIds.value.has(id)) return
-      const next = new Set(settledIds.value)
-      next.delete(id)
-      settledIds.value = next
-    },
+    settledIds: computed(() => settledSet.value),
+    settle,
+    unsettle,
     expandedSections,
     toggleSection: (key: string) => toggle(expandedSections, key),
     expandSection: noop,
     pinnedIds,
-    pinnedSessions: computed(() => PAGE_SESSIONS.filter((item) => pinnedIds.value.has(item.id))),
+    pinnedSessions: computed(() =>
+      pinnedOrder.value.flatMap((id) => {
+        const match = PAGE_SESSIONS.find((item) => item.id === id)
+        return match ? [match] : []
+      }),
+    ),
     togglePinned: (id: string) => {
-      const next = new Set(pinnedIds.value)
+      if (pinnedIds.value.has(id)) {
+        pinnedOrder.value = pinnedOrder.value.filter((item) => item !== id)
+        return
+      }
 
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      pinnedIds.value = next
+      unsettle(id)
+      pinnedOrder.value = [...pinnedOrder.value, id]
     },
-    reorderPinned: noop,
-    pinAt: noop,
+    reorderPinned: (id: string, toIndex: number) => {
+      if (!pinnedIds.value.has(id)) return
+      pinnedOrder.value = moveSessionId(pinnedOrder.value, id, toIndex)
+    },
+    pinAt: (id: string, toIndex: number) => {
+      unsettle(id)
+      pinnedOrder.value = moveSessionId(pinnedOrder.value, id, toIndex)
+    },
     addingWorkspace: ref(false),
     connected: computed(() => true),
     navError: shallowRef(""),

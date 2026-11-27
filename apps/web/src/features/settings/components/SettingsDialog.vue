@@ -48,7 +48,7 @@
 
             <template v-if="searching">
               <CommandEmpty class="settings-search-empty">
-                {{ t("settings.searchEmpty") }}
+                {{ t("settings.searchEmpty", { query: query.trim() }) }}
               </CommandEmpty>
 
               <CommandList :aria-label="t('settings.search')">
@@ -125,7 +125,7 @@
             :class="{ 'is-fixed-pane': active === 'archive' }"
           >
             <div class="settings-scroll-content">
-              <div class="settings-body">
+              <div ref="body" class="settings-body">
                 <GeneralPane v-if="active === 'general'" />
                 <AppearancePane v-else-if="active === 'appearance'" />
                 <NotificationsPane v-else-if="active === 'notifications'" />
@@ -177,6 +177,7 @@ import type {
   SettingsPane as Pane,
 } from "@features/settings/hooks/use-settings-dialog.js"
 import { SETTINGS_TRAIL } from "@features/settings/hooks/use-settings-dialog.js"
+import { fadeSwap } from "@utils/motion.js"
 
 const props = defineProps<{
   open: boolean
@@ -403,9 +404,12 @@ watch(
   },
 )
 
+const body = useTemplateRef("body")
+
 watch(active, async () => {
   await nextTick()
   resetScroll()
+  fadeSwap(body.value)
 })
 </script>
 
@@ -587,40 +591,42 @@ watch(active, async () => {
 }
 
 .settings-dialog .settings-scroll {
+  display: flex;
   flex: 1;
+  flex-direction: column;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 
 .settings-dialog .settings-scroll.is-fixed-pane {
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
 }
 
 .settings-dialog .settings-scroll-content {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
   padding: var(--space-lg) var(--space-lg) calc(var(--space-2xl) + var(--space-md));
 }
 
 .settings-dialog .settings-scroll.is-fixed-pane .settings-scroll-content {
-  display: flex;
   flex: 1;
-  flex-direction: column;
   min-height: 0;
   padding-bottom: var(--space-md);
 }
 
 .settings-dialog .settings-body {
+  display: flex;
+  flex: 1 0 auto;
+  flex-direction: column;
   width: 100%;
   max-width: 56rem;
   margin-inline: auto;
 }
 
 .settings-dialog .settings-scroll.is-fixed-pane .settings-body {
-  display: flex;
   flex: 1;
-  flex-direction: column;
   min-height: 0;
 }
 

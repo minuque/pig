@@ -21,6 +21,7 @@ export function useSessionDropOut(options: {
   const ghost = shallowRef<DragGhost | null>(null)
   let dragged: string | null = null
   let droppedOutside = false
+  let consumedOutside = false
 
   function isOutsideX(clientX: number): boolean {
     const box = options.bounds()?.getBoundingClientRect()
@@ -49,6 +50,8 @@ export function useSessionDropOut(options: {
     const target = sessionDropTargetAt({ x: event.clientX, y: event.clientY })
     const title = options.title(dragged)
 
+    consumedOutside = Boolean(target && title !== undefined)
+
     if (target && title !== undefined) dropSessions(target, [{ id: dragged, title }])
   }
 
@@ -61,6 +64,7 @@ export function useSessionDropOut(options: {
     ghost.value = null
     queueMicrotask(() => {
       droppedOutside = false
+      consumedOutside = false
     })
   }
 
@@ -72,6 +76,7 @@ export function useSessionDropOut(options: {
 
     if (dragged) return
     droppedOutside = false
+    consumedOutside = false
     dragged = moving.key
     window.addEventListener("pointermove", onMove, { passive: true })
   }
@@ -87,5 +92,6 @@ export function useSessionDropOut(options: {
     outside,
     ghost,
     wasOutside: () => outside.value || droppedOutside,
+    wasConsumed: () => consumedOutside,
   }
 }

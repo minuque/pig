@@ -3,6 +3,10 @@
     :value="lists"
     :order="listOrder"
     :disabled="isLocked"
+    :reorderable="isReorderable"
+    :accepts="canAccept"
+    :bounds="listBounds"
+    :outside-consumed="dropOut.wasConsumed"
     :item-label="titleOf"
     :list-label="listLabel"
     :message="announce"
@@ -17,18 +21,14 @@
         class="nav-body session-list"
         :class="{
           'is-dragging': !!state.moving,
-          'is-outside': dropOut.outside.value,
+          'is-outside': dropOut.outside.value || state.outside,
           'is-scrolled': scrolled,
         }"
       >
-        <div
-          v-if="sections.length"
-          ref="windowEl"
-          class="session-window"
-          @scroll.passive="onScroll"
-        >
+        <div ref="windowEl" class="session-window" @scroll.passive="onScroll">
           <div
-            v-if="state.moving"
+            v-if="isSidebarDrag(state)"
+            data-drag-flow
             class="drag-label"
             :class="{ 'is-target': state.to === 'pinned' }"
           >
@@ -38,12 +38,13 @@
 
           <SessionSection
             v-bind="sectionBind(pinnedSection ?? emptyPinned, state)"
-            :class="{ 'pinned-drop': !pinnedSection }"
+            :class="{ 'empty-drop': (state.lists.pinned?.length ?? 0) === 0 }"
             v-on="sectionOn"
           />
 
           <div
-            v-if="state.moving"
+            v-if="isSidebarDrag(state)"
+            data-drag-flow
             class="drag-label"
             :class="{ 'is-target': state.to === 'active' }"
           >
@@ -52,15 +53,29 @@
           </div>
 
           <SessionSection
-            v-if="activeSection"
-            v-bind="sectionBind(activeSection, state)"
+            v-if="activeSection || isSidebarDrag(state)"
+            v-bind="sectionBind(activeSection ?? emptyActive, state)"
+            class="active-section"
+            :class="{ 'empty-drop': (state.lists.active?.length ?? 0) === 0 }"
             v-on="sectionOn"
           />
 
+          <EmptyState
+            v-else-if="!pinnedSection && !state.moving"
+            :title="sections.length ? t('session.inboxEmpty') : t('session.empty')"
+          >
+            <template #art><HairlineArt figure="basket" /></template>
+
+            <template #actions>
+              <Button variant="outline" color="neutral" class="new-session" @click="emit('create')">
+                <MessageCirclePlusIcon class="size-icon" />
+                {{ t("session.newSession") }}
+              </Button>
+            </template>
+          </EmptyState>
+
           <div class="session-edge-bottom edge-veil-bottom" aria-hidden="true"></div>
         </div>
-
-        <div v-else class="session-empty">{{ t("session.empty") }}</div>
 
         <div v-if="shelfSections.length" class="session-shelves">
           <SessionSection
@@ -80,6 +95,10 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, onUpdated, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
+import { EmptyState } from "@pig/ui/empty-state"
+import HairlineArt from "@components/empty/HairlineArt.vue"
+import { MessageCirclePlusIcon } from "@components/icons/index.js"
+import { Button } from "@pig/ui/button"
 import {
   TransferListsRoot,
   type TransferChangeDetails,
@@ -129,6 +148,7 @@ const emit = defineEmits<{
   delete: [id: string]
   settle: [id: string]
   unsettle: [id: string]
+  create: []
   settleMany: [ids: readonly string[]]
   unsettleMany: [ids: readonly string[]]
   archive: [id: string]
@@ -150,6 +170,14 @@ const emptyPinned = computed<SidebarSection>(() => ({
   key: "pinned",
   kind: "pinned",
   label: t("session.pinned"),
+  sessions: [],
+  shown: 0,
+  total: 0,
+}))
+const emptyActive = computed<SidebarSection>(() => ({
+  key: "active",
+  kind: "active",
+  label: t("session.sectionInbox"),
   sessions: [],
   shown: 0,
   total: 0,
@@ -219,6 +247,9 @@ const sectionOn = {
 }
 const listOrder = () => [...LISTS]
 const titleOf = (id: string) => sessionsById.value.get(id)?.title
+const listBounds = () => listEl.value
+const isReorderable = (list: string) => list === "pinned"
+const canAccept = (_key: string, from: string, to: string) => to === "pinned" || to !== from
 
 function isLocked(id: string): boolean {
   return Boolean(sessionsById.value.get(id)?.draft) || kindById.value.get(id) === "working"
@@ -269,11 +300,22 @@ function commit(id: string, plan: DropPlan): void {
   else if (plan.kind === "unsettle") emit("unsettle", id)
 }
 
+function isSidebarDrag(state: { moving: string | null; outside?: boolean }): boolean {
+  return Boolean(state.moving) && !dropOut.outside.value && !state.outside
+}
+
 function sectionBind(
   section: SidebarSection,
-  state: { lists: TransferLists; moving: string | null },
+  state: {
+    lists: TransferLists
+    moving: string | null
+    to?: string | null
+    outside?: boolean
+    settling?: string | null
+  },
 ) {
   const list = (LISTS as readonly string[]).includes(section.kind) ? section.kind : undefined
+  const activeDrag = isSidebarDrag(state)
   return {
     section,
     list,
@@ -284,7 +326,9 @@ function sectionBind(
     cardFootById: props.cardFootById,
     pinnedIds: props.pinnedIds,
     runningSince: props.runningSince,
-    motion: !state.moving,
+    motion: !state.moving && !state.settling,
+    dragging: activeDrag,
+    dropTarget: Boolean(list && activeDrag && state.to === list),
     swept: sweep.swept.value,
     moreBySection: props.moreBySection,
   }
@@ -377,7 +421,7 @@ onUpdated(() => {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  height: var(--control-xs);
+  height: var(--control-2xs);
   padding-inline: var(--space-xs);
   pointer-events: none;
   transition: opacity var(--duration-fast) var(--ease-out);
@@ -410,15 +454,31 @@ onUpdated(() => {
   background: var(--accent-solid);
 }
 
-.session-list.is-dragging:not(.is-outside) .pinned-drop :deep(.section-body) {
+.active-section {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.active-section :deep(.section-body) {
+  flex: 1;
+}
+
+.session-list.is-dragging:not(.is-outside) .empty-drop :deep(.section-body) {
   min-height: var(--control-lg);
 }
 
 .session-list.is-dragging:not(.is-outside)
-  .pinned-drop
+  .empty-drop
   :deep(.section-body:not(:has(.session-row))) {
-  border: var(--border-width) dashed var(--accent-solid);
+  border: var(--border-width) dashed var(--border-strong);
   border-radius: var(--radius-control);
+}
+
+.session-list.is-dragging:not(.is-outside)
+  .empty-drop
+  :deep(.section-body[data-drop-target]:not(:has(.session-row))) {
+  border-color: var(--accent-solid);
   background: var(--info-subtle);
 }
 
@@ -426,10 +486,8 @@ onUpdated(() => {
   opacity: 0;
 }
 
-.session-empty {
-  padding: var(--space-xs);
-  color: var(--fg-secondary);
-  font-size: var(--text-meta);
+.new-session {
+  border-style: dashed;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,4 +1,4 @@
-const RAIL_DOCKED_MIN = 1012
+const RAIL_DOCKED_MIN = 1112
 
 export type RailMode = "docked" | "popover"
 

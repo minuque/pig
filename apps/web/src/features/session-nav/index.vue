@@ -32,6 +32,7 @@
       @settle-many="onSettleMany"
       @unsettle-many="onUnsettleMany"
       @archive="onArchiveSession"
+      @create="onCreateSession()"
       @reorder-pinned="reorderPinned"
       @pin-at="pinAt"
       @unpin="togglePinned"

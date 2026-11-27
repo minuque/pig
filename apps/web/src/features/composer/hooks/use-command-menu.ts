@@ -134,8 +134,10 @@ export function useCommandMenu(options: CommandMenuOptions) {
     if (chip) options.onChip(chip)
   }
 
-  function emptyText(trigger: string | null): string {
-    return t(trigger === "/" ? "composer.commandEmptyCommand" : "composer.commandEmptyFile")
+  function emptyText(trigger: string | null, query: string): string {
+    return t(trigger === "/" ? "composer.commandEmptyCommand" : "composer.commandEmptyFile", {
+      query,
+    })
   }
 
   return { triggers, rows, onOpenChange, onSelect, emptyText }
