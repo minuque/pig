@@ -151,13 +151,14 @@ const activeOutputTokens = computed(() => {
 watch(
   () => ({
     sessionId: props.sessionId,
+    transcript: props.transcript,
     next: rowsBuilder.build(props.transcript, props.running, props.timings),
   }),
-  ({ sessionId, next }, prev) => {
+  ({ sessionId, transcript, next }, prev) => {
     const grouped = groupTimelineTurns(next)
 
     if (prev && prev.sessionId !== sessionId) {
-      turns.value = grouped
+      turns.value = transcript === prev.transcript ? [] : grouped
       return
     }
 
