@@ -277,11 +277,8 @@ function itemBind(session: SidebarSession) {
   padding-block: 2px;
 }
 
-.session-row[data-dragging] :deep(.session-card) {
-  outline: var(--border-width) dashed var(--accent-solid);
-  outline-offset: -1px;
-  background: var(--info-subtle);
-  opacity: 0.6;
+.session-row[data-draggable] :deep(.session-card) {
+  cursor: pointer;
 }
 
 .more-button {

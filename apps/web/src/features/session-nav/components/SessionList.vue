@@ -3,6 +3,10 @@
     :value="lists"
     :order="listOrder"
     :disabled="isLocked"
+    :reorderable="isReorderable"
+    :accepts="canAccept"
+    :bounds="listBounds"
+    :outside-consumed="dropOut.wasConsumed"
     :item-label="titleOf"
     :list-label="listLabel"
     :message="announce"
@@ -217,6 +221,9 @@ const sectionOn = {
 }
 const listOrder = () => [...LISTS]
 const titleOf = (id: string) => sessionsById.value.get(id)?.title
+const listBounds = () => listEl.value
+const isReorderable = (list: string) => list === "pinned"
+const canAccept = (_key: string, from: string, to: string) => to === "pinned" || to !== from
 
 function isLocked(id: string): boolean {
   return Boolean(sessionsById.value.get(id)?.draft) || kindById.value.get(id) === "working"
@@ -269,7 +276,7 @@ function commit(id: string, plan: DropPlan): void {
 
 function sectionBind(
   section: SidebarSection,
-  state: { lists: TransferLists; moving: string | null },
+  state: { lists: TransferLists; moving: string | null; settling?: string | null },
 ) {
   const list = (LISTS as readonly string[]).includes(section.kind) ? section.kind : undefined
   return {
@@ -282,7 +289,7 @@ function sectionBind(
     cardFootById: props.cardFootById,
     pinnedIds: props.pinnedIds,
     runningSince: props.runningSince,
-    motion: !state.moving,
+    motion: !state.moving && !state.settling,
     swept: sweep.swept.value,
     moreBySection: props.moreBySection,
   }

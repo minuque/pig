@@ -1,39 +1,13 @@
 import { defineComponent, type SlotsType, type VNode } from "vue"
 import { usePart, usePrimitive } from "@ui-sdk/vue/primitive"
+import { createChange, definePrimitive, type TransferDraft, type TransferLists } from "@ui-sdk/core"
 import {
-  createChange,
-  createTransfer,
-  definePrimitive,
-  type ChangeDetails,
-  type TransferDraft,
-  type TransferLists,
-  type TransferMessage,
-  type TransferReason,
-} from "@ui-sdk/core"
+  createTransferController,
+  type TransferChangeDetails,
+  type TransferListsOptions,
+} from "./transfer-controller.js"
 
-export type TransferChangeDetails = ChangeDetails<TransferReason> & {
-  key: string
-  from: string
-  to: string
-  index: number
-}
-
-export type TransferListsOptions = {
-  value?: TransferLists
-  defaultValue?: TransferLists
-  onValueChange?: (value: TransferLists, details: TransferChangeDetails) => void
-  onMovingChange?: (moving: TransferDraft | null) => void
-  order?: () => string[]
-  disabled?: (key: string) => boolean
-  itemLabel?: (key: string) => string | undefined
-  listLabel?: (list: string) => string | undefined
-  message?: (message: TransferMessage) => string
-}
-
-function targetList(draft: TransferDraft | null): string | null {
-  if (!draft) return null
-  return Object.keys(draft.lists).find((list) => draft.lists[list]?.includes(draft.key)) ?? null
-}
+export type { TransferChangeDetails, TransferListsOptions }
 
 const transferLists = definePrimitive({
   name: "transfer-lists",
@@ -44,6 +18,12 @@ const transferLists = definePrimitive({
     onMovingChange: "callback",
     order: "value",
     disabled: "value",
+    reorderable: "value",
+    accepts: "value",
+    density: "string",
+    liftSide: "string",
+    bounds: "value",
+    outsideConsumed: "value",
     itemLabel: "value",
     listLabel: "value",
     message: "value",
@@ -52,68 +32,59 @@ const transferLists = definePrimitive({
   state: (options: TransferListsOptions) => ({
     value: options.value ?? options.defaultValue ?? {},
     moving: null as TransferDraft | null,
+    to: null as string | null,
+    settling: null as string | null,
+    reduced: false,
   }),
   sync: (options) => (options.value === undefined ? {} : { value: options.value }),
-  api: (context) => {
-    const change = createChange(context)
-    const options = () => context.options()
-    const transfer = createTransfer(context, {
-      key: "value",
-      draft: "moving",
-      set: (value, details) => change("value", value, details),
-      order: () => options().order?.() ?? Object.keys(context.store.get().value),
-      disabled: (key) => options().disabled?.(key) ?? false,
-      label: (key) => options().itemLabel?.(key),
-      listLabel: (list) => options().listLabel?.(list),
-      ...(options().message && {
-        message: (message: TransferMessage) => options().message?.(message) ?? "",
-      }),
-    })
-    let moving: TransferDraft | null = null
-    const unsubscribe = context.store.subscribe(() => {
-      const next = context.store.get().moving
-
-      if (next === moving) return
-      moving = next
-      options().onMovingChange?.(moving)
-    })
-
-    context.onDestroy(unsubscribe)
-    return {
-      transfer,
-      move: (key: string, list: string, index: number) => transfer.move(key, list, index),
-    }
-  },
+  api: (context) => createTransferController(context, createChange(context)),
   slots: (slot) => ({
     root: slot<
       Record<never, never>,
-      { lists: TransferLists; moving: string | null; from: string | null; to: string | null }
+      {
+        lists: TransferLists
+        moving: string | null
+        from: string | null
+        to: string | null
+        settling: string | null
+      }
     >({
-      state: (state, part) => ({
-        lists: part.api.transfer.lists(state),
+      state: (state) => ({
+        lists: state.value,
         moving: state.moving?.key ?? null,
         from: state.moving?.from ?? null,
-        to: targetList(state.moving),
+        to: state.to,
+        settling: state.settling,
+      }),
+      attrs: (state) => ({
+        "data-dragging": state.moving?.pointer ? "" : undefined,
       }),
     }),
     list: slot<{ value: string }>({
       props: { value: "string" },
       attrs: (state, part) => ({
-        "data-drop-target":
-          state.moving && targetList(state.moving) === part.props.value ? "" : undefined,
+        "data-drop-target": state.moving && state.to === part.props.value ? "" : undefined,
       }),
-      bind: (el, part) => part.api.transfer.bindList(el, part.props.value),
+      bind: (el, part) => part.api.bindList(el, part.props.value),
     }),
     item: slot<{ value: string }>({
       props: { value: "string" },
-      attrs: (state, part) => ({
-        "data-grabbed": part.api.transfer.moving(state, part.props.value) ? "" : undefined,
-        "data-dragging": part.api.transfer.dragging(state, part.props.value) ? "" : undefined,
-      }),
-      on: {
-        pointerdown: (event, { api, props }) => api.transfer.pointerdown(event, props.value),
+      attrs: (state, part) => {
+        const key = part.props.value
+        const moving = state.moving?.key === key
+        const pointer = Boolean(moving && state.moving?.pointer)
+        const hidden = state.settling === key || (pointer && !state.reduced)
+        return {
+          "data-draggable": !part.api.isDisabled(key) ? "" : undefined,
+          "data-grabbed": moving ? "" : undefined,
+          "data-dragging": pointer ? "" : undefined,
+          "data-drag-hidden": hidden ? "" : undefined,
+        }
       },
-      bind: (el, part) => part.api.transfer.bindItem(el, part.props.value),
+      on: {
+        pointerdown: (event, { api, props }) => api.pointerdown(event, props.value),
+      },
+      bind: (el, part) => part.api.bindItem(el, part.props.value),
     }),
   }),
   agent: { actions: ["move"] },
@@ -122,7 +93,13 @@ const transferLists = definePrimitive({
 type PartScope = { props: Record<string, unknown> }
 
 type RootScope = {
-  state: { lists: TransferLists; moving: string | null; from: string | null; to: string | null }
+  state: {
+    lists: TransferLists
+    moving: string | null
+    from: string | null
+    to: string | null
+    settling: string | null
+  }
 }
 
 export const TransferListsRoot = defineComponent(
@@ -132,6 +109,12 @@ export const TransferListsRoot = defineComponent(
       ...(props.defaultValue && { defaultValue: props.defaultValue }),
       ...(props.order && { order: props.order }),
       ...(props.disabled && { disabled: props.disabled }),
+      ...(props.reorderable && { reorderable: props.reorderable }),
+      ...(props.accepts && { accepts: props.accepts }),
+      ...(props.density && { density: props.density }),
+      ...(props.liftSide && { liftSide: props.liftSide }),
+      ...(props.bounds && { bounds: props.bounds }),
+      ...(props.outsideConsumed && { outsideConsumed: props.outsideConsumed }),
       ...(props.itemLabel && { itemLabel: props.itemLabel }),
       ...(props.listLabel && { listLabel: props.listLabel }),
       ...(props.message && { message: props.message }),
@@ -143,7 +126,21 @@ export const TransferListsRoot = defineComponent(
   },
   {
     inheritAttrs: false,
-    props: ["value", "defaultValue", "order", "disabled", "itemLabel", "listLabel", "message"],
+    props: [
+      "value",
+      "defaultValue",
+      "order",
+      "disabled",
+      "reorderable",
+      "accepts",
+      "density",
+      "liftSide",
+      "bounds",
+      "outsideConsumed",
+      "itemLabel",
+      "listLabel",
+      "message",
+    ],
     emits: ["value-change", "moving-change"],
     slots: Object as SlotsType<{
       default?: (scope: RootScope) => VNode[]
@@ -151,6 +148,7 @@ export const TransferListsRoot = defineComponent(
     }>,
   },
 )
+
 export const TransferList = defineComponent(
   (props: { value: string }) =>
     usePart(transferLists, "list", () => ({ value: props.value }), undefined, "div"),
@@ -160,6 +158,7 @@ export const TransferList = defineComponent(
     slots: Object as SlotsType<{ default?: () => VNode[]; render?: (scope: PartScope) => VNode[] }>,
   },
 )
+
 export const TransferItem = defineComponent(
   (props: { value: string }) =>
     usePart(transferLists, "item", () => ({ value: props.value }), undefined, "li"),
