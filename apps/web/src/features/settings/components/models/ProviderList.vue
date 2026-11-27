@@ -21,12 +21,20 @@
 
     <p v-if="loading && !providers.length" class="list-state">{{ t("settings.models.loading") }}</p>
 
+    <EmptyState
+      v-else-if="error && !providers.length"
+      class="list-empty"
+      :title="t('settings.models.loadFailedTitle')"
+      :description="t('settings.models.loadFailedBody')"
+      :detail="error"
+    >
+      <template #art><HairlineArt figure="plug" /></template>
+      <template #actions><RetryButton :action="onRetry" /></template>
+    </EmptyState>
+
     <div v-else-if="error" class="list-state">
       <span>{{ error }}</span>
-
-      <Button type="button" size="s" variant="ghost" color="info" @click="emit('retry')">
-        {{ t("settings.models.retry") }}
-      </Button>
+      <RetryButton size="s" variant="ghost" :action="onRetry" />
     </div>
 
     <div v-for="group in groups" :key="group.id" class="provider-group">
@@ -76,9 +84,19 @@
       </CardList>
     </div>
 
-    <p v-if="!loading && !groups.length" class="list-state">
-      {{ t("settings.models.noMatch") }}
-    </p>
+    <EmptyState
+      v-if="!loading && !groups.length && query.trim()"
+      size="row"
+      live
+      class="list-no-match"
+      :title="t('settings.models.noMatch', { query: query.trim() })"
+    >
+      <template #actions>
+        <Button type="button" size="s" variant="ghost" color="neutral" @click="query = ''">
+          {{ t("common.clearSearch") }}
+        </Button>
+      </template>
+    </EmptyState>
   </section>
 </template>
 
@@ -94,13 +112,17 @@ import VendorMark from "@components/icons/VendorMark.vue"
 import { groupProviders, providerSourceText } from "@features/settings/lib/provider-view.js"
 import type { ProviderView } from "@/types/common-type.js"
 import { Card, CardList, CardRow } from "@pig/ui/card"
+import { EmptyState } from "@pig/ui/empty-state"
+import HairlineArt from "@components/empty/HairlineArt.vue"
+import RetryButton from "@components/empty/RetryButton.vue"
 
 const props = defineProps<{
   providers: ProviderView[]
   loading: boolean
   error?: string | undefined
+  onRetry: () => unknown
 }>()
-const emit = defineEmits<{ select: [id: string]; retry: []; add: [] }>()
+const emit = defineEmits<{ select: [id: string]; add: [] }>()
 const { t } = useI18n()
 const query = ref("")
 const groups = computed(() => groupProviders(props.providers, query.value))
@@ -192,6 +214,14 @@ function sourceKind(provider: ProviderView) {
 .provider-chevron {
   flex: none;
   color: var(--fg-secondary);
+}
+
+.list-empty {
+  padding-block: var(--space-2xl);
+}
+
+.list-no-match {
+  padding-inline: var(--space-md);
 }
 
 .list-state {

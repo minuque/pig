@@ -1,0 +1,10 @@
+/* 外部：hairline 的底板是实心填充，须与所在表面同色 */
+
+.hairline-art {
+  --hairline-plate: var(--bg);
+  --hairline-hi: var(--empty-art);
+  --hairline-edge: color-mix(in oklab, var(--empty-art) 72%, var(--bg));
+  --hairline-mid: color-mix(in oklab, var(--empty-art) 44%, var(--bg));
+  --hairline-lo: color-mix(in oklab, var(--empty-art) 18%, var(--bg));
+  --hairline-stroke: 1;
+}

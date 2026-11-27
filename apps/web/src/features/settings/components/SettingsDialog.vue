@@ -48,7 +48,7 @@
 
             <template v-if="searching">
               <CommandEmpty class="settings-search-empty">
-                {{ t("settings.searchEmpty") }}
+                {{ t("settings.searchEmpty", { query: query.trim() }) }}
               </CommandEmpty>
 
               <CommandList :aria-label="t('settings.search')">

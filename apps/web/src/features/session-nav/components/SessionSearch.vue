@@ -6,7 +6,7 @@
     @update:open="emit('update:open', $event)"
   >
     <CommandPaletteInput :placeholder="t('nav.searchPlaceholder')" />
-    <CommandPaletteEmpty>{{ t("nav.searchEmpty") }}</CommandPaletteEmpty>
+    <CommandPaletteEmpty>{{ t("nav.searchEmpty", { query: query.trim() }) }}</CommandPaletteEmpty>
 
     <CommandPaletteList>
       <CommandPaletteItem

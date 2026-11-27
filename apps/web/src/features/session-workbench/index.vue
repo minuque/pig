@@ -47,6 +47,7 @@
             :timings="turnTimings"
             :jump-target="pendingJump"
             :history-ready="!sessionPending"
+            :retry-history="historyFailed ? retryHistory : undefined"
             @jump-settled="onJumpSettled"
           >
             <SessionRail />
@@ -172,6 +173,8 @@ const {
   submitting,
   turnPending,
   sessionPending,
+  historyFailed,
+  retryHistory,
   connectionError,
   connected,
   prompt,

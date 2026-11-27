@@ -1,7 +1,6 @@
 import { computed, shallowReactive, shallowRef } from "vue"
 import type { TranscriptItem } from "@/types/common-type.js"
 import { notifyAction } from "@pig/ui/toast"
-import { errorMessage } from "@client/http.js"
 import { t } from "@i18n/index.js"
 import { sessionTranscript } from "@client/platform.js"
 import {
@@ -83,12 +82,16 @@ export function createHistoryStore() {
           externalTurn,
           ready: true,
           stale: false,
+          failed: false,
         })
         bump()
-      } catch (error) {
-        if (requestById.get(id) === request && isShown(id)) {
-          notifyAction(t("session.historyFailed", { message: errorMessage(error) }))
-        }
+      } catch {
+        if (requestById.get(id) !== request) return
+
+        if (!cache.isReady(id)) {
+          cache.write(id, { failed: true })
+          bump()
+        } else if (isShown(id)) notifyAction(t("session.historyRefreshFailed"))
       }
     })()
 
@@ -129,6 +132,10 @@ export function createHistoryStore() {
     transcriptFor,
     isFresh: (id: string) => cache.isFresh(id),
     isReady: (id: string) => cache.isReady(id),
+    isFailed: (id: string) => {
+      void version.value
+      return cache.peek(id)?.failed === true && !cache.isReady(id)
+    },
     externalTurnFor: (id: string) => {
       void version.value
       return cache.peek(id)?.externalTurn ?? false
@@ -160,6 +167,10 @@ export function useHistoryView(store: HistoryStore) {
     if (!id || !store.isReady(id)) return undefined
     return id
   })
+  const historyFailedId = computed(() => {
+    const id = activeId.value
+    return id && store.isFailed(id) ? id : undefined
+  })
   const turnTimings = computed(() => {
     const id = activeId.value
     void version.value
@@ -175,6 +186,7 @@ export function useHistoryView(store: HistoryStore) {
     activeId,
     liveTranscript,
     historyReadyId,
+    historyFailedId,
     turnTimings,
     externalTurn,
     setActive,

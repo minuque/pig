@@ -115,7 +115,9 @@
           </span>
         </div>
 
-        <p v-if="!matched.length" class="scope-empty">{{ t("session.noMatchingProjects") }}</p>
+        <p v-if="!matched.length" class="scope-empty">
+          {{ t("session.noMatchingProjects", { query: query.trim() }) }}
+        </p>
       </ToggleGroup>
     </div>
   </PopoverContent>

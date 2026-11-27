@@ -217,7 +217,11 @@
       </h3>
 
       <p v-if="refreshError" class="refresh-error">{{ refreshError }}</p>
-      <p v-if="!provider.models.length" class="empty">{{ t("settings.models.noModels") }}</p>
+      <EmptyState
+        v-if="!provider.models.length"
+        size="row"
+        :title="t('settings.models.noModels')"
+      />
       <ProviderModelList :provider="provider" @changed="emit('changed')" />
     </section>
 
@@ -258,6 +262,7 @@ import {
 } from "@pig/ui/alert-dialog"
 import { Button, IconButton } from "@pig/ui/button"
 import { Badge } from "@pig/ui/badge"
+import { EmptyState } from "@pig/ui/empty-state"
 import { TextFieldRoot } from "@pig/ui/text-field"
 import {
   CheckIcon,

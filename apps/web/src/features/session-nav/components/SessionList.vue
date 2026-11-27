@@ -60,7 +60,7 @@
           <div class="session-edge-bottom edge-veil-bottom" aria-hidden="true"></div>
         </div>
 
-        <div v-else class="session-empty">{{ t("session.empty") }}</div>
+        <EmptyState v-else size="row" class="session-empty" :title="t('session.empty')" />
 
         <div v-if="shelfSections.length" class="session-shelves">
           <SessionSection
@@ -80,6 +80,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, onUpdated, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
+import { EmptyState } from "@pig/ui/empty-state"
 import {
   TransferListsRoot,
   type TransferChangeDetails,
@@ -425,9 +426,7 @@ onUpdated(() => {
 }
 
 .session-empty {
-  padding: var(--space-xs);
-  color: var(--fg-secondary);
-  font-size: var(--text-meta);
+  padding-inline: var(--space-xs);
 }
 
 @media (prefers-reduced-motion: reduce) {

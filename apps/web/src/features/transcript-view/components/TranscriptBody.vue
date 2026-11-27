@@ -53,7 +53,8 @@
     </div>
 
     <AssistantSelectionToolbar :viewport="viewport" />
-    <SessionLoading v-if="!readyFrame" />
+    <HistoryFailed v-if="retryHistory && !readyFrame" :retry="retryHistory" />
+    <SessionLoading v-else-if="!readyFrame" />
   </div>
 </template>
 
@@ -69,6 +70,7 @@ import {
   watch,
 } from "vue"
 import AssistantSelectionToolbar from "@features/transcript-view/components/AssistantSelectionToolbar.vue"
+import HistoryFailed from "@features/transcript-view/components/HistoryFailed.vue"
 import SessionLoading from "@features/transcript-view/components/SessionLoading.vue"
 import TranscriptMinimap from "@features/transcript-view/components/TranscriptMinimap.vue"
 import TurnRow from "@features/transcript-view/components/TurnRow.vue"
@@ -107,8 +109,15 @@ const props = withDefaults(
     timings?: readonly TurnTiming[] | undefined
     jumpTarget?: ReplyJumpTarget | null
     historyReady?: boolean
+    retryHistory?: (() => unknown) | undefined
   }>(),
-  { sending: false, stopping: false, jumpTarget: null, historyReady: true },
+  {
+    sending: false,
+    stopping: false,
+    jumpTarget: null,
+    historyReady: true,
+    retryHistory: undefined,
+  },
 )
 const emit = defineEmits<{
   jumpSettled: [seq: number]

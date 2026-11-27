@@ -11,7 +11,18 @@
       @add="emit('add')"
     />
 
-    <p v-if="state.error.value" class="list-note">{{ state.error.value }}</p>
+    <EmptyState
+      v-if="state.error.value && !state.view.value"
+      class="list-empty"
+      :title="t('settings.skills.loadFailedTitle')"
+      :description="t('settings.skills.loadFailedBody')"
+      :detail="state.error.value"
+    >
+      <template #art><HairlineArt figure="plug" /></template>
+      <template #actions><RetryButton :action="state.refresh" /></template>
+    </EmptyState>
+
+    <p v-else-if="state.error.value" class="list-note">{{ state.error.value }}</p>
 
     <section v-for="group in groups" :key="group.dir" class="skill-group">
       <h3 class="group-path">{{ group.dir }}</h3>
@@ -78,9 +89,32 @@
       </CardList>
     </section>
 
-    <p v-if="state.view.value && !groups.length" class="list-note">
-      {{ t("settings.skills.empty") }}
-    </p>
+    <template v-if="state.view.value && !groups.length">
+      <EmptyState
+        v-if="!query.trim()"
+        class="list-empty"
+        :title="t('settings.skills.emptyTitle')"
+        :description="t('settings.skills.emptyBody')"
+      >
+        <template #art><HairlineArt figure="stack" /></template>
+      </EmptyState>
+
+      <EmptyState
+        v-else-if="!inherited.length"
+        class="list-empty"
+        live
+        :title="t('settings.skills.noMatch', { query: query.trim() })"
+        :description="t('settings.skills.noMatchBody')"
+      >
+        <template #art><HairlineArt figure="query" /></template>
+
+        <template #actions>
+          <Button type="button" variant="secondary" color="neutral" @click="query = ''">
+            {{ t("common.clearSearch") }}
+          </Button>
+        </template>
+      </EmptyState>
+    </template>
 
     <Collapsible v-if="inherited.length" v-model:open="inheritedOpen">
       <CollapsibleTrigger>
@@ -118,8 +152,12 @@ import { ChevronRightIcon } from "@components/icons/index.js"
 import ScopeToolbar from "@features/settings/components/ScopeToolbar.vue"
 import type { SkillsState } from "@features/settings/hooks/use-skills.js"
 import { useI18n } from "@i18n/index.js"
+import HairlineArt from "@components/empty/HairlineArt.vue"
+import RetryButton from "@components/empty/RetryButton.vue"
 import { Badge } from "@pig/ui/badge"
+import { Button } from "@pig/ui/button"
 import { CardList, CardRow } from "@pig/ui/card"
+import { EmptyState } from "@pig/ui/empty-state"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@pig/ui/collapsible"
 import { Switch } from "@pig/ui/switch"
 
@@ -282,6 +320,10 @@ button.row-open {
 
 .fold-body {
   margin-block-start: var(--space-xs);
+}
+
+.list-empty {
+  padding-block: var(--space-2xl);
 }
 
 .list-note {

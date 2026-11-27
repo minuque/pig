@@ -117,6 +117,14 @@ export function useSessionLifecycle(
     if (!id) return false
     return history.historyReadyId.value !== id
   })
+  const historyFailed = computed(
+    () => !!sessionId.value && history.historyFailedId.value === sessionId.value,
+  )
+
+  function retryHistory() {
+    const id = sessionId.value
+    return id ? history.loadHistory(id) : Promise.resolve()
+  }
   const projection = computed(() => {
     const current = snapshot.value ? projectSessionSnapshot(snapshot.value) : undefined
     return !sessionId.value || current?.id === sessionId.value ? current : undefined
@@ -406,6 +414,8 @@ export function useSessionLifecycle(
     backgroundRunningIds,
     turnPending,
     sessionPending,
+    historyFailed,
+    retryHistory,
     connected: pi.connected,
     connectionError: pi.connectionError,
     transcript,

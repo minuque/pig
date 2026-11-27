@@ -62,9 +62,13 @@
         <Spinner size="m" />
       </div>
 
-      <p v-else-if="!searching && !names.length && !matches.length" class="file-search-empty">
-        {{ t("files.noMatches") }}
-      </p>
+      <EmptyState
+        v-else-if="!searching && !names.length && !matches.length"
+        size="row"
+        live
+        class="file-search-empty"
+        :title="t('files.noMatches', { query: trimmed })"
+      />
     </div>
   </div>
 </template>
@@ -73,6 +77,7 @@
 import { computed, shallowRef, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { searchWorkspaceContents, searchWorkspaceFiles } from "@client/platform.js"
+import { EmptyState } from "@pig/ui/empty-state"
 import { Spinner } from "@pig/ui/spinner"
 import { TextFieldRoot, TextFieldSlot } from "@pig/ui/text-field"
 import { SearchIcon } from "@components/icons/index.js"
@@ -230,10 +235,6 @@ async function run(text: string, cwd: string | undefined, signal: AbortSignal) {
 }
 
 .file-search-empty {
-  margin: 0;
-  padding: var(--space-md) var(--space-xs);
-  color: var(--fg-secondary);
-  font-size: var(--text-body);
-  text-align: center;
+  padding-inline: var(--space-sm);
 }
 </style>

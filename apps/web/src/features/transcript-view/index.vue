@@ -10,6 +10,7 @@
     :timings="timings"
     :jump-target="jumpTarget"
     :history-ready="historyReady"
+    :retry-history="retryHistory"
     @jump-settled="emit('jumpSettled', $event)"
   >
     <slot />
@@ -41,8 +42,9 @@ withDefaults(
     timings?: readonly TurnTiming[] | undefined
     jumpTarget?: ReplyJumpTarget | null
     historyReady?: boolean
+    retryHistory?: (() => unknown) | undefined
   }>(),
-  { jumpTarget: null, historyReady: true },
+  { jumpTarget: null, historyReady: true, retryHistory: undefined },
 )
 
 const emit = defineEmits<{

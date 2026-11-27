@@ -70,7 +70,7 @@ test("设置归档页支持单条与批量归档、刷新持久化、恢复及�
 
   await expect(projectSearch).toBeFocused()
   await projectSearch.fill("__no_match__")
-  await expect(page.getByText("没有匹配的项目")).toBeVisible()
+  await expect(page.getByText("没有匹配「__no_match__」的项目")).toBeVisible()
 
   await projectSearch.fill("pig-e2e-")
   await expect(page.getByRole("option", { name: "workspace" })).toBeVisible()

@@ -43,7 +43,7 @@
       </TriggerMenuList>
 
       <TriggerMenuEmpty v-slot="{ state }" class="command-status">
-        {{ state.loading ? t("composer.commandLoading") : emptyText }}
+        {{ state.loading ? t("composer.commandLoading") : emptyText(state.query) }}
       </TriggerMenuEmpty>
     </div>
   </div>
@@ -81,7 +81,7 @@ const KIND_ICONS: Record<string, Component> = {
 
 defineProps<{
   rows: ReadonlyMap<string, CommandMenuRow>
-  emptyText: string
+  emptyText: (query: string) => string
 }>()
 
 const { t } = useI18n()

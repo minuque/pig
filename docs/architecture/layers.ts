@@ -42,7 +42,11 @@ export const layers: Record<string, Layer[]> = {
       ],
     },
     { name: "状态", note: "会话状态，不引用别的功能", dirs: ["features/session"] },
-    { name: "组件", note: "应用布局与图标", dirs: ["components/layout", "components/icons"] },
+    {
+      name: "组件",
+      note: "应用布局、图标与空状态",
+      dirs: ["components/layout", "components/icons", "components/empty"],
+    },
     { name: "底座", note: "谁都能用", dirs: ["client", "types", "i18n", "utils"] },
   ],
   "packages/ui": [

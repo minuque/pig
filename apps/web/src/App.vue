@@ -14,5 +14,6 @@ provideUiLabels(() => ({
   select: t("common.select"),
   notifications: t("common.notifications"),
   error: t("common.error"),
+  details: t("common.details"),
 }))
 </script>

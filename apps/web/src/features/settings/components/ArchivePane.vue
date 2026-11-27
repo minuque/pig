@@ -83,10 +83,24 @@
       </div>
     </div>
 
-    <div v-if="virtualItems.length === 0" class="archive-empty">
-      <ArchiveIcon class="empty-icon" />
-      <p class="empty-text">{{ emptyMessage }}</p>
-    </div>
+    <EmptyState
+      v-if="virtualItems.length === 0"
+      :live="emptyState.filtered"
+      :title="emptyState.title"
+      :description="emptyState.description"
+    >
+      <template #art>
+        <HairlineArt
+          :figure="emptyState.filtered ? 'query' : tab === 'inbox' ? 'basket' : 'drawer'"
+        />
+      </template>
+
+      <template v-if="emptyState.filtered" #actions>
+        <Button variant="secondary" color="neutral" @click="clearFilters">
+          {{ t("common.clearFilters") }}
+        </Button>
+      </template>
+    </EmptyState>
 
     <div v-if="selectedCount > 0" class="bulk-bar">
       <span class="bulk-count tabular">
@@ -134,7 +148,7 @@
 <script setup lang="ts">
 import { useVirtualList } from "@vueuse/core"
 import { nextTick, watch } from "vue"
-import { ArchiveIcon } from "@components/icons/index.js"
+import HairlineArt from "@components/empty/HairlineArt.vue"
 import { PROJECT_ICONS } from "@components/icons/project-icons.js"
 import {
   AlertDialog,
@@ -149,6 +163,7 @@ import {
 import { Badge } from "@pig/ui/badge"
 import { Button } from "@pig/ui/button"
 import { Checkbox } from "@pig/ui/checkbox"
+import { EmptyState } from "@pig/ui/empty-state"
 import ArchiveRow from "@features/settings/components/ArchiveRow.vue"
 import ArchiveToolbar from "@features/settings/components/ArchiveToolbar.vue"
 import { useArchivePane } from "@features/settings/hooks/use-archive-pane.js"
@@ -178,7 +193,8 @@ const {
   selectedCount,
   masterCheckState,
   visibleQuickRules,
-  emptyMessage,
+  emptyState,
+  clearFilters,
   deleteDialogOpen,
   deleteDialogTitle,
   deleteDialogDescription,
@@ -303,29 +319,6 @@ function archiveGroupStale(group: ArchiveProjectGroup): void {
 
 .group-stale-action:hover {
   color: var(--fg);
-}
-
-.archive-empty {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-xs);
-  padding: var(--space-2xl) var(--space-lg);
-  color: var(--fg-muted);
-  text-align: center;
-}
-
-.empty-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  color: var(--fg-muted);
-}
-
-.empty-text {
-  margin: 0;
-  font-size: var(--text-body);
 }
 
 .bulk-bar {
