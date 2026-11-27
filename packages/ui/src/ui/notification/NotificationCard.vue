@@ -174,11 +174,11 @@ const timeLabel = computed(() => {
   z-index: var(--z-raise);
   inline-size: var(--control-xs);
   block-size: var(--control-xs);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--radius-control);
   background-color: var(--bg-raised);
-  box-shadow:
-    inset 0 0 0 var(--border-width) var(--border-strong),
-    var(--control-shadow);
+  background-clip: padding-box;
+  box-shadow: var(--float-elevation);
   color: var(--fg-secondary);
   opacity: 0;
   transition:
@@ -190,6 +190,7 @@ const timeLabel = computed(() => {
   inset-block-start: var(--space-xs);
   inset-inline-start: auto;
   inset-inline-end: var(--space-xs);
+  border-color: transparent;
   background-color: transparent;
   box-shadow: none;
 }
@@ -201,6 +202,7 @@ const timeLabel = computed(() => {
 }
 
 .notif-close:hover {
+  background-image: linear-gradient(var(--bg-hover), var(--bg-hover));
   color: var(--fg);
 }
 

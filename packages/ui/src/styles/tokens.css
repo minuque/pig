@@ -201,9 +201,9 @@
   --duration-toast-morph-out: 180ms;
   --duration-toast-sheen: 900ms;
   --duration-notif-enter: 560ms;
-  --duration-notif-expand: 380ms;
-  --duration-notif-dismiss: 260ms;
-  --duration-notif-settle: 400ms;
+  --duration-notif-expand: 240ms;
+  --duration-notif-dismiss: 150ms;
+  --duration-notif-settle: 220ms;
 
   /* --- 图标与控件高 --- */
   --control-2xs: 20px;

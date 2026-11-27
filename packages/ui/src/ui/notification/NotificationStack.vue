@@ -85,9 +85,8 @@ import {
 const MAX_VISIBLE = 3
 const GAP_PX = 8
 const SWIPE_THRESHOLD_PX = 72
-const DISMISS_MS = 260
+const DISMISS_MS = 150
 const ARRIVAL_COVER_MS = 320
-const REDUCED_DISMISS_MS = 150
 
 const labels = useUiLabels()
 const layer = useTemplateRef<HTMLElement>("layer")
@@ -105,13 +104,6 @@ const dismissTimers = new Map<string, ReturnType<typeof setTimeout>>()
 const visible = computed(() => screenNotifications.value.slice(0, MAX_VISIBLE))
 
 useTopLayer(layer, () => visible.value.length > 0)
-
-function reducedMotion(): boolean {
-  return (
-    typeof window !== "undefined" &&
-    Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches)
-  )
-}
 
 function measureCard(id: string, el: HTMLElement) {
   const height = Math.round(el.offsetHeight)
@@ -260,14 +252,13 @@ function dismissCard(id: string) {
   next.add(id)
   dismissingIds.value = next
 
-  const wait = reducedMotion() ? REDUCED_DISMISS_MS : DISMISS_MS
   const timer = setTimeout(() => {
     dismissTimers.delete(id)
     const after = new Set(dismissingIds.value)
     after.delete(id)
     dismissingIds.value = after
     dismissNotificationScreen(id)
-  }, wait)
+  }, DISMISS_MS)
 
   dismissTimers.set(id, timer)
 }
@@ -404,7 +395,7 @@ onBeforeUnmount(() => {
 
 .notif-slot.is-dismissing {
   pointer-events: none;
-  animation: notif-dismiss var(--duration-notif-dismiss) ease-in forwards;
+  animation: notif-dismiss var(--duration-notif-dismiss) var(--ease-out) forwards;
 }
 
 .notif-clear-all {
