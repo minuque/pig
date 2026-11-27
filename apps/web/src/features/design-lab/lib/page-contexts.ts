@@ -150,6 +150,9 @@ export function createPageNav(session: SessionContext): NavContext {
   const allSessions = ref<SessionMetadata[]>(PAGE_SESSIONS)
   const pinnedIds = ref(new Set(PAGE_PINNED))
   const expandedSections = ref(new Set<string>())
+  const settledIds = ref(
+    new Set(PAGE_SESSIONS.filter((item) => pagePlacement(item.id).settled).map((item) => item.id)),
+  )
   const moreBySection = ref<Record<string, number>>({})
 
   function sectionsFor(
@@ -160,7 +163,10 @@ export function createPageNav(session: SessionContext): NavContext {
       return sidebarSections({
         sessions: filter ? allSessions.value.filter(filter) : allSessions.value,
         pinnedOrder: [...pinnedIds.value],
-        placement: pagePlacement,
+        placement: (id) => ({
+          running: pagePlacement(id).running,
+          settled: settledIds.value.has(id),
+        }),
         moreBySection: moreBySection.value,
       })
     })
@@ -190,14 +196,14 @@ export function createPageNav(session: SessionContext): NavContext {
     sectionsFor,
     moreBySection,
     runningSince: shallowRef(PAGE_RUNNING_SINCE),
-    settledIds: computed(
-      () =>
-        new Set(
-          PAGE_SESSIONS.filter((item) => pagePlacement(item.id).settled).map((item) => item.id),
-        ),
-    ),
-    settle: noop,
-    unsettle: noop,
+    settledIds,
+    settle: (id: string) => (settledIds.value = new Set(settledIds.value).add(id)),
+    unsettle: (id: string) => {
+      const next = new Set(settledIds.value)
+
+      next.delete(id)
+      settledIds.value = next
+    },
     expandedSections,
     toggleSection: (key: string) => toggle(expandedSections, key),
     expandSection: noop,
