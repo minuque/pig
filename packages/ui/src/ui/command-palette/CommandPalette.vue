@@ -45,7 +45,7 @@ const labels = useUiLabels()
 </script>
 
 <style>
-:where([data-command-palette]) {
+[data-command-palette] {
   position: fixed;
   inset-block: max(10vh, var(--space-md)) auto;
   inset-inline: var(--space-md);
