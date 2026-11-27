@@ -114,7 +114,7 @@ function reducedMotion(): boolean {
 }
 
 function measureCard(id: string, el: HTMLElement) {
-  const height = Math.round(el.getBoundingClientRect().height)
+  const height = Math.round(el.offsetHeight)
 
   if (height > 0 && heights.value[id] !== height) heights.value = { ...heights.value, [id]: height }
 }
@@ -345,7 +345,8 @@ onBeforeUnmount(() => {
 }
 
 :where([data-slot="notification-region"][data-expanded]) .notif-stack {
-  min-block-size: var(--notif-stack-height);
+  min-block-size: calc(var(--notif-stack-height) + var(--notif-gap) + var(--control-sm));
+  pointer-events: auto;
 }
 
 .notif-slot {
@@ -363,49 +364,38 @@ onBeforeUnmount(() => {
     opacity var(--duration-fast) var(--ease-out);
 }
 
+.notif-slot :is(.notif-content, .notif-avatar) {
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
 .notif-slot.is-swiping {
   transition: none;
 }
 
-.notif-slot:not(.is-front) {
+:where([data-slot="notification-region"]:not([data-expanded])) .notif-slot:not(.is-front) {
   block-size: var(--notif-front-height, auto);
   overflow: hidden;
   border-radius: var(--radius-dialog);
 }
 
-.notif-slot:not(.is-front) .notif-card {
-  box-shadow: var(--float-shadow);
-}
-
-.notif-slot:not(.is-front, .is-covered-pending) .notif-content,
-.notif-slot:not(.is-front, .is-covered-pending) .notif-avatar,
-.notif-slot:not(.is-front, .is-covered-pending) .notif-close {
+:where([data-slot="notification-region"]:not([data-expanded]))
+  .notif-slot:not(.is-front, .is-covered-pending)
+  :is(.notif-content, .notif-avatar, .notif-close) {
   opacity: 0;
 }
 
-.notif-slot.is-front .notif-card {
+:where([data-slot="notification-region"]:not([data-expanded])) .notif-slot.is-front .notif-card {
   box-shadow: var(--shadow-popover);
 }
 
 :where([data-slot="notification-region"][data-expanded]) .notif-slot {
   translate: var(--notif-swipe-x, 0px) var(--notif-offset, 0px);
   scale: 1;
-  block-size: auto;
-  overflow: visible;
   transition:
     translate var(--duration-notif-expand) var(--ease-smooth),
     scale var(--duration-notif-expand) var(--ease-smooth),
     block-size var(--duration-notif-expand) var(--ease-smooth),
     opacity var(--duration-fast) var(--ease-out);
-}
-
-:where([data-slot="notification-region"][data-expanded]) .notif-slot .notif-card {
-  box-shadow: var(--float-shadow);
-}
-
-:where([data-slot="notification-region"][data-expanded]) .notif-slot .notif-content,
-:where([data-slot="notification-region"][data-expanded]) .notif-slot .notif-avatar {
-  opacity: 1;
 }
 
 .notif-slot.is-entering {
@@ -427,7 +417,8 @@ onBeforeUnmount(() => {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .notif-slot {
+  .notif-slot,
+  .notif-slot :is(.notif-content, .notif-avatar) {
     transition: opacity var(--duration-fast) linear;
   }
 
