@@ -144,14 +144,15 @@
 
 <script setup lang="ts">
 import { computed, nextTick, provide, ref, useTemplateRef, watch } from "vue"
-import { PlugIcon, SparklesIcon } from "@lucide/vue"
 import { useI18n } from "@i18n/index.js"
 import { Dialog, DialogClose, DialogContent, DialogTitle } from "@pig/ui/dialog"
 import {
   ArchiveIcon,
   BellIcon,
   XIcon,
-  CloudIcon,
+  HammerIcon,
+  LayersIcon,
+  ZapIcon,
   SearchIcon,
   PaletteIcon,
   SlidersHorizontalIcon,
@@ -201,9 +202,9 @@ const tabs = computed<
     icon: SlidersHorizontalIcon,
   },
   { id: "appearance", label: t("settings.appearance"), icon: PaletteIcon },
-  { id: "models", label: t("settings.models.title"), icon: CloudIcon },
-  { id: "mcp", label: t("settings.mcp.title"), icon: PlugIcon },
-  { id: "skills", label: t("settings.skills.title"), icon: SparklesIcon },
+  { id: "models", label: t("settings.models.title"), icon: LayersIcon },
+  { id: "mcp", label: t("settings.mcp.title"), icon: HammerIcon },
+  { id: "skills", label: t("settings.skills.title"), icon: ZapIcon },
   { id: "notifications", label: t("settings.notifications"), icon: BellIcon },
   ...(props.archive
     ? [

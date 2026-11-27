@@ -12,6 +12,7 @@
       ref="editor"
       v-model:prompt="prompt"
       :placeholder="answer?.placeholder"
+      :running="running"
       :disabled="answer?.locked ?? false"
       :cwd="cwd"
       :has-session="Boolean(sessionId)"

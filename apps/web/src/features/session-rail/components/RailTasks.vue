@@ -62,11 +62,12 @@
                       size="s"
                       variant="ghost"
                       color="neutral"
+                      class="task-stop"
                       :aria-label="t('rail.stopTask')"
                       :disabled="stopping.has(task.id)"
                       @click="emit('stop', task.id)"
                     >
-                      <SquareIcon class="size-icon" />
+                      <SquareIcon class="size-icon" fill="currentColor" />
                     </IconButton>
                   </template>
                 </TooltipTrigger>
@@ -230,6 +231,12 @@ function statusText(task: Task): string {
 </script>
 
 <style scoped>
+@media (hover: hover) {
+  [data-button].task-stop:hover:not(:disabled) {
+    color: var(--danger-text);
+  }
+}
+
 .rail-tasks {
   display: flex;
   flex-direction: column;

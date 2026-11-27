@@ -64,6 +64,14 @@
             <div v-if="showPlaceholder" class="field-placeholder" aria-hidden="true">
               <template v-if="props.placeholder">{{ props.placeholder }}</template>
 
+              <template v-else-if="props.running">
+                <span>{{ t("composer.placeholderPrefix") }}</span>
+                <Kbd size="s" variant="soft">Enter</Kbd>
+                <span>{{ t("composer.placeholderQueue") }}</span>
+                <Kbd size="s" variant="soft">{{ modKey }} Enter</Kbd>
+                <span>{{ t("composer.placeholderSteer") }}</span>
+              </template>
+
               <template v-else>
                 <span>{{ t("composer.placeholderPrefix") }}</span>
                 <Kbd size="s" variant="soft">/</Kbd>
@@ -114,6 +122,7 @@ import type { ComposerCaret, MentionSession, ReplyInsertRequest } from "@feature
 
 const props = defineProps<{
   placeholder?: string | undefined
+  running?: boolean
   cwd?: string | undefined
   hasSession?: boolean
   reloadRevision?: number | undefined
@@ -123,6 +132,7 @@ const props = defineProps<{
   disabledReason?: string | undefined
 }>()
 const { t } = useI18n()
+const modKey = /mac/i.test(navigator.platform || navigator.userAgent) ? "⌘" : "Ctrl"
 const prompt = defineModel<string>("prompt", { required: true })
 const emit = defineEmits<{
   submit: []

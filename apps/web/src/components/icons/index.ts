@@ -15,7 +15,7 @@ export {
   ArrowUpRightIcon,
   AtSignIcon,
   BellIcon,
-  BlocksIcon,
+  BotIcon,
   CheckIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
@@ -25,7 +25,6 @@ export {
   CircleDashedIcon,
   CircleExclamationPointIcon,
   CircleQuestionMarkIcon,
-  CloudIcon,
   CopyIcon,
   CornerUpRightIcon,
   EyeIcon,
@@ -34,7 +33,6 @@ export {
   FolderIcon,
   FolderOpenIcon,
   FolderPlusIcon,
-  ForwardIcon,
   GitBranchIcon,
   FolderGit2Icon,
   GitForkIcon,
@@ -43,8 +41,10 @@ export {
   NotepadTextIcon,
   GlobeIcon,
   GripVerticalIcon,
+  HammerIcon,
   InfoIcon,
   KeyRoundIcon,
+  LayersIcon,
   LinkIcon,
   LoaderIcon,
   Maximize2Icon,
@@ -78,6 +78,7 @@ export {
   Undo2Icon,
   UserIcon,
   XIcon,
+  ZapIcon,
 } from "@lucide/vue"
 
 const filled =
