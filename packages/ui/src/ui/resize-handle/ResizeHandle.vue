@@ -53,7 +53,10 @@
 }
 
 :where([data-slot="resizable-handle"][data-hovering])::after,
-:where([data-slot="resizable-handle"][data-dragging])::after,
+:where([data-slot="resizable-handle"][data-dragging])::after {
+  background: var(--border-input);
+}
+
 :where([data-slot="resizable-handle"]:focus-visible)::after {
   background: var(--focus-color);
 }

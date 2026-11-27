@@ -166,16 +166,6 @@ const actions = computed<RowAction[]>(() => {
   touch-action: pan-y;
 }
 
-.row[data-grabbed] {
-  position: relative;
-  z-index: var(--z-sticky);
-  transform: translate(var(--drag-x, 0), var(--drag-y, 0));
-}
-
-.row[data-dragging] {
-  cursor: grabbing;
-}
-
 .row-main {
   display: flex;
   align-items: center;
@@ -204,7 +194,7 @@ const actions = computed<RowAction[]>(() => {
   background: var(--bg-selected);
 }
 
-.row[data-grabbed] .bubble {
+.row:is([data-keyboard-dragging], [data-drag-preview]) .bubble {
   background: var(--bg-surface);
   box-shadow: var(--shadow-popover);
 }
@@ -303,13 +293,13 @@ const actions = computed<RowAction[]>(() => {
 }
 
 .row-grip {
-  cursor: grab;
+  cursor: pointer;
   touch-action: none;
   opacity: 0;
   transition: opacity var(--duration-fast) var(--ease-out);
 }
 
-.row:is(:hover, :focus-within, [data-grabbed]) :is(.row-grip, .row-time) {
+.row:is(:hover, :focus-within, [data-grabbed], [data-drag-preview]) :is(.row-grip, .row-time) {
   opacity: 1;
 }
 </style>

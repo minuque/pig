@@ -44,7 +44,11 @@ import {
   createPageSession,
   PAGE_MODELS,
 } from "@features/design-lab/lib/page-contexts.js"
-import { PAGE_DIALOG, PAGE_SESSION_ID } from "@features/design-lab/lib/page-fixtures.js"
+import {
+  PAGE_DIALOG,
+  PAGE_QUEUED_PROMPTS,
+  PAGE_SESSION_ID,
+} from "@features/design-lab/lib/page-fixtures.js"
 
 const session = createPageSession()
 const preset = createPagePreset()
@@ -70,7 +74,10 @@ onMounted(() =>
   host.alerts.route(PAGE_SESSION_ID, { kind: "notify", tone: "info", title: "lint 规则已更新" }),
 )
 
-useComposerQueue(buckets).enqueue("跑完测试后截一张 compact 的图")
+const queue = useComposerQueue(buckets)
+
+queue.setKey(PAGE_SESSION_ID)
+for (const text of PAGE_QUEUED_PROMPTS) queue.enqueue(text)
 
 onBeforeRouteLeave((to) => to.path.startsWith("/design"))
 </script>

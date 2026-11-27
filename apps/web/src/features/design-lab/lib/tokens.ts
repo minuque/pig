@@ -136,7 +136,7 @@ export function kindOf(token: Token): Kind {
 
   if (name.startsWith("--z-")) return "layer"
 
-  if (/^cubic-bezier/.test(value)) return "ease"
+  if (/^(cubic-bezier|linear)\(/.test(value)) return "ease"
 
   if (/gradient\(|url\(/.test(value)) return "paint"
 

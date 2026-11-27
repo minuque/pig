@@ -125,7 +125,7 @@
             :class="{ 'is-fixed-pane': active === 'archive' }"
           >
             <div class="settings-scroll-content">
-              <div class="settings-body">
+              <div ref="body" class="settings-body">
                 <GeneralPane v-if="active === 'general'" />
                 <AppearancePane v-else-if="active === 'appearance'" />
                 <NotificationsPane v-else-if="active === 'notifications'" />
@@ -177,6 +177,7 @@ import type {
   SettingsPane as Pane,
 } from "@features/settings/hooks/use-settings-dialog.js"
 import { SETTINGS_TRAIL } from "@features/settings/hooks/use-settings-dialog.js"
+import { fadeSwap } from "@utils/motion.js"
 
 const props = defineProps<{
   open: boolean
@@ -403,9 +404,12 @@ watch(
   },
 )
 
+const body = useTemplateRef("body")
+
 watch(active, async () => {
   await nextTick()
   resetScroll()
+  fadeSwap(body.value)
 })
 </script>
 
