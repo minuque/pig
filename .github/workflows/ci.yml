@@ -2,7 +2,7 @@ name: ci
 
 on:
   push:
-    branches: ["**"]
+    branches: [main]
   pull_request:
 
 concurrency:
@@ -38,7 +38,7 @@ jobs:
       - if: matrix.os != 'ubuntu-latest'
         run: pnpm test:platform
 
-  # 本地只跑静态分析与单测，推送分支与 PR 的全量端到端旅程在 CI 运行
+  # 本地只跑静态分析与单测，PR 与 main 的全量端到端旅程在 CI 运行
   e2e:
     name: e2e
     runs-on: ubuntu-latest
