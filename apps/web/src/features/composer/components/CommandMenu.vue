@@ -165,9 +165,12 @@ function rowLanguage(name: string): string {
 
 .command-status {
   margin: 0;
-  padding: var(--space-xs) var(--space-sm);
   color: var(--fg-muted);
   font-size: var(--text-meta);
+}
+
+.command-status[data-empty] {
+  padding: var(--space-xs) var(--space-sm);
 }
 
 @media (prefers-reduced-motion: reduce) {
