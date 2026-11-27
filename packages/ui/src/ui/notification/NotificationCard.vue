@@ -143,8 +143,8 @@ const timeLabel = computed(() => {
   gap: var(--space-sm);
   padding: var(--space-sm);
   border-radius: var(--radius-dialog);
-  background-color: var(--float-bg);
-  backdrop-filter: var(--glass-filter);
+  background-color: var(--bg-raised);
+  background-clip: padding-box;
   border: var(--border-width) solid var(--border);
   box-shadow: var(--float-shadow);
   color: var(--fg);
@@ -155,7 +155,6 @@ const timeLabel = computed(() => {
 .notif-card.is-flat {
   border-radius: var(--radius-card);
   background-color: var(--bg-surface);
-  backdrop-filter: none;
   box-shadow: none;
 }
 

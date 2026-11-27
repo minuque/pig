@@ -413,8 +413,7 @@ onBeforeUnmount(() => {
   inset-inline-end: 0;
   pointer-events: auto;
   border-radius: var(--radius-control);
-  background-color: var(--float-bg);
-  backdrop-filter: var(--glass-filter);
+  background-color: var(--bg-raised);
   box-shadow: var(--float-shadow);
   color: var(--fg-secondary);
 }

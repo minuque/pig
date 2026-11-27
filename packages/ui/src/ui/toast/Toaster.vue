@@ -230,8 +230,7 @@ watch(
   max-inline-size: min(var(--toast-max-width), calc(100vw - 2 * var(--space-md)));
   padding-inline: var(--space-xs);
   border-radius: var(--toast-radius);
-  background-color: var(--float-bg);
-  backdrop-filter: var(--glass-filter);
+  background-color: var(--bg-raised);
   box-shadow: var(--toast-shadow);
   color: var(--fg);
   font-size: var(--text-body);
