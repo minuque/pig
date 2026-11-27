@@ -1,5 +1,5 @@
 <template>
-  <article class="user">
+  <article ref="message" class="user">
     <div v-if="item.text || item.parts?.length" class="prompt">
       <div ref="body" class="body" :class="{ collapsed: !expanded, fade: !expanded && overflows }">
         <template v-for="(part, index) in parts" :key="index">
@@ -57,6 +57,7 @@ import TranscriptLinkChip from "@features/transcript-view/components/TranscriptL
 import TranscriptReplyCard from "@features/transcript-view/components/TranscriptReplyCard.vue"
 import { splitLinkText, type LinkTextPart } from "@features/transcript-view/lib/link-chip.js"
 import type { UserRow } from "@features/transcript-view/type.js"
+import { arrive } from "@utils/motion.js"
 
 type UserMessagePart = LinkTextPart | { kind: "reference"; reference: ContextReference }
 
@@ -121,7 +122,12 @@ watch(expanded, async (open) => {
   measure()
 })
 
-onMounted(measure)
+const message = useTemplateRef("message")
+
+onMounted(() => {
+  measure()
+  arrive("composer-send", message.value)
+})
 
 useResizeObserver(body, measure)
 </script>

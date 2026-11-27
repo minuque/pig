@@ -6,6 +6,8 @@
     @update:value="(path: string | null) => path !== null && pane.activate(path)"
   >
     <TabsList ref="list" class="file-tabs-list" :aria-label="t('files.title')">
+      <TabsIndicator class="file-tab-indicator travel-indicator" />
+
       <div
         v-for="tab in state.tabs"
         :key="tab.path"
@@ -67,7 +69,7 @@
 <script setup lang="ts">
 import { computed, nextTick, shallowRef, useTemplateRef, watch } from "vue"
 import { useResizeObserver } from "@vueuse/core"
-import { Tabs, TabsList, TabsTab } from "@ui-sdk/vue/tabs"
+import { Tabs, TabsIndicator, TabsList, TabsTab } from "@ui-sdk/vue/tabs"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@pig/ui/button"
 import {
@@ -114,6 +116,7 @@ watch(
 }
 
 .file-tabs-list {
+  position: relative;
   display: flex;
   flex: 1;
   align-items: center;
@@ -139,13 +142,23 @@ watch(
   user-select: none;
 }
 
-.file-tab:hover {
+.file-tab:not([data-selected]):hover {
   background: var(--bg-hover);
 }
 
 .file-tab[data-selected] {
-  background: var(--bg-selected);
   color: var(--fg);
+}
+
+.file-tab-indicator {
+  position: absolute;
+  top: calc(var(--active-tab-top) - var(--space-2xs));
+  right: calc(var(--active-tab-right) - var(--space-2xs) * 2 - 16px);
+  bottom: calc(var(--active-tab-bottom) - var(--space-2xs));
+  left: calc(var(--active-tab-left) - var(--space-2xs));
+  border-radius: var(--radius-control);
+  background: var(--bg-selected);
+  pointer-events: none;
 }
 
 .file-tab:has(:focus-visible) {

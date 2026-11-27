@@ -1,11 +1,13 @@
 <template>
-  <aside
-    v-if="session.sessionId.value && rail.dockedShown.value"
-    class="rail-docked"
-    :aria-label="t('rail.title')"
-  >
-    <RailSummary v-bind="cards" @stop="stopTask" />
-  </aside>
+  <Transition name="fade">
+    <aside
+      v-if="session.sessionId.value && rail.dockedShown.value"
+      class="rail-docked"
+      :aria-label="t('rail.title')"
+    >
+      <RailSummary v-bind="cards" @stop="stopTask" />
+    </aside>
+  </Transition>
 </template>
 
 <script setup lang="ts">
@@ -26,5 +28,11 @@ const { session, cards, stopTask } = useRailCards()
   padding: var(--space-xs) var(--border-width) var(--space-sm);
   overflow-y: auto;
   scrollbar-width: none;
+}
+
+.rail-docked.fade-leave-active {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-end: 0;
 }
 </style>

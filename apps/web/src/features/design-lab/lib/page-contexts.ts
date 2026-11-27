@@ -69,8 +69,11 @@ function snapshotOf(id: string): SessionSnapshot {
   }
 }
 
+const sentBySession = ref<Record<string, TranscriptItem[]>>({})
+
 function transcriptOf(id: string): TranscriptItem[] {
-  return id === PAGE_SESSION_ID ? PAGE_TRANSCRIPT : PAGE_TRANSCRIPT.slice(0, 8)
+  const base = id === PAGE_SESSION_ID ? PAGE_TRANSCRIPT : PAGE_TRANSCRIPT.slice(0, 8)
+  return [...base, ...(sentBySession.value[id] ?? [])]
 }
 
 export function createPageSession(): SessionContext {
@@ -110,7 +113,24 @@ export function createPageSession(): SessionContext {
     submitting: computed(() => false),
     aborting: computed(() => false),
     createSession: resolved,
-    sendPrompt: resolved,
+    sendPrompt: async (text: string) => {
+      const id = sessionId.value
+
+      if (!id) return false
+      const item: TranscriptItem = {
+        id: `page-sent-${Date.now()}`,
+        role: "user",
+        content: [{ type: "text", text }],
+        timestamp: Date.now(),
+      }
+
+      sentBySession.value = {
+        ...sentBySession.value,
+        [id]: [...(sentBySession.value[id] ?? []), item],
+      }
+      draft.value = ""
+      return true
+    },
     steer: resolved,
     setWelcomeHandoff: noop,
     transcriptFor: (id: string) => transcriptOf(id),
