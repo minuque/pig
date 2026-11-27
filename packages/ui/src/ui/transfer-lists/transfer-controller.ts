@@ -11,13 +11,11 @@ import {
   type TransferLists,
   type TransferMessage,
 } from "@ui-sdk/core"
+import { createFlipTracker } from "../../core/drag-flip.js"
 import {
   acquireGlobalDragging,
-  clearItemStyles,
   createLiftedPreview,
   prefersReducedMotion,
-  runFlipSettle,
-  type FlipEntry,
   type LiftedPreviewHandle,
 } from "../../core/drag-stage.js"
 import {
@@ -44,13 +42,30 @@ export function createTransferController(
   const options = () => context.options()
   const listEls = new Map<string, HTMLElement>()
   const itemEls = new Map<string, HTMLElement>()
+  const flip = createFlipTracker()
+  let rootEl: HTMLElement | undefined
   let stopDrag: (() => void) | undefined
   let stopScroll: (() => void) | undefined
   let releaseCursor: (() => void) | undefined
   let preview: LiftedPreviewHandle | undefined
   let cancelSettle: (() => void) | undefined
-  let stopLiveFlip: (() => void) | undefined
   let flipSeq = 0
+
+  function captureFlow(excludeKey: string) {
+    const targets: HTMLElement[] = []
+
+    for (const [itemKey, el] of itemEls) {
+      if (itemKey !== excludeKey && el.isConnected) targets.push(el)
+    }
+
+    if (rootEl) {
+      for (const el of rootEl.querySelectorAll<HTMLElement>("[data-drag-flow]")) {
+        targets.push(el)
+      }
+    }
+
+    return flip.capture(targets)
+  }
 
   function say(type: TransferMessage["type"], key: string, current: TransferLists, list?: string) {
     const el = itemEls.get(key)
@@ -71,13 +86,11 @@ export function createTransferController(
 
   function cancelPendingSettle() {
     flipSeq += 1
-    stopLiveFlip?.()
-    stopLiveFlip = undefined
+    flip.cancelAll()
     cancelSettle?.()
     cancelSettle = undefined
     preview?.destroy()
     preview = undefined
-    clearItemStyles(itemEls.values())
 
     if (context.store.get().settling !== null) context.store.set({ settling: null })
   }
@@ -102,6 +115,8 @@ export function createTransferController(
     let reduced = false
     let originLists = context.store.get().value
     let lastPoint = { ...downPoint }
+    let lastY = downPoint.y
+    let wasOutside = false
 
     function applyDraft(nextLists: TransferLists, nextTo: string | null) {
       const state = context.store.get()
@@ -121,12 +136,7 @@ export function createTransferController(
         return
       }
 
-      const entries: FlipEntry[] = []
-
-      for (const [itemKey, el] of itemEls) {
-        if (itemKey === key || !el.isConnected) continue
-        entries.push({ el, before: el.getBoundingClientRect() })
-      }
+      const snapshot = captureFlow(key)
 
       flipSeq += 1
       const seq = flipSeq
@@ -138,8 +148,7 @@ export function createTransferController(
 
       void nextTick(() => {
         if (!active || seq !== flipSeq) return
-        stopLiveFlip?.()
-        stopLiveFlip = runFlipSettle(entries, false)
+        flip.play(snapshot, false)
       })
     }
 
@@ -152,6 +161,8 @@ export function createTransferController(
 
       if (isOutsideBounds(listEls, options().bounds?.(), x, y)) {
         applyDraft(originLists, null)
+        wasOutside = true
+        lastY = y
         return
       }
 
@@ -160,7 +171,32 @@ export function createTransferController(
 
       if (!accepted || !hit) {
         applyDraft(originLists, null)
+        wasOutside = false
+        lastY = y
         return
+      }
+
+      const currentList = listWith(current.lists, key) ?? from!
+
+      if (!wasOutside && hit !== currentList) {
+        const hitEl = listEls.get(hit)
+        const curEl = listEls.get(currentList)
+
+        if (hitEl && curEl) {
+          const hitRect = hitEl.getBoundingClientRect()
+          const curRect = curEl.getBoundingClientRect()
+          const hitCenter = hitRect.top + hitRect.height / 2
+          const curCenter = curRect.top + curRect.height / 2
+
+          if (
+            (hitCenter < curCenter - 1 && y >= lastY) ||
+            (hitCenter > curCenter + 1 && y <= lastY)
+          ) {
+            wasOutside = false
+            lastY = y
+            return
+          }
+        }
       }
 
       const canReorder = options().reorderable?.(hit, key) ?? true
@@ -180,6 +216,8 @@ export function createTransferController(
       const changed = !sameLists(nextLists, current.lists)
 
       applyDraft(nextLists, hit)
+      wasOutside = false
+      lastY = y
 
       if (changed) say("move", key, nextLists, hit)
     }
@@ -204,6 +242,7 @@ export function createTransferController(
         originLists = currentLists
         reduced = prefersReducedMotion()
         active = true
+        const startSnapshot = reduced ? [] : captureFlow(key)
 
         if (!reduced) {
           preview = createLiftedPreview(startEl, {
@@ -222,6 +261,13 @@ export function createTransferController(
           reduced,
         })
         say("grab", key, currentLists, from)
+
+        if (!reduced && startSnapshot.length) {
+          void nextTick(() => {
+            if (active) flip.play(startSnapshot, false)
+          })
+        }
+
         return true
       },
       onMove({ x, y, event: moveEvent }) {
@@ -249,16 +295,9 @@ export function createTransferController(
         const destIndex = Math.max(0, (draftLists[destList] ?? []).indexOf(key))
         const moved = !sameLists(draftLists, originLists)
         const shouldCommit = !canceled && !outside && !externalDrop && moved
-        const siblingEntries: FlipEntry[] = []
-
-        for (const [itemKey, el] of itemEls) {
-          if (itemKey === key || !el.isConnected) continue
-          siblingEntries.push({ el, before: el.getBoundingClientRect() })
-        }
+        const endSnapshot = captureFlow(key)
 
         flipSeq += 1
-        stopLiveFlip?.()
-        stopLiveFlip = undefined
 
         const activePreview = preview
 
@@ -271,7 +310,8 @@ export function createTransferController(
             externalDrop: isExternalDrop,
             reduced,
             preview: activePreview,
-            siblingEntries,
+            flip,
+            flipSnapshot: endSnapshot,
             itemEls,
             listEls,
             setCancelSettle: (cleanup) => {
@@ -331,11 +371,16 @@ export function createTransferController(
     stopScroll?.()
     releaseCursor?.()
     cancelPendingSettle()
-    clearItemStyles(itemEls.values())
   })
 
   return {
     isDisabled: (key: string) => Boolean(options().disabled?.(key)),
+    bindRoot(el: HTMLElement) {
+      rootEl = el
+      return () => {
+        if (rootEl === el) rootEl = undefined
+      }
+    },
     bindList(el: HTMLElement, list: string) {
       listEls.set(list, el)
       return () => {

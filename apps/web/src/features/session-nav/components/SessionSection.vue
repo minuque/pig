@@ -17,6 +17,7 @@
         >
           <div
             v-if="isShelf"
+            data-drag-flow
             class="section-head"
             :class="{ 'is-dragging': section.kind === 'settled' && dragging }"
           >
@@ -329,11 +330,18 @@ function itemBind(session: SidebarSession) {
   cursor: pointer;
 }
 
+.session-row[data-dragging] {
+  z-index: 0;
+}
+
 .session-row[data-dragging] :deep(.session-card) {
   outline: var(--border-width) dashed var(--accent-solid);
   outline-offset: -1px;
   background: var(--info-subtle);
-  opacity: 0.6;
+}
+
+.session-row[data-dragging] :deep(.session-card > *) {
+  visibility: hidden;
 }
 
 .more-button {

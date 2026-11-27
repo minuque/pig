@@ -57,6 +57,7 @@ const transferLists = definePrimitive({
       attrs: (state) => ({
         "data-dragging": state.moving?.pointer ? "" : undefined,
       }),
+      bind: (el, part) => part.api.bindRoot(el),
     }),
     list: slot<{ value: string }>({
       props: { value: "string" },

@@ -21,6 +21,7 @@
                 <div v-bind="part" class="section-box">
                   <button
                     v-if="section.id === 'settled'"
+                    data-drag-flow
                     type="button"
                     class="section-toggle"
                     :class="{ 'is-dragging': Boolean(state.moving) }"
@@ -35,7 +36,7 @@
                     />
                   </button>
 
-                  <h4 v-else class="section-head">{{ section.label }}</h4>
+                  <h4 v-else data-drag-flow class="section-head">{{ section.label }}</h4>
 
                   <div
                     v-if="
@@ -276,7 +277,10 @@ const listLabel = (id: string) => SECTIONS.find((section) => section.id === id)?
   border-style: dashed;
   border-color: var(--accent-solid);
   background: var(--info-subtle);
-  opacity: 0.6;
+}
+
+.transfer-item[data-dragging] > * {
+  visibility: hidden;
 }
 
 .transfer-item[data-drag-preview] {

@@ -33,6 +33,7 @@
         >
           <div
             v-if="state.moving"
+            data-drag-flow
             class="drag-label"
             :class="{ 'is-target': state.to === 'pinned' }"
           >
@@ -48,6 +49,7 @@
 
           <div
             v-if="state.moving"
+            data-drag-flow
             class="drag-label"
             :class="{ 'is-target': state.to === 'active' }"
           >
@@ -399,7 +401,7 @@ onUpdated(() => {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
-  height: var(--control-xs);
+  height: var(--control-2xs);
   padding-inline: var(--space-xs);
   pointer-events: none;
   transition: opacity var(--duration-fast) var(--ease-out);

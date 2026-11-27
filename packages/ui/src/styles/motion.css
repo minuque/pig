@@ -247,6 +247,12 @@ html[data-drag-active] [data-slot="transfer-lists-root"] [data-slot="transfer-li
   pointer-events: none;
 }
 
+[data-slot="transfer-lists-root"][data-dragging]
+  [data-slot="transfer-lists-item"]:not([data-dragging]) {
+  position: relative;
+  z-index: var(--z-raise);
+}
+
 [data-drag-host] {
   position: relative;
 }

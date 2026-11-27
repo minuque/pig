@@ -7,13 +7,9 @@ import type {
   TransferMessage,
   TransferReason,
 } from "@ui-sdk/core"
+import { getTransformOffset, type FlipSnapshot, type FlipTracker } from "../../core/drag-flip.js"
 import { isPointOutsideRect, OUTSIDE_SLOP_PX } from "../../core/drag-physics.js"
-import {
-  clearItemStyles,
-  runFlipSettle,
-  type FlipEntry,
-  type LiftedPreviewHandle,
-} from "../../core/drag-stage.js"
+import type { LiftedPreviewHandle } from "../../core/drag-stage.js"
 
 export type TransferChangeDetails = ChangeDetails<TransferReason> & {
   key: string
@@ -66,7 +62,8 @@ export type TransferSettleParams = {
   externalDrop: boolean
   reduced: boolean
   preview: LiftedPreviewHandle | undefined
-  siblingEntries: readonly FlipEntry[]
+  flip: FlipTracker
+  flipSnapshot: readonly FlipSnapshot[]
   itemEls: ReadonlyMap<string, HTMLElement>
   listEls: ReadonlyMap<string, HTMLElement>
   setCancelSettle: (cleanup: (() => void) | undefined) => void
@@ -160,23 +157,8 @@ export function isOutsideBounds(
 
 export function layoutMidY(el: HTMLElement): number {
   const rect = el.getBoundingClientRect()
-  const view = el.ownerDocument.defaultView ?? window
-  const transform = view.getComputedStyle(el).transform
-  let translateY = 0
-
-  if (transform && transform !== "none") {
-    const Matrix = view.DOMMatrixReadOnly ?? globalThis.DOMMatrixReadOnly
-
-    if (Matrix) {
-      try {
-        translateY = new Matrix(transform).m42
-      } catch {
-        translateY = 0
-      }
-    }
-  }
-
-  return rect.top - translateY + rect.height / 2
+  const offset = getTransformOffset(el)
+  return rect.top - offset.y + rect.height / 2
 }
 
 export function dropIndex(middles: readonly number[], y: number): number {
@@ -196,43 +178,41 @@ export function settleTransfer({
   externalDrop,
   reduced,
   preview,
-  siblingEntries,
+  flip,
+  flipSnapshot,
   itemEls,
   listEls,
   setCancelSettle,
 }: TransferSettleParams): void {
   if (externalDrop) {
     let cancelled = false
-    let stopFlip: (() => void) | undefined
 
     setCancelSettle(() => {
       cancelled = true
-      stopFlip?.()
+      flip.cancelAll()
     })
     preview?.destroy()
     store.set({ moving: null, to: null, settling: null })
     void nextTick(() => {
       if (cancelled) return
-      stopFlip = runFlipSettle(siblingEntries, reduced, () => {
-        if (!cancelled) setCancelSettle(undefined)
-      })
+      flip.play(flipSnapshot, reduced)
+      setCancelSettle(undefined)
     })
     return
   }
 
   if (reduced || !preview) {
     preview?.destroy()
-    clearItemStyles(itemEls.values())
+    flip.cancelAll()
     store.set({ moving: null, to: null, settling: null })
     return
   }
 
   let cancelled = false
-  let stopFlip: (() => void) | undefined
 
   setCancelSettle(() => {
     cancelled = true
-    stopFlip?.()
+    flip.cancelAll()
     preview.destroy()
   })
 
@@ -251,7 +231,7 @@ export function settleTransfer({
   store.set({ moving: null, to: null, settling: key })
   void nextTick(() => {
     if (cancelled) return
-    stopFlip = runFlipSettle(siblingEntries, false)
+    flip.play(flipSnapshot, false)
     const landed = itemEls.get(key)
     const landedRect = landed && landed.isConnected ? landed.getBoundingClientRect() : null
 
