@@ -187,11 +187,14 @@ const items = computed(() =>
     scope.value === FAVORITES_SCOPE ? favoriteSet.value : EMPTY_FAVORITES,
   ),
 )
-const emptyText = computed(() =>
-  query.value.trim() || scope.value !== FAVORITES_SCOPE
-    ? t("composer.noMatchingModel")
-    : t("composer.noFavorites"),
-)
+const emptyText = computed(() => {
+  const text = query.value.trim()
+
+  if (text) return t("composer.noMatchingModel", { query: text })
+  return scope.value === FAVORITES_SCOPE
+    ? t("composer.noFavorites")
+    : t("composer.noModelsConfigured")
+})
 const searchPlaceholder = computed(() =>
   scope.value === FAVORITES_SCOPE ? t("composer.searchFavorites") : t("composer.searchModels"),
 )

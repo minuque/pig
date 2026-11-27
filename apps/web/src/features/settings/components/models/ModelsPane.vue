@@ -124,6 +124,7 @@ async function onDeleted() {
 <style scoped>
 .pane {
   display: flex;
+  flex: 1 0 auto;
   flex-direction: column;
   padding-block-end: var(--space-md);
 }

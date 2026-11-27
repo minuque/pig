@@ -17,7 +17,7 @@
     >
       <CommandMenu
         :rows="commandMenu.rows.value"
-        :empty-text="commandMenu.emptyText(menuTrigger)"
+        :empty-text="(query: string) => commandMenu.emptyText(menuTrigger, query)"
       />
     </TriggerMenuContent>
 

@@ -11,7 +11,7 @@ test("MCP：新增 stdio server，停用后仍在列表，删除后清空", asyn
   await page.locator(".settings-nav").getByRole("button", { name: "MCP" }).click()
   const dialog = page.locator(".settings-dialog")
 
-  await expect(dialog.getByText("还没有 MCP Server。")).toBeVisible()
+  await expect(dialog.getByText("还没有 MCP Server", { exact: true })).toBeVisible()
 
   await dialog.getByRole("button", { name: "新增" }).click()
   await dialog.getByLabel("名称").fill("files")
@@ -40,7 +40,7 @@ test("MCP：新增 stdio server，停用后仍在列表，删除后清空", asyn
   await dialog.getByRole("button", { name: "删除" }).click()
   await page.getByRole("alertdialog").getByRole("button", { name: "删除" }).click()
 
-  await expect(dialog.getByText("还没有 MCP Server。")).toBeVisible()
+  await expect(dialog.getByText("还没有 MCP Server", { exact: true })).toBeVisible()
 })
 
 test("MCP：测试连接列出工具，点击工具可在弹窗查看明细与 Schema", async ({ page, gateway }) => {

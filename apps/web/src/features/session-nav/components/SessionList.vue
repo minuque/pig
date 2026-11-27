@@ -25,12 +25,7 @@
           'is-scrolled': scrolled,
         }"
       >
-        <div
-          v-if="sections.length"
-          ref="windowEl"
-          class="session-window"
-          @scroll.passive="onScroll"
-        >
+        <div ref="windowEl" class="session-window" @scroll.passive="onScroll">
           <div
             v-if="isSidebarDrag(state)"
             data-drag-flow
@@ -65,10 +60,22 @@
             v-on="sectionOn"
           />
 
+          <EmptyState
+            v-else-if="!pinnedSection && !state.moving"
+            :title="sections.length ? t('session.inboxEmpty') : t('session.empty')"
+          >
+            <template #art><HairlineArt figure="basket" /></template>
+
+            <template #actions>
+              <Button variant="outline" color="neutral" class="new-session" @click="emit('create')">
+                <MessageCirclePlusIcon class="size-icon" />
+                {{ t("session.newSession") }}
+              </Button>
+            </template>
+          </EmptyState>
+
           <div class="session-edge-bottom edge-veil-bottom" aria-hidden="true"></div>
         </div>
-
-        <div v-else class="session-empty">{{ t("session.empty") }}</div>
 
         <div v-if="shelfSections.length" class="session-shelves">
           <SessionSection
@@ -88,6 +95,10 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, onUpdated, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
+import { EmptyState } from "@pig/ui/empty-state"
+import HairlineArt from "@components/empty/HairlineArt.vue"
+import { MessageCirclePlusIcon } from "@components/icons/index.js"
+import { Button } from "@pig/ui/button"
 import {
   TransferListsRoot,
   type TransferChangeDetails,
@@ -137,6 +148,7 @@ const emit = defineEmits<{
   delete: [id: string]
   settle: [id: string]
   unsettle: [id: string]
+  create: []
   archive: [id: string]
   reorderPinned: [id: string, toIndex: number]
   pinAt: [id: string, toIndex: number]
@@ -472,10 +484,8 @@ onUpdated(() => {
   opacity: 0;
 }
 
-.session-empty {
-  padding: var(--space-xs);
-  color: var(--fg-secondary);
-  font-size: var(--text-meta);
+.new-session {
+  border-style: dashed;
 }
 
 @media (prefers-reduced-motion: reduce) {

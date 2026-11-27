@@ -244,6 +244,7 @@
 
   /* ====== 组件层：按组件前缀排列，只给单个组件或一类内容用 ====== */
   --card-surface: transparent;
+  --empty-art: #7a869d;
   --glass-bg: color-mix(in srgb, var(--bg) 80%, transparent);
   --glass-filter: blur(12px) saturate(1.14);
   --glass-shadow: 0 0 0 var(--border-width) var(--border), 0 24px 64px -24px rgba(0, 0, 0, 0.65);
@@ -328,6 +329,7 @@ html.dark {
   --success-solid: #228559;
 
   /* ====== 组件层：按组件前缀排列，只给单个组件或一类内容用 ====== */
+  --empty-art: #9aa4b8;
   --glass-filter: blur(16px) saturate(1.08);
   --glass-shadow:
     0 0 0 var(--border-width) var(--border), inset 0 1px rgba(255, 255, 255, 0.05),

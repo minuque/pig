@@ -1,32 +1,25 @@
 <template>
   <section class="startup-error">
-    <div class="error-cluster">
-      <CircleExclamationPointIcon class="error-icon" />
-      <h1 id="startup-error-title" class="error-title">{{ heading }}</h1>
-      <p class="error-detail">{{ copy }}</p>
-      <Button type="button" @click="retry">{{ t("startup.retry") }}</Button>
-    </div>
+    <EmptyState :title="heading" :description="t('startup.startupError')">
+      <template #art><HairlineArt figure="plug" /></template>
+
+      <template #actions>
+        <Button type="button" @click="retry">{{ t("startup.retry") }}</Button>
+      </template>
+    </EmptyState>
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed } from "vue"
 import { Button } from "@pig/ui/button"
+import { EmptyState } from "@pig/ui/empty-state"
 import { useI18n } from "@i18n/index.js"
-import { useStartupError } from "@features/startup/index.js"
-import { CircleExclamationPointIcon } from "@components/icons/index.js"
+import HairlineArt from "@components/empty/HairlineArt.vue"
 
 const { t } = useI18n()
-const props = withDefaults(
-  defineProps<{
-    title?: string
-    detail?: string
-  }>(),
-  { title: "", detail: "" },
-)
-const stored = useStartupError()
+const props = withDefaults(defineProps<{ title?: string }>(), { title: "" })
 const heading = computed(() => props.title || t("startup.startupFailed"))
-const copy = computed(() => props.detail.trim() || stored.value.trim() || t("startup.startupError"))
 
 function retry() {
   window.location.reload()
@@ -37,39 +30,7 @@ function retry() {
 .startup-error {
   min-height: 0;
   flex: 1;
-  display: grid;
-  place-items: center;
-  padding: 0 var(--space-md);
-}
-
-.error-cluster {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space-xs);
-  max-width: calc(var(--content-width) + var(--space-sm));
-  text-align: center;
-}
-
-.error-icon {
-  inline-size: var(--icon-xl);
-  block-size: var(--icon-xl);
-  color: var(--fg-secondary);
-}
-
-.error-title {
-  margin: 0;
-  color: var(--fg);
-  font-size: var(--text-body);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--text-body--line-height);
-}
-
-.error-detail {
-  margin: 0;
-  color: var(--fg-secondary);
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
-  overflow-wrap: anywhere;
 }
 </style>

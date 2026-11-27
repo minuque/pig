@@ -44,7 +44,7 @@ apps/web/src/
 
 ### style/
 
-`app.css` 只做入口，先引 `@pig/ui/styles/index.css`（内部依次加载 `base` 层重置、设计系统 `tokens.css`、通用动效 `motion.css` 与原子/菜单基类 `components.css`），再顺序叠加应用的 `tokens.css`、`motion.css`、`markdown.css`（Comark 正文排版）、`mermaid.css`（pele 图主题映射）、`desktop.css`（桌面壳拖拽与弹层规则）和 `globals.css`（字体文件与文档基线）。
+`app.css` 只做入口，先引 `@pig/ui/styles/index.css`（内部依次加载 `base` 层重置、设计系统 `tokens.css`、通用动效 `motion.css` 与原子/菜单基类 `components.css`），再顺序叠加应用的 `tokens.css`、`motion.css`、`markdown.css`（Comark 正文排版）、`mermaid.css`（pele 图主题映射）、`hairline.css`（空状态占位图配色映射）、`desktop.css`（桌面壳拖拽与弹层规则）和 `globals.css`（字体文件与文档基线）。
 
 ### packages/ui
 

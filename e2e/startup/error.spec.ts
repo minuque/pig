@@ -12,8 +12,7 @@ test("错误页恢复后回到工作台", async ({ page, gateway }) => {
 
   await page.goto(gateway.entryUrl)
   await expect(page).toHaveURL(/\/error$/, { timeout: 30_000 })
-  await expect(page.locator(".error-title")).toHaveText("无法启动工作台")
-  await expect(page.locator(".error-detail")).not.toBeEmpty()
+  await expect(page.getByText("无法启动工作台")).toBeVisible()
 
   block = false
   await page.getByRole("button", { name: "重试连接" }).click()

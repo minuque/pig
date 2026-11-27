@@ -156,7 +156,7 @@
         </div>
       </CardList>
 
-      <p v-else class="section-note">{{ t("settings.mcp.toolsEmpty") }}</p>
+      <EmptyState v-else size="row" class="tool-empty" :title="t('settings.mcp.toolsEmpty')" />
     </section>
 
     <McpToolDialog
@@ -238,6 +238,7 @@ import { Badge } from "@pig/ui/badge"
 import { Banner } from "@pig/ui/banner"
 import { Button } from "@pig/ui/button"
 import { CardList, CardRow } from "@pig/ui/card"
+import { EmptyState } from "@pig/ui/empty-state"
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@pig/ui/select"
 import { StatusIndicator, type StatusTone } from "@pig/ui/status-indicator"
 
@@ -326,8 +327,7 @@ async function onSignedIn() {
 
 .detail-mono,
 .detail-desc,
-.setting-desc,
-.section-note {
+.setting-desc {
   margin: 0;
   color: var(--fg-secondary);
   font-size: var(--text-meta);
@@ -380,7 +380,7 @@ async function onSignedIn() {
   font-weight: var(--font-weight-semibold);
 }
 
-.section-note {
+.tool-empty {
   padding-inline: var(--space-md);
 }
 

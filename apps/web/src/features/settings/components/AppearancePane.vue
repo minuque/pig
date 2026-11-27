@@ -36,7 +36,9 @@
 
             <SelectContent>
               <SelectInput :placeholder="t('settings.searchFonts')" />
-              <SelectEmpty>{{ t("settings.noMatchingFonts") }}</SelectEmpty>
+              <SelectEmpty v-slot="{ state }">
+                {{ t("settings.noMatchingFonts", { query: state.query.trim() }) }}
+              </SelectEmpty>
 
               <SelectList v-slot="{ state }" class="font-list">
                 <FontOptionList ref="uiFontList" :items="asFontOptions(state.items)" />
@@ -108,7 +110,9 @@
 
             <SelectContent>
               <SelectInput :placeholder="t('settings.searchFonts')" />
-              <SelectEmpty>{{ t("settings.noMatchingFonts") }}</SelectEmpty>
+              <SelectEmpty v-slot="{ state }">
+                {{ t("settings.noMatchingFonts", { query: state.query.trim() }) }}
+              </SelectEmpty>
 
               <SelectList v-slot="{ state }" class="font-list">
                 <FontOptionList ref="codeFontList" :items="asFontOptions(state.items)" />

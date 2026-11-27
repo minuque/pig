@@ -245,6 +245,9 @@ importers:
       '@lobehub/icons-static-svg':
         specifier: 1.95.0
         version: 1.95.0
+      '@lucasmarkes/hairline':
+        specifier: 0.5.1
+        version: 0.5.1(react@19.2.8)
       '@lucide/vue':
         specifier: 1.72.0
         version: 1.72.0(vue@3.5.42(typescript@6.0.3))
@@ -1447,6 +1450,14 @@ packages:
 
   '@lobehub/icons-static-svg@1.95.0':
     resolution: {integrity: sha512-VSObF66DUVQe0EK3xbIoFcw+Fcia1+bLVFkMsQbmz0zCceMxPmoLImS5VM5SM7zL+/NarZ11/ySNfkekcomIkQ==}
+
+  '@lucasmarkes/hairline@0.5.1':
+    resolution: {integrity: sha512-zjY3bdMC3As/+enKitZ1X+D1HjpesQiAKzG1sbCFsOrb5xIuJEoepkJTBIO4jmFh6JXOQlGGylhV71nr9ipNpQ==}
+    peerDependencies:
+      react: '>=18'
+    peerDependenciesMeta:
+      react:
+        optional: true
 
   '@lucide/vue@1.72.0':
     resolution: {integrity: sha512-BPcYejGErv+kg4ilXyPU7j6YdA0kQaMiBnlcCElTsoLdQgD+6aoquA/0I4amN5yzkJrZgpULvpDonXui94ez8A==}
@@ -6467,6 +6478,10 @@ snapshots:
   '@keyv/serialize@1.1.1': {}
 
   '@lobehub/icons-static-svg@1.95.0': {}
+
+  '@lucasmarkes/hairline@0.5.1(react@19.2.8)':
+    optionalDependencies:
+      react: 19.2.8
 
   '@lucide/vue@1.72.0(vue@3.5.42(typescript@6.0.3))':
     dependencies:

@@ -53,6 +53,24 @@
               </TreeItemLabel>
             </TreeItem>
           </Tree>
+
+          <EmptyState
+            v-if="rootFailed"
+            size="row"
+            class="file-tree-empty"
+            :title="t('files.dirFailed')"
+          >
+            <template #actions>
+              <RetryButton size="s" variant="ghost" :action="() => load('')" />
+            </template>
+          </EmptyState>
+
+          <EmptyState
+            v-else-if="listed[''] && !listed[''].length"
+            size="row"
+            class="file-tree-empty"
+            :title="t('files.dirEmpty')"
+          />
         </div>
       </template>
     </ContextMenuTrigger>
@@ -81,6 +99,8 @@ import {
 import { useI18n } from "@i18n/index.js"
 import { listWorkspaceDir } from "@client/platform.js"
 import LanguageIcon from "@components/icons/LanguageIcon.vue"
+import RetryButton from "@components/empty/RetryButton.vue"
+import { EmptyState } from "@pig/ui/empty-state"
 import {
   AtSignIcon,
   ChevronRightIcon,
@@ -107,6 +127,7 @@ const OVERSCAN = 8
 const scroller = useTemplateRef<HTMLElement>("scroller")
 const tree = useTemplateRef<{ $el: HTMLElement }>("tree")
 const listed = shallowRef<Record<string, TreeNode[]>>({})
+const rootFailed = shallowRef(false)
 const scrollTop = shallowRef(0)
 const height = shallowRef(0)
 const active = computed(() => pane.tabs.value.active)
@@ -132,13 +153,20 @@ async function load(dir: string) {
 
   if (!cwd) return
 
-  const { entries } = await listWorkspaceDir(cwd, dir || ".").catch(() => ({ entries: [] }))
-  const nodes = entries.map((entry) => ({
-    ...entry,
-    path: dir ? `${dir}/${entry.name}` : entry.name,
-  }))
+  try {
+    const { entries } = await listWorkspaceDir(cwd, dir || ".")
+    const nodes = entries.map((entry) => ({
+      ...entry,
+      path: dir ? `${dir}/${entry.name}` : entry.name,
+    }))
 
-  if (cwd === pane.cwd.value) listed.value = { ...listed.value, [dir]: nodes }
+    if (cwd !== pane.cwd.value) return
+    listed.value = { ...listed.value, [dir]: nodes }
+
+    if (!dir) rootFailed.value = false
+  } catch {
+    if (!dir && cwd === pane.cwd.value) rootFailed.value = true
+  }
 }
 
 async function refresh() {
@@ -196,6 +224,7 @@ watch(
   () => pane.cwd.value,
   () => {
     listed.value = {}
+    rootFailed.value = false
     void refresh()
   },
   { immediate: true },
@@ -300,6 +329,10 @@ watch(
 
 .file-tree-row .file-tree-icon.is-file {
   margin-inline-start: calc(var(--icon-sm) + var(--space-2xs));
+}
+
+.file-tree-empty {
+  padding-inline: var(--space-xs);
 }
 
 .file-tree-name {
