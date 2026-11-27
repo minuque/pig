@@ -1,6 +1,6 @@
 <template>
   <div data-slot="command-palette-input">
-    <SearchIcon class="size-icon" data-slot="command-palette-lead" />
+    <SearchIcon class="size-icon-lg" data-slot="command-palette-lead" />
     <CommandInput :aria-label="placeholder" :placeholder="placeholder" />
   </div>
 </template>
@@ -17,12 +17,12 @@ defineProps<{ placeholder: string }>()
   display: flex;
   flex: none;
   align-items: center;
-  padding: calc(var(--spacing) * 1.5) var(--space-xs);
+  gap: var(--space-xs);
+  padding: calc(var(--spacing) * 1.5) calc(var(--space-xs) * 2);
 }
 
 :where([data-slot="command-palette-input"] > [data-slot="command-palette-lead"]) {
   flex: none;
-  inline-size: var(--space-2xl);
   color: var(--fg-muted);
 }
 
