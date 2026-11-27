@@ -7,7 +7,7 @@
     <WorkbenchPane :session="session" :preset="preset" />
   </AppLayout>
 
-  <SettingsDialog v-model:open="settingsOpen" />
+  <SettingsDialog v-model:open="settingsOpen" :archive="nav" />
   <Toaster />
 
   <Button variant="secondary" color="neutral" size="s" class="lab-back">
