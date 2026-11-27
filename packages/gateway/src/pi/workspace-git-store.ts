@@ -212,6 +212,7 @@ export class WorkspaceGitStore {
     watcher.unref()
     this.heads.set(headPath, head)
     this.headOf.set(workspace, headPath)
+    this.scheduleHead(headPath)
   }
 
   private scheduleHead(headPath: string) {
