@@ -34,6 +34,14 @@ html[data-palette] {
   --empty-art: var(--pal-empty-art);
 }
 
+html.dark[data-palette] {
+  --danger-solid: color-mix(in oklab, var(--pal-red) 78%, black);
+}
+
+html[data-palette] [data-tone="danger"] {
+  --tone-on-solid: var(--white);
+}
+
 html[data-palette="catppuccin"] {
   --pal-bg: #eff1f5;
   --pal-sidebar: #e6e9ef;
