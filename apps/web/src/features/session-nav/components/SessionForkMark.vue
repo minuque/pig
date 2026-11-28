@@ -12,7 +12,7 @@
           @pointerenter="emit('hover', true)"
           @pointerleave="emit('hover', false)"
         >
-          <GitForkIcon class="size-icon-sm" />
+          <GitForkIcon class="size-icon" />
         </button>
       </template>
     </HoverCardTrigger>
@@ -24,25 +24,9 @@
         :aria-label="t('session.forkedFrom', { title: parent.title })"
         @click="emit('open', parent.id)"
       >
-        <GitForkIcon class="size-icon-lg fork-glyph" />
-
-        <span class="fork-lines">
-          <span class="fork-title">{{ parent.title }}</span>
-
-          <span class="fork-meta">
-            <template v-if="parent.cwd">
-              <ProjectIcon class="fork-mono" :path="parent.cwd" fallback="monogram" />
-              <span class="fork-text">{{ workspaceName(parent.cwd) }}</span>
-            </template>
-
-            <template v-if="parent.model">
-              <VendorMark :vendor="parent.model.provider" :name="parent.model.id" :size="12" />
-              <span class="fork-text">{{ parent.model.id }}</span>
-            </template>
-
-            <span class="fork-time">{{ formatRelativeTime(parent.updatedAt) }}</span>
-          </span>
-        </span>
+        <ProjectIcon v-if="parent.cwd" class="fork-mono" :path="parent.cwd" fallback="monogram" />
+        <span class="fork-title">{{ parent.title }}</span>
+        <span class="fork-time">{{ formatRelativeTime(parent.updatedAt) }}</span>
       </button>
     </HoverCardContent>
   </HoverCard>
@@ -52,9 +36,8 @@
 import { useI18n } from "@i18n/index.js"
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@pig/ui/hover-card"
 import { GitForkIcon } from "@components/icons/index.js"
-import VendorMark from "@components/icons/VendorMark.vue"
 import ProjectIcon from "@features/session-nav/components/ProjectIcon.vue"
-import { formatRelativeTime, workspaceName } from "@features/session-nav/lib/format.js"
+import { formatRelativeTime } from "@features/session-nav/lib/format.js"
 import type { SidebarParentSession } from "@features/session-nav/type.js"
 
 defineProps<{ parent: SidebarParentSession }>()
@@ -73,6 +56,7 @@ const { t } = useI18n()
   background: transparent;
   color: var(--fg-muted);
   cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 .fork-mark:hover,
@@ -94,49 +78,19 @@ const { t } = useI18n()
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  color: var(--fg);
+  color: var(--fg-secondary);
   text-align: start;
   cursor: pointer;
-  transition: background-color var(--duration-fast) var(--ease-out);
+  transition: color var(--duration-fast) var(--ease-out);
 }
 
 .fork-row:hover {
-  background: var(--bg-hover);
+  color: var(--fg);
 }
 
 .fork-row:focus-visible {
   outline: 2px solid var(--focus-color);
   outline-offset: -2px;
-}
-
-.fork-glyph {
-  flex: none;
-  color: var(--fg-muted);
-}
-
-.fork-lines {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.fork-title {
-  overflow: hidden;
-  font-size: var(--text-body);
-  line-height: var(--text-body--line-height);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.fork-meta {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2xs);
-  min-width: 0;
-  color: var(--fg-muted);
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
 }
 
 .fork-mono[data-tone] {
@@ -150,18 +104,27 @@ const { t } = useI18n()
   line-height: 1;
 }
 
-.fork-text {
+.fork-title {
   min-width: 0;
+  flex: 1;
   overflow: hidden;
+  color: inherit;
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .fork-time {
   flex: none;
-  margin-inline-start: auto;
-  padding-inline-start: var(--space-xs);
+  color: var(--fg-muted);
+  font-size: var(--text-meta);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.fork-row:hover .fork-time {
+  color: var(--fg-secondary);
 }
 </style>
