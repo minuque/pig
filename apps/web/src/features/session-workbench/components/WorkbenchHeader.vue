@@ -117,6 +117,7 @@ const { sessionId } = useSession()
 }
 
 .header-end {
+  grid-column: 3;
   justify-content: flex-end;
 }
 
