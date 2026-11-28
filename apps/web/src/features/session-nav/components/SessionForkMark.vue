@@ -61,7 +61,7 @@ const { t } = useI18n()
 
 .fork-mark:hover,
 .fork-mark[data-open] {
-  color: var(--fg);
+  color: var(--accent-text);
 }
 
 .fork-card {
