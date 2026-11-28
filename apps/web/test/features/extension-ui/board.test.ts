@@ -44,7 +44,7 @@ const questions = [
 ]
 
 describe("提问浮板", () => {
-  it("最后一个 ask 调用之后没有用户消息才显示；回答过就收起", () => {
+  it("最后一个 ask 调用之后没有后续消息才显示；回答过或对话已继续就收起", () => {
     const board = askBoard([askCall({ questions })])
 
     expect(board?.questions.map((q) => [q.header, q.multiple, q.reply])).toEqual([
@@ -52,6 +52,9 @@ describe("提问浮板", () => {
       ["功能", true, "none"],
     ])
     expect(askBoard([askCall({ questions }), user])).toBeUndefined()
+    expect(
+      askBoard([askCall({ questions }), { ...user, role: "assistant" } as TranscriptItem]),
+    ).toBeUndefined()
   })
 
   it("回答拼成一条用户消息：每题一行，自己写的优先，多选用顿号", () => {

@@ -85,7 +85,7 @@ export function askBoard(items: readonly TranscriptItem[]): Board | undefined {
   const index = items.findLastIndex((item) => item.role === "tool" && item.toolName === ASK_TOOL)
   const call = items[index]
 
-  if (call?.role !== "tool" || items.slice(index + 1).some((item) => item.role === "user"))
+  if (call?.role !== "tool" || items.slice(index + 1).some((item) => item.role !== "system"))
     return undefined
   const raw = record(call.input)?.questions
   const questions = (Array.isArray(raw) ? raw : []).flatMap((entry) => askQuestion(entry) ?? [])
