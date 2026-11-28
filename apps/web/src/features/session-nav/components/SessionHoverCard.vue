@@ -4,16 +4,10 @@
 
     <div class="hover-rows">
       <template v-if="session.cwd">
-        <button
-          type="button"
-          class="hover-row is-link"
-          :aria-label="`${t('session.filterThisProject')}: ${projectName}`"
-          @click="emit('filterProject', session.cwd)"
-        >
+        <span class="hover-row">
           <ProjectIcon class="hover-icon" :path="session.cwd" fallback="monogram" />
           <span class="hover-text">{{ projectName }}</span>
-          <ListFilterIcon class="hover-icon hover-go" aria-hidden="true" />
-        </button>
+        </span>
 
         <span class="hover-row">
           <FolderIcon class="hover-icon" />
@@ -75,7 +69,6 @@ import {
   FolderIcon,
   GitBranchIcon,
   GitForkIcon,
-  ListFilterIcon,
   MessagesSquareIcon,
 } from "@components/icons/index.js"
 
@@ -84,7 +77,7 @@ const props = defineProps<{
   projectName: string
   foot: SidebarRowFoot | undefined
 }>()
-const emit = defineEmits<{ filterProject: [cwd: string]; open: [id: string] }>()
+const emit = defineEmits<{ open: [id: string] }>()
 const { t, locale } = useI18n()
 const stats = computed(() => {
   const created = t("session.cardCreated", {

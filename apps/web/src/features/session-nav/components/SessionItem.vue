@@ -67,32 +67,14 @@
                       <template v-else>
                         <span class="title">{{ session.title }}</span>
 
-                        <SessionRowMarks
-                          v-if="foot && !foot.git"
-                          :foot="foot"
+                        <SessionForkMark
+                          v-if="foot?.parent"
+                          :parent="foot.parent"
                           @open="emit('open', $event)"
-                          @fork-hover="forkHover = $event"
+                          @hover="forkHover = $event"
                         />
                       </template>
                     </span>
-
-                    <Transition name="list-reveal">
-                      <span v-if="foot?.git && !renaming" class="context-line">
-                        <FolderGit2Icon
-                          v-if="foot.git.worktree"
-                          class="size-icon-sm context-icon"
-                        />
-
-                        <GitBranchIcon v-else class="size-icon-sm context-icon" />
-                        <span class="context-text">{{ foot.git.branch }}</span>
-
-                        <SessionRowMarks
-                          :foot="foot"
-                          @open="emit('open', $event)"
-                          @fork-hover="forkHover = $event"
-                        />
-                      </span>
-                    </Transition>
                   </template>
 
                   <template v-else>
@@ -127,7 +109,6 @@
           :session="session"
           :project-name="projectName"
           :foot="foot"
-          @filter-project="emit('filterProject', $event)"
           @open="emit('open', $event)"
         />
       </HoverCard>
@@ -161,7 +142,7 @@ import { computed, shallowRef, watch } from "vue"
 import { RouterLink } from "vue-router"
 import { ContextMenu, ContextMenuTrigger } from "@pig/ui/context-menu"
 import { HoverCard, HoverCardTrigger } from "@pig/ui/hover-card"
-import SessionRowMarks from "@features/session-nav/components/SessionRowMarks.vue"
+import SessionForkMark from "@features/session-nav/components/SessionForkMark.vue"
 import SessionHoverCard from "@features/session-nav/components/SessionHoverCard.vue"
 import SessionItemDelete from "@features/session-nav/components/SessionItemDelete.vue"
 import SessionItemMenu from "@features/session-nav/components/SessionItemMenu.vue"
@@ -172,7 +153,6 @@ import ProjectIcon from "@features/session-nav/components/ProjectIcon.vue"
 import { hoverBlocked } from "@features/session-nav/lib/hover-gate.js"
 import { workspaceName } from "@features/session-nav/lib/format.js"
 import type { SidebarRowFoot, SidebarSession } from "@features/session-nav/type.js"
-import { FolderGit2Icon, GitBranchIcon } from "@components/icons/index.js"
 
 const props = withDefaults(
   defineProps<{
@@ -206,7 +186,6 @@ const emit = defineEmits<{
   unsettle: [id: string]
   archive: [id: string]
   sweepStart: [event: PointerEvent]
-  filterProject: [cwd: string]
 }>()
 const forkHover = shallowRef(false)
 const menuOpen = shallowRef(false)
@@ -390,33 +369,6 @@ function confirmDelete() {
   gap: var(--space-xs);
   min-width: 0;
   height: var(--control-2xs);
-}
-
-.context-line {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  min-width: 0;
-  margin-block-start: calc(var(--space-2xs) / -2);
-  color: var(--fg-muted);
-  font-size: var(--text-meta);
-  line-height: var(--text-meta--line-height);
-}
-
-.context-line:is(.list-reveal-enter-from, .list-reveal-leave-to) {
-  margin-block-start: calc(var(--space-2xs) * -1);
-}
-
-.context-icon {
-  flex: none;
-}
-
-.context-text {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .title {

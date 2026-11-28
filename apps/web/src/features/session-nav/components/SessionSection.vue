@@ -70,7 +70,6 @@
                     @settle="emit('settle', $event)"
                     @unsettle="emit('unsettle', $event)"
                     @archive="emit('archive', $event)"
-                    @filter-project="emit('filterProject', $event)"
                     @sweep-start="emit('sweepStart', section.key, session.id, $event)"
                   />
                 </component>
@@ -152,7 +151,6 @@ const emit = defineEmits<{
   toggleSection: [key: string]
   revealMore: [key: string]
   collapseGroup: [key: string]
-  filterProject: [cwd: string]
 }>()
 const { t } = useI18n()
 const isShelf = computed(() => props.section.kind === "working" || props.section.kind === "settled")
