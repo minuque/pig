@@ -15,6 +15,7 @@
   clip-path: inset(50%);
   inline-size: 1px;
   block-size: 1px;
+  margin: -1px;
   white-space: nowrap;
 }
 
