@@ -53,27 +53,19 @@
                 </span>
               </span>
 
-              <Tooltip v-if="stoppable.has(task.id)">
-                <TooltipTrigger>
-                  <template #render="{ props: part }">
-                    <IconButton
-                      v-bind="part"
-                      type="button"
-                      size="s"
-                      variant="ghost"
-                      color="neutral"
-                      class="task-stop"
-                      :aria-label="t('rail.stopTask')"
-                      :disabled="stopping.has(task.id)"
-                      @click="emit('stop', task.id)"
-                    >
-                      <SquareIcon class="size-icon" fill="currentColor" />
-                    </IconButton>
-                  </template>
-                </TooltipTrigger>
-
-                <TooltipContent>{{ t("rail.stopTask") }}</TooltipContent>
-              </Tooltip>
+              <IconButton
+                v-if="stoppable.has(task.id)"
+                type="button"
+                size="s"
+                variant="ghost"
+                color="neutral"
+                class="task-stop"
+                :aria-label="t('rail.stopTask')"
+                :disabled="stopping.has(task.id)"
+                @click="emit('stop', task.id)"
+              >
+                <SquareIcon class="size-icon" fill="currentColor" />
+              </IconButton>
             </div>
 
             <div class="rail-task-meta">
@@ -142,7 +134,6 @@ import { useI18n } from "@i18n/index.js"
 import { Button, IconButton } from "@pig/ui/button"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@pig/ui/collapsible"
 import { StatusIndicator, type StatusTone } from "@pig/ui/status-indicator"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { ChevronRightIcon, SquareIcon } from "@components/icons/index.js"
 import { formatTokenCount } from "@features/composer/lib/context-usage.js"
 import type { OpenChild } from "@features/session-rail/index.js"

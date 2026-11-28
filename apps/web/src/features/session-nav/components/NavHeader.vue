@@ -1,7 +1,7 @@
 <template>
   <div class="nav-head">
     <div class="nav-titlebar">
-      <Tooltip>
+      <Tooltip shortcut="mod+b">
         <TooltipTrigger>
           <template #render="{ props: part }">
             <IconButton
@@ -108,7 +108,7 @@
 
       <ToolbarSeparator class="nav-toolbar-separator" />
 
-      <Tooltip>
+      <Tooltip shortcut="mod+n">
         <TooltipTrigger>
           <template #render="{ props: part }">
             <ToolbarButton v-bind="part" @click="emit('create')">
@@ -129,7 +129,7 @@
           </template>
         </TooltipTrigger>
 
-        <TooltipContent>{{ t("session.newSession") }} {{ modKey }}+N</TooltipContent>
+        <TooltipContent>{{ t("session.newSession") }}</TooltipContent>
       </Tooltip>
     </Toolbar>
 
@@ -180,8 +180,6 @@ const emit = defineEmits<{
   open: [id: string]
 }>()
 const { t } = useI18n()
-const isMac = /mac/i.test(navigator.platform || navigator.userAgent)
-const modKey = isMac ? "⌘" : "Ctrl"
 const scopeOpen = shallowRef(false)
 const iconPath = shallowRef<string>()
 

@@ -10,25 +10,16 @@
         <template v-for="(action, index) in zooms" :key="action.key">
           <span v-if="index > 0" class="preview-scale">{{ Math.round(scale * 100) }}%</span>
 
-          <Tooltip>
-            <TooltipTrigger>
-              <template #render="{ props: part }">
-                <IconButton
-                  v-bind="part"
-                  type="button"
-                  size="s"
-                  variant="ghost"
-                  color="neutral"
-                  :aria-label="action.label"
-                  @click="action.run"
-                >
-                  <component :is="action.icon" class="size-icon" />
-                </IconButton>
-              </template>
-            </TooltipTrigger>
-
-            <TooltipContent>{{ action.label }}</TooltipContent>
-          </Tooltip>
+          <IconButton
+            type="button"
+            size="s"
+            variant="ghost"
+            color="neutral"
+            :aria-label="action.label"
+            @click="action.run"
+          >
+            <component :is="action.icon" class="size-icon" />
+          </IconButton>
         </template>
       </div>
 
@@ -62,7 +53,6 @@ import Panzoom, { type PanzoomObject } from "@panzoom/panzoom"
 import { useClipboard } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { Button, IconButton } from "@pig/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { PlusIcon, CheckIcon, CopyIcon, MinusIcon } from "@components/icons/index.js"
 import PreviewDialog from "@features/preview/index.vue"
 

@@ -9,7 +9,7 @@
         </span>
       </h2>
 
-      <Tooltip v-for="action in actions" :key="action.key">
+      <Tooltip v-for="action in actions" :key="action.key" :disabled="!action.tip">
         <TooltipTrigger>
           <template #render="{ props: part }">
             <IconButton
@@ -85,12 +85,20 @@ const actions = computed(() => [
           key: "clear",
           label: t("rail.clearFinished"),
           icon: TrashIcon,
+          tip: true,
           disabled: props.sections.finished.length === 0,
           run: clearFinished,
         },
       ]
     : []),
-  { key: "close", label: t("common.close"), icon: XIcon, disabled: false, run: rail.closePane },
+  {
+    key: "close",
+    label: t("common.close"),
+    icon: XIcon,
+    tip: false,
+    disabled: false,
+    run: rail.closePane,
+  },
 ])
 
 function clearFinished() {

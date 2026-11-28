@@ -8,6 +8,7 @@
   >
     <p data-slot="tooltip-text">
       <slot />
+      <TooltipShortcut v-if="shortcut" data-slot="tooltip-shortcut" />
     </p>
 
     <TooltipArrow />
@@ -15,14 +16,20 @@
 </template>
 
 <script setup lang="ts">
-import type { HTMLAttributes } from "vue"
-import { TooltipArrow, TooltipContent as TooltipContentPrimitive } from "@ui-sdk/vue/tooltip"
+import { inject, type HTMLAttributes } from "vue"
+import {
+  TooltipArrow,
+  TooltipContent as TooltipContentPrimitive,
+  TooltipShortcut,
+} from "@ui-sdk/vue/tooltip"
+import { tooltipShortcutKey } from "./shortcut-key.js"
 
 defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(defineProps<{ class?: HTMLAttributes["class"] }>(), {
   class: undefined,
 })
+const shortcut = inject(tooltipShortcutKey, undefined)
 </script>
 
 <style>
@@ -37,12 +44,18 @@ const props = withDefaults(defineProps<{ class?: HTMLAttributes["class"] }>(), {
 :where([data-slot="tooltip-text"]) {
   margin: 0;
   max-inline-size: min(36rem, var(--popup-available-width, 90vw));
-  color: var(--bg);
+  color: var(--tooltip-fg);
   font-size: var(--text-meta);
   line-height: var(--text-meta--line-height);
   overflow-wrap: anywhere;
   user-select: none;
   cursor: default;
+}
+
+:where([data-slot="tooltip-shortcut"]) {
+  margin-inline-start: var(--space-2xs);
+  color: var(--tooltip-fg-muted);
+  font-variant-numeric: tabular-nums;
 }
 
 :where([data-slot="tooltip-arrow"]) {

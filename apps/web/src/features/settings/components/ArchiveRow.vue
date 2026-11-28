@@ -84,25 +84,16 @@
               <TooltipContent>{{ primaryLabel }}</TooltipContent>
             </Tooltip>
 
-            <Tooltip>
-              <TooltipTrigger>
-                <template #render="{ props: part }">
-                  <IconButton
-                    v-bind="part"
-                    size="m"
-                    variant="outline"
-                    color="danger"
-                    :disabled="row.running"
-                    :aria-label="t('settings.archive.deleteOne')"
-                    @click="emit('delete', row)"
-                  >
-                    <TrashIcon />
-                  </IconButton>
-                </template>
-              </TooltipTrigger>
-
-              <TooltipContent>{{ t("settings.archive.deleteOne") }}</TooltipContent>
-            </Tooltip>
+            <IconButton
+              size="m"
+              variant="outline"
+              color="danger"
+              :disabled="row.running"
+              :aria-label="t('settings.archive.deleteOne')"
+              @click="emit('delete', row)"
+            >
+              <TrashIcon />
+            </IconButton>
           </div>
         </div>
       </template>

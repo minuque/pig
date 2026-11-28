@@ -1,6 +1,6 @@
 <template>
   <div class="primary">
-    <Tooltip>
+    <Tooltip :shortcut="mode === 'stop' ? 'escape' : 'enter'">
       <TooltipTrigger>
         <template #render="{ props: part }">
           <IconButton
@@ -12,7 +12,6 @@
             :color="mode === 'stop' ? 'danger' : 'accent'"
             class="send"
             :aria-label="label"
-            :aria-keyshortcuts="mode === 'stop' ? 'Escape' : 'Enter'"
             :disabled="disabled"
             @mousedown.prevent
             @click="onPrimary"
@@ -31,7 +30,7 @@
       <TooltipContent>{{ label }}</TooltipContent>
     </Tooltip>
 
-    <Tooltip v-if="mode === 'queue' || mode === 'steer'">
+    <Tooltip v-if="mode === 'queue' || mode === 'steer'" shortcut="escape">
       <TooltipTrigger>
         <template #render="{ props: part }">
           <IconButton

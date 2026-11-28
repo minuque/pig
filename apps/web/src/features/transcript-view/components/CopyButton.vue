@@ -5,27 +5,19 @@
     }}
   </span>
 
-  <Tooltip>
-    <TooltipTrigger>
-      <template #render="{ props: part }">
-        <IconButton
-          v-bind="{ ...part, ...$attrs }"
-          type="button"
-          size="s"
-          variant="ghost"
-          :color="tone"
-          class="copy-button"
-          :aria-label="copyLabel"
-          @click.stop="copy"
-        >
-          <CheckIcon v-if="status === 'copied'" class="size-icon motion-blur-in" />
-          <CopyIcon v-else :class="['size-icon', { 'motion-blur-in': swapped }]" />
-        </IconButton>
-      </template>
-    </TooltipTrigger>
-
-    <TooltipContent>{{ copyLabel }}</TooltipContent>
-  </Tooltip>
+  <IconButton
+    v-bind="$attrs"
+    type="button"
+    size="s"
+    variant="ghost"
+    :color="tone"
+    class="copy-button"
+    :aria-label="copyLabel"
+    @click.stop="copy"
+  >
+    <CheckIcon v-if="status === 'copied'" class="size-icon motion-blur-in" />
+    <CopyIcon v-else :class="['size-icon', { 'motion-blur-in': swapped }]" />
+  </IconButton>
 </template>
 
 <script setup lang="ts">
@@ -33,7 +25,6 @@ import { computed, shallowRef } from "vue"
 import { useTimeoutFn } from "@vueuse/core"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@pig/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { CheckIcon, CopyIcon } from "@components/icons/index.js"
 
 defineOptions({ inheritAttrs: false })

@@ -46,27 +46,18 @@
       </template>
 
       <template #left>
-        <Tooltip>
-          <TooltipTrigger>
-            <template #render="{ props: part }">
-              <IconButton
-                v-bind="part"
-                type="button"
-                size="s"
-                variant="ghost"
-                color="neutral"
-                :aria-label="t('composer.addAttachment')"
-                :disabled="attachmentsFull"
-                @mousedown.prevent
-                @click="pickFiles"
-              >
-                <PaperclipIcon class="size-icon" />
-              </IconButton>
-            </template>
-          </TooltipTrigger>
-
-          <TooltipContent>{{ t("composer.addAttachment") }}</TooltipContent>
-        </Tooltip>
+        <IconButton
+          type="button"
+          size="s"
+          variant="ghost"
+          color="neutral"
+          :aria-label="t('composer.addAttachment')"
+          :disabled="attachmentsFull"
+          @mousedown.prevent
+          @click="pickFiles"
+        >
+          <PaperclipIcon class="size-icon" />
+        </IconButton>
 
         <input ref="fileInput" type="file" multiple hidden @change="onFilesPicked" />
       </template>
@@ -115,7 +106,6 @@
 import { computed, ref, useTemplateRef, watch } from "vue"
 import { useI18n } from "@i18n/index.js"
 import { IconButton } from "@pig/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import AttachmentTray from "@features/composer/components/AttachmentTray.vue"
 import ComposerPrimaryAction from "@features/composer/components/ComposerPrimaryAction.vue"
 import ContextRing from "@features/composer/components/ContextRing.vue"

@@ -41,25 +41,16 @@
       </DropdownMenuContent>
     </DropdownMenu>
 
-    <Tooltip>
-      <TooltipTrigger>
-        <template #render="{ props: part }">
-          <IconButton
-            v-bind="part"
-            class="footer-btn"
-            type="button"
-            size="m"
-            variant="ghost"
-            :aria-label="t('nav.settings')"
-            @click="emit('settings')"
-          >
-            <SettingsIcon class="size-icon-lg" />
-          </IconButton>
-        </template>
-      </TooltipTrigger>
-
-      <TooltipContent>{{ t("nav.settings") }}</TooltipContent>
-    </Tooltip>
+    <IconButton
+      class="footer-btn"
+      type="button"
+      size="m"
+      variant="ghost"
+      :aria-label="t('nav.settings')"
+      @click="emit('settings')"
+    >
+      <SettingsIcon class="size-icon-lg" />
+    </IconButton>
   </div>
 </template>
 
@@ -72,7 +63,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@pig/ui/dropdown-menu"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@pig/ui/tooltip"
 import { useI18n } from "@i18n/index.js"
 import { GlobeIcon, MoonIcon, SettingsIcon, SunIcon } from "@components/icons/index.js"
 import { useGeneralPrefs } from "@features/settings/index.js"

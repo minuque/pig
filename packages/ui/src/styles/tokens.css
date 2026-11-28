@@ -292,6 +292,8 @@
     rgba(255, 255, 255, 0.45) 50%,
     transparent 78%
   );
+  --tooltip-fg: var(--bg);
+  --tooltip-fg-muted: color-mix(in srgb, var(--bg) 70%, var(--fg));
   --notif-peek: 12px;
   --notif-gap: 8px;
 }

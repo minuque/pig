@@ -1,7 +1,7 @@
 <template>
   <header class="workbench-header">
     <span class="header-start">
-      <Tooltip>
+      <Tooltip shortcut="mod+b">
         <TooltipTrigger>
           <template #render="{ props: part }">
             <IconButton

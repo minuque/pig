@@ -27,25 +27,16 @@
 
           <FileTabs class="file-panel-tabs" />
 
-          <Tooltip>
-            <TooltipTrigger>
-              <template #render="{ props: part }">
-                <IconButton
-                  v-bind="part"
-                  type="button"
-                  size="s"
-                  variant="ghost"
-                  color="neutral"
-                  :aria-label="t('files.search')"
-                  @click="pane.focusSearch()"
-                >
-                  <SearchIcon class="size-icon" />
-                </IconButton>
-              </template>
-            </TooltipTrigger>
-
-            <TooltipContent>{{ t("files.search") }}</TooltipContent>
-          </Tooltip>
+          <IconButton
+            type="button"
+            size="s"
+            variant="ghost"
+            color="neutral"
+            :aria-label="t('files.search')"
+            @click="pane.focusSearch()"
+          >
+            <SearchIcon class="size-icon" />
+          </IconButton>
         </header>
 
         <div class="file-panel-body">
