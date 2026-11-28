@@ -1,7 +1,8 @@
 /** 跨设备通用的用户偏好：落在 gateway 的 preferences.json，localStorage 只是首屏镜像。 */
 export type UserThemeMode = "auto" | "light" | "dark"
 
-export type UserPalette = "pig" | "catppuccin"
+export type UserPalette =
+  "pig" | "catppuccin" | "rose-pine" | "solarized" | "gruvbox" | "nord" | "tokyo-night" | "dracula"
 
 export type UserCodeTheme =
   | "github"

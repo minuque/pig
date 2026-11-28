@@ -9,7 +9,16 @@ import { readPref, readStringArray, writeJson, writePref } from "@utils/storage.
 import { getPreferences, patchPreferences } from "./platform.js"
 
 export const THEME_MODES = ["auto", "light", "dark"] as const
-export const PALETTES = ["pig", "catppuccin"] as const
+export const PALETTES = [
+  "pig",
+  "catppuccin",
+  "rose-pine",
+  "solarized",
+  "gruvbox",
+  "nord",
+  "tokyo-night",
+  "dracula",
+] as const
 export const CODE_THEMES = [
   "github",
   "catppuccin",

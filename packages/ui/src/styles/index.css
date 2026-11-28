@@ -2,6 +2,6 @@
 
 @import "./reset.css" layer(base);
 @import "./tokens.css";
-@import "./palette-catppuccin.css";
+@import "./palettes.css";
 @import "./motion.css";
 @import "./components.css";

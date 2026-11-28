@@ -11,7 +11,16 @@ import { pigHomeFile, writeJsonAtomic } from "./pig-file.js"
 
 const DEBOUNCE_MS = 80
 const THEME_MODES = ["auto", "light", "dark"] as const
-const PALETTES = ["pig", "catppuccin"] as const
+const PALETTES = [
+  "pig",
+  "catppuccin",
+  "rose-pine",
+  "solarized",
+  "gruvbox",
+  "nord",
+  "tokyo-night",
+  "dracula",
+] as const
 const CODE_THEMES = [
   "github",
   "catppuccin",

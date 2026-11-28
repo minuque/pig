@@ -432,7 +432,6 @@ export const zh = {
     schemeHint: "跟随系统，或固定浅色、深色。",
     palette: "界面配色",
     paletteHint: "界面的底色、文字与强调色。",
-    paletteDefault: "pig（默认）",
     codeTheme: "代码配色",
     codeThemeHint: "代码块、diff 和文件预览的语法高亮，随明暗自动切换。",
     display: "显示",
@@ -1193,7 +1192,6 @@ export const en: Messages = {
     schemeHint: "Follow the system, or always use light or dark.",
     palette: "Interface colors",
     paletteHint: "Background, text, and accent colors of the interface.",
-    paletteDefault: "pig (default)",
     codeTheme: "Code colors",
     codeThemeHint:
       "Syntax highlighting in code blocks, diffs, and file previews. Follows light and dark mode.",

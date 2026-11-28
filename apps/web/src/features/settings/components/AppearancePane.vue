@@ -31,12 +31,12 @@
 
           <Select :model-value="palette" @update:model-value="onPalette">
             <SelectTrigger class="setting-select" :aria-label="t('settings.palette')">
-              {{ paletteLabel }}
+              {{ PALETTE_LABELS[palette] }}
             </SelectTrigger>
 
             <SelectContent>
-              <SelectItem v-for="option in palettes" :key="option.id" :value="option.id">
-                {{ option.label }}
+              <SelectItem v-for="id in PALETTES" :key="id" :value="id">
+                {{ PALETTE_LABELS[id] }}
               </SelectItem>
             </SelectContent>
           </Select>
@@ -247,10 +247,11 @@
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { CODE_THEMES, DEFAULT_PREFERENCES as DEFAULTS } from "@client/preferences.js"
+import { CODE_THEMES, DEFAULT_PREFERENCES as DEFAULTS, PALETTES } from "@client/preferences.js"
 import type { UserCodeTheme, UserPalette } from "@/types/common-type.js"
 import { useColorScheme } from "@features/theme/index.js"
 import { CODE_THEME_OPTIONS } from "@features/theme/code-themes.js"
+import { PALETTE_LABELS } from "@features/theme/palettes.js"
 import {
   CODE_SIZES,
   CONTRAST_RANGE,
@@ -340,13 +341,6 @@ const widths = computed<{ id: ChatWidth; label: string }[]>(() => [
   { id: "wide", label: t("settings.chatWidthWide") },
   { id: "full", label: t("settings.chatWidthFull") },
 ])
-const palettes = computed<{ id: UserPalette; label: string }[]>(() => [
-  { id: "pig", label: t("settings.paletteDefault") },
-  { id: "catppuccin", label: "Catppuccin" },
-])
-const paletteLabel = computed(
-  () => palettes.value.find((option) => option.id === palette.value)?.label ?? "",
-)
 const codeSizes = CODE_SIZES
 const widthLabel = computed(
   () => widths.value.find((option) => option.id === chatWidth.value)?.label ?? "",

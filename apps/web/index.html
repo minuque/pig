@@ -41,7 +41,18 @@
           (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches)
 
         if (dark) document.documentElement.classList.add("dark")
-        if (palette === "catppuccin") document.documentElement.dataset.palette = palette
+        if (
+          [
+            "catppuccin",
+            "rose-pine",
+            "solarized",
+            "gruvbox",
+            "nord",
+            "tokyo-night",
+            "dracula",
+          ].indexOf(palette) !== -1
+        )
+          document.documentElement.dataset.palette = palette
       })()
     </script>
     <link rel="stylesheet" href="/src/style/app.css" />
