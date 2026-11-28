@@ -38,7 +38,7 @@ export function useWaitingNotices(
     sessions: Ref<readonly SessionMetadata[]>
     shownIds: Ref<readonly (string | undefined)[]>
     open(id: string): void
-    sound: { play(event: "done"): unknown }
+    sound: { play(event: "input"): unknown }
   },
 ) {
   const noticeId = (id: string) => `waiting:${id}`
@@ -60,7 +60,7 @@ export function useWaitingNotices(
         )
 
         if (userPreferences.value.notifyInput) {
-          void deps.sound.play("done")
+          void deps.sound.play("input")
           void notifySystem({
             title: waitingLabel,
             body: sessionName,

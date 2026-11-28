@@ -55,7 +55,7 @@ import { Switch } from "@pig/ui/switch"
 import { CardList, CardRow } from "@pig/ui/card"
 
 const { t } = useI18n()
-const { enabled: soundOn, toggle: toggleSound } = useSound()
+const { enabled: soundOn, toggle: toggleSound, play: playSound } = useSound()
 const { notifyOn, notifyInputOn, setNotify, setNotifyInput } = useGeneralPrefs()
 
 async function permitted(next: boolean) {
@@ -69,7 +69,10 @@ async function onNotify(next: boolean) {
 }
 
 async function onNotifyInput(next: boolean) {
-  if (await permitted(next)) setNotifyInput(next)
+  if (!(await permitted(next))) return
+  setNotifyInput(next)
+
+  if (next) void playSound("input")
 }
 </script>
 
