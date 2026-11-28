@@ -1,12 +1,12 @@
 <template>
-  <div data-slot="select-search">
+  <div ref="root" data-slot="select-search">
     <SearchIcon aria-hidden="true" data-slot="select-search-icon" />
     <SelectInputPrimitive v-bind="$attrs" :placeholder="placeholder" :aria-label="ariaLabel" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, useAttrs } from "vue"
+import { computed, onMounted, useAttrs, useTemplateRef } from "vue"
 import { SearchIcon } from "@lucide/vue"
 import { SelectInput as SelectInputPrimitive } from "@ui-sdk/vue/select"
 
@@ -14,12 +14,21 @@ defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(defineProps<{ placeholder?: string }>(), { placeholder: "" })
 const attrs = useAttrs()
+const root = useTemplateRef<HTMLElement>("root")
 const ariaLabel = computed(() => {
   const raw = attrs["aria-label"]
 
   if (typeof raw === "string" && raw) return raw
   return props.placeholder || undefined
 })
+
+onMounted(() =>
+  requestAnimationFrame(() => {
+    const content = root.value?.closest<HTMLElement>('[data-slot="select-content"]')
+
+    if (content) content.style.inlineSize = `${content.getBoundingClientRect().width}px`
+  }),
+)
 </script>
 
 <style>
