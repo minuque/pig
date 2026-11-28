@@ -1,5 +1,16 @@
 export const ASK_TOOL = "ask_user_question"
 
+export const ASK_ANSWERS_ENTRY = "pig.ask-answers"
+
+/** ask 的结构化回答，字段照 rpiv-ask-user-question 写在工具结果 details.answers 里的格式。 */
+export interface AskAnswer {
+  questionIndex: number
+  question: string
+  kind: "option" | "custom" | "multi"
+  answer: string | null
+  selected?: string[]
+}
+
 /** 扩展经 ctx.ui 发来的请求；字段照 pi RPC 的 extension_ui_request，去掉 type。 */
 export type ExtensionUiRequest =
   | { id: string; method: "select"; title: string; options: string[]; timeout?: number }

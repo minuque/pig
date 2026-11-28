@@ -1,5 +1,5 @@
 import { computed, inject, provide, shallowRef, watch, type InjectionKey } from "vue"
-import type { ExtensionUiResponse } from "@pig/protocol"
+import type { AskAnswer, ExtensionUiResponse } from "@pig/protocol"
 import { t } from "@i18n/index.js"
 import type { SessionContext } from "@features/session/index.js"
 import { useExtensionUi } from "@features/extension-ui/index.js"
@@ -8,6 +8,7 @@ import {
   askBoard,
   emptyAnswer,
   extensionBoard,
+  askAnswers,
   formatAskAnswers,
   nextUnanswered,
   type Board,
@@ -18,7 +19,7 @@ const AUTO_NEXT_MS = 200
 
 type BoardSession = Pick<
   SessionContext,
-  "sessionId" | "transcript" | "turnPending" | "prompt" | "sendPrompt"
+  "sessionId" | "transcript" | "turnPending" | "prompt" | "sendPrompt" | "recordAskAnswers"
 >
 
 function useQuestionBoardState(session: BoardSession) {
@@ -101,12 +102,14 @@ function useQuestionBoardState(session: BoardSession) {
     if (pending.value) void ui.answer(pending.value, response)
   }
 
-  function finishAsk(text: string) {
+  async function finishAsk(text: string, answers?: AskAnswer[]) {
     const active = board.value
 
     if (!active) return
     done.value = new Set(done.value).add(active.id)
-    void session.sendPrompt(text)
+
+    if (answers) await session.recordAskAnswers(active.id, answers).catch(() => undefined)
+    await session.sendPrompt(text)
   }
 
   function pick(position: number) {
@@ -159,7 +162,10 @@ function useQuestionBoardState(session: BoardSession) {
     const next = nextUnanswered(current.value, active.questions.length, index.value)
 
     if (next !== undefined) return go(next)
-    finishAsk(formatAskAnswers(active.questions, current.value))
+    void finishAsk(
+      formatAskAnswers(active.questions, current.value),
+      askAnswers(active.questions, current.value),
+    )
   }
 
   function skip() {
@@ -167,7 +173,7 @@ function useQuestionBoardState(session: BoardSession) {
 
     if (!active) return
 
-    if (active.source === "ask") return finishAsk(t("extensionUi.askSkipped"))
+    if (active.source === "ask") return void finishAsk(t("extensionUi.askSkipped"))
     const request = pending.value?.request
     respond(
       request?.method === "confirm"

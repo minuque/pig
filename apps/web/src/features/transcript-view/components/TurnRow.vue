@@ -38,6 +38,8 @@
 
       <TaskNotice v-else-if="row.role === 'task'" :task="row.task" />
 
+      <AskRecord v-else-if="row.role === 'ask'" :row="row" />
+
       <TimelineEvent
         v-else-if="row.role === 'event'"
         :row="row"
@@ -67,6 +69,7 @@ import { ref, useTemplateRef, watch } from "vue"
 import { useIntersectionObserver } from "@vueuse/core"
 import AssistantMessage from "@features/transcript-view/components/AssistantMessage.vue"
 import TaskNotice from "@features/transcript-view/components/TaskNotice.vue"
+import AskRecord from "@features/transcript-view/components/AskRecord.vue"
 import ExtensionMessage from "@features/transcript-view/components/events/ExtensionMessage.vue"
 import TimelineAlert from "@features/transcript-view/components/events/TimelineAlert.vue"
 import TimelineEvent from "@features/transcript-view/components/events/TimelineEvent.vue"

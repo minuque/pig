@@ -10,8 +10,8 @@ import type { TurnTiming } from "@/types/common-type.js"
 import {
   createTimelineRowsBuilder,
   isToolRow,
-  reuseTimelineRows,
 } from "@features/transcript-view/lib/transcript-rows.js"
+import { reuseTimelineRows } from "@features/transcript-view/lib/transcript-row-reuse.js"
 import { thoughtStepLabel } from "@features/transcript-view/lib/transcript-row-label.js"
 
 const user: UserTranscriptItem = {
@@ -292,5 +292,74 @@ describe("一轮工作 → 执行过程与最终回答", () => {
     expect(reused[0]).toBe(previous[0])
     expect(reused[1]).not.toBe(previous[1])
     expect(reused[1]).toMatchObject({ role: "assistant", entryId: "entry-1" })
+  })
+})
+
+describe("已回答的 ask → 决策表", () => {
+  const questions = [
+    {
+      header: "日期库",
+      question: "用哪个日期库？",
+      options: [{ label: "date-fns" }, { label: "dayjs" }],
+    },
+    {
+      header: "范围",
+      question: "一起处理哪些？",
+      multiSelect: true,
+      options: [{ label: "时区" }, { label: "快照" }, { label: "文案" }],
+    },
+  ]
+  const askCall = (id: string): AssistantTranscriptItem["content"][number] => ({
+    type: "toolCall",
+    toolCallId: id,
+    toolName: "ask_user_question",
+    input: { questions },
+  })
+  const askTool: ToolTranscriptItem = {
+    ...tool("ask-1", "ask_user_question"),
+    input: { questions },
+  }
+  const expected = [
+    { question: "用哪个日期库？", chosen: "dayjs", others: ["date-fns"] },
+    { question: "一起处理哪些？", chosen: "时区、快照", others: ["文案"] },
+  ]
+
+  it("工具结果带 details.answers 时（rpiv 这类插件）直接成表，对话照常往下", () => {
+    const answered: ToolTranscriptItem = {
+      ...askTool,
+      details: {
+        answers: [
+          { questionIndex: 0, question: "用哪个日期库？", kind: "option", answer: "dayjs" },
+          {
+            questionIndex: 1,
+            question: "一起处理哪些？",
+            kind: "multi",
+            answer: null,
+            selected: ["时区", "快照"],
+          },
+        ],
+        cancelled: false,
+      },
+    }
+    const rows = buildRows([user, assistant(1, [askCall("ask-1")]), answered, text(2, "好")], false)
+
+    expect(rows.map((row) => row.role)).toEqual(["user", "ask", "assistant"])
+    expect(rows[1]).toMatchObject({ lines: expected })
+  })
+
+  it("pig ask 的回答消息收进决策表，不再单独显示成用户气泡", () => {
+    const reply: UserTranscriptItem = {
+      id: "u2",
+      role: "user",
+      timestamp: 3000,
+      content: [{ type: "text", text: "日期库：dayjs\n范围：时区、快照" }],
+    }
+    const rows = buildRows(
+      [user, assistant(1, [askCall("ask-1")]), askTool, reply, text(2, "好")],
+      false,
+    )
+
+    expect(rows.map((row) => row.role)).toEqual(["user", "ask", "assistant"])
+    expect(rows[1]).toMatchObject({ lines: expected })
   })
 })

@@ -47,6 +47,7 @@ type RunCommand =
   | "compact"
   | "reload"
   | "stop_task"
+  | "record_ask_answers"
 
 function toMetadata(snapshot: SessionSnapshot): SessionMetadata {
   return {
@@ -113,6 +114,10 @@ export class LiveSessions {
         return this.run(connection, command, (runtime) => runtime.reload())
       case "stop_task":
         return this.run(connection, command, async (runtime) => runtime.stopTask(command.taskId))
+      case "record_ask_answers":
+        return this.run(connection, command, (runtime) =>
+          runtime.recordAskAnswers(command.toolCallId, command.answers),
+        )
       case "extension_ui_response":
         this.attached(connection, command.sessionId).runtime.respondExtensionUi(command.response)
         return { command: "extension_ui_response", sessionId: command.sessionId }

@@ -1,5 +1,6 @@
 import {
   ASK_TOOL,
+  type AskAnswer,
   type ExtensionUiDialog,
   type JsonValue,
   type TranscriptItem,
@@ -103,6 +104,23 @@ export function formatAskAnswers(
       return `${question.header}：${value}`
     })
     .join("\n")
+}
+
+export function askAnswers(
+  questions: readonly BoardQuestion[],
+  answers: readonly BoardAnswer[],
+): AskAnswer[] {
+  return questions.map((question, questionIndex) => {
+    const { picked, text } = answers[questionIndex] ?? emptyAnswer()
+    const typed = text.trim()
+    const base = { questionIndex, question: question.question }
+
+    if (question.multiple)
+      return { ...base, kind: "multi", answer: typed || null, selected: picked }
+
+    if (typed) return { ...base, kind: "custom", answer: typed }
+    return { ...base, kind: "option", answer: picked[0] ?? null }
+  })
 }
 
 export function nextUnanswered(answers: readonly BoardAnswer[], total: number, from: number) {

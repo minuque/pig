@@ -11,8 +11,6 @@ import type {
   ToolCallView,
   ToolRow,
   ToolRowStep,
-  TranscriptImage,
-  UserRow,
 } from "@features/transcript-view/type.js"
 import {
   isAssistantItem,
@@ -22,12 +20,16 @@ import {
   transcriptImages,
 } from "@features/transcript-view/lib/transcript-format.js"
 import {
-  sameContextSegments,
   transcriptText,
   userMessageParts,
   userMessageText,
 } from "@features/session/lib/transcript-text.js"
 import { toolGroupKey } from "@features/transcript-view/lib/tool-summary.js"
+import {
+  askRecords,
+  turnAsksKey,
+  type AskRecords,
+} from "@features/transcript-view/lib/ask-record.js"
 import {
   appendSystemRow,
   settleTurnOutcome,
@@ -63,16 +65,18 @@ function appendTurn({
   rest,
   live,
   timings,
+  asks,
 }: {
   rows: TimelineRow[]
   user: UserTranscriptItem | undefined
   rest: TranscriptItem[]
   live: boolean
   timings: readonly TurnTiming[]
+  asks: AskRecords
 }) {
   const turnStart = rows.length
 
-  if (user) {
+  if (user && !asks.folded.has(user.id)) {
     const parts = userMessageParts(user)
     rows.push({
       id: user.id,
@@ -134,6 +138,15 @@ function appendTurn({
     segmentEndedAt = undefined
   }
 
+  function appendAsk(toolCallId: string) {
+    const lines = asks.lines.get(toolCallId)
+
+    if (!lines) return false
+    flushTools("done")
+    rows.push({ id: `ask:${toolCallId}`, role: "ask", lines })
+    return true
+  }
+
   function appendTool(tool: ToolCallView) {
     steps.push({
       type: "tools",
@@ -171,7 +184,7 @@ function appendTurn({
     }
 
     if (isToolItem(item)) {
-      if (describedToolCalls.has(item.toolCallId) || live) continue
+      if (describedToolCalls.has(item.toolCallId) || live || appendAsk(item.toolCallId)) continue
       appendTool({
         id: item.toolCallId,
         toolName: item.toolName,
@@ -224,6 +237,8 @@ function appendTurn({
 
         if (renderedToolCalls.has(block.toolCallId)) continue
         renderedToolCalls.add(block.toolCallId)
+
+        if (appendAsk(block.toolCallId)) continue
         const result = toolResults.get(block.toolCallId)
         const settled = result !== undefined && result.status !== "running"
         appendTool({
@@ -291,6 +306,7 @@ interface TurnRowsEntry {
   rest: readonly TranscriptItem[]
   live: boolean
   timing: TurnTiming | undefined
+  asksKey: string
   rows: TimelineRow[]
 }
 
@@ -305,6 +321,7 @@ export function createTimelineRowsBuilder() {
     timings: readonly TurnTiming[] = [],
   ): TimelineRow[] {
     const rows: TimelineRow[] = []
+    const asks = askRecords(items)
     const timingByUser = new Map(timings.map((timing) => [timing.userId, timing]))
     let user: UserTranscriptItem | undefined
     let rest: TranscriptItem[] = []
@@ -313,10 +330,12 @@ export function createTimelineRowsBuilder() {
       const timing = user ? timingByUser.get(user.id) : undefined
       const key = user ? `u:${user.id}` : `o:${rest[0]?.id ?? "none"}`
       const cached = cache.get(key)
+      const asksKey = turnAsksKey(user, rest, asks)
       const reusable =
         cached !== undefined &&
         cached.live === live &&
         cached.timing === timing &&
+        cached.asksKey === asksKey &&
         cached.user === user &&
         cached.rest.length === rest.length &&
         cached.rest.every((item, index) => item === rest[index])
@@ -325,9 +344,9 @@ export function createTimelineRowsBuilder() {
         rows.push(...cached.rows)
       } else {
         const turnRows: TimelineRow[] = []
-        appendTurn({ rows: turnRows, user, rest, live, timings })
+        appendTurn({ rows: turnRows, user, rest, live, timings, asks })
         cache.delete(key)
-        cache.set(key, { user, rest, live, timing, rows: turnRows })
+        cache.set(key, { user, rest, live, timing, asksKey, rows: turnRows })
         rows.push(...turnRows)
       }
 
@@ -352,132 +371,4 @@ export function createTimelineRowsBuilder() {
   }
 
   return { build, reset: () => cache.clear() }
-}
-
-function sameImages(left: readonly TranscriptImage[], right: readonly TranscriptImage[]) {
-  if (left === right) return true
-
-  if (left.length !== right.length) return false
-  return left.every((image, index) => {
-    const other = right[index]
-    return other != null && image.data === other.data && image.mimeType === other.mimeType
-  })
-}
-
-function sameTiming(left: TurnTiming | undefined, right: TurnTiming | undefined) {
-  if (left === right) return true
-
-  if (!left || !right) return false
-  return (
-    left.userId === right.userId &&
-    left.startedAt === right.startedAt &&
-    left.outcome === right.outcome &&
-    (left.outcome === "running" || left.endedAt === right.endedAt)
-  )
-}
-
-function sameUserRow(left: UserRow, right: UserRow) {
-  return (
-    left.id === right.id &&
-    left.text === right.text &&
-    left.timestamp === right.timestamp &&
-    sameContextSegments(left.parts, right.parts) &&
-    sameImages(left.images, right.images)
-  )
-}
-
-function sameAssistantRow(left: AssistantRow, right: AssistantRow) {
-  return (
-    left.id === right.id &&
-    left.entryId === right.entryId &&
-    left.text === right.text &&
-    left.streaming === right.streaming &&
-    left.error === right.error &&
-    left.aborted === right.aborted &&
-    left.timestamp === right.timestamp &&
-    left.showTimestamp === right.showTimestamp &&
-    left.errorMessage === right.errorMessage
-  )
-}
-
-function sameToolRow(left: ToolRow, right: ToolRow) {
-  if (
-    left.id !== right.id ||
-    left.mode !== right.mode ||
-    left.turnStreaming !== right.turnStreaming ||
-    left.aborted !== right.aborted ||
-    left.error !== right.error ||
-    left.startedAt !== right.startedAt ||
-    left.endedAt !== right.endedAt ||
-    !sameTiming(left.timing, right.timing) ||
-    left.steps.length !== right.steps.length
-  ) {
-    return false
-  }
-
-  return left.steps.every((step, index) => {
-    const other = right.steps[index]
-
-    if (!other || step.id !== other.id || step.type !== other.type) return false
-
-    if (step.type === "thought" && other.type === "thought") {
-      return (
-        step.text === other.text &&
-        step.streaming === other.streaming &&
-        step.startedAt === other.startedAt &&
-        step.endedAt === other.endedAt
-      )
-    }
-
-    if (step.type !== "tools" || other.type !== "tools") return false
-
-    if (step.key !== other.key || step.items.length !== other.items.length) return false
-    return step.items.every((item, itemIndex) => {
-      const nextItem = other.items[itemIndex]
-      return (
-        nextItem != null &&
-        item.id === nextItem.id &&
-        item.toolName === nextItem.toolName &&
-        item.running === nextItem.running &&
-        item.isError === nextItem.isError &&
-        item.input === nextItem.input &&
-        item.outputText === nextItem.outputText &&
-        item.details === nextItem.details &&
-        sameImages(item.outputImages, nextItem.outputImages)
-      )
-    })
-  })
-}
-
-function sameRow(left: TimelineRow, right: TimelineRow) {
-  if (left === right) return true
-
-  if (left.role !== right.role) return false
-
-  if (left.role === "user" && right.role === "user") return sameUserRow(left, right)
-
-  if (left.role === "assistant" && right.role === "assistant") return sameAssistantRow(left, right)
-
-  if (left.role === "tools" && right.role === "tools") return sameToolRow(left, right)
-
-  if (left.role === "event" || left.role === "alert" || left.role === "extension")
-    return JSON.stringify(left) === JSON.stringify(right)
-  return false
-}
-
-export function reuseTimelineRows(
-  previous: readonly TimelineRow[],
-  next: readonly TimelineRow[],
-): TimelineRow[] {
-  if (previous.length === 0) return next as TimelineRow[]
-  const prevById = new Map(previous.map((row) => [row.id, row]))
-  let changed = previous.length !== next.length
-  const rows = next.map((row, index) => {
-    const prev = prevById.get(row.id)
-    const reused = prev && sameRow(prev, row) ? prev : row
-
-    if (reused !== previous[index]) changed = true
-    return reused
-  })
-  return changed ? rows : (previous as TimelineRow[])
 }

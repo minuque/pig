@@ -67,6 +67,7 @@ export interface SessionRuntime {
   respondExtensionUi(response: ExtensionUiResponse): void
   extensionDialogs(): ExtensionUiDialog[]
   stopTask(taskId: string): void
+  recordAskAnswers(toolCallId: string, answers: unknown): Promise<void>
   hasRunningTasks(): boolean
   dispose(): Promise<void>
 }

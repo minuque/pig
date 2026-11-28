@@ -1,4 +1,5 @@
 import type {
+  AskAnswer,
   ModelRef,
   SessionPhase,
   SessionSnapshot,
@@ -159,6 +160,15 @@ export class GatewaySession {
 
   async stopTask(taskId: string) {
     await this.client.requestSession({ command: "stop_task", sessionId: this.#require(), taskId })
+  }
+
+  async recordAskAnswers(toolCallId: string, answers: AskAnswer[]) {
+    await this.client.requestSession({
+      command: "record_ask_answers",
+      sessionId: this.#require(),
+      toolCallId,
+      answers,
+    })
   }
 
   async setModel(model: ModelRef) {

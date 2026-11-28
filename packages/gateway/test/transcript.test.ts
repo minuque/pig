@@ -129,6 +129,40 @@ describe("TranscriptProjection", () => {
     expect(text).toContain("```mermaid")
     expect(items[2]).toMatchObject({ role: "tool", toolCallId: "call-1", toolName: "read" })
   })
+
+  it("pig ask 落盘的回答并进对应 ask 工具的 details；工具自带 details 时不覆盖", () => {
+    const manager = SessionManager.inMemory("/tmp")
+    const answers = [
+      { questionIndex: 0, question: "用哪个库？", kind: "option", answer: "dayjs" },
+      { questionIndex: 1, question: "要哪些？", kind: "multi", answer: null, selected: ["lint"] },
+    ]
+    const rpiv = { answers: [{ ...answers[0], answer: "date-fns" }], cancelled: false }
+
+    manager.appendMessage({ role: "user", content: "换掉 moment", timestamp: 1000 })
+    manager.appendMessage(
+      assistantMessage({
+        stopReason: "toolUse",
+        content: [
+          { type: "toolCall", id: "ask-pig", name: "ask_user_question", arguments: {} },
+          { type: "toolCall", id: "ask-rpiv", name: "ask_user_question", arguments: {} },
+        ],
+      }),
+    )
+    manager.appendMessage(
+      toolResultMessage({ toolCallId: "ask-pig", toolName: "ask_user_question" }),
+    )
+    manager.appendMessage(
+      toolResultMessage({ toolCallId: "ask-rpiv", toolName: "ask_user_question", details: rpiv }),
+    )
+    manager.appendCustomEntry("pig.ask-answers", { toolCallId: "ask-pig", answers })
+    manager.appendCustomEntry("pig.ask-answers", { toolCallId: "ask-rpiv", answers })
+
+    const tools = new TranscriptProjection()
+      .transcript(manager.getBranch())
+      .filter((item) => item.role === "tool")
+
+    expect(tools.map((item) => item.details)).toEqual([{ answers, cancelled: false }, rpiv])
+  })
 })
 
 describe("同一分支上投影只在末尾追加", () => {

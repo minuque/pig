@@ -20,6 +20,7 @@ import {
   toUserItem,
 } from "./item-convert.js"
 import { isThinkingLevel } from "./provider-view.js"
+import { withAskAnswers } from "./ask-answers.js"
 
 // 外部：pi-ai 未直接依赖，从官方会话类型提取
 type AgentMessage = Extract<SessionEntry, { type: "message" }>["message"]
@@ -176,8 +177,8 @@ export class TranscriptProjection {
     }
 
     this.cachedEntries = entries
-    this.cachedTranscript = items
-    return items
+    this.cachedTranscript = withAskAnswers(items, entries)
+    return this.cachedTranscript
   }
 
   inFlight(message: unknown): AssistantTranscriptItem | undefined {

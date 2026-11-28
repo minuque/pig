@@ -1,5 +1,5 @@
 import type { TimelineRow, TimelineTurn } from "@features/transcript-view/type.js"
-import { reuseTimelineRows } from "@features/transcript-view/lib/transcript-rows.js"
+import { reuseTimelineRows } from "@features/transcript-view/lib/transcript-row-reuse.js"
 
 export function groupTimelineTurns(rows: readonly TimelineRow[]): TimelineTurn[] {
   const turns: TimelineTurn[] = []

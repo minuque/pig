@@ -120,6 +120,7 @@ export function createPageSession(): SessionContext {
     contextUsage: computed(() => projectContextUsage(PAGE_USAGE)),
     tasks: computed(() => PAGE_TASKS),
     stopTask: resolved,
+    recordAskAnswers: resolved,
     snapshot,
     setModel: resolved,
     setThinking: resolved,

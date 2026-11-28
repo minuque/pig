@@ -1,4 +1,4 @@
-import type { ExtensionUiRequest, ExtensionUiResponse } from "./extension-ui.js"
+import type { AskAnswer, ExtensionUiRequest, ExtensionUiResponse } from "./extension-ui.js"
 import type { ModelMetadata, ModelRef, ThinkingLevel } from "./model.js"
 import type { DefaultModelView } from "./provider.js"
 import type { UserPreferences } from "./preferences.js"
@@ -86,6 +86,7 @@ export type Command =
   | { command: "reload"; sessionId: string }
   | { command: "extension_ui_response"; sessionId: string; response: ExtensionUiResponse }
   | { command: "stop_task"; sessionId: string; taskId: string }
+  | { command: "record_ask_answers"; sessionId: string; toolCallId: string; answers: AskAnswer[] }
   /** 按需盯住一个会话文件：外部进程（如 Pi TUI）往里追加时推 session_file_changed。 */
   | { command: "watch_session"; sessionId: string }
   | { command: "unwatch_session"; sessionId: string }

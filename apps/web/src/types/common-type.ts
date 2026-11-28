@@ -1,4 +1,5 @@
 export type {
+  AskAnswer,
   AssistantTranscriptItem,
   ComposerCommand,
   ContextUsageEstimate,

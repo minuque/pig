@@ -1,5 +1,5 @@
 import { computed, getCurrentInstance, onBeforeUnmount, ref, watch, type ComputedRef } from "vue"
-import type { ModelRef, ThinkingLevel } from "@/types/common-type.js"
+import type { AskAnswer, ModelRef, ThinkingLevel } from "@/types/common-type.js"
 import type { useLocalWorkspaces } from "@client/local-cwd.js"
 import type { useGatewayClient } from "@client/gateway-connection.js"
 import type { ComposerAttachmentBatch, SendAttachmentsHooks } from "@/types/attachment-type.js"
@@ -378,6 +378,10 @@ export function useSessionLifecycle(
 
   const tasks = computed(() => snapshot.value?.tasks ?? [])
 
+  async function recordAskAnswers(toolCallId: string, answers: AskAnswer[]) {
+    await remote.value?.recordAskAnswers(toolCallId, answers)
+  }
+
   async function stopTask(taskId: string) {
     await remote.value?.stopTask(taskId)
   }
@@ -445,6 +449,7 @@ export function useSessionLifecycle(
     contextUsage,
     tasks,
     stopTask,
+    recordAskAnswers,
     snapshot,
     setModel,
     setThinking,

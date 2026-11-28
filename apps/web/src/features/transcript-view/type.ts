@@ -107,8 +107,19 @@ export type ExtensionRow = {
   timestamp: number
 }
 
+export type AskRecordLine = { question: string; chosen: string; others: string[] }
+
+export type AskRecordRow = { id: string; role: "ask"; lines: AskRecordLine[] }
+
 export type TimelineRow =
-  UserRow | AssistantRow | ToolRow | TaskNoticeRow | EventRow | AlertRow | ExtensionRow
+  | UserRow
+  | AssistantRow
+  | ToolRow
+  | TaskNoticeRow
+  | EventRow
+  | AlertRow
+  | ExtensionRow
+  | AskRecordRow
 
 export type TimelineTurn = {
   id: string

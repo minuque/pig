@@ -15,6 +15,7 @@ import type {
   ThinkingLevel,
   TranscriptProgress,
 } from "@pig/protocol"
+import { ASK_ANSWERS_ENTRY, ASK_TOOL } from "@pig/protocol"
 import { GatewayError, SessionBusyError } from "./runtime-types.js"
 import type {
   SessionRuntime,
@@ -30,6 +31,7 @@ import { estimateContextUsage } from "./context-usage.js"
 import { firstUserMessageText, sessionListName } from "./session-label.js"
 import { TranscriptProjection } from "./transcript.js"
 import { readTurnTimings } from "./turn-timing.js"
+import { parseAskAnswers } from "./ask-answers.js"
 
 const SNAPSHOT_SKIP_EVENTS = new Set([
   "message_start",
@@ -105,6 +107,29 @@ export class PiHostSession implements SessionRuntime {
   stopTask(taskId: string): void {
     const event: TaskStopEvent = { sessionId: this.session.sessionId, taskId }
     this.events?.emit(TASK_STOP_CHANNEL, event)
+  }
+
+  async recordAskAnswers(toolCallId: string, answers: unknown): Promise<void> {
+    await this.exclusive(async () => {
+      await this.rejectIfAppended()
+      const parsed = parseAskAnswers(answers)
+      const asked = this.session.sessionManager
+        .getBranch()
+        .some(
+          (entry) =>
+            entry.type === "message" &&
+            entry.message.role === "toolResult" &&
+            entry.message.toolName === ASK_TOOL &&
+            entry.message.toolCallId === toolCallId,
+        )
+
+      if (!parsed || !asked)
+        throw new GatewayError("invalid_request", "ask answers do not match an ask tool call")
+      this.session.sessionManager.appendCustomEntry(ASK_ANSWERS_ENTRY, {
+        toolCallId,
+        answers: parsed,
+      })
+    })
   }
 
   hasRunningTasks(): boolean {
