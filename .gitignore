@@ -148,6 +148,7 @@ playwright-report/
 test-results/
 .smoke-ui/
 .playwright-mcp/
+.probe*/
 
 # agents config files
 .pi/
