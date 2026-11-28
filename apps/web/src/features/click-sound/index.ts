@@ -23,13 +23,13 @@ const SOUNDS: Record<SoundEvent, SoundSpec> = {
     reflections: [0.024, 0.032],
   },
   input: {
-    seconds: 0.62,
-    gain: 0.45,
-    clicks: [],
-    tones: [
-      [0.01, 659.25, 0.07, 0.12],
-      [0.14, 880, 0.08, 0.18],
+    seconds: 0.6,
+    gain: 0.55,
+    clicks: [
+      [0.009, 0.16, 0.00085],
+      [0.179, 0.21, 0.00052],
     ],
+    tones: [[0.205, 392, 0.05, 0.12]],
     reflections: [0.024, 0.032],
   },
 }
