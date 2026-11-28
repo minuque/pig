@@ -34,6 +34,7 @@ const DEFAULT_BODY = {
   chatWidth: "comfortable",
   notify: true,
   notifyInput: true,
+  notifyError: true,
   userName: "",
   clickSound: true,
   favoriteModels: [],

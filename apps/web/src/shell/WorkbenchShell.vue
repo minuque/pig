@@ -110,11 +110,12 @@ const railTasksVisible = shallowRef(false)
 const pendingTaskFocus = shallowRef<{ sessionId: string; taskId: string; seq: number }>()
 let taskFocusSeq = 0
 
+const sound = useSound()
 const sharedBuckets = provideSharedBuckets()
 const hub = createSessionHub(pi)
 const backgroundPump = createBackgroundPump({
   queue: useComposerQueue(sharedBuckets),
-  sound: useSound(),
+  sound,
   send: hub.backgroundSend.send,
   transcriptFor: hub.history.transcriptFor,
   announce(id, outcome, detail) {
@@ -207,6 +208,10 @@ hub.setTaskObserver(
   }),
 )
 
+watch(pi.reconnectFailed, (failed) => {
+  if (failed) void sound.play("attention")
+})
+
 watch(session.sessionId, (id) => {
   if (id) resolveNotificationsForSession(id, (item) => !item.id.startsWith("waiting:"))
 })
@@ -224,7 +229,7 @@ useWaitingNotices(waiting, {
   sessions: pi.sessions,
   shownIds: computed(() => [session.sessionId.value]),
   open: (id) => nav.openSession(id),
-  sound: useSound(),
+  sound,
 })
 
 const archiveController: ArchiveController = {

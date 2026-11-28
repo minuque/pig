@@ -100,7 +100,7 @@ describe("前台轮次收尾", () => {
     expect(ctx.sound.play).not.toHaveBeenCalled()
   })
 
-  it("失败路径：最后一条助手是 error 不响完成音", async () => {
+  it("失败路径：最后一条助手是 error 响出错提示音而不是完成音", async () => {
     const ctx = setup()
 
     ctx.items.value = [assistant("error")]
@@ -109,7 +109,7 @@ describe("前台轮次收尾", () => {
     ctx.running.value = false
     await nextTick()
 
-    expect(ctx.sound.play).not.toHaveBeenCalled()
+    expect(ctx.sound.play.mock.calls).toEqual([["attention"]])
     expect(announce).toHaveBeenCalledWith("error", undefined)
     expect(announce).not.toHaveBeenCalledWith("done")
   })

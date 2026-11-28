@@ -43,6 +43,7 @@ export interface UserPreferences {
   chatWidth: UserChatWidth
   notify: boolean
   notifyInput: boolean
+  notifyError: boolean
   userName: string
   clickSound: boolean
   favoriteModels: string[]

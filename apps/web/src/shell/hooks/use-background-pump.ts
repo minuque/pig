@@ -5,7 +5,7 @@ import { endedCleanly, type BackgroundIdleResult } from "@features/session/index
 
 interface BackgroundPumpDeps {
   queue: ComposerQueueApi
-  sound: { play(event: "done"): unknown }
+  sound: { play(event: "done" | "attention"): unknown }
   send(id: string, text: string, attachments?: ComposerAttachmentBatch): Promise<boolean>
   transcriptFor(id: string): readonly TranscriptItem[]
   announce(id: string, outcome: "complete" | "error", detail?: string): void
@@ -31,7 +31,10 @@ export function createBackgroundPump(deps: BackgroundPumpDeps) {
       } else {
         const failure = failed(items)
 
-        if (failure.failed) deps.announce(id, "error", failure.errorMessage)
+        if (failure.failed) {
+          void deps.sound.play("attention")
+          deps.announce(id, "error", failure.errorMessage)
+        }
       }
 
       return "done"

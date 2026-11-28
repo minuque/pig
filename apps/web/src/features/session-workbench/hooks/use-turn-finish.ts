@@ -10,7 +10,7 @@ interface TurnFinishDeps {
   pending(): boolean
   transcript(): readonly TranscriptItem[]
   queue: ComposerQueueApi
-  sound: { play(event: "done"): unknown }
+  sound: { play(event: "done" | "attention"): unknown }
   sendForeground(text: string, attachments?: ComposerAttachmentBatch): Promise<boolean>
   announce(kind: "done" | "error", message?: string): void
 }
@@ -43,8 +43,10 @@ export function useTurnFinish(deps: TurnFinishDeps) {
     const last = items.findLast((item) => item.role === "assistant")
     const clean = !abortedTurn && deps.queue.sizeFor(id) === 0 && endedCleanly(items)
 
-    if (!abortedTurn && last?.role === "assistant" && last.status === "error")
+    if (!abortedTurn && last?.role === "assistant" && last.status === "error") {
+      void deps.sound.play("attention")
       deps.announce("error", last.errorMessage)
+    }
 
     abortedTurn = false
 

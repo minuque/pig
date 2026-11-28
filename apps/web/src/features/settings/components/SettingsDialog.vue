@@ -321,6 +321,12 @@ const searchEntries = computed<SettingsSearchEntry[]>(() => [
     section: t("settings.notifications"),
   },
   {
+    id: "setting-notify-error",
+    pane: "notifications",
+    title: t("settings.notifyError"),
+    section: t("settings.notifications"),
+  },
+  {
     id: "setting-notify-sound",
     pane: "notifications",
     title: t("settings.notifySound"),

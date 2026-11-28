@@ -17,6 +17,7 @@ const locale = computed(() => userPreferences.value.locale)
 const chatWidth = computed(() => userPreferences.value.chatWidth)
 const notifyOn = computed(() => userPreferences.value.notify)
 const notifyInputOn = computed(() => userPreferences.value.notifyInput)
+const notifyErrorOn = computed(() => userPreferences.value.notifyError)
 const userName = shallowRef(userPreferences.value.userName)
 let loaded = false
 
@@ -52,6 +53,7 @@ export function useGeneralPrefs() {
     chatWidth,
     notifyOn,
     notifyInputOn,
+    notifyErrorOn,
     userName: readonly(userName),
     setUserName(next: string) {
       userName.value = next
@@ -71,6 +73,9 @@ export function useGeneralPrefs() {
     },
     setNotifyInput(next: boolean) {
       updatePreferences({ notifyInput: next })
+    },
+    setNotifyError(next: boolean) {
+      updatePreferences({ notifyError: next })
     },
   }
 }

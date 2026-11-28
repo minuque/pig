@@ -52,6 +52,7 @@ const KEYS = {
   chatWidth: "pig.chatWidth",
   notify: "pig.notify",
   notifyInput: "pig.notifyInput",
+  notifyError: "pig.notifyError",
   userName: "pig.userName",
   clickSound: "pig.clickSound",
   favoriteModels: "pig.favoriteModels",
@@ -69,6 +70,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   chatWidth: "comfortable",
   notify: true,
   notifyInput: true,
+  notifyError: true,
   userName: "",
   clickSound: true,
   favoriteModels: [],
@@ -140,6 +142,7 @@ function readStored(): UserPreferences {
     chatWidth: pick(readPref(KEYS.chatWidth), CHAT_WIDTHS, DEFAULT_PREFERENCES.chatWidth),
     notify: readPref(KEYS.notify) !== "off",
     notifyInput: readPref(KEYS.notifyInput) !== "off",
+    notifyError: readPref(KEYS.notifyError) !== "off",
     userName: readPref(KEYS.userName) ?? "",
     clickSound: readPref(KEYS.clickSound) !== "off",
     favoriteModels: uniqueModels(readStringArray(KEYS.favoriteModels)),
@@ -159,6 +162,7 @@ const SCALAR_KEYS = [
   "chatWidth",
   "notify",
   "notifyInput",
+  "notifyError",
   "clickSound",
 ] as const
 
@@ -193,6 +197,7 @@ function writeMirror(preferences: UserPreferences): void {
   writePref(KEYS.chatWidth, preferences.chatWidth)
   writePref(KEYS.notify, preferences.notify ? "on" : "off")
   writePref(KEYS.notifyInput, preferences.notifyInput ? "on" : "off")
+  writePref(KEYS.notifyError, preferences.notifyError ? "on" : "off")
   writePref(KEYS.userName, preferences.userName)
   writePref(KEYS.clickSound, preferences.clickSound ? "on" : "off")
   writeJson(KEYS.favoriteModels, preferences.favoriteModels)

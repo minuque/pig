@@ -30,6 +30,19 @@
           />
         </CardRow>
 
+        <CardRow id="setting-notify-error" class="row">
+          <div class="copy">
+            <h3 class="label">{{ t("settings.notifyError") }}</h3>
+            <p class="desc">{{ t("settings.notifyErrorHint") }}</p>
+          </div>
+
+          <Switch
+            :aria-label="t('settings.notifyError')"
+            :model-value="notifyErrorOn"
+            @update:model-value="onNotifyError"
+          />
+        </CardRow>
+
         <CardRow id="setting-notify-sound" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.notifySound") }}</h3>
@@ -56,7 +69,8 @@ import { CardList, CardRow } from "@pig/ui/card"
 
 const { t } = useI18n()
 const { enabled: soundOn, toggle: toggleSound, play: playSound } = useSound()
-const { notifyOn, notifyInputOn, setNotify, setNotifyInput } = useGeneralPrefs()
+const { notifyOn, notifyInputOn, notifyErrorOn, setNotify, setNotifyInput, setNotifyError } =
+  useGeneralPrefs()
 
 async function permitted(next: boolean) {
   if (!next || typeof Notification === "undefined" || Notification.permission !== "default")
@@ -66,6 +80,12 @@ async function permitted(next: boolean) {
 
 async function onNotify(next: boolean) {
   if (await permitted(next)) setNotify(next)
+}
+
+function onNotifyError(next: boolean) {
+  setNotifyError(next)
+
+  if (next) void playSound("attention")
 }
 
 async function onNotifyInput(next: boolean) {
