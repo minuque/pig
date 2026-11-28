@@ -53,6 +53,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   locale: "zh-CN",
   chatWidth: "comfortable",
   notify: true,
+  notifyInput: true,
   userName: "",
   clickSound: true,
   favoriteModels: [],
@@ -126,6 +127,7 @@ function normalizePreferences(raw: Record<string, unknown>): UserPreferences {
     locale: oneOf(raw.locale, LOCALES, DEFAULT_PREFERENCES.locale),
     chatWidth: oneOf(raw.chatWidth, CHAT_WIDTHS, DEFAULT_PREFERENCES.chatWidth),
     notify: flag(raw.notify, DEFAULT_PREFERENCES.notify),
+    notifyInput: flag(raw.notifyInput, DEFAULT_PREFERENCES.notifyInput),
     userName: text(raw.userName, DEFAULT_PREFERENCES.userName),
     clickSound: flag(raw.clickSound, DEFAULT_PREFERENCES.clickSound),
     favoriteModels: modelKeys(raw.favoriteModels),
@@ -175,6 +177,9 @@ function pickPatch(input: Record<string, unknown>): UserPreferencesPatch {
     patch.chatWidth = requiredOneOf("chatWidth", input.chatWidth, CHAT_WIDTHS)
 
   if (patchEntry(input, "notify")) patch.notify = requiredFlag("notify", input.notify)
+
+  if (patchEntry(input, "notifyInput"))
+    patch.notifyInput = requiredFlag("notifyInput", input.notifyInput)
 
   if (patchEntry(input, "userName"))
     patch.userName = requiredText("userName", input.userName).trim()

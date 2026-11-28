@@ -19,6 +19,7 @@ const DEFAULTS: UserPreferences = {
   locale: "zh-CN",
   chatWidth: "comfortable",
   notify: true,
+  notifyInput: true,
   userName: "",
   clickSound: true,
   favoriteModels: [],

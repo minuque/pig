@@ -33,6 +33,7 @@ const DEFAULT_BODY = {
   locale: "zh-CN",
   chatWidth: "comfortable",
   notify: true,
+  notifyInput: true,
   userName: "",
   clickSound: true,
   favoriteModels: [],

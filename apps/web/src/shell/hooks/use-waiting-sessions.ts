@@ -1,5 +1,6 @@
 import { computed, watch, type Ref } from "vue"
 import { t } from "@i18n/index.js"
+import { userPreferences } from "@client/preferences.js"
 import { pushNotification, resolveNotification } from "@pig/ui/notification"
 import type { SessionMetadata, TranscriptItem } from "@/types/common-type.js"
 import type { ExtensionUiContext } from "@features/extension-ui/index.js"
@@ -37,6 +38,7 @@ export function useWaitingNotices(
     sessions: Ref<readonly SessionMetadata[]>
     shownIds: Ref<readonly (string | undefined)[]>
     open(id: string): void
+    sound: { play(event: "done"): unknown }
   },
 ) {
   const noticeId = (id: string) => `waiting:${id}`
@@ -50,13 +52,24 @@ export function useWaitingNotices(
         if (!next.has(id) || shown.includes(id)) resolveNotification(noticeId(id))
 
       for (const [id, kind] of next) {
-        if (before.get(id) === kind || shown.includes(id)) continue
+        if (before.get(id) === kind) continue
         const meta = deps.sessions.value.find((item) => item.id === id)
         const sessionName = meta ? sessionTitle(meta) : untitledSession()
         const waitingLabel = t(
           kind === "confirm" ? "session.waitingConfirm" : "session.waitingAnswer",
         )
 
+        if (userPreferences.value.notifyInput) {
+          void deps.sound.play("done")
+          void notifySystem({
+            title: waitingLabel,
+            body: sessionName,
+            onClick: () => deps.open(id),
+            enabled: true,
+          })
+        }
+
+        if (shown.includes(id)) continue
         pushNotification({
           id: noticeId(id),
           title: waitingLabel,
@@ -66,12 +79,6 @@ export function useWaitingNotices(
           sessionId: id,
           avatar: meta?.cwd ? { kind: "project", cwd: meta.cwd } : { kind: "brand" },
           actions: [{ label: t("session.openSession"), primary: true, run: () => deps.open(id) }],
-        })
-
-        void notifySystem({
-          title: waitingLabel,
-          body: sessionName,
-          onClick: () => deps.open(id),
         })
       }
     },

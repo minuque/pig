@@ -17,6 +17,19 @@
           />
         </CardRow>
 
+        <CardRow id="setting-notify-input" class="row">
+          <div class="copy">
+            <h3 class="label">{{ t("settings.notifyInput") }}</h3>
+            <p class="desc">{{ t("settings.notifyInputHint") }}</p>
+          </div>
+
+          <Switch
+            :aria-label="t('settings.notifyInput')"
+            :model-value="notifyInputOn"
+            @update:model-value="onNotifyInput"
+          />
+        </CardRow>
+
         <CardRow id="setting-notify-sound" class="row">
           <div class="copy">
             <h3 class="label">{{ t("settings.notifySound") }}</h3>
@@ -43,16 +56,20 @@ import { CardList, CardRow } from "@pig/ui/card"
 
 const { t } = useI18n()
 const { enabled: soundOn, toggle: toggleSound } = useSound()
-const { notifyOn, setNotify } = useGeneralPrefs()
+const { notifyOn, notifyInputOn, setNotify, setNotifyInput } = useGeneralPrefs()
+
+async function permitted(next: boolean) {
+  if (!next || typeof Notification === "undefined" || Notification.permission !== "default")
+    return true
+  return (await Notification.requestPermission()) === "granted"
+}
 
 async function onNotify(next: boolean) {
-  if (next && typeof Notification !== "undefined" && Notification.permission === "default") {
-    const result = await Notification.requestPermission()
+  if (await permitted(next)) setNotify(next)
+}
 
-    if (result !== "granted") return
-  }
-
-  setNotify(next)
+async function onNotifyInput(next: boolean) {
+  if (await permitted(next)) setNotifyInput(next)
 }
 </script>
 

@@ -10,11 +10,13 @@ export interface SystemNotificationOptions {
   title: string
   body?: string | undefined
   onClick?: (() => void) | undefined
+  enabled?: boolean | undefined
 }
 
 const locale = computed(() => userPreferences.value.locale)
 const chatWidth = computed(() => userPreferences.value.chatWidth)
 const notifyOn = computed(() => userPreferences.value.notify)
+const notifyInputOn = computed(() => userPreferences.value.notifyInput)
 const userName = shallowRef(userPreferences.value.userName)
 let loaded = false
 
@@ -49,6 +51,7 @@ export function useGeneralPrefs() {
     locale,
     chatWidth,
     notifyOn,
+    notifyInputOn,
     userName: readonly(userName),
     setUserName(next: string) {
       userName.value = next
@@ -66,6 +69,9 @@ export function useGeneralPrefs() {
     setNotify(next: boolean) {
       updatePreferences({ notify: next })
     },
+    setNotifyInput(next: boolean) {
+      updatePreferences({ notifyInput: next })
+    },
   }
 }
 
@@ -76,7 +82,7 @@ function windowUnfocused(): boolean {
 
 export async function notifySystem(options: SystemNotificationOptions): Promise<void> {
   if (
-    !notifyOn.value ||
+    !(options.enabled ?? notifyOn.value) ||
     typeof Notification === "undefined" ||
     Notification.permission !== "granted" ||
     !windowUnfocused()

@@ -42,6 +42,7 @@ export interface UserPreferences {
   locale: UserLocale
   chatWidth: UserChatWidth
   notify: boolean
+  notifyInput: boolean
   userName: string
   clickSound: boolean
   favoriteModels: string[]

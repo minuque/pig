@@ -224,6 +224,7 @@ useWaitingNotices(waiting, {
   sessions: pi.sessions,
   shownIds: computed(() => [session.sessionId.value]),
   open: (id) => nav.openSession(id),
+  sound: useSound(),
 })
 
 const archiveController: ArchiveController = {
