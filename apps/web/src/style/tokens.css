@@ -51,10 +51,6 @@
   --quote-border-width: 2px;
   --rail-width: 280px;
   --rail-pane-width: 480px;
-  --theme-wire-light: #ffffff;
-  --theme-wire-light-raised: #f7f8f8;
-  --theme-wire-dark: #101012;
-  --theme-wire-dark-raised: #17171a;
   --traffic-lights-width: 68px;
   --transcript-tool-max: 400px;
 }

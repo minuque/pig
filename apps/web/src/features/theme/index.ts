@@ -1,13 +1,19 @@
 import { computed, effectScope, nextTick, watch, type ComputedRef } from "vue"
 import { updatePreferences, userPreferences } from "@client/preferences.js"
 import type { ColorScheme } from "@pig/ui/theme"
+import type { UserCodeTheme, UserPalette } from "@/types/common-type.js"
 import { useIsDark, useThemeMode } from "@utils/theme-mode.js"
+import { codeBlockTheme, type CodeBlockTheme } from "./code-themes.js"
 
 type Theme = {
   isDark: ComputedRef<boolean>
   scheme: ComputedRef<ColorScheme>
-  codeBlockProps: ComputedRef<{ theme: "github-dark" | "github-light" }>
+  palette: ComputedRef<UserPalette>
+  codeTheme: ComputedRef<UserCodeTheme>
+  codeBlockProps: ComputedRef<{ theme: CodeBlockTheme }>
   setScheme: (next: ColorScheme) => void
+  setPalette: (next: UserPalette) => void
+  setCodeTheme: (next: UserCodeTheme) => void
   toggle: () => void
 }
 
@@ -25,8 +31,10 @@ function createTheme(): Theme {
   const scheme = computed<ColorScheme>(() =>
     mode.store.value === "auto" ? "auto" : mode.state.value,
   )
+  const palette = computed(() => userPreferences.value.palette)
+  const codeTheme = computed(() => userPreferences.value.codeTheme)
   const codeBlockProps = computed(() => ({
-    theme: isDark.value ? ("github-dark" as const) : ("github-light" as const),
+    theme: codeBlockTheme(codeTheme.value, isDark.value),
   }))
 
   watch(
@@ -37,7 +45,17 @@ function createTheme(): Theme {
     { immediate: true, flush: "sync" },
   )
   watch(
-    isDark,
+    palette,
+    (next) => {
+      if (typeof document === "undefined") return
+
+      if (next === "pig") delete document.documentElement.dataset.palette
+      else document.documentElement.dataset.palette = next
+    },
+    { immediate: true, flush: "sync" },
+  )
+  watch(
+    [isDark, palette],
     async () => {
       if (typeof window === "undefined" || !window.pigDesktop) return
       await nextTick()
@@ -51,6 +69,14 @@ function createTheme(): Theme {
   function setScheme(next: ColorScheme) {
     mode.value = next
     updatePreferences({ theme: next })
+  }
+
+  function setPalette(next: UserPalette) {
+    updatePreferences({ palette: next })
+  }
+
+  function setCodeTheme(next: UserCodeTheme) {
+    updatePreferences({ codeTheme: next })
   }
 
   function toggle() {
@@ -76,8 +102,12 @@ function createTheme(): Theme {
   return {
     isDark,
     scheme,
+    palette,
+    codeTheme,
     codeBlockProps,
     setScheme,
+    setPalette,
+    setCodeTheme,
     toggle,
   }
 }

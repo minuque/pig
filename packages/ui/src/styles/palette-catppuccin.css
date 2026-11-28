@@ -1,0 +1,94 @@
+html[data-palette="catppuccin"] {
+  --ctp-mauve: #8839ef;
+  --ctp-red: #d20f39;
+  --ctp-peach: #fe640b;
+  --ctp-yellow: #df8e1d;
+  --ctp-green: #40a02b;
+  --ctp-sky: #04a5e5;
+  --ctp-sapphire: #209fb5;
+  --ctp-blue: #1e66f5;
+  --ctp-text: #4c4f69;
+  --ctp-subtext1: #5c5f77;
+  --ctp-subtext0: #6c6f85;
+  --ctp-overlay1: #8c8fa1;
+  --ctp-surface1: #bcc0cc;
+  --ctp-base: #eff1f5;
+  --ctp-mantle: #e6e9ef;
+  --ink-dark: var(--ctp-text);
+  --hue-indigo: var(--ctp-blue);
+  --hue-cyan: var(--ctp-sky);
+  --hue-green: var(--ctp-green);
+  --hue-amber: var(--ctp-yellow);
+  --hue-orange: var(--ctp-peach);
+  --hue-red: var(--ctp-red);
+  --hue-violet: var(--ctp-mauve);
+  --fg-base: var(--ctp-text);
+  --fg-secondary-base: var(--ctp-subtext1);
+  --fg-muted-base: var(--ctp-subtext0);
+
+  --bg: var(--ctp-base);
+  --sidebar: var(--ctp-mantle);
+  --bg-surface: var(--ctp-mantle);
+  --bg-raised: color-mix(in srgb, var(--ctp-base) 50%, var(--ctp-mantle));
+  --bg-inverse: var(--ctp-subtext0);
+  --bg-inverse-hover: var(--ctp-subtext1);
+
+  --fg-on-accent: var(--ctp-base);
+  --fg-inverse: var(--ctp-base);
+
+  --accent-solid: var(--ctp-mauve);
+  --accent-solid-hover: color-mix(in oklab, var(--ctp-mauve) 85%, var(--ctp-text));
+  --accent-text: var(--ctp-mauve);
+  --link-external: var(--ctp-blue);
+  --scrollbar-color: var(--ctp-surface1);
+
+  --success-solid: var(--ctp-green);
+  --success-text: color-mix(in oklab, var(--ctp-green) 75%, var(--ctp-text));
+  --info-solid: var(--ctp-sapphire);
+  --info-text: color-mix(in oklab, var(--ctp-sapphire) 70%, var(--ctp-text));
+  --warning-solid: var(--ctp-yellow);
+  --warning-text: color-mix(in oklab, var(--ctp-yellow) 65%, var(--ctp-text));
+  --danger-solid: var(--ctp-red);
+  --danger-text: var(--ctp-red);
+
+  --empty-art: var(--ctp-overlay1);
+}
+
+html.dark[data-palette="catppuccin"] {
+  --ctp-mauve: #cba6f7;
+  --ctp-red: #f38ba8;
+  --ctp-peach: #fab387;
+  --ctp-yellow: #f9e2af;
+  --ctp-green: #a6e3a1;
+  --ctp-sky: #89dceb;
+  --ctp-sapphire: #74c7ec;
+  --ctp-blue: #89b4fa;
+  --ctp-text: #cdd6f4;
+  --ctp-subtext1: #bac2de;
+  --ctp-subtext0: #a6adc8;
+  --ctp-overlay2: #9399b2;
+  --ctp-overlay1: #7f849c;
+  --ctp-surface1: #45475a;
+  --ctp-surface0: #313244;
+  --ctp-base: #1e1e2e;
+  --ctp-mantle: #181825;
+  --ctp-crust: #11111b;
+  --ink-dark: var(--ctp-crust);
+  --fg-secondary-base: var(--ctp-subtext0);
+  --fg-muted-base: var(--ctp-overlay2);
+
+  --bg-surface: color-mix(in srgb, var(--ctp-base) 70%, var(--ctp-surface0));
+  --bg-raised: color-mix(in srgb, var(--ctp-base) 50%, var(--ctp-surface0));
+  --bg-inverse: var(--ctp-subtext0);
+  --bg-inverse-hover: var(--ctp-subtext1);
+
+  --fg-on-accent: var(--ctp-crust);
+  --fg-inverse: var(--ctp-crust);
+
+  --accent-solid-hover: color-mix(in oklab, var(--ctp-mauve) 85%, var(--ctp-text));
+  --scrollbar-color: var(--ctp-surface1);
+
+  --success-text: var(--ctp-green);
+  --info-text: var(--ctp-sapphire);
+  --warning-text: var(--ctp-yellow);
+}

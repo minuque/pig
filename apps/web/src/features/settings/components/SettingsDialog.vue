@@ -245,7 +245,19 @@ const searchEntries = computed<SettingsSearchEntry[]>(() => [
   {
     id: "setting-theme",
     pane: "appearance",
-    title: t("settings.theme"),
+    title: t("settings.scheme"),
+    section: t("settings.appearance"),
+  },
+  {
+    id: "setting-palette",
+    pane: "appearance",
+    title: t("settings.palette"),
+    section: t("settings.appearance"),
+  },
+  {
+    id: "setting-code-theme",
+    pane: "appearance",
+    title: t("settings.codeTheme"),
     section: t("settings.appearance"),
   },
   {

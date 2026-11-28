@@ -25,7 +25,7 @@ test("偏好落盘、新客户端自动恢复、外部改写实时热更新", as
 
   await page.locator(".nav-footer").getByRole("button", { name: "设置" }).click()
   await page.locator(".settings-nav").getByRole("button", { name: "外观" }).click()
-  await page.getByRole("radio", { name: "深色" }).click()
+  await page.getByRole("tab", { name: "深色" }).click()
 
   await page.locator(".settings-nav").getByRole("button", { name: "通用" }).click()
   await page.locator("#setting-language").getByRole("combobox").click()

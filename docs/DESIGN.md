@@ -35,7 +35,7 @@
 - 悬停、按下不另定色，叠 `--bg-hover` / `--bg-emphasis`。分割线只用 `--border-subtle`。
 - 发送键强调色实心，停止键 `--danger-solid`；不可用时换 `--bg-emphasis` 底配 `--fg-secondary`，不降透明度。
 - 默认不加脉冲，`StatusIndicator` 需要引起注意时才开 `pulse`。
-- 例外：`--language-*`、Mermaid 深色配色、`--favorite`、`--theme-wire-*` 与强度滑条渐变可以直接写色。
+- 例外：`--language-*`、Mermaid 深色配色、`--favorite`与强度滑条渐变可以直接写色。
 
 ## 表面
 

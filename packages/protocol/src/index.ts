@@ -64,7 +64,9 @@ export type { ModelChannels, ModelMetadata, ModelRef, ThinkingLevel } from "./mo
 
 export type {
   UserChatWidth,
+  UserCodeTheme,
   UserLocale,
+  UserPalette,
   UserPreferences,
   UserPreferencesPatch,
   UserRailLayout,

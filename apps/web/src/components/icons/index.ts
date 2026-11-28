@@ -53,6 +53,7 @@ export {
   MessageCirclePlusIcon,
   MessageSquareIcon,
   MinusIcon,
+  MonitorIcon,
   MoonIcon,
   PaletteIcon,
   PanelLeftIcon,

@@ -24,7 +24,9 @@
       // 首屏主题引导：与 vueuse useColorMode(storageKey: "npg-theme") 同格式；非法/缺失视为 auto
       ;(function () {
         var stored
+        var palette
         try {
+          palette = localStorage.getItem("pig.palette")
           stored = localStorage.getItem("npg-theme")
           if (stored !== "light" && stored !== "dark" && stored !== "auto") {
             stored = "auto"
@@ -39,6 +41,7 @@
           (stored !== "light" && window.matchMedia("(prefers-color-scheme: dark)").matches)
 
         if (dark) document.documentElement.classList.add("dark")
+        if (palette === "catppuccin") document.documentElement.dataset.palette = palette
       })()
     </script>
     <link rel="stylesheet" href="/src/style/app.css" />

@@ -24,6 +24,8 @@ const directoryPort: DirectoryPort = {
 }
 const DEFAULT_BODY = {
   theme: "auto",
+  palette: "pig",
+  codeTheme: "github",
   uiFont: "",
   codeFont: "",
   codeSize: 13,

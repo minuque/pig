@@ -11,6 +11,22 @@ import { pigHomeFile, writeJsonAtomic } from "./pig-file.js"
 
 const DEBOUNCE_MS = 80
 const THEME_MODES = ["auto", "light", "dark"] as const
+const PALETTES = ["pig", "catppuccin"] as const
+const CODE_THEMES = [
+  "github",
+  "catppuccin",
+  "rose-pine",
+  "solarized",
+  "gruvbox",
+  "one",
+  "vitesse",
+  "everforest",
+  "kanagawa",
+  "ayu",
+  "night-owl",
+  "material",
+  "vscode",
+] as const
 const LOCALES = ["en", "zh-CN"] as const
 const CHAT_WIDTHS = ["comfortable", "wide", "full"] as const
 export const CODE_SIZES = [10, 11, 12, 13, 14, 15, 16] as const
@@ -18,6 +34,8 @@ export const CONTRASTS = Array.from({ length: 31 }, (_, index) => 50 + index * 5
 export const RAIL_SECTIONS = ["environment", "context", "tasks"] as const
 export const DEFAULT_PREFERENCES: UserPreferences = {
   theme: "auto",
+  palette: "pig",
+  codeTheme: "github",
   uiFont: "",
   codeFont: "",
   codeSize: 13,
@@ -89,6 +107,8 @@ function normalizePreferences(raw: Record<string, unknown>): UserPreferences {
   const contrast = CONTRASTS.find((value) => value === raw.contrast)
   return {
     theme: oneOf(raw.theme, THEME_MODES, DEFAULT_PREFERENCES.theme),
+    palette: oneOf(raw.palette, PALETTES, DEFAULT_PREFERENCES.palette),
+    codeTheme: oneOf(raw.codeTheme, CODE_THEMES, DEFAULT_PREFERENCES.codeTheme),
     uiFont: text(raw.uiFont, DEFAULT_PREFERENCES.uiFont),
     codeFont: text(raw.codeFont, DEFAULT_PREFERENCES.codeFont),
     codeSize: codeSize ?? DEFAULT_PREFERENCES.codeSize,
@@ -114,6 +134,12 @@ function pickPatch(input: Record<string, unknown>): UserPreferencesPatch {
   if (unknown.length > 0) throw new PreferencesError(`未知偏好字段：${unknown.join(", ")}`)
 
   if (patchEntry(input, "theme")) patch.theme = requiredOneOf("theme", input.theme, THEME_MODES)
+
+  if (patchEntry(input, "palette"))
+    patch.palette = requiredOneOf("palette", input.palette, PALETTES)
+
+  if (patchEntry(input, "codeTheme"))
+    patch.codeTheme = requiredOneOf("codeTheme", input.codeTheme, CODE_THEMES)
 
   if (patchEntry(input, "uiFont")) patch.uiFont = requiredText("uiFont", input.uiFont)
 

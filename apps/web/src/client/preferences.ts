@@ -9,6 +9,22 @@ import { readPref, readStringArray, writeJson, writePref } from "@utils/storage.
 import { getPreferences, patchPreferences } from "./platform.js"
 
 export const THEME_MODES = ["auto", "light", "dark"] as const
+export const PALETTES = ["pig", "catppuccin"] as const
+export const CODE_THEMES = [
+  "github",
+  "catppuccin",
+  "rose-pine",
+  "solarized",
+  "gruvbox",
+  "one",
+  "vitesse",
+  "everforest",
+  "kanagawa",
+  "ayu",
+  "night-owl",
+  "material",
+  "vscode",
+] as const
 export const CODE_SIZES = [10, 11, 12, 13, 14, 15, 16] as const
 export const CONTRAST_RANGE = { min: 50, max: 200, step: 5 } as const
 export const LOCALES = ["en", "zh-CN"] as const
@@ -16,6 +32,8 @@ export const CHAT_WIDTHS = ["comfortable", "wide", "full"] as const
 export const RAIL_SECTIONS = ["environment", "context", "tasks"] as const
 const KEYS = {
   theme: "npg-theme",
+  palette: "pig.palette",
+  codeTheme: "pig.codeTheme",
   uiFont: "pig.uiFont",
   codeFont: "pig.codeFont",
   codeSize: "pig.codeSize",
@@ -30,6 +48,8 @@ const KEYS = {
 } as const
 export const DEFAULT_PREFERENCES: UserPreferences = {
   theme: "auto",
+  palette: "pig",
+  codeTheme: "github",
   uiFont: "",
   codeFont: "",
   codeSize: 13,
@@ -98,6 +118,8 @@ function readContrast(): number {
 function readStored(): UserPreferences {
   return {
     theme: pick(readPref(KEYS.theme), THEME_MODES, DEFAULT_PREFERENCES.theme),
+    palette: pick(readPref(KEYS.palette), PALETTES, DEFAULT_PREFERENCES.palette),
+    codeTheme: pick(readPref(KEYS.codeTheme), CODE_THEMES, DEFAULT_PREFERENCES.codeTheme),
     uiFont: readPref(KEYS.uiFont) ?? "",
     codeFont: readPref(KEYS.codeFont) ?? "",
     codeSize: readCodeSize(),
@@ -114,6 +136,8 @@ function readStored(): UserPreferences {
 
 const SCALAR_KEYS = [
   "theme",
+  "palette",
+  "codeTheme",
   "uiFont",
   "codeFont",
   "codeSize",
@@ -145,6 +169,8 @@ function legacyPatch(): UserPreferencesPatch {
 
 function writeMirror(preferences: UserPreferences): void {
   writePref(KEYS.theme, preferences.theme)
+  writePref(KEYS.palette, preferences.palette)
+  writePref(KEYS.codeTheme, preferences.codeTheme)
   writePref(KEYS.uiFont, preferences.uiFont)
   writePref(KEYS.codeFont, preferences.codeFont)
   writePref(KEYS.codeSize, String(preferences.codeSize))

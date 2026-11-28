@@ -1,6 +1,6 @@
 import type { Directive } from "vue"
-
-type CodeBlockTheme = "github-dark" | "github-light"
+import { useColorScheme } from "@features/theme/index.js"
+import type { CodeBlockTheme } from "@features/theme/code-themes.js"
 
 const preferredHighlighter = "highlights" as const
 
@@ -70,11 +70,11 @@ let highlighterWork: Promise<void> | undefined
 
 export function prefetchHighlighter(): void {
   if (highlighterWork) return
+  const theme = useColorScheme().codeBlockProps.value.theme
   highlighterWork = import("stream-diffs/pierre")
     .then(({ getSharedHighlighter }) => {
-      const dark = document.documentElement.classList.contains("dark")
       return getSharedHighlighter({
-        themes: [dark ? "github-dark" : "github-light"],
+        themes: [theme],
         langs: ["typescript", "bash"],
         preferredHighlighter,
       })

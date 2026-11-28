@@ -1,8 +1,73 @@
 <template>
   <section class="pane">
-    <section id="setting-theme" class="group">
+    <section class="group">
       <h2 class="group-title">{{ t("settings.theme") }}</h2>
-      <SchemeCards />
+
+      <CardList>
+        <CardRow id="setting-theme" class="row">
+          <div class="copy">
+            <div class="title">
+              <h3 class="label">{{ t("settings.scheme") }}</h3>
+            </div>
+
+            <p class="desc">{{ t("settings.schemeHint") }}</p>
+          </div>
+
+          <SchemeTabs />
+        </CardRow>
+
+        <CardRow id="setting-palette" class="row">
+          <div class="copy">
+            <div class="title">
+              <h3 class="label">{{ t("settings.palette") }}</h3>
+              <SettingReset
+                v-if="palette !== DEFAULTS.palette"
+                @reset="setPalette(DEFAULTS.palette)"
+              />
+            </div>
+
+            <p class="desc">{{ t("settings.paletteHint") }}</p>
+          </div>
+
+          <Select :model-value="palette" @update:model-value="onPalette">
+            <SelectTrigger class="setting-select" :aria-label="t('settings.palette')">
+              {{ paletteLabel }}
+            </SelectTrigger>
+
+            <SelectContent>
+              <SelectItem v-for="option in palettes" :key="option.id" :value="option.id">
+                {{ option.label }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </CardRow>
+
+        <CardRow id="setting-code-theme" class="row">
+          <div class="copy">
+            <div class="title">
+              <h3 class="label">{{ t("settings.codeTheme") }}</h3>
+              <SettingReset
+                v-if="codeTheme !== DEFAULTS.codeTheme"
+                @reset="setCodeTheme(DEFAULTS.codeTheme)"
+              />
+            </div>
+
+            <p class="desc">{{ t("settings.codeThemeHint") }}</p>
+          </div>
+
+          <Select :model-value="codeTheme" @update:model-value="onCodeTheme">
+            <SelectTrigger class="setting-select" :aria-label="t('settings.codeTheme')">
+              {{ CODE_THEME_OPTIONS[codeTheme].label }}
+            </SelectTrigger>
+
+            <SelectContent>
+              <SelectItem v-for="id in CODE_THEMES" :key="id" :value="id">
+                {{ CODE_THEME_OPTIONS[id].label }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </CardRow>
+      </CardList>
     </section>
 
     <section class="group">
@@ -182,7 +247,10 @@
 <script setup lang="ts">
 import { computed, shallowRef } from "vue"
 import { useI18n } from "@i18n/index.js"
-import { DEFAULT_PREFERENCES as DEFAULTS } from "@client/preferences.js"
+import { CODE_THEMES, DEFAULT_PREFERENCES as DEFAULTS } from "@client/preferences.js"
+import type { UserCodeTheme, UserPalette } from "@/types/common-type.js"
+import { useColorScheme } from "@features/theme/index.js"
+import { CODE_THEME_OPTIONS } from "@features/theme/code-themes.js"
 import {
   CODE_SIZES,
   CONTRAST_RANGE,
@@ -204,7 +272,7 @@ import { CardList, CardRow } from "@pig/ui/card"
 import { Slider } from "@pig/ui/slider"
 import FontOptionList from "./FontOptionList.vue"
 import SettingReset from "./SettingReset.vue"
-import SchemeCards from "./SchemeCards.vue"
+import SchemeTabs from "./SchemeTabs.vue"
 import { fontOptions, type FontOption } from "@features/settings/lib/font-options.js"
 
 const DEFAULT = "__default__"
@@ -212,6 +280,7 @@ const { t } = useI18n()
 const { chatWidth, setChatWidth } = useGeneralPrefs()
 const { uiFont, codeFont, codeSize, contrast, setUiFont, setCodeFont, setCodeSize, setContrast } =
   useAppearancePrefs()
+const { palette, codeTheme, setPalette, setCodeTheme } = useColorScheme()
 const { families, mono, load } = useLocalFonts()
 const uiFontList = shallowRef<InstanceType<typeof FontOptionList>>()
 const codeFontList = shallowRef<InstanceType<typeof FontOptionList>>()
@@ -254,6 +323,14 @@ function onFontsOpen(open: boolean) {
   if (open) void load()
 }
 
+function onPalette(value: string) {
+  setPalette(value as UserPalette)
+}
+
+function onCodeTheme(value: string) {
+  setCodeTheme(value as UserCodeTheme)
+}
+
 function onChatWidth(value: string) {
   setChatWidth(value as ChatWidth)
 }
@@ -263,6 +340,13 @@ const widths = computed<{ id: ChatWidth; label: string }[]>(() => [
   { id: "wide", label: t("settings.chatWidthWide") },
   { id: "full", label: t("settings.chatWidthFull") },
 ])
+const palettes = computed<{ id: UserPalette; label: string }[]>(() => [
+  { id: "pig", label: t("settings.paletteDefault") },
+  { id: "catppuccin", label: "Catppuccin" },
+])
+const paletteLabel = computed(
+  () => palettes.value.find((option) => option.id === palette.value)?.label ?? "",
+)
 const codeSizes = CODE_SIZES
 const widthLabel = computed(
   () => widths.value.find((option) => option.id === chatWidth.value)?.label ?? "",
