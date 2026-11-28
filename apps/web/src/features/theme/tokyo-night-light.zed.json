@@ -1,0 +1,319 @@
+{
+  "name": "Tokyo Night Light",
+  "license": "MIT License, Copyright (c) 2018-present Enkia, https://github.com/tokyo-night/tokyo-night-vscode-theme",
+  "appearance": "light",
+  "style": {
+    "background": "#e6e7ed",
+    "text": "#343b59",
+    "editor.background": "#e6e7ed",
+    "editor.foreground": "#343b59",
+    "editor.active_line.background": "#dcdee3",
+    "search.match_background": "#2d9c9130",
+    "players": [
+      {
+        "cursor": "#363c4d",
+        "background": "#363c4d",
+        "selection": "#acb0bf40"
+      }
+    ],
+    "error": "#bd4040",
+    "warning": "#8f5e15",
+    "info": "#0da0ba",
+    "hint": "#0da0ba",
+    "created": "#166775",
+    "deleted": "#914c54",
+    "modified": "#2959aa",
+    "terminal.ansi.green": "#33635c",
+    "terminal.ansi.red": "#8c4351",
+    "terminal.ansi.blue": "#2959aa",
+    "syntax": {
+      "attribute": {
+        "color": "#65359d"
+      },
+      "boolean": {
+        "color": "#965027"
+      },
+      "comment": {
+        "color": "#888b94"
+      },
+      "comment.doc": {
+        "color": "#888b94"
+      },
+      "comment.documentation": {
+        "color": "#888b94"
+      },
+      "comment.error": {
+        "color": "#888b94"
+      },
+      "comment.hint": {
+        "color": "#888b94"
+      },
+      "comment.note": {
+        "color": "#888b94"
+      },
+      "comment.todo": {
+        "color": "#888b94"
+      },
+      "comment.warning": {
+        "color": "#888b94"
+      },
+      "constant.builtin": {
+        "color": "#965027"
+      },
+      "constant.macro": {
+        "color": "#2959aa"
+      },
+      "constructor": {
+        "color": "#343b58"
+      },
+      "emphasis": {
+        "color": "#343b58",
+        "font_style": "italic"
+      },
+      "emphasis.strong": {
+        "color": "#343b58",
+        "font_weight": 700
+      },
+      "function": {
+        "color": "#2959aa"
+      },
+      "function.call": {
+        "color": "#2959aa"
+      },
+      "function.method": {
+        "color": "#2959aa"
+      },
+      "function.method.call": {
+        "color": "#2959aa"
+      },
+      "function.builtin": {
+        "color": "#006c86"
+      },
+      "function.decorator": {
+        "color": "#2959aa"
+      },
+      "function.macro": {
+        "color": "#2959aa"
+      },
+      "keyword": {
+        "color": "#65359d"
+      },
+      "keyword.conditional": {
+        "color": "#65359d"
+      },
+      "keyword.conditional.ternary": {
+        "color": "#65359d"
+      },
+      "keyword.coroutine": {
+        "color": "#65359d"
+      },
+      "keyword.debug": {
+        "color": "#006C86"
+      },
+      "keyword.directive": {
+        "color": "#65359d"
+      },
+      "keyword.directive.define": {
+        "color": "#65359d"
+      },
+      "keyword.exception": {
+        "color": "#65359d"
+      },
+      "keyword.export": {
+        "color": "#0f4b6e"
+      },
+      "keyword.function": {
+        "color": "#65359d"
+      },
+      "keyword.import": {
+        "color": "#0f4b6e"
+      },
+      "keyword.modifier": {
+        "color": "#7b43ba"
+      },
+      "keyword.operator": {
+        "color": "#006C86"
+      },
+      "keyword.repeat": {
+        "color": "#65359d"
+      },
+      "keyword.return": {
+        "color": "#65359d"
+      },
+      "keyword.type": {
+        "color": "#65359d"
+      },
+      "label": {
+        "color": "#343b58"
+      },
+      "link_text": {
+        "color": "#33635c"
+      },
+      "link_uri": {
+        "color": "#33635c"
+      },
+      "number": {
+        "color": "#965027"
+      },
+      "number.float": {
+        "color": "#965027"
+      },
+      "float": {
+        "color": "#965027"
+      },
+      "operator": {
+        "color": "#006C86"
+      },
+      "preproc": {
+        "color": "#33635c"
+      },
+      "punctuation": {
+        "color": "#006C86"
+      },
+      "punctuation.bracket": {
+        "color": "#484c61"
+      },
+      "punctuation.delimiter": {
+        "color": "#006C86"
+      },
+      "punctuation.list_marker": {
+        "color": "#006C86"
+      },
+      "punctuation.special": {
+        "color": "#0f4b6e"
+      },
+      "string": {
+        "color": "#385f0d"
+      },
+      "string.escape": {
+        "color": "#363c4d"
+      },
+      "string.regex": {
+        "color": "#3e6968"
+      },
+      "string.regexp": {
+        "color": "#3e6968"
+      },
+      "string.special": {
+        "color": "#385f0d"
+      },
+      "string.special.symbol": {
+        "color": "#385f0d"
+      },
+      "string.special.path": {
+        "color": "#385f0d"
+      },
+      "string.special.url": {
+        "color": "#33635c"
+      },
+      "string.doc": {
+        "color": "#888b94"
+      },
+      "string.documentation": {
+        "color": "#888b94"
+      },
+      "tag": {
+        "color": "#8c4351"
+      },
+      "tag.attribute": {
+        "color": "#65359d"
+      },
+      "tag.delimiter": {
+        "color": "#b05467"
+      },
+      "tag.doctype": {
+        "color": "#69323d"
+      },
+      "text.literal": {
+        "color": "#385f0d"
+      },
+      "title": {
+        "color": "#343b58"
+      },
+      "type": {
+        "color": "#343b58"
+      },
+      "type.builtin": {
+        "color": "#006c86"
+      },
+      "type.class.definition": {
+        "color": "#343b58"
+      },
+      "type.definition": {
+        "color": "#343b58"
+      },
+      "type.interface": {
+        "color": "#343b58"
+      },
+      "type.super": {
+        "color": "#65359d"
+      },
+      "variable": {
+        "color": "#343b58"
+      },
+      "variable.special": {
+        "color": "#8c4351"
+      },
+      "variable.builtin": {
+        "color": "#8c4351"
+      },
+      "variable.member": {
+        "color": "#0f4b6e"
+      },
+      "property": {
+        "color": "#0f4b6e"
+      },
+      "field": {
+        "color": "#0f4b6e"
+      },
+      "variable.parameter": {
+        "color": "#8f5e15"
+      },
+      "parameter": {
+        "color": "#8f5e15"
+      },
+      "module": {
+        "color": "#006c86"
+      },
+      "namespace": {
+        "color": "#006c86"
+      },
+      "enum": {
+        "color": "#343b58"
+      },
+      "variant": {
+        "color": "#2959aa"
+      },
+      "character": {
+        "color": "#65359d"
+      },
+      "character.special": {
+        "color": "#363c4d"
+      },
+      "symbol": {
+        "color": "#385f0d"
+      },
+      "diff.minus": {
+        "color": "#914c54"
+      },
+      "diff.plus": {
+        "color": "#449dab"
+      },
+      "embedded": {
+        "color": "#343b58"
+      },
+      "selector": {
+        "color": "#006c86"
+      },
+      "selector.class": {
+        "color": "#385f0d"
+      },
+      "selector.id": {
+        "color": "#942f2f"
+      },
+      "selector.pseudo": {
+        "color": "#65359d"
+      }
+    }
+  }
+}

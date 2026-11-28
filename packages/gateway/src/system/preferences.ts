@@ -35,6 +35,7 @@ const CODE_THEMES = [
   "night-owl",
   "material",
   "vscode",
+  "tokyo-night",
 ] as const
 const LOCALES = ["en", "zh-CN"] as const
 const CHAT_WIDTHS = ["comfortable", "wide", "full"] as const

@@ -33,6 +33,7 @@ export const CODE_THEMES = [
   "night-owl",
   "material",
   "vscode",
+  "tokyo-night",
 ] as const
 export const CODE_SIZES = [10, 11, 12, 13, 14, 15, 16] as const
 export const CONTRAST_RANGE = { min: 50, max: 200, step: 5 } as const

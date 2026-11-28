@@ -18,6 +18,7 @@ export type UserCodeTheme =
   | "night-owl"
   | "material"
   | "vscode"
+  | "tokyo-night"
 
 export type UserLocale = "en" | "zh-CN"
 

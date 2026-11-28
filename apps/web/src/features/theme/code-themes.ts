@@ -1,4 +1,14 @@
+import { registerCustomTheme } from "stream-diffs/pierre"
 import type { UserCodeTheme } from "@/types/common-type.js"
+import tokyoNightLightUrl from "./tokyo-night-light.json?url"
+import tokyoNightLightZedUrl from "./tokyo-night-light.zed.json?url"
+
+function loadJson(url: string) {
+  return () => fetch(url).then((response) => response.json())
+}
+
+registerCustomTheme("tokyo-night-light", loadJson(tokyoNightLightUrl))
+registerCustomTheme("tokyo-night-light", loadJson(tokyoNightLightZedUrl), "zed")
 
 export const CODE_THEME_OPTIONS = {
   github: { label: "GitHub", light: "github-light", dark: "github-dark" },
@@ -14,6 +24,7 @@ export const CODE_THEME_OPTIONS = {
   "night-owl": { label: "Night Owl", light: "night-owl-light", dark: "night-owl" },
   material: { label: "Material", light: "material-theme-lighter", dark: "material-theme-darker" },
   vscode: { label: "VS Code", light: "light-plus", dark: "dark-plus" },
+  "tokyo-night": { label: "Tokyo Night", light: "tokyo-night-light", dark: "tokyo-night" },
 } as const satisfies Record<UserCodeTheme, { label: string; light: string; dark: string }>
 
 type Pair = (typeof CODE_THEME_OPTIONS)[UserCodeTheme]

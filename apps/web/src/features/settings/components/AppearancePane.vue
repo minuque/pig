@@ -29,15 +29,27 @@
             <p class="desc">{{ t("settings.paletteHint") }}</p>
           </div>
 
-          <Select :model-value="palette" @update:model-value="onPalette">
+          <Select :items="paletteItems" :model-value="palette" @update:model-value="onPalette">
             <SelectTrigger class="setting-select" :aria-label="t('settings.palette')">
               {{ PALETTE_LABELS[palette] }}
             </SelectTrigger>
 
             <SelectContent>
-              <SelectItem v-for="id in PALETTES" :key="id" :value="id">
-                {{ PALETTE_LABELS[id] }}
-              </SelectItem>
+              <SelectInput :placeholder="t('settings.searchThemes')" />
+              <SelectEmpty v-slot="{ state }">
+                {{ t("settings.noMatchingThemes", { query: state.query.trim() }) }}
+              </SelectEmpty>
+
+              <SelectList v-slot="{ state }">
+                <SelectItem
+                  v-for="item in state.items as ThemeItem[]"
+                  :key="item.value"
+                  :value="item.value"
+                  :label="item.label"
+                >
+                  <SelectItemText>{{ item.label }}</SelectItemText>
+                </SelectItem>
+              </SelectList>
             </SelectContent>
           </Select>
         </CardRow>
@@ -55,15 +67,31 @@
             <p class="desc">{{ t("settings.codeThemeHint") }}</p>
           </div>
 
-          <Select :model-value="codeTheme" @update:model-value="onCodeTheme">
+          <Select
+            :items="codeThemeItems"
+            :model-value="codeTheme"
+            @update:model-value="onCodeTheme"
+          >
             <SelectTrigger class="setting-select" :aria-label="t('settings.codeTheme')">
               {{ CODE_THEME_OPTIONS[codeTheme].label }}
             </SelectTrigger>
 
             <SelectContent>
-              <SelectItem v-for="id in CODE_THEMES" :key="id" :value="id">
-                {{ CODE_THEME_OPTIONS[id].label }}
-              </SelectItem>
+              <SelectInput :placeholder="t('settings.searchThemes')" />
+              <SelectEmpty v-slot="{ state }">
+                {{ t("settings.noMatchingThemes", { query: state.query.trim() }) }}
+              </SelectEmpty>
+
+              <SelectList v-slot="{ state }">
+                <SelectItem
+                  v-for="item in state.items as ThemeItem[]"
+                  :key="item.value"
+                  :value="item.value"
+                  :label="item.label"
+                >
+                  <SelectItemText>{{ item.label }}</SelectItemText>
+                </SelectItem>
+              </SelectList>
             </SelectContent>
           </Select>
         </CardRow>
@@ -266,6 +294,7 @@ import {
   SelectEmpty,
   SelectInput,
   SelectItem,
+  SelectItemText,
   SelectList,
   SelectTrigger,
 } from "@pig/ui/select"
@@ -341,6 +370,13 @@ const widths = computed<{ id: ChatWidth; label: string }[]>(() => [
   { id: "wide", label: t("settings.chatWidthWide") },
   { id: "full", label: t("settings.chatWidthFull") },
 ])
+type ThemeItem = { value: string; label: string }
+
+const paletteItems: ThemeItem[] = PALETTES.map((id) => ({ value: id, label: PALETTE_LABELS[id] }))
+const codeThemeItems: ThemeItem[] = CODE_THEMES.map((id) => ({
+  value: id,
+  label: CODE_THEME_OPTIONS[id].label,
+}))
 const codeSizes = CODE_SIZES
 const widthLabel = computed(
   () => widths.value.find((option) => option.id === chatWidth.value)?.label ?? "",
