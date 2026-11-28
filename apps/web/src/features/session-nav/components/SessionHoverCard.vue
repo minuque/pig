@@ -31,7 +31,7 @@
           class="hover-icon"
           :vendor="foot.model.provider"
           :name="foot.model.id"
-          :size="12"
+          :size="14"
         />
 
         <span class="hover-text">{{ foot.model.id }}</span>
@@ -145,19 +145,19 @@ const stats = computed(() => {
 
 .hover-icon {
   justify-self: center;
-  inline-size: var(--icon-sm);
-  block-size: var(--icon-sm);
+  inline-size: var(--icon-md);
+  block-size: var(--icon-md);
   color: var(--fg-muted);
 }
 
 .hover-icon[data-tone] {
   justify-content: center;
-  inline-size: var(--icon-lg);
-  block-size: var(--icon-lg);
+  inline-size: var(--icon-md);
+  block-size: var(--icon-md);
   padding: 0;
   border-radius: var(--radius-min);
   color: var(--tone-text);
-  font-size: calc(var(--text-body) - 5px);
+  font-size: calc(var(--text-body) - 6px);
   font-weight: var(--font-weight-bold);
   line-height: 1;
   letter-spacing: 0;
